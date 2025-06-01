@@ -5,8 +5,9 @@ export const generateProofScore = (acceleratorApps: number = 0, founderName?: st
   
   console.log("Generating ProofScore for founder:", founderName);
   
-  // Specific journeys based on founder name
-  if (founderName === "Louis Ravenscroft") {
+  // Specific journeys based on founder name (trim whitespace)
+  const trimmedName = founderName?.trim();
+  if (trimmedName === "Louis Ravenscroft") {
     console.log("Using Louis Ravenscroft high score journey");
     // High score journey (>80) - Investor Deal Room
     baseScores = {
@@ -16,7 +17,7 @@ export const generateProofScore = (acceleratorApps: number = 0, founderName?: st
       traction: 15,
       readiness: 18
     };
-  } else if (founderName === "Louis Alexander") {
+  } else if (trimmedName === "Louis Alexander") {
     console.log("Using Louis Alexander low score journey");
     // Low score journey (<80) - ProofScaling Referral
     baseScores = {
