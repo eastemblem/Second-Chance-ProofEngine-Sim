@@ -1,0 +1,102 @@
+Second Chance Platform - Complete Brand & Development Guide
+🎨 Visual Brand Identity
+Color Palette
+Primary Dark: #0f0f0f (Deep charcoal background)
+Card/Secondary: #1a1a1a (Card backgrounds)
+Border/Accent: #2a2a2a (Borders and dividers)
+Primary Purple: #8b5cf6 (Violet - trust, innovation)
+Primary Gold: #fbbf24 (Amber - premium, success)
+Text Light: #98% (Near white for primary text)
+Text Muted: #64.9% (Gray for secondary text)
+Typography
+Font Family: Inter (Google Fonts)
+Weights: 300-900 available
+Headlines: Bold/Black weights (700-900)
+Body: Regular/Medium (400-500)
+Design Language
+Style: Dark mode premium design
+Gradients: Purple-to-gold (from-[#8b5cf6] to-[#fbbf24])
+Borders: Rounded corners (0.5rem radius)
+Hover Effects: Color shifts and scale transforms
+Spacing: Generous whitespace, 12-20px grid system
+📝 Core Messaging & Copy
+Value Proposition
+"Rejection isn't failure. It's missing proof."
+
+Mission Statement
+"Turn investor rejection into validation and funding through data-backed proof."
+
+Key Messages
+Pain Point: "1000+ overlooked founders turning rejection into validation"
+Solution: "ProofScore™ validation framework"
+Outcome: "$2.3M+ in follow-on funding"
+Community: "Featured in global accelerators"
+Tone of Voice
+Empowering: "Secure My Spot" vs "Sign Up"
+Data-Driven: Specific metrics and proof points
+Urgent: "Limited spots", "Early Access Closing Soon"
+Founder-Focused: "Built by founders, backed by validation"
+👥 User Stories & Journey
+Primary User Personas
+1. The Rejected Founder
+
+Story: "I've been rejected by 12 accelerators but I know my startup has potential"
+Goal: Understand why I was rejected and get validation framework
+Journey: Landing → ProofScore → Validation Resources → Funding Pipeline
+2. The Validation Seeker
+
+Story: "I have an idea but want to validate before pitching to investors"
+Goal: Get data-backed validation before approaching investors
+Journey: Landing → Upload Data Room → Get ProofScore → Iterate Based on Feedback
+3. The Second-Time Founder
+
+Story: "My last startup failed, I want to do this right"
+Goal: Use proven frameworks to build investable startup
+Journey: Landing → Validation Framework → ProofScaling Resources → Fund Application
+Core User Flows
+Main Conversion Flow:
+
+Discovery → Hero section with compelling headline
+Interest → Social proof and urgency elements
+Consideration → "How It Works" and "What You Get"
+Action → Waitlist signup with mandatory LinkedIn
+Retention → Welcome page with 1:1 calls and resources
+Post-Signup Experience:
+
+Confirmation → Success message and redirect
+Welcome → Thank you page with next steps
+Engagement → 1:1 call booking and resource access
+Community → Founder network and validation tools
+🔧 Technical Architecture
+Frontend Stack
+React + TypeScript
+Tailwind CSS for styling
+Wouter for routing
+React Query for data fetching
+Radix UI components
+Backend Stack
+Express.js server
+PostgreSQL database
+Drizzle ORM
+Session management
+Health monitoring
+Key Features
+Waitlist management with admin dashboard
+Google Analytics + Hotjar tracking
+Responsive dark mode design
+Form validation and error handling
+Social proof automation
+📊 Content Strategy
+Landing Page Sections
+Hero: Value prop + social proof + CTA
+Urgency: Early access benefits + limited spots
+Story: Founder empathy + mission alignment
+Process: 3-step validation framework
+Value: Detailed benefit breakdown
+Proof: Social proof + testimonials
+Action: Final CTA + waitlist form
+Supporting Pages
+/mission - Detailed platform mission
+/welcome - Post-signup experience
+/admin - Waitlist management
+/roadmap - Development timeline
