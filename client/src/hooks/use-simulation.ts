@@ -31,7 +31,7 @@ export function useSimulation() {
         const newProgress = prev.analysisProgress + 20;
         if (newProgress >= 100) {
           clearInterval(interval);
-          const score = generateProofScore(prev.founderData.acceleratorApplications || 0);
+          const score = generateProofScore(prev.founderData.acceleratorApplications || 0, prev.founderData.name);
           return {
             ...prev,
             analysisProgress: 100,

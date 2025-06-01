@@ -1,18 +1,41 @@
 import { ProofScore } from "@shared/schema";
 
-export const generateProofScore = (acceleratorApps: number = 0): ProofScore => {
-  // Base scores with some randomization
-  const baseScores = {
-    desirability: 14 + Math.floor(Math.random() * 6), // 14-19
-    feasibility: 12 + Math.floor(Math.random() * 6),  // 12-17
-    viability: 10 + Math.floor(Math.random() * 6),    // 10-15
-    traction: 8 + Math.floor(Math.random() * 8),      // 8-15
-    readiness: 12 + Math.floor(Math.random() * 6)     // 12-17
-  };
-
-  // Adjust based on accelerator applications (more apps = slightly higher readiness)
-  if (acceleratorApps > 5) {
-    baseScores.readiness = Math.min(20, baseScores.readiness + 2);
+export const generateProofScore = (acceleratorApps: number = 0, founderName?: string): ProofScore => {
+  let baseScores;
+  
+  // Specific journeys based on founder name
+  if (founderName === "Louis Ravenscroft") {
+    // High score journey (>80) - Investor Deal Room
+    baseScores = {
+      desirability: 18,
+      feasibility: 17, 
+      viability: 16,
+      traction: 15,
+      readiness: 18
+    };
+  } else if (founderName === "Louis Alexander") {
+    // Low score journey (<80) - ProofScaling Referral
+    baseScores = {
+      desirability: 14,
+      feasibility: 12,
+      viability: 11,
+      traction: 9,
+      readiness: 13
+    };
+  } else {
+    // Default randomized scores
+    baseScores = {
+      desirability: 14 + Math.floor(Math.random() * 6), // 14-19
+      feasibility: 12 + Math.floor(Math.random() * 6),  // 12-17
+      viability: 10 + Math.floor(Math.random() * 6),    // 10-15
+      traction: 8 + Math.floor(Math.random() * 8),      // 8-15
+      readiness: 12 + Math.floor(Math.random() * 6)     // 12-17
+    };
+    
+    // Adjust based on accelerator applications (more apps = slightly higher readiness)
+    if (acceleratorApps > 5) {
+      baseScores.readiness = Math.min(20, baseScores.readiness + 2);
+    }
   }
 
   const total = Object.values(baseScores).reduce((sum, score) => sum + score, 0);
