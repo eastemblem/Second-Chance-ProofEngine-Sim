@@ -44,7 +44,7 @@ export default function LandingPage({ onNext }: LandingPageProps) {
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.6, delay: 0.4 }}
           >
-            Turn investor rejection into validation and funding through our data-backed ProofScore™ framework. 
+            Turn investor rejection into validation and funding through our data-backed ProofSync™ framework. 
             Join 1000+ founders who've converted rejection into success.
           </motion.p>
 
