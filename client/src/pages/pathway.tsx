@@ -155,7 +155,7 @@ export default function PathwayPage({ onNext, proofScore }: PathwayPageProps) {
           {/* Final CTA */}
           <div className="text-center">
             <Button onClick={onNext} className="gradient-button px-8 py-6 text-lg mb-4" size="lg">
-              {isInvestorReady ? "Join Investor Network" : "Start ProofScaling Course"}
+              {isInvestorReady ? "Access Deal Room" : "Start ProofScaling Course"}
               <ArrowRight className="ml-2 w-5 h-5" />
             </Button>
             <p className="text-sm text-muted-foreground">

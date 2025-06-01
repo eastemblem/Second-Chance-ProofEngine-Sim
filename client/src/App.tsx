@@ -10,6 +10,7 @@ import OnboardingPage from "@/pages/onboarding";
 import ScoringPage from "@/pages/scoring";
 import FeedbackPage from "@/pages/feedback";
 import PathwayPage from "@/pages/pathway";
+import DealRoomPage from "@/pages/deal-room";
 import FinalPage from "@/pages/final";
 import { useSimulation } from "@/hooks/use-simulation";
 import NotFound from "@/pages/not-found";
@@ -69,11 +70,22 @@ function SimulationFlow() {
       case 5:
         return state.proofScore ? (
           <PathwayPage 
-            onNext={() => setCurrentPage(6)}
+            onNext={() => setCurrentPage(state.proofScore!.total >= 80 ? 6 : 7)}
             proofScore={state.proofScore}
           />
         ) : null;
       case 6:
+        return state.proofScore && state.proofScore.total >= 80 ? (
+          <DealRoomPage 
+            onNext={() => setCurrentPage(7)}
+            proofScore={state.proofScore}
+          />
+        ) : (
+          <FinalPage 
+            onReset={resetSimulation}
+          />
+        );
+      case 7:
         return (
           <FinalPage 
             onReset={resetSimulation}
@@ -90,7 +102,7 @@ function SimulationFlow() {
 
   return (
     <div className="min-h-screen bg-background text-foreground">
-      {state.currentPage !== 1 && state.currentPage !== 6 && <Navigation />}
+      {state.currentPage !== 1 && state.currentPage !== 6 && state.currentPage !== 7 && <Navigation />}
       
       <AnimatePresence mode="wait">
         <motion.div
