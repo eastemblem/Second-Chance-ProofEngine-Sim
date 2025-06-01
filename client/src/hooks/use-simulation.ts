@@ -43,7 +43,7 @@ export function useSimulation() {
       });
     }, 800);
 
-    return interval;
+    return interval as any;
   }, []);
 
   const resetSimulation = useCallback(() => {

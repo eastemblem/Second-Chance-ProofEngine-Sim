@@ -1,4 +1,15 @@
 import { z } from "zod";
+import { createInsertSchema } from "drizzle-zod";
+import { pgTable, text, integer, serial } from "drizzle-orm/pg-core";
+
+export const users = pgTable("users", {
+  id: serial("id").primaryKey(),
+  username: text("username").notNull().unique(),
+  password: text("password").notNull(),
+});
+
+export type User = typeof users.$inferSelect;
+export type InsertUser = typeof users.$inferInsert;
 
 export const founderSchema = z.object({
   name: z.string().min(1, "Name is required"),
