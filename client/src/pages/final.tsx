@@ -39,7 +39,10 @@ export default function FinalPage({ onReset }: FinalPageProps) {
                 whileHover={{ scale: 1.02 }}
                 whileTap={{ scale: 0.98 }}
               >
-                <Button className="w-full gradient-button py-6 text-lg">
+                <Button 
+                  className="w-full gradient-button py-6 text-lg"
+                  onClick={() => window.open('https://proofscaling.com', '_blank')}
+                >
                   <GraduationCap className="mr-2 w-5 h-5" />
                   Start ProofScaling Course
                 </Button>

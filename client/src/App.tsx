@@ -11,6 +11,7 @@ import ScoringPage from "@/pages/scoring";
 import FeedbackPage from "@/pages/feedback";
 import PathwayPage from "@/pages/pathway";
 import DealRoomPage from "@/pages/deal-room";
+import ProofScalingDashboard from "@/pages/proofscaling-dashboard";
 import FinalPage from "@/pages/final";
 import { useSimulation } from "@/hooks/use-simulation";
 import NotFound from "@/pages/not-found";
@@ -77,15 +78,23 @@ function SimulationFlow() {
       case 6:
         return state.proofScore && state.proofScore.total >= 80 ? (
           <DealRoomPage 
-            onNext={() => setCurrentPage(7)}
+            onNext={() => setCurrentPage(8)}
             proofScore={state.proofScore}
           />
-        ) : (
-          <FinalPage 
-            onReset={resetSimulation}
+        ) : state.proofScore ? (
+          <ProofScalingDashboard 
+            onNext={() => setCurrentPage(8)}
+            proofScore={state.proofScore}
           />
-        );
+        ) : null;
       case 7:
+        return state.proofScore ? (
+          <ProofScalingDashboard 
+            onNext={() => setCurrentPage(8)}
+            proofScore={state.proofScore}
+          />
+        ) : null;
+      case 8:
         return (
           <FinalPage 
             onReset={resetSimulation}
