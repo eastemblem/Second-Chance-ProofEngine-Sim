@@ -3,8 +3,11 @@ import { ProofScore } from "@shared/schema";
 export const generateProofScore = (acceleratorApps: number = 0, founderName?: string): ProofScore => {
   let baseScores;
   
+  console.log("Generating ProofScore for founder:", founderName);
+  
   // Specific journeys based on founder name
   if (founderName === "Louis Ravenscroft") {
+    console.log("Using Louis Ravenscroft high score journey");
     // High score journey (>80) - Investor Deal Room
     baseScores = {
       desirability: 18,
@@ -14,6 +17,7 @@ export const generateProofScore = (acceleratorApps: number = 0, founderName?: st
       readiness: 18
     };
   } else if (founderName === "Louis Alexander") {
+    console.log("Using Louis Alexander low score journey");
     // Low score journey (<80) - ProofScaling Referral
     baseScores = {
       desirability: 14,
@@ -23,6 +27,7 @@ export const generateProofScore = (acceleratorApps: number = 0, founderName?: st
       readiness: 13
     };
   } else {
+    console.log("Using default randomized scores for:", founderName);
     // Default randomized scores
     baseScores = {
       desirability: 14 + Math.floor(Math.random() * 6), // 14-19
