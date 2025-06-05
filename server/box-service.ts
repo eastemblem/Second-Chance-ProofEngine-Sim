@@ -3,6 +3,7 @@ import { Readable } from 'stream';
 import FormData from 'form-data';
 import multer from 'multer';
 import { Request } from 'express';
+import https from 'https';
 
 export class BoxService {
   private clientId: string;
@@ -79,49 +80,77 @@ export class BoxService {
     fileBuffer: Buffer,
     folderId: string = '0'
   ): Promise<any> {
-    try {
-      console.log(`Uploading file ${fileName} to folder ${folderId} using direct API`);
+    return new Promise((resolve, reject) => {
+      console.log(`Uploading file ${fileName} to folder ${folderId} using Box API`);
       
       const formData = new FormData();
       
+      // Add attributes as required by Box API
       formData.append('attributes', JSON.stringify({
         name: fileName,
         parent: { id: folderId }
       }));
       
+      // Add file buffer directly
       formData.append('file', fileBuffer, {
         filename: fileName,
         contentType: 'application/octet-stream'
       });
 
-      const response = await fetch('https://upload.box.com/api/2.0/files/content', {
+      console.log('Submitting multipart form to Box API');
+
+      // Submit the form using the form-data's submit method
+      formData.submit({
+        protocol: 'https:',
+        host: 'upload.box.com',
+        path: '/api/2.0/files/content',
         method: 'POST',
         headers: {
-          'Authorization': `Bearer ${accessToken}`,
-          ...formData.getHeaders()
-        },
-        body: formData,
+          'Authorization': `Bearer ${accessToken}`
+        }
+      }, (err, response) => {
+        if (err) {
+          console.error('Box upload submission error:', err);
+          reject(err);
+          return;
+        }
+
+        let responseData = '';
+        response.on('data', (chunk) => {
+          responseData += chunk;
+        });
+
+        response.on('end', () => {
+          console.log(`Box API response status: ${response.statusCode}`);
+          
+          if (response.statusCode !== 201) {
+            console.error(`Box upload error ${response.statusCode}:`, responseData);
+            reject(new Error(`Upload failed: ${response.statusCode} - ${responseData}`));
+            return;
+          }
+
+          try {
+            const result = JSON.parse(responseData);
+            console.log('Box upload successful:', result);
+            
+            resolve({
+              id: result.entries[0].id,
+              name: result.entries[0].name,
+              size: result.entries[0].size,
+              download_url: result.entries[0].download_url || null
+            });
+          } catch (parseError) {
+            console.error('Error parsing Box response:', parseError);
+            reject(parseError);
+          }
+        });
+
+        response.on('error', (error) => {
+          console.error('Box response error:', error);
+          reject(error);
+        });
       });
-
-      if (!response.ok) {
-        const errorText = await response.text();
-        console.error(`Box upload error ${response.status}:`, errorText);
-        throw new Error(`Upload failed: ${response.status} - ${errorText}`);
-      }
-
-      const result = await response.json();
-      console.log('Box upload successful:', result);
-      
-      return {
-        id: result.entries[0].id,
-        name: result.entries[0].name,
-        size: result.entries[0].size,
-        download_url: result.entries[0].download_url || null
-      };
-    } catch (error) {
-      console.error('Error uploading file to Box:', error);
-      throw error;
-    }
+    });
   }
 
   async createFolder(accessToken: string, folderName: string, parentId: string = '0'): Promise<string> {
