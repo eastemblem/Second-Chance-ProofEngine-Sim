@@ -126,7 +126,9 @@ export default function SimpleFileUpload({
         name: result.file.name,
         size: result.file.size,
         uploadedAt: new Date().toISOString(),
-        boxUrl: result.file.download_url
+        boxUrl: result.file.download_url,
+        category: category,
+        storage: result.storage
       };
 
       setUploadedFiles(prev => [...prev, newFile]);
