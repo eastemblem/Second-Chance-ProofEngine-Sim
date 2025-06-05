@@ -170,11 +170,19 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.get("/api/box/user", async (req, res) => {
     try {
       const authHeader = req.headers.authorization;
-      if (!authHeader || !authHeader.startsWith('Bearer ')) {
-        return res.status(401).json({ error: 'No access token provided' });
+      let accessToken;
+
+      if (authHeader && authHeader.startsWith('Bearer ')) {
+        accessToken = authHeader.substring(7);
+      } else {
+        // Use default access token for testing
+        accessToken = boxService.getDefaultAccessToken();
       }
 
-      const accessToken = authHeader.substring(7);
+      if (!accessToken) {
+        return res.status(401).json({ error: 'No access token available' });
+      }
+
       const response = await fetch('https://api.box.com/2.0/users/me', {
         headers: {
           'Authorization': `Bearer ${accessToken}`
@@ -182,6 +190,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
       });
 
       if (!response.ok) {
+        const errorText = await response.text();
+        console.log(`Box API error ${response.status}: ${errorText}`);
         return res.status(response.status).json({ error: 'Failed to get user info' });
       }
 

@@ -13,6 +13,11 @@ export class BoxService {
     this.clientSecret = process.env.BOX_CLIENT_SECRET!;
   }
 
+  // Get default access token for testing
+  getDefaultAccessToken(): string {
+    return process.env.BOX_ACCESS_TOKEN || '';
+  }
+
   // Test Box connection by validating credentials
   async testConnection(): Promise<boolean> {
     try {

@@ -28,18 +28,16 @@ export default function BoxStatusIndicator({
   }, [accessToken]);
 
   const verifyConnection = async () => {
-    if (!accessToken) {
-      setConnectionStatus('disconnected');
-      return;
-    }
-
     try {
       setConnectionStatus('checking');
-      const response = await fetch('/api/box/user', {
-        headers: {
-          'Authorization': `Bearer ${accessToken}`
-        }
-      });
+      
+      // Test Box connection with or without token
+      const headers: any = {};
+      if (accessToken) {
+        headers['Authorization'] = `Bearer ${accessToken}`;
+      }
+      
+      const response = await fetch('/api/box/user', { headers });
 
       if (response.ok) {
         const userData = await response.json();
