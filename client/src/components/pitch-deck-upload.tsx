@@ -4,6 +4,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Upload, FileText, CheckCircle, AlertCircle, ExternalLink, X } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { Progress } from "@/components/ui/progress";
+import BoxStatusIndicator from "./box-status-indicator";
 
 interface PitchDeckUploadProps {
   userId?: string;
@@ -157,17 +158,24 @@ export default function PitchDeckUpload({ userId }: PitchDeckUploadProps) {
   };
 
   return (
-    <Card className="w-full">
-      <CardHeader>
-        <CardTitle className="flex items-center gap-2">
-          <FileText className="w-5 h-5 text-primary-gold" />
-          Pitch Deck Upload
-        </CardTitle>
-        <CardDescription>
-          Upload your investor presentation to secure Box storage
-        </CardDescription>
-      </CardHeader>
-      <CardContent className="space-y-4">
+    <div className="space-y-4">
+      <BoxStatusIndicator 
+        accessToken={accessToken} 
+        onConnect={handleBoxAuth}
+        compact={true}
+      />
+      
+      <Card className="w-full">
+        <CardHeader>
+          <CardTitle className="flex items-center gap-2">
+            <FileText className="w-5 h-5 text-primary-gold" />
+            Pitch Deck Upload
+          </CardTitle>
+          <CardDescription>
+            Upload your investor presentation to secure Box storage
+          </CardDescription>
+        </CardHeader>
+        <CardContent className="space-y-4">
         {!accessToken ? (
           <div className="text-center space-y-4">
             <div className="p-4 border border-yellow-200 bg-yellow-50 rounded-lg">
@@ -233,5 +241,6 @@ export default function PitchDeckUpload({ userId }: PitchDeckUploadProps) {
         )}
       </CardContent>
     </Card>
+    </div>
   );
 }
