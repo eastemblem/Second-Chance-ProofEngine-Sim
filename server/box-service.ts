@@ -153,6 +153,11 @@ export class BoxService {
     });
   }
 
+  async createSessionFolder(accessToken: string, startupName: string): Promise<string> {
+    const folderName = `ProofVault_${startupName.replace(/[^a-zA-Z0-9_-]/g, '_')}`;
+    return this.createFolder(accessToken, folderName, '0');
+  }
+
   async createFolder(accessToken: string, folderName: string, parentId: string = '0'): Promise<string> {
     try {
       console.log(`Creating folder ${folderName} in parent ${parentId}`);

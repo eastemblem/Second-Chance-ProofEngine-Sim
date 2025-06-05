@@ -12,6 +12,8 @@ interface SimpleFileUploadProps {
   allowedTypes?: string[];
   userId?: string;
   category?: string;
+  startupName?: string;
+  disabled?: boolean;
 }
 
 export default function SimpleFileUpload({ 
@@ -28,7 +30,9 @@ export default function SimpleFileUpload({
     'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
   ],
   userId,
-  category = "documents"
+  category = "documents",
+  startupName,
+  disabled = false
 }: SimpleFileUploadProps) {
   const [isUploading, setIsUploading] = useState(false);
   const [uploadProgress, setUploadProgress] = useState(0);

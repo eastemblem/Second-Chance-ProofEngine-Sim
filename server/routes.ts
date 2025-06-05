@@ -345,26 +345,29 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(400).json({ error: "No file provided" });
       }
 
+      const { startupName } = req.body;
+      
+      if (!startupName) {
+        return res.status(400).json({ 
+          error: 'Startup name is required for file uploads',
+          message: 'Please complete the form before uploading files'
+        });
+      }
+
       // Check if Box access token is available
       const accessToken = boxService.getDefaultAccessToken();
       
       if (accessToken) {
         try {
-          // Try to upload to Box
-          const folderName = req.body.folderName || 'Second Chance Documents';
-          let folderId = '0';
-          
-          try {
-            folderId = await boxService.createFolder(accessToken, folderName);
-          } catch (error) {
-            console.log(`Using root folder: ${error}`);
-          }
+          // Create session folder for this startup
+          const sessionFolderId = await boxService.createSessionFolder(accessToken, startupName);
+          console.log(`Session folder created/found: ${sessionFolderId} for startup: ${startupName}`);
 
           const uploadResult = await boxService.uploadFile(
             accessToken,
             req.file.originalname,
             req.file.buffer,
-            folderId
+            sessionFolderId
           );
 
           return res.json({
@@ -375,7 +378,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
               name: uploadResult.name,
               size: uploadResult.size,
               download_url: uploadResult.download_url
-            }
+            },
+            sessionFolder: sessionFolderId
           });
         } catch (boxError) {
           console.log(`Box upload failed, using local storage: ${boxError}`);
