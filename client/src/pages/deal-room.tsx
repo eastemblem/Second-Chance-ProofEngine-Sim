@@ -5,8 +5,7 @@ import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import ProgressBar from "@/components/progress-bar";
 import { ProofScore } from "@shared/schema";
-import PitchDeckUpload from "@/components/pitch-deck-upload";
-import DataRoomUpload from "@/components/data-room-upload";
+import SimpleFileUpload from "@/components/simple-file-upload";
 
 interface DealRoomPageProps {
   onNext: () => void;
@@ -224,8 +223,25 @@ export default function DealRoomPage({ onNext, proofScore }: DealRoomPageProps) 
 
           {/* Document Upload Section */}
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-            <PitchDeckUpload userId="demo-user-id" />
-            <DataRoomUpload userId="demo-user-id" />
+            <SimpleFileUpload
+              title="Pitch Deck"
+              description="Upload your investor presentation"
+              accept=".pdf,.ppt,.pptx"
+              allowedTypes={[
+                'application/pdf',
+                'application/vnd.ms-powerpoint',
+                'application/vnd.openxmlformats-officedocument.presentationml.presentation'
+              ]}
+              category="pitch-deck"
+              userId="demo-user-id"
+            />
+            <SimpleFileUpload
+              title="Data Room Documents"
+              description="Upload financial models and supporting documents"
+              accept=".pdf,.doc,.docx,.xls,.xlsx,.ppt,.pptx"
+              category="data-room"
+              userId="demo-user-id"
+            />
           </div>
 
           {/* CTA */}

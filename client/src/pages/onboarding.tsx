@@ -7,8 +7,7 @@ import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Card } from "@/components/ui/card";
 import ProgressBar from "@/components/progress-bar";
-import PitchDeckUpload from "@/components/pitch-deck-upload";
-import DataRoomUpload from "@/components/data-room-upload";
+import SimpleFileUpload from "@/components/simple-file-upload";
 import { FounderData } from "@shared/schema";
 import { useMutation } from "@tanstack/react-query";
 import { apiRequest } from "@/lib/queryClient";
@@ -213,8 +212,26 @@ export default function OnboardingPage({ onNext, onDataUpdate }: OnboardingPageP
                   </p>
                   
                   <div className="space-y-4">
-                    <PitchDeckUpload userId={formData.userId?.toString()} />
-                    <DataRoomUpload userId={formData.userId?.toString()} />
+                    <SimpleFileUpload
+                      title="Pitch Deck"
+                      description="Upload your investor presentation (PDF or PowerPoint)"
+                      accept=".pdf,.ppt,.pptx"
+                      allowedTypes={[
+                        'application/pdf',
+                        'application/vnd.ms-powerpoint',
+                        'application/vnd.openxmlformats-officedocument.presentationml.presentation'
+                      ]}
+                      category="pitch-deck"
+                      userId={formData.userId?.toString()}
+                    />
+                    
+                    <SimpleFileUpload
+                      title="Data Room Documents"
+                      description="Upload financial models, market research, and other supporting documents"
+                      accept=".pdf,.doc,.docx,.xls,.xlsx,.ppt,.pptx"
+                      category="data-room"
+                      userId={formData.userId?.toString()}
+                    />
                   </div>
                 </div>
               </div>
