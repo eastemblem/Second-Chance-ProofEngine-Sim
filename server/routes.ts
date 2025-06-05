@@ -357,7 +357,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         });
       }
 
-      // Try Box upload with OAuth2 token management
+      // Upload directly to Box.com only
       try {
         const accessToken = await boxService.getValidAccessToken();
         
@@ -385,41 +385,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
         });
       } catch (boxError) {
         console.log(`Box upload failed: ${boxError}`);
-        
-        // Fallback to local storage
-        console.log('Falling back to local ProofVault storage');
-        
-        const proofVaultDir = path.join(process.cwd(), 'proof_vault');
-        const startupDir = path.join(proofVaultDir, `ProofVault_${startupName.replace(/[^a-zA-Z0-9_-]/g, '_')}`);
-        
-        if (!fs.existsSync(proofVaultDir)) {
-          fs.mkdirSync(proofVaultDir, { recursive: true });
-        }
-        if (!fs.existsSync(startupDir)) {
-          fs.mkdirSync(startupDir, { recursive: true });
-        }
-        
-        const fileName = req.file.originalname;
-        const filePath = path.join(startupDir, fileName);
-        fs.writeFileSync(filePath, req.file.buffer);
-        
-        console.log(`File saved to local ProofVault: ${filePath}`);
-        
-        const fileId = Math.random().toString(36).substr(2, 9);
-        const sessionFolderId = `proofvault_${startupName.toLowerCase().replace(/[^a-z0-9]/g, '_')}`;
-        
-        return res.json({
-          success: true,
-          storage: 'local',
-          file: {
-            id: fileId,
-            name: fileName,
-            size: req.file.size,
-            path: filePath,
-            download_url: `/api/files/${sessionFolderId}/${fileName}`
-          },
-          sessionFolder: sessionFolderId,
-          warning: "Box integration unavailable - using local storage"
+        return res.status(503).json({ 
+          error: "Box integration required",
+          message: "Please authenticate with Box to enable file uploads",
+          details: boxError instanceof Error ? boxError.message : String(boxError)
         });
       }
 
@@ -484,25 +453,28 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.post('/api/box/generate-links', async (req, res) => {
     try {
       const { sessionFolderId, uploadedFiles } = req.body;
+      const accessToken = await boxService.getValidAccessToken();
       const result: any = {};
 
-      // Generate folder shareable link for data room (ProofVault folder)
+      // Generate folder shareable link for data room
       if (sessionFolderId) {
-        const baseUrl = process.env.REPLIT_DEV_DOMAIN 
-          ? `https://${process.env.REPLIT_DEV_DOMAIN}` 
-          : 'http://localhost:5000';
-        result.dataRoomUrl = `${baseUrl}/api/vault/${sessionFolderId}`;
+        try {
+          result.dataRoomUrl = await boxService.createFolderShareableLink(accessToken, sessionFolderId);
+        } catch (error) {
+          console.error('Error creating folder shareable link:', error);
+        }
       }
 
-      // Generate file shareable links for pitch deck
+      // Generate file shareable links for pitch deck (only for Box files)
       if (uploadedFiles && uploadedFiles.length > 0) {
         for (const file of uploadedFiles) {
-          if (file.category === 'pitch-deck' && file.download_url) {
-            const baseUrl = process.env.REPLIT_DEV_DOMAIN 
-              ? `https://${process.env.REPLIT_DEV_DOMAIN}` 
-              : 'http://localhost:5000';
-            result.pitchDeckUrl = `${baseUrl}${file.download_url}`;
-            break; // Only need one pitch deck link
+          if (file.category === 'pitch-deck' && file.id) {
+            try {
+              result.pitchDeckUrl = await boxService.createFileShareableLink(accessToken, file.id);
+              break; // Only need one pitch deck link
+            } catch (error) {
+              console.error('Error creating file shareable link:', error);
+            }
           }
         }
       }
