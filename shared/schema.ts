@@ -225,6 +225,8 @@ export const founderSchema = z.object({
   acceleratorApplications: z.number().min(0).default(0),
   pitchDeck: z.string().optional(),
   dataRoom: z.string().optional(),
+  userId: z.number().optional(),
+  ventureId: z.number().optional(),
 });
 
 export type FounderData = z.infer<typeof founderSchema>;

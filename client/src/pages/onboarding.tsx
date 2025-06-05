@@ -9,6 +9,9 @@ import { Card } from "@/components/ui/card";
 import ProgressBar from "@/components/progress-bar";
 import FileUpload from "@/components/file-upload";
 import { FounderData } from "@shared/schema";
+import { useMutation } from "@tanstack/react-query";
+import { apiRequest } from "@/lib/queryClient";
+import { useToast } from "@/hooks/use-toast";
 
 interface OnboardingPageProps {
   onNext: () => void;
@@ -19,6 +22,24 @@ export default function OnboardingPage({ onNext, onDataUpdate }: OnboardingPageP
   const [formData, setFormData] = useState<Partial<FounderData>>({
     acceleratorApplications: 0
   });
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const { toast } = useToast();
+
+  // Create user mutation
+  const createUserMutation = useMutation({
+    mutationFn: async (userData: any) => {
+      const res = await apiRequest("POST", "/api/users", userData);
+      return await res.json();
+    },
+  });
+
+  // Create venture mutation
+  const createVentureMutation = useMutation({
+    mutationFn: async (ventureData: any) => {
+      const res = await apiRequest("POST", "/api/ventures", ventureData);
+      return await res.json();
+    },
+  });
 
   const updateField = (field: keyof FounderData, value: any) => {
     const newData = { ...formData, [field]: value };
@@ -26,9 +47,72 @@ export default function OnboardingPage({ onNext, onDataUpdate }: OnboardingPageP
     onDataUpdate(newData);
   };
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    onNext();
+    
+    if (!formData.name || !formData.email || !formData.startupName) {
+      toast({
+        title: "Missing Information",
+        description: "Please fill in all required fields",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    setIsSubmitting(true);
+    
+    try {
+      // Split name into first and last name
+      const nameParts = formData.name.trim().split(' ');
+      const firstName = nameParts[0];
+      const lastName = nameParts.slice(1).join(' ') || '';
+
+      // Create user
+      const userData = {
+        firstName,
+        lastName,
+        email: formData.email,
+      };
+
+      const user = await createUserMutation.mutateAsync(userData);
+
+      // Create venture
+      const ventureData = {
+        name: formData.startupName,
+        ownerId: user.id,
+        stage: formData.stage,
+        description: `Venture in ${formData.stage} stage`,
+        teamSize: 1,
+      };
+
+      const venture = await createVentureMutation.mutateAsync(ventureData);
+
+      // Store user and venture IDs for later use
+      const enhancedData = {
+        ...formData,
+        userId: user.id,
+        ventureId: venture.id,
+      };
+      
+      setFormData(enhancedData);
+      onDataUpdate(enhancedData);
+
+      toast({
+        title: "Profile Created",
+        description: "Your founder profile has been saved successfully",
+      });
+
+      onNext();
+    } catch (error) {
+      console.error("Error creating profile:", error);
+      toast({
+        title: "Error",
+        description: "Failed to create your profile. Please try again.",
+        variant: "destructive",
+      });
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
   return (
@@ -140,8 +224,9 @@ export default function OnboardingPage({ onNext, onDataUpdate }: OnboardingPageP
                 type="submit"
                 className="w-full gradient-button py-6 text-lg"
                 size="lg"
+                disabled={isSubmitting}
               >
-                Submit for Scoring
+                {isSubmitting ? "Creating Profile..." : "Submit for Scoring"}
                 <ArrowRight className="ml-2 w-5 h-5" />
               </Button>
             </form>
