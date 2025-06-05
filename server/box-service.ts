@@ -23,6 +23,42 @@ export class BoxService {
     return process.env.BOX_ACCESS_TOKEN || '';
   }
 
+  getAuthURL(): string {
+    const state = Math.random().toString(36).substring(2, 15);
+    const scopes = 'root_readwrite';
+    return `https://account.box.com/api/oauth2/authorize?client_id=${this.clientId}&response_type=code&redirect_uri=${this.getRedirectUri()}&state=${state}&scope=${scopes}`;
+  }
+
+  getRedirectUri(): string {
+    const baseUrl = process.env.REPLIT_DEV_DOMAIN 
+      ? `https://${process.env.REPLIT_DEV_DOMAIN}` 
+      : 'http://localhost:5000';
+    return `${baseUrl}/api/box/callback`;
+  }
+
+  async getTokensFromCode(code: string): Promise<any> {
+    const response = await fetch('https://api.box.com/oauth2/token', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/x-www-form-urlencoded',
+      },
+      body: new URLSearchParams({
+        grant_type: 'authorization_code',
+        code,
+        client_id: this.clientId,
+        client_secret: this.clientSecret,
+        redirect_uri: this.getRedirectUri(),
+      }),
+    });
+
+    if (!response.ok) {
+      const errorText = await response.text();
+      throw new Error(`Token exchange failed: ${response.status} - ${errorText}`);
+    }
+
+    return await response.json();
+  }
+
 
 
   async testConnection(accessToken?: string): Promise<boolean> {

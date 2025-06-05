@@ -28,6 +28,9 @@ export const users = pgTable("users", {
     newsletter?: boolean;
     mentorship?: boolean;
   }>(),
+  boxAccessToken: text("box_access_token"),
+  boxRefreshToken: text("box_refresh_token"),
+  boxTokenExpiresAt: timestamp("box_token_expires_at"),
   lastLoginAt: timestamp("last_login_at"),
   createdAt: timestamp("created_at").defaultNow().notNull(),
   updatedAt: timestamp("updated_at").defaultNow().notNull(),
