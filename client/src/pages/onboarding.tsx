@@ -137,11 +137,19 @@ export default function OnboardingPage({ onNext, onDataUpdate }: OnboardingPageP
           }
           
           if (Object.keys(updateData).length > 0) {
-            await apiRequest(`/api/ventures/${venture.id}`, {
+            const updateResponse = await fetch(`/api/ventures/${venture.id}`, {
               method: 'PATCH',
-              body: updateData,
+              headers: {
+                'Content-Type': 'application/json',
+              },
+              body: JSON.stringify(updateData),
             });
-            console.log('Updated venture with shareable links');
+            
+            if (updateResponse.ok) {
+              console.log('Updated venture with shareable links');
+            } else {
+              console.error('Failed to update venture with shareable links');
+            }
           }
         } catch (error) {
           console.error('Error updating venture with shareable links:', error);

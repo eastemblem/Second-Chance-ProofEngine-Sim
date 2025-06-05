@@ -237,7 +237,7 @@ export class BoxService {
           shared_link: {
             access: 'open',
             permissions: {
-              can_download: true,
+              can_download: false,
               can_preview: true
             }
           }
@@ -273,7 +273,7 @@ export class BoxService {
           shared_link: {
             access: 'open',
             permissions: {
-              can_download: true,
+              can_download: false,
               can_preview: true
             }
           }
