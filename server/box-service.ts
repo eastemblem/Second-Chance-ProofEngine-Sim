@@ -271,7 +271,7 @@ export class BoxService {
         },
         body: JSON.stringify({
           shared_link: {
-            access: 'open',
+            access: 'company',
             permissions: {
               can_download: false,
               can_preview: true
