@@ -86,7 +86,11 @@ export default function DataRoomUpload({ userId, accessToken }: DataRoomUploadPr
     if (!file || !userId) return;
 
     if (!accessToken) {
-      setNeedsAuth(true);
+      toast({
+        title: "Authentication Required",
+        description: "Please connect to Box first before uploading files.",
+        variant: "destructive",
+      });
       return;
     }
 

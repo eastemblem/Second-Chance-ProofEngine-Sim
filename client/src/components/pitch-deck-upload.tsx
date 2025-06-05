@@ -69,7 +69,11 @@ export default function PitchDeckUpload({ userId }: PitchDeckUploadProps) {
     if (!file || !userId) return;
 
     if (!accessToken) {
-      setNeedsAuth(true);
+      toast({
+        title: "Authentication Required",
+        description: "Please connect to Box first before uploading files.",
+        variant: "destructive",
+      });
       return;
     }
 

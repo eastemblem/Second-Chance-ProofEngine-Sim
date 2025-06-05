@@ -170,6 +170,7 @@ export const upload = multer({
   },
   fileFilter: (req: Request, file: Express.Multer.File, cb: multer.FileFilterCallback) => {
     // Allow common document types
+    // Allow most common business document types
     const allowedTypes = [
       'application/pdf',
       'application/msword',
@@ -179,15 +180,21 @@ export const upload = multer({
       'application/vnd.ms-powerpoint',
       'application/vnd.openxmlformats-officedocument.presentationml.presentation',
       'text/plain',
+      'text/csv',
+      'application/json',
       'image/jpeg',
       'image/png',
-      'image/gif'
+      'image/gif',
+      'image/svg+xml',
+      'application/zip',
+      'application/x-zip-compressed'
     ];
 
     if (allowedTypes.includes(file.mimetype)) {
       cb(null, true);
     } else {
-      cb(new Error('Invalid file type'));
+      console.log(`Rejected file type: ${file.mimetype}`);
+      cb(new Error(`Invalid file type: ${file.mimetype}`));
     }
   }
 });
