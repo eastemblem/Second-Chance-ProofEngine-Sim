@@ -19,8 +19,35 @@ export class BoxService {
   }
 
   getDefaultAccessToken(): string {
-    // No longer using developer tokens - OAuth only
-    return '';
+    // Use service account or app-level access token
+    return process.env.BOX_ACCESS_TOKEN || '';
+  }
+
+  async getClientCredentialsToken(): Promise<string> {
+    try {
+      // For enterprise applications, use client credentials grant
+      const response = await fetch('https://api.box.com/oauth2/token', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/x-www-form-urlencoded',
+        },
+        body: new URLSearchParams({
+          grant_type: 'client_credentials',
+          client_id: this.clientId,
+          client_secret: this.clientSecret,
+        }),
+      });
+
+      if (!response.ok) {
+        throw new Error(`Client credentials auth failed: ${response.status}`);
+      }
+
+      const data = await response.json();
+      return data.access_token;
+    } catch (error) {
+      console.error('Error getting client credentials token:', error);
+      return '';
+    }
   }
 
   async testConnection(accessToken?: string): Promise<boolean> {

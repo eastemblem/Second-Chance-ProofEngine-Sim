@@ -276,13 +276,8 @@ export default function OnboardingPage({ onNext, onDataUpdate }: OnboardingPageP
                 </div>
               </div>
 
-              {/* Box Integration for File Uploads */}
+              {/* File Upload Section */}
               <div className="space-y-6">
-                <div>
-                  <h3 className="text-lg font-semibold mb-3">Box.com Integration</h3>
-                  <BoxOAuthConnect onConnected={setBoxConnected} />
-                </div>
-
                 <div>
                   <h3 className="text-lg font-semibold mb-3">Document Upload</h3>
                   <p className="text-sm text-muted-foreground mb-4">
