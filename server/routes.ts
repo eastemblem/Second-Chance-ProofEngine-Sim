@@ -432,6 +432,48 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Generate shareable links for uploaded files
+  app.post('/api/box/generate-links', async (req, res) => {
+    try {
+      const { sessionFolderId, uploadedFiles } = req.body;
+      const accessToken = boxService.getDefaultAccessToken();
+      
+      if (!accessToken) {
+        return res.status(400).json({ error: 'Box access token not available' });
+      }
+
+      const result: any = {};
+
+      // Generate folder shareable link for data room
+      if (sessionFolderId) {
+        try {
+          result.dataRoomUrl = await boxService.createFolderShareableLink(accessToken, sessionFolderId);
+        } catch (error) {
+          console.error('Error creating folder shareable link:', error);
+        }
+      }
+
+      // Generate file shareable links for pitch deck
+      if (uploadedFiles && uploadedFiles.length > 0) {
+        for (const file of uploadedFiles) {
+          if (file.category === 'pitch-deck') {
+            try {
+              result.pitchDeckUrl = await boxService.createFileShareableLink(accessToken, file.id);
+              break; // Only need one pitch deck link
+            } catch (error) {
+              console.error('Error creating file shareable link:', error);
+            }
+          }
+        }
+      }
+
+      res.json(result);
+    } catch (error) {
+      console.error('Error generating shareable links:', error);
+      res.status(500).json({ error: 'Failed to generate shareable links' });
+    }
+  });
+
   const httpServer = createServer(app);
   return httpServer;
 }

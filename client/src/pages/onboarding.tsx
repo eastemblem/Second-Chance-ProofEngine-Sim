@@ -101,11 +101,60 @@ export default function OnboardingPage({ onNext, onDataUpdate }: OnboardingPageP
 
       const venture = await createVentureMutation.mutateAsync(ventureData);
 
+      // Generate shareable links for uploaded files
+      let shareableLinks = {};
+      if (sessionFolderId && uploadedFiles.length > 0) {
+        try {
+          const linkResponse = await fetch('/api/box/generate-links', {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({
+              sessionFolderId,
+              uploadedFiles,
+            }),
+          });
+          
+          if (linkResponse.ok) {
+            shareableLinks = await linkResponse.json();
+            console.log('Generated shareable links:', shareableLinks);
+          }
+        } catch (error) {
+          console.error('Error generating shareable links:', error);
+        }
+      }
+
+      // Update venture with shareable links
+      if (shareableLinks && Object.keys(shareableLinks).length > 0) {
+        try {
+          const updateData: any = {};
+          if ((shareableLinks as any).dataRoomUrl) {
+            updateData.dataRoom = (shareableLinks as any).dataRoomUrl;
+          }
+          if ((shareableLinks as any).pitchDeckUrl) {
+            updateData.pitchDeck = (shareableLinks as any).pitchDeckUrl;
+          }
+          
+          if (Object.keys(updateData).length > 0) {
+            await apiRequest(`/api/ventures/${venture.id}`, {
+              method: 'PATCH',
+              body: updateData,
+            });
+            console.log('Updated venture with shareable links');
+          }
+        } catch (error) {
+          console.error('Error updating venture with shareable links:', error);
+        }
+      }
+
       // Store user and venture IDs for later use
       const enhancedData = {
         ...formData,
         userId: user.id,
         ventureId: venture.id,
+        pitchDeck: (shareableLinks as any)?.pitchDeckUrl || '',
+        dataRoom: (shareableLinks as any)?.dataRoomUrl || '',
       };
       
       setFormData(enhancedData);
