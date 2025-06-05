@@ -18,9 +18,9 @@ export default function LandingPage({ onNext }: LandingPageProps) {
           transition={{ duration: 0.6 }}
         >
           {/* Logo Section */}
-          <div className="mb-8">
-            <div className="inline-flex items-center justify-center mb-6">
-              <Logo size="lg" />
+          <div className="mb-2">
+            <div className="inline-flex items-center justify-center">
+              <Logo size="xl" />
             </div>
           </div>
 
