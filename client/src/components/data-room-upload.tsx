@@ -5,6 +5,7 @@ import { Upload, Folder, FileText, DollarSign, Users, BarChart, Shield, CheckCir
 import { useToast } from "@/hooks/use-toast";
 import { Progress } from "@/components/ui/progress";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import BoxStatusIndicator from "./box-status-indicator";
 
 interface DataRoomUploadProps {
   userId?: string;
@@ -175,8 +176,15 @@ export default function DataRoomUpload({ userId, accessToken }: DataRoomUploadPr
   const totalFiles = Object.values(uploadedFiles).reduce((sum, files) => sum + files.length, 0);
 
   return (
-    <Card className="w-full">
-      <CardHeader>
+    <div className="space-y-4">
+      <BoxStatusIndicator 
+        accessToken={accessToken} 
+        onConnect={handleBoxAuth}
+        compact={true}
+      />
+      
+      <Card className="w-full">
+        <CardHeader>
         <CardTitle className="flex items-center gap-2">
           <Folder className="w-5 h-5 text-primary-gold" />
           Data Room
@@ -284,5 +292,6 @@ export default function DataRoomUpload({ userId, accessToken }: DataRoomUploadPr
         )}
       </CardContent>
     </Card>
+    </div>
   );
 }
