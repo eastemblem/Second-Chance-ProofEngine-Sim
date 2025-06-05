@@ -131,10 +131,10 @@ export default function OnboardingPage({ onNext, onDataUpdate }: OnboardingPageP
         try {
           const updateData: any = {};
           if ((shareableLinks as any).dataRoomUrl) {
-            updateData.dataRoom = (shareableLinks as any).dataRoomUrl;
+            updateData.dataRoomUrl = (shareableLinks as any).dataRoomUrl;
           }
           if ((shareableLinks as any).pitchDeckUrl) {
-            updateData.pitchDeck = (shareableLinks as any).pitchDeckUrl;
+            updateData.pitchDeckUrl = (shareableLinks as any).pitchDeckUrl;
           }
           
           if (Object.keys(updateData).length > 0) {

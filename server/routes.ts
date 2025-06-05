@@ -458,7 +458,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       // Generate file shareable links for pitch deck (only for Box files)
       if (uploadedFiles && uploadedFiles.length > 0) {
         for (const file of uploadedFiles) {
-          if (file.category === 'pitch-deck' && file.storage === 'box') {
+          if (file.category === 'pitch-deck' && file.id) {
             try {
               result.pitchDeckUrl = await boxService.createFileShareableLink(accessToken, file.id);
               break; // Only need one pitch deck link

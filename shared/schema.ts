@@ -52,7 +52,8 @@ export const ventures = pgTable("ventures", {
   totalRaised: decimal("total_raised", { precision: 12, scale: 2 }),
   valuation: decimal("valuation", { precision: 15, scale: 2 }),
   website: text("website"),
-  pitch_deck_url: text("pitch_deck_url"),
+  pitchDeckUrl: text("pitch_deck_url"),
+  dataRoomUrl: text("data_room_url"),
   status: text("status").default("active"), // "active", "paused", "closed"
   isPublic: boolean("is_public").default(false),
   tags: json("tags").$type<string[]>(),
