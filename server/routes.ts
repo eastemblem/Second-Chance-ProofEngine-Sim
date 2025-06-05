@@ -354,13 +354,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
         });
       }
 
-      // Check if Box access token is available (try multiple methods)
-      let accessToken = boxService.getDefaultAccessToken();
-      
-      // If no default token, try client credentials
-      if (!accessToken) {
-        accessToken = await boxService.getClientCredentialsToken();
-      }
+      // Check if Box access token is available
+      const accessToken = boxService.getDefaultAccessToken();
       
       if (accessToken) {
         try {
@@ -509,12 +504,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.post('/api/box/generate-links', async (req, res) => {
     try {
       const { sessionFolderId, uploadedFiles } = req.body;
-      let accessToken = boxService.getDefaultAccessToken();
-      
-      // If no default token, try client credentials
-      if (!accessToken) {
-        accessToken = await boxService.getClientCredentialsToken();
-      }
+      const accessToken = boxService.getDefaultAccessToken();
       
       if (!accessToken) {
         return res.status(400).json({ error: 'Box access token not available' });
