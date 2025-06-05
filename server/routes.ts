@@ -505,7 +505,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.post('/api/box/generate-links', async (req, res) => {
     try {
       const { sessionFolderId, uploadedFiles } = req.body;
-      const accessToken = boxService.getDefaultAccessToken();
+      const sessionTokens = (req as any).session?.boxTokens;
+      const accessToken = sessionTokens?.access_token;
       
       if (!accessToken) {
         return res.status(400).json({ error: 'Box access token not available' });
