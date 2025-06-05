@@ -5,6 +5,8 @@ import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import ProgressBar from "@/components/progress-bar";
 import { ProofScore } from "@shared/schema";
+import PitchDeckUpload from "@/components/pitch-deck-upload";
+import DataRoomUpload from "@/components/data-room-upload";
 
 interface DealRoomPageProps {
   onNext: () => void;
@@ -220,14 +222,20 @@ export default function DealRoomPage({ onNext, proofScore }: DealRoomPageProps) 
             </div>
           </Card>
 
+          {/* Document Upload Section */}
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+            <PitchDeckUpload userId="demo-user-id" />
+            <DataRoomUpload userId="demo-user-id" />
+          </div>
+
           {/* CTA */}
           <div className="text-center">
             <Button onClick={onNext} className="gradient-button px-8 py-6 text-lg" size="lg">
-              Enter Deal Room
+              Complete Deal Room Setup
               <ArrowRight className="ml-2 w-5 h-5" />
             </Button>
             <p className="text-sm text-muted-foreground mt-4">
-              Exclusive access • Verified investors only • Protected by NDA
+              Secure document storage • Ready for investor review • Box.com protected
             </p>
           </div>
         </motion.div>
