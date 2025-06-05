@@ -90,16 +90,19 @@ export class BoxService {
     folderId: string = '0'
   ): Promise<any> {
     try {
+      // Create FormData with proper Box API format
       const formData = new FormData();
       
-      // Add attributes as JSON string
+      // Box API requires attributes field with file metadata
       formData.append('attributes', JSON.stringify({
         name: fileName,
         parent: { id: folderId }
       }));
       
-      // Add file buffer directly to FormData
+      // Append file with stream-like behavior for Node.js
       formData.append('file', fileBuffer, fileName);
+
+      console.log(`Uploading file ${fileName} to folder ${folderId}`);
 
       const response = await fetch('https://upload.box.com/api/2.0/files/content', {
         method: 'POST',
