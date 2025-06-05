@@ -192,7 +192,7 @@ export default function DataRoomUpload({ userId, accessToken }: DataRoomUploadPr
         )}
       </CardHeader>
       <CardContent className="space-y-4">
-        {needsAuth ? (
+        {!accessToken ? (
           <div className="text-center space-y-4">
             <div className="p-4 border border-yellow-200 bg-yellow-50 rounded-lg">
               <AlertCircle className="w-5 h-5 text-yellow-600 mx-auto mb-2" />
