@@ -108,18 +108,14 @@ export default function DataRoomUpload({ userId, accessToken }: DataRoomUploadPr
       const formData = new FormData();
       formData.append('document', file);
 
-      // Simulate upload progress
+      formData.append('folderName', `Data Room - ${categoryData?.name || category}`);
+
+      // Real upload progress tracking
       const progressInterval = setInterval(() => {
-        setUploadProgress(prev => {
-          if (prev >= 90) {
-            clearInterval(progressInterval);
-            return prev;
-          }
-          return prev + 10;
-        });
+        setUploadProgress(prev => Math.min(prev + 10, 90));
       }, 200);
 
-      const response = await fetch(`/api/box/upload/${userId}`, {
+      const response = await fetch('/api/box/upload', {
         method: 'POST',
         headers: {
           'Authorization': `Bearer ${accessToken}`,
@@ -128,9 +124,14 @@ export default function DataRoomUpload({ userId, accessToken }: DataRoomUploadPr
       });
 
       clearInterval(progressInterval);
-      setUploadProgress(100);
+
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.error || 'Upload failed');
+      }
 
       const result = await response.json();
+      setUploadProgress(100);
 
       if (result.success) {
         setUploadedFiles(prev => ({
@@ -139,16 +140,16 @@ export default function DataRoomUpload({ userId, accessToken }: DataRoomUploadPr
             id: result.file.id,
             name: result.file.name,
             type: category,
-            uploadedAt: new Date().toISOString()
+            uploadedAt: new Date().toISOString(),
+            boxUrl: result.file.download_url
           }]
         }));
 
         toast({
-          title: "Document Uploaded Successfully",
-          description: `${file.name} has been securely stored in your data room.`,
+          title: "Upload Successful",
+          description: `${file.name} uploaded to Box.com successfully.`,
         });
 
-        // Reset file input
         if (fileInputRefs.current[category]) {
           fileInputRefs.current[category]!.value = '';
         }

@@ -95,16 +95,11 @@ export default function PitchDeckUpload({ userId }: PitchDeckUploadProps) {
     try {
       const formData = new FormData();
       formData.append('document', file);
+      formData.append('folderName', 'Pitch Decks');
 
-      // Simulate upload progress
+      // Real upload progress tracking
       const progressInterval = setInterval(() => {
-        setUploadProgress(prev => {
-          if (prev >= 90) {
-            clearInterval(progressInterval);
-            return prev;
-          }
-          return prev + 10;
-        });
+        setUploadProgress(prev => Math.min(prev + 10, 90));
       }, 200);
 
       const response = await fetch('/api/box/upload', {
@@ -116,24 +111,29 @@ export default function PitchDeckUpload({ userId }: PitchDeckUploadProps) {
       });
 
       clearInterval(progressInterval);
-      setUploadProgress(100);
+
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.error || 'Upload failed');
+      }
 
       const result = await response.json();
+      setUploadProgress(100);
 
       if (result.success) {
         setUploadedFiles(prev => [...prev, {
           id: result.file.id,
           name: result.file.name,
           type: 'pitch-deck',
-          uploadedAt: new Date().toISOString()
+          uploadedAt: new Date().toISOString(),
+          boxUrl: result.file.download_url
         }]);
 
         toast({
-          title: "Pitch Deck Uploaded Successfully",
-          description: `${file.name} has been securely stored in Box.`,
+          title: "Upload Successful",
+          description: `${file.name} uploaded to Box.com successfully.`,
         });
 
-        // Reset file input
         if (fileInputRef.current) {
           fileInputRef.current.value = '';
         }
