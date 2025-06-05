@@ -200,11 +200,16 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  // Upload document to Box
+  // Upload document to Box (requires access token)
   app.post("/api/box/upload/:userId", upload.single('document'), async (req, res) => {
     try {
       const { userId } = req.params;
+      const accessToken = req.headers.authorization?.replace('Bearer ', '');
       
+      if (!accessToken) {
+        return res.status(401).json({ error: "Box access token required" });
+      }
+
       if (!req.file) {
         return res.status(400).json({ error: "No file provided" });
       }
@@ -215,39 +220,19 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(404).json({ error: "User not found" });
       }
 
-      // Create user folder if it doesn't exist (we'll store folder ID in user record later)
-      const folderName = `${user.firstName}_${user.lastName}_${userId}`;
-      const folderId = await boxService.createUserFolder(userId, folderName);
-
-      // Convert buffer to stream for Box upload
-      const fileStream = Readable.from(req.file.buffer);
-      
-      // Upload file to Box
+      // Upload file to Box root folder
       const uploadResult = await boxService.uploadFile(
-        folderId,
+        accessToken,
         req.file.originalname,
-        fileStream
+        req.file.buffer
       );
 
-      // Store document info in database
-      const documentData = {
-        userId: userId,
-        fileName: req.file.originalname,
-        fileType: req.file.mimetype,
-        fileSize: req.file.size,
-        boxFileId: uploadResult.id,
-        boxFolderId: folderId,
-        uploadedAt: new Date()
-      };
-
-      // Here we would normally save to proofVaultDocuments table
-      // For now, return the upload result
+      // Store document info in database would go here
       res.json({
         success: true,
         file: {
           id: uploadResult.id,
-          name: req.file.originalname,
-          downloadUrl: uploadResult.downloadUrl
+          name: uploadResult.name
         }
       });
 
@@ -261,45 +246,25 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.get("/api/box/documents/:userId", async (req, res) => {
     try {
       const { userId } = req.params;
+      const accessToken = req.headers.authorization?.replace('Bearer ', '');
       
+      if (!accessToken) {
+        return res.status(401).json({ error: "Box access token required" });
+      }
+
       // Validate user exists
       const user = await storage.getUser(userId);
       if (!user) {
         return res.status(404).json({ error: "User not found" });
       }
 
-      // For now, we'll try to get documents from a standard folder
-      // In production, we'd store the folder ID in the user record
-      try {
-        const folderName = `${user.firstName}_${user.lastName}_${userId}`;
-        // This is simplified - in production we'd store folder IDs
-        const documents = [];
-        res.json({ documents });
-      } catch (error) {
-        res.json({ documents: [] });
-      }
+      // Get documents from Box root folder
+      const documents = await boxService.listFolderContents(accessToken, '0');
+      res.json({ documents });
 
     } catch (error) {
       console.log(`Error getting user documents: ${error}`);
       res.status(500).json({ error: "Failed to get documents" });
-    }
-  });
-
-  // Delete document from Box
-  app.delete("/api/box/document/:fileId", async (req, res) => {
-    try {
-      const { fileId } = req.params;
-      
-      const deleted = await boxService.deleteFile(fileId);
-      
-      if (deleted) {
-        res.json({ success: true });
-      } else {
-        res.status(404).json({ error: "File not found or could not be deleted" });
-      }
-    } catch (error) {
-      console.log(`Error deleting file: ${error}`);
-      res.status(500).json({ error: "Failed to delete file" });
     }
   });
 
