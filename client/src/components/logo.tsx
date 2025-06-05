@@ -9,7 +9,7 @@ export default function Logo({ size = "md", showTagline = true }: LogoProps) {
   const imageSize = {
     sm: "h-8",
     md: "h-12", 
-    lg: "h-16"
+    lg: "h-48"
   };
 
   return (
