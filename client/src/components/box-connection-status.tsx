@@ -1,7 +1,7 @@
+import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Badge } from "@/components/ui/badge";
-import { CheckCircle } from "lucide-react";
+import { AlertTriangle, CheckCircle } from "lucide-react";
 import { useQuery } from "@tanstack/react-query";
-import BoxAuthSetup from "./box-auth-setup";
 
 export default function BoxConnectionStatus() {
   const { data: connectionStatus, isLoading } = useQuery({
@@ -36,5 +36,13 @@ export default function BoxConnectionStatus() {
     );
   }
 
-  return <BoxAuthSetup />;
+  return (
+    <Alert className="mb-6 border-amber-200 bg-amber-50">
+      <AlertTriangle className="h-4 w-4 text-amber-600" />
+      <AlertDescription className="text-amber-800">
+        <strong>Box Integration Required:</strong> Valid Box access token needed for file uploads and document management. 
+        Please provide BOX_ACCESS_TOKEN in environment variables.
+      </AlertDescription>
+    </Alert>
+  );
 }

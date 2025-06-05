@@ -21,7 +21,10 @@ export class BoxService {
   async testConnection(accessToken?: string): Promise<boolean> {
     try {
       const token = accessToken || this.getDefaultAccessToken();
-      if (!token) return false;
+      if (!token) {
+        console.log('No Box access token provided');
+        return false;
+      }
 
       const response = await fetch('https://api.box.com/2.0/users/me', {
         headers: {
@@ -29,7 +32,13 @@ export class BoxService {
         }
       });
 
-      return response.ok;
+      if (response.ok) {
+        console.log('Box connection successful');
+        return true;
+      } else {
+        console.log(`Box connection failed: ${response.status}`);
+        return false;
+      }
     } catch (error) {
       console.error('Box connection test failed:', error);
       return false;
@@ -135,37 +144,14 @@ export class BoxService {
   }
 
   async getValidAccessToken(): Promise<string> {
-    // First try static token if available
+    // Always use the provided static token for server-side operations
     const staticToken = this.getDefaultAccessToken();
     if (staticToken) {
-      const isValid = await this.testConnection(staticToken);
-      if (isValid) {
-        console.log('Using static access token');
-        return staticToken;
-      }
+      console.log('Using provided Box access token');
+      return staticToken;
     }
 
-    // Try stored tokens with refresh
-    const storedTokens = await this.getStoredTokens();
-    if (storedTokens) {
-      // Test stored access token
-      const isValid = await this.testConnection(storedTokens.access_token);
-      if (isValid) {
-        console.log('Using stored access token');
-        return storedTokens.access_token;
-      }
-      
-      // Try refreshing the token
-      try {
-        const newTokens = await this.refreshAccessToken(storedTokens.refresh_token);
-        console.log('Refreshed access token successfully');
-        return newTokens.access_token;
-      } catch (refreshError) {
-        console.log('Token refresh failed:', refreshError);
-      }
-    }
-
-    throw new Error('No valid Box access token available. Please complete Box authentication flow.');
+    throw new Error('Box access token required. Please provide BOX_ACCESS_TOKEN in environment variables.');
   }
 
   async uploadFile(
