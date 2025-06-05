@@ -20,7 +20,7 @@ const createUserSchema = z.object({
 
 const createVentureSchema = z.object({
   name: z.string().min(1, "Venture name is required"),
-  ownerId: z.number(),
+  ownerId: z.string().uuid("Invalid user ID format"),
   teamSize: z.number().min(1).default(1),
   category: z.string().optional(),
   description: z.string().optional(),
@@ -96,9 +96,12 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Get user's ventures endpoint
   app.get("/api/users/:userId/ventures", async (req, res) => {
     try {
-      const userId = parseInt(req.params.userId);
-      if (isNaN(userId)) {
-        return res.status(400).json({ error: "Invalid user ID" });
+      const { userId } = req.params;
+      
+      // Validate UUID format
+      const uuidRegex = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
+      if (!uuidRegex.test(userId)) {
+        return res.status(400).json({ error: "Invalid user ID format" });
       }
       
       const ventures = await storage.getVenturesByUserId(userId);
@@ -112,13 +115,16 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Update venture endpoint
   app.patch("/api/ventures/:id", async (req, res) => {
     try {
-      const ventureId = parseInt(req.params.id);
-      if (isNaN(ventureId)) {
-        return res.status(400).json({ error: "Invalid venture ID" });
+      const { id } = req.params;
+      
+      // Validate UUID format
+      const uuidRegex = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
+      if (!uuidRegex.test(id)) {
+        return res.status(400).json({ error: "Invalid venture ID format" });
       }
       
       const updateData = req.body;
-      const venture = await storage.updateVenture(ventureId, updateData);
+      const venture = await storage.updateVenture(id, updateData);
       res.json(venture);
     } catch (error) {
       console.log(`Error updating venture: ${error}`);
@@ -129,12 +135,15 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Update user completion status
   app.patch("/api/users/:id/complete-second-chance", async (req, res) => {
     try {
-      const userId = parseInt(req.params.id);
-      if (isNaN(userId)) {
-        return res.status(400).json({ error: "Invalid user ID" });
+      const { id } = req.params;
+      
+      // Validate UUID format
+      const uuidRegex = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
+      if (!uuidRegex.test(id)) {
+        return res.status(400).json({ error: "Invalid user ID format" });
       }
       
-      const user = await storage.updateUser(userId, { isSecondChanceDone: true });
+      const user = await storage.updateUser(id, { isSecondChanceDone: true });
       res.json(user);
     } catch (error) {
       console.log(`Error updating user completion status: ${error}`);
