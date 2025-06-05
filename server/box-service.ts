@@ -1,6 +1,7 @@
 import BoxSDK from 'box-node-sdk';
 import { Request } from 'express';
 import multer from 'multer';
+import FormData from 'form-data';
 
 // Box service class for handling document operations
 export class BoxService {
@@ -74,7 +75,6 @@ export class BoxService {
     folderId: string = '0'
   ): Promise<any> {
     try {
-      const FormData = require('form-data');
       const formData = new FormData();
       
       formData.append('attributes', JSON.stringify({
@@ -87,9 +87,9 @@ export class BoxService {
         method: 'POST',
         headers: {
           'Authorization': `Bearer ${accessToken}`,
-          ...formData.getHeaders()
+          ...(formData.getHeaders ? formData.getHeaders() : {})
         },
-        body: formData,
+        body: formData as any,
       });
 
       if (!response.ok) {
