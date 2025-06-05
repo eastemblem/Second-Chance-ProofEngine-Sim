@@ -171,21 +171,56 @@ export async function registerRoutes(app: Express): Promise<Server> {
     try {
       const { code } = req.query;
       if (!code) {
-        return res.status(400).json({ error: "Authorization code is required" });
+        return res.status(400).send(`
+          <html>
+            <body>
+              <script>
+                window.opener.postMessage({
+                  type: 'BOX_AUTH_ERROR',
+                  error: 'Authorization code missing'
+                }, window.location.origin);
+                window.close();
+              </script>
+            </body>
+          </html>
+        `);
       }
       
       const tokens = await boxService.getTokensFromCode(code as string);
-      // In production, you'd store these tokens securely for the user
-      res.json({ 
-        message: "Box authentication successful",
-        tokens: {
-          access_token: tokens.accessToken,
-          refresh_token: tokens.refreshToken
-        }
-      });
+      
+      // Send tokens back to parent window and close popup
+      res.send(`
+        <html>
+          <body>
+            <script>
+              window.opener.postMessage({
+                type: 'BOX_AUTH_SUCCESS',
+                tokens: {
+                  access_token: '${tokens.access_token}',
+                  refresh_token: '${tokens.refresh_token}',
+                  expires_in: ${tokens.expires_in}
+                }
+              }, window.location.origin);
+              window.close();
+            </script>
+          </body>
+        </html>
+      `);
     } catch (error) {
       console.log(`Box OAuth callback error: ${error}`);
-      res.status(500).json({ error: "Authentication failed" });
+      res.send(`
+        <html>
+          <body>
+            <script>
+              window.opener.postMessage({
+                type: 'BOX_AUTH_ERROR',
+                error: 'Authentication failed'
+              }, window.location.origin);
+              window.close();
+            </script>
+          </body>
+        </html>
+      `);
     }
   });
 

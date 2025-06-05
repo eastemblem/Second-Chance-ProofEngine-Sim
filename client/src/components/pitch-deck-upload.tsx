@@ -1,22 +1,46 @@
-import { useState, useRef } from "react";
+import { useState, useRef, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { Upload, FileText, CheckCircle, AlertCircle, ExternalLink } from "lucide-react";
+import { Upload, FileText, CheckCircle, AlertCircle, ExternalLink, X } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { Progress } from "@/components/ui/progress";
 
 interface PitchDeckUploadProps {
   userId?: string;
-  accessToken?: string;
 }
 
-export default function PitchDeckUpload({ userId, accessToken }: PitchDeckUploadProps) {
+export default function PitchDeckUpload({ userId }: PitchDeckUploadProps) {
   const [isUploading, setIsUploading] = useState(false);
   const [uploadProgress, setUploadProgress] = useState(0);
   const [uploadedFiles, setUploadedFiles] = useState<any[]>([]);
-  const [needsAuth, setNeedsAuth] = useState(!accessToken);
+  const [accessToken, setAccessToken] = useState<string>("");
+  const [needsAuth, setNeedsAuth] = useState(true);
+  const [authWindow, setAuthWindow] = useState<Window | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
   const { toast } = useToast();
+
+  // Listen for Box auth completion
+  useEffect(() => {
+    const handleMessage = (event: MessageEvent) => {
+      if (event.origin !== window.location.origin) return;
+      
+      if (event.data.type === 'BOX_AUTH_SUCCESS' && event.data.tokens) {
+        setAccessToken(event.data.tokens.access_token);
+        setNeedsAuth(false);
+        if (authWindow) {
+          authWindow.close();
+          setAuthWindow(null);
+        }
+        toast({
+          title: "Box Connected Successfully",
+          description: "You can now upload your pitch deck securely.",
+        });
+      }
+    };
+
+    window.addEventListener('message', handleMessage);
+    return () => window.removeEventListener('message', handleMessage);
+  }, [authWindow, toast]);
 
   const handleBoxAuth = async () => {
     try {
@@ -24,7 +48,8 @@ export default function PitchDeckUpload({ userId, accessToken }: PitchDeckUpload
       const data = await response.json();
       
       if (data.authUrl) {
-        window.open(data.authUrl, '_blank', 'width=600,height=700');
+        const newWindow = window.open(data.authUrl, 'boxAuth', 'width=600,height=700,scrollbars=yes,resizable=yes');
+        setAuthWindow(newWindow);
         toast({
           title: "Box Authentication Required",
           description: "Please complete authentication to upload your pitch deck.",
