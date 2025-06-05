@@ -36,15 +36,54 @@ export class BoxService {
     }
   }
 
+  async getClientCredentialsToken(): Promise<string> {
+    try {
+      console.log('Attempting Box client credentials authentication...');
+      
+      const response = await fetch('https://api.box.com/oauth2/token', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/x-www-form-urlencoded',
+        },
+        body: new URLSearchParams({
+          grant_type: 'client_credentials',
+          client_id: this.clientId,
+          client_secret: this.clientSecret,
+        }),
+      });
+
+      if (!response.ok) {
+        const errorText = await response.text();
+        console.log(`Client credentials auth failed: ${response.status} - ${errorText}`);
+        throw new Error(`Authentication failed: ${response.status} - ${errorText}`);
+      }
+
+      const tokens = await response.json();
+      console.log('Box client credentials authentication successful');
+      return tokens.access_token;
+    } catch (error) {
+      console.error('Client credentials authentication error:', error);
+      throw error;
+    }
+  }
+
   async getValidAccessToken(): Promise<string> {
+    // First try static token if available
     const staticToken = this.getDefaultAccessToken();
     if (staticToken) {
       const isValid = await this.testConnection(staticToken);
       if (isValid) {
+        console.log('Using static access token');
         return staticToken;
       }
     }
-    throw new Error('Unable to obtain valid Box access token. Please check Box credentials.');
+
+    // Try client credentials authentication
+    try {
+      return await this.getClientCredentialsToken();
+    } catch (error) {
+      throw new Error('Unable to obtain valid Box access token. Please check Box credentials.');
+    }
   }
 
   async uploadFile(
