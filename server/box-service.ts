@@ -22,14 +22,14 @@ export class BoxService {
     return process.env.BOX_ACCESS_TOKEN || '';
   }
 
-  async testConnection(): Promise<boolean> {
+  async testConnection(accessToken?: string): Promise<boolean> {
     try {
-      const accessToken = this.getDefaultAccessToken();
-      if (!accessToken) return false;
+      const token = accessToken || this.getDefaultAccessToken();
+      if (!token) return false;
 
       const response = await fetch('https://api.box.com/2.0/users/me', {
         headers: {
-          'Authorization': `Bearer ${accessToken}`
+          'Authorization': `Bearer ${token}`
         }
       });
 
@@ -38,6 +38,28 @@ export class BoxService {
       console.error('Box connection test failed:', error);
       return false;
     }
+  }
+
+  async refreshToken(refreshToken: string): Promise<any> {
+    const response = await fetch('https://api.box.com/oauth2/token', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/x-www-form-urlencoded',
+      },
+      body: new URLSearchParams({
+        grant_type: 'refresh_token',
+        refresh_token: refreshToken,
+        client_id: this.clientId,
+        client_secret: this.clientSecret,
+      }),
+    });
+
+    if (!response.ok) {
+      const errorText = await response.text();
+      throw new Error(`Token refresh failed: ${response.status} - ${errorText}`);
+    }
+
+    return await response.json();
   }
 
   getAuthURL(): string {
