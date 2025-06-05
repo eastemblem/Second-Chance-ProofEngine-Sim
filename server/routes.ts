@@ -354,36 +354,34 @@ export async function registerRoutes(app: Express): Promise<Server> {
         });
       }
 
-      // Check if Box access token is available
-      const accessToken = boxService.getDefaultAccessToken();
-      
-      if (accessToken) {
-        try {
-          // Create session folder for this startup
-          const sessionFolderId = await boxService.createSessionFolder(accessToken, startupName);
-          console.log(`Session folder created/found: ${sessionFolderId} for startup: ${startupName}`);
+      // Get valid Box access token with automatic refresh
+      try {
+        const accessToken = await boxService.getValidAccessToken();
+        
+        // Create session folder for this startup
+        const sessionFolderId = await boxService.createSessionFolder(accessToken, startupName);
+        console.log(`Session folder created/found: ${sessionFolderId} for startup: ${startupName}`);
 
-          const uploadResult = await boxService.uploadFile(
-            accessToken,
-            req.file.originalname,
-            req.file.buffer,
-            sessionFolderId
-          );
+        const uploadResult = await boxService.uploadFile(
+          accessToken,
+          req.file.originalname,
+          req.file.buffer,
+          sessionFolderId
+        );
 
-          return res.json({
-            success: true,
-            storage: 'box',
-            file: {
-              id: uploadResult.id,
-              name: uploadResult.name,
-              size: uploadResult.size,
-              download_url: uploadResult.download_url
-            },
-            sessionFolder: sessionFolderId
-          });
-        } catch (boxError) {
-          console.log(`Box upload failed, using local storage: ${boxError}`);
-        }
+        return res.json({
+          success: true,
+          storage: 'box',
+          file: {
+            id: uploadResult.id,
+            name: uploadResult.name,
+            size: uploadResult.size,
+            download_url: uploadResult.download_url
+          },
+          sessionFolder: sessionFolderId
+        });
+      } catch (boxError) {
+        console.log(`Box upload failed, using local storage: ${boxError}`);
       }
 
       // Fallback to local storage simulation for demo
@@ -436,11 +434,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.post('/api/box/generate-links', async (req, res) => {
     try {
       const { sessionFolderId, uploadedFiles } = req.body;
-      const accessToken = boxService.getDefaultAccessToken();
-      
-      if (!accessToken) {
-        return res.status(400).json({ error: 'Box access token not available' });
-      }
+      const accessToken = await boxService.getValidAccessToken();
 
       const result: any = {};
 
@@ -472,6 +466,46 @@ export async function registerRoutes(app: Express): Promise<Server> {
       console.error('Error generating shareable links:', error);
       res.status(500).json({ error: 'Failed to generate shareable links' });
     }
+  });
+
+  // Box OAuth callback endpoint
+  app.get('/api/box/callback', async (req, res) => {
+    try {
+      const { code, error } = req.query;
+      
+      if (error) {
+        return res.status(400).send(`OAuth error: ${error}`);
+      }
+      
+      if (!code) {
+        return res.status(400).send('Authorization code not provided');
+      }
+
+      const tokens = await boxService.getTokensFromCode(code as string);
+      
+      // Redirect to success page or main app
+      res.send(`
+        <html>
+          <body>
+            <h2>Box.com Authentication Successful!</h2>
+            <p>You can now close this window and return to the application.</p>
+            <script>
+              window.opener?.postMessage({ type: 'BOX_AUTH_SUCCESS', tokens: ${JSON.stringify(tokens)} }, '*');
+              window.close();
+            </script>
+          </body>
+        </html>
+      `);
+    } catch (error) {
+      console.error('Box OAuth callback error:', error);
+      res.status(500).send('Authentication failed');
+    }
+  });
+
+  // Box OAuth initiation endpoint
+  app.get('/api/box/auth', (req, res) => {
+    const authUrl = boxService.getAuthURL();
+    res.redirect(authUrl);
   });
 
   const httpServer = createServer(app);

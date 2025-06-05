@@ -8,6 +8,9 @@ import https from 'https';
 export class BoxService {
   private clientId: string;
   private clientSecret: string;
+  private currentAccessToken: string = '';
+  private refreshToken: string = '';
+  private tokenExpiresAt: number = 0;
 
   constructor() {
     this.clientId = process.env.BOX_CLIENT_ID || '';
@@ -18,8 +21,66 @@ export class BoxService {
     }
   }
 
+  async getValidAccessToken(): Promise<string> {
+    // Check if current token is still valid (with 5 minute buffer)
+    if (this.currentAccessToken && Date.now() < (this.tokenExpiresAt - 300000)) {
+      return this.currentAccessToken;
+    }
+
+    // Try to refresh token if we have a refresh token
+    if (this.refreshToken) {
+      try {
+        await this.refreshAccessToken();
+        return this.currentAccessToken;
+      } catch (error) {
+        console.error('Token refresh failed:', error);
+      }
+    }
+
+    // Fall back to environment token if available
+    const envToken = process.env.BOX_ACCESS_TOKEN || '';
+    if (envToken) {
+      this.currentAccessToken = envToken;
+      // Set expiry to 1 hour from now as default
+      this.tokenExpiresAt = Date.now() + 3600000;
+      return envToken;
+    }
+
+    throw new Error('No valid Box access token available');
+  }
+
+  async refreshAccessToken(): Promise<void> {
+    if (!this.refreshToken) {
+      throw new Error('No refresh token available');
+    }
+
+    const response = await fetch('https://api.box.com/oauth2/token', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/x-www-form-urlencoded'
+      },
+      body: new URLSearchParams({
+        grant_type: 'refresh_token',
+        refresh_token: this.refreshToken,
+        client_id: this.clientId,
+        client_secret: this.clientSecret
+      })
+    });
+
+    if (!response.ok) {
+      throw new Error(`Token refresh failed: ${response.status}`);
+    }
+
+    const tokenData = await response.json();
+    this.currentAccessToken = tokenData.access_token;
+    this.refreshToken = tokenData.refresh_token;
+    this.tokenExpiresAt = Date.now() + (tokenData.expires_in * 1000);
+    
+    console.log('Box access token refreshed successfully');
+  }
+
   getDefaultAccessToken(): string {
-    return process.env.BOX_ACCESS_TOKEN || '';
+    return this.currentAccessToken || process.env.BOX_ACCESS_TOKEN || '';
   }
 
   async testConnection(): Promise<boolean> {
@@ -71,7 +132,15 @@ export class BoxService {
       throw new Error(`Token exchange failed: ${response.status} - ${errorText}`);
     }
 
-    return response.json();
+    const tokenData = await response.json();
+    
+    // Store the tokens for future use
+    this.currentAccessToken = tokenData.access_token;
+    this.refreshToken = tokenData.refresh_token;
+    this.tokenExpiresAt = Date.now() + (tokenData.expires_in * 1000);
+    
+    console.log('Box tokens obtained and stored successfully');
+    return tokenData;
   }
 
   async uploadFile(
