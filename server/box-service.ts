@@ -92,19 +92,22 @@ export class BoxService {
     try {
       const formData = new FormData();
       
+      // Add attributes as JSON string
       formData.append('attributes', JSON.stringify({
         name: fileName,
         parent: { id: folderId }
       }));
+      
+      // Add file buffer directly to FormData
       formData.append('file', fileBuffer, fileName);
 
       const response = await fetch('https://upload.box.com/api/2.0/files/content', {
         method: 'POST',
         headers: {
           'Authorization': `Bearer ${accessToken}`,
-          ...(formData.getHeaders ? formData.getHeaders() : {})
+          ...formData.getHeaders()
         },
-        body: formData as any,
+        body: formData,
       });
 
       if (!response.ok) {
