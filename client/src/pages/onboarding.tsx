@@ -25,6 +25,9 @@ export default function OnboardingPage({ onNext, onDataUpdate }: OnboardingPageP
   const [isSubmitting, setIsSubmitting] = useState(false);
   const { toast } = useToast();
 
+  // Check if required fields are completed for file uploads
+  const isFormValid = formData.name && formData.email && formData.startupName && formData.stage;
+
   // Create user mutation
   const createUserMutation = useMutation({
     mutationFn: async (userData: any) => {
@@ -223,6 +226,8 @@ export default function OnboardingPage({ onNext, onDataUpdate }: OnboardingPageP
                       ]}
                       category="pitch-deck"
                       userId={formData.userId?.toString()}
+                      startupName={formData.startupName}
+                      disabled={!isFormValid}
                     />
                     
                     <SimpleFileUpload
@@ -231,6 +236,8 @@ export default function OnboardingPage({ onNext, onDataUpdate }: OnboardingPageP
                       accept=".pdf,.doc,.docx,.xls,.xlsx,.ppt,.pptx"
                       category="data-room"
                       userId={formData.userId?.toString()}
+                      startupName={formData.startupName}
+                      disabled={!isFormValid}
                     />
                   </div>
                 </div>

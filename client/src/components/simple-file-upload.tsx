@@ -44,6 +44,26 @@ export default function SimpleFileUpload({
     const file = event.target.files?.[0];
     if (!file) return;
 
+    // Check if uploads are disabled
+    if (disabled) {
+      toast({
+        title: "Upload Disabled",
+        description: "Please complete the form before uploading files.",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    // Validate startup name is provided
+    if (!startupName) {
+      toast({
+        title: "Startup Name Required",
+        description: "Please enter your startup name before uploading files.",
+        variant: "destructive",
+      });
+      return;
+    }
+
     // Validate file type
     if (allowedTypes && !allowedTypes.includes(file.type)) {
       toast({
@@ -71,7 +91,7 @@ export default function SimpleFileUpload({
       const formData = new FormData();
       formData.append('document', file);
       formData.append('category', category);
-      formData.append('folderName', `Second Chance - ${category}`);
+      formData.append('startupName', startupName);
 
       // Simulate upload progress
       const progressInterval = setInterval(() => {
@@ -148,14 +168,31 @@ export default function SimpleFileUpload({
         </CardDescription>
       </CardHeader>
       <CardContent className="space-y-4">
+        {disabled && (
+          <div className="p-4 bg-yellow-50 border border-yellow-200 rounded-lg">
+            <p className="text-sm text-yellow-800">
+              Complete the form below to enable file uploads
+            </p>
+          </div>
+        )}
+        
         <div className="flex items-center justify-center w-full">
-          <label className="flex flex-col items-center justify-center w-full h-32 border-2 border-dashed border-primary-gold/30 rounded-lg cursor-pointer bg-primary-gold/5 hover:bg-primary-gold/10 transition-colors">
+          <label className={`flex flex-col items-center justify-center w-full h-32 border-2 border-dashed rounded-lg transition-colors ${
+            disabled 
+              ? 'border-gray-200 bg-gray-50 cursor-not-allowed' 
+              : 'border-primary-gold/30 bg-primary-gold/5 hover:bg-primary-gold/10 cursor-pointer'
+          }`}>
             <div className="flex flex-col items-center justify-center pt-5 pb-6">
-              <Upload className="w-8 h-8 mb-4 text-primary-gold" />
-              <p className="mb-2 text-sm text-gray-500">
-                <span className="font-semibold">Click to upload</span> or drag and drop
+              <Upload className={`w-8 h-8 mb-4 ${disabled ? 'text-gray-400' : 'text-primary-gold'}`} />
+              <p className={`mb-2 text-sm ${disabled ? 'text-gray-400' : 'text-gray-500'}`}>
+                <span className="font-semibold">
+                  {disabled ? 'Complete form to upload' : 'Click to upload'}
+                </span> 
+                {!disabled && ' or drag and drop'}
               </p>
-              <p className="text-xs text-gray-500">PDF, DOC, PPT, XLS (MAX. 10MB)</p>
+              <p className={`text-xs ${disabled ? 'text-gray-400' : 'text-gray-500'}`}>
+                PDF, DOC, PPT, XLS (MAX. 10MB)
+              </p>
             </div>
             <input 
               ref={fileInputRef}
@@ -163,7 +200,7 @@ export default function SimpleFileUpload({
               className="hidden" 
               accept={accept}
               onChange={handleFileUpload}
-              disabled={isUploading}
+              disabled={isUploading || disabled}
             />
           </label>
         </div>
