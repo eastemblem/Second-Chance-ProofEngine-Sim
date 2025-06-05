@@ -275,7 +275,12 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Upload document to Box (requires access token)
   app.post("/api/box/upload", upload.single('document'), async (req, res) => {
     try {
-      const accessToken = req.headers.authorization?.replace('Bearer ', '');
+      let accessToken = req.headers.authorization?.replace('Bearer ', '');
+      
+      // Use default access token if none provided
+      if (!accessToken) {
+        accessToken = boxService.getDefaultAccessToken();
+      }
       
       if (!accessToken) {
         return res.status(401).json({ error: "Box access token required" });
