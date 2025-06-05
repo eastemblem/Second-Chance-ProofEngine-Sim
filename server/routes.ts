@@ -382,22 +382,18 @@ export async function registerRoutes(app: Express): Promise<Server> {
             sessionFolder: sessionFolderId
           });
         } catch (boxError) {
-          console.log(`Box upload failed, using local storage: ${boxError}`);
+          console.log(`Box upload failed: ${boxError}`);
+          return res.status(503).json({ 
+            error: "Box service unavailable",
+            message: "Valid Box credentials required for file uploads",
+            details: boxError instanceof Error ? boxError.message : String(boxError)
+          });
         }
       }
 
-      // Fallback to local storage simulation for demo
-      const mockFileId = Math.random().toString(36).substr(2, 9);
-      
-      res.json({
-        success: true,
-        storage: 'local',
-        file: {
-          id: mockFileId,
-          name: req.file.originalname,
-          size: req.file.size,
-          download_url: null
-        }
+      return res.status(503).json({ 
+        error: "Box service unavailable",
+        message: "Valid Box access token required for file uploads"
       });
 
     } catch (error) {

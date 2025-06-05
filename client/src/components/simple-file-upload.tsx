@@ -116,6 +116,11 @@ export default function SimpleFileUpload({
 
       if (!response.ok) {
         const errorData = await response.json();
+        
+        if (response.status === 503) {
+          throw new Error(`Box service unavailable: ${errorData.message || 'Valid credentials required'}`);
+        }
+        
         throw new Error(errorData.error || 'Upload failed');
       }
 

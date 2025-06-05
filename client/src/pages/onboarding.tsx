@@ -8,6 +8,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Card } from "@/components/ui/card";
 import ProgressBar from "@/components/progress-bar";
 import SimpleFileUpload from "@/components/simple-file-upload";
+import BoxConnectionStatus from "@/components/box-connection-status";
 
 import { FounderData } from "@shared/schema";
 import { useMutation } from "@tanstack/react-query";
@@ -196,6 +197,8 @@ export default function OnboardingPage({ onNext, onDataUpdate }: OnboardingPageP
           transition={{ duration: 0.6 }}
         >
           <ProgressBar currentStep={1} totalSteps={4} stepName="Founder Profile" />
+          
+          <BoxConnectionStatus />
 
           <Card className="p-8 border-border bg-card">
             <h2 className="text-3xl font-bold mb-2">Tell us about your venture</h2>
