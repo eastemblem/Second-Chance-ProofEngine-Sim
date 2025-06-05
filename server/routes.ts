@@ -293,18 +293,17 @@ export async function registerRoutes(app: Express): Promise<Server> {
       
       const tokens = await boxService.exchangeCodeForTokens(code as string);
       
-      // Send tokens back to parent window and close popup
+      // Store tokens in database for system-wide use
+      await boxService.storeTokens(tokens);
+      
+      // Send success message back to parent window
       res.send(`
         <html>
           <body>
             <script>
               window.opener.postMessage({
                 type: 'BOX_AUTH_SUCCESS',
-                tokens: {
-                  access_token: '${tokens.access_token}',
-                  refresh_token: '${tokens.refresh_token}',
-                  expires_in: ${tokens.expires_in}
-                }
+                message: 'Box authentication successful'
               }, window.location.origin);
               window.close();
             </script>
