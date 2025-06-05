@@ -68,7 +68,7 @@ export default function DealRoomPage({ onNext, proofScore }: DealRoomPageProps) 
             </motion.div>
             <h2 className="text-3xl font-bold mb-4">Welcome to the Deal Room</h2>
             <p className="text-xl text-muted-foreground">
-              Your ProofScore of {proofScore.total || proofScore.totalScore} qualifies you for direct investor access
+              Your ProofScore of {(proofScore as any).total || proofScore.totalScore} qualifies you for direct investor access
             </p>
           </div>
 
