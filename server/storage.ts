@@ -3,19 +3,19 @@ import { db } from "./db";
 import { eq } from "drizzle-orm";
 
 export interface IStorage {
-  getUser(id: number): Promise<User | undefined>;
+  getUser(id: string): Promise<User | undefined>;
   getUserByEmail(email: string): Promise<User | undefined>;
   createUser(user: InsertUser): Promise<User>;
-  updateUser(id: number, user: Partial<InsertUser>): Promise<User>;
+  updateUser(id: string, user: Partial<InsertUser>): Promise<User>;
   
-  getVenture(id: number): Promise<Venture | undefined>;
-  getVenturesByUserId(userId: number): Promise<Venture[]>;
+  getVenture(id: string): Promise<Venture | undefined>;
+  getVenturesByUserId(userId: string): Promise<Venture[]>;
   createVenture(venture: InsertVenture): Promise<Venture>;
-  updateVenture(id: number, venture: Partial<InsertVenture>): Promise<Venture>;
+  updateVenture(id: string, venture: Partial<InsertVenture>): Promise<Venture>;
 }
 
 export class DatabaseStorage implements IStorage {
-  async getUser(id: number): Promise<User | undefined> {
+  async getUser(id: string): Promise<User | undefined> {
     const [user] = await db.select().from(users).where(eq(users.id, id));
     return user || undefined;
   }
@@ -33,7 +33,7 @@ export class DatabaseStorage implements IStorage {
     return user;
   }
 
-  async updateUser(id: number, updateUser: Partial<InsertUser>): Promise<User> {
+  async updateUser(id: string, updateUser: Partial<InsertUser>): Promise<User> {
     const [user] = await db
       .update(users)
       .set({ ...updateUser, updatedAt: new Date() })
@@ -42,12 +42,12 @@ export class DatabaseStorage implements IStorage {
     return user;
   }
 
-  async getVenture(id: number): Promise<Venture | undefined> {
+  async getVenture(id: string): Promise<Venture | undefined> {
     const [venture] = await db.select().from(ventures).where(eq(ventures.id, id));
     return venture || undefined;
   }
 
-  async getVenturesByUserId(userId: number): Promise<Venture[]> {
+  async getVenturesByUserId(userId: string): Promise<Venture[]> {
     return await db.select().from(ventures).where(eq(ventures.ownerId, userId));
   }
 
@@ -59,7 +59,7 @@ export class DatabaseStorage implements IStorage {
     return venture;
   }
 
-  async updateVenture(id: number, updateVenture: Partial<InsertVenture>): Promise<Venture> {
+  async updateVenture(id: string, updateVenture: Partial<InsertVenture>): Promise<Venture> {
     const [venture] = await db
       .update(ventures)
       .set({ ...updateVenture, updatedAt: new Date() })

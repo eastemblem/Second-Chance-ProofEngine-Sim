@@ -1,11 +1,11 @@
 import { z } from "zod";
 import { createInsertSchema } from "drizzle-zod";
-import { pgTable, text, integer, serial, timestamp, boolean, decimal, json } from "drizzle-orm/pg-core";
+import { pgTable, text, integer, serial, timestamp, boolean, decimal, json, uuid } from "drizzle-orm/pg-core";
 import { relations } from "drizzle-orm";
 
 // Users table
 export const users = pgTable("users", {
-  id: serial("id").primaryKey(),
+  id: uuid("id").primaryKey().defaultRandom(),
   firstName: text("first_name").notNull(),
   lastName: text("last_name").notNull(),
   email: text("email").notNull().unique(),
@@ -35,9 +35,9 @@ export const users = pgTable("users", {
 
 // Ventures table
 export const ventures = pgTable("ventures", {
-  id: serial("id").primaryKey(),
+  id: uuid("id").primaryKey().defaultRandom(),
   name: text("name").notNull(),
-  ownerId: integer("owner_id").references(() => users.id).notNull(),
+  ownerId: uuid("owner_id").references(() => users.id).notNull(),
   teamSize: integer("team_size").default(1),
   category: text("category"), // "saas", "marketplace", "fintech", etc.
   description: text("description"),
@@ -70,7 +70,7 @@ export const ventures = pgTable("ventures", {
 // ProofScores table (separate table for detailed scoring)
 export const proofScores = pgTable("proof_scores", {
   id: serial("id").primaryKey(),
-  ventureId: integer("venture_id").references(() => ventures.id).notNull(),
+  ventureId: uuid("venture_id").references(() => ventures.id).notNull(),
   totalScore: decimal("total_score", { precision: 5, scale: 2 }).notNull(),
   desirability: decimal("desirability", { precision: 5, scale: 2 }).notNull(),
   feasibility: decimal("feasibility", { precision: 5, scale: 2 }).notNull(),
@@ -94,15 +94,15 @@ export const proofScores = pgTable("proof_scores", {
 // ProofVault documents table
 export const proofVaultDocuments = pgTable("proof_vault_documents", {
   id: serial("id").primaryKey(),
-  ventureId: integer("venture_id").references(() => ventures.id).notNull(),
+  ventureId: uuid("venture_id").references(() => ventures.id).notNull(),
   documentType: text("document_type").notNull(), // "pitch_deck", "financial_model", "customer_interviews", etc.
   fileName: text("file_name").notNull(),
   fileUrl: text("file_url").notNull(),
   fileSize: integer("file_size"),
   mimeType: text("mime_type"),
-  uploadedBy: integer("uploaded_by").references(() => users.id).notNull(),
+  uploadedBy: uuid("uploaded_by").references(() => users.id).notNull(),
   isValidated: boolean("is_validated").default(false),
-  validatedBy: integer("validated_by").references(() => users.id),
+  validatedBy: uuid("validated_by").references(() => users.id),
   validationNotes: text("validation_notes"),
   createdAt: timestamp("created_at").defaultNow().notNull(),
   updatedAt: timestamp("updated_at").defaultNow().notNull(),
@@ -111,8 +111,8 @@ export const proofVaultDocuments = pgTable("proof_vault_documents", {
 // Team members table
 export const teamMembers = pgTable("team_members", {
   id: serial("id").primaryKey(),
-  ventureId: integer("venture_id").references(() => ventures.id).notNull(),
-  userId: integer("user_id").references(() => users.id),
+  ventureId: uuid("venture_id").references(() => ventures.id).notNull(),
+  userId: uuid("user_id").references(() => users.id),
   name: text("name").notNull(),
   email: text("email"),
   role: text("role").notNull(), // "founder", "co-founder", "cto", "cmo", etc.
@@ -125,14 +125,14 @@ export const teamMembers = pgTable("team_members", {
 // Investor interactions table
 export const investorInteractions = pgTable("investor_interactions", {
   id: serial("id").primaryKey(),
-  ventureId: integer("venture_id").references(() => ventures.id).notNull(),
+  ventureId: uuid("venture_id").references(() => ventures.id).notNull(),
   investorName: text("investor_name").notNull(),
   investorType: text("investor_type"), // "angel", "vc", "accelerator"
   stage: text("stage").notNull(), // "intro", "meeting", "due_diligence", "term_sheet", "closed"
   amount: decimal("amount", { precision: 12, scale: 2 }),
   notes: text("notes"),
   nextAction: text("next_action"),
-  contactedBy: integer("contacted_by").references(() => users.id).notNull(),
+  contactedBy: uuid("contacted_by").references(() => users.id).notNull(),
   createdAt: timestamp("created_at").defaultNow().notNull(),
   updatedAt: timestamp("updated_at").defaultNow().notNull(),
 });
