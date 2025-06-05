@@ -1,5 +1,9 @@
-import { Request } from 'express';
+import BoxSDK from 'box-node-sdk';
+import { Readable } from 'stream';
+import FormData from 'form-data';
 import multer from 'multer';
+import { Request } from 'express';
+import https from 'https';
 
 export class BoxService {
   private clientId: string;
@@ -15,8 +19,13 @@ export class BoxService {
   }
 
   getDefaultAccessToken(): string {
+    // Use service account or app-level access token
     return process.env.BOX_ACCESS_TOKEN || '';
   }
+
+
+
+
 
   async testConnection(accessToken?: string): Promise<boolean> {
     try {
@@ -36,7 +45,37 @@ export class BoxService {
     }
   }
 
+  async getTokensFromClientCredentials(): Promise<string> {
+    try {
+      const response = await fetch('https://api.box.com/oauth2/token', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/x-www-form-urlencoded',
+        },
+        body: new URLSearchParams({
+          grant_type: 'client_credentials',
+          client_id: this.clientId,
+          client_secret: this.clientSecret,
+          box_subject_type: 'enterprise',
+          box_subject_id: process.env.BOX_ENTERPRISE_ID || '',
+        }),
+      });
+
+      if (!response.ok) {
+        const errorText = await response.text();
+        throw new Error(`Client credentials auth failed: ${response.status} - ${errorText}`);
+      }
+
+      const tokens = await response.json();
+      return tokens.access_token;
+    } catch (error) {
+      console.error('Client credentials authentication failed:', error);
+      throw error;
+    }
+  }
+
   async getValidAccessToken(): Promise<string> {
+    // First try the static access token
     const staticToken = this.getDefaultAccessToken();
     if (staticToken) {
       const isValid = await this.testConnection(staticToken);
@@ -44,62 +83,79 @@ export class BoxService {
         return staticToken;
       }
     }
-    throw new Error('Unable to obtain valid Box access token. Please check Box credentials.');
+
+    // If static token fails, try client credentials flow
+    try {
+      return await this.getTokensFromClientCredentials();
+    } catch (error) {
+      throw new Error('Unable to obtain valid Box access token. Please check Box credentials.');
+    }
+  }
+    const response = await fetch('https://api.box.com/oauth2/token', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/x-www-form-urlencoded',
+      },
+      body: new URLSearchParams({
+        grant_type: 'authorization_code',
+        code,
+        client_id: this.clientId,
+        client_secret: this.clientSecret,
+        redirect_uri: this.getRedirectUri(),
+      }),
+    });
+
+    if (!response.ok) {
+      const errorText = await response.text();
+      throw new Error(`Token exchange failed: ${response.status} - ${errorText}`);
+    }
+
+    return response.json();
   }
 
   async uploadFile(
     accessToken: string,
-    fileName: string,
+    fileName: string, 
     fileBuffer: Buffer,
     folderId: string = '0'
   ): Promise<any> {
     return new Promise((resolve, reject) => {
       console.log(`Uploading file ${fileName} to folder ${folderId} using Box API`);
       
-      const boundary = '----formdata-replit-' + Math.random().toString(36);
-      const formData = [];
+      const formData = new FormData();
       
-      // Add attributes
-      formData.push(`--${boundary}\r\n`);
-      formData.push(`Content-Disposition: form-data; name="attributes"\r\n\r\n`);
-      formData.push(JSON.stringify({
+      // Add attributes as required by Box API
+      formData.append('attributes', JSON.stringify({
         name: fileName,
         parent: { id: folderId }
       }));
-      formData.push(`\r\n`);
       
-      // Add file
-      formData.push(`--${boundary}\r\n`);
-      formData.push(`Content-Disposition: form-data; name="file"; filename="${fileName}"\r\n`);
-      formData.push(`Content-Type: application/octet-stream\r\n\r\n`);
-      
-      const formDataString = formData.join('');
-      const endBoundary = `\r\n--${boundary}--\r\n`;
-      
-      const postData = Buffer.concat([
-        Buffer.from(formDataString, 'utf8'),
-        fileBuffer,
-        Buffer.from(endBoundary, 'utf8')
-      ]);
-
-      const options = {
-        method: 'POST',
-        hostname: 'upload.box.com',
-        path: '/api/2.0/files/content',
-        headers: {
-          'Authorization': `Bearer ${accessToken}`,
-          'Content-Type': `multipart/form-data; boundary=${boundary}`,
-          'Content-Length': postData.length
-        }
-      };
+      // Add file buffer directly
+      formData.append('file', fileBuffer, {
+        filename: fileName,
+        contentType: 'application/octet-stream'
+      });
 
       console.log('Submitting multipart form to Box API');
-      
-      const https = require('https');
-      const request = https.request(options, (response: any) => {
+
+      // Submit the form using the form-data's submit method
+      formData.submit({
+        protocol: 'https:',
+        host: 'upload.box.com',
+        path: '/api/2.0/files/content',
+        method: 'POST',
+        headers: {
+          'Authorization': `Bearer ${accessToken}`
+        }
+      }, (err, response) => {
+        if (err) {
+          console.error('Box upload submission error:', err);
+          reject(err);
+          return;
+        }
+
         let responseData = '';
-        
-        response.on('data', (chunk: any) => {
+        response.on('data', (chunk) => {
           responseData += chunk;
         });
 
@@ -128,19 +184,11 @@ export class BoxService {
           }
         });
 
-        response.on('error', (error: any) => {
+        response.on('error', (error) => {
           console.error('Box response error:', error);
           reject(error);
         });
       });
-
-      request.on('error', (error: any) => {
-        console.error('Box request error:', error);
-        reject(error);
-      });
-
-      request.write(postData);
-      request.end();
     });
   }
 
@@ -167,34 +215,29 @@ export class BoxService {
 
       if (!response.ok) {
         const errorText = await response.text();
-        console.error(`Box folder creation error ${response.status}:`, errorText);
         
         if (response.status === 409) {
           console.log(`Folder ${folderName} already exists, fetching existing folder`);
-          const existingFolder = await this.findExistingFolder(accessToken, folderName, parentId);
+          const folders = await this.listFolderContents(accessToken, parentId);
+          const existingFolder = folders.find(item => 
+            item.type === 'folder' && item.name === folderName
+          );
+          
           if (existingFolder) {
             return existingFolder.id;
           }
         }
+        
+        console.error(`Box folder creation error ${response.status}:`, errorText);
         throw new Error(`Folder creation failed: ${response.status} - ${errorText}`);
       }
 
       const result = await response.json();
-      console.log('Folder created successfully:', result);
+      console.log('Box folder created successfully:', result);
       return result.id;
     } catch (error) {
       console.error('Error creating folder in Box:', error);
       throw error;
-    }
-  }
-
-  async findExistingFolder(accessToken: string, folderName: string, parentId: string): Promise<any> {
-    try {
-      const items = await this.listFolderContents(accessToken, parentId);
-      return items.find((item: any) => item.type === 'folder' && item.name === folderName);
-    } catch (error) {
-      console.error('Error finding existing folder:', error);
-      return null;
     }
   }
 

@@ -330,11 +330,12 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Test Box connection
   app.get("/api/box/test", async (req, res) => {
     try {
-      const isConnected = await boxService.testConnection();
+      const accessToken = await boxService.getValidAccessToken();
+      const isConnected = await boxService.testConnection(accessToken);
       res.json({ connected: isConnected });
     } catch (error) {
       console.log(`Box connection test failed: ${error}`);
-      res.status(500).json({ error: "Box connection failed" });
+      res.json({ connected: false, error: error instanceof Error ? error.message : String(error) });
     }
   });
 
@@ -354,47 +355,40 @@ export async function registerRoutes(app: Express): Promise<Server> {
         });
       }
 
-      // Check if Box access token is available
-      const accessToken = boxService.getDefaultAccessToken();
-      
-      if (accessToken) {
-        try {
-          // Create session folder for this startup
-          const sessionFolderId = await boxService.createSessionFolder(accessToken, startupName);
-          console.log(`Session folder created/found: ${sessionFolderId} for startup: ${startupName}`);
+      // Use server-side Box authentication
+      try {
+        const accessToken = await boxService.getValidAccessToken();
+        
+        // Create session folder for this startup
+        const sessionFolderId = await boxService.createSessionFolder(accessToken, startupName);
+        console.log(`Session folder created/found: ${sessionFolderId} for startup: ${startupName}`);
 
-          const uploadResult = await boxService.uploadFile(
-            accessToken,
-            req.file.originalname,
-            req.file.buffer,
-            sessionFolderId
-          );
+        const uploadResult = await boxService.uploadFile(
+          accessToken,
+          req.file.originalname,
+          req.file.buffer,
+          sessionFolderId
+        );
 
-          return res.json({
-            success: true,
-            storage: 'box',
-            file: {
-              id: uploadResult.id,
-              name: uploadResult.name,
-              size: uploadResult.size,
-              download_url: uploadResult.download_url
-            },
-            sessionFolder: sessionFolderId
-          });
-        } catch (boxError) {
-          console.log(`Box upload failed: ${boxError}`);
-          return res.status(503).json({ 
-            error: "Box service unavailable",
-            message: "Valid Box credentials required for file uploads",
-            details: boxError instanceof Error ? boxError.message : String(boxError)
-          });
-        }
+        return res.json({
+          success: true,
+          storage: 'box',
+          file: {
+            id: uploadResult.id,
+            name: uploadResult.name,
+            size: uploadResult.size,
+            download_url: uploadResult.download_url
+          },
+          sessionFolder: sessionFolderId
+        });
+      } catch (boxError) {
+        console.log(`Box upload failed: ${boxError}`);
+        return res.status(503).json({ 
+          error: "Box service unavailable",
+          message: "Valid Box credentials required for file uploads",
+          details: boxError instanceof Error ? boxError.message : String(boxError)
+        });
       }
-
-      return res.status(503).json({ 
-        error: "Box service unavailable",
-        message: "Valid Box access token required for file uploads"
-      });
 
     } catch (error) {
       console.log(`Error uploading file: ${error}`);
@@ -434,12 +428,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.post('/api/box/generate-links', async (req, res) => {
     try {
       const { sessionFolderId, uploadedFiles } = req.body;
-      const accessToken = boxService.getDefaultAccessToken();
       
-      if (!accessToken) {
-        return res.status(400).json({ error: 'Box access token not available' });
-      }
-
+      const accessToken = await boxService.getValidAccessToken();
       const result: any = {};
 
       // Generate folder shareable link for data room
@@ -468,7 +458,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       res.json(result);
     } catch (error) {
       console.error('Error generating shareable links:', error);
-      res.status(500).json({ error: 'Failed to generate shareable links' });
+      res.status(500).json({ error: 'Failed to generate shareable links', details: error instanceof Error ? error.message : String(error) });
     }
   });
 
