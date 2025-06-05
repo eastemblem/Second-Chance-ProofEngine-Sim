@@ -222,6 +222,78 @@ export class BoxService {
       throw error;
     }
   }
+
+  async createFolderShareableLink(accessToken: string, folderId: string): Promise<string> {
+    try {
+      console.log(`Creating shareable link for folder ${folderId}`);
+      
+      const response = await fetch(`https://api.box.com/2.0/folders/${folderId}`, {
+        method: 'PUT',
+        headers: {
+          'Authorization': `Bearer ${accessToken}`,
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({
+          shared_link: {
+            access: 'open',
+            permissions: {
+              can_download: true,
+              can_preview: true
+            }
+          }
+        })
+      });
+
+      if (!response.ok) {
+        const errorText = await response.text();
+        console.error(`Box folder share error ${response.status}:`, errorText);
+        throw new Error(`Failed to create folder shareable link: ${response.status} - ${errorText}`);
+      }
+
+      const result = await response.json();
+      console.log('Folder shareable link created:', result.shared_link?.url);
+      return result.shared_link?.url || '';
+    } catch (error) {
+      console.error('Error creating folder shareable link:', error);
+      throw error;
+    }
+  }
+
+  async createFileShareableLink(accessToken: string, fileId: string): Promise<string> {
+    try {
+      console.log(`Creating shareable link for file ${fileId}`);
+      
+      const response = await fetch(`https://api.box.com/2.0/files/${fileId}`, {
+        method: 'PUT',
+        headers: {
+          'Authorization': `Bearer ${accessToken}`,
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({
+          shared_link: {
+            access: 'open',
+            permissions: {
+              can_download: true,
+              can_preview: true
+            }
+          }
+        })
+      });
+
+      if (!response.ok) {
+        const errorText = await response.text();
+        console.error(`Box file share error ${response.status}:`, errorText);
+        throw new Error(`Failed to create file shareable link: ${response.status} - ${errorText}`);
+      }
+
+      const result = await response.json();
+      console.log('File shareable link created:', result.shared_link?.url);
+      return result.shared_link?.url || '';
+    } catch (error) {
+      console.error('Error creating file shareable link:', error);
+      throw error;
+    }
+  }
 }
 
 export const upload = multer({

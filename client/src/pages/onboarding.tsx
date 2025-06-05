@@ -27,6 +27,17 @@ export default function OnboardingPage({ onNext, onDataUpdate }: OnboardingPageP
 
   // Check if required fields are completed for file uploads
   const isFormValid = formData.name && formData.email && formData.startupName && formData.stage;
+  
+  // Track uploaded files for shareable link generation
+  const [uploadedFiles, setUploadedFiles] = useState<{id: string, name: string, category: string, sessionFolder?: string}[]>([]);
+  const [sessionFolderId, setSessionFolderId] = useState<string>('');
+
+  const handleFileUploaded = (fileData: {id: string, name: string, category: string, sessionFolder?: string}) => {
+    setUploadedFiles(prev => [...prev, fileData]);
+    if (fileData.sessionFolder && !sessionFolderId) {
+      setSessionFolderId(fileData.sessionFolder);
+    }
+  };
 
   // Create user mutation
   const createUserMutation = useMutation({
@@ -228,6 +239,7 @@ export default function OnboardingPage({ onNext, onDataUpdate }: OnboardingPageP
                       userId={formData.userId?.toString()}
                       startupName={formData.startupName}
                       disabled={!isFormValid}
+                      onFileUploaded={handleFileUploaded}
                     />
                     
                     <SimpleFileUpload
@@ -238,6 +250,7 @@ export default function OnboardingPage({ onNext, onDataUpdate }: OnboardingPageP
                       userId={formData.userId?.toString()}
                       startupName={formData.startupName}
                       disabled={!isFormValid}
+                      onFileUploaded={handleFileUploaded}
                     />
                   </div>
                 </div>

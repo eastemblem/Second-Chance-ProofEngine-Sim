@@ -14,6 +14,7 @@ interface SimpleFileUploadProps {
   category?: string;
   startupName?: string;
   disabled?: boolean;
+  onFileUploaded?: (fileData: { id: string; name: string; category: string; sessionFolder?: string }) => void;
 }
 
 export default function SimpleFileUpload({ 
@@ -32,7 +33,8 @@ export default function SimpleFileUpload({
   userId,
   category = "documents",
   startupName,
-  disabled = false
+  disabled = false,
+  onFileUploaded
 }: SimpleFileUploadProps) {
   const [isUploading, setIsUploading] = useState(false);
   const [uploadProgress, setUploadProgress] = useState(0);
@@ -129,6 +131,16 @@ export default function SimpleFileUpload({
 
       setUploadedFiles(prev => [...prev, newFile]);
       
+      // Notify parent component about the uploaded file
+      if (onFileUploaded) {
+        onFileUploaded({
+          id: result.file.id,
+          name: result.file.name,
+          category: category,
+          sessionFolder: result.sessionFolder
+        });
+      }
+      
       toast({
         title: "Upload Successful",
         description: `${file.name} has been uploaded to Box successfully.`,
@@ -171,7 +183,7 @@ export default function SimpleFileUpload({
         {disabled && (
           <div className="p-4 bg-yellow-50 border border-yellow-200 rounded-lg">
             <p className="text-sm text-yellow-800">
-              Complete the form below to enable file uploads
+              Complete the form above to enable file uploads
             </p>
           </div>
         )}
