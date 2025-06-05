@@ -3,6 +3,8 @@ import express from "express";
 import { createServer, type Server } from "http";
 import { storage } from "./storage";
 import { z } from "zod";
+import { boxService, upload } from "./box-service";
+import { Readable } from "stream";
 
 // Validation schemas
 const createUserSchema = z.object({
@@ -148,6 +150,122 @@ export async function registerRoutes(app: Express): Promise<Server> {
     } catch (error) {
       console.log(`Error updating user completion status: ${error}`);
       res.status(500).json({ error: "Failed to update user" });
+    }
+  });
+
+  // Box.com Integration Routes
+  
+  // Test Box connection
+  app.get("/api/box/test", async (req, res) => {
+    try {
+      const isConnected = await boxService.testConnection();
+      res.json({ connected: isConnected });
+    } catch (error) {
+      console.log(`Box connection test failed: ${error}`);
+      res.status(500).json({ error: "Box connection failed" });
+    }
+  });
+
+  // Upload document to Box
+  app.post("/api/box/upload/:userId", upload.single('document'), async (req, res) => {
+    try {
+      const { userId } = req.params;
+      
+      if (!req.file) {
+        return res.status(400).json({ error: "No file provided" });
+      }
+
+      // Validate user exists
+      const user = await storage.getUser(userId);
+      if (!user) {
+        return res.status(404).json({ error: "User not found" });
+      }
+
+      // Create user folder if it doesn't exist (we'll store folder ID in user record later)
+      const folderName = `${user.firstName}_${user.lastName}_${userId}`;
+      const folderId = await boxService.createUserFolder(userId, folderName);
+
+      // Convert buffer to stream for Box upload
+      const fileStream = Readable.from(req.file.buffer);
+      
+      // Upload file to Box
+      const uploadResult = await boxService.uploadFile(
+        folderId,
+        req.file.originalname,
+        fileStream
+      );
+
+      // Store document info in database
+      const documentData = {
+        userId: userId,
+        fileName: req.file.originalname,
+        fileType: req.file.mimetype,
+        fileSize: req.file.size,
+        boxFileId: uploadResult.id,
+        boxFolderId: folderId,
+        uploadedAt: new Date()
+      };
+
+      // Here we would normally save to proofVaultDocuments table
+      // For now, return the upload result
+      res.json({
+        success: true,
+        file: {
+          id: uploadResult.id,
+          name: req.file.originalname,
+          downloadUrl: uploadResult.downloadUrl
+        }
+      });
+
+    } catch (error) {
+      console.log(`Error uploading file to Box: ${error}`);
+      res.status(500).json({ error: "Failed to upload file" });
+    }
+  });
+
+  // Get user's documents from Box
+  app.get("/api/box/documents/:userId", async (req, res) => {
+    try {
+      const { userId } = req.params;
+      
+      // Validate user exists
+      const user = await storage.getUser(userId);
+      if (!user) {
+        return res.status(404).json({ error: "User not found" });
+      }
+
+      // For now, we'll try to get documents from a standard folder
+      // In production, we'd store the folder ID in the user record
+      try {
+        const folderName = `${user.firstName}_${user.lastName}_${userId}`;
+        // This is simplified - in production we'd store folder IDs
+        const documents = [];
+        res.json({ documents });
+      } catch (error) {
+        res.json({ documents: [] });
+      }
+
+    } catch (error) {
+      console.log(`Error getting user documents: ${error}`);
+      res.status(500).json({ error: "Failed to get documents" });
+    }
+  });
+
+  // Delete document from Box
+  app.delete("/api/box/document/:fileId", async (req, res) => {
+    try {
+      const { fileId } = req.params;
+      
+      const deleted = await boxService.deleteFile(fileId);
+      
+      if (deleted) {
+        res.json({ success: true });
+      } else {
+        res.status(404).json({ error: "File not found or could not be deleted" });
+      }
+    } catch (error) {
+      console.log(`Error deleting file: ${error}`);
+      res.status(500).json({ error: "Failed to delete file" });
     }
   });
 
