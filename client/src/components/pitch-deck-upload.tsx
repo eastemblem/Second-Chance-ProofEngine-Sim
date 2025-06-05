@@ -107,7 +107,7 @@ export default function PitchDeckUpload({ userId }: PitchDeckUploadProps) {
         });
       }, 200);
 
-      const response = await fetch(`/api/box/upload/${userId}`, {
+      const response = await fetch('/api/box/upload', {
         method: 'POST',
         headers: {
           'Authorization': `Bearer ${accessToken}`,
