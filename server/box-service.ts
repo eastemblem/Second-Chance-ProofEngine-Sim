@@ -37,14 +37,24 @@ export class BoxService {
 
   // Get OAuth URL for user authentication
   getAuthURL(): string {
-    const redirectUri = `${process.env.REPLIT_DEV_DOMAIN || 'http://localhost:5000'}/api/box/callback`;
-    return `https://account.box.com/api/oauth2/authorize?response_type=code&client_id=${this.clientId}&redirect_uri=${encodeURIComponent(redirectUri)}`;
+    const redirectUri = this.getRedirectUri();
+    return `https://account.box.com/api/oauth2/authorize?response_type=code&client_id=${this.clientId}&redirect_uri=${encodeURIComponent(redirectUri)}&scope=root_readwrite`;
+  }
+
+  // Get the redirect URI for Box OAuth
+  getRedirectUri(): string {
+    // Use the Replit domain if available, otherwise fallback to localhost
+    const domain = process.env.REPLIT_DEV_DOMAIN;
+    if (domain) {
+      return `https://${domain}/api/box/callback`;
+    }
+    return 'http://localhost:5000/api/box/callback';
   }
 
   // Exchange authorization code for access token
   async getTokensFromCode(code: string): Promise<any> {
     try {
-      const redirectUri = `${process.env.REPLIT_DEV_DOMAIN || 'http://localhost:5000'}/api/box/callback`;
+      const redirectUri = this.getRedirectUri();
       
       const response = await fetch('https://api.box.com/oauth2/token', {
         method: 'POST',

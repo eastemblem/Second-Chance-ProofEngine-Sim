@@ -166,6 +166,72 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Box OAuth callback endpoint
+  app.get("/api/box/callback", async (req, res) => {
+    try {
+      const { code, error } = req.query;
+
+      if (error) {
+        console.log(`Box OAuth error: ${error}`);
+        return res.status(400).send(`
+          <html>
+            <body>
+              <h1>Authentication Failed</h1>
+              <p>Error: ${error}</p>
+              <script>window.close();</script>
+            </body>
+          </html>
+        `);
+      }
+
+      if (!code) {
+        return res.status(400).send(`
+          <html>
+            <body>
+              <h1>Authentication Failed</h1>
+              <p>No authorization code received</p>
+              <script>window.close();</script>
+            </body>
+          </html>
+        `);
+      }
+
+      // Exchange code for tokens
+      const tokens = await boxService.getTokensFromCode(code as string);
+      
+      // Return success page with tokens (in a real app, you'd store these securely)
+      res.send(`
+        <html>
+          <body>
+            <h1>Box Authentication Successful!</h1>
+            <p>You can now close this window and return to the application.</p>
+            <script>
+              // Send tokens to parent window
+              if (window.opener) {
+                window.opener.postMessage({
+                  type: 'BOX_AUTH_SUCCESS',
+                  tokens: ${JSON.stringify(tokens)}
+                }, '*');
+              }
+              window.close();
+            </script>
+          </body>
+        </html>
+      `);
+    } catch (error) {
+      console.log(`Error in Box OAuth callback: ${error}`);
+      res.status(500).send(`
+        <html>
+          <body>
+            <h1>Authentication Error</h1>
+            <p>Failed to complete authentication. Please try again.</p>
+            <script>window.close();</script>
+          </body>
+        </html>
+      `);
+    }
+  });
+
   // Get Box user info for connection status
   app.get("/api/box/user", async (req, res) => {
     try {

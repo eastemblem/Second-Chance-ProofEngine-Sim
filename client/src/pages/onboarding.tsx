@@ -213,8 +213,8 @@ export default function OnboardingPage({ onNext, onDataUpdate }: OnboardingPageP
                   </p>
                   
                   <div className="space-y-4">
-                    <PitchDeckUpload userId={formData.id} />
-                    <DataRoomUpload userId={formData.id} />
+                    <PitchDeckUpload userId={formData.userId?.toString()} />
+                    <DataRoomUpload userId={formData.userId?.toString()} />
                   </div>
                 </div>
               </div>
