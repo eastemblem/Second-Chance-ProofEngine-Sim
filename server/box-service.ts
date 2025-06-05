@@ -9,8 +9,13 @@ export class BoxService {
     this.clientId = process.env.BOX_CLIENT_ID || '';
     this.clientSecret = process.env.BOX_CLIENT_SECRET || '';
     
+    console.log('Box configuration status:');
+    console.log('- Client ID:', this.clientId ? `${this.clientId.substring(0, 8)}...` : 'NOT SET');
+    console.log('- Client Secret:', this.clientSecret ? 'SET' : 'NOT SET');
+    console.log('- Access Token:', process.env.BOX_ACCESS_TOKEN ? 'SET' : 'NOT SET');
+    
     if (!this.clientId || !this.clientSecret) {
-      console.warn('Box credentials not configured. Some functionality may be limited.');
+      console.warn('Box OAuth2 credentials not configured. Authentication flow unavailable.');
     }
   }
 
@@ -140,11 +145,14 @@ export class BoxService {
       try {
         const { db } = await import('./db');
         const { users } = await import('../shared/schema');
+        const { isNotNull, and } = await import('drizzle-orm');
         
         // Look for any user with valid Box tokens (system tokens)
         const userWithTokens = await db.select().from(users).where(
-          // Find users with both access and refresh tokens
-          (users: any) => users.boxAccessToken !== null && users.boxRefreshToken !== null
+          and(
+            isNotNull(users.boxAccessToken),
+            isNotNull(users.boxRefreshToken)
+          )
         ).limit(1);
         
         if (userWithTokens.length > 0) {
@@ -156,7 +164,7 @@ export class BoxService {
           };
         }
       } catch (dbError) {
-        console.log('Database token lookup failed:', dbError);
+        console.log('Database token lookup skipped:', dbError.message);
       }
       
       return null;
@@ -177,17 +185,19 @@ export class BoxService {
         
         const expiresAt = new Date(Date.now() + (tokens.expires_in || 3600) * 1000);
         
+        const { eq } = await import('drizzle-orm');
+        
         if (userId) {
           // Update specific user's tokens
           await db.update(users).set({
             boxAccessToken: tokens.access_token,
             boxRefreshToken: tokens.refresh_token,
             boxTokenExpiresAt: expiresAt
-          }).where((users: any) => users.id === userId);
+          }).where(eq(users.id, userId));
         } else {
           // Create or update system token record
           const existingUser = await db.select().from(users).where(
-            (users: any) => users.email === 'system@box.integration'
+            eq(users.email, 'system@box.integration')
           ).limit(1);
           
           if (existingUser.length > 0) {
@@ -195,7 +205,7 @@ export class BoxService {
               boxAccessToken: tokens.access_token,
               boxRefreshToken: tokens.refresh_token,
               boxTokenExpiresAt: expiresAt
-            }).where((users: any) => users.email === 'system@box.integration');
+            }).where(eq(users.email, 'system@box.integration'));
           } else {
             await db.insert(users).values({
               firstName: 'System',
