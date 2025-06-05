@@ -236,9 +236,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
 
   // Upload document to Box (requires access token)
-  app.post("/api/box/upload/:userId", upload.single('document'), async (req, res) => {
+  app.post("/api/box/upload", upload.single('document'), async (req, res) => {
     try {
-      const { userId } = req.params;
       const accessToken = req.headers.authorization?.replace('Bearer ', '');
       
       if (!accessToken) {
@@ -249,25 +248,31 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(400).json({ error: "No file provided" });
       }
 
-      // Validate user exists
-      const user = await storage.getUser(userId);
-      if (!user) {
-        return res.status(404).json({ error: "User not found" });
+      // Create folder for organization (pitch decks or data room)
+      const folderName = req.body.folderName || 'Second Chance Documents';
+      let folderId = '0'; // Root folder by default
+      
+      try {
+        folderId = await boxService.createFolder(accessToken, folderName);
+      } catch (error) {
+        console.log(`Using root folder as fallback: ${error}`);
       }
 
-      // Upload file to Box root folder
+      // Upload file to Box
       const uploadResult = await boxService.uploadFile(
         accessToken,
         req.file.originalname,
-        req.file.buffer
+        req.file.buffer,
+        folderId
       );
 
-      // Store document info in database would go here
       res.json({
         success: true,
         file: {
           id: uploadResult.id,
-          name: uploadResult.name
+          name: uploadResult.name,
+          size: uploadResult.size,
+          download_url: uploadResult.download_url
         }
       });
 

@@ -72,35 +72,44 @@ export class BoxService {
     fileName: string, 
     fileBuffer: Buffer,
     folderId: string = '0'
-  ): Promise<{ id: string; name: string }> {
+  ): Promise<any> {
     try {
+      const FormData = require('form-data');
       const formData = new FormData();
+      
       formData.append('attributes', JSON.stringify({
         name: fileName,
         parent: { id: folderId }
       }));
-      formData.append('file', new Blob([fileBuffer]), fileName);
+      formData.append('file', fileBuffer, fileName);
 
       const response = await fetch('https://upload.box.com/api/2.0/files/content', {
         method: 'POST',
         headers: {
           'Authorization': `Bearer ${accessToken}`,
+          ...formData.getHeaders()
         },
         body: formData,
       });
 
       if (!response.ok) {
-        throw new Error(`Upload failed: ${response.status}`);
+        const errorText = await response.text();
+        console.error(`Box upload error ${response.status}:`, errorText);
+        throw new Error(`Upload failed: ${response.status} - ${errorText}`);
       }
 
       const result = await response.json();
+      console.log('Box upload successful:', result);
+      
       return {
         id: result.entries[0].id,
-        name: result.entries[0].name
+        name: result.entries[0].name,
+        size: result.entries[0].size,
+        download_url: result.entries[0].download_url || null
       };
     } catch (error) {
       console.error('Error uploading file to Box:', error);
-      throw new Error('Failed to upload file to Box');
+      throw error;
     }
   }
 
