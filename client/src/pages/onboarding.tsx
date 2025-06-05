@@ -8,7 +8,6 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Card } from "@/components/ui/card";
 import ProgressBar from "@/components/progress-bar";
 import SimpleFileUpload from "@/components/simple-file-upload";
-import BoxOAuth from "@/components/box-oauth";
 import { FounderData } from "@shared/schema";
 import { useMutation } from "@tanstack/react-query";
 import { apiRequest } from "@/lib/queryClient";
@@ -24,31 +23,10 @@ export default function OnboardingPage({ onNext, onDataUpdate }: OnboardingPageP
     acceleratorApplications: 0
   });
   const [isSubmitting, setIsSubmitting] = useState(false);
-  const [isBoxAuthenticated, setIsBoxAuthenticated] = useState(false);
-  const [boxTokens, setBoxTokens] = useState<any>(null);
   const { toast } = useToast();
 
   // Check if required fields are completed for file uploads
   const isFormValid = formData.name && formData.email && formData.startupName && formData.stage;
-
-  const handleBoxAuthSuccess = (tokens: any) => {
-    setIsBoxAuthenticated(true);
-    setBoxTokens(tokens);
-    toast({
-      title: "Box Connected",
-      description: "Box.com authentication successful. You can now upload files.",
-    });
-  };
-
-  const handleBoxAuthError = (error: string) => {
-    setIsBoxAuthenticated(false);
-    setBoxTokens(null);
-    toast({
-      title: "Authentication Failed",
-      description: error,
-      variant: "destructive",
-    });
-  };
   
   // Track uploaded files for shareable link generation
   const [uploadedFiles, setUploadedFiles] = useState<{id: string, name: string, category: string, sessionFolder?: string}[]>([]);
@@ -301,23 +279,8 @@ export default function OnboardingPage({ onNext, onDataUpdate }: OnboardingPageP
                 <div>
                   <h3 className="text-lg font-semibold mb-3">Document Upload</h3>
                   <p className="text-sm text-muted-foreground mb-4">
-                    Connect to Box.com for secure document storage and verification
+                    Upload your documents to secure Box storage for verification
                   </p>
-                  
-                  {!isBoxAuthenticated ? (
-                    <div className="mb-6">
-                      <BoxOAuth 
-                        onAuthSuccess={handleBoxAuthSuccess}
-                        onAuthError={handleBoxAuthError}
-                      />
-                    </div>
-                  ) : (
-                    <div className="mb-4 p-3 bg-green-50 dark:bg-green-900/20 rounded-lg">
-                      <p className="text-green-800 dark:text-green-200">
-                        Box.com connected successfully! You can now upload files.
-                      </p>
-                    </div>
-                  )}
                   
                   <div className="space-y-4">
                     <SimpleFileUpload
@@ -332,7 +295,7 @@ export default function OnboardingPage({ onNext, onDataUpdate }: OnboardingPageP
                       category="pitch-deck"
                       userId={formData.userId?.toString()}
                       startupName={formData.startupName}
-                      disabled={!isFormValid || !isBoxAuthenticated}
+                      disabled={!isFormValid}
                       onFileUploaded={handleFileUploaded}
                     />
                     
@@ -343,7 +306,7 @@ export default function OnboardingPage({ onNext, onDataUpdate }: OnboardingPageP
                       category="data-room"
                       userId={formData.userId?.toString()}
                       startupName={formData.startupName}
-                      disabled={!isFormValid || !isBoxAuthenticated}
+                      disabled={!isFormValid}
                       onFileUploaded={handleFileUploaded}
                     />
                   </div>
