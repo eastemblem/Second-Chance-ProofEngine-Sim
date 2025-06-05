@@ -8,7 +8,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Card } from "@/components/ui/card";
 import ProgressBar from "@/components/progress-bar";
 import SimpleFileUpload from "@/components/simple-file-upload";
-import BoxOAuthConnect from "@/components/box-oauth-connect";
+
 import { FounderData } from "@shared/schema";
 import { useMutation } from "@tanstack/react-query";
 import { apiRequest } from "@/lib/queryClient";
@@ -32,7 +32,6 @@ export default function OnboardingPage({ onNext, onDataUpdate }: OnboardingPageP
   // Track uploaded files for shareable link generation
   const [uploadedFiles, setUploadedFiles] = useState<{id: string, name: string, category: string, sessionFolder?: string}[]>([]);
   const [sessionFolderId, setSessionFolderId] = useState<string>('');
-  const [boxConnected, setBoxConnected] = useState(false);
 
   const handleFileUploaded = (fileData: {id: string, name: string, category: string, sessionFolder?: string}) => {
     setUploadedFiles(prev => [...prev, fileData]);

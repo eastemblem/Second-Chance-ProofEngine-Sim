@@ -432,73 +432,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  // Box OAuth callback handler
-  app.get('/api/box/callback', async (req, res) => {
-    try {
-      const { code, error } = req.query;
-      
-      if (error) {
-        return res.status(400).json({ error: `OAuth error: ${error}` });
-      }
-      
-      if (!code) {
-        return res.status(400).json({ error: 'Authorization code not provided' });
-      }
-      
-      const tokens = await boxService.getTokensFromCode(code as string);
-      
-      // Store tokens in session
-      req.session.boxTokens = tokens;
-      
-      // Redirect to frontend with success
-      res.redirect('/?box_connected=true');
-    } catch (error) {
-      console.error('Box OAuth callback error:', error);
-      res.redirect('/?box_error=true');
-    }
-  });
 
-  // Get Box authorization URL
-  app.get('/api/box/auth-url', (req, res) => {
-    const authUrl = boxService.getAuthURL();
-    res.json({ authUrl });
-  });
-
-  // Check Box connection status
-  app.get('/api/box/status', async (req, res) => {
-    try {
-      const tokens = req.session.boxTokens;
-      
-      if (!tokens || !tokens.access_token) {
-        return res.json({ connected: false });
-      }
-      
-      // Test the connection
-      const isValid = await boxService.testConnection(tokens.access_token);
-      
-      if (!isValid) {
-        // Try to refresh the token if it's expired
-        if (tokens.refresh_token) {
-          try {
-            const newTokens = await boxService.refreshToken(tokens.refresh_token);
-            req.session.boxTokens = newTokens;
-            return res.json({ connected: true, refreshed: true });
-          } catch (refreshError) {
-            req.session.boxTokens = null;
-            return res.json({ connected: false });
-          }
-        }
-        
-        req.session.boxTokens = null;
-        return res.json({ connected: false });
-      }
-      
-      res.json({ connected: true });
-    } catch (error) {
-      console.error('Box status check error:', error);
-      res.json({ connected: false });
-    }
-  });
 
   // Generate shareable links for uploaded files
   app.post('/api/box/generate-links', async (req, res) => {
