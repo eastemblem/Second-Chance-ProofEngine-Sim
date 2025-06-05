@@ -125,7 +125,7 @@ export class BoxService {
 
   async getStoredTokens(): Promise<any> {
     try {
-      // Check if we have stored tokens in environment or database
+      // Check environment variables first
       const storedAccessToken = process.env.BOX_STORED_ACCESS_TOKEN;
       const storedRefreshToken = process.env.BOX_STORED_REFRESH_TOKEN;
       
@@ -136,6 +136,29 @@ export class BoxService {
         };
       }
       
+      // Check database for stored tokens (system-wide tokens)
+      try {
+        const { db } = await import('./db');
+        const { users } = await import('../shared/schema');
+        
+        // Look for any user with valid Box tokens (system tokens)
+        const userWithTokens = await db.select().from(users).where(
+          // Find users with both access and refresh tokens
+          (users: any) => users.boxAccessToken !== null && users.boxRefreshToken !== null
+        ).limit(1);
+        
+        if (userWithTokens.length > 0) {
+          const user = userWithTokens[0];
+          return {
+            access_token: user.boxAccessToken,
+            refresh_token: user.boxRefreshToken,
+            expires_at: user.boxTokenExpiresAt
+          };
+        }
+      } catch (dbError) {
+        console.log('Database token lookup failed:', dbError);
+      }
+      
       return null;
     } catch (error) {
       console.error('Error getting stored tokens:', error);
@@ -143,15 +166,90 @@ export class BoxService {
     }
   }
 
+  async storeTokens(tokens: any, userId?: string): Promise<void> {
+    try {
+      console.log('Storing Box tokens for future use');
+      
+      // Store in database if we have a user ID or create system record
+      try {
+        const { db } = await import('./db');
+        const { users } = await import('../shared/schema');
+        
+        const expiresAt = new Date(Date.now() + (tokens.expires_in || 3600) * 1000);
+        
+        if (userId) {
+          // Update specific user's tokens
+          await db.update(users).set({
+            boxAccessToken: tokens.access_token,
+            boxRefreshToken: tokens.refresh_token,
+            boxTokenExpiresAt: expiresAt
+          }).where((users: any) => users.id === userId);
+        } else {
+          // Create or update system token record
+          const existingUser = await db.select().from(users).where(
+            (users: any) => users.email === 'system@box.integration'
+          ).limit(1);
+          
+          if (existingUser.length > 0) {
+            await db.update(users).set({
+              boxAccessToken: tokens.access_token,
+              boxRefreshToken: tokens.refresh_token,
+              boxTokenExpiresAt: expiresAt
+            }).where((users: any) => users.email === 'system@box.integration');
+          } else {
+            await db.insert(users).values({
+              firstName: 'System',
+              lastName: 'BoxIntegration',
+              email: 'system@box.integration',
+              boxAccessToken: tokens.access_token,
+              boxRefreshToken: tokens.refresh_token,
+              boxTokenExpiresAt: expiresAt
+            });
+          }
+        }
+        
+        console.log('Box tokens stored in database successfully');
+      } catch (dbError) {
+        console.error('Failed to store tokens in database:', dbError);
+      }
+    } catch (error) {
+      console.error('Error storing tokens:', error);
+    }
+  }
+
   async getValidAccessToken(): Promise<string> {
-    // Always use the provided static token for server-side operations
+    // First try static token if available
     const staticToken = this.getDefaultAccessToken();
     if (staticToken) {
-      console.log('Using provided Box access token');
-      return staticToken;
+      const isValid = await this.testConnection(staticToken);
+      if (isValid) {
+        console.log('Using static access token');
+        return staticToken;
+      }
     }
 
-    throw new Error('Box access token required. Please provide BOX_ACCESS_TOKEN in environment variables.');
+    // Try stored tokens with refresh capability
+    const storedTokens = await this.getStoredTokens();
+    if (storedTokens) {
+      // Test stored access token
+      const isValid = await this.testConnection(storedTokens.access_token);
+      if (isValid) {
+        console.log('Using stored access token');
+        return storedTokens.access_token;
+      }
+      
+      // Try refreshing the token
+      try {
+        const newTokens = await this.refreshAccessToken(storedTokens.refresh_token);
+        console.log('Refreshed access token successfully');
+        await this.storeTokens(newTokens);
+        return newTokens.access_token;
+      } catch (refreshError) {
+        console.log('Token refresh failed:', refreshError);
+      }
+    }
+
+    throw new Error('No valid Box access token available. Please authenticate with Box.');
   }
 
   async uploadFile(

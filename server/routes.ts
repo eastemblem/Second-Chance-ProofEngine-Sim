@@ -357,14 +357,41 @@ export async function registerRoutes(app: Express): Promise<Server> {
         });
       }
 
-      // Use local file storage for ProofVault structure
+      // Try Box upload with OAuth2 token management
       try {
+        const accessToken = await boxService.getValidAccessToken();
         
-        // Create ProofVault directory structure
+        // Create session folder for this startup
+        const sessionFolderId = await boxService.createSessionFolder(accessToken, startupName);
+        console.log(`Session folder created/found: ${sessionFolderId} for startup: ${startupName}`);
+
+        const uploadResult = await boxService.uploadFile(
+          accessToken,
+          req.file.originalname,
+          req.file.buffer,
+          sessionFolderId
+        );
+
+        return res.json({
+          success: true,
+          storage: 'box',
+          file: {
+            id: uploadResult.id,
+            name: uploadResult.name,
+            size: uploadResult.size,
+            download_url: uploadResult.download_url
+          },
+          sessionFolder: sessionFolderId
+        });
+      } catch (boxError) {
+        console.log(`Box upload failed: ${boxError}`);
+        
+        // Fallback to local storage
+        console.log('Falling back to local ProofVault storage');
+        
         const proofVaultDir = path.join(process.cwd(), 'proof_vault');
         const startupDir = path.join(proofVaultDir, `ProofVault_${startupName.replace(/[^a-zA-Z0-9_-]/g, '_')}`);
         
-        // Ensure directories exist
         if (!fs.existsSync(proofVaultDir)) {
           fs.mkdirSync(proofVaultDir, { recursive: true });
         }
@@ -372,20 +399,18 @@ export async function registerRoutes(app: Express): Promise<Server> {
           fs.mkdirSync(startupDir, { recursive: true });
         }
         
-        // Save file to ProofVault directory
         const fileName = req.file.originalname;
         const filePath = path.join(startupDir, fileName);
         fs.writeFileSync(filePath, req.file.buffer);
         
-        console.log(`File saved to ProofVault: ${filePath}`);
+        console.log(`File saved to local ProofVault: ${filePath}`);
         
-        // Generate file ID and metadata
         const fileId = Math.random().toString(36).substr(2, 9);
         const sessionFolderId = `proofvault_${startupName.toLowerCase().replace(/[^a-z0-9]/g, '_')}`;
         
         return res.json({
           success: true,
-          storage: 'proofvault',
+          storage: 'local',
           file: {
             id: fileId,
             name: fileName,
@@ -393,13 +418,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
             path: filePath,
             download_url: `/api/files/${sessionFolderId}/${fileName}`
           },
-          sessionFolder: sessionFolderId
-        });
-      } catch (error) {
-        console.log(`ProofVault storage failed: ${error}`);
-        return res.status(500).json({ 
-          error: "File storage failed",
-          message: "Unable to save file to ProofVault storage"
+          sessionFolder: sessionFolderId,
+          warning: "Box integration unavailable - using local storage"
         });
       }
 
