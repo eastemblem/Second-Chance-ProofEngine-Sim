@@ -7,7 +7,8 @@ import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Card } from "@/components/ui/card";
 import ProgressBar from "@/components/progress-bar";
-import FileUpload from "@/components/file-upload";
+import PitchDeckUpload from "@/components/pitch-deck-upload";
+import DataRoomUpload from "@/components/data-room-upload";
 import { FounderData } from "@shared/schema";
 import { useMutation } from "@tanstack/react-query";
 import { apiRequest } from "@/lib/queryClient";
@@ -203,20 +204,19 @@ export default function OnboardingPage({ onNext, onDataUpdate }: OnboardingPageP
                 </div>
               </div>
 
-              {/* File Uploads */}
-              <div className="space-y-4">
-                <FileUpload
-                  label="Pitch Deck"
-                  description="PDF, PPT, or PPTX up to 10MB"
-                  required
-                  onFileSelect={(file) => updateField("pitchDeck", file?.name)}
-                />
-
-                <FileUpload
-                  label="Data Room (Optional)"
-                  description="Financial models, market research, etc."
-                  onFileSelect={(file) => updateField("dataRoom", file?.name)}
-                />
+              {/* Box Integration for File Uploads */}
+              <div className="space-y-6">
+                <div>
+                  <h3 className="text-lg font-semibold mb-3">Document Upload</h3>
+                  <p className="text-sm text-muted-foreground mb-4">
+                    Upload your documents to secure Box storage for verification
+                  </p>
+                  
+                  <div className="space-y-4">
+                    <PitchDeckUpload userId={formData.id} />
+                    <DataRoomUpload userId={formData.id} />
+                  </div>
+                </div>
               </div>
 
               {/* Submit Button */}
