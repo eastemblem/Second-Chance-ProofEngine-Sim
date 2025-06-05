@@ -4,7 +4,7 @@ import { motion, AnimatePresence } from "framer-motion";
 import { queryClient } from "./lib/queryClient";
 import { Toaster } from "@/components/ui/toaster";
 import { TooltipProvider } from "@/components/ui/tooltip";
-import Navigation from "@/components/navigation";
+
 import LandingPage from "@/pages/landing";
 import OnboardingPage from "@/pages/onboarding";
 import ScoringPage from "@/pages/scoring";
@@ -111,8 +111,6 @@ function SimulationFlow() {
 
   return (
     <div className="min-h-screen bg-background text-foreground">
-      {state.currentPage !== 1 && state.currentPage !== 6 && state.currentPage !== 7 && <Navigation />}
-      
       <AnimatePresence mode="wait">
         <motion.div
           key={state.currentPage}
