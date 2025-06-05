@@ -5,6 +5,8 @@ import { storage } from "./storage";
 import { z } from "zod";
 import { boxService, upload } from "./box-service";
 import { Readable } from "stream";
+import fs from "fs";
+import path from "path";
 
 // Validation schemas
 const createUserSchema = z.object({
@@ -357,8 +359,6 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
       // Use local file storage for ProofVault structure
       try {
-        const fs = require('fs');
-        const path = require('path');
         
         // Create ProofVault directory structure
         const proofVaultDir = path.join(process.cwd(), 'proof_vault');
@@ -441,8 +441,6 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.get('/api/files/:folderId/:fileName', (req, res) => {
     try {
       const { folderId, fileName } = req.params;
-      const fs = require('fs');
-      const path = require('path');
       
       // Construct file path based on folder structure
       const startupName = folderId.replace('proofvault_', '').replace(/_/g, ' ');
@@ -500,8 +498,6 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.get('/api/vault/:folderId', (req, res) => {
     try {
       const { folderId } = req.params;
-      const fs = require('fs');
-      const path = require('path');
       
       // Construct folder path
       const startupName = folderId.replace('proofvault_', '').replace(/_/g, ' ');
@@ -527,7 +523,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         ? `https://${process.env.REPLIT_DEV_DOMAIN}` 
         : 'http://localhost:5000';
       
-      const fileListHtml = files.map(file => {
+      const fileListHtml = files.map((file: string) => {
         const fileUrl = `${baseUrl}/api/files/${folderId}/${encodeURIComponent(file)}`;
         return `<li><a href="${fileUrl}" target="_blank">${file}</a></li>`;
       }).join('');
