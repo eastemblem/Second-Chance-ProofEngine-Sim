@@ -20,7 +20,8 @@ export class BoxService {
   }
 
   getDefaultAccessToken(): string {
-    return process.env.BOX_ACCESS_TOKEN || '';
+    // OAuth2 only - no direct access tokens
+    return '';
   }
 
   async testConnection(accessToken?: string): Promise<boolean> {
@@ -130,24 +131,14 @@ export class BoxService {
 
   async getStoredTokens(): Promise<any> {
     try {
-      // Check environment variables first
-      const storedAccessToken = process.env.BOX_STORED_ACCESS_TOKEN;
-      const storedRefreshToken = process.env.BOX_STORED_REFRESH_TOKEN;
-      
-      if (storedAccessToken && storedRefreshToken) {
-        return {
-          access_token: storedAccessToken,
-          refresh_token: storedRefreshToken
-        };
-      }
-      
-      // Check database for stored tokens (system-wide tokens)
+      // OAuth2 only - no environment token fallback
+      // Check database for stored OAuth2 tokens
       try {
         const { db } = await import('./db');
         const { users } = await import('../shared/schema');
         const { isNotNull, and } = await import('drizzle-orm');
         
-        // Look for any user with valid Box tokens (system tokens)
+        // Look for any user with valid Box OAuth2 tokens
         const userWithTokens = await db.select().from(users).where(
           and(
             isNotNull(users.boxAccessToken),
@@ -163,8 +154,8 @@ export class BoxService {
             expires_at: user.boxTokenExpiresAt
           };
         }
-      } catch (dbError) {
-        console.log('Database token lookup skipped:', dbError.message);
+      } catch (dbError: any) {
+        console.log('Database token lookup skipped:', dbError?.message || 'Unknown error');
       }
       
       return null;
@@ -228,30 +219,20 @@ export class BoxService {
   }
 
   async getValidAccessToken(): Promise<string> {
-    // First try static token if available
-    const staticToken = this.getDefaultAccessToken();
-    if (staticToken) {
-      const isValid = await this.testConnection(staticToken);
-      if (isValid) {
-        console.log('Using static access token');
-        return staticToken;
-      }
-    }
-
-    // Try stored tokens with refresh capability
+    // OAuth2 flow only - check for stored tokens
     const storedTokens = await this.getStoredTokens();
     if (storedTokens) {
       // Test stored access token
       const isValid = await this.testConnection(storedTokens.access_token);
       if (isValid) {
-        console.log('Using stored access token');
+        console.log('Using stored OAuth2 access token');
         return storedTokens.access_token;
       }
       
       // Try refreshing the token
       try {
         const newTokens = await this.refreshAccessToken(storedTokens.refresh_token);
-        console.log('Refreshed access token successfully');
+        console.log('Refreshed OAuth2 access token successfully');
         await this.storeTokens(newTokens);
         return newTokens.access_token;
       } catch (refreshError) {
