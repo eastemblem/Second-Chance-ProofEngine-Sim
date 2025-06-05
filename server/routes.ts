@@ -354,8 +354,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
         });
       }
 
-      // Check if Box access token is available
-      const accessToken = boxService.getDefaultAccessToken();
+      // Check if Box access token is available (session or env)
+      const sessionTokens = (req as any).session?.boxTokens;
+      const accessToken = sessionTokens?.access_token || boxService.getDefaultAccessToken();
       
       if (accessToken) {
         try {

@@ -19,7 +19,8 @@ export class BoxService {
   }
 
   getDefaultAccessToken(): string {
-    return process.env.BOX_ACCESS_TOKEN || '';
+    // No longer using developer tokens - OAuth only
+    return '';
   }
 
   async testConnection(accessToken?: string): Promise<boolean> {
