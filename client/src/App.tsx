@@ -130,6 +130,9 @@ function SimulationFlow() {
 function Router() {
   return (
     <Switch>
+      <Route path="/deal-room">
+        <SimulationFlow />
+      </Route>
       <Route path="/" component={SimulationFlow} />
       <Route component={NotFound} />
     </Switch>
