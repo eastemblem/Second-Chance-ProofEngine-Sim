@@ -229,7 +229,7 @@ export const founderSchema = z.object({
 
 export type FounderData = z.infer<typeof founderSchema>;
 
-export interface ProofScore {
+export interface ProofScoreResult {
   total: number;
   dimensions: {
     desirability: number;
@@ -253,7 +253,7 @@ export interface ProofScore {
 export interface SimulationState {
   currentPage: number;
   founderData: Partial<FounderData>;
-  proofScore: ProofScore | null;
+  proofScore: ProofScoreResult | null;
   analysisProgress: number;
   isAnalyzing: boolean;
 }
