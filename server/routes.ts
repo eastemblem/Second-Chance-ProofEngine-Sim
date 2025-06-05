@@ -355,38 +355,51 @@ export async function registerRoutes(app: Express): Promise<Server> {
         });
       }
 
-      // Use server-side Box authentication
+      // Use local file storage for ProofVault structure
       try {
-        const accessToken = await boxService.getValidAccessToken();
+        const fs = require('fs');
+        const path = require('path');
         
-        // Create session folder for this startup
-        const sessionFolderId = await boxService.createSessionFolder(accessToken, startupName);
-        console.log(`Session folder created/found: ${sessionFolderId} for startup: ${startupName}`);
-
-        const uploadResult = await boxService.uploadFile(
-          accessToken,
-          req.file.originalname,
-          req.file.buffer,
-          sessionFolderId
-        );
-
+        // Create ProofVault directory structure
+        const proofVaultDir = path.join(process.cwd(), 'proof_vault');
+        const startupDir = path.join(proofVaultDir, `ProofVault_${startupName.replace(/[^a-zA-Z0-9_-]/g, '_')}`);
+        
+        // Ensure directories exist
+        if (!fs.existsSync(proofVaultDir)) {
+          fs.mkdirSync(proofVaultDir, { recursive: true });
+        }
+        if (!fs.existsSync(startupDir)) {
+          fs.mkdirSync(startupDir, { recursive: true });
+        }
+        
+        // Save file to ProofVault directory
+        const fileName = req.file.originalname;
+        const filePath = path.join(startupDir, fileName);
+        fs.writeFileSync(filePath, req.file.buffer);
+        
+        console.log(`File saved to ProofVault: ${filePath}`);
+        
+        // Generate file ID and metadata
+        const fileId = Math.random().toString(36).substr(2, 9);
+        const sessionFolderId = `proofvault_${startupName.toLowerCase().replace(/[^a-z0-9]/g, '_')}`;
+        
         return res.json({
           success: true,
-          storage: 'box',
+          storage: 'proofvault',
           file: {
-            id: uploadResult.id,
-            name: uploadResult.name,
-            size: uploadResult.size,
-            download_url: uploadResult.download_url
+            id: fileId,
+            name: fileName,
+            size: req.file.size,
+            path: filePath,
+            download_url: `/api/files/${sessionFolderId}/${fileName}`
           },
           sessionFolder: sessionFolderId
         });
-      } catch (boxError) {
-        console.log(`Box upload failed: ${boxError}`);
-        return res.status(503).json({ 
-          error: "Box service unavailable",
-          message: "Valid Box credentials required for file uploads",
-          details: boxError instanceof Error ? boxError.message : String(boxError)
+      } catch (error) {
+        console.log(`ProofVault storage failed: ${error}`);
+        return res.status(500).json({ 
+          error: "File storage failed",
+          message: "Unable to save file to ProofVault storage"
         });
       }
 
@@ -424,33 +437,54 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
 
 
+  // Serve files from ProofVault storage
+  app.get('/api/files/:folderId/:fileName', (req, res) => {
+    try {
+      const { folderId, fileName } = req.params;
+      const fs = require('fs');
+      const path = require('path');
+      
+      // Construct file path based on folder structure
+      const startupName = folderId.replace('proofvault_', '').replace(/_/g, ' ');
+      const folderName = `ProofVault_${startupName.replace(/[^a-zA-Z0-9_-]/g, '_')}`;
+      const filePath = path.join(process.cwd(), 'proof_vault', folderName, fileName);
+      
+      // Check if file exists
+      if (!fs.existsSync(filePath)) {
+        return res.status(404).json({ error: 'File not found' });
+      }
+      
+      // Send file
+      res.sendFile(path.resolve(filePath));
+    } catch (error) {
+      console.error('Error serving file:', error);
+      res.status(500).json({ error: 'Failed to serve file' });
+    }
+  });
+
   // Generate shareable links for uploaded files
   app.post('/api/box/generate-links', async (req, res) => {
     try {
       const { sessionFolderId, uploadedFiles } = req.body;
-      
-      const accessToken = await boxService.getValidAccessToken();
       const result: any = {};
 
-      // Generate folder shareable link for data room
+      // Generate folder shareable link for data room (ProofVault folder)
       if (sessionFolderId) {
-        try {
-          result.dataRoomUrl = await boxService.createFolderShareableLink(accessToken, sessionFolderId);
-        } catch (error) {
-          console.error('Error creating folder shareable link:', error);
-        }
+        const baseUrl = process.env.REPLIT_DEV_DOMAIN 
+          ? `https://${process.env.REPLIT_DEV_DOMAIN}` 
+          : 'http://localhost:5000';
+        result.dataRoomUrl = `${baseUrl}/api/vault/${sessionFolderId}`;
       }
 
-      // Generate file shareable links for pitch deck (only for Box files)
+      // Generate file shareable links for pitch deck
       if (uploadedFiles && uploadedFiles.length > 0) {
         for (const file of uploadedFiles) {
-          if (file.category === 'pitch-deck' && file.id) {
-            try {
-              result.pitchDeckUrl = await boxService.createFileShareableLink(accessToken, file.id);
-              break; // Only need one pitch deck link
-            } catch (error) {
-              console.error('Error creating file shareable link:', error);
-            }
+          if (file.category === 'pitch-deck' && file.download_url) {
+            const baseUrl = process.env.REPLIT_DEV_DOMAIN 
+              ? `https://${process.env.REPLIT_DEV_DOMAIN}` 
+              : 'http://localhost:5000';
+            result.pitchDeckUrl = `${baseUrl}${file.download_url}`;
+            break; // Only need one pitch deck link
           }
         }
       }
@@ -459,6 +493,69 @@ export async function registerRoutes(app: Express): Promise<Server> {
     } catch (error) {
       console.error('Error generating shareable links:', error);
       res.status(500).json({ error: 'Failed to generate shareable links', details: error instanceof Error ? error.message : String(error) });
+    }
+  });
+
+  // Serve ProofVault folder contents (data room view)
+  app.get('/api/vault/:folderId', (req, res) => {
+    try {
+      const { folderId } = req.params;
+      const fs = require('fs');
+      const path = require('path');
+      
+      // Construct folder path
+      const startupName = folderId.replace('proofvault_', '').replace(/_/g, ' ');
+      const folderName = `ProofVault_${startupName.replace(/[^a-zA-Z0-9_-]/g, '_')}`;
+      const folderPath = path.join(process.cwd(), 'proof_vault', folderName);
+      
+      // Check if folder exists
+      if (!fs.existsSync(folderPath)) {
+        return res.status(404).send(`
+          <html>
+            <head><title>ProofVault - ${startupName}</title></head>
+            <body>
+              <h1>ProofVault - ${startupName}</h1>
+              <p>No documents found for this startup.</p>
+            </body>
+          </html>
+        `);
+      }
+      
+      // List files in folder
+      const files = fs.readdirSync(folderPath);
+      const baseUrl = process.env.REPLIT_DEV_DOMAIN 
+        ? `https://${process.env.REPLIT_DEV_DOMAIN}` 
+        : 'http://localhost:5000';
+      
+      const fileListHtml = files.map(file => {
+        const fileUrl = `${baseUrl}/api/files/${folderId}/${encodeURIComponent(file)}`;
+        return `<li><a href="${fileUrl}" target="_blank">${file}</a></li>`;
+      }).join('');
+      
+      res.send(`
+        <html>
+          <head>
+            <title>ProofVault - ${startupName}</title>
+            <style>
+              body { font-family: Arial, sans-serif; max-width: 800px; margin: 40px auto; padding: 20px; }
+              h1 { color: #333; border-bottom: 2px solid #eee; padding-bottom: 10px; }
+              ul { list-style: none; padding: 0; }
+              li { margin: 10px 0; padding: 10px; background: #f8f9fa; border-radius: 5px; }
+              a { text-decoration: none; color: #007bff; font-weight: 500; }
+              a:hover { text-decoration: underline; }
+              .empty { color: #666; font-style: italic; }
+            </style>
+          </head>
+          <body>
+            <h1>ProofVault - ${startupName}</h1>
+            <p>Secure document repository for investor access</p>
+            ${files.length > 0 ? `<ul>${fileListHtml}</ul>` : '<p class="empty">No documents uploaded yet.</p>'}
+          </body>
+        </html>
+      `);
+    } catch (error) {
+      console.error('Error serving vault folder:', error);
+      res.status(500).json({ error: 'Failed to serve vault folder' });
     }
   });
 
