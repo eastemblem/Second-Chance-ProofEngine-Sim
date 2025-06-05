@@ -197,7 +197,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       }
 
       // Exchange code for tokens
-      const tokens = await boxService.getTokensFromCode(code as string);
+      const tokens = await boxService.exchangeCodeForTokens(code as string);
       
       // Return success page with tokens (in a real app, you'd store these securely)
       res.send(`
@@ -289,7 +289,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         `);
       }
       
-      const tokens = await boxService.getTokensFromCode(code as string);
+      const tokens = await boxService.exchangeCodeForTokens(code as string);
       
       // Send tokens back to parent window and close popup
       res.send(`

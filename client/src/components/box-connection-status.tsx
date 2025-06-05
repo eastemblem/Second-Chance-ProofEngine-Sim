@@ -1,7 +1,7 @@
-import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Badge } from "@/components/ui/badge";
-import { AlertTriangle, CheckCircle } from "lucide-react";
+import { CheckCircle } from "lucide-react";
 import { useQuery } from "@tanstack/react-query";
+import BoxAuthSetup from "./box-auth-setup";
 
 export default function BoxConnectionStatus() {
   const { data: connectionStatus, isLoading } = useQuery({
@@ -19,7 +19,7 @@ export default function BoxConnectionStatus() {
 
   if (isLoading) {
     return (
-      <div className="flex items-center gap-2">
+      <div className="flex items-center gap-2 mb-6">
         <Badge variant="secondary">Checking connection...</Badge>
       </div>
     );
@@ -27,7 +27,7 @@ export default function BoxConnectionStatus() {
 
   if (connectionStatus?.connected) {
     return (
-      <div className="flex items-center gap-2">
+      <div className="flex items-center gap-2 mb-6">
         <CheckCircle className="h-4 w-4 text-green-600" />
         <Badge variant="default" className="bg-green-100 text-green-800 border-green-200">
           Box Connected
@@ -36,13 +36,5 @@ export default function BoxConnectionStatus() {
     );
   }
 
-  return (
-    <Alert className="mb-6 border-amber-200 bg-amber-50">
-      <AlertTriangle className="h-4 w-4 text-amber-600" />
-      <AlertDescription className="text-amber-800">
-        <strong>Box Integration Required:</strong> Valid Box credentials are needed for file uploads and shareable link generation. 
-        Files cannot be uploaded until proper authentication is configured.
-      </AlertDescription>
-    </Alert>
-  );
+  return <BoxAuthSetup />;
 }

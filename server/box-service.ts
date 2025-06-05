@@ -36,9 +36,22 @@ export class BoxService {
     }
   }
 
-  async getClientCredentialsToken(): Promise<string> {
+  getAuthURL(): string {
+    const state = Math.random().toString(36).substring(2, 15);
+    const redirectUri = this.getRedirectUri();
+    return `https://account.box.com/api/oauth2/authorize?client_id=${this.clientId}&response_type=code&redirect_uri=${encodeURIComponent(redirectUri)}&state=${state}`;
+  }
+
+  getRedirectUri(): string {
+    const baseUrl = process.env.REPLIT_DEV_DOMAIN 
+      ? `https://${process.env.REPLIT_DEV_DOMAIN}` 
+      : 'http://localhost:5000';
+    return `${baseUrl}/api/box/callback`;
+  }
+
+  async exchangeCodeForTokens(code: string): Promise<any> {
     try {
-      console.log('Attempting Box client credentials authentication...');
+      console.log('Exchanging authorization code for tokens...');
       
       const response = await fetch('https://api.box.com/oauth2/token', {
         method: 'POST',
@@ -46,7 +59,41 @@ export class BoxService {
           'Content-Type': 'application/x-www-form-urlencoded',
         },
         body: new URLSearchParams({
-          grant_type: 'client_credentials',
+          grant_type: 'authorization_code',
+          code,
+          client_id: this.clientId,
+          client_secret: this.clientSecret,
+          redirect_uri: this.getRedirectUri(),
+        }),
+      });
+
+      if (!response.ok) {
+        const errorText = await response.text();
+        console.log(`Token exchange failed: ${response.status} - ${errorText}`);
+        throw new Error(`Token exchange failed: ${response.status} - ${errorText}`);
+      }
+
+      const tokens = await response.json();
+      console.log('Token exchange successful');
+      return tokens;
+    } catch (error) {
+      console.error('Token exchange error:', error);
+      throw error;
+    }
+  }
+
+  async refreshAccessToken(refreshToken: string): Promise<any> {
+    try {
+      console.log('Refreshing access token...');
+      
+      const response = await fetch('https://api.box.com/oauth2/token', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/x-www-form-urlencoded',
+        },
+        body: new URLSearchParams({
+          grant_type: 'refresh_token',
+          refresh_token: refreshToken,
           client_id: this.clientId,
           client_secret: this.clientSecret,
         }),
@@ -54,16 +101,36 @@ export class BoxService {
 
       if (!response.ok) {
         const errorText = await response.text();
-        console.log(`Client credentials auth failed: ${response.status} - ${errorText}`);
-        throw new Error(`Authentication failed: ${response.status} - ${errorText}`);
+        console.log(`Token refresh failed: ${response.status} - ${errorText}`);
+        throw new Error(`Token refresh failed: ${response.status} - ${errorText}`);
       }
 
       const tokens = await response.json();
-      console.log('Box client credentials authentication successful');
-      return tokens.access_token;
+      console.log('Token refresh successful');
+      return tokens;
     } catch (error) {
-      console.error('Client credentials authentication error:', error);
+      console.error('Token refresh error:', error);
       throw error;
+    }
+  }
+
+  async getStoredTokens(): Promise<any> {
+    try {
+      // Check if we have stored tokens in environment or database
+      const storedAccessToken = process.env.BOX_STORED_ACCESS_TOKEN;
+      const storedRefreshToken = process.env.BOX_STORED_REFRESH_TOKEN;
+      
+      if (storedAccessToken && storedRefreshToken) {
+        return {
+          access_token: storedAccessToken,
+          refresh_token: storedRefreshToken
+        };
+      }
+      
+      return null;
+    } catch (error) {
+      console.error('Error getting stored tokens:', error);
+      return null;
     }
   }
 
@@ -78,12 +145,27 @@ export class BoxService {
       }
     }
 
-    // Try client credentials authentication
-    try {
-      return await this.getClientCredentialsToken();
-    } catch (error) {
-      throw new Error('Unable to obtain valid Box access token. Please check Box credentials.');
+    // Try stored tokens with refresh
+    const storedTokens = await this.getStoredTokens();
+    if (storedTokens) {
+      // Test stored access token
+      const isValid = await this.testConnection(storedTokens.access_token);
+      if (isValid) {
+        console.log('Using stored access token');
+        return storedTokens.access_token;
+      }
+      
+      // Try refreshing the token
+      try {
+        const newTokens = await this.refreshAccessToken(storedTokens.refresh_token);
+        console.log('Refreshed access token successfully');
+        return newTokens.access_token;
+      } catch (refreshError) {
+        console.log('Token refresh failed:', refreshError);
+      }
     }
+
+    throw new Error('No valid Box access token available. Please complete Box authentication flow.');
   }
 
   async uploadFile(
