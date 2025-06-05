@@ -155,6 +155,40 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
   // Box.com Integration Routes
   
+  // Get Box OAuth URL for authentication
+  app.get("/api/box/auth-url", async (req, res) => {
+    try {
+      const authUrl = boxService.getAuthURL();
+      res.json({ authUrl });
+    } catch (error) {
+      console.log(`Error generating Box auth URL: ${error}`);
+      res.status(500).json({ error: "Failed to generate authentication URL" });
+    }
+  });
+
+  // Handle OAuth callback
+  app.get("/api/box/callback", async (req, res) => {
+    try {
+      const { code } = req.query;
+      if (!code) {
+        return res.status(400).json({ error: "Authorization code is required" });
+      }
+      
+      const tokens = await boxService.getTokensFromCode(code as string);
+      // In production, you'd store these tokens securely for the user
+      res.json({ 
+        message: "Box authentication successful",
+        tokens: {
+          access_token: tokens.accessToken,
+          refresh_token: tokens.refreshToken
+        }
+      });
+    } catch (error) {
+      console.log(`Box OAuth callback error: ${error}`);
+      res.status(500).json({ error: "Authentication failed" });
+    }
+  });
+
   // Test Box connection
   app.get("/api/box/test", async (req, res) => {
     try {

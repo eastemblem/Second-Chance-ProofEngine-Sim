@@ -2,49 +2,26 @@ import BoxSDK from 'box-node-sdk';
 import { Request } from 'express';
 import multer from 'multer';
 
-// Initialize Box SDK with credentials
-const sdk = new BoxSDK({
-  clientID: process.env.BOX_CLIENT_ID!,
-  clientSecret: process.env.BOX_CLIENT_SECRET!
-});
-
 // Box service class for handling document operations
 export class BoxService {
-  private sdk: any;
+  private clientId: string;
+  private clientSecret: string;
 
   constructor() {
-    this.sdk = sdk;
+    this.clientId = process.env.BOX_CLIENT_ID!;
+    this.clientSecret = process.env.BOX_CLIENT_SECRET!;
   }
 
-  // Get OAuth URL for user authentication
-  getAuthURL(state?: string): string {
-    return this.sdk.getAuthorizeURL({
-      response_type: 'code',
-      state: state || 'default'
-    });
-  }
-
-  // Exchange authorization code for access token
-  async getTokensFromCode(code: string): Promise<any> {
-    try {
-      const tokenInfo = await this.sdk.getTokensAuthorizationCodeGrant(code);
-      return tokenInfo;
-    } catch (error) {
-      console.error('Error getting tokens:', error);
-      throw new Error('Failed to get access tokens');
-    }
-  }
-
-  // Create authenticated client with tokens
-  getAuthenticatedClient(accessToken: string): any {
-    return this.sdk.getBasicClient(accessToken);
-  }
-
-  // Test Box connection
+  // Test Box connection by validating credentials
   async testConnection(): Promise<boolean> {
     try {
-      const user = await this.client.users.get('me');
-      console.log('Box connection successful, user:', user.name);
+      // Validate that we have the required credentials
+      if (!this.clientId || !this.clientSecret) {
+        console.error('Missing Box credentials');
+        return false;
+      }
+      
+      console.log('Box credentials validated successfully');
       return true;
     } catch (error) {
       console.error('Box connection failed:', error);
@@ -52,37 +29,74 @@ export class BoxService {
     }
   }
 
-  // Create a folder for a user's documents
-  async createUserFolder(userId: string, userName: string): Promise<string> {
+  // Get OAuth URL for user authentication
+  getAuthURL(): string {
+    const redirectUri = `${process.env.REPLIT_DEV_DOMAIN || 'http://localhost:5000'}/api/box/callback`;
+    return `https://account.box.com/api/oauth2/authorize?response_type=code&client_id=${this.clientId}&redirect_uri=${encodeURIComponent(redirectUri)}`;
+  }
+
+  // Exchange authorization code for access token
+  async getTokensFromCode(code: string): Promise<any> {
     try {
-      const folderName = `${userName}_${userId}`;
-      const folder = await this.client.folders.create('0', folderName);
-      return folder.id;
+      const redirectUri = `${process.env.REPLIT_DEV_DOMAIN || 'http://localhost:5000'}/api/box/callback`;
+      
+      const response = await fetch('https://api.box.com/oauth2/token', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/x-www-form-urlencoded',
+        },
+        body: new URLSearchParams({
+          grant_type: 'authorization_code',
+          code: code,
+          client_id: this.clientId,
+          client_secret: this.clientSecret,
+          redirect_uri: redirectUri,
+        }),
+      });
+
+      if (!response.ok) {
+        throw new Error(`HTTP error! status: ${response.status}`);
+      }
+
+      const tokens = await response.json();
+      return tokens;
     } catch (error) {
-      console.error('Error creating user folder:', error);
-      throw new Error('Failed to create user folder');
+      console.error('Error getting tokens:', error);
+      throw new Error('Failed to get access tokens');
     }
   }
 
-  // Upload a file to Box
+  // Upload file using authenticated Box API
   async uploadFile(
-    folderId: string, 
+    accessToken: string,
     fileName: string, 
-    fileStream: any
-  ): Promise<{ id: string; downloadUrl: string }> {
+    fileBuffer: Buffer,
+    folderId: string = '0'
+  ): Promise<{ id: string; name: string }> {
     try {
-      const file = await this.client.files.uploadFile(
-        folderId,
-        fileName,
-        fileStream
-      );
-      
-      // Get download URL
-      const downloadUrl = await this.client.files.getDownloadURL(file.entries[0].id);
-      
+      const formData = new FormData();
+      formData.append('attributes', JSON.stringify({
+        name: fileName,
+        parent: { id: folderId }
+      }));
+      formData.append('file', new Blob([fileBuffer]), fileName);
+
+      const response = await fetch('https://upload.box.com/api/2.0/files/content', {
+        method: 'POST',
+        headers: {
+          'Authorization': `Bearer ${accessToken}`,
+        },
+        body: formData,
+      });
+
+      if (!response.ok) {
+        throw new Error(`Upload failed: ${response.status}`);
+      }
+
+      const result = await response.json();
       return {
-        id: file.entries[0].id,
-        downloadUrl
+        id: result.entries[0].id,
+        name: result.entries[0].name
       };
     } catch (error) {
       console.error('Error uploading file to Box:', error);
@@ -90,32 +104,48 @@ export class BoxService {
     }
   }
 
-  // Get file information
-  async getFileInfo(fileId: string): Promise<any> {
+  // Create folder using authenticated Box API
+  async createFolder(accessToken: string, folderName: string, parentId: string = '0'): Promise<string> {
     try {
-      return await this.client.files.get(fileId);
+      const response = await fetch('https://api.box.com/2.0/folders', {
+        method: 'POST',
+        headers: {
+          'Authorization': `Bearer ${accessToken}`,
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          name: folderName,
+          parent: { id: parentId }
+        }),
+      });
+
+      if (!response.ok) {
+        throw new Error(`Folder creation failed: ${response.status}`);
+      }
+
+      const folder = await response.json();
+      return folder.id;
     } catch (error) {
-      console.error('Error getting file info:', error);
-      throw new Error('Failed to get file information');
+      console.error('Error creating folder:', error);
+      throw new Error('Failed to create folder');
     }
   }
 
-  // Delete a file
-  async deleteFile(fileId: string): Promise<boolean> {
+  // List folder contents
+  async listFolderContents(accessToken: string, folderId: string = '0'): Promise<any[]> {
     try {
-      await this.client.files.delete(fileId);
-      return true;
-    } catch (error) {
-      console.error('Error deleting file:', error);
-      return false;
-    }
-  }
+      const response = await fetch(`https://api.box.com/2.0/folders/${folderId}/items`, {
+        headers: {
+          'Authorization': `Bearer ${accessToken}`,
+        },
+      });
 
-  // List files in a folder
-  async listFolderContents(folderId: string): Promise<any[]> {
-    try {
-      const items = await this.client.folders.getItems(folderId);
-      return items.entries;
+      if (!response.ok) {
+        throw new Error(`Failed to list folder contents: ${response.status}`);
+      }
+
+      const result = await response.json();
+      return result.entries;
     } catch (error) {
       console.error('Error listing folder contents:', error);
       throw new Error('Failed to list folder contents');
