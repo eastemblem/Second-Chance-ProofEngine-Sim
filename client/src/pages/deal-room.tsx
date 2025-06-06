@@ -222,27 +222,16 @@ export default function DealRoomPage({ onNext, proofScore }: DealRoomPageProps) 
           </Card>
 
           {/* Document Upload Section */}
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-            <SimpleFileUpload
-              title="Pitch Deck"
-              description="Upload your investor presentation"
-              accept=".pdf,.ppt,.pptx"
-              allowedTypes={[
-                'application/pdf',
-                'application/vnd.ms-powerpoint',
-                'application/vnd.openxmlformats-officedocument.presentationml.presentation'
-              ]}
-              category="pitch-deck"
-              userId="demo-user-id"
-            />
-            <SimpleFileUpload
-              title="Data Room Documents"
-              description="Upload financial models and supporting documents"
-              accept=".pdf,.doc,.docx,.xls,.xlsx,.ppt,.pptx"
-              category="data-room"
-              userId="demo-user-id"
-            />
-          </div>
+          <Card className="p-6 border border-green-200 bg-green-50">
+            <div className="text-center">
+              <Shield className="h-12 w-12 text-green-600 mx-auto mb-4" />
+              <h3 className="text-lg font-semibold text-green-800 mb-2">Documents Ready</h3>
+              <p className="text-sm text-green-600">
+                Your files have been securely uploaded to Box.com with ProofVault organization. 
+                Investor-ready data room is prepared with shareable links.
+              </p>
+            </div>
+          </Card>
 
           {/* CTA */}
           <div className="text-center">
