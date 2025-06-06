@@ -13,6 +13,7 @@ import BoxSDKStatus from "@/components/box-sdk-status";
 import BoxSDKFileUpload from "@/components/box-sdk-file-upload";
 import BoxJWTFileUpload from "@/components/box-jwt-file-upload";
 import BoxIntegrationManager from "@/components/box-integration-manager";
+import BoxIntegrationStatus from "@/components/box-integration-status";
 
 import { FounderData } from "@shared/schema";
 import { useMutation } from "@tanstack/react-query";
@@ -202,7 +203,7 @@ export default function OnboardingPage({ onNext, onDataUpdate }: OnboardingPageP
         >
           <ProgressBar currentStep={1} totalSteps={4} stepName="Founder Profile" />
           
-          <BoxIntegrationManager />
+          <BoxIntegrationStatus />
 
           <Card className="p-8 border-border bg-card">
             <h2 className="text-3xl font-bold mb-2">Tell us about your venture</h2>
