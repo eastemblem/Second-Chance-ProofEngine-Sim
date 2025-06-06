@@ -64,17 +64,17 @@ export default function BoxIntegrationStatus() {
     );
   };
 
-  const hasWorkingService = boxStatus?.connected || false;
+  const hasWorkingService = storageStatus?.connected || false;
 
   return (
     <Card className="w-full">
       <CardHeader>
         <CardTitle className="flex items-center gap-2">
           <Box className="h-5 w-5" />
-          Box.com Integration Status
+          ProofVault Storage Status
         </CardTitle>
         <CardDescription>
-          Real-time status of all Box.com authentication methods
+          Real-time status of document storage system
         </CardDescription>
       </CardHeader>
       <CardContent className="space-y-4">
@@ -123,40 +123,32 @@ export default function BoxIntegrationStatus() {
           <div className="space-y-4">
             <div className="flex items-center justify-between p-3 border rounded-lg">
               <div className="flex items-center gap-3">
-                {boxStatus?.connected ? (
+                {storageStatus?.connected ? (
                   <CheckCircle className="h-5 w-5 text-green-500" />
-                ) : boxStatus?.authRequired ? (
-                  <AlertCircle className="h-5 w-5 text-amber-500" />
                 ) : (
                   <XCircle className="h-5 w-5 text-red-500" />
                 )}
                 <div>
-                  <div className="font-medium">Box.com ProofVault Service</div>
+                  <div className="font-medium">Replit ProofVault Storage</div>
                   <div className="text-sm text-muted-foreground">
-                    {boxStatus?.message || 'Testing connection...'}
+                    {storageStatus?.message || 'Testing connection...'}
                   </div>
-                  {boxStatus?.authType && (
+                  {storageStatus?.storageType && (
                     <div className="text-xs text-muted-foreground">
-                      Authentication: {boxStatus.authType}
+                      Storage Type: {storageStatus.storageType}
+                    </div>
+                  )}
+                  {storageStatus?.path && (
+                    <div className="text-xs text-muted-foreground">
+                      Path: {storageStatus.path}
                     </div>
                   )}
                 </div>
               </div>
               <div className="flex flex-col items-end gap-1">
-                <Badge variant={
-                  boxStatus?.connected ? "default" : 
-                  boxStatus?.authRequired ? "secondary" : 
-                  "destructive"
-                }>
-                  {boxStatus?.connected ? "Connected" : 
-                   boxStatus?.authRequired ? "Auth Required" : 
-                   "Failed"}
+                <Badge variant={storageStatus?.connected ? "default" : "destructive"}>
+                  {storageStatus?.connected ? "Connected" : "Failed"}
                 </Badge>
-                {boxStatus?.authRequired && (
-                  <div className="text-xs text-amber-600">
-                    BOX_ACCESS_TOKEN needed
-                  </div>
-                )}
               </div>
             </div>
             
@@ -165,8 +157,8 @@ export default function BoxIntegrationStatus() {
               <ul className="text-sm text-muted-foreground space-y-1">
                 <li>• Automatic ProofVault_[StartupName] folder creation</li>
                 <li>• Secure document upload and storage</li>
-                <li>• Shareable links for investor access</li>
-                <li>• Enterprise-grade security and compliance</li>
+                <li>• Direct file access with download links</li>
+                <li>• Organized folder structure for investor access</li>
               </ul>
             </div>
           </div>
