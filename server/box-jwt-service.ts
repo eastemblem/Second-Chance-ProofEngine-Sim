@@ -2,6 +2,8 @@ import jwt from 'jsonwebtoken';
 import { Request } from 'express';
 import multer from 'multer';
 import BoxSDK from 'box-node-sdk';
+import fs from 'fs';
+import path from 'path';
 
 export class BoxJWTService {
   private sdk: any;
@@ -11,7 +13,7 @@ export class BoxJWTService {
   constructor() {
     const clientId = process.env.BOX_CLIENT_ID || '';
     const clientSecret = process.env.BOX_CLIENT_SECRET || '';
-    const privateKeyBase64 = process.env.BOX_PRIVATE_KEY_BASE64 || '';
+    const privateKey = process.env.BOX_PRIVATE_KEY || '';
     const publicKeyId = process.env.BOX_PUBLIC_KEY_ID || '';
     const enterpriseId = process.env.BOX_ENTERPRISE_ID || '';
     const passphrase = process.env.BOX_PASSPHRASE || '';
@@ -19,30 +21,43 @@ export class BoxJWTService {
     console.log('Box Node SDK Service configuration:');
     console.log('- Client ID:', clientId ? `${clientId.substring(0, 8)}...` : 'NOT SET');
     console.log('- Client Secret:', clientSecret ? 'SET' : 'NOT SET');
-    console.log('- Private Key Base64:', privateKeyBase64 ? 'SET' : 'NOT SET');
+    console.log('- Private Key:', privateKey ? 'SET' : 'NOT SET');
     console.log('- Public Key ID:', publicKeyId ? 'SET' : 'NOT SET');
     console.log('- Enterprise ID:', enterpriseId ? `${enterpriseId.substring(0, 8)}...` : 'NOT SET');
     console.log('- Passphrase:', passphrase ? 'SET' : 'NOT SET');
     
-    if (clientId && clientSecret && privateKeyBase64 && publicKeyId && enterpriseId) {
+    if (clientId && clientSecret && privateKey && publicKeyId && enterpriseId) {
       try {
-        // Convert Base64 private key
-        const privateKey = Buffer.from(privateKeyBase64, 'base64').toString('utf8');
-        console.log('Private key format check:', privateKey.substring(0, 50) + '...');
+        // Create temporary private key file for Box SDK
+        const tempKeyPath = path.join(__dirname, 'temp_box_private_key.pem');
         
-        // Box SDK Configuration
+        // Format private key properly
+        let formattedPrivateKey = privateKey;
+        if (formattedPrivateKey.includes('\\n')) {
+          formattedPrivateKey = formattedPrivateKey.replace(/\\n/g, '\n');
+        }
+        
+        // Write private key to temporary file
+        fs.writeFileSync(tempKeyPath, formattedPrivateKey);
+        console.log('Private key written to temporary file');
+        
+        // Box SDK Configuration using file path
         this.sdk = new BoxSDK({
           clientID: clientId,
           clientSecret: clientSecret,
           appAuth: {
             keyID: publicKeyId,
-            privateKey: privateKey,
+            privateKey: fs.readFileSync(tempKeyPath),
             passphrase: passphrase || undefined
           }
         });
         
+        // Clean up temporary file
+        fs.unlinkSync(tempKeyPath);
+        console.log('Temporary private key file cleaned up');
+        
         this.isInitialized = true;
-        console.log('Box Node SDK Service initialized successfully');
+        console.log('Box Node SDK Service initialized successfully with file-based approach');
       } catch (error) {
         console.error('Box Node SDK initialization failed:', error);
         console.error('Error details:', error);
