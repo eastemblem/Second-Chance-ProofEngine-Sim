@@ -2,10 +2,7 @@ import express, { Request, Response, NextFunction } from "express";
 import { createServer, type Server } from "http";
 import { storage } from "./storage";
 import { z } from "zod";
-import { boxJWTService } from "./box-jwt-service";
-import { boxManualAuth } from "./box-manual-auth";
-import { boxFileAuth } from "./box-file-auth";
-import { boxAuthManager } from "./box-auth-manager";
+import { boxService } from "./box-service";
 import multer from 'multer';
 import { Readable } from "stream";
 import fs from "fs";
@@ -142,74 +139,33 @@ export async function registerRoutes(app: express.Application): Promise<Server> 
     }
   });
 
-  // Box JWT Routes (Primary Authentication Method)
+  // Box Integration Routes
   
-  // Test Box JWT connection
-  app.get("/api/box/jwt/test", async (req, res) => {
-    try {
-      const connected = await boxJWTService.testConnection();
-      res.json({ connected, service: 'box-jwt' });
-    } catch (error) {
-      console.log(`Box JWT connection test failed: ${error}`);
-      res.json({ 
-        connected: false, 
-        service: 'box-jwt',
-        error: error instanceof Error ? error.message : String(error) 
-      });
-    }
-  });
-
-  // Test Box Manual Auth connection
-  app.get("/api/box/manual/test", async (req, res) => {
-    try {
-      const connected = await boxManualAuth.testConnection();
-      res.json({ connected, service: 'box-manual-auth' });
-    } catch (error) {
-      console.log(`Box Manual Auth connection test failed: ${error}`);
-      res.json({ 
-        connected: false, 
-        service: 'box-manual-auth',
-        error: error instanceof Error ? error.message : String(error) 
-      });
-    }
-  });
-
-  // Test Box File Auth connection
-  app.get("/api/box/file/test", async (req, res) => {
-    try {
-      const connected = await boxFileAuth.testConnection();
-      res.json({ connected, service: 'box-file-auth' });
-    } catch (error) {
-      console.log(`Box File Auth connection test failed: ${error}`);
-      res.json({ 
-        connected: false, 
-        service: 'box-file-auth',
-        error: error instanceof Error ? error.message : String(error) 
-      });
-    }
-  });
-
-  // Comprehensive Box authentication status
+  // Box authentication status
   app.get("/api/box/status", async (req, res) => {
     try {
-      const connected = await boxAuthManager.testConnection();
+      const connected = await boxService.testConnection();
+      const authStatus = boxService.getAuthStatus();
+      
       res.json({ 
         connected, 
-        service: 'box-auth-manager',
-        message: connected ? 'Box integration active' : 'Box integration requires configuration'
+        authType: authStatus.type,
+        available: authStatus.available,
+        message: connected ? 'Box integration active' : 'Box integration requires valid credentials'
       });
     } catch (error) {
-      console.log(`Box Auth Manager connection test failed: ${error}`);
+      console.log(`Box connection test failed: ${error}`);
       res.json({ 
         connected: false, 
-        service: 'box-auth-manager',
+        authType: 'none',
+        available: false,
         error: error instanceof Error ? error.message : String(error),
         message: 'Box integration requires valid credentials'
       });
     }
   });
 
-  // Primary Box file upload endpoint using authentication manager
+  // Box file upload endpoint
   app.post("/api/box/upload", upload.single('file'), async (req, res) => {
     try {
       console.log('Processing Box file upload...');
@@ -226,25 +182,24 @@ export async function registerRoutes(app: express.Application): Promise<Server> 
         });
       }
 
-      // Use authentication manager for reliable upload
-      const sessionFolderId = await boxAuthManager.createSessionFolder(startupName);
-      const uploadResult = await boxAuthManager.uploadFile(
+      // Create ProofVault folder and upload file
+      const proofVaultFolder = await boxService.createProofVaultFolder(startupName);
+      const uploadResult = await boxService.uploadFile(
         req.file.originalname,
         req.file.buffer,
-        sessionFolderId
+        proofVaultFolder.id
       );
-      const shareableLink = await boxAuthManager.createShareableLink(uploadResult.id, 'file');
 
       res.json({
         success: true,
-        storage: 'box-authenticated',
+        storage: 'box',
         file: {
           id: uploadResult.id,
           name: uploadResult.name,
           size: uploadResult.size,
-          download_url: shareableLink
+          download_url: uploadResult.download_url
         },
-        sessionFolder: sessionFolderId
+        proofVaultFolder: proofVaultFolder
       });
 
     } catch (error) {
@@ -256,10 +211,10 @@ export async function registerRoutes(app: express.Application): Promise<Server> 
     }
   });
 
-  // Box JWT file upload endpoint (with fallback demonstration)
+  // Legacy Box upload endpoint for backwards compatibility
   app.post("/api/box/jwt/upload", upload.single('file'), async (req, res) => {
     try {
-      console.log('Processing Box JWT file upload...');
+      console.log('Processing Box file upload (legacy endpoint)...');
       
       if (!req.file) {
         return res.status(400).json({ error: "No file provided" });
@@ -273,108 +228,36 @@ export async function registerRoutes(app: express.Application): Promise<Server> 
         });
       }
 
-      try {
-        // Attempt Box JWT authentication
-        const sessionFolderId = await boxJWTService.createSessionFolder(startupName);
-        const uploadResult = await boxJWTService.uploadFile(
-          req.file.originalname,
-          req.file.buffer,
-          sessionFolderId
-        );
-        const shareableLink = await boxJWTService.createShareableLink(uploadResult.id, 'file');
+      // Use unified Box service
+      const proofVaultFolder = await boxService.createProofVaultFolder(startupName);
+      const uploadResult = await boxService.uploadFile(
+        req.file.originalname,
+        req.file.buffer,
+        proofVaultFolder.id
+      );
 
-        return res.json({
-          success: true,
-          storage: 'box-jwt',
-          file: {
-            id: uploadResult.id,
-            name: uploadResult.name,
-            size: uploadResult.size,
-            download_url: shareableLink
-          },
-          sessionFolder: sessionFolderId
-        });
-
-      } catch (boxError) {
-        console.log('Box JWT authentication failed, using demonstration mode');
-        
-        // Demonstration mode with authentic file structure
-        const fileId = `demo_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
-        const sessionFolder = `ProofVault_${startupName.replace(/[^a-zA-Z0-9_-]/g, '_')}`;
-        const baseUrl = process.env.REPLIT_DOMAIN 
-          ? `https://${process.env.REPLIT_DOMAIN}`
-          : 'http://localhost:5000';
-        
-        return res.json({
-          success: true,
-          storage: 'box-demonstration',
-          file: {
-            id: fileId,
-            name: req.file.originalname,
-            size: req.file.size,
-            download_url: `${baseUrl}/demo/files/${fileId}`
-          },
-          sessionFolder: sessionFolder,
-          message: 'File processed in demonstration mode - Box.com integration ready for production'
-        });
-      }
+      return res.json({
+        success: true,
+        storage: 'box',
+        file: {
+          id: uploadResult.id,
+          name: uploadResult.name,
+          size: uploadResult.size,
+          download_url: uploadResult.download_url
+        },
+        proofVaultFolder: proofVaultFolder
+      });
 
     } catch (error) {
-      console.log(`File upload failed: ${error}`);
-      return res.status(503).json({ 
-        error: "File upload error",
-        message: "Upload processing failed",
-        details: error instanceof Error ? error.message : String(error)
+      console.error('Box upload error:', error);
+      res.status(500).json({ 
+        error: error instanceof Error ? error.message : 'Upload failed',
+        storage: 'box-error'
       });
     }
   });
 
-  // Generate shareable links using Box JWT
-  app.post('/api/box/jwt/generate-links', async (req, res) => {
-    try {
-      const { sessionFolderId, uploadedFiles } = req.body;
-      const result: any = {};
 
-      try {
-        // Attempt Box JWT shareable link generation
-        if (sessionFolderId) {
-          result.dataRoomUrl = await boxJWTService.createShareableLink(sessionFolderId, 'folder');
-        }
-
-        if (uploadedFiles && uploadedFiles.length > 0) {
-          for (const file of uploadedFiles) {
-            if (file.category === 'pitch-deck' && file.id) {
-              result.pitchDeckUrl = await boxJWTService.createShareableLink(file.id, 'file');
-              break;
-            }
-          }
-        }
-      } catch (error) {
-        console.log('Box JWT link generation failed, using demonstration links');
-        
-        // Provide demonstration shareable links with authentic structure
-        const baseUrl = process.env.REPLIT_DOMAIN 
-          ? `https://${process.env.REPLIT_DOMAIN}`
-          : 'http://localhost:5000';
-        
-        if (sessionFolderId) {
-          result.dataRoomUrl = `${baseUrl}/demo/data-room/${encodeURIComponent(sessionFolderId)}`;
-        }
-        
-        if (uploadedFiles && uploadedFiles.length > 0) {
-          const pitchDeckFile = uploadedFiles.find((file: any) => file.category === 'pitch-deck');
-          if (pitchDeckFile) {
-            result.pitchDeckUrl = `${baseUrl}/demo/files/${encodeURIComponent(pitchDeckFile.id)}`;
-          }
-        }
-      }
-
-      res.json(result);
-    } catch (error) {
-      console.error('Error generating shareable links:', error);
-      res.status(500).json({ error: 'Failed to generate shareable links', details: error instanceof Error ? error.message : String(error) });
-    }
-  });
 
   const httpServer = createServer(app);
   return httpServer;
