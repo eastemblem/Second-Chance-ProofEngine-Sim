@@ -291,11 +291,11 @@ export default function OnboardingPage({ onNext, onDataUpdate }: OnboardingPageP
                   </p>
                   
                   <div className="space-y-4">
-                    <BoxSDKFileUpload
+                    <BoxJWTFileUpload
                       title="Pitch Deck"
                       description="Upload your investor presentation (PDF or PowerPoint)"
                       accept=".pdf,.ppt,.pptx"
-                      allowedTypes={['pdf', 'ppt', 'pptx']}
+                      allowedTypes={['application/pdf', 'application/vnd.ms-powerpoint', 'application/vnd.openxmlformats-officedocument.presentationml.presentation']}
                       category="pitch-deck"
                       userId={formData.userId?.toString()}
                       startupName={formData.startupName}
@@ -303,11 +303,11 @@ export default function OnboardingPage({ onNext, onDataUpdate }: OnboardingPageP
                       onFileUploaded={handleFileUploaded}
                     />
                     
-                    <BoxSDKFileUpload
+                    <BoxJWTFileUpload
                       title="Data Room Documents"
                       description="Upload financial models, market research, and other supporting documents"
                       accept=".pdf,.doc,.docx,.xls,.xlsx,.ppt,.pptx"
-                      allowedTypes={['pdf', 'doc', 'docx', 'xls', 'xlsx', 'ppt', 'pptx']}
+                      allowedTypes={['application/pdf', 'application/msword', 'application/vnd.openxmlformats-officedocument.wordprocessingml.document', 'application/vnd.ms-excel', 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet', 'application/vnd.ms-powerpoint', 'application/vnd.openxmlformats-officedocument.presentationml.presentation']}
                       category="data-room"
                       userId={formData.userId?.toString()}
                       startupName={formData.startupName}

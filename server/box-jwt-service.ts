@@ -32,6 +32,49 @@ export class BoxJWTService {
     }
   }
 
+  private formatPrivateKey(key: string): string {
+    // Remove any extra whitespace and normalize line endings
+    let formattedKey = key.trim().replace(/\\n/g, '\n').replace(/\r\n/g, '\n').replace(/\r/g, '\n');
+    
+    // Handle escaped newlines from environment variables
+    if (formattedKey.includes('\\n')) {
+      formattedKey = formattedKey.replace(/\\n/g, '\n');
+    }
+    
+    // If key doesn't have proper headers, detect key type and add them
+    if (!formattedKey.includes('-----BEGIN')) {
+      // Check if it's RSA or PKCS#8 format based on content
+      if (formattedKey.startsWith('MII') || formattedKey.includes('MII')) {
+        formattedKey = `-----BEGIN PRIVATE KEY-----\n${formattedKey}\n-----END PRIVATE KEY-----`;
+      } else {
+        formattedKey = `-----BEGIN RSA PRIVATE KEY-----\n${formattedKey}\n-----END RSA PRIVATE KEY-----`;
+      }
+    }
+    
+    // Handle single-line PEM format (common in environment variables)
+    if ((formattedKey.includes('-----BEGIN') && formattedKey.includes('-----END')) && 
+        formattedKey.split('\n').length <= 3) {
+      
+      const beginMatch = formattedKey.match(/-----BEGIN [^-]+-----/);
+      const endMatch = formattedKey.match(/-----END [^-]+-----/);
+      
+      if (beginMatch && endMatch) {
+        const header = beginMatch[0];
+        const footer = endMatch[0];
+        const keyContent = formattedKey
+          .replace(header, '')
+          .replace(footer, '')
+          .replace(/\s+/g, '');
+        
+        // Add line breaks every 64 characters
+        const formattedContent = keyContent.match(/.{1,64}/g)?.join('\n') || keyContent;
+        formattedKey = `${header}\n${formattedContent}\n${footer}`;
+      }
+    }
+    
+    return formattedKey;
+  }
+
   private generateJWT(): string {
     if (!this.isInitialized) {
       throw new Error('Box JWT Service not properly configured');
@@ -56,7 +99,10 @@ export class BoxJWTService {
     };
 
     try {
-      const token = jwt.sign(claims, this.privateKey, {
+      const formattedPrivateKey = this.formatPrivateKey(this.privateKey);
+      console.log('Using formatted private key for JWT signing');
+      
+      const token = jwt.sign(claims, formattedPrivateKey, {
         algorithm: 'RS256',
         header: header,
         ...(this.passphrase && { passphrase: this.passphrase })
