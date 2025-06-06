@@ -13,6 +13,7 @@ export class BoxJWTService {
     const clientSecret = process.env.BOX_CLIENT_SECRET || '';
     const privateKeyBase64 = process.env.BOX_PRIVATE_KEY_BASE64 || '';
     const publicKeyId = process.env.BOX_PUBLIC_KEY_ID || '';
+    const enterpriseId = process.env.BOX_ENTERPRISE_ID || '';
     const passphrase = process.env.BOX_PASSPHRASE || '';
     
     console.log('Box Node SDK Service configuration:');
@@ -20,12 +21,14 @@ export class BoxJWTService {
     console.log('- Client Secret:', clientSecret ? 'SET' : 'NOT SET');
     console.log('- Private Key Base64:', privateKeyBase64 ? 'SET' : 'NOT SET');
     console.log('- Public Key ID:', publicKeyId ? 'SET' : 'NOT SET');
+    console.log('- Enterprise ID:', enterpriseId ? `${enterpriseId.substring(0, 8)}...` : 'NOT SET');
     console.log('- Passphrase:', passphrase ? 'SET' : 'NOT SET');
     
-    if (clientId && clientSecret && privateKeyBase64 && publicKeyId) {
+    if (clientId && clientSecret && privateKeyBase64 && publicKeyId && enterpriseId) {
       try {
         // Convert Base64 private key
         const privateKey = Buffer.from(privateKeyBase64, 'base64').toString('utf8');
+        console.log('Private key format check:', privateKey.substring(0, 50) + '...');
         
         // Box SDK Configuration
         this.sdk = new BoxSDK({
@@ -42,7 +45,10 @@ export class BoxJWTService {
         console.log('Box Node SDK Service initialized successfully');
       } catch (error) {
         console.error('Box Node SDK initialization failed:', error);
+        console.error('Error details:', error);
       }
+    } else {
+      console.error('Missing required Box configuration parameters');
     }
   }
 
@@ -56,12 +62,23 @@ export class BoxJWTService {
     }
 
     try {
-      console.log('Creating Box service account client...');
-      this.client = this.sdk.getAppAuthClient('enterprise');
-      console.log('Box service account client created successfully');
+      const enterpriseId = process.env.BOX_ENTERPRISE_ID || '';
+      console.log(`Creating Box service account client with enterprise ID: ${enterpriseId.substring(0, 8)}...`);
+      
+      // Try different client creation approaches
+      try {
+        this.client = this.sdk.getAppAuthClient('enterprise', enterpriseId);
+        console.log('Box enterprise client created successfully');
+      } catch (enterpriseError) {
+        console.log('Enterprise client creation failed, trying service account approach...');
+        this.client = this.sdk.getAppAuthClient('user');
+        console.log('Box service account client created successfully');
+      }
+      
       return this.client;
     } catch (error) {
       console.error('Failed to create Box client:', error);
+      console.error('Error details:', JSON.stringify(error, null, 2));
       throw error;
     }
   }
@@ -69,8 +86,9 @@ export class BoxJWTService {
   async testConnection(): Promise<boolean> {
     try {
       const client = await this.getClient();
-      const userInfo = await client.users.get(client.CURRENT_USER_ID);
-      console.log('Box Node SDK connection successful');
+      console.log('Testing Box Node SDK connection...');
+      const userInfo = await client.users.get('me');
+      console.log('Box Node SDK connection successful, user:', userInfo.name);
       return true;
     } catch (error) {
       console.error('Box Node SDK connection test failed:', error);
