@@ -121,26 +121,19 @@ export class BoxJWTService {
 
   async findExistingFolder(folderName: string, parentId: string): Promise<any> {
     try {
-      const accessToken = await this.getValidAccessToken();
+      const client = await this.getClient();
       
-      const response = await fetch(`https://api.box.com/2.0/folders/${parentId}/items`, {
-        headers: {
-          'Authorization': `Bearer ${accessToken}`
-        }
+      const items = await client.folders.getItems(parentId, {
+        fields: 'id,name,type'
       });
 
-      if (!response.ok) {
-        return null;
-      }
-
-      const data = await response.json();
-      const folder = data.entries.find((item: any) => 
+      const existingFolder = items.entries.find((item: any) => 
         item.type === 'folder' && item.name === folderName
       );
 
-      return folder || null;
+      return existingFolder || null;
     } catch (error) {
-      console.error('Error finding existing folder via JWT:', error);
+      console.error('Error finding existing folder via Box Node SDK:', error);
       return null;
     }
   }
@@ -152,95 +145,32 @@ export class BoxJWTService {
 
   async createShareableLink(itemId: string, itemType: 'file' | 'folder' = 'file'): Promise<string> {
     try {
-      const accessToken = await this.getValidAccessToken();
+      const client = await this.getClient();
       
-      const endpoint = itemType === 'folder' 
-        ? `https://api.box.com/2.0/folders/${itemId}`
-        : `https://api.box.com/2.0/files/${itemId}`;
-
-      const response = await fetch(endpoint, {
-        method: 'PUT',
-        headers: {
-          'Authorization': `Bearer ${accessToken}`,
-          'Content-Type': 'application/json'
-        },
-        body: JSON.stringify({
+      let result;
+      if (itemType === 'folder') {
+        result = await client.folders.update(itemId, {
           shared_link: {
             access: 'open'
           }
-        })
-      });
-
-      if (!response.ok) {
-        const errorText = await response.text();
-        throw new Error(`Shareable link creation failed: ${response.status} - ${errorText}`);
+        });
+      } else {
+        result = await client.files.update(itemId, {
+          shared_link: {
+            access: 'open'
+          }
+        });
       }
 
-      const result = await response.json();
-      console.log(`Shareable link created via JWT for ${itemType}: ${itemId}`);
+      console.log(`Shareable link created via Box Node SDK for ${itemType}: ${itemId}`);
       return result.shared_link.url;
     } catch (error) {
-      console.error('Failed to create shareable link via JWT:', error);
+      console.error('Failed to create shareable link via Box Node SDK:', error);
       throw error;
     }
   }
 
-  private async storeAccessToken(token: string, expiresIn: number): Promise<void> {
-    try {
-      const { db } = await import('./db');
-      const { users } = await import('../shared/schema');
-      const { eq } = await import('drizzle-orm');
-      
-      const expiresAt = new Date(Date.now() + expiresIn * 1000);
-      
-      const existingUser = await db.select().from(users).where(
-        eq(users.email, 'service@box.jwt')
-      ).limit(1);
-      
-      if (existingUser.length > 0) {
-        await db.update(users).set({
-          boxAccessToken: token,
-          boxTokenExpiresAt: expiresAt
-        }).where(eq(users.email, 'service@box.jwt'));
-      } else {
-        await db.insert(users).values({
-          firstName: 'Service',
-          lastName: 'BoxJWT',
-          email: 'service@box.jwt',
-          boxAccessToken: token,
-          boxTokenExpiresAt: expiresAt
-        });
-      }
-      
-      console.log('Box JWT access token stored');
-    } catch (error) {
-      console.error('Failed to store JWT access token:', error);
-    }
-  }
 
-  private async getStoredAccessToken(): Promise<string | null> {
-    try {
-      const { db } = await import('./db');
-      const { users } = await import('../shared/schema');
-      const { eq } = await import('drizzle-orm');
-      
-      const serviceUser = await db.select().from(users).where(
-        eq(users.email, 'service@box.jwt')
-      ).limit(1);
-      
-      if (serviceUser.length > 0 && serviceUser[0].boxAccessToken) {
-        const user = serviceUser[0];
-        if (user.boxTokenExpiresAt && user.boxTokenExpiresAt > new Date()) {
-          return user.boxAccessToken;
-        }
-      }
-      
-      return null;
-    } catch (error) {
-      console.error('Error getting stored JWT access token:', error);
-      return null;
-    }
-  }
 }
 
 // Configure multer for file uploads
