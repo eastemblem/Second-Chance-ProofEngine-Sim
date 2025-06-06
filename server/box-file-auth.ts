@@ -1,10 +1,16 @@
 import jwt from 'jsonwebtoken';
 import crypto from 'crypto';
+import fs from 'fs';
+import path from 'path';
+import { fileURLToPath } from 'url';
 
-export class BoxManualAuth {
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
+
+export class BoxFileAuth {
   private clientId: string;
   private clientSecret: string;
-  private privateKey: string;
+  private privateKeyPath: string;
   private publicKeyId: string;
   private enterpriseId: string;
   private passphrase: string;
@@ -13,56 +19,66 @@ export class BoxManualAuth {
   constructor() {
     this.clientId = process.env.BOX_CLIENT_ID || '';
     this.clientSecret = process.env.BOX_CLIENT_SECRET || '';
-    this.privateKey = process.env.BOX_PRIVATE_KEY || '';
     this.publicKeyId = process.env.BOX_PUBLIC_KEY_ID || '';
     this.enterpriseId = process.env.BOX_ENTERPRISE_ID || '';
     this.passphrase = process.env.BOX_PASSPHRASE || '';
+    this.privateKeyPath = path.join(__dirname, 'box-private-key.pem');
     
-    console.log('Box Manual Auth Service configuration:');
+    console.log('Box File Auth Service configuration:');
     console.log('- Client ID:', this.clientId ? `${this.clientId.substring(0, 8)}...` : 'NOT SET');
     console.log('- Client Secret:', this.clientSecret ? 'SET' : 'NOT SET');
-    console.log('- Private Key:', this.privateKey ? 'SET' : 'NOT SET');
     console.log('- Public Key ID:', this.publicKeyId ? 'SET' : 'NOT SET');
     console.log('- Enterprise ID:', this.enterpriseId ? `${this.enterpriseId.substring(0, 8)}...` : 'NOT SET');
     console.log('- Passphrase:', this.passphrase ? 'SET' : 'NOT SET');
+    console.log('- Private Key Path:', this.privateKeyPath);
     
-    if (this.clientId && this.clientSecret && this.privateKey && this.publicKeyId && this.enterpriseId) {
-      this.isInitialized = true;
-      console.log('Box Manual Auth Service initialized successfully');
-    }
+    this.initializePrivateKeyFile();
   }
 
-  private formatPrivateKey(key: string): string {
-    let formattedKey = key.trim();
+  private initializePrivateKeyFile(): void {
+    const privateKeyContent = process.env.BOX_PRIVATE_KEY || '';
     
-    // Handle escaped newlines
-    if (formattedKey.includes('\\n')) {
-      formattedKey = formattedKey.replace(/\\n/g, '\n');
+    if (!privateKeyContent) {
+      console.error('BOX_PRIVATE_KEY environment variable not set');
+      return;
     }
-    
-    // Ensure proper PEM formatting
-    if (!formattedKey.includes('-----BEGIN') || !formattedKey.includes('-----END')) {
-      throw new Error('Private key must be in PEM format with BEGIN/END headers');
+
+    try {
+      // Format private key properly
+      let formattedKey = privateKeyContent.trim();
+      if (formattedKey.includes('\\n')) {
+        formattedKey = formattedKey.replace(/\\n/g, '\n');
+      }
+
+      // Write private key to file
+      fs.writeFileSync(this.privateKeyPath, formattedKey, { mode: 0o600 });
+      console.log('Private key written to file successfully');
+
+      // Verify file exists and is readable
+      if (fs.existsSync(this.privateKeyPath)) {
+        const keyContent = fs.readFileSync(this.privateKeyPath, 'utf8');
+        console.log('Private key file verification:');
+        console.log('- File exists:', true);
+        console.log('- File size:', keyContent.length);
+        console.log('- First 50 chars:', keyContent.substring(0, 50));
+        
+        if (this.clientId && this.clientSecret && this.publicKeyId && this.enterpriseId) {
+          this.isInitialized = true;
+          console.log('Box File Auth Service initialized successfully');
+        }
+      }
+    } catch (error) {
+      console.error('Failed to initialize private key file:', error);
     }
-    
-    // Validate key structure
-    const lines = formattedKey.split('\n');
-    if (lines.length < 3) {
-      throw new Error('Private key appears to be malformed - insufficient lines');
-    }
-    
-    console.log('Private key validation:');
-    console.log('- Lines count:', lines.length);
-    console.log('- First line:', lines[0]);
-    console.log('- Last line:', lines[lines.length - 1]);
-    console.log('- Has proper headers:', formattedKey.includes('-----BEGIN') && formattedKey.includes('-----END'));
-    
-    return formattedKey;
   }
 
   private generateJWT(): string {
     if (!this.isInitialized) {
-      throw new Error('Box Manual Auth Service not properly configured');
+      throw new Error('Box File Auth Service not properly configured');
+    }
+
+    if (!fs.existsSync(this.privateKeyPath)) {
+      throw new Error('Private key file not found');
     }
 
     const now = Math.floor(Date.now() / 1000);
@@ -85,17 +101,18 @@ export class BoxManualAuth {
     };
 
     try {
-      const formattedPrivateKey = this.formatPrivateKey(this.privateKey);
+      const privateKey = fs.readFileSync(this.privateKeyPath, 'utf8');
       
-      const token = jwt.sign(claims, formattedPrivateKey, {
+      const token = jwt.sign(claims, privateKey, {
         algorithm: 'RS256',
         header: header,
         ...(this.passphrase && { passphrase: this.passphrase })
       });
       
+      console.log('JWT token generated successfully using file-based private key');
       return token;
     } catch (error) {
-      console.error('JWT generation failed:', error);
+      console.error('JWT generation failed with file-based approach:', error);
       throw new Error(`Failed to generate JWT token: ${error}`);
     }
   }
@@ -119,19 +136,19 @@ export class BoxManualAuth {
       });
 
       const responseText = await response.text();
-      console.log(`Box Manual Auth response: ${response.status}`);
+      console.log(`Box File Auth response: ${response.status}`);
 
       if (!response.ok) {
-        console.error('Manual JWT authentication failed:', responseText);
-        throw new Error(`Manual JWT authentication failed: ${response.status} - ${responseText}`);
+        console.error('File-based JWT authentication failed:', responseText);
+        throw new Error(`File-based JWT authentication failed: ${response.status} - ${responseText}`);
       }
 
       const tokens = JSON.parse(responseText);
-      console.log('Box Manual Auth authentication successful');
+      console.log('Box File Auth authentication successful');
       
       return tokens.access_token;
     } catch (error) {
-      console.error('Manual JWT authentication error:', error);
+      console.error('File-based JWT authentication error:', error);
       throw error;
     }
   }
@@ -148,14 +165,14 @@ export class BoxManualAuth {
 
       if (response.ok) {
         const userInfo = await response.json();
-        console.log('Box Manual Auth connection successful, user:', userInfo.name);
+        console.log('Box File Auth connection successful, user:', userInfo.name);
         return true;
       } else {
-        console.log(`Box Manual Auth connection failed: ${response.status}`);
+        console.log(`Box File Auth connection failed: ${response.status}`);
         return false;
       }
     } catch (error) {
-      console.error('Box Manual Auth connection test failed:', error);
+      console.error('Box File Auth connection test failed:', error);
       return false;
     }
   }
@@ -189,10 +206,10 @@ export class BoxManualAuth {
       }
 
       const result = await response.json();
-      console.log(`File uploaded successfully via Manual Auth: ${fileName}`);
+      console.log(`File uploaded successfully via File Auth: ${fileName}`);
       return result.entries[0];
     } catch (error) {
-      console.error('Box Manual Auth upload failed:', error);
+      console.error('Box File Auth upload failed:', error);
       throw error;
     }
   }
@@ -226,10 +243,10 @@ export class BoxManualAuth {
       }
 
       const folder = await response.json();
-      console.log(`Folder created successfully via Manual Auth: ${folderName}`);
+      console.log(`Folder created successfully via File Auth: ${folderName}`);
       return folder.id;
     } catch (error) {
-      console.error('Box Manual Auth folder creation failed:', error);
+      console.error('Box File Auth folder creation failed:', error);
       throw error;
     }
   }
@@ -255,7 +272,7 @@ export class BoxManualAuth {
 
       return folder || null;
     } catch (error) {
-      console.error('Error finding existing folder via Manual Auth:', error);
+      console.error('Error finding existing folder via File Auth:', error);
       return null;
     }
   }
@@ -292,13 +309,40 @@ export class BoxManualAuth {
       }
 
       const result = await response.json();
-      console.log(`Shareable link created via Manual Auth for ${itemType}: ${itemId}`);
+      console.log(`Shareable link created via File Auth for ${itemType}: ${itemId}`);
       return result.shared_link.url;
     } catch (error) {
-      console.error('Failed to create shareable link via Manual Auth:', error);
+      console.error('Failed to create shareable link via File Auth:', error);
       throw error;
+    }
+  }
+
+  // Cleanup method to remove private key file
+  cleanup(): void {
+    try {
+      if (fs.existsSync(this.privateKeyPath)) {
+        fs.unlinkSync(this.privateKeyPath);
+        console.log('Private key file cleaned up');
+      }
+    } catch (error) {
+      console.error('Failed to cleanup private key file:', error);
     }
   }
 }
 
-export const boxManualAuth = new BoxManualAuth();
+export const boxFileAuth = new BoxFileAuth();
+
+// Cleanup on process exit
+process.on('exit', () => {
+  boxFileAuth.cleanup();
+});
+
+process.on('SIGINT', () => {
+  boxFileAuth.cleanup();
+  process.exit();
+});
+
+process.on('SIGTERM', () => {
+  boxFileAuth.cleanup();
+  process.exit();
+});

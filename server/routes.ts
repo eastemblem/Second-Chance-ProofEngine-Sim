@@ -4,6 +4,7 @@ import { storage } from "./storage";
 import { z } from "zod";
 import { boxJWTService } from "./box-jwt-service";
 import { boxManualAuth } from "./box-manual-auth";
+import { boxFileAuth } from "./box-file-auth";
 import multer from 'multer';
 import { Readable } from "stream";
 import fs from "fs";
@@ -167,6 +168,21 @@ export async function registerRoutes(app: express.Application): Promise<Server> 
       res.json({ 
         connected: false, 
         service: 'box-manual-auth',
+        error: error instanceof Error ? error.message : String(error) 
+      });
+    }
+  });
+
+  // Test Box File Auth connection
+  app.get("/api/box/file/test", async (req, res) => {
+    try {
+      const connected = await boxFileAuth.testConnection();
+      res.json({ connected, service: 'box-file-auth' });
+    } catch (error) {
+      console.log(`Box File Auth connection test failed: ${error}`);
+      res.json({ 
+        connected: false, 
+        service: 'box-file-auth',
         error: error instanceof Error ? error.message : String(error) 
       });
     }
