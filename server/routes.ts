@@ -228,6 +228,17 @@ export async function registerRoutes(app: express.Application): Promise<Server> 
         });
       }
 
+      // Test Box connection first
+      const isConnected = await boxService.testConnection();
+      if (!isConnected) {
+        return res.status(401).json({
+          error: 'Box authentication failed',
+          message: 'Please provide a valid BOX_ACCESS_TOKEN to enable ProofVault functionality',
+          authRequired: true,
+          storage: 'box-auth-required'
+        });
+      }
+
       // Use unified Box service
       const proofVaultFolder = await boxService.createProofVaultFolder(startupName);
       const uploadResult = await boxService.uploadFile(
@@ -250,6 +261,17 @@ export async function registerRoutes(app: express.Application): Promise<Server> 
 
     } catch (error) {
       console.error('Box upload error:', error);
+      
+      // Handle authentication errors specifically
+      if (error instanceof Error && (error.message.includes('401') || error.message.includes('authentication'))) {
+        return res.status(401).json({
+          error: 'Box authentication failed',
+          message: 'Please provide a valid BOX_ACCESS_TOKEN to enable ProofVault functionality',
+          authRequired: true,
+          storage: 'box-auth-required'
+        });
+      }
+      
       res.status(500).json({ 
         error: error instanceof Error ? error.message : 'Upload failed',
         storage: 'box-error'

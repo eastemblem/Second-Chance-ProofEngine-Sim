@@ -14,37 +14,31 @@ interface ServiceStatus {
 export default function BoxIntegrationStatus() {
   const [refreshKey, setRefreshKey] = useState(0);
 
-  // Test all Box services
-  const { data: services, isLoading, refetch } = useQuery({
-    queryKey: ['box-services-status', refreshKey],
+  // Test Box service status
+  const { data: boxStatus, isLoading, refetch } = useQuery({
+    queryKey: ['box-status', refreshKey],
     queryFn: async () => {
-      const endpoints = [
-        { name: 'Box JWT Authentication', url: '/api/box/jwt/test' }
-      ];
-
-      const results = await Promise.all(
-        endpoints.map(async (endpoint) => {
-          try {
-            const response = await fetch(endpoint.url);
-            const data = await response.json();
-            return {
-              service: endpoint.name,
-              connected: data.connected || false,
-              error: data.error
-            };
-          } catch (error) {
-            return {
-              service: endpoint.name,
-              connected: false,
-              error: error instanceof Error ? error.message : 'Connection failed'
-            };
-          }
-        })
-      );
-
-      return results;
+      try {
+        const response = await fetch('/api/box/status');
+        const data = await response.json();
+        return {
+          connected: data.connected || false,
+          authType: data.authType || 'none',
+          available: data.available || false,
+          message: data.message || '',
+          authRequired: !data.connected && data.available
+        };
+      } catch (error) {
+        return {
+          connected: false,
+          authType: 'none',
+          available: false,
+          message: 'Connection test failed',
+          authRequired: true
+        };
+      }
     },
-    refetchInterval: 10000, // Refresh every 10 seconds
+    refetchInterval: 30000, // Refresh every 30 seconds
   });
 
   const handleRefresh = () => {
