@@ -12,6 +12,7 @@ import BoxConnectionStatus from "@/components/box-connection-status";
 import BoxSDKStatus from "@/components/box-sdk-status";
 import BoxSDKFileUpload from "@/components/box-sdk-file-upload";
 import BoxJWTFileUpload from "@/components/box-jwt-file-upload";
+import BoxDevelopmentFileUpload from "@/components/box-development-file-upload";
 import BoxIntegrationManager from "@/components/box-integration-manager";
 import BoxIntegrationStatus from "@/components/box-integration-status";
 
@@ -108,11 +109,11 @@ export default function OnboardingPage({ onNext, onDataUpdate }: OnboardingPageP
 
       const venture = await createVentureMutation.mutateAsync(ventureData);
 
-      // Generate shareable links for uploaded files using Box SDK
+      // Generate shareable links for uploaded files using Development service
       let shareableLinks = {};
       if (sessionFolderId && uploadedFiles.length > 0) {
         try {
-          const linkResponse = await fetch('/api/box/sdk/generate-links', {
+          const linkResponse = await fetch('/api/box/development/generate-links', {
             method: 'POST',
             headers: {
               'Content-Type': 'application/json',
@@ -125,10 +126,10 @@ export default function OnboardingPage({ onNext, onDataUpdate }: OnboardingPageP
           
           if (linkResponse.ok) {
             shareableLinks = await linkResponse.json();
-            console.log('Generated shareable links:', shareableLinks);
+            console.log('Generated shareable links via Development service:', shareableLinks);
           }
         } catch (error) {
-          console.error('Error generating shareable links:', error);
+          console.error('Error generating shareable links via Development service:', error);
         }
       }
 
@@ -292,7 +293,7 @@ export default function OnboardingPage({ onNext, onDataUpdate }: OnboardingPageP
                   </p>
                   
                   <div className="space-y-4">
-                    <BoxJWTFileUpload
+                    <BoxDevelopmentFileUpload
                       title="Pitch Deck"
                       description="Upload your investor presentation (PDF or PowerPoint)"
                       accept=".pdf,.ppt,.pptx"
@@ -304,7 +305,7 @@ export default function OnboardingPage({ onNext, onDataUpdate }: OnboardingPageP
                       onFileUploaded={handleFileUploaded}
                     />
                     
-                    <BoxJWTFileUpload
+                    <BoxDevelopmentFileUpload
                       title="Data Room Documents"
                       description="Upload financial models, market research, and other supporting documents"
                       accept=".pdf,.doc,.docx,.xls,.xlsx,.ppt,.pptx"

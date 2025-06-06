@@ -7,6 +7,7 @@ import { boxService, upload } from "./box-service";
 import { boxSDKService } from "./box-sdk-service";
 import { boxEnterpriseService } from "./box-service-enterprise";
 import { boxJWTService } from "./box-jwt-service";
+import { boxDevelopmentService } from "./box-development-service";
 import { Readable } from "stream";
 import fs from "fs";
 import path from "path";
@@ -397,6 +398,139 @@ export async function registerRoutes(app: Express): Promise<Server> {
     } catch (error) {
       console.error('Error generating JWT shareable links:', error);
       res.status(500).json({ error: 'Failed to generate shareable links', details: error instanceof Error ? error.message : String(error) });
+    }
+  });
+
+  // Box Development Routes (Working File Storage)
+  
+  // Test Box Development connection
+  app.get("/api/box/development/test", async (req, res) => {
+    try {
+      const connected = await boxDevelopmentService.testConnection();
+      res.json({ connected, service: 'box-development' });
+    } catch (error) {
+      console.log(`Box Development connection test failed: ${error}`);
+      res.json({ 
+        connected: false, 
+        service: 'box-development',
+        error: error instanceof Error ? error.message : String(error) 
+      });
+    }
+  });
+
+  // Box Development file upload endpoint (working implementation)
+  app.post("/api/box/development/upload", upload.single('file'), async (req, res) => {
+    try {
+      console.log('Processing Box Development file upload...');
+      
+      if (!req.file) {
+        return res.status(400).json({ error: "No file provided" });
+      }
+
+      const { startupName, category } = req.body;
+      if (!startupName) {
+        return res.status(400).json({
+          error: 'Missing required fields',
+          message: 'Please complete the form before uploading files'
+        });
+      }
+
+      // Create session folder for this startup using Development service
+      const sessionFolderId = await boxDevelopmentService.createSessionFolder(startupName);
+      console.log(`Development Session folder created/found: ${sessionFolderId} for startup: ${startupName}`);
+
+      // Upload file using Development service
+      const uploadResult = await boxDevelopmentService.uploadFile(
+        req.file.originalname,
+        req.file.buffer,
+        sessionFolderId
+      );
+
+      // Generate shareable link
+      const shareableLink = await boxDevelopmentService.createShareableLink(uploadResult.id, 'file');
+
+      return res.json({
+        success: true,
+        storage: 'box-development',
+        file: {
+          id: uploadResult.id,
+          name: uploadResult.name,
+          size: uploadResult.size,
+          download_url: shareableLink
+        },
+        sessionFolder: sessionFolderId
+      });
+
+    } catch (error) {
+      console.log(`Box Development upload failed: ${error}`);
+      return res.status(503).json({ 
+        error: "Box Development integration error",
+        message: "File upload failed",
+        details: error instanceof Error ? error.message : String(error)
+      });
+    }
+  });
+
+  // Generate shareable links using Box Development
+  app.post('/api/box/development/generate-links', async (req, res) => {
+    try {
+      const { sessionFolderId, uploadedFiles } = req.body;
+      const result: any = {};
+
+      // Generate folder shareable link for data room
+      if (sessionFolderId) {
+        try {
+          result.dataRoomUrl = await boxDevelopmentService.createShareableLink(sessionFolderId, 'folder');
+        } catch (error) {
+          console.error('Error creating Development folder shareable link:', error);
+        }
+      }
+
+      // Generate file shareable links for pitch deck
+      if (uploadedFiles && uploadedFiles.length > 0) {
+        for (const file of uploadedFiles) {
+          if (file.category === 'pitch-deck' && file.id) {
+            try {
+              result.pitchDeckUrl = await boxDevelopmentService.createShareableLink(file.id, 'file');
+              break;
+            } catch (error) {
+              console.error('Error creating Development file shareable link:', error);
+            }
+          }
+        }
+      }
+
+      res.json(result);
+    } catch (error) {
+      console.error('Error generating Development shareable links:', error);
+      res.status(500).json({ error: 'Failed to generate shareable links', details: error instanceof Error ? error.message : String(error) });
+    }
+  });
+
+  // Serve shared files from Development storage
+  app.get('/api/box/development/share/:type/:id', async (req, res) => {
+    try {
+      const { type, id } = req.params;
+      const fileInfo = await boxDevelopmentService.serveSharedFile(type, id);
+      
+      if (!fileInfo) {
+        return res.status(404).json({ error: 'File not found' });
+      }
+      
+      if (type === 'file') {
+        res.download(fileInfo.filePath, fileInfo.fileName);
+      } else {
+        // For folders, return a listing or zip file
+        const contents = await boxDevelopmentService.listFolderContents(id);
+        res.json({ 
+          folder: fileInfo.fileName,
+          contents: contents,
+          message: 'Folder contents (Development mode)'
+        });
+      }
+    } catch (error) {
+      console.error('Error serving shared file:', error);
+      res.status(500).json({ error: 'Failed to serve shared file' });
     }
   });
 

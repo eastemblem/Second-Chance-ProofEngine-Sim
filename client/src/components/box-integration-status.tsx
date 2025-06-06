@@ -22,7 +22,8 @@ export default function BoxIntegrationStatus() {
         { name: 'Box OAuth2', url: '/api/box/test' },
         { name: 'Box SDK', url: '/api/box/sdk/test' },
         { name: 'Box Enterprise', url: '/api/box/enterprise/test' },
-        { name: 'Box JWT', url: '/api/box/jwt/test' }
+        { name: 'Box JWT', url: '/api/box/jwt/test' },
+        { name: 'Box Development', url: '/api/box/development/test' }
       ];
 
       const results = await Promise.all(
