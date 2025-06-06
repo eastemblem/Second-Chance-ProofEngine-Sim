@@ -335,22 +335,32 @@ class BoxService {
 
   private async findExistingFolder(folderName: string, parentId: string): Promise<any> {
     try {
-      const accessToken = await this.getAccessToken();
-      
-      const response = await fetch(`https://api.box.com/2.0/folders/${parentId}/items`, {
-        headers: {
-          'Authorization': `Bearer ${accessToken}`
+      if (this.authType === 'sdk' && this.client) {
+        const items = await this.client.folders.getItems(parentId, {
+          fields: 'id,name,type'
+        });
+        return items.entries.find((item: any) => 
+          item.type === 'folder' && item.name === folderName
+        );
+      } else if (this.authType === 'token') {
+        const accessToken = await this.getAccessToken();
+        
+        const response = await fetch(`https://api.box.com/2.0/folders/${parentId}/items`, {
+          headers: {
+            'Authorization': `Bearer ${accessToken}`
+          }
+        });
+
+        if (!response.ok) {
+          return null;
         }
-      });
 
-      if (!response.ok) {
-        return null;
+        const data = await response.json();
+        return data.entries.find((item: any) => 
+          item.type === 'folder' && item.name === folderName
+        );
       }
-
-      const data = await response.json();
-      return data.entries.find((item: any) => 
-        item.type === 'folder' && item.name === folderName
-      );
+      return null;
     } catch (error) {
       console.error('Error finding existing folder:', error);
       return null;
@@ -364,32 +374,50 @@ class BoxService {
 
   private async createShareableLink(itemId: string, itemType: 'file' | 'folder' = 'file'): Promise<string> {
     try {
-      const accessToken = await this.getAccessToken();
-      
-      const endpoint = itemType === 'folder' 
-        ? `https://api.box.com/2.0/folders/${itemId}`
-        : `https://api.box.com/2.0/files/${itemId}`;
-
-      const response = await fetch(endpoint, {
-        method: 'PUT',
-        headers: {
-          'Authorization': `Bearer ${accessToken}`,
-          'Content-Type': 'application/json'
-        },
-        body: JSON.stringify({
+      if (this.authType === 'sdk' && this.client) {
+        const updateData = {
           shared_link: {
             access: 'open'
           }
-        })
-      });
+        };
 
-      if (!response.ok) {
-        const errorText = await response.text();
-        throw new Error(`Shareable link creation failed: ${response.status} - ${errorText}`);
+        if (itemType === 'file') {
+          const result = await this.client.files.update(itemId, updateData);
+          return result.shared_link?.url || `https://app.box.com/file/${itemId}`;
+        } else {
+          const result = await this.client.folders.update(itemId, updateData);
+          return result.shared_link?.url || `https://app.box.com/folder/${itemId}`;
+        }
+      } else if (this.authType === 'token') {
+        const accessToken = await this.getAccessToken();
+        
+        const endpoint = itemType === 'folder' 
+          ? `https://api.box.com/2.0/folders/${itemId}`
+          : `https://api.box.com/2.0/files/${itemId}`;
+
+        const response = await fetch(endpoint, {
+          method: 'PUT',
+          headers: {
+            'Authorization': `Bearer ${accessToken}`,
+            'Content-Type': 'application/json'
+          },
+          body: JSON.stringify({
+            shared_link: {
+              access: 'open'
+            }
+          })
+        });
+
+        if (!response.ok) {
+          const errorText = await response.text();
+          throw new Error(`Shareable link creation failed: ${response.status} - ${errorText}`);
+        }
+
+        const result = await response.json();
+        return result.shared_link.url;
+      } else {
+        throw new Error('No valid Box authentication available for link creation');
       }
-
-      const result = await response.json();
-      return result.shared_link.url;
     } catch (error) {
       console.error('Failed to create shareable link:', error);
       throw error;
