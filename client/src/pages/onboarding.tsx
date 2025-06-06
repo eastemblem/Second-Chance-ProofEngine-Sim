@@ -60,23 +60,23 @@ export default function OnboardingPage({ onNext, onDataUpdate }: OnboardingPageP
       formDataUpload.append('startupName', formData.startupName);
       formDataUpload.append('category', category);
 
-      const response = await fetch('/api/box/jwt/upload', {
+      const response = await fetch('/api/upload', {
         method: 'POST',
         body: formDataUpload,
       });
 
       const result = await response.json();
 
-      if (response.ok) {
+      if (response.ok && result.success) {
         setUploadedFiles(prev => [...prev, {
           id: result.file.id,
           name: result.file.name,
           category: category,
-          sessionFolder: result.sessionFolder
+          sessionFolder: result.proofVaultFolder?.name
         }]);
         
-        if (result.sessionFolder && !sessionFolderId) {
-          setSessionFolderId(result.sessionFolder);
+        if (result.proofVaultFolder?.id && !sessionFolderId) {
+          setSessionFolderId(result.proofVaultFolder.id);
         }
 
         setFileUploads(prev => ({
@@ -86,10 +86,21 @@ export default function OnboardingPage({ onNext, onDataUpdate }: OnboardingPageP
 
         toast({
           title: "Upload successful",
-          description: `${upload.file.name} has been uploaded to Box.com`,
+          description: `${upload.file.name} uploaded to ProofVault successfully`,
+        });
+      } else if (response.status === 401 || result.authRequired) {
+        setFileUploads(prev => ({
+          ...prev,
+          [category]: { ...prev[category], uploading: false, uploaded: false }
+        }));
+
+        toast({
+          title: "Authentication Required",
+          description: "Box access token needed for ProofVault uploads",
+          variant: "destructive",
         });
       } else {
-        throw new Error(result.message || 'Upload failed');
+        throw new Error(result.error || result.message || 'Upload failed');
       }
     } catch (error) {
       setFileUploads(prev => ({

@@ -64,8 +64,7 @@ export default function BoxIntegrationStatus() {
     );
   };
 
-  const connectedServices = services?.filter(s => s.connected) || [];
-  const hasWorkingService = connectedServices.length > 0;
+  const hasWorkingService = boxStatus?.connected || false;
 
   return (
     <Card className="w-full">
@@ -121,30 +120,55 @@ export default function BoxIntegrationStatus() {
             ))}
           </div>
         ) : (
-          <div className="space-y-2">
-            {services?.map((service, index) => (
-              <div
-                key={index}
-                className={`flex items-center justify-between p-3 rounded-lg border ${
-                  service.connected 
-                    ? 'bg-green-50 border-green-200' 
-                    : 'bg-red-50 border-red-200'
-                }`}
-              >
-                <div className="flex items-center gap-3">
-                  {getStatusIcon(service.connected, service.error)}
-                  <div>
-                    <span className="font-medium">{service.service}</span>
-                    {service.error && (
-                      <p className="text-xs text-red-600 mt-1">
-                        {service.error}
-                      </p>
-                    )}
+          <div className="space-y-4">
+            <div className="flex items-center justify-between p-3 border rounded-lg">
+              <div className="flex items-center gap-3">
+                {boxStatus?.connected ? (
+                  <CheckCircle className="h-5 w-5 text-green-500" />
+                ) : boxStatus?.authRequired ? (
+                  <AlertCircle className="h-5 w-5 text-amber-500" />
+                ) : (
+                  <XCircle className="h-5 w-5 text-red-500" />
+                )}
+                <div>
+                  <div className="font-medium">Box.com ProofVault Service</div>
+                  <div className="text-sm text-muted-foreground">
+                    {boxStatus?.message || 'Testing connection...'}
                   </div>
+                  {boxStatus?.authType && (
+                    <div className="text-xs text-muted-foreground">
+                      Authentication: {boxStatus.authType}
+                    </div>
+                  )}
                 </div>
-                {getStatusBadge(service.connected)}
               </div>
-            ))}
+              <div className="flex flex-col items-end gap-1">
+                <Badge variant={
+                  boxStatus?.connected ? "default" : 
+                  boxStatus?.authRequired ? "secondary" : 
+                  "destructive"
+                }>
+                  {boxStatus?.connected ? "Connected" : 
+                   boxStatus?.authRequired ? "Auth Required" : 
+                   "Failed"}
+                </Badge>
+                {boxStatus?.authRequired && (
+                  <div className="text-xs text-amber-600">
+                    BOX_ACCESS_TOKEN needed
+                  </div>
+                )}
+              </div>
+            </div>
+            
+            <div className="bg-muted/50 p-3 rounded-lg">
+              <div className="text-sm font-medium mb-1">ProofVault Features:</div>
+              <ul className="text-sm text-muted-foreground space-y-1">
+                <li>• Automatic ProofVault_[StartupName] folder creation</li>
+                <li>• Secure document upload and storage</li>
+                <li>• Shareable links for investor access</li>
+                <li>• Enterprise-grade security and compliance</li>
+              </ul>
+            </div>
           </div>
         )}
 
@@ -155,8 +179,7 @@ export default function BoxIntegrationStatus() {
               <span className="text-sm font-medium">Ready for File Uploads</span>
             </div>
             <p className="text-xs text-green-600 mt-1">
-              {connectedServices.length} authentication method{connectedServices.length > 1 ? 's' : ''} available. 
-              Files will be uploaded to Box.com with ProofVault folder organization.
+              Box.com authentication active. Files will be uploaded with ProofVault folder organization.
             </p>
           </div>
         )}
