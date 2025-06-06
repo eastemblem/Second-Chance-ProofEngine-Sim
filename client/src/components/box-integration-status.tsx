@@ -14,27 +14,27 @@ interface ServiceStatus {
 export default function BoxIntegrationStatus() {
   const [refreshKey, setRefreshKey] = useState(0);
 
-  // Test Box service status
-  const { data: boxStatus, isLoading, refetch } = useQuery({
-    queryKey: ['box-status', refreshKey],
+  // Test storage service status
+  const { data: storageStatus, isLoading, refetch } = useQuery({
+    queryKey: ['storage-status', refreshKey],
     queryFn: async () => {
       try {
-        const response = await fetch('/api/box/status');
+        const response = await fetch('/api/storage/status');
         const data = await response.json();
         return {
           connected: data.connected || false,
-          authType: data.authType || 'none',
+          storageType: data.storageType || 'none',
           available: data.available || false,
           message: data.message || '',
-          authRequired: !data.connected && data.available
+          path: data.path || ''
         };
       } catch (error) {
         return {
           connected: false,
-          authType: 'none',
+          storageType: 'none',
           available: false,
-          message: 'Connection test failed',
-          authRequired: true
+          message: 'Storage test failed',
+          path: ''
         };
       }
     },

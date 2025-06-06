@@ -3,6 +3,7 @@ import { createServer, type Server } from "http";
 import { storage } from "./storage";
 import { z } from "zod";
 import { boxService } from "./box-service";
+import { replitStorageService } from "./replit-storage";
 import multer from 'multer';
 import { Readable } from "stream";
 import fs from "fs";
@@ -228,20 +229,9 @@ export async function registerRoutes(app: express.Application): Promise<Server> 
         });
       }
 
-      // Test Box connection first
-      const isConnected = await boxService.testConnection();
-      if (!isConnected) {
-        return res.status(401).json({
-          error: 'Box authentication failed',
-          message: 'Please provide a valid BOX_ACCESS_TOKEN to enable ProofVault functionality',
-          authRequired: true,
-          storage: 'box-auth-required'
-        });
-      }
-
-      // Use unified Box service
-      const proofVaultFolder = await boxService.createProofVaultFolder(startupName);
-      const uploadResult = await boxService.uploadFile(
+      // Use Replit object storage for ProofVault
+      const proofVaultFolder = await replitStorageService.createProofVaultFolder(startupName);
+      const uploadResult = await replitStorageService.uploadFile(
         req.file.originalname,
         req.file.buffer,
         proofVaultFolder.id
@@ -249,7 +239,7 @@ export async function registerRoutes(app: express.Application): Promise<Server> 
 
       return res.json({
         success: true,
-        storage: 'box',
+        storage: 'replit-storage',
         file: {
           id: uploadResult.id,
           name: uploadResult.name,
@@ -260,26 +250,91 @@ export async function registerRoutes(app: express.Application): Promise<Server> 
       });
 
     } catch (error) {
-      console.error('Box upload error:', error);
-      
-      // Handle authentication errors specifically
-      if (error instanceof Error && (error.message.includes('401') || error.message.includes('authentication'))) {
-        return res.status(401).json({
-          error: 'Box authentication failed',
-          message: 'Please provide a valid BOX_ACCESS_TOKEN to enable ProofVault functionality',
-          authRequired: true,
-          storage: 'box-auth-required'
-        });
-      }
+      console.error('Storage upload error:', error);
       
       res.status(500).json({ 
         error: error instanceof Error ? error.message : 'Upload failed',
-        storage: 'box-error'
+        storage: 'replit-storage-error'
       });
     }
   });
 
+  // Replit Storage Routes
+  
+  // Storage status endpoint
+  app.get("/api/storage/status", async (req, res) => {
+    try {
+      const connected = await replitStorageService.testConnection();
+      const storageStatus = replitStorageService.getStorageStatus();
+      
+      res.json({ 
+        connected, 
+        storageType: storageStatus.type,
+        available: storageStatus.available,
+        path: storageStatus.path,
+        message: connected ? 'Replit storage active' : 'Storage system unavailable'
+      });
+    } catch (error) {
+      console.log(`Storage test failed: ${error}`);
+      res.json({ 
+        connected: false, 
+        storageType: 'none',
+        available: false,
+        error: error instanceof Error ? error.message : String(error),
+        message: 'Storage system unavailable'
+      });
+    }
+  });
 
+  // File download endpoint
+  app.get("/api/storage/download/:folderId/:fileName", async (req, res) => {
+    try {
+      const { folderId, fileName } = req.params;
+      
+      const fileBuffer = await replitStorageService.getFile(folderId, fileName);
+      if (!fileBuffer) {
+        return res.status(404).json({ error: 'File not found' });
+      }
+
+      // Set appropriate headers for file download
+      const fileExtension = path.extname(fileName).toLowerCase();
+      let contentType = 'application/octet-stream';
+      
+      if (fileExtension === '.pdf') contentType = 'application/pdf';
+      else if (fileExtension === '.docx') contentType = 'application/vnd.openxmlformats-officedocument.wordprocessingml.document';
+      else if (fileExtension === '.xlsx') contentType = 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet';
+      else if (fileExtension === '.png') contentType = 'image/png';
+      else if (fileExtension === '.jpg' || fileExtension === '.jpeg') contentType = 'image/jpeg';
+
+      res.setHeader('Content-Type', contentType);
+      res.setHeader('Content-Disposition', `inline; filename="${fileName}"`);
+      res.send(fileBuffer);
+    } catch (error) {
+      console.error('File download error:', error);
+      res.status(500).json({ 
+        error: error instanceof Error ? error.message : 'Download failed'
+      });
+    }
+  });
+
+  // List files in a folder
+  app.get("/api/storage/list/:folderId", async (req, res) => {
+    try {
+      const { folderId } = req.params;
+      const files = await replitStorageService.listFiles(folderId);
+      
+      res.json({
+        success: true,
+        folderId,
+        files
+      });
+    } catch (error) {
+      console.error('File listing error:', error);
+      res.status(500).json({ 
+        error: error instanceof Error ? error.message : 'Listing failed'
+      });
+    }
+  });
 
   const httpServer = createServer(app);
   return httpServer;
