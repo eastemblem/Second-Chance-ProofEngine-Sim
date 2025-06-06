@@ -3,6 +3,7 @@ import crypto from 'crypto';
 import fs from 'fs';
 import path from 'path';
 import { fileURLToPath } from 'url';
+import BoxSDK from 'box-node-sdk';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -31,7 +32,9 @@ interface BoxFolderResult {
 
 class BoxService {
   private config: BoxConfig;
-  private authType: 'token' | 'jwt' | 'none' = 'none';
+  private authType: 'token' | 'sdk' | 'jwt' | 'none' = 'none';
+  private sdk: any = null;
+  private client: any = null;
 
   constructor() {
     this.config = {
@@ -44,13 +47,58 @@ class BoxService {
       accessToken: process.env.BOX_ACCESS_TOKEN
     };
 
+    this.initializeBoxSDK();
     this.determineAuthType();
     console.log(`Box Service initialized with ${this.authType} authentication`);
+  }
+
+  private initializeBoxSDK(): void {
+    if (this.config.clientId && this.config.clientSecret && 
+        this.config.privateKey && this.config.publicKeyId && 
+        this.config.enterpriseId) {
+      
+      try {
+        // Create private key file for Box SDK (following reference implementation)
+        const privateKeyPath = path.join(__dirname, 'box-private-key.pem');
+        
+        let privateKey = this.config.privateKey;
+        if (privateKey.includes('\\n')) {
+          privateKey = privateKey.replace(/\\n/g, '\n');
+        }
+        
+        fs.writeFileSync(privateKeyPath, privateKey, { mode: 0o600 });
+        
+        // Initialize Box SDK following reference pattern
+        this.sdk = new BoxSDK({
+          clientID: this.config.clientId,
+          clientSecret: this.config.clientSecret,
+          appAuth: {
+            keyID: this.config.publicKeyId,
+            privateKey: fs.readFileSync(privateKeyPath),
+            passphrase: this.config.passphrase || undefined
+          }
+        });
+        
+        // Create enterprise client
+        this.client = this.sdk.getAppAuthClient('enterprise', this.config.enterpriseId);
+        
+        // Clean up private key file
+        fs.unlinkSync(privateKeyPath);
+        
+        console.log('Box Node SDK initialized successfully');
+      } catch (error) {
+        console.error('Box Node SDK initialization failed:', error);
+        this.sdk = null;
+        this.client = null;
+      }
+    }
   }
 
   private determineAuthType(): void {
     if (this.config.accessToken) {
       this.authType = 'token';
+    } else if (this.client && this.sdk) {
+      this.authType = 'sdk';
     } else if (this.config.clientId && this.config.clientSecret && 
                this.config.privateKey && this.config.publicKeyId && 
                this.config.enterpriseId) {
@@ -63,6 +111,11 @@ class BoxService {
   private async getAccessToken(): Promise<string> {
     if (this.authType === 'token' && this.config.accessToken) {
       return this.config.accessToken;
+    }
+
+    if (this.authType === 'sdk') {
+      // Box Node SDK handles authentication internally
+      throw new Error('SDK authentication does not use access tokens directly');
     }
 
     if (this.authType === 'jwt') {
@@ -132,20 +185,31 @@ class BoxService {
 
   async testConnection(): Promise<boolean> {
     try {
-      const accessToken = await this.getAccessToken();
-      
-      const response = await fetch('https://api.box.com/2.0/users/me', {
-        headers: {
-          'Authorization': `Bearer ${accessToken}`
-        }
-      });
-
-      if (response.ok) {
-        const userInfo = await response.json();
+      if (this.authType === 'sdk' && this.client) {
+        // Use Box Node SDK client
+        const userInfo = await this.client.users.get('me');
         console.log(`Box connection successful (${this.authType}), user:`, userInfo.name);
         return true;
+      } else if (this.authType === 'token') {
+        // Use access token
+        const accessToken = await this.getAccessToken();
+        
+        const response = await fetch('https://api.box.com/2.0/users/me', {
+          headers: {
+            'Authorization': `Bearer ${accessToken}`
+          }
+        });
+
+        if (response.ok) {
+          const userInfo = await response.json();
+          console.log(`Box connection successful (${this.authType}), user:`, userInfo.name);
+          return true;
+        } else {
+          console.log(`Box connection failed: ${response.status}`);
+          return false;
+        }
       } else {
-        console.log(`Box connection failed: ${response.status}`);
+        console.log('No valid Box authentication available');
         return false;
       }
     } catch (error) {
@@ -156,40 +220,57 @@ class BoxService {
 
   async uploadFile(fileName: string, fileBuffer: Buffer, parentFolderId: string = '0'): Promise<BoxUploadResult> {
     try {
-      const accessToken = await this.getAccessToken();
-      
-      const formData = new FormData();
-      formData.append('attributes', JSON.stringify({
-        name: fileName,
-        parent: { id: parentFolderId }
-      }));
-      formData.append('file', new Blob([fileBuffer]), fileName);
+      if (this.authType === 'sdk' && this.client) {
+        // Use Box Node SDK client
+        const uploadResult = await this.client.files.uploadFile(parentFolderId, fileName, fileBuffer);
+        const shareableLink = await this.createShareableLink(uploadResult.id, 'file');
+        
+        console.log(`File uploaded successfully via SDK: ${fileName}`);
+        return {
+          id: uploadResult.id,
+          name: uploadResult.name,
+          size: uploadResult.size,
+          download_url: shareableLink
+        };
+      } else if (this.authType === 'token') {
+        // Use access token with fetch API
+        const accessToken = await this.getAccessToken();
+        
+        const formData = new FormData();
+        formData.append('attributes', JSON.stringify({
+          name: fileName,
+          parent: { id: parentFolderId }
+        }));
+        formData.append('file', new Blob([fileBuffer]), fileName);
 
-      const response = await fetch('https://upload.box.com/api/2.0/files/content', {
-        method: 'POST',
-        headers: {
-          'Authorization': `Bearer ${accessToken}`
-        },
-        body: formData
-      });
+        const response = await fetch('https://upload.box.com/api/2.0/files/content', {
+          method: 'POST',
+          headers: {
+            'Authorization': `Bearer ${accessToken}`
+          },
+          body: formData
+        });
 
-      if (!response.ok) {
-        const errorText = await response.text();
-        throw new Error(`Upload failed: ${response.status} - ${errorText}`);
+        if (!response.ok) {
+          const errorText = await response.text();
+          throw new Error(`Upload failed: ${response.status} - ${errorText}`);
+        }
+
+        const result = await response.json();
+        const file = result.entries[0];
+        
+        const shareableLink = await this.createShareableLink(file.id, 'file');
+        
+        console.log(`File uploaded successfully via token: ${fileName}`);
+        return {
+          id: file.id,
+          name: file.name,
+          size: file.size,
+          download_url: shareableLink
+        };
+      } else {
+        throw new Error('No valid Box authentication available for upload');
       }
-
-      const result = await response.json();
-      const file = result.entries[0];
-      
-      const shareableLink = await this.createShareableLink(file.id, 'file');
-      
-      console.log(`File uploaded successfully: ${fileName}`);
-      return {
-        id: file.id,
-        name: file.name,
-        size: file.size,
-        download_url: shareableLink
-      };
     } catch (error) {
       console.error('File upload failed:', error);
       throw error;
@@ -198,34 +279,54 @@ class BoxService {
 
   async createFolder(folderName: string, parentId: string = '0'): Promise<BoxFolderResult> {
     try {
-      const accessToken = await this.getAccessToken();
-      
-      const response = await fetch('https://api.box.com/2.0/folders', {
-        method: 'POST',
-        headers: {
-          'Authorization': `Bearer ${accessToken}`,
-          'Content-Type': 'application/json'
-        },
-        body: JSON.stringify({
-          name: folderName,
-          parent: { id: parentId }
-        })
-      });
-
-      if (!response.ok) {
-        if (response.status === 409) {
-          const existingFolder = await this.findExistingFolder(folderName, parentId);
-          if (existingFolder) {
-            return { id: existingFolder.id, name: existingFolder.name };
+      if (this.authType === 'sdk' && this.client) {
+        // Use Box Node SDK client
+        try {
+          const folder = await this.client.folders.create(parentId, folderName);
+          console.log(`Folder created successfully via SDK: ${folderName}`);
+          return { id: folder.id, name: folder.name };
+        } catch (error: any) {
+          if (error.statusCode === 409) {
+            const existingFolder = await this.findExistingFolder(folderName, parentId);
+            if (existingFolder) {
+              return { id: existingFolder.id, name: existingFolder.name };
+            }
           }
+          throw error;
         }
-        const errorText = await response.text();
-        throw new Error(`Folder creation failed: ${response.status} - ${errorText}`);
-      }
+      } else if (this.authType === 'token') {
+        // Use access token with fetch API
+        const accessToken = await this.getAccessToken();
+        
+        const response = await fetch('https://api.box.com/2.0/folders', {
+          method: 'POST',
+          headers: {
+            'Authorization': `Bearer ${accessToken}`,
+            'Content-Type': 'application/json'
+          },
+          body: JSON.stringify({
+            name: folderName,
+            parent: { id: parentId }
+          })
+        });
 
-      const folder = await response.json();
-      console.log(`Folder created successfully: ${folderName}`);
-      return { id: folder.id, name: folder.name };
+        if (!response.ok) {
+          if (response.status === 409) {
+            const existingFolder = await this.findExistingFolder(folderName, parentId);
+            if (existingFolder) {
+              return { id: existingFolder.id, name: existingFolder.name };
+            }
+          }
+          const errorText = await response.text();
+          throw new Error(`Folder creation failed: ${response.status} - ${errorText}`);
+        }
+
+        const folder = await response.json();
+        console.log(`Folder created successfully via token: ${folderName}`);
+        return { id: folder.id, name: folder.name };
+      } else {
+        throw new Error('No valid Box authentication available for folder creation');
+      }
     } catch (error) {
       console.error('Folder creation failed:', error);
       throw error;
