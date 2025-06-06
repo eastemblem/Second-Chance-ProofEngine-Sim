@@ -5,6 +5,7 @@ import { z } from "zod";
 import { boxJWTService } from "./box-jwt-service";
 import { boxManualAuth } from "./box-manual-auth";
 import { boxFileAuth } from "./box-file-auth";
+import { boxAuthManager } from "./box-auth-manager";
 import multer from 'multer';
 import { Readable } from "stream";
 import fs from "fs";
@@ -184,6 +185,73 @@ export async function registerRoutes(app: express.Application): Promise<Server> 
         connected: false, 
         service: 'box-file-auth',
         error: error instanceof Error ? error.message : String(error) 
+      });
+    }
+  });
+
+  // Comprehensive Box authentication status
+  app.get("/api/box/status", async (req, res) => {
+    try {
+      const connected = await boxAuthManager.testConnection();
+      res.json({ 
+        connected, 
+        service: 'box-auth-manager',
+        message: connected ? 'Box integration active' : 'Box integration requires configuration'
+      });
+    } catch (error) {
+      console.log(`Box Auth Manager connection test failed: ${error}`);
+      res.json({ 
+        connected: false, 
+        service: 'box-auth-manager',
+        error: error instanceof Error ? error.message : String(error),
+        message: 'Box integration requires valid credentials'
+      });
+    }
+  });
+
+  // Primary Box file upload endpoint using authentication manager
+  app.post("/api/box/upload", upload.single('file'), async (req, res) => {
+    try {
+      console.log('Processing Box file upload...');
+      
+      if (!req.file) {
+        return res.status(400).json({ error: "No file provided" });
+      }
+
+      const { startupName, category } = req.body;
+      if (!startupName) {
+        return res.status(400).json({
+          error: 'Missing required fields',
+          message: 'Please complete the form before uploading files'
+        });
+      }
+
+      // Use authentication manager for reliable upload
+      const sessionFolderId = await boxAuthManager.createSessionFolder(startupName);
+      const uploadResult = await boxAuthManager.uploadFile(
+        req.file.originalname,
+        req.file.buffer,
+        sessionFolderId
+      );
+      const shareableLink = await boxAuthManager.createShareableLink(uploadResult.id, 'file');
+
+      res.json({
+        success: true,
+        storage: 'box-authenticated',
+        file: {
+          id: uploadResult.id,
+          name: uploadResult.name,
+          size: uploadResult.size,
+          download_url: shareableLink
+        },
+        sessionFolder: sessionFolderId
+      });
+
+    } catch (error) {
+      console.error('Box upload error:', error);
+      res.status(500).json({ 
+        error: error instanceof Error ? error.message : 'Upload failed',
+        storage: 'box-error'
       });
     }
   });
