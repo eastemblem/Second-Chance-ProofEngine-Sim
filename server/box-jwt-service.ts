@@ -4,6 +4,10 @@ import multer from 'multer';
 import BoxSDK from 'box-node-sdk';
 import fs from 'fs';
 import path from 'path';
+import { fileURLToPath } from 'url';
+
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
 
 export class BoxJWTService {
   private sdk: any;

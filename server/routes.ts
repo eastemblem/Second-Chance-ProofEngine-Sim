@@ -3,6 +3,7 @@ import { createServer, type Server } from "http";
 import { storage } from "./storage";
 import { z } from "zod";
 import { boxJWTService } from "./box-jwt-service";
+import { boxManualAuth } from "./box-manual-auth";
 import multer from 'multer';
 import { Readable } from "stream";
 import fs from "fs";
@@ -151,6 +152,21 @@ export async function registerRoutes(app: express.Application): Promise<Server> 
       res.json({ 
         connected: false, 
         service: 'box-jwt',
+        error: error instanceof Error ? error.message : String(error) 
+      });
+    }
+  });
+
+  // Test Box Manual Auth connection
+  app.get("/api/box/manual/test", async (req, res) => {
+    try {
+      const connected = await boxManualAuth.testConnection();
+      res.json({ connected, service: 'box-manual-auth' });
+    } catch (error) {
+      console.log(`Box Manual Auth connection test failed: ${error}`);
+      res.json({ 
+        connected: false, 
+        service: 'box-manual-auth',
         error: error instanceof Error ? error.message : String(error) 
       });
     }
