@@ -9,6 +9,8 @@ import { Card } from "@/components/ui/card";
 import ProgressBar from "@/components/progress-bar";
 import SimpleFileUpload from "@/components/simple-file-upload";
 import BoxConnectionStatus from "@/components/box-connection-status";
+import BoxSDKStatus from "@/components/box-sdk-status";
+import BoxSDKFileUpload from "@/components/box-sdk-file-upload";
 
 import { FounderData } from "@shared/schema";
 import { useMutation } from "@tanstack/react-query";
@@ -103,11 +105,11 @@ export default function OnboardingPage({ onNext, onDataUpdate }: OnboardingPageP
 
       const venture = await createVentureMutation.mutateAsync(ventureData);
 
-      // Generate shareable links for uploaded files
+      // Generate shareable links for uploaded files using Box SDK
       let shareableLinks = {};
       if (sessionFolderId && uploadedFiles.length > 0) {
         try {
-          const linkResponse = await fetch('/api/box/generate-links', {
+          const linkResponse = await fetch('/api/box/sdk/generate-links', {
             method: 'POST',
             headers: {
               'Content-Type': 'application/json',
@@ -198,7 +200,7 @@ export default function OnboardingPage({ onNext, onDataUpdate }: OnboardingPageP
         >
           <ProgressBar currentStep={1} totalSteps={4} stepName="Founder Profile" />
           
-          <BoxConnectionStatus />
+          <BoxSDKStatus />
 
           <Card className="p-8 border-border bg-card">
             <h2 className="text-3xl font-bold mb-2">Tell us about your venture</h2>
@@ -287,15 +289,11 @@ export default function OnboardingPage({ onNext, onDataUpdate }: OnboardingPageP
                   </p>
                   
                   <div className="space-y-4">
-                    <SimpleFileUpload
+                    <BoxSDKFileUpload
                       title="Pitch Deck"
                       description="Upload your investor presentation (PDF or PowerPoint)"
                       accept=".pdf,.ppt,.pptx"
-                      allowedTypes={[
-                        'application/pdf',
-                        'application/vnd.ms-powerpoint',
-                        'application/vnd.openxmlformats-officedocument.presentationml.presentation'
-                      ]}
+                      allowedTypes={['pdf', 'ppt', 'pptx']}
                       category="pitch-deck"
                       userId={formData.userId?.toString()}
                       startupName={formData.startupName}
@@ -303,10 +301,11 @@ export default function OnboardingPage({ onNext, onDataUpdate }: OnboardingPageP
                       onFileUploaded={handleFileUploaded}
                     />
                     
-                    <SimpleFileUpload
+                    <BoxSDKFileUpload
                       title="Data Room Documents"
                       description="Upload financial models, market research, and other supporting documents"
                       accept=".pdf,.doc,.docx,.xls,.xlsx,.ppt,.pptx"
+                      allowedTypes={['pdf', 'doc', 'docx', 'xls', 'xlsx', 'ppt', 'pptx']}
                       category="data-room"
                       userId={formData.userId?.toString()}
                       startupName={formData.startupName}
