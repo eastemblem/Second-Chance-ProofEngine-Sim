@@ -5,7 +5,7 @@ import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import ProgressBar from "@/components/progress-bar";
 import { ProofScore } from "@shared/schema";
-import SimpleFileUpload from "@/components/simple-file-upload";
+
 
 interface DealRoomPageProps {
   onNext: () => void;

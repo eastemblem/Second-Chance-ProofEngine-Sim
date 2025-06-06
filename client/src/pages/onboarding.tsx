@@ -7,8 +7,8 @@ import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Card } from "@/components/ui/card";
 import ProgressBar from "@/components/progress-bar";
-import BoxDevelopmentFileUpload from "@/components/box-development-file-upload";
 import BoxIntegrationStatus from "@/components/box-integration-status";
+import { Upload, CheckCircle, FileText, Loader2 } from "lucide-react";
 
 import { FounderData } from "@shared/schema";
 import { useMutation } from "@tanstack/react-query";
@@ -33,11 +33,75 @@ export default function OnboardingPage({ onNext, onDataUpdate }: OnboardingPageP
   // Track uploaded files for shareable link generation
   const [uploadedFiles, setUploadedFiles] = useState<{id: string, name: string, category: string, sessionFolder?: string}[]>([]);
   const [sessionFolderId, setSessionFolderId] = useState<string>('');
+  const [fileUploads, setFileUploads] = useState<{[key: string]: { file: File | null, uploading: boolean, uploaded: boolean }}>({
+    'pitch-deck': { file: null, uploading: false, uploaded: false },
+    'data-room': { file: null, uploading: false, uploaded: false }
+  });
 
-  const handleFileUploaded = (fileData: {id: string, name: string, category: string, sessionFolder?: string}) => {
-    setUploadedFiles(prev => [...prev, fileData]);
-    if (fileData.sessionFolder && !sessionFolderId) {
-      setSessionFolderId(fileData.sessionFolder);
+  const handleFileSelect = (category: string, file: File | null) => {
+    setFileUploads(prev => ({
+      ...prev,
+      [category]: { ...prev[category], file, uploaded: false }
+    }));
+  };
+
+  const handleFileUpload = async (category: string) => {
+    const upload = fileUploads[category];
+    if (!upload.file || !formData.startupName) return;
+
+    setFileUploads(prev => ({
+      ...prev,
+      [category]: { ...prev[category], uploading: true }
+    }));
+
+    try {
+      const formDataUpload = new FormData();
+      formDataUpload.append('file', upload.file);
+      formDataUpload.append('startupName', formData.startupName);
+      formDataUpload.append('category', category);
+
+      const response = await fetch('/api/box/jwt/upload', {
+        method: 'POST',
+        body: formDataUpload,
+      });
+
+      const result = await response.json();
+
+      if (response.ok) {
+        setUploadedFiles(prev => [...prev, {
+          id: result.file.id,
+          name: result.file.name,
+          category: category,
+          sessionFolder: result.sessionFolder
+        }]);
+        
+        if (result.sessionFolder && !sessionFolderId) {
+          setSessionFolderId(result.sessionFolder);
+        }
+
+        setFileUploads(prev => ({
+          ...prev,
+          [category]: { ...prev[category], uploading: false, uploaded: true }
+        }));
+
+        toast({
+          title: "Upload successful",
+          description: `${upload.file.name} has been uploaded to Box.com`,
+        });
+      } else {
+        throw new Error(result.message || 'Upload failed');
+      }
+    } catch (error) {
+      setFileUploads(prev => ({
+        ...prev,
+        [category]: { ...prev[category], uploading: false }
+      }));
+      
+      toast({
+        title: "Upload failed",
+        description: error instanceof Error ? error.message : 'Failed to upload file',
+        variant: "destructive",
+      });
     }
   };
 
@@ -287,29 +351,135 @@ export default function OnboardingPage({ onNext, onDataUpdate }: OnboardingPageP
                   </p>
                   
                   <div className="space-y-4">
-                    <BoxDevelopmentFileUpload
-                      title="Pitch Deck"
-                      description="Upload your investor presentation (PDF or PowerPoint)"
-                      accept=".pdf,.ppt,.pptx"
-                      allowedTypes={['application/pdf', 'application/vnd.ms-powerpoint', 'application/vnd.openxmlformats-officedocument.presentationml.presentation']}
-                      category="pitch-deck"
-                      userId={formData.userId?.toString()}
-                      startupName={formData.startupName}
-                      disabled={!isFormValid}
-                      onFileUploaded={handleFileUploaded}
-                    />
-                    
-                    <BoxDevelopmentFileUpload
-                      title="Data Room Documents"
-                      description="Upload financial models, market research, and other supporting documents"
-                      accept=".pdf,.doc,.docx,.xls,.xlsx,.ppt,.pptx"
-                      allowedTypes={['application/pdf', 'application/msword', 'application/vnd.openxmlformats-officedocument.wordprocessingml.document', 'application/vnd.ms-excel', 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet', 'application/vnd.ms-powerpoint', 'application/vnd.openxmlformats-officedocument.presentationml.presentation']}
-                      category="data-room"
-                      userId={formData.userId?.toString()}
-                      startupName={formData.startupName}
-                      disabled={!isFormValid}
-                      onFileUploaded={handleFileUploaded}
-                    />
+                    {/* Pitch Deck Upload */}
+                    <Card className={`transition-all ${fileUploads['pitch-deck'].uploaded ? 'border-green-200 bg-green-50' : 'border-gray-200 bg-white'}`}>
+                      <div className="p-4">
+                        <div className="flex items-center gap-2 mb-2">
+                          {fileUploads['pitch-deck'].uploaded ? (
+                            <CheckCircle className="h-5 w-5 text-green-600" />
+                          ) : (
+                            <FileText className="h-5 w-5 text-gray-500" />
+                          )}
+                          <h3 className="font-semibold">Pitch Deck</h3>
+                        </div>
+                        <p className="text-sm text-gray-600 mb-4">Upload your investor presentation (PDF or PowerPoint)</p>
+                        
+                        <div className="flex items-center gap-4">
+                          <input
+                            type="file"
+                            id="pitch-deck-upload"
+                            accept=".pdf,.ppt,.pptx"
+                            onChange={(e) => handleFileSelect('pitch-deck', e.target.files?.[0] || null)}
+                            disabled={!isFormValid || fileUploads['pitch-deck'].uploading}
+                            className="hidden"
+                          />
+                          <label
+                            htmlFor="pitch-deck-upload"
+                            className={`flex-1 flex items-center justify-center gap-2 p-3 border-2 border-dashed rounded-lg cursor-pointer transition-colors ${
+                              !isFormValid || fileUploads['pitch-deck'].uploading
+                                ? 'border-gray-200 bg-gray-50 cursor-not-allowed'
+                                : 'border-gray-300 hover:border-purple-500 hover:bg-purple-50'
+                            }`}
+                          >
+                            <Upload className="h-4 w-4" />
+                            <span className="text-sm">
+                              {fileUploads['pitch-deck'].file ? fileUploads['pitch-deck'].file.name : 'Choose pitch deck file'}
+                            </span>
+                          </label>
+                          
+                          {fileUploads['pitch-deck'].file && (
+                            <Button
+                              onClick={() => handleFileUpload('pitch-deck')}
+                              disabled={!isFormValid || fileUploads['pitch-deck'].uploading || fileUploads['pitch-deck'].uploaded}
+                              size="sm"
+                              className="bg-purple-600 hover:bg-purple-700"
+                            >
+                              {fileUploads['pitch-deck'].uploading ? (
+                                <>
+                                  <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                                  Uploading...
+                                </>
+                              ) : fileUploads['pitch-deck'].uploaded ? (
+                                <>
+                                  <CheckCircle className="h-4 w-4 mr-2" />
+                                  Uploaded
+                                </>
+                              ) : (
+                                <>
+                                  <Upload className="h-4 w-4 mr-2" />
+                                  Upload to Box
+                                </>
+                              )}
+                            </Button>
+                          )}
+                        </div>
+                      </div>
+                    </Card>
+
+                    {/* Data Room Upload */}
+                    <Card className={`transition-all ${fileUploads['data-room'].uploaded ? 'border-green-200 bg-green-50' : 'border-gray-200 bg-white'}`}>
+                      <div className="p-4">
+                        <div className="flex items-center gap-2 mb-2">
+                          {fileUploads['data-room'].uploaded ? (
+                            <CheckCircle className="h-5 w-5 text-green-600" />
+                          ) : (
+                            <FileText className="h-5 w-5 text-gray-500" />
+                          )}
+                          <h3 className="font-semibold">Data Room Documents</h3>
+                        </div>
+                        <p className="text-sm text-gray-600 mb-4">Upload financial models, market research, and other supporting documents</p>
+                        
+                        <div className="flex items-center gap-4">
+                          <input
+                            type="file"
+                            id="data-room-upload"
+                            accept=".pdf,.doc,.docx,.xls,.xlsx,.ppt,.pptx"
+                            onChange={(e) => handleFileSelect('data-room', e.target.files?.[0] || null)}
+                            disabled={!isFormValid || fileUploads['data-room'].uploading}
+                            className="hidden"
+                          />
+                          <label
+                            htmlFor="data-room-upload"
+                            className={`flex-1 flex items-center justify-center gap-2 p-3 border-2 border-dashed rounded-lg cursor-pointer transition-colors ${
+                              !isFormValid || fileUploads['data-room'].uploading
+                                ? 'border-gray-200 bg-gray-50 cursor-not-allowed'
+                                : 'border-gray-300 hover:border-purple-500 hover:bg-purple-50'
+                            }`}
+                          >
+                            <Upload className="h-4 w-4" />
+                            <span className="text-sm">
+                              {fileUploads['data-room'].file ? fileUploads['data-room'].file.name : 'Choose data room file'}
+                            </span>
+                          </label>
+                          
+                          {fileUploads['data-room'].file && (
+                            <Button
+                              onClick={() => handleFileUpload('data-room')}
+                              disabled={!isFormValid || fileUploads['data-room'].uploading || fileUploads['data-room'].uploaded}
+                              size="sm"
+                              className="bg-purple-600 hover:bg-purple-700"
+                            >
+                              {fileUploads['data-room'].uploading ? (
+                                <>
+                                  <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                                  Uploading...
+                                </>
+                              ) : fileUploads['data-room'].uploaded ? (
+                                <>
+                                  <CheckCircle className="h-4 w-4 mr-2" />
+                                  Uploaded
+                                </>
+                              ) : (
+                                <>
+                                  <Upload className="h-4 w-4 mr-2" />
+                                  Upload to Box
+                                </>
+                              )}
+                            </Button>
+                          )}
+                        </div>
+                      </div>
+                    </Card>
                   </div>
                 </div>
               </div>

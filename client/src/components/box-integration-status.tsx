@@ -19,9 +19,7 @@ export default function BoxIntegrationStatus() {
     queryKey: ['box-services-status', refreshKey],
     queryFn: async () => {
       const endpoints = [
-        { name: 'Box Development', url: '/api/box/development/test' },
-        { name: 'Box JWT', url: '/api/box/jwt/test' },
-        { name: 'Box Enterprise', url: '/api/box/enterprise/test' }
+        { name: 'Box JWT Authentication', url: '/api/box/jwt/test' }
       ];
 
       const results = await Promise.all(
