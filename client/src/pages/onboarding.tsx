@@ -7,13 +7,7 @@ import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Card } from "@/components/ui/card";
 import ProgressBar from "@/components/progress-bar";
-import SimpleFileUpload from "@/components/simple-file-upload";
-import BoxConnectionStatus from "@/components/box-connection-status";
-import BoxSDKStatus from "@/components/box-sdk-status";
-import BoxSDKFileUpload from "@/components/box-sdk-file-upload";
-import BoxJWTFileUpload from "@/components/box-jwt-file-upload";
 import BoxDevelopmentFileUpload from "@/components/box-development-file-upload";
-import BoxIntegrationManager from "@/components/box-integration-manager";
 import BoxIntegrationStatus from "@/components/box-integration-status";
 
 import { FounderData } from "@shared/schema";

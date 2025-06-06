@@ -64,9 +64,8 @@ export class BoxSDKService {
         return this.client;
       }
 
-      // Create development client for demo purposes
-      console.log('Creating development mode client for Box integration demo');
-      return this.createDevelopmentClient();
+      // No valid authentication method available
+      throw new Error('No valid Box authentication method available');
     } catch (error) {
       console.error('Failed to create Box SDK client:', error);
       throw error;
