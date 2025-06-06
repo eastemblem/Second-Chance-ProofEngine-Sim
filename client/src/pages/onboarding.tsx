@@ -11,6 +11,7 @@ import SimpleFileUpload from "@/components/simple-file-upload";
 import BoxConnectionStatus from "@/components/box-connection-status";
 import BoxSDKStatus from "@/components/box-sdk-status";
 import BoxSDKFileUpload from "@/components/box-sdk-file-upload";
+import BoxJWTFileUpload from "@/components/box-jwt-file-upload";
 import BoxIntegrationManager from "@/components/box-integration-manager";
 
 import { FounderData } from "@shared/schema";

@@ -6,6 +6,7 @@ import { z } from "zod";
 import { boxService, upload } from "./box-service";
 import { boxSDKService } from "./box-sdk-service";
 import { boxEnterpriseService } from "./box-service-enterprise";
+import { boxJWTService } from "./box-jwt-service";
 import { Readable } from "stream";
 import fs from "fs";
 import path from "path";
@@ -289,6 +290,112 @@ export async function registerRoutes(app: Express): Promise<Server> {
       res.json(result);
     } catch (error) {
       console.error('Error generating Enterprise shareable links:', error);
+      res.status(500).json({ error: 'Failed to generate shareable links', details: error instanceof Error ? error.message : String(error) });
+    }
+  });
+
+  // Box JWT Routes (Automatic Authentication with JWT)
+  
+  // Test Box JWT connection
+  app.get("/api/box/jwt/test", async (req, res) => {
+    try {
+      const connected = await boxJWTService.testConnection();
+      res.json({ connected, service: 'box-jwt' });
+    } catch (error) {
+      console.log(`Box JWT connection test failed: ${error}`);
+      res.json({ 
+        connected: false, 
+        service: 'box-jwt',
+        error: error instanceof Error ? error.message : String(error) 
+      });
+    }
+  });
+
+  // Box JWT file upload endpoint (automatic authentication)
+  app.post("/api/box/jwt/upload", upload.single('file'), async (req, res) => {
+    try {
+      console.log('Processing Box JWT file upload...');
+      
+      if (!req.file) {
+        return res.status(400).json({ error: "No file provided" });
+      }
+
+      const { startupName, category } = req.body;
+      if (!startupName) {
+        return res.status(400).json({
+          error: 'Missing required fields',
+          message: 'Please complete the form before uploading files'
+        });
+      }
+
+      // Create session folder for this startup using JWT service
+      const sessionFolderId = await boxJWTService.createSessionFolder(startupName);
+      console.log(`JWT Session folder created/found: ${sessionFolderId} for startup: ${startupName}`);
+
+      // Upload file using JWT service
+      const uploadResult = await boxJWTService.uploadFile(
+        req.file.originalname,
+        req.file.buffer,
+        sessionFolderId
+      );
+
+      // Generate shareable link
+      const shareableLink = await boxJWTService.createShareableLink(uploadResult.id, 'file');
+
+      return res.json({
+        success: true,
+        storage: 'box-jwt',
+        file: {
+          id: uploadResult.id,
+          name: uploadResult.name,
+          size: uploadResult.size,
+          download_url: shareableLink
+        },
+        sessionFolder: sessionFolderId
+      });
+
+    } catch (error) {
+      console.log(`Box JWT upload failed: ${error}`);
+      return res.status(503).json({ 
+        error: "Box JWT integration error",
+        message: "File upload failed",
+        details: error instanceof Error ? error.message : String(error)
+      });
+    }
+  });
+
+  // Generate shareable links using Box JWT
+  app.post('/api/box/jwt/generate-links', async (req, res) => {
+    try {
+      const { sessionFolderId, uploadedFiles } = req.body;
+      const result: any = {};
+
+      // Generate folder shareable link for data room
+      if (sessionFolderId) {
+        try {
+          result.dataRoomUrl = await boxJWTService.createShareableLink(sessionFolderId, 'folder');
+        } catch (error) {
+          console.error('Error creating JWT folder shareable link:', error);
+        }
+      }
+
+      // Generate file shareable links for pitch deck
+      if (uploadedFiles && uploadedFiles.length > 0) {
+        for (const file of uploadedFiles) {
+          if (file.category === 'pitch-deck' && file.id) {
+            try {
+              result.pitchDeckUrl = await boxJWTService.createShareableLink(file.id, 'file');
+              break;
+            } catch (error) {
+              console.error('Error creating JWT file shareable link:', error);
+            }
+          }
+        }
+      }
+
+      res.json(result);
+    } catch (error) {
+      console.error('Error generating JWT shareable links:', error);
       res.status(500).json({ error: 'Failed to generate shareable links', details: error instanceof Error ? error.message : String(error) });
     }
   });
