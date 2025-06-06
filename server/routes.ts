@@ -4,6 +4,7 @@ import { createServer, type Server } from "http";
 import { storage } from "./storage";
 import { z } from "zod";
 import { boxService, upload } from "./box-service";
+import { boxSDKService } from "./box-sdk-service";
 import { Readable } from "stream";
 import fs from "fs";
 import path from "path";
@@ -155,7 +156,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  // Box.com Integration Routes
+  // Box.com Integration Routes (Original OAuth2)
   
   // Get Box OAuth URL for authentication
   app.get("/api/box/auth-url", async (req, res) => {
@@ -165,6 +166,199 @@ export async function registerRoutes(app: Express): Promise<Server> {
     } catch (error) {
       console.log(`Error generating Box auth URL: ${error}`);
       res.status(500).json({ error: "Failed to generate authentication URL" });
+    }
+  });
+
+  // Box SDK Routes (New Implementation)
+  
+  // Test Box SDK connection
+  app.get("/api/box/sdk/test", async (req, res) => {
+    try {
+      const connected = await boxSDKService.testConnection();
+      res.json({ connected, service: 'box-sdk' });
+    } catch (error) {
+      console.log(`Box SDK connection test failed: ${error}`);
+      res.json({ 
+        connected: false, 
+        service: 'box-sdk',
+        error: error instanceof Error ? error.message : String(error) 
+      });
+    }
+  });
+
+  // Get Box SDK OAuth URL for authentication
+  app.get("/api/box/sdk/auth-url", async (req, res) => {
+    try {
+      const authUrl = boxSDKService.getAuthURL();
+      res.json({ authUrl });
+    } catch (error) {
+      console.log(`Error generating Box SDK auth URL: ${error}`);
+      res.status(500).json({ error: "Failed to generate authentication URL" });
+    }
+  });
+
+  // Box SDK OAuth callback endpoint
+  app.get("/api/box/sdk/callback", async (req, res) => {
+    try {
+      const { code, error } = req.query;
+
+      if (error) {
+        console.log(`Box SDK OAuth error: ${error}`);
+        return res.status(400).send(`
+          <html>
+            <body>
+              <h1>Authentication Failed</h1>
+              <p>Error: ${error}</p>
+              <script>
+                window.opener.postMessage({
+                  type: 'BOX_SDK_AUTH_ERROR',
+                  error: '${error}'
+                }, window.location.origin);
+                window.close();
+              </script>
+            </body>
+          </html>
+        `);
+      }
+
+      if (!code) {
+        return res.status(400).send(`
+          <html>
+            <body>
+              <h1>Authentication Failed</h1>
+              <p>No authorization code received</p>
+              <script>
+                window.opener.postMessage({
+                  type: 'BOX_SDK_AUTH_ERROR',
+                  error: 'No authorization code received'
+                }, window.location.origin);
+                window.close();
+              </script>
+            </body>
+          </html>
+        `);
+      }
+
+      const tokens = await boxSDKService.exchangeCodeForTokens(code as string);
+      
+      // Send success message back to parent window
+      res.send(`
+        <html>
+          <body>
+            <script>
+              window.opener.postMessage({
+                type: 'BOX_SDK_AUTH_SUCCESS',
+                message: 'Box SDK authentication successful'
+              }, window.location.origin);
+              window.close();
+            </script>
+          </body>
+        </html>
+      `);
+    } catch (error) {
+      console.log(`Box SDK OAuth callback error: ${error}`);
+      res.send(`
+        <html>
+          <body>
+            <script>
+              window.opener.postMessage({
+                type: 'BOX_SDK_AUTH_ERROR',
+                error: 'Authentication failed'
+              }, window.location.origin);
+              window.close();
+            </script>
+          </body>
+        </html>
+      `);
+    }
+  });
+
+  // Box SDK file upload endpoint
+  app.post("/api/box/sdk/upload", upload.single('file'), async (req, res) => {
+    try {
+      console.log('Processing Box SDK file upload...');
+      
+      if (!req.file) {
+        return res.status(400).json({ error: "No file provided" });
+      }
+
+      const { startupName, category } = req.body;
+      if (!startupName) {
+        return res.status(400).json({
+          error: 'Missing required fields',
+          message: 'Please complete the form before uploading files'
+        });
+      }
+
+      // Create session folder for this startup using SDK
+      const sessionFolderId = await boxSDKService.createSessionFolder(startupName);
+      console.log(`SDK Session folder created/found: ${sessionFolderId} for startup: ${startupName}`);
+
+      // Upload file using SDK
+      const uploadResult = await boxSDKService.uploadFile(
+        req.file.originalname,
+        req.file.buffer,
+        sessionFolderId
+      );
+
+      // Generate shareable link
+      const shareableLink = await boxSDKService.createShareableLink(uploadResult.id, 'file');
+
+      return res.json({
+        success: true,
+        storage: 'box-sdk',
+        file: {
+          id: uploadResult.id,
+          name: uploadResult.name,
+          size: uploadResult.size,
+          download_url: shareableLink
+        },
+        sessionFolder: sessionFolderId
+      });
+
+    } catch (error) {
+      console.log(`Box SDK upload failed: ${error}`);
+      return res.status(503).json({ 
+        error: "Box SDK integration required",
+        message: "Please authenticate with Box SDK to enable file uploads",
+        details: error instanceof Error ? error.message : String(error)
+      });
+    }
+  });
+
+  // Generate shareable links using Box SDK
+  app.post('/api/box/sdk/generate-links', async (req, res) => {
+    try {
+      const { sessionFolderId, uploadedFiles } = req.body;
+      const result: any = {};
+
+      // Generate folder shareable link for data room
+      if (sessionFolderId) {
+        try {
+          result.dataRoomUrl = await boxSDKService.createShareableLink(sessionFolderId, 'folder');
+        } catch (error) {
+          console.error('Error creating SDK folder shareable link:', error);
+        }
+      }
+
+      // Generate file shareable links for pitch deck
+      if (uploadedFiles && uploadedFiles.length > 0) {
+        for (const file of uploadedFiles) {
+          if (file.category === 'pitch-deck' && file.id) {
+            try {
+              result.pitchDeckUrl = await boxSDKService.createShareableLink(file.id, 'file');
+              break;
+            } catch (error) {
+              console.error('Error creating SDK file shareable link:', error);
+            }
+          }
+        }
+      }
+
+      res.json(result);
+    } catch (error) {
+      console.error('Error generating SDK shareable links:', error);
+      res.status(500).json({ error: 'Failed to generate shareable links', details: error instanceof Error ? error.message : String(error) });
     }
   });
 
