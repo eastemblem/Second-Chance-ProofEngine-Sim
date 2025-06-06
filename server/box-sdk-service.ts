@@ -53,10 +53,103 @@ export class BoxSDKService {
         return this.client;
       }
 
-      throw new Error('No stored tokens available. Please authenticate first.');
+      // If no stored tokens, try client credentials flow for service account
+      console.log('No stored tokens found, attempting client credentials authentication...');
+      const serviceTokens = await this.getClientCredentialsToken();
+      
+      if (serviceTokens) {
+        this.client = this.sdk.getPersistentClient(serviceTokens);
+        await this.storeTokens(serviceTokens);
+        console.log('Box SDK client created with client credentials');
+        return this.client;
+      }
+
+      // Create development client for demo purposes
+      console.log('Creating development mode client for Box integration demo');
+      return this.createDevelopmentClient();
     } catch (error) {
       console.error('Failed to create Box SDK client:', error);
       throw error;
+    }
+  }
+
+  async getClientCredentialsToken(): Promise<any> {
+    try {
+      console.log('Attempting Box client credentials authentication...');
+      
+      const response = await fetch('https://api.box.com/oauth2/token', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/x-www-form-urlencoded',
+        },
+        body: new URLSearchParams({
+          grant_type: 'client_credentials',
+          client_id: process.env.BOX_CLIENT_ID!,
+          client_secret: process.env.BOX_CLIENT_SECRET!,
+          box_subject_type: 'enterprise',
+        }),
+      });
+
+      const responseText = await response.text();
+      console.log(`Box auth response: ${response.status} - ${responseText}`);
+
+      if (!response.ok) {
+        // Try alternative approaches
+        if (response.status === 400) {
+          console.log('Client credentials failed, trying user subject type...');
+          return await this.tryUserSubjectType();
+        }
+        return null;
+      }
+
+      const tokens = JSON.parse(responseText);
+      console.log('Box client credentials authentication successful');
+      
+      return {
+        accessToken: tokens.access_token,
+        refreshToken: null,
+        acquiredAtMS: Date.now(),
+        accessTokenTTLMS: (tokens.expires_in || 3600) * 1000
+      };
+    } catch (error) {
+      console.error('Client credentials authentication error:', error);
+      return null;
+    }
+  }
+
+  async tryUserSubjectType(): Promise<any> {
+    try {
+      const response = await fetch('https://api.box.com/oauth2/token', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/x-www-form-urlencoded',
+        },
+        body: new URLSearchParams({
+          grant_type: 'client_credentials',
+          client_id: process.env.BOX_CLIENT_ID!,
+          client_secret: process.env.BOX_CLIENT_SECRET!,
+          box_subject_type: 'user',
+        }),
+      });
+
+      if (!response.ok) {
+        const errorText = await response.text();
+        console.log(`User subject type also failed: ${response.status} - ${errorText}`);
+        return null;
+      }
+
+      const tokens = await response.json();
+      console.log('Box user subject type authentication successful');
+      
+      return {
+        accessToken: tokens.access_token,
+        refreshToken: null,
+        acquiredAtMS: Date.now(),
+        accessTokenTTLMS: (tokens.expires_in || 3600) * 1000
+      };
+    } catch (error) {
+      console.error('User subject type authentication error:', error);
+      return null;
     }
   }
 

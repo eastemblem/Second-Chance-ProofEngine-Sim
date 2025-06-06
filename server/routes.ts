@@ -5,6 +5,7 @@ import { storage } from "./storage";
 import { z } from "zod";
 import { boxService, upload } from "./box-service";
 import { boxSDKService } from "./box-sdk-service";
+import { boxEnterpriseService } from "./box-service-enterprise";
 import { Readable } from "stream";
 import fs from "fs";
 import path from "path";
@@ -183,6 +184,112 @@ export async function registerRoutes(app: Express): Promise<Server> {
         service: 'box-sdk',
         error: error instanceof Error ? error.message : String(error) 
       });
+    }
+  });
+
+  // Box Enterprise Routes (Automatic Authentication)
+  
+  // Test Box Enterprise connection
+  app.get("/api/box/enterprise/test", async (req, res) => {
+    try {
+      const connected = await boxEnterpriseService.testConnection();
+      res.json({ connected, service: 'box-enterprise' });
+    } catch (error) {
+      console.log(`Box Enterprise connection test failed: ${error}`);
+      res.json({ 
+        connected: false, 
+        service: 'box-enterprise',
+        error: error instanceof Error ? error.message : String(error) 
+      });
+    }
+  });
+
+  // Box Enterprise file upload endpoint (automatic authentication)
+  app.post("/api/box/enterprise/upload", upload.single('file'), async (req, res) => {
+    try {
+      console.log('Processing Box Enterprise file upload...');
+      
+      if (!req.file) {
+        return res.status(400).json({ error: "No file provided" });
+      }
+
+      const { startupName, category } = req.body;
+      if (!startupName) {
+        return res.status(400).json({
+          error: 'Missing required fields',
+          message: 'Please complete the form before uploading files'
+        });
+      }
+
+      // Create session folder for this startup using Enterprise service
+      const sessionFolderId = await boxEnterpriseService.createSessionFolder(startupName);
+      console.log(`Enterprise Session folder created/found: ${sessionFolderId} for startup: ${startupName}`);
+
+      // Upload file using Enterprise service
+      const uploadResult = await boxEnterpriseService.uploadFile(
+        req.file.originalname,
+        req.file.buffer,
+        sessionFolderId
+      );
+
+      // Generate shareable link
+      const shareableLink = await boxEnterpriseService.createShareableLink(uploadResult.id, 'file');
+
+      return res.json({
+        success: true,
+        storage: 'box-enterprise',
+        file: {
+          id: uploadResult.id,
+          name: uploadResult.name,
+          size: uploadResult.size,
+          download_url: shareableLink
+        },
+        sessionFolder: sessionFolderId
+      });
+
+    } catch (error) {
+      console.log(`Box Enterprise upload failed: ${error}`);
+      return res.status(503).json({ 
+        error: "Box Enterprise integration error",
+        message: "File upload failed",
+        details: error instanceof Error ? error.message : String(error)
+      });
+    }
+  });
+
+  // Generate shareable links using Box Enterprise
+  app.post('/api/box/enterprise/generate-links', async (req, res) => {
+    try {
+      const { sessionFolderId, uploadedFiles } = req.body;
+      const result: any = {};
+
+      // Generate folder shareable link for data room
+      if (sessionFolderId) {
+        try {
+          result.dataRoomUrl = await boxEnterpriseService.createShareableLink(sessionFolderId, 'folder');
+        } catch (error) {
+          console.error('Error creating Enterprise folder shareable link:', error);
+        }
+      }
+
+      // Generate file shareable links for pitch deck
+      if (uploadedFiles && uploadedFiles.length > 0) {
+        for (const file of uploadedFiles) {
+          if (file.category === 'pitch-deck' && file.id) {
+            try {
+              result.pitchDeckUrl = await boxEnterpriseService.createShareableLink(file.id, 'file');
+              break;
+            } catch (error) {
+              console.error('Error creating Enterprise file shareable link:', error);
+            }
+          }
+        }
+      }
+
+      res.json(result);
+    } catch (error) {
+      console.error('Error generating Enterprise shareable links:', error);
+      res.status(500).json({ error: 'Failed to generate shareable links', details: error instanceof Error ? error.message : String(error) });
     }
   });
 
