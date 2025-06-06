@@ -11,6 +11,7 @@ import SimpleFileUpload from "@/components/simple-file-upload";
 import BoxConnectionStatus from "@/components/box-connection-status";
 import BoxSDKStatus from "@/components/box-sdk-status";
 import BoxSDKFileUpload from "@/components/box-sdk-file-upload";
+import BoxIntegrationManager from "@/components/box-integration-manager";
 
 import { FounderData } from "@shared/schema";
 import { useMutation } from "@tanstack/react-query";
@@ -200,7 +201,7 @@ export default function OnboardingPage({ onNext, onDataUpdate }: OnboardingPageP
         >
           <ProgressBar currentStep={1} totalSteps={4} stepName="Founder Profile" />
           
-          <BoxSDKStatus />
+          <BoxIntegrationManager />
 
           <Card className="p-8 border-border bg-card">
             <h2 className="text-3xl font-bold mb-2">Tell us about your venture</h2>
