@@ -3,7 +3,12 @@ import express, { Request, Response, NextFunction } from "express";
 import { createServer, type Server } from "http";
 import { storage } from "./storage";
 import { z } from "zod";
-import { eastEmblemAPI, type FolderStructureResponse, type FileUploadResponse, type PitchDeckScoreResponse } from "./eastemblem-api";
+import {
+  eastEmblemAPI,
+  type FolderStructureResponse,
+  type FileUploadResponse,
+  type PitchDeckScoreResponse,
+} from "./eastemblem-api";
 import multer from "multer";
 import path from "path";
 import fs from "fs";
@@ -12,7 +17,7 @@ import fs from "fs";
 const upload = multer({
   storage: multer.diskStorage({
     destination: (req, file, cb) => {
-      const uploadDir = path.join(process.cwd(), 'uploads');
+      const uploadDir = path.join(process.cwd(), "uploads");
       if (!fs.existsSync(uploadDir)) {
         fs.mkdirSync(uploadDir, { recursive: true });
       }
@@ -20,17 +25,25 @@ const upload = multer({
     },
     filename: (req, file, cb) => {
       cb(null, file.originalname);
-    }
+    },
   }),
   limits: {
     fileSize: 10 * 1024 * 1024, // 10MB limit
   },
   fileFilter: (req, file, cb) => {
-    const allowedTypes = ['application/pdf', 'application/vnd.ms-powerpoint', 'application/vnd.openxmlformats-officedocument.presentationml.presentation'];
+    const allowedTypes = [
+      "application/pdf",
+      "application/vnd.ms-powerpoint",
+      "application/vnd.openxmlformats-officedocument.presentationml.presentation",
+    ];
     if (allowedTypes.includes(file.mimetype)) {
       cb(null, true);
     } else {
-      cb(new Error('Invalid file type. Only PDF, PPT, and PPTX files are allowed.'));
+      cb(
+        new Error(
+          "Invalid file type. Only PDF, PPT, and PPTX files are allowed.",
+        ),
+      );
     }
   },
 });
@@ -41,12 +54,14 @@ const createUserSchema = z.object({
   lastName: z.string().min(1, "Last name is required"),
   email: z.string().email("Invalid email address"),
   age: z.number().optional(),
-  contactInfo: z.object({
-    phone: z.string().optional(),
-    linkedin: z.string().optional(),
-    twitter: z.string().optional(),
-    location: z.string().optional(),
-  }).optional(),
+  contactInfo: z
+    .object({
+      phone: z.string().optional(),
+      linkedin: z.string().optional(),
+      twitter: z.string().optional(),
+      location: z.string().optional(),
+    })
+    .optional(),
 });
 
 const createVentureSchema = z.object({
@@ -80,7 +95,7 @@ interface SessionData {
 const sessionStore: Map<string, SessionData> = new Map();
 
 function getSessionId(req: Request): string {
-  return req.ip + '-' + (req.headers['user-agent'] || 'default');
+  return req.ip + "-" + (req.headers["user-agent"] || "default");
 }
 
 function getSessionData(req: Request): SessionData {
@@ -98,24 +113,27 @@ function updateSessionData(req: Request, data: Partial<SessionData>): void {
 }
 
 export async function registerRoutes(app: Express): Promise<Server> {
-
   // Create user endpoint
   app.post("/api/users", async (req, res) => {
     try {
       const userData = createUserSchema.parse(req.body);
-      
+
       // Check if user already exists
       const existingUser = await storage.getUserByEmail(userData.email);
       if (existingUser) {
-        return res.status(409).json({ error: "User with this email already exists" });
+        return res
+          .status(409)
+          .json({ error: "User with this email already exists" });
       }
-      
+
       const user = await storage.createUser(userData);
       res.json(user);
     } catch (error) {
       console.log(`Error creating user: ${error}`);
       if (error instanceof z.ZodError) {
-        return res.status(400).json({ error: "Validation error", details: error.errors });
+        return res
+          .status(400)
+          .json({ error: "Validation error", details: error.errors });
       }
       res.status(500).json({ error: "Failed to create user" });
     }
@@ -126,11 +144,11 @@ export async function registerRoutes(app: Express): Promise<Server> {
     try {
       const { email } = req.params;
       const user = await storage.getUserByEmail(email);
-      
+
       if (!user) {
         return res.status(404).json({ error: "User not found" });
       }
-      
+
       res.json(user);
     } catch (error) {
       console.log(`Error fetching user: ${error}`);
@@ -142,19 +160,21 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.post("/api/ventures", async (req, res) => {
     try {
       const ventureData = createVentureSchema.parse(req.body);
-      
+
       // Verify user exists
       const user = await storage.getUser(ventureData.ownerId);
       if (!user) {
         return res.status(404).json({ error: "User not found" });
       }
-      
+
       const venture = await storage.createVenture(ventureData);
       res.json(venture);
     } catch (error) {
       console.log(`Error creating venture: ${error}`);
       if (error instanceof z.ZodError) {
-        return res.status(400).json({ error: "Validation error", details: error.errors });
+        return res
+          .status(400)
+          .json({ error: "Validation error", details: error.errors });
       }
       res.status(500).json({ error: "Failed to create venture" });
     }
@@ -164,13 +184,14 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.get("/api/users/:userId/ventures", async (req, res) => {
     try {
       const { userId } = req.params;
-      
+
       // Validate UUID format
-      const uuidRegex = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
+      const uuidRegex =
+        /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
       if (!uuidRegex.test(userId)) {
         return res.status(400).json({ error: "Invalid user ID format" });
       }
-      
+
       const ventures = await storage.getVenturesByUserId(userId);
       res.json(ventures);
     } catch (error) {
@@ -183,13 +204,14 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.patch("/api/ventures/:id", async (req, res) => {
     try {
       const { id } = req.params;
-      
+
       // Validate UUID format
-      const uuidRegex = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
+      const uuidRegex =
+        /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
       if (!uuidRegex.test(id)) {
         return res.status(400).json({ error: "Invalid venture ID format" });
       }
-      
+
       const updateData = req.body;
       const venture = await storage.updateVenture(id, updateData);
       res.json(venture);
@@ -203,13 +225,14 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.patch("/api/users/:id/complete-second-chance", async (req, res) => {
     try {
       const { id } = req.params;
-      
+
       // Validate UUID format
-      const uuidRegex = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
+      const uuidRegex =
+        /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
       if (!uuidRegex.test(id)) {
         return res.status(400).json({ error: "Invalid user ID format" });
       }
-      
+
       const user = await storage.updateUser(id, { isSecondChanceDone: true });
       res.json(user);
     } catch (error) {
@@ -224,49 +247,52 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.post("/api/vault/create-startup-vault", async (req, res) => {
     try {
       const { startupName } = req.body;
-      
+
       if (!startupName) {
         return res.status(400).json({
-          error: 'Missing required field',
-          message: 'startupName is required'
+          error: "Missing required field",
+          message: "startupName is required",
         });
       }
 
       if (!eastEmblemAPI.isConfigured()) {
         return res.status(503).json({
-          error: 'EastEmblem API not configured',
-          message: 'EASTEMBLEM_API_BASE_URL is required'
+          error: "EastEmblem API not configured",
+          message: "EASTEMBLEM_API_BASE_URL is required",
         });
       }
 
       console.log(`Creating startup vault for: ${startupName}`);
-      
+
       // Create folder structure using EastEmblem API
-      const folderStructure = await eastEmblemAPI.createFolderStructure(startupName);
-      
+      const folderStructure =
+        await eastEmblemAPI.createFolderStructure(startupName);
+
       // Store in session
-      updateSessionData(req, { 
+      updateSessionData(req, {
         folderStructure,
         startupName,
-        uploadedFiles: []
+        uploadedFiles: [],
       });
 
-      console.log('Session updated with folder structure:', {
+      console.log("Session updated with folder structure:", {
         sessionId: getSessionId(req),
-        folderStructure
+        folderStructure,
       });
 
       return res.json({
         success: true,
         folderStructure,
-        message: 'Startup vault created successfully',
-        sessionId: getSessionId(req)
+        message: "Startup vault created successfully",
+        sessionId: getSessionId(req),
       });
-
     } catch (error) {
-      console.error('Error creating startup vault:', error);
-      res.status(500).json({ 
-        error: error instanceof Error ? error.message : 'Failed to create startup vault'
+      console.error("Error creating startup vault:", error);
+      res.status(500).json({
+        error:
+          error instanceof Error
+            ? error.message
+            : "Failed to create startup vault",
       });
     }
   });
@@ -275,78 +301,72 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.get("/api/vault/session", async (req, res) => {
     try {
       const sessionData = getSessionData(req);
-      
-      console.log('Retrieved session data:', {
+
+      console.log("Retrieved session data:", {
         sessionId: getSessionId(req),
         hasStructure: !!sessionData.folderStructure,
         filesCount: sessionData.uploadedFiles?.length || 0,
-        hasScore: !!sessionData.pitchDeckScore
+        hasScore: !!sessionData.pitchDeckScore,
       });
 
       return res.json({
         success: true,
         sessionId: getSessionId(req),
-        data: sessionData
+        data: sessionData,
       });
-
     } catch (error) {
-      console.error('Error retrieving session data:', error);
-      res.status(500).json({ 
-        error: error instanceof Error ? error.message : 'Failed to retrieve session data'
+      console.error("Error retrieving session data:", error);
+      res.status(500).json({
+        error:
+          error instanceof Error
+            ? error.message
+            : "Failed to retrieve session data",
       });
     }
   });
 
-  // Handle GET requests to upload endpoint
-  app.get("/api/vault/upload-only", (req, res) => {
-    return res.status(405).json({
-      success: false,
-      error: 'Method not allowed',
-      message: 'Use POST method to upload files'
-    });
-  });
-
   // Simple file upload - store file in session without executing workflow
-  app.post("/api/vault/upload-only", upload.single('file'), (req, res) => {
+  app.post("/api/vault/upload-only", upload.single("file"), (req, res) => {
     try {
       const file = req.file;
+
+      console.log("Inside upload-only endpoint !")
 
       if (!file) {
         return res.status(400).json({
           success: false,
-          error: 'Missing file',
-          message: 'File is required for upload'
+          error: "Missing file",
+          message: "File is required for upload",
         });
       }
 
       console.log(`Storing file for later processing: ${file.originalname}`);
 
       // Store file path in session for later processing
-      updateSessionData(req, { 
+      updateSessionData(req, {
         uploadedFile: {
           filepath: file.path,
           originalname: file.originalname,
           mimetype: file.mimetype,
-          size: file.size
-        }
+          size: file.size,
+        },
       });
 
       res.json({
         success: true,
-        message: 'File uploaded and ready for processing',
+        message: "File uploaded and ready for processing",
         file: {
           name: file.originalname,
           size: file.size,
-          type: file.mimetype
-        }
+          type: file.mimetype,
+        },
       });
-
     } catch (error) {
-      console.error('Error storing file:', error);
-      res.status(500).json({ 
+      console.error("Error storing file:", error);
+      res.status(500).json({
         success: false,
-        error: error instanceof Error ? error.message : 'File storage failed',
-        message: 'Upload failed'
+        error: error instanceof Error ? error.message : "File storage failed",
+        message: "Upload failed",
       });
     }
   });
@@ -356,45 +376,48 @@ export async function registerRoutes(app: Express): Promise<Server> {
     try {
       if (!eastEmblemAPI.isConfigured()) {
         return res.status(503).json({
-          error: 'EastEmblem API not configured',
-          message: 'EASTEMBLEM_API_BASE_URL is required'
+          error: "EastEmblem API not configured",
+          message: "EASTEMBLEM_API_BASE_URL is required",
         });
       }
 
       const sessionData = getSessionData(req);
       const uploadedFile = sessionData.uploadedFile;
-      const startupName = req.body.startup_name || 'SecondChanceStartup';
+      const startupName = req.body.startup_name || "SecondChanceStartup";
 
       if (!uploadedFile) {
         return res.status(400).json({
-          error: 'No file found',
-          message: 'Please upload a file first'
+          error: "No file found",
+          message: "Please upload a file first",
         });
       }
 
-      console.log(`Starting scoring workflow for: ${uploadedFile.originalname}`);
+      console.log(
+        `Starting scoring workflow for: ${uploadedFile.originalname}`,
+      );
 
       // Step 1: Create folder structure
-      console.log('Step 1: Creating folder structure...');
-      const folderStructure = await eastEmblemAPI.createFolderStructure(startupName);
-      
+      console.log("Step 1: Creating folder structure...");
+      const folderStructure =
+        await eastEmblemAPI.createFolderStructure(startupName);
+
       // Store folder structure in session
-      updateSessionData(req, { 
-        folderStructure, 
-        startupName 
+      updateSessionData(req, {
+        folderStructure,
+        startupName,
       });
 
       // Step 2: Upload file to 0_Overview folder
-      console.log('Step 2: Uploading file to 0_Overview folder...');
-      const overviewFolderId = folderStructure.folders['0_Overview'];
-      
+      console.log("Step 2: Uploading file to 0_Overview folder...");
+      const overviewFolderId = folderStructure.folders["0_Overview"];
+
       // Read file from filesystem
       const fileBuffer = fs.readFileSync(uploadedFile.filepath);
-      
+
       const uploadResult = await eastEmblemAPI.uploadFile(
         fileBuffer,
         uploadedFile.originalname,
-        overviewFolderId
+        overviewFolderId,
       );
 
       // Update session with uploaded file
@@ -402,10 +425,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
       updateSessionData(req, { uploadedFiles: updatedFiles });
 
       // Step 3: Score the pitch deck
-      console.log('Step 3: Scoring pitch deck...');
+      console.log("Step 3: Scoring pitch deck...");
       const pitchDeckScore = await eastEmblemAPI.scorePitchDeck(
         fileBuffer,
-        uploadedFile.originalname
+        uploadedFile.originalname,
       );
 
       // Update session with pitch deck score
@@ -414,179 +437,205 @@ export async function registerRoutes(app: Express): Promise<Server> {
       // Store file info before clearing session data
       const fileToCleanup = {
         filepath: uploadedFile.filepath,
-        originalname: uploadedFile.originalname
+        originalname: uploadedFile.originalname,
       };
 
       // Clear the uploaded file from session since it's now processed
       updateSessionData(req, { uploadedFile: undefined });
 
-      console.log('Scoring workflow finished successfully');
+      console.log("Scoring workflow finished successfully");
 
       // Clean up uploaded file after successful processing
       try {
         console.log(`Attempting to clean up file: ${fileToCleanup.filepath}`);
         if (fs.existsSync(fileToCleanup.filepath)) {
           fs.unlinkSync(fileToCleanup.filepath);
-          console.log(`Cleaned up uploaded file: ${fileToCleanup.originalname}`);
+          console.log(
+            `Cleaned up uploaded file: ${fileToCleanup.originalname}`,
+          );
         } else {
           console.log(`File not found for cleanup: ${fileToCleanup.filepath}`);
         }
       } catch (cleanupError) {
-        console.error('Error cleaning up uploaded file:', cleanupError);
+        console.error("Error cleaning up uploaded file:", cleanupError);
         // Don't fail the response for cleanup errors
       }
 
       return res.json({
         success: true,
-        message: 'Scoring workflow completed successfully',
+        message: "Scoring workflow completed successfully",
         data: {
           folderStructure,
           uploadResult,
           pitchDeckScore,
-          proofScore: pitchDeckScore.output?.total_score || pitchDeckScore.total_score || pitchDeckScore.score || 82,
-          sessionId: getSessionId(req)
-        }
+          proofScore:
+            pitchDeckScore.output?.total_score ||
+            pitchDeckScore.total_score ||
+            pitchDeckScore.score ||
+            82,
+          sessionId: getSessionId(req),
+        },
       });
-
     } catch (error) {
-      console.error('Error in scoring workflow:', error);
-      res.status(500).json({ 
-        error: error instanceof Error ? error.message : 'Scoring workflow failed'
+      console.error("Error in scoring workflow:", error);
+      res.status(500).json({
+        error:
+          error instanceof Error ? error.message : "Scoring workflow failed",
       });
     }
   });
 
   // Upload file to EastEmblem API
-  app.post("/api/vault/upload-file", upload.single('file'), async (req, res) => {
-    try {
-      if (!eastEmblemAPI.isConfigured()) {
-        return res.status(503).json({
-          error: 'EastEmblem API not configured',
-          message: 'EASTEMBLEM_API_BASE_URL is required'
-        });
-      }
-
-      const folder_id = req.body.folder_id;
-      const file = req.file;
-
-      if (!file || !folder_id) {
-        return res.status(400).json({
-          error: 'Missing required fields',
-          message: 'File and folder_id are required',
-          debug: { hasFile: !!file, folderId: folder_id, body: req.body }
-        });
-      }
-
-      console.log(`Uploading file: ${file.originalname} to folder: ${folder_id}`);
-
+  app.post(
+    "/api/vault/upload-file",
+    upload.single("file"),
+    async (req, res) => {
       try {
-        const uploadResult = await eastEmblemAPI.uploadFile(
-          file.buffer,
-          file.originalname,
-          folder_id
+        if (!eastEmblemAPI.isConfigured()) {
+          return res.status(503).json({
+            error: "EastEmblem API not configured",
+            message: "EASTEMBLEM_API_BASE_URL is required",
+          });
+        }
+
+        const folder_id = req.body.folder_id;
+        const file = req.file;
+
+        if (!file || !folder_id) {
+          return res.status(400).json({
+            error: "Missing required fields",
+            message: "File and folder_id are required",
+            debug: { hasFile: !!file, folderId: folder_id, body: req.body },
+          });
+        }
+
+        console.log(
+          `Uploading file: ${file.originalname} to folder: ${folder_id}`,
         );
 
-        // Update session with uploaded file
-        const sessionData = getSessionData(req);
-        const updatedFiles = [...(sessionData.uploadedFiles || []), uploadResult];
-        updateSessionData(req, { uploadedFiles: updatedFiles });
+        try {
+          const uploadResult = await eastEmblemAPI.uploadFile(
+            file.buffer,
+            file.originalname,
+            folder_id,
+          );
 
-        console.log('File upload completed:', uploadResult);
+          // Update session with uploaded file
+          const sessionData = getSessionData(req);
+          const updatedFiles = [
+            ...(sessionData.uploadedFiles || []),
+            uploadResult,
+          ];
+          updateSessionData(req, { uploadedFiles: updatedFiles });
 
-        return res.json({
-          success: true,
-          file: uploadResult,
-          message: 'File uploaded successfully'
-        });
-      } catch (uploadError) {
-        console.log('File upload using fallback handling');
-        
-        // Create structured response when API is unavailable
-        const fallbackUpload = {
-          id: `file-${Date.now()}`,
-          name: file.originalname,
-          url: `https://app.box.com/file/${folder_id}/${file.originalname}`,
-          download_url: `https://api.box.com/2.0/files/${Date.now()}/content`
-        };
+          console.log("File upload completed:", uploadResult);
 
-        // Update session with fallback file
-        const sessionData = getSessionData(req);
-        const updatedFiles = [...(sessionData.uploadedFiles || []), fallbackUpload];
-        updateSessionData(req, { uploadedFiles: updatedFiles });
+          return res.json({
+            success: true,
+            file: uploadResult,
+            message: "File uploaded successfully",
+          });
+        } catch (uploadError) {
+          console.log("File upload using fallback handling");
 
-        return res.json({
-          success: true,
-          file: fallbackUpload,
-          message: 'File upload completed with structured response'
+          // Create structured response when API is unavailable
+          const fallbackUpload = {
+            id: `file-${Date.now()}`,
+            name: file.originalname,
+            url: `https://app.box.com/file/${folder_id}/${file.originalname}`,
+            download_url: `https://api.box.com/2.0/files/${Date.now()}/content`,
+          };
+
+          // Update session with fallback file
+          const sessionData = getSessionData(req);
+          const updatedFiles = [
+            ...(sessionData.uploadedFiles || []),
+            fallbackUpload,
+          ];
+          updateSessionData(req, { uploadedFiles: updatedFiles });
+
+          return res.json({
+            success: true,
+            file: fallbackUpload,
+            message: "File upload completed with structured response",
+          });
+        }
+      } catch (error) {
+        console.error("Error uploading file:", error);
+        res.status(500).json({
+          error:
+            error instanceof Error ? error.message : "Failed to upload file",
         });
       }
-
-    } catch (error) {
-      console.error('Error uploading file:', error);
-      res.status(500).json({ 
-        error: error instanceof Error ? error.message : 'Failed to upload file'
-      });
-    }
-  });
+    },
+  );
 
   // Score pitch deck using EastEmblem API
-  app.post("/api/vault/score-pitch-deck", upload.single('file'), async (req, res) => {
-    try {
-      if (!eastEmblemAPI.isConfigured()) {
-        return res.status(503).json({
-          error: 'EastEmblem API not configured',
-          message: 'EASTEMBLEM_API_BASE_URL is required'
+  app.post(
+    "/api/vault/score-pitch-deck",
+    upload.single("file"),
+    async (req, res) => {
+      try {
+        if (!eastEmblemAPI.isConfigured()) {
+          return res.status(503).json({
+            error: "EastEmblem API not configured",
+            message: "EASTEMBLEM_API_BASE_URL is required",
+          });
+        }
+
+        const file = req.file;
+
+        if (!file) {
+          return res.status(400).json({
+            error: "Missing file",
+            message: "File is required for scoring",
+          });
+        }
+
+        console.log(`Scoring pitch deck: ${file.originalname}`);
+
+        const scoreResult = await eastEmblemAPI.scorePitchDeck(
+          file.buffer,
+          file.originalname,
+        );
+
+        // Update session with score
+        updateSessionData(req, { pitchDeckScore: scoreResult });
+
+        console.log("Pitch deck scored successfully:", scoreResult);
+
+        return res.json({
+          success: true,
+          score: scoreResult,
+          message: "Pitch deck scored successfully",
+        });
+      } catch (error) {
+        console.error("Error scoring pitch deck:", error);
+        res.status(500).json({
+          error:
+            error instanceof Error
+              ? error.message
+              : "Failed to score pitch deck",
         });
       }
-
-      const file = req.file;
-
-      if (!file) {
-        return res.status(400).json({
-          error: 'Missing file',
-          message: 'File is required for scoring'
-        });
-      }
-
-      console.log(`Scoring pitch deck: ${file.originalname}`);
-
-      const scoreResult = await eastEmblemAPI.scorePitchDeck(
-        file.buffer,
-        file.originalname
-      );
-
-      // Update session with score
-      updateSessionData(req, { pitchDeckScore: scoreResult });
-
-      console.log('Pitch deck scored successfully:', scoreResult);
-
-      return res.json({
-        success: true,
-        score: scoreResult,
-        message: 'Pitch deck scored successfully'
-      });
-
-    } catch (error) {
-      console.error('Error scoring pitch deck:', error);
-      res.status(500).json({ 
-        error: error instanceof Error ? error.message : 'Failed to score pitch deck'
-      });
-    }
-  });
+    },
+  );
 
   // EastEmblem API status
   app.get("/api/vault/status", async (req, res) => {
     try {
       const status = eastEmblemAPI.getStatus();
-      
+
       res.json({
         ...status,
-        message: status.configured ? 'EastEmblem API ready' : 'EastEmblem API not configured'
+        message: status.configured
+          ? "EastEmblem API ready"
+          : "EastEmblem API not configured",
       });
     } catch (error) {
-      console.error('Error checking EastEmblem API status:', error);
-      res.status(500).json({ 
-        error: error instanceof Error ? error.message : 'Status check failed'
+      console.error("Error checking EastEmblem API status:", error);
+      res.status(500).json({
+        error: error instanceof Error ? error.message : "Status check failed",
       });
     }
   });

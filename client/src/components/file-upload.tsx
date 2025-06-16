@@ -33,6 +33,7 @@ export default function FileUpload({
   const uploadFile = async (file: File, retryCount = 0): Promise<any> => {
     const formData = new FormData();
     formData.append("file", file);
+    console.log("Uploading file:", file);
 
     const response = await fetch("/api/vault/upload-only", {
       method: "POST",
@@ -43,6 +44,8 @@ export default function FileUpload({
       throw new Error(`Upload failed with status: ${response.status}`);
     }
 
+    console.log("Upload response:", response);
+
     const responseText = await response.text();
     if (!responseText) {
       throw new Error("Empty response from server");
@@ -52,11 +55,16 @@ export default function FileUpload({
     try {
       result = JSON.parse(responseText);
     } catch (parseError) {
-      console.error("JSON parse error:", parseError, "Response text:", responseText);
+      console.error(
+        "JSON parse error:",
+        parseError,
+        "Response text:",
+        responseText,
+      );
       // Retry once for JSON parse errors
       if (retryCount < 1) {
         console.log("Retrying upload due to JSON parse error...");
-        await new Promise(resolve => setTimeout(resolve, 1000));
+        await new Promise((resolve) => setTimeout(resolve, 1000));
         return uploadFile(file, retryCount + 1);
       }
       throw new Error("Invalid response format from server");
@@ -74,6 +82,8 @@ export default function FileUpload({
   ) => {
     const file = event.target.files?.[0];
     if (!file) return;
+
+    console.log("Inside FE handleFileChange !");
 
     // File validation
     const maxSize = 10 * 1024 * 1024; // 10MB
