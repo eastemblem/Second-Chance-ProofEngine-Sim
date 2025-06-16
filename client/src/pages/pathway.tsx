@@ -3,11 +3,11 @@ import { ArrowRight, GraduationCap, Download, CheckCircle } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import ProgressBar from "@/components/progress-bar";
-import { ProofScore } from "@shared/schema";
+import { ProofScoreResult } from "@shared/schema";
 
 interface PathwayPageProps {
   onNext: () => void;
-  proofScore: ProofScore;
+  proofScore: ProofScoreResult;
 }
 
 export default function PathwayPage({ onNext, proofScore }: PathwayPageProps) {

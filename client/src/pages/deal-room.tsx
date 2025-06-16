@@ -4,13 +4,13 @@ import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import ProgressBar from "@/components/progress-bar";
-import { ProofScore } from "@shared/schema";
+import { ProofScoreResult } from "@shared/schema";
 import { useQuery } from "@tanstack/react-query";
 import { useEffect, useState } from "react";
 
 interface DealRoomPageProps {
   onNext: () => void;
-  proofScore: ProofScore;
+  proofScore: ProofScoreResult;
 }
 
 interface SessionResponse {
@@ -95,7 +95,7 @@ export default function DealRoomPage({ onNext, proofScore }: DealRoomPageProps) 
             </motion.div>
             <h2 className="text-3xl font-bold mb-4">Welcome to the Deal Room</h2>
             <p className="text-xl text-muted-foreground">
-              Your ProofScore of {proofScore.totalScore} qualifies you for direct investor access
+              Your ProofScore of {proofScore.total} qualifies you for direct investor access
             </p>
           </div>
 

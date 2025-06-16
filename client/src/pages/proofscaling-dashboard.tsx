@@ -4,11 +4,11 @@ import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Progress } from "@/components/ui/progress";
-import { ProofScore } from "@shared/schema";
+import { ProofScoreResult } from "@shared/schema";
 
 interface ProofScalingDashboardProps {
   onNext: () => void;
-  proofScore: ProofScore;
+  proofScore: ProofScoreResult;
 }
 
 export default function ProofScalingDashboard({ onNext, proofScore }: ProofScalingDashboardProps) {

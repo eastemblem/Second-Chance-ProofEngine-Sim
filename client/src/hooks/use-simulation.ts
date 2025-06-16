@@ -1,6 +1,5 @@
 import { useState, useCallback } from "react";
-import { FounderData, ProofScore, SimulationState } from "@shared/schema";
-import { apiRequest } from "@/lib/queryClient";
+import { FounderData, ProofScoreResult, SimulationState } from "@shared/schema";
 
 export function useSimulation() {
   const [state, setState] = useState<SimulationState>({

@@ -4,11 +4,11 @@ import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Progress } from "@/components/ui/progress";
 import ProgressBar from "@/components/progress-bar";
-import { ProofScore } from "@shared/schema";
+import { ProofScoreResult } from "@shared/schema";
 
 interface FeedbackPageProps {
   onNext: () => void;
-  proofScore: ProofScore;
+  proofScore: ProofScoreResult;
 }
 
 export default function FeedbackPage({ onNext, proofScore }: FeedbackPageProps) {
