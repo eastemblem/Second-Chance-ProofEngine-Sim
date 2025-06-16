@@ -12,13 +12,13 @@ interface FileUploadProps {
   onUploadComplete?: (uploadResult: any) => void;
 }
 
-export default function FileUpload({ 
-  label, 
-  description, 
-  accept = ".pdf,.ppt,.pptx", 
+export default function FileUpload({
+  label,
+  description,
+  accept = ".pdf,.ppt,.pptx",
   required = false,
   onFileSelect,
-  onUploadComplete
+  onUploadComplete,
 }: FileUploadProps) {
   const [uploaded, setUploaded] = useState(false);
   const [uploading, setUploading] = useState(false);
@@ -30,7 +30,9 @@ export default function FileUpload({
     fileInputRef.current?.click();
   };
 
-  const handleFileChange = async (event: React.ChangeEvent<HTMLInputElement>) => {
+  const handleFileChange = async (
+    event: React.ChangeEvent<HTMLInputElement>,
+  ) => {
     const file = event.target.files?.[0];
     if (!file) return;
 
@@ -51,21 +53,24 @@ export default function FileUpload({
     try {
       // Simple file upload - store file without executing workflow
       const formData = new FormData();
-      formData.append('file', file);
+      formData.append("file", file);
 
-      const response = await fetch('/api/vault/upload-only', {
-        method: 'POST',
+      const response = await fetch("/api/vault/upload-only", {
+        method: "POST",
         body: formData,
       });
+
+      if (!response.ok) {
+        throw new Error(`Upload failed with status: ${response.status}`);
+      }
 
       const result = await response.json();
 
       if (!result.success) {
-        throw new Error(result.error || 'File upload failed');
+        throw new Error(result.error || "File upload failed");
       }
 
       setUploaded(true);
-      setUploading(false);
 
       toast({
         title: "File uploaded",
@@ -79,15 +84,18 @@ export default function FileUpload({
       if (onUploadComplete) {
         onUploadComplete(result);
       }
-
     } catch (error) {
-      console.error('Upload error:', error);
-      setUploading(false);
+      console.error("Upload error:", error);
+      setUploaded(false);
       toast({
         title: "Upload failed",
-        description: error instanceof Error ? error.message : "Please try again",
+        description:
+          error instanceof Error ? error.message : "Please try again",
         variant: "destructive",
       });
+    } finally {
+      // Ensure uploading state is always reset
+      setUploading(false);
     }
   };
 
@@ -105,11 +113,11 @@ export default function FileUpload({
       />
       <motion.div
         className={`border-2 border-dashed rounded-lg p-6 text-center cursor-pointer transition-all duration-300 ${
-          uploaded 
-            ? "border-primary bg-primary/10" 
+          uploaded
+            ? "border-primary bg-primary/10"
             : uploading
-            ? "border-yellow-500 bg-yellow-50"
-            : "border-border hover:border-primary"
+              ? "border-yellow-500 bg-yellow-50"
+              : "border-border hover:border-primary"
         }`}
         onClick={handleClick}
         whileHover={{ scale: 1.02 }}
@@ -118,7 +126,7 @@ export default function FileUpload({
         {uploading ? (
           <div className="text-yellow-600">
             <Loader className="w-8 h-8 mx-auto mb-2 animate-spin" />
-            <p className="font-medium">Uploading and analyzing...</p>
+            <p className="font-medium">Uploading file ...</p>
             <p className="text-sm text-muted-foreground mt-1">{fileName}</p>
           </div>
         ) : uploaded ? (
