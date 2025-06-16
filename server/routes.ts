@@ -297,6 +297,15 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Handle GET requests to upload endpoint
+  app.get("/api/vault/upload-only", (req, res) => {
+    return res.status(405).json({
+      success: false,
+      error: 'Method not allowed',
+      message: 'Use POST method to upload files'
+    });
+  });
+
   // Simple file upload - store file in session without executing workflow
   app.post("/api/vault/upload-only", upload.single('file'), (req, res) => {
     try {
