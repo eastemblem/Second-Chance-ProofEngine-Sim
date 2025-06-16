@@ -313,10 +313,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
       console.log(`Storing file for later processing: ${file.originalname}`);
 
-      // Store file data in session for later processing
+      // Store file path in session for later processing
       updateSessionData(req, { 
         uploadedFile: {
-          buffer: file.buffer,
+          filepath: file.path,
           originalname: file.originalname,
           mimetype: file.mimetype,
           size: file.size
@@ -378,8 +378,11 @@ export async function registerRoutes(app: Express): Promise<Server> {
       console.log('Step 2: Uploading file to 0_Overview folder...');
       const overviewFolderId = folderStructure.folders['0_Overview'];
       
+      // Read file from filesystem
+      const fileBuffer = fs.readFileSync(uploadedFile.filepath);
+      
       const uploadResult = await eastEmblemAPI.uploadFile(
-        uploadedFile.buffer,
+        fileBuffer,
         uploadedFile.originalname,
         overviewFolderId
       );
@@ -391,7 +394,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       // Step 3: Score the pitch deck
       console.log('Step 3: Scoring pitch deck...');
       const pitchDeckScore = await eastEmblemAPI.scorePitchDeck(
-        uploadedFile.buffer,
+        fileBuffer,
         uploadedFile.originalname
       );
 
