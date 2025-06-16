@@ -5,10 +5,25 @@ import { storage } from "./storage";
 import { z } from "zod";
 import { eastEmblemAPI, type FolderStructureResponse, type FileUploadResponse, type PitchDeckScoreResponse } from "./eastemblem-api";
 import multer from "multer";
+import path from "path";
+import fs from "fs";
 
 // Configure multer for file uploads
 const upload = multer({
-  storage: multer.memoryStorage(),
+  storage: multer.diskStorage({
+    destination: (req, file, cb) => {
+      const uploadDir = path.join(process.cwd(), 'uploads');
+      if (!fs.existsSync(uploadDir)) {
+        fs.mkdirSync(uploadDir, { recursive: true });
+      }
+      cb(null, uploadDir);
+    },
+    filename: (req, file, cb) => {
+      const uniqueSuffix = Date.now() + '-' + Math.round(Math.random() * 1E9);
+      const ext = path.extname(file.originalname);
+      cb(null, file.fieldname + '-' + uniqueSuffix + ext);
+    }
+  }),
   limits: {
     fileSize: 10 * 1024 * 1024, // 10MB limit
   },
@@ -57,7 +72,7 @@ interface SessionData {
   pitchDeckScore?: PitchDeckScoreResponse;
   startupName?: string;
   uploadedFile?: {
-    buffer: Buffer;
+    filepath: string;
     originalname: string;
     mimetype: string;
     size: number;
