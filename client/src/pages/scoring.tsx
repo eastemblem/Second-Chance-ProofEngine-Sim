@@ -124,7 +124,7 @@ export default function ScoringPage({
                       ) : (
                         <Clock className="text-muted-foreground mr-3 w-5 h-5" />
                       )}
-                      <span className="text-sm">{step.label}</span>
+                      <span className="text-sm">{step.title}</span>
                     </span>
                     {isCompleted ? (
                       <CheckCircle className="text-primary w-5 h-5" />
