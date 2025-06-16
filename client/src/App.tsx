@@ -56,7 +56,6 @@ function SimulationFlow() {
         return (
           <ScoringPage 
             onNext={() => setCurrentPage(4)}
-            {/* onStartAnalysis={startAnalysis} */}
             analysisProgress={state.analysisProgress}
             isAnalyzing={state.isAnalyzing}
           />

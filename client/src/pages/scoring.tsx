@@ -8,9 +8,25 @@ import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { apiRequest } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
 
+interface SessionResponse {
+  success: boolean;
+  sessionId: string;
+  data: {
+    folderStructure?: any;
+    uploadedFile?: {
+      filepath: string;
+      originalname: string;
+      mimetype: string;
+      size: number;
+    };
+    uploadedFiles?: any[];
+    pitchDeckScore?: any;
+    startupName?: string;
+  };
+}
+
 interface ScoringPageProps {
   onNext: () => void;
-  onStartAnalysis: () => number;
   analysisProgress: number;
   isAnalyzing: boolean;
 }
@@ -49,7 +65,7 @@ export default function ScoringPage({
   const { toast } = useToast();
 
   // Query ProofVault session data
-  const { data: sessionData } = useQuery({
+  const { data: sessionData } = useQuery<SessionResponse>({
     queryKey: ['/api/vault/session'],
     refetchInterval: isAnalyzing ? 2000 : false,
   });
@@ -162,7 +178,7 @@ export default function ScoringPage({
                 <Button 
                   onClick={() => submitForScoring.mutate()}
                   className="w-full bg-gradient-to-r from-primary to-primary-gold hover:from-primary/90 hover:to-primary-gold/90 text-white font-semibold py-4 px-8 rounded-lg text-lg"
-                  disabled={!sessionData?.success}
+                  disabled={!sessionData?.success || !sessionData?.data?.uploadedFile}
                 >
                   <Brain className="mr-2 w-5 h-5" />
                   Submit for Scoring
