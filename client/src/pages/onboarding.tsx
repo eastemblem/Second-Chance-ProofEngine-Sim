@@ -87,6 +87,38 @@ export default function OnboardingPage({ onNext, onDataUpdate }: OnboardingPageP
 
       const venture = await createVentureMutation.mutateAsync(ventureData);
 
+      // Create startup vault using EastEmblem API
+      if (formData.startupName) {
+        console.log('Creating startup vault for:', formData.startupName);
+        
+        try {
+          const vaultResponse = await fetch('/api/vault/create-startup-vault', {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({
+              startupName: formData.startupName
+            }),
+          });
+
+          const vaultResult = await vaultResponse.json();
+          
+          if (vaultResult.success) {
+            console.log('Startup vault created successfully:', vaultResult);
+            
+            toast({
+              title: "ProofVault Created",
+              description: `Professional document structure created for ${formData.startupName}`,
+            });
+          } else {
+            console.warn('Vault creation failed:', vaultResult);
+          }
+        } catch (vaultError) {
+          console.error('Vault creation error:', vaultError);
+        }
+      }
+
       // Store user and venture IDs for later use
       const enhancedData = {
         ...formData,

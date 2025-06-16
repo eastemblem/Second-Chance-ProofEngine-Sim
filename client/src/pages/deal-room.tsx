@@ -1,10 +1,12 @@
 import { motion } from "framer-motion";
-import { ArrowRight, Users, Calendar, TrendingUp, Shield, Briefcase, DollarSign } from "lucide-react";
+import { ArrowRight, Users, Calendar, TrendingUp, Shield, Briefcase, DollarSign, Folder, FileText, CheckCircle } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import ProgressBar from "@/components/progress-bar";
 import { ProofScore } from "@shared/schema";
+import { useQuery } from "@tanstack/react-query";
+import { useEffect, useState } from "react";
 
 interface DealRoomPageProps {
   onNext: () => void;
@@ -12,6 +14,12 @@ interface DealRoomPageProps {
 }
 
 export default function DealRoomPage({ onNext, proofScore }: DealRoomPageProps) {
+  // Fetch ProofVault session data
+  const { data: sessionData, isLoading: sessionLoading } = useQuery({
+    queryKey: ['/api/vault/session'],
+    staleTime: 5 * 60 * 1000, // 5 minutes
+  });
+
   const matchedInvestors = [
     {
       name: "Catalyst Ventures",
@@ -67,9 +75,65 @@ export default function DealRoomPage({ onNext, proofScore }: DealRoomPageProps) 
             </motion.div>
             <h2 className="text-3xl font-bold mb-4">Welcome to the Deal Room</h2>
             <p className="text-xl text-muted-foreground">
-              Your ProofScore of {proofScore.total} qualifies you for direct investor access
+              Your ProofScore of {proofScore.totalScore} qualifies you for direct investor access
             </p>
           </div>
+
+          {/* ProofVault Status */}
+          <Card className="p-6 border-border bg-card mb-8">
+            <div className="flex items-center justify-between mb-6">
+              <h3 className="text-xl font-semibold">ProofVault Status</h3>
+              {sessionData?.success && sessionData.data?.folderStructure && (
+                <Badge className="bg-green-500 text-white">
+                  <CheckCircle className="w-4 h-4 mr-1" />
+                  Active
+                </Badge>
+              )}
+            </div>
+            
+            {sessionLoading ? (
+              <div className="text-center py-4">
+                <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary mx-auto"></div>
+                <p className="text-muted-foreground mt-2">Loading vault status...</p>
+              </div>
+            ) : sessionData?.success && sessionData.data?.folderStructure ? (
+              <div className="space-y-4">
+                <div className="flex items-center text-green-600">
+                  <Folder className="w-5 h-5 mr-2" />
+                  <span>Document structure created for {sessionData.data.startupName}</span>
+                </div>
+                
+                <div className="grid grid-cols-2 md:grid-cols-3 gap-4 mt-4">
+                  {Object.entries(sessionData.data.folderStructure.folders).map(([key, folderId]) => (
+                    <div key={key} className="flex items-center p-2 bg-muted rounded">
+                      <FileText className="w-4 h-4 mr-2 text-primary" />
+                      <span className="text-sm">{key.replace(/_/g, ' ')}</span>
+                    </div>
+                  ))}
+                </div>
+
+                {sessionData.data.pitchDeckScore && (
+                  <div className="mt-4 p-4 bg-primary/10 rounded-lg">
+                    <h4 className="font-semibold mb-2">Pitch Deck Analysis</h4>
+                    <div className="text-2xl font-bold text-primary">
+                      Score: {sessionData.data.pitchDeckScore.score || 'Processing...'}
+                    </div>
+                    {sessionData.data.pitchDeckScore.feedback && (
+                      <p className="text-sm text-muted-foreground mt-2">
+                        {sessionData.data.pitchDeckScore.feedback}
+                      </p>
+                    )}
+                  </div>
+                )}
+              </div>
+            ) : (
+              <div className="text-center py-4 text-muted-foreground">
+                <Folder className="w-12 h-12 mx-auto mb-2 opacity-50" />
+                <p>ProofVault integration pending</p>
+                <p className="text-sm">Complete onboarding to activate document management</p>
+              </div>
+            )}
+          </Card>
 
           {/* Deal Room Stats */}
           <Card className="p-6 border-border bg-card mb-8">
