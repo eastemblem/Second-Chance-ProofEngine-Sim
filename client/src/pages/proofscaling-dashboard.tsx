@@ -5,7 +5,6 @@ import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Progress } from "@/components/ui/progress";
 import { ProofScore } from "@shared/schema";
-import BoxIntegration from "@/components/box-integration";
 
 interface ProofScalingDashboardProps {
   onNext: () => void;
@@ -368,9 +367,6 @@ export default function ProofScalingDashboard({ onNext, proofScore }: ProofScali
                   Schedule Onboarding Call
                 </Button>
               </Card>
-
-              {/* Box Document Storage */}
-              <BoxIntegration userId="demo-user-id" />
             </div>
           </div>
 

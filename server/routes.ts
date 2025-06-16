@@ -1,13 +1,39 @@
+import type { Express } from "express";
 import express, { Request, Response, NextFunction } from "express";
 import { createServer, type Server } from "http";
 import { storage } from "./storage";
 import { z } from "zod";
-import { boxService } from "./box-service";
-import { replitStorageService } from "./replit-storage";
+import { eastEmblemAPI, type FolderStructureResponse, type FileUploadResponse, type PitchDeckScoreResponse } from "./eastemblem-api";
 import multer from 'multer';
-import { Readable } from "stream";
-import fs from "fs";
-import path from "path";
+
+// Validation schemas
+const createUserSchema = z.object({
+  firstName: z.string().min(1, "First name is required"),
+  lastName: z.string().min(1, "Last name is required"),
+  email: z.string().email("Invalid email address"),
+  age: z.number().optional(),
+  contactInfo: z.object({
+    phone: z.string().optional(),
+    linkedin: z.string().optional(),
+    twitter: z.string().optional(),
+    location: z.string().optional(),
+  }).optional(),
+});
+
+const createVentureSchema = z.object({
+  name: z.string().min(1, "Venture name is required"),
+  ownerId: z.string().uuid("Invalid user ID format"),
+  teamSize: z.number().min(1).default(1),
+  category: z.string().optional(),
+  description: z.string().optional(),
+  stage: z.string().optional(),
+  industry: z.string().optional(),
+  targetMarket: z.string().optional(),
+  businessModel: z.string().optional(),
+});
+
+// Import multer after package installation
+import multer from 'multer';
 
 // Configure multer for file uploads
 const upload = multer({
@@ -16,17 +42,68 @@ const upload = multer({
     fileSize: 50 * 1024 * 1024, // 50MB limit
   },
   fileFilter: (req: Request, file: Express.Multer.File, cb: multer.FileFilterCallback) => {
-    console.log(`File filter check: ${file.originalname} ${file.mimetype}`);
+    console.log('File filter check:', file.originalname, file.mimetype);
     cb(null, true);
   }
 });
 
-export async function registerRoutes(app: express.Application): Promise<Server> {
-  // User management routes
-  app.get("/api/users/:id", async (req, res) => {
+// Session management for API responses
+interface SessionData {
+  folderStructure?: FolderStructureResponse;
+  uploadedFiles?: FileUploadResponse[];
+  pitchDeckScore?: PitchDeckScoreResponse;
+  startupName?: string;
+}
+
+const sessionStore: Map<string, SessionData> = new Map();
+
+function getSessionId(req: Request): string {
+  return req.sessionID || 'default-session';
+}
+
+function getSessionData(req: Request): SessionData {
+  const sessionId = getSessionId(req);
+  if (!sessionStore.has(sessionId)) {
+    sessionStore.set(sessionId, {});
+  }
+  return sessionStore.get(sessionId)!;
+}
+
+function updateSessionData(req: Request, data: Partial<SessionData>): void {
+  const sessionId = getSessionId(req);
+  const currentData = getSessionData(req);
+  sessionStore.set(sessionId, { ...currentData, ...data });
+}
+
+export async function registerRoutes(app: Express): Promise<Server> {
+
+  // Create user endpoint
+  app.post("/api/users", async (req, res) => {
     try {
-      const { id } = req.params;
-      const user = await storage.getUser(id);
+      const userData = createUserSchema.parse(req.body);
+      
+      // Check if user already exists
+      const existingUser = await storage.getUserByEmail(userData.email);
+      if (existingUser) {
+        return res.status(409).json({ error: "User with this email already exists" });
+      }
+      
+      const user = await storage.createUser(userData);
+      res.json(user);
+    } catch (error) {
+      console.log(`Error creating user: ${error}`);
+      if (error instanceof z.ZodError) {
+        return res.status(400).json({ error: "Validation error", details: error.errors });
+      }
+      res.status(500).json({ error: "Failed to create user" });
+    }
+  });
+
+  // Get user by email endpoint
+  app.get("/api/users/by-email/:email", async (req, res) => {
+    try {
+      const { email } = req.params;
+      const user = await storage.getUserByEmail(email);
       
       if (!user) {
         return res.status(404).json({ error: "User not found" });
@@ -34,304 +111,251 @@ export async function registerRoutes(app: express.Application): Promise<Server> 
       
       res.json(user);
     } catch (error) {
-      console.error("Error fetching user:", error);
+      console.log(`Error fetching user: ${error}`);
       res.status(500).json({ error: "Failed to fetch user" });
     }
   });
 
-  app.post("/api/users", async (req, res) => {
-    try {
-      const userSchema = z.object({
-        firstName: z.string().min(1),
-        lastName: z.string().min(1),
-        email: z.string().email(),
-      });
-
-      const userData = userSchema.parse(req.body);
-      
-      // Check if user already exists
-      const existingUser = await storage.getUserByEmail(userData.email);
-      if (existingUser) {
-        return res.json(existingUser);
-      }
-
-      const user = await storage.createUser(userData);
-      res.status(201).json(user);
-    } catch (error) {
-      if (error instanceof z.ZodError) {
-        return res.status(400).json({ error: "Invalid user data", details: error.errors });
-      }
-      console.error("Error creating user:", error);
-      res.status(500).json({ error: "Failed to create user" });
-    }
-  });
-
-  // Venture management routes
-  app.get("/api/ventures/:id", async (req, res) => {
-    try {
-      const { id } = req.params;
-      const venture = await storage.getVenture(id);
-      
-      if (!venture) {
-        return res.status(404).json({ error: "Venture not found" });
-      }
-      
-      res.json(venture);
-    } catch (error) {
-      console.error("Error fetching venture:", error);
-      res.status(500).json({ error: "Failed to fetch venture" });
-    }
-  });
-
-  app.get("/api/ventures/user/:userId", async (req, res) => {
-    try {
-      const { userId } = req.params;
-      const ventures = await storage.getVenturesByUserId(userId);
-      res.json(ventures);
-    } catch (error) {
-      console.error("Error fetching user ventures:", error);
-      res.status(500).json({ error: "Failed to fetch ventures" });
-    }
-  });
-
+  // Create venture endpoint
   app.post("/api/ventures", async (req, res) => {
     try {
-      const ventureSchema = z.object({
-        name: z.string().min(1),
-        ownerId: z.string(),
-        stage: z.string(),
-        description: z.string().optional(),
-        teamSize: z.number().optional(),
-      });
-
-      const ventureData = ventureSchema.parse(req.body);
-      const venture = await storage.createVenture(ventureData);
-      res.status(201).json(venture);
-    } catch (error) {
-      if (error instanceof z.ZodError) {
-        return res.status(400).json({ error: "Invalid venture data", details: error.errors });
+      const ventureData = createVentureSchema.parse(req.body);
+      
+      // Verify user exists
+      const user = await storage.getUser(ventureData.ownerId);
+      if (!user) {
+        return res.status(404).json({ error: "User not found" });
       }
-      console.error("Error creating venture:", error);
+      
+      const venture = await storage.createVenture(ventureData);
+      res.json(venture);
+    } catch (error) {
+      console.log(`Error creating venture: ${error}`);
+      if (error instanceof z.ZodError) {
+        return res.status(400).json({ error: "Validation error", details: error.errors });
+      }
       res.status(500).json({ error: "Failed to create venture" });
     }
   });
 
+  // Get user's ventures endpoint
+  app.get("/api/users/:userId/ventures", async (req, res) => {
+    try {
+      const { userId } = req.params;
+      
+      // Validate UUID format
+      const uuidRegex = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
+      if (!uuidRegex.test(userId)) {
+        return res.status(400).json({ error: "Invalid user ID format" });
+      }
+      
+      const ventures = await storage.getVenturesByUserId(userId);
+      res.json(ventures);
+    } catch (error) {
+      console.log(`Error fetching user ventures: ${error}`);
+      res.status(500).json({ error: "Failed to fetch ventures" });
+    }
+  });
+
+  // Update venture endpoint
   app.patch("/api/ventures/:id", async (req, res) => {
     try {
       const { id } = req.params;
-      const updateSchema = z.object({
-        name: z.string().optional(),
-        stage: z.string().optional(),
-        description: z.string().optional(),
-        teamSize: z.number().optional(),
-        dataRoomUrl: z.string().optional(),
-        pitchDeckUrl: z.string().optional(),
-      });
-
-      const updateData = updateSchema.parse(req.body);
+      
+      // Validate UUID format
+      const uuidRegex = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
+      if (!uuidRegex.test(id)) {
+        return res.status(400).json({ error: "Invalid venture ID format" });
+      }
+      
+      const updateData = req.body;
       const venture = await storage.updateVenture(id, updateData);
       res.json(venture);
     } catch (error) {
-      if (error instanceof z.ZodError) {
-        return res.status(400).json({ error: "Invalid update data", details: error.errors });
-      }
-      console.error("Error updating venture:", error);
+      console.log(`Error updating venture: ${error}`);
       res.status(500).json({ error: "Failed to update venture" });
     }
   });
 
-  // Box Integration Routes
-  
-  // Box authentication status
-  app.get("/api/box/status", async (req, res) => {
+  // Update user completion status
+  app.patch("/api/users/:id/complete-second-chance", async (req, res) => {
     try {
-      const connected = await boxService.testConnection();
-      const authStatus = boxService.getAuthStatus();
+      const { id } = req.params;
       
-      res.json({ 
-        connected, 
-        authType: authStatus.type,
-        available: authStatus.available,
-        message: connected ? 'Box integration active' : 'Box integration requires valid credentials'
-      });
+      // Validate UUID format
+      const uuidRegex = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
+      if (!uuidRegex.test(id)) {
+        return res.status(400).json({ error: "Invalid user ID format" });
+      }
+      
+      const user = await storage.updateUser(id, { isSecondChanceDone: true });
+      res.json(user);
     } catch (error) {
-      console.log(`Box connection test failed: ${error}`);
-      res.json({ 
-        connected: false, 
-        authType: 'none',
-        available: false,
-        error: error instanceof Error ? error.message : String(error),
-        message: 'Box integration requires valid credentials'
-      });
+      console.log(`Error updating user completion status: ${error}`);
+      res.status(500).json({ error: "Failed to update user" });
     }
   });
 
-  // Box file upload endpoint
-  app.post("/api/box/upload", upload.single('file'), async (req, res) => {
-    try {
-      console.log('Processing Box file upload...');
-      
-      if (!req.file) {
-        return res.status(400).json({ error: "No file provided" });
-      }
+  // EastEmblem API Routes for ProofVault
 
-      const { startupName, category } = req.body;
+  // Create startup vault structure
+  app.post("/api/vault/create-startup-vault", async (req, res) => {
+    try {
+      const { startupName } = req.body;
+      
       if (!startupName) {
         return res.status(400).json({
-          error: 'Missing required fields',
-          message: 'Please complete the form before uploading files'
+          error: 'Missing required field',
+          message: 'startupName is required'
         });
       }
 
-      // Create ProofVault folder and upload file
-      const proofVaultFolder = await boxService.createProofVaultFolder(startupName);
-      const uploadResult = await boxService.uploadFile(
-        req.file.originalname,
-        req.file.buffer,
-        proofVaultFolder.id
-      );
-
-      res.json({
-        success: true,
-        storage: 'box',
-        file: {
-          id: uploadResult.id,
-          name: uploadResult.name,
-          size: uploadResult.size,
-          download_url: uploadResult.download_url
-        },
-        proofVaultFolder: proofVaultFolder
-      });
-
-    } catch (error) {
-      console.error('Box upload error:', error);
-      res.status(500).json({ 
-        error: error instanceof Error ? error.message : 'Upload failed',
-        storage: 'box-error'
-      });
-    }
-  });
-
-  // Legacy Box upload endpoint for backwards compatibility
-  app.post("/api/box/jwt/upload", upload.single('file'), async (req, res) => {
-    try {
-      console.log('Processing Box file upload (legacy endpoint)...');
-      
-      if (!req.file) {
-        return res.status(400).json({ error: "No file provided" });
-      }
-
-      const { startupName, category } = req.body;
-      if (!startupName) {
-        return res.status(400).json({
-          error: 'Missing required fields',
-          message: 'Please complete the form before uploading files'
+      if (!eastEmblemAPI.isConfigured()) {
+        return res.status(503).json({
+          error: 'EastEmblem API not configured',
+          message: 'EASTEMBLEM_API_BASE_URL is required'
         });
       }
 
-      // Use Replit object storage for ProofVault
-      const proofVaultFolder = await replitStorageService.createProofVaultFolder(startupName);
-      const uploadResult = await replitStorageService.uploadFile(
-        req.file.originalname,
-        req.file.buffer,
-        proofVaultFolder.id
-      );
+      console.log(`Creating startup vault for: ${startupName}`);
+      
+      // Step 1: Create folder structure using EastEmblem API
+      const folderStructure = await eastEmblemAPI.createFolderStructure(startupName);
+      
+      // Store in session
+      updateSessionData(req, { 
+        folderStructure,
+        startupName,
+        uploadedFiles: []
+      });
+
+      console.log('Session updated with folder structure:', {
+        sessionId: getSessionId(req),
+        folderStructure
+      });
 
       return res.json({
         success: true,
-        storage: 'replit-storage',
-        file: {
-          id: uploadResult.id,
-          name: uploadResult.name,
-          size: uploadResult.size,
-          download_url: uploadResult.download_url
-        },
-        proofVaultFolder: proofVaultFolder
+        folderStructure,
+        message: 'Startup vault created successfully',
+        sessionId: getSessionId(req)
       });
 
     } catch (error) {
-      console.error('Storage upload error:', error);
-      
+      console.error('Error creating startup vault:', error);
       res.status(500).json({ 
-        error: error instanceof Error ? error.message : 'Upload failed',
-        storage: 'replit-storage-error'
+        error: error instanceof Error ? error.message : 'Failed to create startup vault'
       });
     }
   });
 
-  // Replit Storage Routes
-  
-  // Storage status endpoint
-  app.get("/api/storage/status", async (req, res) => {
+  // Upload pitch deck with scoring
+  app.post("/api/vault/upload-pitch-deck", upload.single('file'), async (req, res) => {
     try {
-      const connected = await replitStorageService.testConnection();
-      const storageStatus = replitStorageService.getStorageStatus();
-      
-      res.json({ 
-        connected, 
-        storageType: storageStatus.type,
-        available: storageStatus.available,
-        path: storageStatus.path,
-        message: connected ? 'Replit storage active' : 'Storage system unavailable'
-      });
-    } catch (error) {
-      console.log(`Storage test failed: ${error}`);
-      res.json({ 
-        connected: false, 
-        storageType: 'none',
-        available: false,
-        error: error instanceof Error ? error.message : String(error),
-        message: 'Storage system unavailable'
-      });
-    }
-  });
-
-  // File download endpoint
-  app.get("/api/storage/download/:folderId/:fileName", async (req, res) => {
-    try {
-      const { folderId, fileName } = req.params;
-      
-      const fileBuffer = await replitStorageService.getFile(folderId, fileName);
-      if (!fileBuffer) {
-        return res.status(404).json({ error: 'File not found' });
+      if (!req.file) {
+        return res.status(400).json({ error: "No file provided" });
       }
 
-      // Set appropriate headers for file download
-      const fileExtension = path.extname(fileName).toLowerCase();
-      let contentType = 'application/octet-stream';
-      
-      if (fileExtension === '.pdf') contentType = 'application/pdf';
-      else if (fileExtension === '.docx') contentType = 'application/vnd.openxmlformats-officedocument.wordprocessingml.document';
-      else if (fileExtension === '.xlsx') contentType = 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet';
-      else if (fileExtension === '.png') contentType = 'image/png';
-      else if (fileExtension === '.jpg' || fileExtension === '.jpeg') contentType = 'image/jpeg';
+      if (!eastEmblemAPI.isConfigured()) {
+        return res.status(503).json({
+          error: 'EastEmblem API not configured',
+          message: 'EASTEMBLEM_API_BASE_URL is required'
+        });
+      }
 
-      res.setHeader('Content-Type', contentType);
-      res.setHeader('Content-Disposition', `inline; filename="${fileName}"`);
-      res.send(fileBuffer);
+      const sessionData = getSessionData(req);
+      
+      if (!sessionData.folderStructure) {
+        return res.status(400).json({
+          error: 'No vault structure found',
+          message: 'Create startup vault first'
+        });
+      }
+
+      console.log(`Uploading pitch deck: ${req.file.originalname}`);
+      
+      // Step 2: Upload file to Overview folder
+      const overviewFolderId = sessionData.folderStructure.folders['0_Overview'];
+      const uploadResult = await eastEmblemAPI.uploadFile(
+        req.file.buffer,
+        req.file.originalname,
+        overviewFolderId
+      );
+
+      // Step 3: Score the pitch deck
+      const scoreResult = await eastEmblemAPI.scorePitchDeck(
+        req.file.buffer,
+        req.file.originalname
+      );
+
+      // Update session with results
+      const updatedFiles = [...(sessionData.uploadedFiles || []), uploadResult];
+      updateSessionData(req, {
+        uploadedFiles: updatedFiles,
+        pitchDeckScore: scoreResult
+      });
+
+      console.log('Session updated with upload and score:', {
+        sessionId: getSessionId(req),
+        uploadResult,
+        scoreResult
+      });
+
+      return res.json({
+        success: true,
+        uploadResult,
+        scoreResult,
+        message: 'Pitch deck uploaded and scored successfully',
+        sessionId: getSessionId(req)
+      });
+
     } catch (error) {
-      console.error('File download error:', error);
+      console.error('Error uploading pitch deck:', error);
       res.status(500).json({ 
-        error: error instanceof Error ? error.message : 'Download failed'
+        error: error instanceof Error ? error.message : 'Failed to upload pitch deck'
       });
     }
   });
 
-  // List files in a folder
-  app.get("/api/storage/list/:folderId", async (req, res) => {
+  // Get session data
+  app.get("/api/vault/session", async (req, res) => {
     try {
-      const { folderId } = req.params;
-      const files = await replitStorageService.listFiles(folderId);
+      const sessionData = getSessionData(req);
+      
+      console.log('Retrieved session data:', {
+        sessionId: getSessionId(req),
+        hasStructure: !!sessionData.folderStructure,
+        filesCount: sessionData.uploadedFiles?.length || 0,
+        hasScore: !!sessionData.pitchDeckScore
+      });
+
+      return res.json({
+        success: true,
+        sessionId: getSessionId(req),
+        data: sessionData
+      });
+
+    } catch (error) {
+      console.error('Error retrieving session data:', error);
+      res.status(500).json({ 
+        error: error instanceof Error ? error.message : 'Failed to retrieve session data'
+      });
+    }
+  });
+
+  // EastEmblem API status
+  app.get("/api/vault/status", async (req, res) => {
+    try {
+      const status = eastEmblemAPI.getStatus();
       
       res.json({
-        success: true,
-        folderId,
-        files
+        ...status,
+        message: status.configured ? 'EastEmblem API ready' : 'EastEmblem API not configured'
       });
     } catch (error) {
-      console.error('File listing error:', error);
+      console.error('Error checking EastEmblem API status:', error);
       res.status(500).json({ 
-        error: error instanceof Error ? error.message : 'Listing failed'
+        error: error instanceof Error ? error.message : 'Status check failed'
       });
     }
   });

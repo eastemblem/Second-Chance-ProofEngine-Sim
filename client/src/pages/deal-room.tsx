@@ -6,7 +6,6 @@ import { Badge } from "@/components/ui/badge";
 import ProgressBar from "@/components/progress-bar";
 import { ProofScore } from "@shared/schema";
 
-
 interface DealRoomPageProps {
   onNext: () => void;
   proofScore: ProofScore;
@@ -68,7 +67,7 @@ export default function DealRoomPage({ onNext, proofScore }: DealRoomPageProps) 
             </motion.div>
             <h2 className="text-3xl font-bold mb-4">Welcome to the Deal Room</h2>
             <p className="text-xl text-muted-foreground">
-              Your ProofScore of {(proofScore as any).total || proofScore.totalScore} qualifies you for direct investor access
+              Your ProofScore of {proofScore.total} qualifies you for direct investor access
             </p>
           </div>
 
@@ -221,26 +220,14 @@ export default function DealRoomPage({ onNext, proofScore }: DealRoomPageProps) 
             </div>
           </Card>
 
-          {/* Document Upload Section */}
-          <Card className="p-6 border border-green-200 bg-green-50">
-            <div className="text-center">
-              <Shield className="h-12 w-12 text-green-600 mx-auto mb-4" />
-              <h3 className="text-lg font-semibold text-green-800 mb-2">Documents Ready</h3>
-              <p className="text-sm text-green-600">
-                Your files have been securely uploaded to Box.com with ProofVault organization. 
-                Investor-ready data room is prepared with shareable links.
-              </p>
-            </div>
-          </Card>
-
           {/* CTA */}
           <div className="text-center">
             <Button onClick={onNext} className="gradient-button px-8 py-6 text-lg" size="lg">
-              Complete Deal Room Setup
+              Enter Deal Room
               <ArrowRight className="ml-2 w-5 h-5" />
             </Button>
             <p className="text-sm text-muted-foreground mt-4">
-              Secure document storage • Ready for investor review • Box.com protected
+              Exclusive access • Verified investors only • Protected by NDA
             </p>
           </div>
         </motion.div>

@@ -1,0 +1,546 @@
+{
+	"info": {
+		"_postman_id": "bcd21ef1-8dc8-4d89-a43d-bf6b2cfcb399",
+		"name": "EastEmblem",
+		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
+		"_exporter_id": "30095471"
+	},
+	"item": [
+		{
+			"name": "vault",
+			"item": [
+				{
+					"name": "folder",
+					"item": [
+						{
+							"name": "vault/folder/share",
+							"request": {
+								"method": "POST",
+								"header": [],
+								"body": {
+									"mode": "formdata",
+									"formdata": [
+										{
+											"key": "folder_id",
+											"value": "325070126382",
+											"type": "text"
+										}
+									]
+								},
+								"url": {
+									"raw": "{{base-url}}/webhook/vault/folder/share",
+									"host": [
+										"{{base-url}}"
+									],
+									"path": [
+										"webhook",
+										"vault",
+										"folder",
+										"share"
+									]
+								}
+							},
+							"response": [
+								{
+									"name": "https://n8n-eisn.onrender.com/webhook/box/folder/share",
+									"originalRequest": {
+										"method": "POST",
+										"header": [],
+										"body": {
+											"mode": "formdata",
+											"formdata": [
+												{
+													"key": "folder_id",
+													"value": "325020659989",
+													"type": "text"
+												}
+											]
+										},
+										"url": {
+											"raw": "https://n8n-eisn.onrender.com/webhook/box/folder/share",
+											"protocol": "https",
+											"host": [
+												"n8n-eisn",
+												"onrender",
+												"com"
+											],
+											"path": [
+												"webhook",
+												"box",
+												"folder",
+												"share"
+											]
+										}
+									},
+									"status": "OK",
+									"code": 200,
+									"_postman_previewlanguage": "json",
+									"header": [
+										{
+											"key": "Date",
+											"value": "Sun, 08 Jun 2025 10:35:19 GMT"
+										},
+										{
+											"key": "Content-Type",
+											"value": "application/json; charset=utf-8"
+										},
+										{
+											"key": "Content-Length",
+											"value": "71"
+										},
+										{
+											"key": "Connection",
+											"value": "keep-alive"
+										},
+										{
+											"key": "Content-Encoding",
+											"value": "br"
+										},
+										{
+											"key": "etag",
+											"value": "W/\"4d-+bFY3E92KPDVUkmJK+TDI4x/t2c\""
+										},
+										{
+											"key": "rndr-id",
+											"value": "6507f6d1-c951-44ef"
+										},
+										{
+											"key": "vary",
+											"value": "Accept-Encoding"
+										},
+										{
+											"key": "vary",
+											"value": "Accept-Encoding"
+										},
+										{
+											"key": "x-render-origin-server",
+											"value": "Render"
+										},
+										{
+											"key": "cf-cache-status",
+											"value": "DYNAMIC"
+										},
+										{
+											"key": "Server",
+											"value": "cloudflare"
+										},
+										{
+											"key": "CF-RAY",
+											"value": "94c7bddc1b7e3fc0-BOM"
+										},
+										{
+											"key": "alt-svc",
+											"value": "h3=\":443\"; ma=86400"
+										}
+									],
+									"cookie": [],
+									"body": "{\n    \"status\": 200,\n    \"url\": \"https://app.box.com/s/rsaelst8jh0de7s6cl9d2wufw26ipgdn\"\n}"
+								}
+							]
+						},
+						{
+							"name": "vault/folder/create",
+							"request": {
+								"auth": {
+									"type": "noauth"
+								},
+								"method": "POST",
+								"header": [],
+								"body": {
+									"mode": "formdata",
+									"formdata": [
+										{
+											"key": "folderName",
+											"value": "west-emblem",
+											"type": "text"
+										}
+									]
+								},
+								"url": {
+									"raw": "{{base-url}}/webhook/vault/folder/create",
+									"host": [
+										"{{base-url}}"
+									],
+									"path": [
+										"webhook",
+										"vault",
+										"folder",
+										"create"
+									]
+								}
+							},
+							"response": [
+								{
+									"name": "box/folder/create",
+									"originalRequest": {
+										"method": "POST",
+										"header": [],
+										"body": {
+											"mode": "formdata",
+											"formdata": [
+												{
+													"key": "folderName",
+													"value": "west-emblem",
+													"type": "text"
+												}
+											]
+										},
+										"url": {
+											"raw": "https://n8n-eisn.onrender.com/webhook/box/folder/create",
+											"protocol": "https",
+											"host": [
+												"n8n-eisn",
+												"onrender",
+												"com"
+											],
+											"path": [
+												"webhook",
+												"box",
+												"folder",
+												"create"
+											]
+										}
+									},
+									"status": "OK",
+									"code": 200,
+									"_postman_previewlanguage": "json",
+									"header": [
+										{
+											"key": "Date",
+											"value": "Sun, 08 Jun 2025 10:36:17 GMT"
+										},
+										{
+											"key": "Content-Type",
+											"value": "application/json; charset=utf-8"
+										},
+										{
+											"key": "Content-Length",
+											"value": "25"
+										},
+										{
+											"key": "Connection",
+											"value": "keep-alive"
+										},
+										{
+											"key": "Content-Encoding",
+											"value": "br"
+										},
+										{
+											"key": "etag",
+											"value": "W/\"15-aSR1Z7EIxuuc9lelVh91FcQptH8\""
+										},
+										{
+											"key": "rndr-id",
+											"value": "854b96af-5f80-4a34"
+										},
+										{
+											"key": "vary",
+											"value": "Accept-Encoding"
+										},
+										{
+											"key": "vary",
+											"value": "Accept-Encoding"
+										},
+										{
+											"key": "x-render-origin-server",
+											"value": "Render"
+										},
+										{
+											"key": "cf-cache-status",
+											"value": "DYNAMIC"
+										},
+										{
+											"key": "Server",
+											"value": "cloudflare"
+										},
+										{
+											"key": "CF-RAY",
+											"value": "94c7bf4718ae3fc0-BOM"
+										},
+										{
+											"key": "alt-svc",
+											"value": "h3=\":443\"; ma=86400"
+										}
+									],
+									"cookie": [],
+									"body": "{\n    \"id\": \"325070126382\"\n}"
+								}
+							]
+						},
+						{
+							"name": "vault/folder/create-structure",
+							"request": {
+								"auth": {
+									"type": "noauth"
+								},
+								"method": "POST",
+								"header": [],
+								"body": {
+									"mode": "formdata",
+									"formdata": [
+										{
+											"key": "folderName",
+											"value": "nilesh-bamne",
+											"type": "text"
+										}
+									]
+								},
+								"url": {
+									"raw": "{{base-url}}/webhook/vault/folder/create-structure",
+									"host": [
+										"{{base-url}}"
+									],
+									"path": [
+										"webhook",
+										"vault",
+										"folder",
+										"create-structure"
+									]
+								}
+							},
+							"response": [
+								{
+									"name": "box/folder/create-structure",
+									"originalRequest": {
+										"method": "POST",
+										"header": [],
+										"body": {
+											"mode": "formdata",
+											"formdata": [
+												{
+													"key": "folderName",
+													"value": "test-emblem",
+													"type": "text"
+												}
+											]
+										},
+										"url": {
+											"raw": "https://n8n-eisn.onrender.com/webhook/box/folder/create-structure",
+											"protocol": "https",
+											"host": [
+												"n8n-eisn",
+												"onrender",
+												"com"
+											],
+											"path": [
+												"webhook",
+												"box",
+												"folder",
+												"create-structure"
+											]
+										}
+									},
+									"status": "OK",
+									"code": 200,
+									"_postman_previewlanguage": "json",
+									"header": [
+										{
+											"key": "Date",
+											"value": "Sun, 08 Jun 2025 13:59:15 GMT"
+										},
+										{
+											"key": "Content-Type",
+											"value": "application/json; charset=utf-8"
+										},
+										{
+											"key": "Content-Length",
+											"value": "216"
+										},
+										{
+											"key": "Connection",
+											"value": "keep-alive"
+										},
+										{
+											"key": "Content-Encoding",
+											"value": "br"
+										},
+										{
+											"key": "etag",
+											"value": "W/\"149-ALfsFJ1HAjZhih8q4tqi6SVxbsU\""
+										},
+										{
+											"key": "rndr-id",
+											"value": "0c8af648-9c39-4fd4"
+										},
+										{
+											"key": "vary",
+											"value": "Accept-Encoding"
+										},
+										{
+											"key": "vary",
+											"value": "Accept-Encoding"
+										},
+										{
+											"key": "x-render-origin-server",
+											"value": "Render"
+										},
+										{
+											"key": "cf-cache-status",
+											"value": "DYNAMIC"
+										},
+										{
+											"key": "Server",
+											"value": "cloudflare"
+										},
+										{
+											"key": "CF-RAY",
+											"value": "94c8e87c7a983f38-BOM"
+										},
+										{
+											"key": "alt-svc",
+											"value": "h3=\":443\"; ma=86400"
+										}
+									],
+									"cookie": [],
+									"body": "{\n    \"id\": \"325082056438\",\n    \"url\": \"https://app.box.com/s/vvlcyge5r6bsgsfqi7khtv4x194p00si\",\n    \"folders\": {\n        \"0_Overview\": \"325080849166\",\n        \"1_Problem_Proof\": \"325081770614\",\n        \"2_Solution_Proof\": \"325080213416\",\n        \"3_Demand_Proof\": \"325080726104\",\n        \"4_Credibility_Proof\": \"325080440500\",\n        \"5_Commercial_Proof\": \"325080234237\",\n        \"6_Investor_Pack\": \"325081723001\"\n    }\n}"
+								}
+							]
+						}
+					]
+				},
+				{
+					"name": "file",
+					"item": [
+						{
+							"name": "vault/file/upload",
+							"request": {
+								"auth": {
+									"type": "noauth"
+								},
+								"method": "POST",
+								"header": [],
+								"body": {
+									"mode": "formdata",
+									"formdata": [
+										{
+											"key": "data",
+											"type": "file",
+											"src": "/Users/nileshbamne/Downloads/Pitch_Deck.pdf"
+										},
+										{
+											"key": "folder_id",
+											"value": "325070126382",
+											"type": "text"
+										}
+									]
+								},
+								"url": {
+									"raw": "{{base-url}}/webhook/vault/file/upload",
+									"host": [
+										"{{base-url}}"
+									],
+									"path": [
+										"webhook",
+										"vault",
+										"file",
+										"upload"
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "vault/file/upload-zip",
+							"request": {
+								"auth": {
+									"type": "noauth"
+								},
+								"method": "POST",
+								"header": [],
+								"body": {
+									"mode": "formdata",
+									"formdata": [
+										{
+											"key": "data",
+											"type": "file",
+											"src": "/Users/nileshbamne/Downloads/ProofVault_SampleStartup.zip"
+										}
+									]
+								},
+								"url": {
+									"raw": "{{base-url}}/webhook/vault/file/upload-zip",
+									"host": [
+										"{{base-url}}"
+									],
+									"path": [
+										"webhook",
+										"vault",
+										"file",
+										"upload-zip"
+									]
+								}
+							},
+							"response": []
+						}
+					]
+				}
+			]
+		},
+		{
+			"name": "score",
+			"item": [
+				{
+					"name": "score/pitch-deck",
+					"request": {
+						"auth": {
+							"type": "noauth"
+						},
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "formdata",
+							"formdata": [
+								{
+									"key": "data",
+									"type": "file",
+									"src": "/Users/nileshbamne/Downloads/v1-classified-141218103325-conversion-gate01.pdf"
+								}
+							]
+						},
+						"url": {
+							"raw": "{{base-url}}/webhook/score/pitch-deck",
+							"host": [
+								"{{base-url}}"
+							],
+							"path": [
+								"webhook",
+								"score",
+								"pitch-deck"
+							]
+						}
+					},
+					"response": []
+				}
+			]
+		}
+	],
+	"event": [
+		{
+			"listen": "prerequest",
+			"script": {
+				"type": "text/javascript",
+				"packages": {},
+				"exec": [
+					""
+				]
+			}
+		},
+		{
+			"listen": "test",
+			"script": {
+				"type": "text/javascript",
+				"packages": {},
+				"exec": [
+					""
+				]
+			}
+		}
+	],
+	"variable": [
+		{
+			"key": "base-url",
+			"value": "https://eastemblemsecondchance.app.n8n.cloud",
+			"type": "string"
+		}
+	]
+}

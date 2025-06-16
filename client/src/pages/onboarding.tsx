@@ -7,9 +7,7 @@ import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Card } from "@/components/ui/card";
 import ProgressBar from "@/components/progress-bar";
-import BoxIntegrationStatus from "@/components/box-integration-status";
-import { Upload, CheckCircle, FileText, Loader2 } from "lucide-react";
-
+import FileUpload from "@/components/file-upload";
 import { FounderData } from "@shared/schema";
 import { useMutation } from "@tanstack/react-query";
 import { apiRequest } from "@/lib/queryClient";
@@ -26,95 +24,6 @@ export default function OnboardingPage({ onNext, onDataUpdate }: OnboardingPageP
   });
   const [isSubmitting, setIsSubmitting] = useState(false);
   const { toast } = useToast();
-
-  // Check if required fields are completed for file uploads
-  const isFormValid = formData.name && formData.email && formData.startupName && formData.stage;
-  
-  // Track uploaded files for shareable link generation
-  const [uploadedFiles, setUploadedFiles] = useState<{id: string, name: string, category: string, sessionFolder?: string}[]>([]);
-  const [sessionFolderId, setSessionFolderId] = useState<string>('');
-  const [fileUploads, setFileUploads] = useState<{[key: string]: { file: File | null, uploading: boolean, uploaded: boolean }}>({
-    'pitch-deck': { file: null, uploading: false, uploaded: false },
-    'data-room': { file: null, uploading: false, uploaded: false }
-  });
-
-  const handleFileSelect = (category: string, file: File | null) => {
-    setFileUploads(prev => ({
-      ...prev,
-      [category]: { ...prev[category], file, uploaded: false }
-    }));
-  };
-
-  const handleFileUpload = async (category: string) => {
-    const upload = fileUploads[category];
-    if (!upload.file || !formData.startupName) return;
-
-    setFileUploads(prev => ({
-      ...prev,
-      [category]: { ...prev[category], uploading: true }
-    }));
-
-    try {
-      const formDataUpload = new FormData();
-      formDataUpload.append('file', upload.file);
-      formDataUpload.append('startupName', formData.startupName);
-      formDataUpload.append('category', category);
-
-      const response = await fetch('/api/upload', {
-        method: 'POST',
-        body: formDataUpload,
-      });
-
-      const result = await response.json();
-
-      if (response.ok && result.success) {
-        setUploadedFiles(prev => [...prev, {
-          id: result.file.id,
-          name: result.file.name,
-          category: category,
-          sessionFolder: result.proofVaultFolder?.name
-        }]);
-        
-        if (result.proofVaultFolder?.id && !sessionFolderId) {
-          setSessionFolderId(result.proofVaultFolder.id);
-        }
-
-        setFileUploads(prev => ({
-          ...prev,
-          [category]: { ...prev[category], uploading: false, uploaded: true }
-        }));
-
-        toast({
-          title: "Upload successful",
-          description: `${upload.file.name} uploaded to ProofVault successfully`,
-        });
-      } else if (response.status === 401 || result.authRequired) {
-        setFileUploads(prev => ({
-          ...prev,
-          [category]: { ...prev[category], uploading: false, uploaded: false }
-        }));
-
-        toast({
-          title: "Authentication Required",
-          description: "Box access token needed for ProofVault uploads",
-          variant: "destructive",
-        });
-      } else {
-        throw new Error(result.error || result.message || 'Upload failed');
-      }
-    } catch (error) {
-      setFileUploads(prev => ({
-        ...prev,
-        [category]: { ...prev[category], uploading: false }
-      }));
-      
-      toast({
-        title: "Upload failed",
-        description: error instanceof Error ? error.message : 'Failed to upload file',
-        variant: "destructive",
-      });
-    }
-  };
 
   // Create user mutation
   const createUserMutation = useMutation({
@@ -178,68 +87,11 @@ export default function OnboardingPage({ onNext, onDataUpdate }: OnboardingPageP
 
       const venture = await createVentureMutation.mutateAsync(ventureData);
 
-      // Generate shareable links for uploaded files using Development service
-      let shareableLinks = {};
-      if (sessionFolderId && uploadedFiles.length > 0) {
-        try {
-          const linkResponse = await fetch('/api/box/development/generate-links', {
-            method: 'POST',
-            headers: {
-              'Content-Type': 'application/json',
-            },
-            body: JSON.stringify({
-              sessionFolderId,
-              uploadedFiles,
-            }),
-          });
-          
-          if (linkResponse.ok) {
-            shareableLinks = await linkResponse.json();
-            console.log('Generated shareable links via Development service:', shareableLinks);
-          }
-        } catch (error) {
-          console.error('Error generating shareable links via Development service:', error);
-        }
-      }
-
-      // Update venture with shareable links
-      if (shareableLinks && Object.keys(shareableLinks).length > 0) {
-        try {
-          const updateData: any = {};
-          if ((shareableLinks as any).dataRoomUrl) {
-            updateData.dataRoomUrl = (shareableLinks as any).dataRoomUrl;
-          }
-          if ((shareableLinks as any).pitchDeckUrl) {
-            updateData.pitchDeckUrl = (shareableLinks as any).pitchDeckUrl;
-          }
-          
-          if (Object.keys(updateData).length > 0) {
-            const updateResponse = await fetch(`/api/ventures/${venture.id}`, {
-              method: 'PATCH',
-              headers: {
-                'Content-Type': 'application/json',
-              },
-              body: JSON.stringify(updateData),
-            });
-            
-            if (updateResponse.ok) {
-              console.log('Updated venture with shareable links');
-            } else {
-              console.error('Failed to update venture with shareable links');
-            }
-          }
-        } catch (error) {
-          console.error('Error updating venture with shareable links:', error);
-        }
-      }
-
       // Store user and venture IDs for later use
       const enhancedData = {
         ...formData,
         userId: user.id,
         ventureId: venture.id,
-        pitchDeck: (shareableLinks as any)?.pitchDeckUrl || '',
-        dataRoom: (shareableLinks as any)?.dataRoomUrl || '',
       };
       
       setFormData(enhancedData);
@@ -272,8 +124,6 @@ export default function OnboardingPage({ onNext, onDataUpdate }: OnboardingPageP
           transition={{ duration: 0.6 }}
         >
           <ProgressBar currentStep={1} totalSteps={4} stepName="Founder Profile" />
-          
-          <BoxIntegrationStatus />
 
           <Card className="p-8 border-border bg-card">
             <h2 className="text-3xl font-bold mb-2">Tell us about your venture</h2>
@@ -353,146 +203,20 @@ export default function OnboardingPage({ onNext, onDataUpdate }: OnboardingPageP
                 </div>
               </div>
 
-              {/* File Upload Section */}
-              <div className="space-y-6">
-                <div>
-                  <h3 className="text-lg font-semibold mb-3">Document Upload</h3>
-                  <p className="text-sm text-muted-foreground mb-4">
-                    Upload your documents to secure Box storage for verification
-                  </p>
-                  
-                  <div className="space-y-4">
-                    {/* Pitch Deck Upload */}
-                    <Card className={`transition-all ${fileUploads['pitch-deck'].uploaded ? 'border-green-200 bg-green-50' : 'border-gray-200 bg-white'}`}>
-                      <div className="p-4">
-                        <div className="flex items-center gap-2 mb-2">
-                          {fileUploads['pitch-deck'].uploaded ? (
-                            <CheckCircle className="h-5 w-5 text-green-600" />
-                          ) : (
-                            <FileText className="h-5 w-5 text-gray-500" />
-                          )}
-                          <h3 className="font-semibold">Pitch Deck</h3>
-                        </div>
-                        <p className="text-sm text-gray-600 mb-4">Upload your investor presentation (PDF or PowerPoint)</p>
-                        
-                        <div className="flex items-center gap-4">
-                          <input
-                            type="file"
-                            id="pitch-deck-upload"
-                            accept=".pdf,.ppt,.pptx"
-                            onChange={(e) => handleFileSelect('pitch-deck', e.target.files?.[0] || null)}
-                            disabled={!isFormValid || fileUploads['pitch-deck'].uploading}
-                            className="hidden"
-                          />
-                          <label
-                            htmlFor="pitch-deck-upload"
-                            className={`flex-1 flex items-center justify-center gap-2 p-3 border-2 border-dashed rounded-lg cursor-pointer transition-colors ${
-                              !isFormValid || fileUploads['pitch-deck'].uploading
-                                ? 'border-gray-200 bg-gray-50 cursor-not-allowed'
-                                : 'border-gray-300 hover:border-purple-500 hover:bg-purple-50'
-                            }`}
-                          >
-                            <Upload className="h-4 w-4" />
-                            <span className="text-sm">
-                              {fileUploads['pitch-deck'].file ? fileUploads['pitch-deck'].file.name : 'Choose pitch deck file'}
-                            </span>
-                          </label>
-                          
-                          {fileUploads['pitch-deck'].file && (
-                            <Button
-                              onClick={() => handleFileUpload('pitch-deck')}
-                              disabled={!isFormValid || fileUploads['pitch-deck'].uploading || fileUploads['pitch-deck'].uploaded}
-                              size="sm"
-                              className="bg-purple-600 hover:bg-purple-700"
-                            >
-                              {fileUploads['pitch-deck'].uploading ? (
-                                <>
-                                  <Loader2 className="h-4 w-4 mr-2 animate-spin" />
-                                  Uploading...
-                                </>
-                              ) : fileUploads['pitch-deck'].uploaded ? (
-                                <>
-                                  <CheckCircle className="h-4 w-4 mr-2" />
-                                  Uploaded
-                                </>
-                              ) : (
-                                <>
-                                  <Upload className="h-4 w-4 mr-2" />
-                                  Upload to Box
-                                </>
-                              )}
-                            </Button>
-                          )}
-                        </div>
-                      </div>
-                    </Card>
+              {/* File Uploads */}
+              <div className="space-y-4">
+                <FileUpload
+                  label="Pitch Deck"
+                  description="PDF, PPT, or PPTX up to 10MB"
+                  required
+                  onFileSelect={(file) => updateField("pitchDeck", file?.name)}
+                />
 
-                    {/* Data Room Upload */}
-                    <Card className={`transition-all ${fileUploads['data-room'].uploaded ? 'border-green-200 bg-green-50' : 'border-gray-200 bg-white'}`}>
-                      <div className="p-4">
-                        <div className="flex items-center gap-2 mb-2">
-                          {fileUploads['data-room'].uploaded ? (
-                            <CheckCircle className="h-5 w-5 text-green-600" />
-                          ) : (
-                            <FileText className="h-5 w-5 text-gray-500" />
-                          )}
-                          <h3 className="font-semibold">Data Room Documents</h3>
-                        </div>
-                        <p className="text-sm text-gray-600 mb-4">Upload financial models, market research, and other supporting documents</p>
-                        
-                        <div className="flex items-center gap-4">
-                          <input
-                            type="file"
-                            id="data-room-upload"
-                            accept=".pdf,.doc,.docx,.xls,.xlsx,.ppt,.pptx"
-                            onChange={(e) => handleFileSelect('data-room', e.target.files?.[0] || null)}
-                            disabled={!isFormValid || fileUploads['data-room'].uploading}
-                            className="hidden"
-                          />
-                          <label
-                            htmlFor="data-room-upload"
-                            className={`flex-1 flex items-center justify-center gap-2 p-3 border-2 border-dashed rounded-lg cursor-pointer transition-colors ${
-                              !isFormValid || fileUploads['data-room'].uploading
-                                ? 'border-gray-200 bg-gray-50 cursor-not-allowed'
-                                : 'border-gray-300 hover:border-purple-500 hover:bg-purple-50'
-                            }`}
-                          >
-                            <Upload className="h-4 w-4" />
-                            <span className="text-sm">
-                              {fileUploads['data-room'].file ? fileUploads['data-room'].file.name : 'Choose data room file'}
-                            </span>
-                          </label>
-                          
-                          {fileUploads['data-room'].file && (
-                            <Button
-                              onClick={() => handleFileUpload('data-room')}
-                              disabled={!isFormValid || fileUploads['data-room'].uploading || fileUploads['data-room'].uploaded}
-                              size="sm"
-                              className="bg-purple-600 hover:bg-purple-700"
-                            >
-                              {fileUploads['data-room'].uploading ? (
-                                <>
-                                  <Loader2 className="h-4 w-4 mr-2 animate-spin" />
-                                  Uploading...
-                                </>
-                              ) : fileUploads['data-room'].uploaded ? (
-                                <>
-                                  <CheckCircle className="h-4 w-4 mr-2" />
-                                  Uploaded
-                                </>
-                              ) : (
-                                <>
-                                  <Upload className="h-4 w-4 mr-2" />
-                                  Upload to Box
-                                </>
-                              )}
-                            </Button>
-                          )}
-                        </div>
-                      </div>
-                    </Card>
-                  </div>
-                </div>
+                <FileUpload
+                  label="Data Room (Optional)"
+                  description="Financial models, market research, etc."
+                  onFileSelect={(file) => updateField("dataRoom", file?.name)}
+                />
               </div>
 
               {/* Submit Button */}

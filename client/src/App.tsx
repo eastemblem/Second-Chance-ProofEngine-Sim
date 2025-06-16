@@ -71,12 +71,12 @@ function SimulationFlow() {
       case 5:
         return state.proofScore ? (
           <PathwayPage 
-            onNext={() => setCurrentPage((state.proofScore as any)!.total >= 80 ? 6 : 7)}
+            onNext={() => setCurrentPage(state.proofScore!.total >= 80 ? 6 : 7)}
             proofScore={state.proofScore}
           />
         ) : null;
       case 6:
-        return state.proofScore && (state.proofScore as any).total >= 80 ? (
+        return state.proofScore && state.proofScore.total >= 80 ? (
           <DealRoomPage 
             onNext={() => setCurrentPage(8)}
             proofScore={state.proofScore}
@@ -130,9 +130,6 @@ function SimulationFlow() {
 function Router() {
   return (
     <Switch>
-      <Route path="/deal-room">
-        <SimulationFlow />
-      </Route>
       <Route path="/" component={SimulationFlow} />
       <Route component={NotFound} />
     </Switch>
