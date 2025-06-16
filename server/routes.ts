@@ -298,12 +298,13 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
 
   // Simple file upload - store file in session without executing workflow
-  app.post("/api/vault/upload-only", upload.single('file'), async (req, res) => {
+  app.post("/api/vault/upload-only", upload.single('file'), (req, res) => {
     try {
       const file = req.file;
 
       if (!file) {
         return res.status(400).json({
+          success: false,
           error: 'Missing file',
           message: 'File is required for upload'
         });
@@ -321,7 +322,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         }
       });
 
-      return res.json({
+      res.json({
         success: true,
         message: 'File uploaded and ready for processing',
         file: {
@@ -334,7 +335,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
     } catch (error) {
       console.error('Error storing file:', error);
       res.status(500).json({ 
-        error: error instanceof Error ? error.message : 'File storage failed'
+        success: false,
+        error: error instanceof Error ? error.message : 'File storage failed',
+        message: 'Upload failed'
       });
     }
   });

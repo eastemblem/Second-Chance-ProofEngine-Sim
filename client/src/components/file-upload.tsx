@@ -30,6 +30,45 @@ export default function FileUpload({
     fileInputRef.current?.click();
   };
 
+  const uploadFile = async (file: File, retryCount = 0): Promise<any> => {
+    const formData = new FormData();
+    formData.append("file", file);
+
+    const response = await fetch("/api/vault/upload-only", {
+      method: "POST",
+      body: formData,
+    });
+
+    if (!response.ok) {
+      throw new Error(`Upload failed with status: ${response.status}`);
+    }
+
+    const responseText = await response.text();
+    if (!responseText) {
+      throw new Error("Empty response from server");
+    }
+
+    let result;
+    try {
+      result = JSON.parse(responseText);
+    } catch (parseError) {
+      console.error("JSON parse error:", parseError, "Response text:", responseText);
+      // Retry once for JSON parse errors
+      if (retryCount < 1) {
+        console.log("Retrying upload due to JSON parse error...");
+        await new Promise(resolve => setTimeout(resolve, 1000));
+        return uploadFile(file, retryCount + 1);
+      }
+      throw new Error("Invalid response format from server");
+    }
+
+    if (!result.success) {
+      throw new Error(result.error || "File upload failed");
+    }
+
+    return result;
+  };
+
   const handleFileChange = async (
     event: React.ChangeEvent<HTMLInputElement>,
   ) => {
@@ -51,24 +90,7 @@ export default function FileUpload({
     setFileName(file.name);
 
     try {
-      // Simple file upload - store file without executing workflow
-      const formData = new FormData();
-      formData.append("file", file);
-
-      const response = await fetch("/api/vault/upload-only", {
-        method: "POST",
-        body: formData,
-      });
-
-      if (!response.ok) {
-        throw new Error(`Upload failed with status: ${response.status}`);
-      }
-
-      const result = await response.json();
-
-      if (!result.success) {
-        throw new Error(result.error || "File upload failed");
-      }
+      const result = await uploadFile(file);
 
       setUploaded(true);
 
