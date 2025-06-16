@@ -40,7 +40,6 @@ const proofVaultSteps = [
 
 export default function ScoringPage({ 
   onNext, 
-  onStartAnalysis, 
   analysisProgress, 
   isAnalyzing 
 }: ScoringPageProps) {
@@ -92,9 +91,9 @@ export default function ScoringPage({
     }
   });
 
-  useEffect(() => {
-    onStartAnalysis();
-  }, [onStartAnalysis]);
+  // useEffect(() => {
+  //   onStartAnalysis();
+  // }, [onStartAnalysis]);
 
   useEffect(() => {
     setCurrentStep(Math.floor((analysisProgress / 100) * proofVaultSteps.length));
@@ -108,13 +107,6 @@ export default function ScoringPage({
       return () => clearTimeout(timer);
     }
   }, [analysisProgress, isAnalyzing, onNext]);
-
-  // Auto-start scoring when page loads if file is uploaded
-  useEffect(() => {
-    if (sessionData?.success && sessionData.data?.uploadedFile && !submitForScoring.isPending && proofScore === null) {
-      submitForScoring.mutate();
-    }
-  }, [sessionData, submitForScoring, proofScore]);
 
   return (
     <div className="min-h-screen flex items-center justify-center">
