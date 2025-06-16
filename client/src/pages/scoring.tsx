@@ -157,44 +157,59 @@ export default function ScoringPage({
               )}
             </div>
 
-            {/* ProofVault Analysis Steps */}
-            <div className="space-y-4 mb-8">
-              {proofVaultSteps.map((step, index) => {
-                const isCompleted = index < currentStep;
-                const isCurrent = index === currentStep && isAnalyzing;
-                const isPending = index > currentStep;
+            {/* Submit for Scoring or Show Analysis Progress */}
+            {proofScore === null && !submitForScoring.isPending ? (
+              <div className="mb-8">
+                <Button 
+                  onClick={() => submitForScoring.mutate()}
+                  className="w-full bg-gradient-to-r from-primary to-primary-gold hover:from-primary/90 hover:to-primary-gold/90 text-white font-semibold py-4 px-8 rounded-lg text-lg"
+                  disabled={!sessionData?.success}
+                >
+                  <Brain className="mr-2 w-5 h-5" />
+                  Submit for Scoring
+                </Button>
+                {!sessionData?.success && (
+                  <p className="text-sm text-muted-foreground mt-2 text-center">
+                    Please upload a pitch deck first
+                  </p>
+                )}
+              </div>
+            ) : submitForScoring.isPending ? (
+              <div className="space-y-4 mb-8">
+                {proofVaultSteps.map((step, index) => {
+                  const isCompleted = index < Math.floor((submitForScoring.isPending ? 60 : 0) / 100 * proofVaultSteps.length);
+                  const isCurrent = index === Math.floor((submitForScoring.isPending ? 60 : 0) / 100 * proofVaultSteps.length) && submitForScoring.isPending;
 
-                return (
-                  <motion.div
-                    key={index}
-                    className={`flex items-center justify-between p-4 bg-background rounded-lg transition-all duration-500 ${
-                      isPending ? "opacity-50" : "opacity-100"
-                    }`}
-                    initial={{ opacity: 0, x: -20 }}
-                    animate={{ opacity: isPending ? 0.5 : 1, x: 0 }}
-                    transition={{ delay: index * 0.1 }}
-                  >
-                    <span className="flex items-center">
-                      {isCompleted ? (
-                        <CheckCircle className="text-primary mr-3 w-5 h-5" />
-                      ) : isCurrent ? (
-                        <Loader className="text-primary-gold mr-3 w-5 h-5 animate-spin" />
-                      ) : (
-                        <Clock className="text-muted-foreground mr-3 w-5 h-5" />
-                      )}
-                      <span className="text-sm">{step.title}</span>
-                    </span>
-                    {isCompleted ? (
-                      <CheckCircle className="text-primary w-5 h-5" />
-                    ) : isCurrent ? (
-                      <Loader className="text-primary-gold w-5 h-5 animate-spin" />
-                    ) : (
-                      <Clock className="text-muted-foreground w-5 h-5" />
-                    )}
-                  </motion.div>
-                );
-              })}
-            </div>
+                  return (
+                    <motion.div
+                      key={index}
+                      className="flex items-center justify-between p-4 bg-background rounded-lg"
+                      initial={{ opacity: 0, x: -20 }}
+                      animate={{ opacity: 1, x: 0 }}
+                      transition={{ delay: index * 0.1 }}
+                    >
+                      <span className="flex items-center">
+                        {isCompleted ? (
+                          <CheckCircle className="text-primary mr-3 w-5 h-5" />
+                        ) : isCurrent ? (
+                          <Loader className="text-primary-gold mr-3 w-5 h-5 animate-spin" />
+                        ) : (
+                          <Clock className="text-muted-foreground mr-3 w-5 h-5" />
+                        )}
+                        <span className="text-sm">{step.title}</span>
+                      </span>
+                    </motion.div>
+                  );
+                })}
+              </div>
+            ) : (
+              <div className="mb-8">
+                <div className="text-center">
+                  <CheckCircle className="text-primary w-12 h-12 mx-auto mb-4" />
+                  <p className="text-lg font-semibold">Analysis Complete</p>
+                </div>
+              </div>
+            )}
 
             {/* Progress Bar */}
             <div className="w-full bg-border rounded-full h-3 mb-4">
