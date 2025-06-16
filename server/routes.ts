@@ -395,7 +395,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
           folderStructure,
           uploadResult,
           pitchDeckScore,
-          proofScore: pitchDeckScore.total_score || pitchDeckScore.score || 82,
+          proofScore: pitchDeckScore.output?.total_score || pitchDeckScore.total_score || pitchDeckScore.score || 82,
           sessionId: getSessionId(req)
         }
       });

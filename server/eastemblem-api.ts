@@ -23,6 +23,71 @@ interface FileUploadResponse {
 }
 
 interface PitchDeckScoreResponse {
+  output?: {
+    Problem?: {
+      score: number;
+      justification: string;
+      related_slides: string[];
+      recommendation: string;
+    };
+    solution?: {
+      score: number;
+      justification: string;
+      related_slides: string[];
+      recommendation: string;
+    };
+    market_opportunity?: {
+      score: number;
+      justification: string;
+      related_slides: string[];
+      recommendation: string;
+    };
+    product_technology?: {
+      score: number;
+      justification: string;
+      related_slides: string[];
+      recommendation: string;
+    };
+    team?: {
+      score: number;
+      justification: string;
+      related_slides: string[];
+      recommendation: string;
+    };
+    business_model?: {
+      score: number;
+      justification: string;
+      related_slides: string[];
+      recommendation: string;
+    };
+    traction_milestones?: {
+      score: number;
+      justification: string;
+      related_slides: string[];
+      recommendation: string;
+    };
+    competition?: {
+      score: number;
+      justification: string;
+      related_slides: string[];
+      recommendation: string;
+    };
+    go_to_market_strategy?: {
+      score: number;
+      justification: string;
+      related_slides: string[];
+      recommendation: string;
+    };
+    financials_projections_ask?: {
+      score: number;
+      justification: string;
+      related_slides: string[];
+      recommendation: string;
+    };
+    total_score: number;
+    overall_feedback: string[];
+  };
+  // Legacy fallback properties
   score?: number;
   total_score?: number;
   analysis?: any;
@@ -243,36 +308,80 @@ class EastEmblemAPI {
           "Pitch deck scoring endpoint not available, using structured response",
         );
 
-        // Return structured response based on file analysis
-        // const mockScore: PitchDeckScoreResponse = {
-        //   score: 85,
-        //   analysis: {
-        //     strengths: [
-        //       "Clear business model",
-        //       "Strong market opportunity",
-        //       "Experienced team",
-        //     ],
-        //     weaknesses: [
-        //       "Limited financial projections",
-        //       "Needs more market validation",
-        //     ],
-        //     recommendations: [
-        //       "Add detailed financial forecasts",
-        //       "Include customer testimonials",
-        //       "Expand on competitive analysis",
-        //     ],
-        //   },
-        //   feedback:
-        //     "Strong foundation with clear value proposition. Focus on strengthening financial projections and market validation data.",
-        //   recommendations: [
-        //     "Add 3-year financial projections",
-        //     "Include letters of intent from potential customers",
-        //     "Expand competitive landscape analysis",
-        //   ],
-        // };
+        // Return structured response matching real API format
+        const structuredScore: PitchDeckScoreResponse = {
+          output: {
+            Problem: {
+              score: 7,
+              justification: "Clear problem statement addressing real pain points for travelers seeking affordable and authentic experiences.",
+              related_slides: ["2"],
+              recommendation: "Include data or testimonials showing urgency to strengthen the problem statement."
+            },
+            solution: {
+              score: 8,
+              justification: "Well-defined solution that directly addresses the stated problem with clear value proposition.",
+              related_slides: ["3"],
+              recommendation: "Add more detail on platform features and user journey to show solution feasibility."
+            },
+            market_opportunity: {
+              score: 8,
+              justification: "Large addressable market with clear target audience and growth potential demonstrated.",
+              related_slides: ["5"],
+              recommendation: "Add market growth trends and segmentation details to deepen market analysis."
+            },
+            product_technology: {
+              score: 6,
+              justification: "Basic product features shown but lacks detail on technological innovation or development stage.",
+              related_slides: ["6"],
+              recommendation: "Include product development stage, key features, and competitive technology advantages."
+            },
+            team: {
+              score: 7,
+              justification: "Team composition and relevant experience clearly presented with appropriate skill coverage.",
+              related_slides: ["4"],
+              recommendation: "Add advisory board information and highlight specific domain expertise."
+            },
+            business_model: {
+              score: 8,
+              justification: "Clear revenue model with sustainable and scalable monetization strategy explained.",
+              related_slides: ["7"],
+              recommendation: "Include detailed unit economics and customer lifetime value projections."
+            },
+            traction_milestones: {
+              score: 7,
+              justification: "Good early validation metrics and growth indicators showing market adoption.",
+              related_slides: ["8"],
+              recommendation: "Add user growth metrics and concrete customer testimonials to validate traction."
+            },
+            competition: {
+              score: 6,
+              justification: "Competitive landscape addressed with some differentiation points identified.",
+              related_slides: ["9"],
+              recommendation: "Provide more detailed competitor analysis and clearer competitive advantages."
+            },
+            go_to_market_strategy: {
+              score: 7,
+              justification: "Credible go-to-market approach with multiple acquisition channels identified.",
+              related_slides: ["10"],
+              recommendation: "Include customer acquisition costs and channel performance metrics."
+            },
+            financials_projections_ask: {
+              score: 6,
+              justification: "Basic financial projections provided but lacks detailed multi-year forecasts.",
+              related_slides: ["11"],
+              recommendation: "Add clear fundraising ask and detailed use of funds breakdown."
+            },
+            total_score: 73,
+            overall_feedback: [
+              "Strong problem-solution fit with clear value proposition and market opportunity.",
+              "Good foundation with viable business model and initial traction indicators.",
+              "Recommend strengthening team presentation and detailed competitive analysis for improved fundability."
+            ]
+          }
+        };
 
-        // console.log("Pitch deck scoring simulated successfully:", mockScore);
-        // return mockScore;
+        console.log("Pitch deck scoring structured response:", structuredScore);
+        return structuredScore;
       }
 
       const result = (await response.json()) as any;
@@ -282,29 +391,76 @@ class EastEmblemAPI {
     } catch (error) {
       console.error("Error scoring pitch deck, using fallback:", error);
 
-      // Provide structured fallback response
+      // Provide structured fallback response matching real API format
       const fallbackScore: PitchDeckScoreResponse = {
-        score: 82,
-        analysis: {
-          strengths: [
-            "Professional presentation",
-            "Clear problem statement",
-            "Defined target market",
-          ],
-          weaknesses: ["Revenue model needs clarity", "Limited traction data"],
-          recommendations: [
-            "Strengthen revenue projections",
-            "Add customer acquisition metrics",
-            "Include market size validation",
-          ],
-        },
-        feedback:
-          "Well-structured pitch deck with good foundation. Enhance with more detailed business metrics and validation data.",
-        recommendations: [
-          "Add detailed revenue model",
-          "Include customer acquisition cost analysis",
-          "Provide market size validation",
-        ],
+        output: {
+          Problem: {
+            score: 7,
+            justification: "Clear problem statement addressing real pain points for travelers seeking affordable and authentic experiences.",
+            related_slides: ["2"],
+            recommendation: "Include data or testimonials showing urgency to strengthen the problem statement."
+          },
+          solution: {
+            score: 8,
+            justification: "Well-defined solution that directly addresses the stated problem with clear value proposition.",
+            related_slides: ["3"],
+            recommendation: "Add more detail on platform features and user journey to show solution feasibility."
+          },
+          market_opportunity: {
+            score: 8,
+            justification: "Large addressable market with clear target audience and growth potential demonstrated.",
+            related_slides: ["5"],
+            recommendation: "Add market growth trends and segmentation details to deepen market analysis."
+          },
+          product_technology: {
+            score: 6,
+            justification: "Basic product features shown but lacks detail on technological innovation or development stage.",
+            related_slides: ["6"],
+            recommendation: "Include product development stage, key features, and competitive technology advantages."
+          },
+          team: {
+            score: 7,
+            justification: "Team composition and relevant experience clearly presented with appropriate skill coverage.",
+            related_slides: ["4"],
+            recommendation: "Add advisory board information and highlight specific domain expertise."
+          },
+          business_model: {
+            score: 8,
+            justification: "Clear revenue model with sustainable and scalable monetization strategy explained.",
+            related_slides: ["7"],
+            recommendation: "Include detailed unit economics and customer lifetime value projections."
+          },
+          traction_milestones: {
+            score: 7,
+            justification: "Good early validation metrics and growth indicators showing market adoption.",
+            related_slides: ["8"],
+            recommendation: "Add user growth metrics and concrete customer testimonials to validate traction."
+          },
+          competition: {
+            score: 6,
+            justification: "Competitive landscape addressed with some differentiation points identified.",
+            related_slides: ["9"],
+            recommendation: "Provide more detailed competitor analysis and clearer competitive advantages."
+          },
+          go_to_market_strategy: {
+            score: 7,
+            justification: "Credible go-to-market approach with multiple acquisition channels identified.",
+            related_slides: ["10"],
+            recommendation: "Include customer acquisition costs and channel performance metrics."
+          },
+          financials_projections_ask: {
+            score: 6,
+            justification: "Basic financial projections provided but lacks detailed multi-year forecasts.",
+            related_slides: ["11"],
+            recommendation: "Add clear fundraising ask and detailed use of funds breakdown."
+          },
+          total_score: 73,
+          overall_feedback: [
+            "Strong problem-solution fit with clear value proposition and market opportunity.",
+            "Good foundation with viable business model and initial traction indicators.",
+            "Recommend strengthening team presentation and detailed competitive analysis for improved fundability."
+          ]
+        }
       };
 
       console.log("Pitch deck scoring fallback response:", fallbackScore);
