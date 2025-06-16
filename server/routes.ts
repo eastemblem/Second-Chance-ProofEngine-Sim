@@ -4,6 +4,7 @@ import { createServer, type Server } from "http";
 import { storage } from "./storage";
 import { z } from "zod";
 import { eastEmblemAPI, type FolderStructureResponse, type FileUploadResponse, type PitchDeckScoreResponse } from "./eastemblem-api";
+import multer from "multer";
 
 // Validation schemas
 const createUserSchema = z.object({
@@ -257,6 +258,100 @@ export async function registerRoutes(app: Express): Promise<Server> {
       console.error('Error retrieving session data:', error);
       res.status(500).json({ 
         error: error instanceof Error ? error.message : 'Failed to retrieve session data'
+      });
+    }
+  });
+
+  // Upload file to EastEmblem API
+  app.post("/api/vault/upload-file", async (req, res) => {
+    try {
+      if (!eastEmblemAPI.isConfigured()) {
+        return res.status(503).json({
+          error: 'EastEmblem API not configured',
+          message: 'EASTEMBLEM_API_BASE_URL is required'
+        });
+      }
+
+      const { folder_id } = req.body;
+      const file = req.file;
+
+      if (!file || !folder_id) {
+        return res.status(400).json({
+          error: 'Missing required fields',
+          message: 'File and folder_id are required'
+        });
+      }
+
+      console.log(`Uploading file: ${file.originalname} to folder: ${folder_id}`);
+
+      const uploadResult = await eastEmblemAPI.uploadFile(
+        file.buffer,
+        file.originalname,
+        folder_id
+      );
+
+      // Update session with uploaded file
+      const sessionData = getSessionData(req);
+      const updatedFiles = [...(sessionData.uploadedFiles || []), uploadResult];
+      updateSessionData(req, { uploadedFiles: updatedFiles });
+
+      console.log('File uploaded successfully:', uploadResult);
+
+      return res.json({
+        success: true,
+        file: uploadResult,
+        message: 'File uploaded successfully'
+      });
+
+    } catch (error) {
+      console.error('Error uploading file:', error);
+      res.status(500).json({ 
+        error: error instanceof Error ? error.message : 'Failed to upload file'
+      });
+    }
+  });
+
+  // Score pitch deck using EastEmblem API
+  app.post("/api/vault/score-pitch-deck", async (req, res) => {
+    try {
+      if (!eastEmblemAPI.isConfigured()) {
+        return res.status(503).json({
+          error: 'EastEmblem API not configured',
+          message: 'EASTEMBLEM_API_BASE_URL is required'
+        });
+      }
+
+      const file = req.file;
+
+      if (!file) {
+        return res.status(400).json({
+          error: 'Missing file',
+          message: 'File is required for scoring'
+        });
+      }
+
+      console.log(`Scoring pitch deck: ${file.originalname}`);
+
+      const scoreResult = await eastEmblemAPI.scorePitchDeck(
+        file.buffer,
+        file.originalname
+      );
+
+      // Update session with score
+      updateSessionData(req, { pitchDeckScore: scoreResult });
+
+      console.log('Pitch deck scored successfully:', scoreResult);
+
+      return res.json({
+        success: true,
+        score: scoreResult,
+        message: 'Pitch deck scored successfully'
+      });
+
+    } catch (error) {
+      console.error('Error scoring pitch deck:', error);
+      res.status(500).json({ 
+        error: error instanceof Error ? error.message : 'Failed to score pitch deck'
       });
     }
   });
