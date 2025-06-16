@@ -4,7 +4,6 @@ import { createServer, type Server } from "http";
 import { storage } from "./storage";
 import { z } from "zod";
 import { eastEmblemAPI, type FolderStructureResponse, type FileUploadResponse, type PitchDeckScoreResponse } from "./eastemblem-api";
-import multer from 'multer';
 
 // Validation schemas
 const createUserSchema = z.object({
@@ -32,20 +31,7 @@ const createVentureSchema = z.object({
   businessModel: z.string().optional(),
 });
 
-// Import multer after package installation
-import multer from 'multer';
-
-// Configure multer for file uploads
-const upload = multer({
-  storage: multer.memoryStorage(),
-  limits: {
-    fileSize: 50 * 1024 * 1024, // 50MB limit
-  },
-  fileFilter: (req: Request, file: Express.Multer.File, cb: multer.FileFilterCallback) => {
-    console.log('File filter check:', file.originalname, file.mimetype);
-    cb(null, true);
-  }
-});
+// File upload configuration will be added later
 
 // Session management for API responses
 interface SessionData {
@@ -58,7 +44,7 @@ interface SessionData {
 const sessionStore: Map<string, SessionData> = new Map();
 
 function getSessionId(req: Request): string {
-  return req.sessionID || 'default-session';
+  return req.ip + '-' + (req.headers['user-agent'] || 'default');
 }
 
 function getSessionData(req: Request): SessionData {
@@ -219,7 +205,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
       console.log(`Creating startup vault for: ${startupName}`);
       
-      // Step 1: Create folder structure using EastEmblem API
+      // Create folder structure using EastEmblem API
       const folderStructure = await eastEmblemAPI.createFolderStructure(startupName);
       
       // Store in session
@@ -245,74 +231,6 @@ export async function registerRoutes(app: Express): Promise<Server> {
       console.error('Error creating startup vault:', error);
       res.status(500).json({ 
         error: error instanceof Error ? error.message : 'Failed to create startup vault'
-      });
-    }
-  });
-
-  // Upload pitch deck with scoring
-  app.post("/api/vault/upload-pitch-deck", upload.single('file'), async (req, res) => {
-    try {
-      if (!req.file) {
-        return res.status(400).json({ error: "No file provided" });
-      }
-
-      if (!eastEmblemAPI.isConfigured()) {
-        return res.status(503).json({
-          error: 'EastEmblem API not configured',
-          message: 'EASTEMBLEM_API_BASE_URL is required'
-        });
-      }
-
-      const sessionData = getSessionData(req);
-      
-      if (!sessionData.folderStructure) {
-        return res.status(400).json({
-          error: 'No vault structure found',
-          message: 'Create startup vault first'
-        });
-      }
-
-      console.log(`Uploading pitch deck: ${req.file.originalname}`);
-      
-      // Step 2: Upload file to Overview folder
-      const overviewFolderId = sessionData.folderStructure.folders['0_Overview'];
-      const uploadResult = await eastEmblemAPI.uploadFile(
-        req.file.buffer,
-        req.file.originalname,
-        overviewFolderId
-      );
-
-      // Step 3: Score the pitch deck
-      const scoreResult = await eastEmblemAPI.scorePitchDeck(
-        req.file.buffer,
-        req.file.originalname
-      );
-
-      // Update session with results
-      const updatedFiles = [...(sessionData.uploadedFiles || []), uploadResult];
-      updateSessionData(req, {
-        uploadedFiles: updatedFiles,
-        pitchDeckScore: scoreResult
-      });
-
-      console.log('Session updated with upload and score:', {
-        sessionId: getSessionId(req),
-        uploadResult,
-        scoreResult
-      });
-
-      return res.json({
-        success: true,
-        uploadResult,
-        scoreResult,
-        message: 'Pitch deck uploaded and scored successfully',
-        sessionId: getSessionId(req)
-      });
-
-    } catch (error) {
-      console.error('Error uploading pitch deck:', error);
-      res.status(500).json({ 
-        error: error instanceof Error ? error.message : 'Failed to upload pitch deck'
       });
     }
   });
