@@ -399,10 +399,30 @@ export async function registerRoutes(app: Express): Promise<Server> {
       // Update session with pitch deck score
       updateSessionData(req, { pitchDeckScore });
 
+      // Store file info before clearing session data
+      const fileToCleanup = {
+        filepath: uploadedFile.filepath,
+        originalname: uploadedFile.originalname
+      };
+
       // Clear the uploaded file from session since it's now processed
       updateSessionData(req, { uploadedFile: undefined });
 
       console.log('Scoring workflow finished successfully');
+
+      // Clean up uploaded file after successful processing
+      try {
+        console.log(`Attempting to clean up file: ${fileToCleanup.filepath}`);
+        if (fs.existsSync(fileToCleanup.filepath)) {
+          fs.unlinkSync(fileToCleanup.filepath);
+          console.log(`Cleaned up uploaded file: ${fileToCleanup.originalname}`);
+        } else {
+          console.log(`File not found for cleanup: ${fileToCleanup.filepath}`);
+        }
+      } catch (cleanupError) {
+        console.error('Error cleaning up uploaded file:', cleanupError);
+        // Don't fail the response for cleanup errors
+      }
 
       return res.json({
         success: true,
