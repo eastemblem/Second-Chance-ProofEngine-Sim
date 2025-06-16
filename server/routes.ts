@@ -6,6 +6,22 @@ import { z } from "zod";
 import { eastEmblemAPI, type FolderStructureResponse, type FileUploadResponse, type PitchDeckScoreResponse } from "./eastemblem-api";
 import multer from "multer";
 
+// Configure multer for file uploads
+const upload = multer({
+  storage: multer.memoryStorage(),
+  limits: {
+    fileSize: 10 * 1024 * 1024, // 10MB limit
+  },
+  fileFilter: (req, file, cb) => {
+    const allowedTypes = ['application/pdf', 'application/vnd.ms-powerpoint', 'application/vnd.openxmlformats-officedocument.presentationml.presentation'];
+    if (allowedTypes.includes(file.mimetype)) {
+      cb(null, true);
+    } else {
+      cb(new Error('Invalid file type. Only PDF, PPT, and PPTX files are allowed.'));
+    }
+  },
+});
+
 // Validation schemas
 const createUserSchema = z.object({
   firstName: z.string().min(1, "First name is required"),
@@ -263,7 +279,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
 
   // Upload file to EastEmblem API
-  app.post("/api/vault/upload-file", async (req, res) => {
+  app.post("/api/vault/upload-file", upload.single('file'), async (req, res) => {
     try {
       if (!eastEmblemAPI.isConfigured()) {
         return res.status(503).json({
@@ -272,13 +288,14 @@ export async function registerRoutes(app: Express): Promise<Server> {
         });
       }
 
-      const { folder_id } = req.body;
+      const folder_id = req.body.folder_id;
       const file = req.file;
 
       if (!file || !folder_id) {
         return res.status(400).json({
           error: 'Missing required fields',
-          message: 'File and folder_id are required'
+          message: 'File and folder_id are required',
+          debug: { hasFile: !!file, folderId: folder_id, body: req.body }
         });
       }
 
@@ -312,7 +329,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
 
   // Score pitch deck using EastEmblem API
-  app.post("/api/vault/score-pitch-deck", async (req, res) => {
+  app.post("/api/vault/score-pitch-deck", upload.single('file'), async (req, res) => {
     try {
       if (!eastEmblemAPI.isConfigured()) {
         return res.status(503).json({
