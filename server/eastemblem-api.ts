@@ -24,9 +24,11 @@ interface FileUploadResponse {
 
 interface PitchDeckScoreResponse {
   score?: number;
+  total_score?: number;
   analysis?: any;
   feedback?: string;
   recommendations?: string[];
+  overall_feedback?: string[];
 }
 
 class EastEmblemAPI {
@@ -242,39 +244,39 @@ class EastEmblemAPI {
         );
 
         // Return structured response based on file analysis
-        const mockScore: PitchDeckScoreResponse = {
-          score: 85,
-          analysis: {
-            strengths: [
-              "Clear business model",
-              "Strong market opportunity",
-              "Experienced team",
-            ],
-            weaknesses: [
-              "Limited financial projections",
-              "Needs more market validation",
-            ],
-            recommendations: [
-              "Add detailed financial forecasts",
-              "Include customer testimonials",
-              "Expand on competitive analysis",
-            ],
-          },
-          feedback:
-            "Strong foundation with clear value proposition. Focus on strengthening financial projections and market validation data.",
-          recommendations: [
-            "Add 3-year financial projections",
-            "Include letters of intent from potential customers",
-            "Expand competitive landscape analysis",
-          ],
-        };
+        // const mockScore: PitchDeckScoreResponse = {
+        //   score: 85,
+        //   analysis: {
+        //     strengths: [
+        //       "Clear business model",
+        //       "Strong market opportunity",
+        //       "Experienced team",
+        //     ],
+        //     weaknesses: [
+        //       "Limited financial projections",
+        //       "Needs more market validation",
+        //     ],
+        //     recommendations: [
+        //       "Add detailed financial forecasts",
+        //       "Include customer testimonials",
+        //       "Expand on competitive analysis",
+        //     ],
+        //   },
+        //   feedback:
+        //     "Strong foundation with clear value proposition. Focus on strengthening financial projections and market validation data.",
+        //   recommendations: [
+        //     "Add 3-year financial projections",
+        //     "Include letters of intent from potential customers",
+        //     "Expand competitive landscape analysis",
+        //   ],
+        // };
 
-        console.log("Pitch deck scoring simulated successfully:", mockScore);
-        return mockScore;
+        // console.log("Pitch deck scoring simulated successfully:", mockScore);
+        // return mockScore;
       }
 
-      const result = (await response.json()) as PitchDeckScoreResponse;
-      console.log("Pitch deck scored successfully:", result);
+      const result = (await response.json()) as any;
+      console.log("Pitch deck scored successfully - RAW API RESPONSE:", JSON.stringify(result, null, 2));
 
       return result;
     } catch (error) {
