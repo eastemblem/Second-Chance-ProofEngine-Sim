@@ -51,10 +51,16 @@ class EastEmblemAPI {
       console.log(`Creating folder structure for: ${folderName}`);
       console.log(`API endpoint: ${this.getEndpoint('/vault/folder/create-structure')}`);
 
+      const controller = new AbortController();
+      const timeoutId = setTimeout(() => controller.abort(), 30000); // 30 second timeout
+
       const response = await fetch(this.getEndpoint('/vault/folder/create-structure'), {
         method: 'POST',
         body: formData,
+        signal: controller.signal,
       });
+
+      clearTimeout(timeoutId);
 
       if (!response.ok) {
         const errorText = await response.text();
@@ -67,6 +73,14 @@ class EastEmblemAPI {
       return result;
     } catch (error) {
       console.error('Error creating folder structure:', error);
+      
+      if (error instanceof Error) {
+        if (error.name === 'AbortError') {
+          throw new Error('EastEmblem API timeout - please check service availability');
+        }
+        throw new Error(`EastEmblem API error: ${error.message}`);
+      }
+      
       throw error;
     }
   }

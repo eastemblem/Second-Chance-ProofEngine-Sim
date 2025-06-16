@@ -13,9 +13,29 @@ interface DealRoomPageProps {
   proofScore: ProofScore;
 }
 
+interface SessionResponse {
+  success: boolean;
+  sessionId: string;
+  data: {
+    folderStructure?: {
+      id: string;
+      url: string;
+      folders: Record<string, string>;
+    };
+    startupName?: string;
+    uploadedFiles?: any[];
+    pitchDeckScore?: {
+      score?: number;
+      analysis?: any;
+      feedback?: string;
+      recommendations?: string[];
+    };
+  };
+}
+
 export default function DealRoomPage({ onNext, proofScore }: DealRoomPageProps) {
   // Fetch ProofVault session data
-  const { data: sessionData, isLoading: sessionLoading } = useQuery({
+  const { data: sessionData, isLoading: sessionLoading } = useQuery<SessionResponse>({
     queryKey: ['/api/vault/session'],
     staleTime: 5 * 60 * 1000, // 5 minutes
   });
