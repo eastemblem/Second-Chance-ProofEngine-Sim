@@ -1,9 +1,9 @@
 import { useEffect, useState } from "react";
 import { motion } from "framer-motion";
-import { Brain, CheckCircle, Clock, Loader } from "lucide-react";
+import { Brain, CheckCircle, Clock, Loader, Folder, FileText } from "lucide-react";
 import { Card } from "@/components/ui/card";
 import ProgressBar from "@/components/progress-bar";
-import { analysisSteps } from "@/lib/data";
+import { useQuery } from "@tanstack/react-query";
 
 interface ScoringPageProps {
   onNext: () => void;
@@ -11,6 +11,29 @@ interface ScoringPageProps {
   analysisProgress: number;
   isAnalyzing: boolean;
 }
+
+const proofVaultSteps = [
+  {
+    title: "Checking ProofVault Status",
+    description: "Verifying folder structure creation"
+  },
+  {
+    title: "Analyzing Document Framework",
+    description: "Reviewing proof organization structure"
+  },
+  {
+    title: "Calculating Readiness Score",
+    description: "Assessing investment preparation level"
+  },
+  {
+    title: "Generating Proof Insights",
+    description: "Creating personalized recommendations"
+  },
+  {
+    title: "Finalizing ProofScore",
+    description: "Completing comprehensive analysis"
+  }
+];
 
 export default function ScoringPage({ 
   onNext, 
@@ -20,16 +43,19 @@ export default function ScoringPage({
 }: ScoringPageProps) {
   const [currentStep, setCurrentStep] = useState(0);
 
+  // Query ProofVault session data for real-time analysis
+  const { data: sessionData } = useQuery({
+    queryKey: ['/api/vault/session'],
+    refetchInterval: 2000, // Poll every 2 seconds during analysis
+    enabled: isAnalyzing
+  });
+
   useEffect(() => {
-    const interval = onStartAnalysis();
-    
-    return () => {
-      if (interval) clearInterval(interval);
-    };
+    onStartAnalysis();
   }, [onStartAnalysis]);
 
   useEffect(() => {
-    setCurrentStep(Math.floor((analysisProgress / 100) * analysisSteps.length));
+    setCurrentStep(Math.floor((analysisProgress / 100) * proofVaultSteps.length));
   }, [analysisProgress]);
 
   useEffect(() => {
@@ -73,16 +99,16 @@ export default function ScoringPage({
               </p>
             </div>
 
-            {/* Analysis Steps */}
+            {/* ProofVault Analysis Steps */}
             <div className="space-y-4 mb-8">
-              {analysisSteps.map((step, index) => {
+              {proofVaultSteps.map((step, index) => {
                 const isCompleted = index < currentStep;
                 const isCurrent = index === currentStep && isAnalyzing;
                 const isPending = index > currentStep;
 
                 return (
                   <motion.div
-                    key={step.id}
+                    key={index}
                     className={`flex items-center justify-between p-4 bg-background rounded-lg transition-all duration-500 ${
                       isPending ? "opacity-50" : "opacity-100"
                     }`}
