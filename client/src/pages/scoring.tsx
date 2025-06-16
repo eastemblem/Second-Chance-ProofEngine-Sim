@@ -1,6 +1,14 @@
 import { useEffect, useState } from "react";
 import { motion } from "framer-motion";
-import { Brain, CheckCircle, Clock, Loader, Folder, FileText, Target } from "lucide-react";
+import {
+  Brain,
+  CheckCircle,
+  Clock,
+  Loader,
+  Folder,
+  FileText,
+  Target,
+} from "lucide-react";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import ProgressBar from "@/components/progress-bar";
@@ -18,31 +26,31 @@ interface ScoringPageProps {
 const proofVaultSteps = [
   {
     title: "Checking ProofVault Status",
-    description: "Verifying folder structure creation"
+    description: "Verifying folder structure creation",
   },
   {
     title: "Analyzing Document Framework",
-    description: "Reviewing proof organization structure"
+    description: "Reviewing proof organization structure",
   },
   {
     title: "Calculating Readiness Score",
-    description: "Assessing investment preparation level"
+    description: "Assessing investment preparation level",
   },
   {
     title: "Generating Proof Insights",
-    description: "Creating personalized recommendations"
+    description: "Creating personalized recommendations",
   },
   {
     title: "Finalizing ProofScore",
-    description: "Completing comprehensive analysis"
-  }
+    description: "Completing comprehensive analysis",
+  },
 ];
 
-export default function ScoringPage({ 
-  onNext, 
-  onStartAnalysis, 
-  analysisProgress, 
-  isAnalyzing 
+export default function ScoringPage({
+  onNext,
+  onStartAnalysis,
+  analysisProgress,
+  isAnalyzing,
 }: ScoringPageProps) {
   const [currentStep, setCurrentStep] = useState(0);
   const [proofScore, setProofScore] = useState<number | null>(null);
@@ -51,45 +59,46 @@ export default function ScoringPage({
 
   // Query ProofVault session data
   const { data: sessionData } = useQuery({
-    queryKey: ['/api/vault/session'],
+    queryKey: ["/api/vault/session"],
     refetchInterval: isAnalyzing ? 2000 : false,
   });
 
   // Submit for scoring mutation
   const submitForScoring = useMutation({
     mutationFn: async () => {
-      const response = await fetch('/api/vault/submit-for-scoring', {
-        method: 'POST',
+      const response = await fetch("/api/vault/submit-for-scoring", {
+        method: "POST",
         headers: {
-          'Content-Type': 'application/json',
+          "Content-Type": "application/json",
         },
         body: JSON.stringify({
-          startup_name: 'SecondChanceStartup'
-        })
+          startup_name: "SecondChanceStartup",
+        }),
       });
-      
+
       if (!response.ok) {
-        throw new Error('Scoring failed');
+        throw new Error("Scoring failed");
       }
-      
+
       return response.json();
     },
     onSuccess: (data) => {
       const score = data.data?.proofScore || data.proofScore || 0;
       setProofScore(score);
-      queryClient.invalidateQueries({ queryKey: ['/api/vault/session'] });
+      queryClient.invalidateQueries({ queryKey: ["/api/vault/session"] });
       toast({
         title: "Scoring Complete",
-        description: "Your pitch deck has been analyzed successfully"
+        description: "Your pitch deck has been analyzed successfully",
       });
     },
     onError: (error) => {
       toast({
         title: "Scoring Failed",
-        description: error instanceof Error ? error.message : "Please try again",
-        variant: "destructive"
+        description:
+          error instanceof Error ? error.message : "Please try again",
+        variant: "destructive",
       });
-    }
+    },
   });
 
   useEffect(() => {
@@ -97,7 +106,9 @@ export default function ScoringPage({
   }, [onStartAnalysis]);
 
   useEffect(() => {
-    setCurrentStep(Math.floor((analysisProgress / 100) * proofVaultSteps.length));
+    setCurrentStep(
+      Math.floor((analysisProgress / 100) * proofVaultSteps.length),
+    );
   }, [analysisProgress]);
 
   useEffect(() => {
@@ -121,16 +132,16 @@ export default function ScoringPage({
 
           <Card className="p-12 border-border bg-card">
             <div className="mb-8">
-              <motion.div 
+              <motion.div
                 className="w-20 h-20 bg-gradient-to-r from-primary to-primary-gold rounded-full flex items-center justify-center mx-auto mb-6"
-                animate={{ 
+                animate={{
                   scale: submitForScoring.isPending ? [1, 1.1, 1] : 1,
-                  rotate: submitForScoring.isPending ? [0, 5, -5, 0] : 0
+                  rotate: submitForScoring.isPending ? [0, 5, -5, 0] : 0,
                 }}
-                transition={{ 
+                transition={{
                   duration: 2,
                   repeat: submitForScoring.isPending ? Infinity : 0,
-                  ease: "easeInOut"
+                  ease: "easeInOut",
                 }}
               >
                 {proofScore !== null ? (
@@ -139,19 +150,24 @@ export default function ScoringPage({
                   <Brain className="text-white text-2xl w-8 h-8" />
                 )}
               </motion.div>
-              
+
               {proofScore !== null ? (
                 <>
-                  <h2 className="text-3xl font-bold mb-4">ProofScore: {proofScore}</h2>
+                  <h2 className="text-3xl font-bold mb-4">
+                    ProofScore: {proofScore}
+                  </h2>
                   <p className="text-muted-foreground mb-8">
                     Your pitch deck has been analyzed and scored successfully
                   </p>
                 </>
               ) : (
                 <>
-                  <h2 className="text-3xl font-bold mb-4">Ready for Analysis</h2>
+                  <h2 className="text-3xl font-bold mb-4">
+                    Ready for Analysis
+                  </h2>
                   <p className="text-muted-foreground mb-8">
-                    Submit your uploaded pitch deck for comprehensive AI evaluation across 5 key validation dimensions
+                    Submit your uploaded pitch deck for comprehensive AI
+                    evaluation across 5 key validation dimensions
                   </p>
                 </>
               )}
@@ -160,7 +176,7 @@ export default function ScoringPage({
             {/* Submit for Scoring or Show Analysis Progress */}
             {proofScore === null && !submitForScoring.isPending ? (
               <div className="mb-8">
-                <Button 
+                <Button
                   onClick={() => submitForScoring.mutate()}
                   className="w-full bg-gradient-to-r from-primary to-primary-gold hover:from-primary/90 hover:to-primary-gold/90 text-white font-semibold py-4 px-8 rounded-lg text-lg"
                   disabled={!sessionData?.success}
@@ -177,8 +193,18 @@ export default function ScoringPage({
             ) : submitForScoring.isPending ? (
               <div className="space-y-4 mb-8">
                 {proofVaultSteps.map((step, index) => {
-                  const isCompleted = index < Math.floor((submitForScoring.isPending ? 60 : 0) / 100 * proofVaultSteps.length);
-                  const isCurrent = index === Math.floor((submitForScoring.isPending ? 60 : 0) / 100 * proofVaultSteps.length) && submitForScoring.isPending;
+                  const isCompleted =
+                    index <
+                    Math.floor(
+                      ((submitForScoring.isPending ? 60 : 0) / 100) *
+                        proofVaultSteps.length,
+                    );
+                  const isCurrent =
+                    index ===
+                      Math.floor(
+                        ((submitForScoring.isPending ? 60 : 0) / 100) *
+                          proofVaultSteps.length,
+                      ) && submitForScoring.isPending;
 
                   return (
                     <motion.div

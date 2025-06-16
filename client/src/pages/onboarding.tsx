@@ -4,7 +4,13 @@ import { ArrowRight } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import { Card } from "@/components/ui/card";
 import ProgressBar from "@/components/progress-bar";
 import FileUpload from "@/components/file-upload";
@@ -18,9 +24,12 @@ interface OnboardingPageProps {
   onDataUpdate: (data: Partial<FounderData>) => void;
 }
 
-export default function OnboardingPage({ onNext, onDataUpdate }: OnboardingPageProps) {
+export default function OnboardingPage({
+  onNext,
+  onDataUpdate,
+}: OnboardingPageProps) {
   const [formData, setFormData] = useState<Partial<FounderData>>({
-    acceleratorApplications: 0
+    acceleratorApplications: 0,
   });
   const [isSubmitting, setIsSubmitting] = useState(false);
   const { toast } = useToast();
@@ -49,7 +58,7 @@ export default function OnboardingPage({ onNext, onDataUpdate }: OnboardingPageP
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    
+
     if (!formData.name || !formData.email || !formData.startupName) {
       toast({
         title: "Missing Information",
@@ -60,12 +69,12 @@ export default function OnboardingPage({ onNext, onDataUpdate }: OnboardingPageP
     }
 
     setIsSubmitting(true);
-    
+
     try {
       // Split name into first and last name
-      const nameParts = formData.name.trim().split(' ');
+      const nameParts = formData.name.trim().split(" ");
       const firstName = nameParts[0];
-      const lastName = nameParts.slice(1).join(' ') || '';
+      const lastName = nameParts.slice(1).join(" ") || "";
 
       // Create user
       const userData = {
@@ -89,33 +98,33 @@ export default function OnboardingPage({ onNext, onDataUpdate }: OnboardingPageP
 
       // Create startup vault using EastEmblem API
       if (formData.startupName) {
-        console.log('Creating startup vault for:', formData.startupName);
-        
+        console.log("Creating startup vault for:", formData.startupName);
+
         try {
-          const vaultResponse = await fetch('/api/vault/create-startup-vault', {
-            method: 'POST',
+          const vaultResponse = await fetch("/api/vault/create-startup-vault", {
+            method: "POST",
             headers: {
-              'Content-Type': 'application/json',
+              "Content-Type": "application/json",
             },
             body: JSON.stringify({
-              startupName: formData.startupName
+              startupName: formData.startupName,
             }),
           });
 
           const vaultResult = await vaultResponse.json();
-          
+
           if (vaultResult.success) {
-            console.log('Startup vault created successfully:', vaultResult);
-            
+            console.log("Startup vault created successfully:", vaultResult);
+
             toast({
               title: "ProofVault Created",
               description: `Professional document structure created for ${formData.startupName}`,
             });
           } else {
-            console.warn('Vault creation failed:', vaultResult);
+            console.warn("Vault creation failed:", vaultResult);
           }
         } catch (vaultError) {
-          console.error('Vault creation error:', vaultError);
+          console.error("Vault creation error:", vaultError);
         }
       }
 
@@ -125,7 +134,7 @@ export default function OnboardingPage({ onNext, onDataUpdate }: OnboardingPageP
         userId: user.id,
         ventureId: venture.id,
       };
-      
+
       setFormData(enhancedData);
       onDataUpdate(enhancedData);
 
@@ -155,12 +164,19 @@ export default function OnboardingPage({ onNext, onDataUpdate }: OnboardingPageP
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.6 }}
         >
-          <ProgressBar currentStep={1} totalSteps={4} stepName="Founder Profile" />
+          <ProgressBar
+            currentStep={1}
+            totalSteps={4}
+            stepName="Founder Profile"
+          />
 
           <Card className="p-8 border-border bg-card">
-            <h2 className="text-3xl font-bold mb-2">Tell us about your venture</h2>
+            <h2 className="text-3xl font-bold mb-2">
+              Tell us about your venture
+            </h2>
             <p className="text-muted-foreground mb-8">
-              We'll use this information to generate your personalized ProofScore
+              We'll use this information to generate your personalized
+              ProofScore
             </p>
 
             <form onSubmit={handleSubmit} className="space-y-6">
@@ -209,7 +225,9 @@ export default function OnboardingPage({ onNext, onDataUpdate }: OnboardingPageP
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                 <div>
                   <Label>Current Stage</Label>
-                  <Select onValueChange={(value) => updateField("stage", value)}>
+                  <Select
+                    onValueChange={(value) => updateField("stage", value)}
+                  >
                     <SelectTrigger className="bg-background border-border">
                       <SelectValue placeholder="Select stage" />
                     </SelectTrigger>
@@ -222,7 +240,9 @@ export default function OnboardingPage({ onNext, onDataUpdate }: OnboardingPageP
                   </Select>
                 </div>
                 <div>
-                  <Label htmlFor="acceleratorApps">Accelerator Applications</Label>
+                  <Label htmlFor="acceleratorApps">
+                    Accelerator Applications
+                  </Label>
                   <Input
                     id="acceleratorApps"
                     type="number"
@@ -230,7 +250,12 @@ export default function OnboardingPage({ onNext, onDataUpdate }: OnboardingPageP
                     min="0"
                     className="bg-background border-border"
                     value={formData.acceleratorApplications || 0}
-                    onChange={(e) => updateField("acceleratorApplications", parseInt(e.target.value) || 0)}
+                    onChange={(e) =>
+                      updateField(
+                        "acceleratorApplications",
+                        parseInt(e.target.value) || 0,
+                      )
+                    }
                   />
                 </div>
               </div>
@@ -244,11 +269,11 @@ export default function OnboardingPage({ onNext, onDataUpdate }: OnboardingPageP
                   onFileSelect={(file) => updateField("pitchDeck", file?.name)}
                 />
 
-                <FileUpload
+                {/* <FileUpload
                   label="Data Room (Optional)"
                   description="Financial models, market research, etc."
                   onFileSelect={(file) => updateField("dataRoom", file?.name)}
-                />
+                /> */}
               </div>
 
               {/* Submit Button */}
