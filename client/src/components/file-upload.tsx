@@ -49,54 +49,28 @@ export default function FileUpload({
     setFileName(file.name);
 
     try {
-      // Get session data for folder structure
-      const sessionResponse = await fetch('/api/vault/session');
-      const sessionData = await sessionResponse.json();
-
-      if (!sessionData.success || !sessionData.data?.folderStructure) {
-        throw new Error('No folder structure found. Please complete onboarding first.');
-      }
-
-      // Use 0_Overview folder ID for pitch deck uploads
-      const overviewFolderId = sessionData.data.folderStructure.folders['0_Overview'];
-      
-      if (!overviewFolderId) {
-        throw new Error('Overview folder not found in structure');
-      }
-
-      // Upload file to EastEmblem API
+      // Execute complete workflow: create folder structure → upload to 0_Overview → score pitch deck
       const formData = new FormData();
       formData.append('file', file);
-      formData.append('folder_id', overviewFolderId);
+      formData.append('startup_name', 'SecondChanceStartup');
 
-      const uploadResponse = await fetch('/api/vault/upload-file', {
+      const response = await fetch('/api/vault/complete-upload', {
         method: 'POST',
         body: formData,
       });
 
-      const uploadResult = await uploadResponse.json();
+      const result = await response.json();
 
-      if (!uploadResult.success) {
-        throw new Error(uploadResult.error || 'Upload failed');
+      if (!result.success) {
+        throw new Error(result.error || 'Complete workflow failed');
       }
-
-      // Score the pitch deck
-      const scoreFormData = new FormData();
-      scoreFormData.append('file', file);
-
-      const scoreResponse = await fetch('/api/vault/score-pitch-deck', {
-        method: 'POST',
-        body: scoreFormData,
-      });
-
-      const scoreResult = await scoreResponse.json();
 
       setUploaded(true);
       setUploading(false);
 
       toast({
         title: "Upload successful",
-        description: `${file.name} uploaded and analyzed`,
+        description: `${file.name} processed through complete workflow`,
       });
 
       if (onFileSelect) {
@@ -104,10 +78,7 @@ export default function FileUpload({
       }
 
       if (onUploadComplete) {
-        onUploadComplete({
-          upload: uploadResult,
-          score: scoreResult
-        });
+        onUploadComplete(result.data);
       }
 
     } catch (error) {
