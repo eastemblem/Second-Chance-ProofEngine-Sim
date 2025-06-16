@@ -49,12 +49,11 @@ export default function FileUpload({
     setFileName(file.name);
 
     try {
-      // Execute complete workflow: create folder structure → upload to 0_Overview → score pitch deck
+      // Simple file upload - store file without executing workflow
       const formData = new FormData();
       formData.append('file', file);
-      formData.append('startup_name', 'SecondChanceStartup');
 
-      const response = await fetch('/api/vault/complete-upload', {
+      const response = await fetch('/api/vault/upload-only', {
         method: 'POST',
         body: formData,
       });
@@ -62,15 +61,15 @@ export default function FileUpload({
       const result = await response.json();
 
       if (!result.success) {
-        throw new Error(result.error || 'Complete workflow failed');
+        throw new Error(result.error || 'File upload failed');
       }
 
       setUploaded(true);
       setUploading(false);
 
       toast({
-        title: "Upload successful",
-        description: `${file.name} processed through complete workflow`,
+        title: "File uploaded",
+        description: `${file.name} ready for scoring`,
       });
 
       if (onFileSelect) {
@@ -78,7 +77,7 @@ export default function FileUpload({
       }
 
       if (onUploadComplete) {
-        onUploadComplete(result.data);
+        onUploadComplete(result);
       }
 
     } catch (error) {

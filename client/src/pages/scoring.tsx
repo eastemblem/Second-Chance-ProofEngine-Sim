@@ -1,9 +1,12 @@
 import { useEffect, useState } from "react";
 import { motion } from "framer-motion";
-import { Brain, CheckCircle, Clock, Loader, Folder, FileText } from "lucide-react";
+import { Brain, CheckCircle, Clock, Loader, Folder, FileText, Target } from "lucide-react";
 import { Card } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
 import ProgressBar from "@/components/progress-bar";
-import { useQuery } from "@tanstack/react-query";
+import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import { apiRequest } from "@/lib/queryClient";
+import { useToast } from "@/hooks/use-toast";
 
 interface ScoringPageProps {
   onNext: () => void;
@@ -42,12 +45,51 @@ export default function ScoringPage({
   isAnalyzing 
 }: ScoringPageProps) {
   const [currentStep, setCurrentStep] = useState(0);
+  const [proofScore, setProofScore] = useState<number | null>(null);
+  const queryClient = useQueryClient();
+  const { toast } = useToast();
 
-  // Query ProofVault session data for real-time analysis
+  // Query ProofVault session data
   const { data: sessionData } = useQuery({
     queryKey: ['/api/vault/session'],
-    refetchInterval: 2000, // Poll every 2 seconds during analysis
-    enabled: isAnalyzing
+    refetchInterval: isAnalyzing ? 2000 : false,
+  });
+
+  // Submit for scoring mutation
+  const submitForScoring = useMutation({
+    mutationFn: async () => {
+      const response = await fetch('/api/vault/submit-for-scoring', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          startup_name: 'SecondChanceStartup'
+        })
+      });
+      
+      if (!response.ok) {
+        throw new Error('Scoring failed');
+      }
+      
+      return response.json();
+    },
+    onSuccess: (data) => {
+      const score = data.data?.proofScore || data.proofScore || 0;
+      setProofScore(score);
+      queryClient.invalidateQueries({ queryKey: ['/api/vault/session'] });
+      toast({
+        title: "Scoring Complete",
+        description: "Your pitch deck has been analyzed successfully"
+      });
+    },
+    onError: (error) => {
+      toast({
+        title: "Scoring Failed",
+        description: error instanceof Error ? error.message : "Please try again",
+        variant: "destructive"
+      });
+    }
   });
 
   useEffect(() => {
@@ -82,21 +124,37 @@ export default function ScoringPage({
               <motion.div 
                 className="w-20 h-20 bg-gradient-to-r from-primary to-primary-gold rounded-full flex items-center justify-center mx-auto mb-6"
                 animate={{ 
-                  scale: [1, 1.1, 1],
-                  rotate: [0, 5, -5, 0]
+                  scale: submitForScoring.isPending ? [1, 1.1, 1] : 1,
+                  rotate: submitForScoring.isPending ? [0, 5, -5, 0] : 0
                 }}
                 transition={{ 
                   duration: 2,
-                  repeat: Infinity,
+                  repeat: submitForScoring.isPending ? Infinity : 0,
                   ease: "easeInOut"
                 }}
               >
-                <Brain className="text-white text-2xl w-8 h-8" />
+                {proofScore !== null ? (
+                  <Target className="text-white text-2xl w-8 h-8" />
+                ) : (
+                  <Brain className="text-white text-2xl w-8 h-8" />
+                )}
               </motion.div>
-              <h2 className="text-3xl font-bold mb-4">Analyzing Your Venture</h2>
-              <p className="text-muted-foreground mb-8">
-                Our AI is evaluating your pitch deck and venture data across 5 key validation dimensions
-              </p>
+              
+              {proofScore !== null ? (
+                <>
+                  <h2 className="text-3xl font-bold mb-4">ProofScore: {proofScore}</h2>
+                  <p className="text-muted-foreground mb-8">
+                    Your pitch deck has been analyzed and scored successfully
+                  </p>
+                </>
+              ) : (
+                <>
+                  <h2 className="text-3xl font-bold mb-4">Ready for Analysis</h2>
+                  <p className="text-muted-foreground mb-8">
+                    Submit your uploaded pitch deck for comprehensive AI evaluation across 5 key validation dimensions
+                  </p>
+                </>
+              )}
             </div>
 
             {/* ProofVault Analysis Steps */}

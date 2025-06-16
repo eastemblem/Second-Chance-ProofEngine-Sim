@@ -56,6 +56,12 @@ interface SessionData {
   uploadedFiles?: FileUploadResponse[];
   pitchDeckScore?: PitchDeckScoreResponse;
   startupName?: string;
+  uploadedFile?: {
+    buffer: Buffer;
+    originalname: string;
+    mimetype: string;
+    size: number;
+  };
 }
 
 const sessionStore: Map<string, SessionData> = new Map();
@@ -278,18 +284,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  // Complete workflow: create folder structure → upload to 0_Overview → score pitch deck
-  app.post("/api/vault/complete-upload", upload.single('file'), async (req, res) => {
+  // Simple file upload - store file in session without executing workflow
+  app.post("/api/vault/upload-only", upload.single('file'), async (req, res) => {
     try {
-      if (!eastEmblemAPI.isConfigured()) {
-        return res.status(503).json({
-          error: 'EastEmblem API not configured',
-          message: 'EASTEMBLEM_API_BASE_URL is required'
-        });
-      }
-
       const file = req.file;
-      const startupName = req.body.startup_name || 'SecondChanceStartup';
 
       if (!file) {
         return res.status(400).json({
@@ -298,7 +296,58 @@ export async function registerRoutes(app: Express): Promise<Server> {
         });
       }
 
-      console.log(`Starting complete workflow for: ${file.originalname}`);
+      console.log(`Storing file for later processing: ${file.originalname}`);
+
+      // Store file data in session for later processing
+      updateSessionData(req, { 
+        uploadedFile: {
+          buffer: file.buffer,
+          originalname: file.originalname,
+          mimetype: file.mimetype,
+          size: file.size
+        }
+      });
+
+      return res.json({
+        success: true,
+        message: 'File uploaded and ready for processing',
+        file: {
+          name: file.originalname,
+          size: file.size,
+          type: file.mimetype
+        }
+      });
+
+    } catch (error) {
+      console.error('Error storing file:', error);
+      res.status(500).json({ 
+        error: error instanceof Error ? error.message : 'File storage failed'
+      });
+    }
+  });
+
+  // Submit for scoring workflow - uses file stored in session
+  app.post("/api/vault/submit-for-scoring", async (req, res) => {
+    try {
+      if (!eastEmblemAPI.isConfigured()) {
+        return res.status(503).json({
+          error: 'EastEmblem API not configured',
+          message: 'EASTEMBLEM_API_BASE_URL is required'
+        });
+      }
+
+      const sessionData = getSessionData(req);
+      const uploadedFile = sessionData.uploadedFile;
+      const startupName = req.body.startup_name || 'SecondChanceStartup';
+
+      if (!uploadedFile) {
+        return res.status(400).json({
+          error: 'No file found',
+          message: 'Please upload a file first'
+        });
+      }
+
+      console.log(`Starting scoring workflow for: ${uploadedFile.originalname}`);
 
       // Step 1: Create folder structure
       console.log('Step 1: Creating folder structure...');
@@ -315,43 +364,46 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const overviewFolderId = folderStructure.folders['0_Overview'];
       
       const uploadResult = await eastEmblemAPI.uploadFile(
-        file.buffer,
-        file.originalname,
+        uploadedFile.buffer,
+        uploadedFile.originalname,
         overviewFolderId
       );
 
       // Update session with uploaded file
-      const sessionData = getSessionData(req);
       const updatedFiles = [...(sessionData.uploadedFiles || []), uploadResult];
       updateSessionData(req, { uploadedFiles: updatedFiles });
 
       // Step 3: Score the pitch deck
       console.log('Step 3: Scoring pitch deck...');
       const pitchDeckScore = await eastEmblemAPI.scorePitchDeck(
-        file.buffer,
-        file.originalname
+        uploadedFile.buffer,
+        uploadedFile.originalname
       );
 
       // Update session with pitch deck score
       updateSessionData(req, { pitchDeckScore });
 
-      console.log('Complete workflow finished successfully');
+      // Clear the uploaded file from session since it's now processed
+      updateSessionData(req, { uploadedFile: undefined });
+
+      console.log('Scoring workflow finished successfully');
 
       return res.json({
         success: true,
-        message: 'Complete workflow executed successfully',
+        message: 'Scoring workflow completed successfully',
         data: {
           folderStructure,
           uploadResult,
           pitchDeckScore,
+          proofScore: pitchDeckScore.total_score || 0,
           sessionId: getSessionId(req)
         }
       });
 
     } catch (error) {
-      console.error('Error in complete workflow:', error);
+      console.error('Error in scoring workflow:', error);
       res.status(500).json({ 
-        error: error instanceof Error ? error.message : 'Complete workflow failed'
+        error: error instanceof Error ? error.message : 'Scoring workflow failed'
       });
     }
   });
