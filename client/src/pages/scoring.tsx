@@ -183,7 +183,7 @@ export default function ScoringPage({
                   <Brain className="mr-2 w-5 h-5" />
                   Submit for Scoring
                 </Button>
-                {!sessionData?.success && (
+                {(!sessionData?.success || !sessionData?.data?.uploadedFile) && (
                   <p className="text-sm text-muted-foreground mt-2 text-center">
                     Please upload a pitch deck first
                   </p>
