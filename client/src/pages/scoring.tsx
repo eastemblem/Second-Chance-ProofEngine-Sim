@@ -183,6 +183,14 @@ export default function ScoringPage({
             {/* Submit for Scoring or Show Analysis Progress */}
             {proofScore === null && !submitForScoring.isPending ? (
               <div className="mb-8">
+                {sessionData?.data?.founderData?.startupName && (
+                  <div className="mb-4 p-3 bg-primary/10 rounded-lg border border-primary/20">
+                    <p className="text-sm text-center text-primary">
+                      <Target className="inline mr-2 w-4 h-4" />
+                      Analyzing pitch deck for: <strong>{sessionData.data.founderData.startupName}</strong>
+                    </p>
+                  </div>
+                )}
                 <Button 
                   onClick={() => submitForScoring.mutate()}
                   className="w-full bg-gradient-to-r from-primary to-primary-gold hover:from-primary/90 hover:to-primary-gold/90 text-white font-semibold py-4 px-8 rounded-lg text-lg"
