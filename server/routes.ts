@@ -90,6 +90,14 @@ interface SessionData {
     mimetype: string;
     size: number;
   };
+  founderData?: {
+    name?: string;
+    email?: string;
+    startupName?: string;
+    stage?: string;
+    acceleratorApplications?: number;
+    [key: string]: any;
+  };
 }
 
 const sessionStore: Map<string, SessionData> = new Map();
@@ -241,6 +249,32 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Store onboarding data in session
+  app.post("/api/onboarding/store", async (req, res) => {
+    try {
+      const founderData = req.body;
+      
+      console.log("Storing onboarding data in session:", founderData);
+      
+      // Store founder data in session
+      updateSessionData(req, { 
+        founderData,
+        startupName: founderData.startupName 
+      });
+      
+      return res.json({
+        success: true,
+        message: "Onboarding data stored successfully",
+        sessionId: getSessionId(req),
+      });
+    } catch (error) {
+      console.error("Error storing onboarding data:", error);
+      res.status(500).json({
+        error: error instanceof Error ? error.message : "Failed to store onboarding data",
+      });
+    }
+  });
+
   // EastEmblem API Routes for ProofVault
 
   // Create startup vault structure
@@ -383,7 +417,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
       const sessionData = getSessionData(req);
       const uploadedFile = sessionData.uploadedFile;
-      const startupName = req.body.startup_name || "SecondChanceStartup";
+      const startupName = sessionData.founderData?.startupName || sessionData.startupName || "SecondChanceStartup";
 
       if (!uploadedFile) {
         return res.status(400).json({

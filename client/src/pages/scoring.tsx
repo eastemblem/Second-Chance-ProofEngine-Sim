@@ -22,6 +22,16 @@ interface SessionResponse {
     uploadedFiles?: any[];
     pitchDeckScore?: any;
     startupName?: string;
+    founderData?: {
+      name?: string;
+      email?: string;
+      startupName?: string;
+      stage?: string;
+      acceleratorApplications?: number;
+      userId?: string;
+      ventureId?: string;
+      [key: string]: any;
+    };
   };
 }
 
@@ -78,9 +88,7 @@ export default function ScoringPage({
         headers: {
           'Content-Type': 'application/json',
         },
-        body: JSON.stringify({
-          startup_name: 'SecondChanceStartup'
-        })
+        body: JSON.stringify({})
       });
       
       if (!response.ok) {

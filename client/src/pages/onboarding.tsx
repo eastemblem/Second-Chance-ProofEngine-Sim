@@ -135,6 +135,27 @@ export default function OnboardingPage({
         ventureId: venture.id,
       };
 
+      // Store onboarding data in session for use throughout the app
+      try {
+        const sessionResponse = await fetch("/api/onboarding/store", {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify(enhancedData),
+        });
+
+        const sessionResult = await sessionResponse.json();
+        
+        if (sessionResult.success) {
+          console.log("Onboarding data stored in session successfully");
+        } else {
+          console.warn("Failed to store onboarding data in session:", sessionResult);
+        }
+      } catch (sessionError) {
+        console.error("Error storing onboarding data in session:", sessionError);
+      }
+
       setFormData(enhancedData);
       onDataUpdate(enhancedData);
 
