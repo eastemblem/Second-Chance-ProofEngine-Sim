@@ -9,7 +9,8 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { ChevronLeft } from "lucide-react";
+import { Textarea } from "@/components/ui/textarea";
+import { ChevronLeft, Linkedin, Twitter, Instagram } from "lucide-react";
 import { ventureSchema, type VentureFormData } from "@shared/schema";
 
 interface VentureOnboardingProps {
@@ -291,37 +292,52 @@ export default function VentureOnboarding({
         </div>
 
         <div>
-          <Label htmlFor="description">Company Description (Optional)</Label>
-          <Input
+          <Label htmlFor="description">Startup Description *</Label>
+          <Textarea
             id="description"
             {...form.register("description")}
             className="mt-1"
-            placeholder="Brief description of what your company does"
+            placeholder="Describe what your startup does, the problem you solve, and your unique value proposition..."
+            rows={4}
           />
+          {form.formState.errors.description && (
+            <p className="text-red-500 text-sm mt-1">
+              {form.formState.errors.description.message}
+            </p>
+          )}
         </div>
 
         <div>
           <Label>Social Media Links (Optional)</Label>
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mt-2">
-            <div>
+            <div className="relative">
+              <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                <Linkedin className="h-4 w-4 text-gray-400" />
+              </div>
               <Input
                 {...form.register("linkedinUrl")}
                 placeholder="LinkedIn URL"
-                className="mt-1"
+                className="pl-10"
               />
             </div>
-            <div>
+            <div className="relative">
+              <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                <Twitter className="h-4 w-4 text-gray-400" />
+              </div>
               <Input
                 {...form.register("twitterUrl")}
                 placeholder="Twitter URL"
-                className="mt-1"
+                className="pl-10"
               />
             </div>
-            <div>
+            <div className="relative">
+              <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                <Instagram className="h-4 w-4 text-gray-400" />
+              </div>
               <Input
                 {...form.register("instagramUrl")}
                 placeholder="Instagram URL"
-                className="mt-1"
+                className="pl-10"
               />
             </div>
           </div>

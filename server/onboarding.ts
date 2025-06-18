@@ -34,7 +34,7 @@ export const ventureOnboardingSchema = z.object({
   userSignups: z.number().or(z.string().transform(val => val === "" ? 0 : Number(val))).default(0),
   lois: z.number().or(z.string().transform(val => val === "" ? 0 : Number(val))).default(0),
   hasTestimonials: z.boolean().default(false),
-  description: z.string().optional().transform(val => val === "" ? undefined : val),
+  description: z.string().min(1, "Startup description is required"),
   linkedinUrl: z.string().optional().transform(val => val === "" ? undefined : val),
   twitterUrl: z.string().optional().transform(val => val === "" ? undefined : val),
   instagramUrl: z.string().optional().transform(val => val === "" ? undefined : val),

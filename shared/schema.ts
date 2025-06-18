@@ -316,7 +316,7 @@ export const ventureSchema = z.object({
   userSignups: z.number().default(0),
   lois: z.number().default(0),
   hasTestimonials: z.boolean().default(false),
-  description: z.string().optional(),
+  description: z.string().min(1, "Startup description is required"),
   linkedinUrl: z.string().optional(),
   twitterUrl: z.string().optional(),
   instagramUrl: z.string().optional(),
