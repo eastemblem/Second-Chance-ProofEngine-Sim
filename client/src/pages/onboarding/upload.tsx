@@ -135,10 +135,10 @@ export default function DocumentUpload({
       className="max-w-2xl mx-auto"
     >
       <div className="text-center mb-8">
-        <h2 className="text-3xl font-bold text-gray-900 mb-2">
+        <h2 className="text-3xl font-bold text-foreground mb-2">
           Upload Your Pitch Deck
         </h2>
-        <p className="text-gray-600">
+        <p className="text-muted-foreground">
           Upload your pitch deck to get a comprehensive analysis and ProofScore
         </p>
       </div>

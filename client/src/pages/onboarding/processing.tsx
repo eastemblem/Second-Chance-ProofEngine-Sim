@@ -101,10 +101,10 @@ export default function ProcessingScreen({
       className="max-w-2xl mx-auto text-center"
     >
       <div className="mb-8">
-        <h2 className="text-3xl font-bold text-gray-900 mb-2">
+        <h2 className="text-3xl font-bold text-foreground mb-2">
           Processing Your Submission
         </h2>
-        <p className="text-gray-600">
+        <p className="text-muted-foreground">
           Our AI is analyzing your pitch deck and generating your ProofScore
         </p>
       </div>

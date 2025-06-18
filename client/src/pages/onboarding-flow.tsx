@@ -146,9 +146,9 @@ export default function OnboardingFlow({ onComplete }: OnboardingFlowProps) {
 
   if (!sessionData) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-purple-900 via-blue-900 to-indigo-900 flex items-center justify-center">
-        <div className="text-white text-center">
-          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-white mx-auto mb-4"></div>
+      <div className="min-h-screen bg-gradient-to-br from-background via-card to-background flex items-center justify-center">
+        <div className="text-foreground text-center">
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary mx-auto mb-4"></div>
           <p>Initializing onboarding session...</p>
         </div>
       </div>
@@ -158,7 +158,7 @@ export default function OnboardingFlow({ onComplete }: OnboardingFlowProps) {
   const currentStep = steps[currentStepIndex];
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-purple-900 via-blue-900 to-indigo-900">
+    <div className="min-h-screen bg-gradient-to-br from-background via-card to-background">
       <div className="container mx-auto px-4 py-8">
         {/* Progress Bar */}
         <div className="mb-8">
@@ -180,7 +180,7 @@ export default function OnboardingFlow({ onComplete }: OnboardingFlowProps) {
                   {index + 1}
                 </div>
                 <span className={`text-xs mt-1 ${
-                  index <= currentStepIndex ? 'text-white' : 'text-purple-300'
+                  index <= currentStepIndex ? 'text-foreground' : 'text-muted-foreground'
                 }`}>
                   {step.name}
                 </span>
@@ -197,7 +197,7 @@ export default function OnboardingFlow({ onComplete }: OnboardingFlowProps) {
             animate={{ opacity: 1, x: 0 }}
             exit={{ opacity: 0, x: -20 }}
             transition={{ duration: 0.3 }}
-            className="bg-white rounded-xl p-8 shadow-2xl"
+            className="bg-card rounded-xl p-8 shadow-2xl border"
           >
             {currentStep.key === "founder" && (
               <FounderOnboarding

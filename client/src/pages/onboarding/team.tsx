@@ -148,10 +148,10 @@ export default function TeamOnboarding({
       className="max-w-4xl mx-auto"
     >
       <div className="text-center mb-8">
-        <h2 className="text-3xl font-bold text-gray-900 mb-2">
+        <h2 className="text-3xl font-bold text-foreground mb-2">
           Build Your Team
         </h2>
-        <p className="text-gray-600 mb-4">
+        <p className="text-muted-foreground mb-4">
           Add your team members (minimum 3 required)
         </p>
         <div className="flex items-center justify-center space-x-2 text-sm">

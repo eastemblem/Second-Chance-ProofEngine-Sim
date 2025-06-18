@@ -82,10 +82,10 @@ export default function AnalysisScreen({
         >
           <Trophy className="w-10 h-10 text-white" />
         </motion.div>
-        <h2 className="text-3xl font-bold text-gray-900 mb-2">
+        <h2 className="text-3xl font-bold text-foreground mb-2">
           Your ProofScore Analysis
         </h2>
-        <p className="text-gray-600">
+        <p className="text-muted-foreground">
           Comprehensive analysis of {ventureData?.startupName || "your startup"}'s investment readiness
         </p>
       </div>
