@@ -85,6 +85,8 @@ export default function TeamOnboarding({
   const teamMemberCount = teamMembers.length;
   const isValidTeam = teamMemberCount >= 3;
 
+  console.log('Team Data Debug:', { teamData, teamMembers, teamMemberCount, isValidTeam });
+
   // Add team member mutation
   const addMemberMutation = useMutation({
     mutationFn: async (data: TeamMemberFormData) => {
@@ -274,7 +276,7 @@ export default function TeamOnboarding({
           </div>
         )}
         
-        {!isLoading && teamMemberCount > 0 && (
+        {!isLoading && teamMemberCount > 0 ? (
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
             {teamMembers.map((member: any, index: number) => (
               <Card key={member.memberId || index} className="border-2">
@@ -369,6 +371,12 @@ export default function TeamOnboarding({
                 </CardContent>
               </Card>
             ))}
+          </div>
+        ) : !isLoading && teamMemberCount === 0 && (
+          <div className="text-center py-8 text-gray-500">
+            <Users className="w-12 h-12 mx-auto mb-2 text-gray-300" />
+            <p>No team members added yet</p>
+            <p className="text-sm">Add your first team member to get started</p>
           </div>
         )}
 
