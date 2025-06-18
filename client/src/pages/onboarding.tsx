@@ -204,14 +204,14 @@ export default function OnboardingPage({
               {/* Founder Details */}
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                 <div>
-                  <Label htmlFor="name">Founder Name *</Label>
+                  <Label htmlFor="fullName">Founder Name *</Label>
                   <Input
-                    id="name"
+                    id="fullName"
                     type="text"
                     placeholder="John Doe"
                     className="bg-background border-border"
-                    value={formData.name || ""}
-                    onChange={(e) => updateField("name", e.target.value)}
+                    value={formData.fullName || ""}
+                    onChange={(e) => updateField("fullName", e.target.value)}
                     required
                   />
                 </div>
