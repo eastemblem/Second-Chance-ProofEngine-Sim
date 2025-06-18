@@ -47,6 +47,7 @@ export const teamMemberSchema = z.object({
   experience: z.string().min(1, "Experience is required"),
   linkedinProfile: z.string().optional(),
   background: z.string().optional(),
+  isCofounder: z.boolean().default(false),
 });
 
 // Onboarding session management

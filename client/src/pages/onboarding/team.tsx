@@ -20,6 +20,7 @@ const teamMemberSchema = z.object({
   experience: z.string().min(1, "Experience is required"),
   linkedinProfile: z.string().optional(),
   background: z.string().optional(),
+  isCofounder: z.boolean().default(false),
 });
 
 type TeamMemberFormData = z.infer<typeof teamMemberSchema>;
@@ -53,6 +54,7 @@ export default function TeamOnboarding({
       email: "",
       linkedinProfile: "",
       background: "",
+      isCofounder: false,
     }
   });
 
@@ -300,6 +302,16 @@ export default function TeamOnboarding({
                     className="mt-1"
                     placeholder="Additional background information"
                   />
+                </div>
+
+                <div className="flex items-center space-x-2">
+                  <input
+                    type="checkbox"
+                    id="isCofounder"
+                    {...form.register("isCofounder")}
+                    className="rounded"
+                  />
+                  <Label htmlFor="isCofounder">This person is a co-founder</Label>
                 </div>
 
                 <div className="flex justify-end space-x-2 pt-4">

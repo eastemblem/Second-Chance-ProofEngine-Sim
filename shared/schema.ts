@@ -88,6 +88,7 @@ export const teamMember = pgTable("team_member", {
   role: varchar("role", { length: 100 }).notNull(),
   experience: text("experience").notNull(),
   background: text("background"),
+  isCofounder: boolean("is_cofounder").default(false),
   createdAt: timestamp("created_at").defaultNow().notNull(),
 });
 
