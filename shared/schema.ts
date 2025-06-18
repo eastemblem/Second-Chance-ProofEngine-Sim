@@ -135,6 +135,34 @@ export const proofVault = pgTable("proof_vault", {
   createdAt: timestamp("created_at").defaultNow().notNull(),
 });
 
+// Onboarding Session table for multi-step progress tracking
+export const onboardingSession = pgTable("onboarding_session", {
+  sessionId: uuid("session_id").primaryKey().defaultRandom(),
+  founderId: uuid("founder_id").references(() => founder.founderId),
+  currentStep: varchar("current_step", { length: 50 }).notNull().default("founder"),
+  stepData: jsonb("step_data").default({}),
+  completedSteps: jsonb("completed_steps").default([]),
+  isComplete: boolean("is_complete").default(false),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+  updatedAt: timestamp("updated_at").defaultNow().notNull(),
+});
+
+// Document Upload tracking table
+export const documentUpload = pgTable("document_upload", {
+  uploadId: uuid("upload_id").primaryKey().defaultRandom(),
+  sessionId: uuid("session_id").references(() => onboardingSession.sessionId),
+  ventureId: uuid("venture_id").references(() => venture.ventureId),
+  fileName: varchar("file_name", { length: 255 }).notNull(),
+  originalName: varchar("original_name", { length: 255 }).notNull(),
+  filePath: varchar("file_path", { length: 500 }).notNull(),
+  fileSize: integer("file_size").notNull(),
+  mimeType: varchar("mime_type", { length: 100 }).notNull(),
+  uploadStatus: varchar("upload_status", { length: 50 }).default("pending"),
+  processingStatus: varchar("processing_status", { length: 50 }).default("pending"),
+  eastemblemFileId: varchar("eastemblem_file_id", { length: 100 }),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+});
+
 // Relations
 export const founderRelations = relations(founder, ({ many }) => ({
   ventures: many(venture),
@@ -208,6 +236,25 @@ export const proofVaultRelations = relations(proofVault, ({ one }) => ({
   }),
 }));
 
+export const onboardingSessionRelations = relations(onboardingSession, ({ one, many }) => ({
+  founder: one(founder, {
+    fields: [onboardingSession.founderId],
+    references: [founder.founderId],
+  }),
+  documents: many(documentUpload),
+}));
+
+export const documentUploadRelations = relations(documentUpload, ({ one }) => ({
+  session: one(onboardingSession, {
+    fields: [documentUpload.sessionId],
+    references: [onboardingSession.sessionId],
+  }),
+  venture: one(venture, {
+    fields: [documentUpload.ventureId],
+    references: [venture.ventureId],
+  }),
+}));
+
 // Export types
 export type Founder = typeof founder.$inferSelect;
 export type InsertFounder = typeof founder.$inferInsert;
@@ -227,6 +274,10 @@ export type EvaluationCategory = typeof evaluationCategory.$inferSelect;
 export type InsertEvaluationCategory = typeof evaluationCategory.$inferInsert;
 export type ProofVault = typeof proofVault.$inferSelect;
 export type InsertProofVault = typeof proofVault.$inferInsert;
+export type OnboardingSession = typeof onboardingSession.$inferSelect;
+export type InsertOnboardingSession = typeof onboardingSession.$inferInsert;
+export type DocumentUpload = typeof documentUpload.$inferSelect;
+export type InsertDocumentUpload = typeof documentUpload.$inferInsert;
 
 export const founderSchema = z.object({
   fullName: z.string().min(1, "Name is required"),

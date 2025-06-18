@@ -260,6 +260,224 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Multi-step onboarding endpoints
+  
+  // Initialize or resume onboarding session
+  app.post("/api/onboarding/session/init", async (req, res) => {
+    try {
+      const sessionId = await onboardingManager.initializeSession(req);
+      const session = await onboardingManager.getSession(sessionId);
+      
+      res.json({
+        success: true,
+        sessionId,
+        currentStep: session?.currentStep || "founder",
+        stepData: session?.stepData || {},
+        completedSteps: session?.completedSteps || []
+      });
+    } catch (error) {
+      console.log(`Error initializing onboarding session: ${error}`);
+      res.status(500).json({ error: "Failed to initialize session" });
+    }
+  });
+
+  // Get session status
+  app.get("/api/onboarding/session/:sessionId", async (req, res) => {
+    try {
+      const { sessionId } = req.params;
+      const session = await onboardingManager.getSession(sessionId);
+      
+      if (!session) {
+        return res.status(404).json({ error: "Session not found" });
+      }
+
+      res.json({
+        success: true,
+        session: {
+          sessionId: session.sessionId,
+          currentStep: session.currentStep,
+          stepData: session.stepData,
+          completedSteps: session.completedSteps,
+          isComplete: session.isComplete
+        }
+      });
+    } catch (error) {
+      console.log(`Error fetching session: ${error}`);
+      res.status(500).json({ error: "Failed to fetch session" });
+    }
+  });
+
+  // Founder onboarding step
+  app.post("/api/onboarding/founder", async (req, res) => {
+    try {
+      const { sessionId, ...founderData } = req.body;
+      
+      if (!sessionId) {
+        return res.status(400).json({ error: "Session ID required" });
+      }
+
+      const founderId = await onboardingManager.completeFounderStep(sessionId, founderData);
+      
+      res.json({
+        success: true,
+        founderId,
+        nextStep: "venture"
+      });
+    } catch (error) {
+      console.log(`Error in founder onboarding: ${error}`);
+      if (error instanceof z.ZodError) {
+        return res.status(400).json({ 
+          error: "Validation error", 
+          details: error.errors 
+        });
+      }
+      res.status(500).json({ error: "Failed to complete founder step" });
+    }
+  });
+
+  // Venture onboarding step
+  app.post("/api/onboarding/venture", async (req, res) => {
+    try {
+      const { sessionId, ...ventureData } = req.body;
+      
+      if (!sessionId) {
+        return res.status(400).json({ error: "Session ID required" });
+      }
+
+      const result = await onboardingManager.completeVentureStep(sessionId, ventureData);
+      
+      res.json({
+        success: true,
+        venture: result.venture,
+        folderStructure: result.folderStructure,
+        nextStep: "team"
+      });
+    } catch (error) {
+      console.log(`Error in venture onboarding: ${error}`);
+      if (error instanceof z.ZodError) {
+        return res.status(400).json({ 
+          error: "Validation error", 
+          details: error.errors 
+        });
+      }
+      res.status(500).json({ error: "Failed to complete venture step" });
+    }
+  });
+
+  // Add team member
+  app.post("/api/onboarding/team/add", async (req, res) => {
+    try {
+      const { sessionId, ...memberData } = req.body;
+      
+      if (!sessionId) {
+        return res.status(400).json({ error: "Session ID required" });
+      }
+
+      const teamMember = await onboardingManager.addTeamMember(sessionId, memberData);
+      
+      res.json({
+        success: true,
+        teamMember
+      });
+    } catch (error) {
+      console.log(`Error adding team member: ${error}`);
+      if (error instanceof z.ZodError) {
+        return res.status(400).json({ 
+          error: "Validation error", 
+          details: error.errors 
+        });
+      }
+      res.status(500).json({ error: "Failed to add team member" });
+    }
+  });
+
+  // Get team members
+  app.get("/api/onboarding/team/:sessionId", async (req, res) => {
+    try {
+      const { sessionId } = req.params;
+      const teamMembers = await onboardingManager.getTeamMembers(sessionId);
+      
+      res.json({
+        success: true,
+        teamMembers,
+        count: teamMembers.length,
+        isValid: teamMembers.length >= 3
+      });
+    } catch (error) {
+      console.log(`Error fetching team members: ${error}`);
+      res.status(500).json({ error: "Failed to fetch team members" });
+    }
+  });
+
+  // Complete team step
+  app.post("/api/onboarding/team/complete", async (req, res) => {
+    try {
+      const { sessionId } = req.body;
+      
+      if (!sessionId) {
+        return res.status(400).json({ error: "Session ID required" });
+      }
+
+      const teamMembers = await onboardingManager.completeTeamStep(sessionId);
+      
+      res.json({
+        success: true,
+        teamMembers,
+        nextStep: "upload"
+      });
+    } catch (error) {
+      console.log(`Error completing team step: ${error}`);
+      res.status(400).json({ error: error.message });
+    }
+  });
+
+  // Document upload
+  app.post("/api/onboarding/upload", upload.single("pitchDeck"), async (req, res) => {
+    try {
+      const { sessionId } = req.body;
+      
+      if (!sessionId) {
+        return res.status(400).json({ error: "Session ID required" });
+      }
+
+      if (!req.file) {
+        return res.status(400).json({ error: "No file uploaded" });
+      }
+
+      const uploadResult = await onboardingManager.handleDocumentUpload(sessionId, req.file);
+      
+      res.json({
+        success: true,
+        upload: uploadResult,
+        nextStep: "processing"
+      });
+    } catch (error) {
+      console.log(`Error uploading document: ${error}`);
+      res.status(500).json({ error: "Failed to upload document" });
+    }
+  });
+
+  // Submit for scoring
+  app.post("/api/submit-for-scoring", async (req, res) => {
+    try {
+      const { sessionId } = req.body;
+      
+      if (!sessionId) {
+        return res.status(400).json({ error: "Session ID required" });
+      }
+
+      const result = await onboardingManager.submitForScoring(sessionId);
+      
+      res.json({
+        success: true,
+        ...result
+      });
+    } catch (error) {
+      console.log(`Error submitting for scoring: ${error}`);
+      res.status(500).json({ error: error.message || "Failed to submit for scoring" });
+    }
+  });
+
   // Store onboarding data in session
   app.post("/api/onboarding/store", async (req, res) => {
     try {

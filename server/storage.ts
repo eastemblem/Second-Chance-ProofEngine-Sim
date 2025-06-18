@@ -1,4 +1,4 @@
-import { founder, venture, type Founder, type InsertFounder, type Venture, type InsertVenture } from "@shared/schema";
+import { founder, venture, teamMember, type Founder, type InsertFounder, type Venture, type InsertVenture, type TeamMember, type InsertTeamMember } from "@shared/schema";
 import { db } from "./db";
 import { eq } from "drizzle-orm";
 
@@ -12,6 +12,12 @@ export interface IStorage {
   getVenturesByFounderId(founderId: string): Promise<Venture[]>;
   createVenture(venture: InsertVenture): Promise<Venture>;
   updateVenture(id: string, venture: Partial<InsertVenture>): Promise<Venture>;
+  
+  getTeamMember(id: string): Promise<TeamMember | undefined>;
+  getTeamMembersByVentureId(ventureId: string): Promise<TeamMember[]>;
+  createTeamMember(teamMember: InsertTeamMember): Promise<TeamMember>;
+  updateTeamMember(id: string, teamMember: Partial<InsertTeamMember>): Promise<TeamMember>;
+  deleteTeamMember(id: string): Promise<void>;
 }
 
 export class DatabaseStorage implements IStorage {
@@ -60,6 +66,33 @@ export class DatabaseStorage implements IStorage {
       .where(eq(venture.ventureId, id))
       .returning();
     return ventureRecord;
+  }
+
+  async getTeamMember(id: string): Promise<TeamMember | undefined> {
+    const [teamMemberRecord] = await db.select().from(teamMember).where(eq(teamMember.memberId, id));
+    return teamMemberRecord;
+  }
+
+  async getTeamMembersByVentureId(ventureId: string): Promise<TeamMember[]> {
+    return await db.select().from(teamMember).where(eq(teamMember.ventureId, ventureId));
+  }
+
+  async createTeamMember(insertTeamMember: InsertTeamMember): Promise<TeamMember> {
+    const [teamMemberRecord] = await db.insert(teamMember).values(insertTeamMember).returning();
+    return teamMemberRecord;
+  }
+
+  async updateTeamMember(id: string, updateTeamMember: Partial<InsertTeamMember>): Promise<TeamMember> {
+    const [teamMemberRecord] = await db
+      .update(teamMember)
+      .set(updateTeamMember)
+      .where(eq(teamMember.memberId, id))
+      .returning();
+    return teamMemberRecord;
+  }
+
+  async deleteTeamMember(id: string): Promise<void> {
+    await db.delete(teamMember).where(eq(teamMember.memberId, id));
   }
 }
 
