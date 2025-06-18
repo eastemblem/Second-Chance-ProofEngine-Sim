@@ -49,16 +49,20 @@ export default function VentureOnboarding({
   const form = useForm<VentureFormData>({
     resolver: zodResolver(ventureSchema),
     defaultValues: {
-      startupName: initialData?.startupName || "",
+      name: initialData?.startupName || "",
       industry: initialData?.industry || "",
       geography: initialData?.geography || "",
       businessModel: initialData?.businessModel || "",
-      stage: initialData?.stage || "",
-      description: initialData?.description || "",
+      revenueStage: initialData?.revenueStage || "Pre-Revenue",
+      mvpStatus: initialData?.mvpStatus || "Prototype",
       website: initialData?.website || "",
-      targetMarket: initialData?.targetMarket || "",
-      revenueStage: initialData?.revenueStage || "",
-      mvpStatus: initialData?.mvpStatus || "",
+      marketSize: initialData?.marketSize || "",
+      valuation: initialData?.valuation || "",
+      pilotsPartnerships: initialData?.pilotsPartnerships || "",
+      customerDiscoveryCount: initialData?.customerDiscoveryCount || 0,
+      userSignups: initialData?.userSignups || 0,
+      lois: initialData?.lois || 0,
+      hasTestimonials: initialData?.hasTestimonials || false,
     }
   });
 
@@ -112,16 +116,16 @@ export default function VentureOnboarding({
 
       <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
         <div>
-          <Label htmlFor="startupName">Startup Name *</Label>
+          <Label htmlFor="name">Startup Name *</Label>
           <Input
-            id="startupName"
-            {...form.register("startupName")}
+            id="name"
+            {...form.register("name")}
             className="mt-1"
             placeholder="TechCorp Inc."
           />
-          {form.formState.errors.startupName && (
+          {form.formState.errors.name && (
             <p className="text-red-500 text-sm mt-1">
-              {form.formState.errors.startupName.message}
+              {form.formState.errors.name.message}
             </p>
           )}
         </div>

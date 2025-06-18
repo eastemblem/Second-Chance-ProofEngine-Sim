@@ -297,6 +297,25 @@ export const founderSchema = z.object({
 
 export type FounderData = z.infer<typeof founderSchema>;
 
+export const ventureSchema = z.object({
+  name: z.string().min(1, "Venture name is required"),
+  industry: z.string().min(1, "Industry is required"),
+  geography: z.string().min(1, "Geography is required"),
+  businessModel: z.string().min(1, "Business model is required"),
+  revenueStage: z.enum(["None", "Pre-Revenue", "Early Revenue", "Scaling"]),
+  mvpStatus: z.enum(["Mockup", "Prototype", "Launched"]),
+  website: z.string().optional(),
+  marketSize: z.string().optional(),
+  valuation: z.string().optional(),
+  pilotsPartnerships: z.string().optional(),
+  customerDiscoveryCount: z.number().default(0),
+  userSignups: z.number().default(0),
+  lois: z.number().default(0),
+  hasTestimonials: z.boolean().default(false),
+});
+
+export type VentureFormData = z.infer<typeof ventureSchema>;
+
 export interface ProofScoreResult {
   total: number;
   dimensions: {
