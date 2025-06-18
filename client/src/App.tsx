@@ -7,6 +7,7 @@ import { TooltipProvider } from "@/components/ui/tooltip";
 
 import LandingPage from "@/pages/landing";
 import OnboardingPage from "@/pages/onboarding";
+import OnboardingFlow from "@/pages/onboarding-flow";
 import ScoringPage from "@/pages/scoring";
 import FeedbackPage from "@/pages/feedback";
 import PathwayPage from "@/pages/pathway";
@@ -130,6 +131,9 @@ function Router() {
   return (
     <Switch>
       <Route path="/" component={SimulationFlow} />
+      <Route path="/onboarding-flow" component={() => (
+        <OnboardingFlow onComplete={() => window.location.href = '/'} />
+      )} />
       <Route component={NotFound} />
     </Switch>
   );
