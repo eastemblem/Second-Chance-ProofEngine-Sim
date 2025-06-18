@@ -18,8 +18,8 @@ export default function Logo({ size = "md", showTagline = true }: LogoProps) {
       <img 
         src={logoMain} 
         alt="Second Chance - Powered by ProofScaling"
-        className={`${size === 'lg' || size === 'xl' ? 'w-60' : imageSize[size]} w-auto`}
-        style={size === 'lg' || size === 'xl' ? { width: '15rem', height: 'auto' } : {}}
+        className={`${size === 'lg' || size === 'xl' ? 'max-w-60' : imageSize[size]} w-auto`}
+        style={size === 'lg' || size === 'xl' ? { maxWidth: '15rem', height: 'auto' } : {}}
       />
     </div>
   );
