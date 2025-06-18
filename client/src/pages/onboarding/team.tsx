@@ -17,8 +17,9 @@ const teamMemberSchema = z.object({
   fullName: z.string().min(1, "Full name is required"),
   role: z.string().min(1, "Role is required"),
   email: z.string().email("Invalid email address"),
+  experience: z.string().min(1, "Experience is required"),
   linkedinProfile: z.string().optional(),
-  isCofounder: z.boolean().default(false),
+  background: z.string().optional(),
 });
 
 type TeamMemberFormData = z.infer<typeof teamMemberSchema>;
@@ -48,9 +49,10 @@ export default function TeamOnboarding({
     defaultValues: {
       fullName: "",
       role: "",
+      experience: "",
       email: "",
       linkedinProfile: "",
-      isCofounder: false,
+      background: "",
     }
   });
 
@@ -266,6 +268,21 @@ export default function TeamOnboarding({
                 </div>
 
                 <div>
+                  <Label htmlFor="experience">Experience *</Label>
+                  <Input
+                    id="experience"
+                    {...form.register("experience")}
+                    className="mt-1"
+                    placeholder="5+ years in product development, Former Google engineer"
+                  />
+                  {form.formState.errors.experience && (
+                    <p className="text-red-500 text-sm mt-1">
+                      {form.formState.errors.experience.message}
+                    </p>
+                  )}
+                </div>
+
+                <div>
                   <Label htmlFor="linkedinProfile">LinkedIn Profile</Label>
                   <Input
                     id="linkedinProfile"
@@ -275,14 +292,14 @@ export default function TeamOnboarding({
                   />
                 </div>
 
-                <div className="flex items-center space-x-2">
-                  <input
-                    type="checkbox"
-                    id="isCofounder"
-                    {...form.register("isCofounder")}
-                    className="rounded"
+                <div>
+                  <Label htmlFor="background">Background</Label>
+                  <Input
+                    id="background"
+                    {...form.register("background")}
+                    className="mt-1"
+                    placeholder="Additional background information"
                   />
-                  <Label htmlFor="isCofounder">This person is a co-founder</Label>
                 </div>
 
                 <div className="flex justify-end space-x-2 pt-4">
