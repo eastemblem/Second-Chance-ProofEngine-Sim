@@ -218,13 +218,33 @@ export class OnboardingManager {
   // Add team member
   async addTeamMember(sessionId: string, memberData: any) {
     const session = await this.getSession(sessionId);
-    const stepData = session?.stepData as any;
-    const ventureId = stepData?.venture?.ventureId || stepData?.team?.ventureId;
+    if (!session) throw new Error("Session not found");
     
-    if (!ventureId) throw new Error("Venture step not completed");
+    const stepData = session?.stepData as any;
+    let ventureId = stepData?.venture?.ventureId || stepData?.team?.ventureId;
+    
+    console.log(`Session ${sessionId} stepData:`, stepData);
+    console.log(`Initial ventureId:`, ventureId);
+    
+    // If no venture ID in step data, get from founder's ventures
+    if (!ventureId && stepData?.founder?.founderId) {
+      console.log(`Looking for ventures for founder: ${stepData.founder.founderId}`);
+      const ventures = await storage.getVenturesByFounderId(stepData.founder.founderId);
+      console.log(`Found ${ventures.length} ventures:`, ventures.map(v => ({ id: v.ventureId, name: v.name })));
+      if (ventures.length > 0) {
+        ventureId = ventures[ventures.length - 1].ventureId;
+        console.log(`Using venture ID: ${ventureId}`);
+      }
+    }
 
-    // Validate data
+    if (!ventureId) {
+      console.error(`No venture ID found for session ${sessionId}. StepData:`, stepData);
+      throw new Error("Venture step not completed");
+    }
+
+    // Validate member data
     const validatedData = teamMemberSchema.parse(memberData);
+    console.log(`Creating team member for venture ${ventureId}:`, validatedData);
     
     // Create team member
     const newTeamMember = await storage.createTeamMember({
@@ -232,7 +252,8 @@ export class OnboardingManager {
       ventureId,
     });
 
-    return newTeamMember;
+    console.log(`Successfully created team member:`, newTeamMember);
+    return { success: true, teamMember: newTeamMember };
   }
 
   // Get team members for session
