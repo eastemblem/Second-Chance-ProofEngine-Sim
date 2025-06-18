@@ -1,6 +1,6 @@
 import { z } from "zod";
 import { createInsertSchema } from "drizzle-zod";
-import { pgTable, text, integer, serial, timestamp, boolean, decimal, json, uuid, varchar, smallint, date, pgEnum } from "drizzle-orm/pg-core";
+import { pgTable, text, integer, serial, timestamp, boolean, decimal, json, jsonb, uuid, varchar, smallint, date, pgEnum } from "drizzle-orm/pg-core";
 import { relations } from "drizzle-orm";
 
 // ENUM definitions
@@ -140,8 +140,8 @@ export const onboardingSession = pgTable("onboarding_session", {
   sessionId: uuid("session_id").primaryKey().defaultRandom(),
   founderId: uuid("founder_id").references(() => founder.founderId),
   currentStep: varchar("current_step", { length: 50 }).notNull().default("founder"),
-  stepData: jsonb("step_data").default({}),
-  completedSteps: jsonb("completed_steps").default([]),
+  stepData: json("step_data").default({}),
+  completedSteps: json("completed_steps").default([]),
   isComplete: boolean("is_complete").default(false),
   createdAt: timestamp("created_at").defaultNow().notNull(),
   updatedAt: timestamp("updated_at").defaultNow().notNull(),

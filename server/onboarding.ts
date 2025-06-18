@@ -103,7 +103,8 @@ export class OnboardingManager {
     const session = await this.getSession(sessionId);
     if (!session) throw new Error("Session not found");
 
-    const updatedStepData = { ...session.stepData, [step]: data };
+    const stepData = session.stepData || {};
+    const updatedStepData = { ...stepData, [step]: data };
     const completedSteps = Array.isArray(session.completedSteps) 
       ? session.completedSteps 
       : [];
@@ -147,8 +148,8 @@ export class OnboardingManager {
       .where(eq(onboardingSession.sessionId, sessionId));
 
     // Update session progress
-    await this.updateSession(sessionId, "venture", {}, false);
     await this.updateSession(sessionId, "founder", validatedData, true);
+    await this.updateSession(sessionId, "venture", {}, false);
 
     return founderId;
   }
