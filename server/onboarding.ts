@@ -139,8 +139,8 @@ export class OnboardingManager {
 
     // Update session progress
     await this.updateSession(sessionId, "founder", validatedData, true);
-    await this.updateSession(sessionId, "venture", {}, false);
-
+    
+    console.log("Founder step completed successfully for session:", sessionId);
     return founderId;
   }
 
