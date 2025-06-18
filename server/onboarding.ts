@@ -238,12 +238,36 @@ export class OnboardingManager {
   // Get team members for session
   async getTeamMembers(sessionId: string) {
     const session = await this.getSession(sessionId);
-    const stepData = session?.stepData as any;
-    const ventureId = stepData?.venture?.ventureId || stepData?.team?.ventureId;
+    if (!session) {
+      console.log(`No session found for: ${sessionId}`);
+      return [];
+    }
     
-    if (!ventureId) return [];
+    const stepData = session?.stepData as any;
+    let ventureId = stepData?.venture?.ventureId || stepData?.team?.ventureId;
+    
+    console.log(`Session ${sessionId} step data:`, JSON.stringify(stepData, null, 2));
+    
+    // If no venture ID in step data, try to find from founder's ventures
+    if (!ventureId && stepData?.founder?.founderId) {
+      console.log(`Looking for ventures for founder: ${stepData.founder.founderId}`);
+      const ventures = await storage.getVenturesByFounderId(stepData.founder.founderId);
+      if (ventures.length > 0) {
+        ventureId = ventures[ventures.length - 1].ventureId; // Get the most recent venture
+        console.log(`Found venture ID from founder: ${ventureId}`);
+      }
+    }
+    
+    if (!ventureId) {
+      console.log(`No venture ID found for session: ${sessionId}`);
+      return [];
+    }
 
-    return await storage.getTeamMembersByVentureId(ventureId);
+    console.log(`Fetching team members for venture: ${ventureId}`);
+    const teamMembers = await storage.getTeamMembersByVentureId(ventureId);
+    console.log(`Found ${teamMembers.length} team members for venture ${ventureId}`);
+    
+    return teamMembers;
   }
 
   // Update team member
