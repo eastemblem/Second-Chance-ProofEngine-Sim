@@ -70,12 +70,15 @@ export default function TeamOnboarding({
   });
 
   // Fetch team members
-  const { data: teamData, refetch } = useQuery({
+  const { data: teamData, refetch, isLoading } = useQuery({
     queryKey: ['/api/onboarding/team', sessionId],
     queryFn: async () => {
       const res = await apiRequest("GET", `/api/onboarding/team/${sessionId}`, {});
       return await res.json();
-    }
+    },
+    enabled: !!sessionId,
+    refetchOnMount: true,
+    refetchOnWindowFocus: false
   });
 
   const teamMembers = teamData?.teamMembers || [];
@@ -255,9 +258,23 @@ export default function TeamOnboarding({
         </div>
       </div>
 
+      {/* Debug Info - Remove in production */}
+      {process.env.NODE_ENV === 'development' && (
+        <div className="bg-gray-100 p-2 mb-4 text-xs">
+          Debug: Session={sessionId}, Loading={isLoading ? 'Yes' : 'No'}, Members={teamMemberCount}, Data={JSON.stringify(teamData).slice(0, 100)}...
+        </div>
+      )}
+
       {/* Team Members List */}
       <div className="mb-8">
-        {teamMemberCount > 0 && (
+        {isLoading && (
+          <div className="text-center py-4">
+            <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-purple-600 mx-auto"></div>
+            <p className="mt-2 text-sm text-gray-600">Loading team members...</p>
+          </div>
+        )}
+        
+        {!isLoading && teamMemberCount > 0 && (
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
             {teamMembers.map((member: any, index: number) => (
               <Card key={member.memberId || index} className="border-2">
