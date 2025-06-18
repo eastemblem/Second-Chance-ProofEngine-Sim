@@ -3,45 +3,29 @@ import { motion } from "framer-motion";
 import { useMutation } from "@tanstack/react-query";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { z } from "zod";
 import { apiRequest } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { ChevronLeft } from "lucide-react";
-
-const ventureSchema = z.object({
-  startupName: z.string().min(1, "Startup name is required"),
-  industry: z.string().min(1, "Industry is required"),
-  geography: z.string().min(1, "Geography is required"),
-  businessModel: z.string().min(1, "Business model is required"),
-  stage: z.string().min(1, "Stage is required"),
-  description: z.string().optional(),
-  website: z.string().optional(),
-  targetMarket: z.string().optional(),
-  revenueStage: z.string().optional(),
-  mvpStatus: z.string().optional(),
-});
-
-type VentureFormData = z.infer<typeof ventureSchema>;
+import { ventureSchema, type VentureFormData } from "@shared/schema";
 
 interface VentureOnboardingProps {
   sessionId: string;
-  initialData?: Partial<VentureFormData>;
+  initialData?: any;
   onNext: () => void;
   onPrev: () => void;
-  onDataUpdate: (data: VentureFormData) => void;
+  onDataUpdate?: (data: any) => void;
 }
 
-export default function VentureOnboarding({ 
-  sessionId, 
-  initialData, 
-  onNext, 
+export default function VentureOnboarding({
+  sessionId,
+  initialData,
+  onNext,
   onPrev,
-  onDataUpdate 
+  onDataUpdate
 }: VentureOnboardingProps) {
   const { toast } = useToast();
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -49,20 +33,20 @@ export default function VentureOnboarding({
   const form = useForm<VentureFormData>({
     resolver: zodResolver(ventureSchema),
     defaultValues: {
-      name: initialData?.startupName || "",
-      industry: initialData?.industry || "",
-      geography: initialData?.geography || "",
-      businessModel: initialData?.businessModel || "",
-      revenueStage: initialData?.revenueStage || "Pre-Revenue",
-      mvpStatus: initialData?.mvpStatus || "Prototype",
-      website: initialData?.website || "",
-      marketSize: initialData?.marketSize || "",
-      valuation: initialData?.valuation || "",
-      pilotsPartnerships: initialData?.pilotsPartnerships || "",
-      customerDiscoveryCount: initialData?.customerDiscoveryCount || 0,
-      userSignups: initialData?.userSignups || 0,
-      lois: initialData?.lois || 0,
-      hasTestimonials: initialData?.hasTestimonials || false,
+      name: "",
+      industry: "",
+      geography: "",
+      businessModel: "",
+      revenueStage: "Pre-Revenue",
+      mvpStatus: "Prototype",
+      website: "",
+      marketSize: "",
+      valuation: "",
+      pilotsPartnerships: "",
+      customerDiscoveryCount: 0,
+      userSignups: 0,
+      lois: 0,
+      hasTestimonials: false,
     }
   });
 
@@ -80,6 +64,7 @@ export default function VentureOnboarding({
           title: "Success",
           description: "Venture information saved successfully",
         });
+        onDataUpdate?.(data.venture);
         onNext();
       }
     },
@@ -89,14 +74,18 @@ export default function VentureOnboarding({
         description: error.message || "Failed to save venture information",
         variant: "destructive",
       });
-    }
+    },
   });
 
   const onSubmit = async (data: VentureFormData) => {
     setIsSubmitting(true);
-    onDataUpdate(data);
-    await submitMutation.mutateAsync(data);
-    setIsSubmitting(false);
+    try {
+      await submitMutation.mutateAsync(data);
+    } catch (error) {
+      console.error("Error submitting venture data:", error);
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
   return (
@@ -133,22 +122,12 @@ export default function VentureOnboarding({
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
           <div>
             <Label htmlFor="industry">Industry *</Label>
-            <Select onValueChange={(value) => form.setValue("industry", value)}>
-              <SelectTrigger className="mt-1">
-                <SelectValue placeholder="Select industry" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="fintech">FinTech</SelectItem>
-                <SelectItem value="healthtech">HealthTech</SelectItem>
-                <SelectItem value="edtech">EdTech</SelectItem>
-                <SelectItem value="ecommerce">E-commerce</SelectItem>
-                <SelectItem value="saas">SaaS</SelectItem>
-                <SelectItem value="ai-ml">AI/ML</SelectItem>
-                <SelectItem value="blockchain">Blockchain</SelectItem>
-                <SelectItem value="iot">IoT</SelectItem>
-                <SelectItem value="other">Other</SelectItem>
-              </SelectContent>
-            </Select>
+            <Input
+              id="industry"
+              {...form.register("industry")}
+              className="mt-1"
+              placeholder="SaaS, E-commerce, FinTech, etc."
+            />
             {form.formState.errors.industry && (
               <p className="text-red-500 text-sm mt-1">
                 {form.formState.errors.industry.message}
@@ -162,7 +141,7 @@ export default function VentureOnboarding({
               id="geography"
               {...form.register("geography")}
               className="mt-1"
-              placeholder="United States, Europe, Asia"
+              placeholder="United States, Europe, Global, etc."
             />
             {form.formState.errors.geography && (
               <p className="text-red-500 text-sm mt-1">
@@ -172,57 +151,35 @@ export default function VentureOnboarding({
           </div>
         </div>
 
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-          <div>
-            <Label htmlFor="businessModel">Business Model *</Label>
-            <Select onValueChange={(value) => form.setValue("businessModel", value)}>
-              <SelectTrigger className="mt-1">
-                <SelectValue placeholder="Select business model" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="b2b">B2B</SelectItem>
-                <SelectItem value="b2c">B2C</SelectItem>
-                <SelectItem value="marketplace">Marketplace</SelectItem>
-                <SelectItem value="subscription">Subscription</SelectItem>
-                <SelectItem value="freemium">Freemium</SelectItem>
-                <SelectItem value="other">Other</SelectItem>
-              </SelectContent>
-            </Select>
-            {form.formState.errors.businessModel && (
-              <p className="text-red-500 text-sm mt-1">
-                {form.formState.errors.businessModel.message}
-              </p>
-            )}
-          </div>
-
-          <div>
-            <Label htmlFor="stage">Stage *</Label>
-            <Select onValueChange={(value) => form.setValue("stage", value)}>
-              <SelectTrigger className="mt-1">
-                <SelectValue placeholder="Select stage" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="idea">Idea</SelectItem>
-                <SelectItem value="prototype">Prototype</SelectItem>
-                <SelectItem value="mvp">MVP</SelectItem>
-                <SelectItem value="early-traction">Early Traction</SelectItem>
-                <SelectItem value="growth">Growth</SelectItem>
-                <SelectItem value="scale">Scale</SelectItem>
-              </SelectContent>
-            </Select>
-            {form.formState.errors.stage && (
-              <p className="text-red-500 text-sm mt-1">
-                {form.formState.errors.stage.message}
-              </p>
-            )}
-          </div>
+        <div>
+          <Label htmlFor="businessModel">Business Model *</Label>
+          <Select onValueChange={(value) => form.setValue("businessModel", value)}>
+            <SelectTrigger>
+              <SelectValue placeholder="Select business model" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="B2B SaaS">B2B SaaS</SelectItem>
+              <SelectItem value="B2C SaaS">B2C SaaS</SelectItem>
+              <SelectItem value="Marketplace">Marketplace</SelectItem>
+              <SelectItem value="E-commerce">E-commerce</SelectItem>
+              <SelectItem value="FinTech">FinTech</SelectItem>
+              <SelectItem value="HealthTech">HealthTech</SelectItem>
+              <SelectItem value="EdTech">EdTech</SelectItem>
+              <SelectItem value="Other">Other</SelectItem>
+            </SelectContent>
+          </Select>
+          {form.formState.errors.businessModel && (
+            <p className="text-red-500 text-sm mt-1">
+              {form.formState.errors.businessModel.message}
+            </p>
+          )}
         </div>
 
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
           <div>
-            <Label htmlFor="revenueStage">Revenue Stage</Label>
-            <Select onValueChange={(value) => form.setValue("revenueStage", value)}>
-              <SelectTrigger className="mt-1">
+            <Label htmlFor="revenueStage">Revenue Stage *</Label>
+            <Select onValueChange={(value) => form.setValue("revenueStage", value as "None" | "Pre-Revenue" | "Early Revenue" | "Scaling")}>
+              <SelectTrigger>
                 <SelectValue placeholder="Select revenue stage" />
               </SelectTrigger>
               <SelectContent>
@@ -235,9 +192,9 @@ export default function VentureOnboarding({
           </div>
 
           <div>
-            <Label htmlFor="mvpStatus">MVP Status</Label>
-            <Select onValueChange={(value) => form.setValue("mvpStatus", value)}>
-              <SelectTrigger className="mt-1">
+            <Label htmlFor="mvpStatus">MVP Status *</Label>
+            <Select onValueChange={(value) => form.setValue("mvpStatus", value as "Mockup" | "Prototype" | "Launched")}>
+              <SelectTrigger>
                 <SelectValue placeholder="Select MVP status" />
               </SelectTrigger>
               <SelectContent>
@@ -250,34 +207,12 @@ export default function VentureOnboarding({
         </div>
 
         <div>
-          <Label htmlFor="website">Website</Label>
+          <Label htmlFor="website">Website (Optional)</Label>
           <Input
             id="website"
             {...form.register("website")}
             className="mt-1"
             placeholder="https://yourcompany.com"
-          />
-        </div>
-
-        <div>
-          <Label htmlFor="description">Description</Label>
-          <Textarea
-            id="description"
-            {...form.register("description")}
-            className="mt-1"
-            placeholder="Briefly describe what your startup does..."
-            rows={4}
-          />
-        </div>
-
-        <div>
-          <Label htmlFor="targetMarket">Target Market</Label>
-          <Textarea
-            id="targetMarket"
-            {...form.register("targetMarket")}
-            className="mt-1"
-            placeholder="Describe your target market and customers..."
-            rows={3}
           />
         </div>
 
@@ -294,7 +229,7 @@ export default function VentureOnboarding({
           <Button
             type="submit"
             disabled={isSubmitting}
-            className="px-8 py-2"
+            className="px-6 py-2"
           >
             {isSubmitting ? "Saving..." : "Continue"}
           </Button>
