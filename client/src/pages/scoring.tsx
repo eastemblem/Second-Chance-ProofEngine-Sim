@@ -23,12 +23,12 @@ interface SessionResponse {
     pitchDeckScore?: any;
     startupName?: string;
     founderData?: {
-      name?: string;
+      fullName?: string;
       email?: string;
       startupName?: string;
       stage?: string;
       acceleratorApplications?: number;
-      userId?: string;
+      founderId?: string;
       ventureId?: string;
       [key: string]: any;
     };
