@@ -47,6 +47,10 @@ export default function VentureOnboarding({
       userSignups: 0,
       lois: 0,
       hasTestimonials: false,
+      description: "",
+      linkedinUrl: "",
+      twitterUrl: "",
+      instagramUrl: "",
     }
   });
 
@@ -214,6 +218,113 @@ export default function VentureOnboarding({
             className="mt-1"
             placeholder="https://yourcompany.com"
           />
+        </div>
+
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+          <div>
+            <Label htmlFor="marketSize">Market Size (Optional)</Label>
+            <Input
+              id="marketSize"
+              {...form.register("marketSize")}
+              className="mt-1"
+              placeholder="$10B TAM, $2B SAM"
+            />
+          </div>
+
+          <div>
+            <Label htmlFor="valuation">Current Valuation (Optional)</Label>
+            <Input
+              id="valuation"
+              {...form.register("valuation")}
+              className="mt-1"
+              placeholder="$5M pre-money"
+            />
+          </div>
+        </div>
+
+        <div>
+          <Label htmlFor="pilotsPartnerships">Pilots & Partnerships (Optional)</Label>
+          <Input
+            id="pilotsPartnerships"
+            {...form.register("pilotsPartnerships")}
+            className="mt-1"
+            placeholder="List any pilot programs or partnerships"
+          />
+        </div>
+
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+          <div>
+            <Label htmlFor="customerDiscoveryCount">Customer Interviews</Label>
+            <Input
+              id="customerDiscoveryCount"
+              type="number"
+              {...form.register("customerDiscoveryCount", { valueAsNumber: true })}
+              className="mt-1"
+              placeholder="0"
+              min="0"
+            />
+          </div>
+
+          <div>
+            <Label htmlFor="userSignups">User Signups</Label>
+            <Input
+              id="userSignups"
+              type="number"
+              {...form.register("userSignups", { valueAsNumber: true })}
+              className="mt-1"
+              placeholder="0"
+              min="0"
+            />
+          </div>
+
+          <div>
+            <Label htmlFor="lois">Letters of Intent</Label>
+            <Input
+              id="lois"
+              type="number"
+              {...form.register("lois", { valueAsNumber: true })}
+              className="mt-1"
+              placeholder="0"
+              min="0"
+            />
+          </div>
+        </div>
+
+        <div>
+          <Label htmlFor="description">Company Description (Optional)</Label>
+          <Input
+            id="description"
+            {...form.register("description")}
+            className="mt-1"
+            placeholder="Brief description of what your company does"
+          />
+        </div>
+
+        <div>
+          <Label>Social Media Links (Optional)</Label>
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mt-2">
+            <div>
+              <Input
+                {...form.register("linkedinUrl")}
+                placeholder="LinkedIn URL"
+                className="mt-1"
+              />
+            </div>
+            <div>
+              <Input
+                {...form.register("twitterUrl")}
+                placeholder="Twitter URL"
+                className="mt-1"
+              />
+            </div>
+            <div>
+              <Input
+                {...form.register("instagramUrl")}
+                placeholder="Instagram URL"
+                className="mt-1"
+              />
+            </div>
+          </div>
         </div>
 
         <div className="flex justify-between pt-6">

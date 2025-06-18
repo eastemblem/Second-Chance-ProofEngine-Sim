@@ -312,6 +312,10 @@ export const ventureSchema = z.object({
   userSignups: z.number().default(0),
   lois: z.number().default(0),
   hasTestimonials: z.boolean().default(false),
+  description: z.string().optional(),
+  linkedinUrl: z.string().optional(),
+  twitterUrl: z.string().optional(),
+  instagramUrl: z.string().optional(),
 });
 
 export type VentureFormData = z.infer<typeof ventureSchema>;
