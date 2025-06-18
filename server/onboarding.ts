@@ -223,36 +223,26 @@ export class OnboardingManager {
     const stepData = session?.stepData as any;
     let ventureId = stepData?.venture?.ventureId || stepData?.team?.ventureId;
     
-    console.log(`Session ${sessionId} stepData:`, stepData);
-    console.log(`Initial ventureId:`, ventureId);
-    
     // If no venture ID in step data, get from founder's ventures
     if (!ventureId && stepData?.founder?.founderId) {
-      console.log(`Looking for ventures for founder: ${stepData.founder.founderId}`);
       const ventures = await storage.getVenturesByFounderId(stepData.founder.founderId);
-      console.log(`Found ${ventures.length} ventures:`, ventures.map(v => ({ id: v.ventureId, name: v.name })));
       if (ventures.length > 0) {
         ventureId = ventures[ventures.length - 1].ventureId;
-        console.log(`Using venture ID: ${ventureId}`);
       }
     }
 
     if (!ventureId) {
-      console.error(`No venture ID found for session ${sessionId}. StepData:`, stepData);
       throw new Error("Venture step not completed");
     }
 
     // Validate member data
     const validatedData = teamMemberSchema.parse(memberData);
-    console.log(`Creating team member for venture ${ventureId}:`, validatedData);
     
     // Create team member
     const newTeamMember = await storage.createTeamMember({
       ...validatedData,
       ventureId,
     });
-
-    console.log(`Successfully created team member:`, newTeamMember);
     return { success: true, teamMember: newTeamMember };
   }
 
@@ -260,34 +250,25 @@ export class OnboardingManager {
   async getTeamMembers(sessionId: string) {
     const session = await this.getSession(sessionId);
     if (!session) {
-      console.log(`No session found for: ${sessionId}`);
       return [];
     }
     
     const stepData = session?.stepData as any;
     let ventureId = stepData?.venture?.ventureId || stepData?.team?.ventureId;
     
-    console.log(`Session ${sessionId} step data:`, JSON.stringify(stepData, null, 2));
-    
     // If no venture ID in step data, try to find from founder's ventures
     if (!ventureId && stepData?.founder?.founderId) {
-      console.log(`Looking for ventures for founder: ${stepData.founder.founderId}`);
       const ventures = await storage.getVenturesByFounderId(stepData.founder.founderId);
       if (ventures.length > 0) {
         ventureId = ventures[ventures.length - 1].ventureId; // Get the most recent venture
-        console.log(`Found venture ID from founder: ${ventureId}`);
       }
     }
     
     if (!ventureId) {
-      console.log(`No venture ID found for session: ${sessionId}`);
       return [];
     }
 
-    console.log(`Fetching team members for venture: ${ventureId}`);
     const teamMembers = await storage.getTeamMembersByVentureId(ventureId);
-    console.log(`Found ${teamMembers.length} team members for venture ${ventureId}`);
-    
     return teamMembers;
   }
 
