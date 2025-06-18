@@ -204,7 +204,7 @@ export default function OnboardingFlow({ onComplete }: OnboardingFlowProps) {
                 sessionId={sessionData.sessionId}
                 initialData={sessionData.stepData.founder}
                 onNext={nextStep}
-                onDataUpdate={(data) => updateSessionData("founder", data)}
+                onDataUpdate={(data: any) => updateSessionData("founder", data)}
               />
             )}
             
@@ -214,7 +214,7 @@ export default function OnboardingFlow({ onComplete }: OnboardingFlowProps) {
                 initialData={sessionData.stepData.venture}
                 onNext={nextStep}
                 onPrev={prevStep}
-                onDataUpdate={(data) => updateSessionData("venture", data)}
+                onDataUpdate={(data: any) => updateSessionData("venture", data)}
               />
             )}
             
@@ -224,7 +224,7 @@ export default function OnboardingFlow({ onComplete }: OnboardingFlowProps) {
                 initialData={sessionData.stepData.team}
                 onNext={nextStep}
                 onPrev={prevStep}
-                onDataUpdate={(data) => updateSessionData("team", data)}
+                onDataUpdate={(data: any) => updateSessionData("team", data)}
               />
             )}
             
@@ -233,7 +233,7 @@ export default function OnboardingFlow({ onComplete }: OnboardingFlowProps) {
                 sessionId={sessionData.sessionId}
                 onNext={nextStep}
                 onPrev={prevStep}
-                onDataUpdate={(data) => updateSessionData("upload", data)}
+                onDataUpdate={(data: any) => updateSessionData("upload", data)}
               />
             )}
             
@@ -241,7 +241,7 @@ export default function OnboardingFlow({ onComplete }: OnboardingFlowProps) {
               <ProcessingScreen
                 sessionId={sessionData.sessionId}
                 onNext={nextStep}
-                onDataUpdate={(data) => updateSessionData("processing", data)}
+                onDataUpdate={(data: any) => updateSessionData("processing", data)}
               />
             )}
             

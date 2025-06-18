@@ -315,11 +315,13 @@ export class OnboardingManager {
       } catch (error) {
         console.error("EastEmblem API error:", error);
         
-        // Update processing status to error
-        await db
-          .update(documentUpload)
-          .set({ processingStatus: "error" })
-          .where(eq(documentUpload.uploadId, upload.uploadId));
+        // Update processing status to error  
+        if (upload.uploadId) {
+          await db
+            .update(documentUpload)
+            .set({ processingStatus: "error" })
+            .where(eq(documentUpload.uploadId, upload.uploadId));
+        }
       }
     }
 

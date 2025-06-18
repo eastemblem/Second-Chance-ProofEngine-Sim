@@ -428,7 +428,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       });
     } catch (error) {
       console.log(`Error completing team step: ${error}`);
-      res.status(400).json({ error: error.message });
+      res.status(400).json({ error: error instanceof Error ? error.message : "Unknown error" });
     }
   });
 
@@ -475,7 +475,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       });
     } catch (error) {
       console.log(`Error submitting for scoring: ${error}`);
-      res.status(500).json({ error: error.message || "Failed to submit for scoring" });
+      res.status(500).json({ error: error instanceof Error ? error.message : "Failed to submit for scoring" });
     }
   });
 
