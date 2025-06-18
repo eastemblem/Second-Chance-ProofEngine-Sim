@@ -7,10 +7,10 @@ interface LogoProps {
 
 export default function Logo({ size = "md", showTagline = true }: LogoProps) {
   const imageSize = {
-    sm: "h-8",
-    md: "h-12", 
-    lg: "h-48",
-    xl: "h-80"
+    sm: "h-6",
+    md: "h-8", 
+    lg: "h-12",
+    xl: "h-16"
   };
 
   return (
