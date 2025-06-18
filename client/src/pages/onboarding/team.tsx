@@ -98,11 +98,12 @@ export default function TeamOnboarding({
   // Add team member mutation
   const addMemberMutation = useMutation({
     mutationFn: async (data: TeamMemberFormData) => {
-      const res = await apiRequest("POST", "/api/onboarding/team/add", {
-        sessionId,
-        ...data
+      const response = await fetch("/api/onboarding/team/add", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ sessionId, ...data })
       });
-      return await res.json();
+      return await response.json();
     },
     onSuccess: (data) => {
       if (data.success) {
@@ -114,8 +115,10 @@ export default function TeamOnboarding({
         setShowAddForm(false);
         setEditingMember(null);
         // Force immediate refetch and cache invalidation
-        queryClient.invalidateQueries({ queryKey: ['team-members'] });
-        refetch();
+        setTimeout(() => {
+          queryClient.invalidateQueries({ queryKey: ['team-members'] });
+          refetch();
+        }, 100);
       }
     },
     onError: (error: any) => {
@@ -130,8 +133,12 @@ export default function TeamOnboarding({
   // Update team member mutation
   const updateMemberMutation = useMutation({
     mutationFn: async (data: TeamMemberFormData & { memberId: string }) => {
-      const res = await apiRequest("PUT", `/api/onboarding/team/update/${data.memberId}`, data);
-      return await res.json();
+      const response = await fetch(`/api/onboarding/team/update/${data.memberId}`, {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(data)
+      });
+      return await response.json();
     },
     onSuccess: (data) => {
       if (data.success) {
@@ -158,8 +165,10 @@ export default function TeamOnboarding({
   // Delete team member mutation
   const deleteMemberMutation = useMutation({
     mutationFn: async (memberId: string) => {
-      const res = await apiRequest("DELETE", `/api/onboarding/team/delete/${memberId}`, {});
-      return await res.json();
+      const response = await fetch(`/api/onboarding/team/delete/${memberId}`, {
+        method: "DELETE"
+      });
+      return await response.json();
     },
     onSuccess: () => {
       toast({
