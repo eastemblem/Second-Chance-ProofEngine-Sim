@@ -159,9 +159,9 @@ export default function OnboardingFlow({ onComplete }: OnboardingFlowProps) {
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-background via-card to-background">
-      <div className="container mx-auto px-4 py-8">
+      <div className="container mx-auto px-4 py-8 max-w-5xl">
         {/* Progress Bar */}
-        <div className="mb-8">
+        <div className="mb-8 mx-4 sm:mx-8">
           <ProgressBar 
             currentStep={currentStepIndex + 1} 
             totalSteps={steps.length} 
@@ -197,7 +197,7 @@ export default function OnboardingFlow({ onComplete }: OnboardingFlowProps) {
             animate={{ opacity: 1, x: 0 }}
             exit={{ opacity: 0, x: -20 }}
             transition={{ duration: 0.3 }}
-            className="bg-card rounded-xl p-8 shadow-2xl border"
+            className="bg-card rounded-xl p-8 mx-4 sm:mx-8 lg:mx-12 shadow-2xl border"
           >
             {currentStep.key === "founder" && (
               <FounderOnboarding
