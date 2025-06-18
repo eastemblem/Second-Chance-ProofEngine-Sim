@@ -170,6 +170,31 @@ export class OnboardingManager {
           validatedData.name,
           session.founderId
         );
+
+        // Create proof vault entries for each folder
+        if (folderStructure && folderStructure.folders) {
+          const folderMappings = [
+            { key: '0_Overview', type: 'overview' as const, description: 'Company overview and general information' },
+            { key: '1_Problem_Proof', type: 'problem_proof' as const, description: 'Evidence of problem validation' },
+            { key: '2_Solution_Proof', type: 'solution_proof' as const, description: 'Solution validation and proof of concept' },
+            { key: '3_Demand_Proof', type: 'demand_proof' as const, description: 'Market demand validation' },
+            { key: '4_Credibility_Proof', type: 'credibility_proof' as const, description: 'Team and company credibility evidence' },
+            { key: '5_Commercial_Proof', type: 'commercial_proof' as const, description: 'Commercial viability and business model proof' },
+            { key: '6_Investor_Pack', type: 'investor_pack' as const, description: 'Investor presentation materials' }
+          ];
+
+          for (const folder of folderMappings) {
+            if (folderStructure.folders[folder.key]) {
+              await storage.createProofVault({
+                ventureId: venture.ventureId,
+                artefactType: folder.type,
+                fileId: folderStructure.folders[folder.key],
+                fileUrl: folderStructure.url,
+                description: folder.description
+              });
+            }
+          }
+        }
       } catch (error) {
         console.error("Failed to create folder structure:", error);
       }

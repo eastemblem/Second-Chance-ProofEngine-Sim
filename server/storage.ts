@@ -1,4 +1,4 @@
-import { founder, venture, teamMember, type Founder, type InsertFounder, type Venture, type InsertVenture, type TeamMember, type InsertTeamMember } from "@shared/schema";
+import { founder, venture, teamMember, proofVault, type Founder, type InsertFounder, type Venture, type InsertVenture, type TeamMember, type InsertTeamMember, type ProofVault, type InsertProofVault } from "@shared/schema";
 import { db } from "./db";
 import { eq } from "drizzle-orm";
 
@@ -18,6 +18,12 @@ export interface IStorage {
   createTeamMember(teamMember: InsertTeamMember): Promise<TeamMember>;
   updateTeamMember(id: string, teamMember: Partial<InsertTeamMember>): Promise<TeamMember>;
   deleteTeamMember(id: string): Promise<void>;
+  
+  getProofVault(id: string): Promise<ProofVault | undefined>;
+  getProofVaultsByVentureId(ventureId: string): Promise<ProofVault[]>;
+  createProofVault(proofVault: InsertProofVault): Promise<ProofVault>;
+  updateProofVault(id: string, proofVault: Partial<InsertProofVault>): Promise<ProofVault>;
+  deleteProofVault(id: string): Promise<void>;
 }
 
 export class DatabaseStorage implements IStorage {
@@ -93,6 +99,33 @@ export class DatabaseStorage implements IStorage {
 
   async deleteTeamMember(id: string): Promise<void> {
     await db.delete(teamMember).where(eq(teamMember.memberId, id));
+  }
+
+  async getProofVault(id: string): Promise<ProofVault | undefined> {
+    const [proofVaultRecord] = await db.select().from(proofVault).where(eq(proofVault.vaultId, id));
+    return proofVaultRecord;
+  }
+
+  async getProofVaultsByVentureId(ventureId: string): Promise<ProofVault[]> {
+    return db.select().from(proofVault).where(eq(proofVault.ventureId, ventureId));
+  }
+
+  async createProofVault(insertProofVault: InsertProofVault): Promise<ProofVault> {
+    const [proofVaultRecord] = await db.insert(proofVault).values(insertProofVault).returning();
+    return proofVaultRecord;
+  }
+
+  async updateProofVault(id: string, updateProofVault: Partial<InsertProofVault>): Promise<ProofVault> {
+    const [proofVaultRecord] = await db
+      .update(proofVault)
+      .set(updateProofVault)
+      .where(eq(proofVault.vaultId, id))
+      .returning();
+    return proofVaultRecord;
+  }
+
+  async deleteProofVault(id: string): Promise<void> {
+    await db.delete(proofVault).where(eq(proofVault.vaultId, id));
   }
 }
 
