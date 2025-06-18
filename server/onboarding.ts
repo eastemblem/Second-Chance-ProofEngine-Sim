@@ -50,6 +50,8 @@ export const teamMemberSchema = z.object({
   twitterUrl: z.string().optional().transform(val => val === "" ? undefined : val),
   instagramUrl: z.string().optional().transform(val => val === "" ? undefined : val),
   githubUrl: z.string().optional().transform(val => val === "" ? undefined : val),
+  age: z.number().or(z.string().transform(val => val === "" ? undefined : Number(val))).optional(),
+  gender: z.string().optional().transform(val => val === "" ? undefined : val),
   isCofounder: z.boolean().default(false),
 });
 

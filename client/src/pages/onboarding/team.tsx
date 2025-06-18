@@ -23,6 +23,8 @@ const teamMemberSchema = z.object({
   twitterUrl: z.string().optional(),
   instagramUrl: z.string().optional(),
   githubUrl: z.string().optional(),
+  age: z.number().optional(),
+  gender: z.string().optional(),
   isCofounder: z.boolean().default(false),
 });
 
@@ -60,6 +62,8 @@ export default function TeamOnboarding({
       twitterUrl: "",
       instagramUrl: "",
       githubUrl: "",
+      age: undefined,
+      gender: "",
       isCofounder: false,
     }
   });
@@ -333,6 +337,35 @@ export default function TeamOnboarding({
                         className="pl-10"
                       />
                     </div>
+                  </div>
+                </div>
+
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div>
+                    <Label htmlFor="age">Age</Label>
+                    <Input
+                      id="age"
+                      type="number"
+                      {...form.register("age", { valueAsNumber: true })}
+                      className="mt-1"
+                      placeholder="30"
+                      min="18"
+                      max="100"
+                    />
+                  </div>
+                  <div>
+                    <Label htmlFor="gender">Gender</Label>
+                    <Select onValueChange={(value) => form.setValue("gender", value)}>
+                      <SelectTrigger className="mt-1">
+                        <SelectValue placeholder="Select gender" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="Male">Male</SelectItem>
+                        <SelectItem value="Female">Female</SelectItem>
+                        <SelectItem value="Non-binary">Non-binary</SelectItem>
+                        <SelectItem value="Prefer not to say">Prefer not to say</SelectItem>
+                      </SelectContent>
+                    </Select>
                   </div>
                 </div>
 

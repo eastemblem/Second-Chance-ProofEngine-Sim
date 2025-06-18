@@ -92,6 +92,8 @@ export const teamMember = pgTable("team_member", {
   twitterUrl: varchar("twitter_url", { length: 200 }),
   instagramUrl: varchar("instagram_url", { length: 200 }),
   githubUrl: varchar("github_url", { length: 200 }),
+  age: integer("age"),
+  gender: varchar("gender", { length: 20 }),
   createdAt: timestamp("created_at").defaultNow().notNull(),
 });
 
