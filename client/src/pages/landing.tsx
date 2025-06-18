@@ -27,7 +27,7 @@ export default function LandingPage({ onNext }: LandingPageProps) {
           {/* Logo Section */}
           <div className="mb-2">
             <div className="inline-flex items-center justify-center">
-              <Logo size="xl" />
+              <Logo size="lg" />
             </div>
           </div>
 
