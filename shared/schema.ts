@@ -133,8 +133,10 @@ export const proofVault = pgTable("proof_vault", {
   ventureId: uuid("venture_id").references(() => venture.ventureId).notNull(),
   evaluationId: uuid("evaluation_id").references(() => evaluation.evaluationId),
   artefactType: artefactTypeEnum("artefact_type").notNull(),
-  fileId: varchar("file_id", { length: 255 }).notNull(),
-  fileUrl: varchar("file_url", { length: 255 }).notNull(),
+  parentFolderId: varchar("parent_folder_id", { length: 255 }).notNull(),
+  subFolderId: varchar("sub_folder_id", { length: 255 }).notNull(),
+  sharedUrl: varchar("shared_url", { length: 500 }).notNull(),
+  folderName: varchar("folder_name", { length: 100 }).notNull(),
   description: text("description"),
   createdAt: timestamp("created_at").defaultNow().notNull(),
 });
