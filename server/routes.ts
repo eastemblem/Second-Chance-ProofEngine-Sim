@@ -49,31 +49,35 @@ const upload = multer({
 });
 
 // Validation schemas
-const createUserSchema = z.object({
-  firstName: z.string().min(1, "First name is required"),
-  lastName: z.string().min(1, "Last name is required"),
+const createFounderSchema = z.object({
+  fullName: z.string().min(1, "Full name is required"),
   email: z.string().email("Invalid email address"),
+  positionRole: z.string().min(1, "Position/role is required"),
   age: z.number().optional(),
-  contactInfo: z
-    .object({
-      phone: z.string().optional(),
-      linkedin: z.string().optional(),
-      twitter: z.string().optional(),
-      location: z.string().optional(),
-    })
-    .optional(),
+  linkedinProfile: z.string().optional(),
+  gender: z.string().optional(),
+  companyWebsite: z.string().optional(),
+  personalLinkedin: z.string().optional(),
+  residence: z.string().optional(),
+  isTechnical: z.boolean().default(false),
 });
 
 const createVentureSchema = z.object({
   name: z.string().min(1, "Venture name is required"),
-  ownerId: z.string().uuid("Invalid user ID format"),
-  teamSize: z.number().min(1).default(1),
-  category: z.string().optional(),
-  description: z.string().optional(),
-  stage: z.string().optional(),
-  industry: z.string().optional(),
-  targetMarket: z.string().optional(),
-  businessModel: z.string().optional(),
+  founderId: z.string().uuid("Invalid founder ID format"),
+  industry: z.string().min(1, "Industry is required"),
+  geography: z.string().min(1, "Geography is required"),
+  businessModel: z.string().min(1, "Business model is required"),
+  revenueStage: z.enum(["None", "Pre-Revenue", "Early Revenue", "Scaling"]),
+  mvpStatus: z.enum(["Mockup", "Prototype", "Launched"]),
+  website: z.string().optional(),
+  marketSize: z.number().optional(),
+  valuation: z.number().optional(),
+  pilotsPartnerships: z.string().optional(),
+  customerDiscoveryCount: z.number().default(0),
+  userSignups: z.number().default(0),
+  lois: z.number().default(0),
+  hasTestimonials: z.boolean().default(false),
 });
 
 // File upload configuration will be added later
@@ -91,11 +95,17 @@ interface SessionData {
     size: number;
   };
   founderData?: {
-    name?: string;
+    fullName?: string;
     email?: string;
     startupName?: string;
     stage?: string;
     acceleratorApplications?: number;
+    founderId?: string;
+    ventureId?: string;
+    positionRole?: string;
+    industry?: string;
+    geography?: string;
+    businessModel?: string;
     [key: string]: any;
   };
 }
@@ -121,46 +131,46 @@ function updateSessionData(req: Request, data: Partial<SessionData>): void {
 }
 
 export async function registerRoutes(app: Express): Promise<Server> {
-  // Create user endpoint
-  app.post("/api/users", async (req, res) => {
+  // Create founder endpoint
+  app.post("/api/founders", async (req, res) => {
     try {
-      const userData = createUserSchema.parse(req.body);
+      const founderData = createFounderSchema.parse(req.body);
 
-      // Check if user already exists
-      const existingUser = await storage.getUserByEmail(userData.email);
-      if (existingUser) {
+      // Check if founder already exists
+      const existingFounder = await storage.getFounderByEmail(founderData.email);
+      if (existingFounder) {
         return res
           .status(409)
-          .json({ error: "User with this email already exists" });
+          .json({ error: "Founder with this email already exists" });
       }
 
-      const user = await storage.createUser(userData);
-      res.json(user);
+      const founder = await storage.createFounder(founderData);
+      res.json(founder);
     } catch (error) {
-      console.log(`Error creating user: ${error}`);
+      console.log(`Error creating founder: ${error}`);
       if (error instanceof z.ZodError) {
         return res
           .status(400)
           .json({ error: "Validation error", details: error.errors });
       }
-      res.status(500).json({ error: "Failed to create user" });
+      res.status(500).json({ error: "Failed to create founder" });
     }
   });
 
-  // Get user by email endpoint
-  app.get("/api/users/by-email/:email", async (req, res) => {
+  // Get founder by email endpoint
+  app.get("/api/founders/by-email/:email", async (req, res) => {
     try {
       const { email } = req.params;
-      const user = await storage.getUserByEmail(email);
+      const founder = await storage.getFounderByEmail(email);
 
-      if (!user) {
-        return res.status(404).json({ error: "User not found" });
+      if (!founder) {
+        return res.status(404).json({ error: "Founder not found" });
       }
 
-      res.json(user);
+      res.json(founder);
     } catch (error) {
-      console.log(`Error fetching user: ${error}`);
-      res.status(500).json({ error: "Failed to fetch user" });
+      console.log(`Error fetching founder: ${error}`);
+      res.status(500).json({ error: "Failed to fetch founder" });
     }
   });
 
@@ -169,10 +179,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
     try {
       const ventureData = createVentureSchema.parse(req.body);
 
-      // Verify user exists
-      const user = await storage.getUser(ventureData.ownerId);
-      if (!user) {
-        return res.status(404).json({ error: "User not found" });
+      // Verify founder exists
+      const founder = await storage.getFounder(ventureData.founderId);
+      if (!founder) {
+        return res.status(404).json({ error: "Founder not found" });
       }
 
       const venture = await storage.createVenture(ventureData);
@@ -188,22 +198,22 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  // Get user's ventures endpoint
-  app.get("/api/users/:userId/ventures", async (req, res) => {
+  // Get founder's ventures endpoint
+  app.get("/api/founders/:founderId/ventures", async (req, res) => {
     try {
-      const { userId } = req.params;
+      const { founderId } = req.params;
 
       // Validate UUID format
       const uuidRegex =
         /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
-      if (!uuidRegex.test(userId)) {
-        return res.status(400).json({ error: "Invalid user ID format" });
+      if (!uuidRegex.test(founderId)) {
+        return res.status(400).json({ error: "Invalid founder ID format" });
       }
 
-      const ventures = await storage.getVenturesByUserId(userId);
+      const ventures = await storage.getVenturesByFounderId(founderId);
       res.json(ventures);
     } catch (error) {
-      console.log(`Error fetching user ventures: ${error}`);
+      console.log(`Error fetching founder ventures: ${error}`);
       res.status(500).json({ error: "Failed to fetch ventures" });
     }
   });
@@ -229,8 +239,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  // Update user completion status
-  app.patch("/api/users/:id/complete-second-chance", async (req, res) => {
+  // Update founder endpoint
+  app.patch("/api/founders/:id", async (req, res) => {
     try {
       const { id } = req.params;
 
@@ -238,14 +248,15 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const uuidRegex =
         /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
       if (!uuidRegex.test(id)) {
-        return res.status(400).json({ error: "Invalid user ID format" });
+        return res.status(400).json({ error: "Invalid founder ID format" });
       }
 
-      const user = await storage.updateUser(id, { isSecondChanceDone: true });
-      res.json(user);
+      const updateData = req.body;
+      const founder = await storage.updateFounder(id, updateData);
+      res.json(founder);
     } catch (error) {
-      console.log(`Error updating user completion status: ${error}`);
-      res.status(500).json({ error: "Failed to update user" });
+      console.log(`Error updating founder: ${error}`);
+      res.status(500).json({ error: "Failed to update founder" });
     }
   });
 

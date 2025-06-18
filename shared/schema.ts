@@ -1,232 +1,247 @@
 import { z } from "zod";
 import { createInsertSchema } from "drizzle-zod";
-import { pgTable, text, integer, serial, timestamp, boolean, decimal, json, uuid } from "drizzle-orm/pg-core";
+import { pgTable, text, integer, serial, timestamp, boolean, decimal, json, uuid, varchar, smallint, date, pgEnum } from "drizzle-orm/pg-core";
 import { relations } from "drizzle-orm";
 
-// Users table
-export const users = pgTable("users", {
-  id: uuid("id").primaryKey().defaultRandom(),
-  firstName: text("first_name").notNull(),
-  lastName: text("last_name").notNull(),
-  email: text("email").notNull().unique(),
-  age: integer("age"),
-  contactInfo: json("contact_info").$type<{
-    phone?: string;
-    linkedin?: string;
-    twitter?: string;
-    location?: string;
-  }>(),
-  isSecondChanceDone: boolean("is_second_chance_done").default(false),
-  // Additional suggested properties
-  profilePicture: text("profile_picture"),
-  bio: text("bio"),
-  experience: text("experience"), // "first-time", "serial", "corporate"
-  industry: text("industry"),
-  timezone: text("timezone"),
-  preferences: json("preferences").$type<{
-    notifications?: boolean;
-    newsletter?: boolean;
-    mentorship?: boolean;
-  }>(),
-  lastLoginAt: timestamp("last_login_at"),
+// ENUM definitions
+export const revenueStageEnum = pgEnum('revenue_stage', ['None', 'Pre-Revenue', 'Early Revenue', 'Scaling']);
+export const mvpStatusEnum = pgEnum('mvp_status', ['Mockup', 'Prototype', 'Launched']);
+export const artefactTypeEnum = pgEnum('artefact_type', [
+  'Pitch Deck', 
+  'Metrics Dashboard', 
+  'Demo Video', 
+  'Product Screenshot',
+  'Customer Testimonial', 
+  'Technical Documentation',
+  'Financial Model'
+]);
+
+// Founder table (replaces users)
+export const founder = pgTable("founder", {
+  founderId: uuid("founder_id").primaryKey().defaultRandom(),
+  fullName: varchar("full_name", { length: 100 }).notNull(),
+  email: varchar("email", { length: 100 }).notNull().unique(),
+  linkedinProfile: varchar("linkedin_profile", { length: 200 }).unique(),
+  gender: varchar("gender", { length: 20 }),
+  companyWebsite: varchar("company_website", { length: 200 }),
+  age: smallint("age"),
+  personalLinkedin: varchar("personal_linkedin", { length: 200 }),
+  positionRole: varchar("position_role", { length: 100 }).notNull(),
+  residence: varchar("residence", { length: 100 }),
+  isTechnical: boolean("is_technical").notNull().default(false),
   createdAt: timestamp("created_at").defaultNow().notNull(),
   updatedAt: timestamp("updated_at").defaultNow().notNull(),
 });
 
-// Ventures table
-export const ventures = pgTable("ventures", {
-  id: uuid("id").primaryKey().defaultRandom(),
-  name: text("name").notNull(),
-  ownerId: uuid("owner_id").references(() => users.id).notNull(),
-  teamSize: integer("team_size").default(1),
-  category: text("category"), // "saas", "marketplace", "fintech", etc.
+// Venture table (replaces ventures)
+export const venture = pgTable("venture", {
+  ventureId: uuid("venture_id").primaryKey().defaultRandom(),
+  founderId: uuid("founder_id").references(() => founder.founderId).notNull(),
+  name: varchar("name", { length: 200 }).notNull(),
+  website: varchar("website", { length: 200 }),
+  industry: varchar("industry", { length: 100 }).notNull(),
+  geography: varchar("geography", { length: 100 }).notNull(),
+  marketSize: decimal("market_size"),
+  valuation: decimal("valuation"),
+  revenueStage: revenueStageEnum("revenue_stage").notNull(),
+  pilotsPartnerships: text("pilots_partnerships"),
+  mvpStatus: mvpStatusEnum("mvp_status").notNull(),
+  customerDiscoveryCount: integer("customer_discovery_count").default(0),
+  businessModel: text("business_model").notNull(),
+  userSignups: integer("user_signups").default(0),
+  lois: integer("lois").default(0),
+  hasTestimonials: boolean("has_testimonials").default(false),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+  updatedAt: timestamp("updated_at").defaultNow().notNull(),
+});
+
+// Founder Experience table
+export const founderExperience = pgTable("founder_experience", {
+  experienceId: uuid("experience_id").primaryKey().defaultRandom(),
+  founderId: uuid("founder_id").references(() => founder.founderId).notNull(),
+  experienceType: varchar("experience_type", { length: 20 }).notNull(),
+  description: text("description").notNull(),
+  timeframe: varchar("timeframe", { length: 50 }),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+});
+
+// Venture Social Media table
+export const ventureSocial = pgTable("venture_social", {
+  socialId: uuid("social_id").primaryKey().defaultRandom(),
+  ventureId: uuid("venture_id").references(() => venture.ventureId).notNull(),
+  platform: varchar("platform", { length: 20 }).notNull(),
+  url: varchar("url", { length: 200 }).notNull(),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+});
+
+// Team Member table (replaces team_members)
+export const teamMember = pgTable("team_member", {
+  memberId: uuid("member_id").primaryKey().defaultRandom(),
+  ventureId: uuid("venture_id").references(() => venture.ventureId).notNull(),
+  fullName: varchar("full_name", { length: 100 }).notNull(),
+  email: varchar("email", { length: 100 }),
+  linkedinProfile: varchar("linkedin_profile", { length: 200 }),
+  role: varchar("role", { length: 100 }).notNull(),
+  experience: text("experience").notNull(),
+  background: text("background"),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+});
+
+// Fundraising History table (replaces investor_interactions)
+export const fundraisingHistory = pgTable("fundraising_history", {
+  fundraisingId: uuid("fundraising_id").primaryKey().defaultRandom(),
+  ventureId: uuid("venture_id").references(() => venture.ventureId).notNull(),
+  amount: decimal("amount").notNull(),
+  stage: varchar("stage", { length: 50 }).notNull(),
+  investors: text("investors").notNull(),
+  date: date("date").notNull(),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+});
+
+// Evaluation table (replaces proof_scores)
+export const evaluation = pgTable("evaluation", {
+  evaluationId: uuid("evaluation_id").primaryKey().defaultRandom(),
+  ventureId: uuid("venture_id").references(() => venture.ventureId).notNull(),
+  evaluationDate: date("evaluation_date").notNull().defaultNow(),
+  proofscore: integer("proofscore").notNull(),
+  prooftags: json("prooftags").$type<string[]>().notNull().default([]),
+  folderId: varchar("folder_id", { length: 255 }).unique(),
+  folderUrl: varchar("folder_url", { length: 255 }),
+  isCurrent: boolean("is_current").notNull().default(true),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+});
+
+// Evaluation Category table
+export const evaluationCategory = pgTable("evaluation_category", {
+  categoryId: uuid("category_id").primaryKey().defaultRandom(),
+  evaluationId: uuid("evaluation_id").references(() => evaluation.evaluationId).notNull(),
+  name: varchar("name", { length: 20 }).notNull(),
+  score: integer("score").notNull(),
+  justification: text("justification").notNull(),
+  recommendation: text("recommendation"),
+  proofTags: json("proof_tags").$type<string[]>().notNull().default([]),
+  relatedSlides: json("related_slides").$type<string[]>().notNull().default([]),
+});
+
+// ProofVault table (replaces proof_vault_documents)
+export const proofVault = pgTable("proof_vault", {
+  vaultId: uuid("vault_id").primaryKey().defaultRandom(),
+  ventureId: uuid("venture_id").references(() => venture.ventureId).notNull(),
+  evaluationId: uuid("evaluation_id").references(() => evaluation.evaluationId),
+  artefactType: artefactTypeEnum("artefact_type").notNull(),
+  fileId: varchar("file_id", { length: 255 }).notNull(),
+  fileUrl: varchar("file_url", { length: 255 }).notNull(),
   description: text("description"),
-  proofScore: decimal("proof_score", { precision: 5, scale: 2 }),
-  // Additional suggested properties
-  stage: text("stage"), // "idea", "mvp", "traction", "growth"
-  industry: text("industry"),
-  targetMarket: text("target_market"),
-  businessModel: text("business_model"),
-  fundingStage: text("funding_stage"), // "bootstrap", "pre-seed", "seed", etc.
-  monthlyRevenue: decimal("monthly_revenue", { precision: 12, scale: 2 }),
-  totalRaised: decimal("total_raised", { precision: 12, scale: 2 }),
-  valuation: decimal("valuation", { precision: 15, scale: 2 }),
-  website: text("website"),
-  pitch_deck_url: text("pitch_deck_url"),
-  status: text("status").default("active"), // "active", "paused", "closed"
-  isPublic: boolean("is_public").default(false),
-  tags: json("tags").$type<string[]>(),
-  metrics: json("metrics").$type<{
-    users?: number;
-    mrr?: number;
-    churn?: number;
-    cac?: number;
-    ltv?: number;
-  }>(),
   createdAt: timestamp("created_at").defaultNow().notNull(),
-  updatedAt: timestamp("updated_at").defaultNow().notNull(),
-});
-
-// ProofScores table (separate table for detailed scoring)
-export const proofScores = pgTable("proof_scores", {
-  id: serial("id").primaryKey(),
-  ventureId: uuid("venture_id").references(() => ventures.id).notNull(),
-  totalScore: decimal("total_score", { precision: 5, scale: 2 }).notNull(),
-  desirability: decimal("desirability", { precision: 5, scale: 2 }).notNull(),
-  feasibility: decimal("feasibility", { precision: 5, scale: 2 }).notNull(),
-  viability: decimal("viability", { precision: 5, scale: 2 }).notNull(),
-  traction: decimal("traction", { precision: 5, scale: 2 }).notNull(),
-  readiness: decimal("readiness", { precision: 5, scale: 2 }).notNull(),
-  proofTags: json("proof_tags").$type<{
-    unlocked: number;
-    total: number;
-    tags: string[];
-  }>(),
-  insights: json("insights").$type<{
-    strengths: string[];
-    improvements: string[];
-    recommendations: string[];
-  }>(),
-  assessmentData: json("assessment_data"),
-  createdAt: timestamp("created_at").defaultNow().notNull(),
-});
-
-// ProofVault documents table
-export const proofVaultDocuments = pgTable("proof_vault_documents", {
-  id: serial("id").primaryKey(),
-  ventureId: uuid("venture_id").references(() => ventures.id).notNull(),
-  documentType: text("document_type").notNull(), // "pitch_deck", "financial_model", "customer_interviews", etc.
-  fileName: text("file_name").notNull(),
-  fileUrl: text("file_url").notNull(),
-  fileSize: integer("file_size"),
-  mimeType: text("mime_type"),
-  uploadedBy: uuid("uploaded_by").references(() => users.id).notNull(),
-  isValidated: boolean("is_validated").default(false),
-  validatedBy: uuid("validated_by").references(() => users.id),
-  validationNotes: text("validation_notes"),
-  createdAt: timestamp("created_at").defaultNow().notNull(),
-  updatedAt: timestamp("updated_at").defaultNow().notNull(),
-});
-
-// Team members table
-export const teamMembers = pgTable("team_members", {
-  id: serial("id").primaryKey(),
-  ventureId: uuid("venture_id").references(() => ventures.id).notNull(),
-  userId: uuid("user_id").references(() => users.id),
-  name: text("name").notNull(),
-  email: text("email"),
-  role: text("role").notNull(), // "founder", "co-founder", "cto", "cmo", etc.
-  equity: decimal("equity", { precision: 5, scale: 2 }),
-  isActive: boolean("is_active").default(true),
-  joinedAt: timestamp("joined_at").defaultNow().notNull(),
-  leftAt: timestamp("left_at"),
-});
-
-// Investor interactions table
-export const investorInteractions = pgTable("investor_interactions", {
-  id: serial("id").primaryKey(),
-  ventureId: uuid("venture_id").references(() => ventures.id).notNull(),
-  investorName: text("investor_name").notNull(),
-  investorType: text("investor_type"), // "angel", "vc", "accelerator"
-  stage: text("stage").notNull(), // "intro", "meeting", "due_diligence", "term_sheet", "closed"
-  amount: decimal("amount", { precision: 12, scale: 2 }),
-  notes: text("notes"),
-  nextAction: text("next_action"),
-  contactedBy: uuid("contacted_by").references(() => users.id).notNull(),
-  createdAt: timestamp("created_at").defaultNow().notNull(),
-  updatedAt: timestamp("updated_at").defaultNow().notNull(),
 });
 
 // Relations
-export const userRelations = relations(users, ({ many }) => ({
-  ventures: many(ventures),
-  uploadedDocuments: many(proofVaultDocuments, { relationName: "uploader" }),
-  validatedDocuments: many(proofVaultDocuments, { relationName: "validator" }),
-  teamMemberships: many(teamMembers),
-  investorInteractions: many(investorInteractions),
+export const founderRelations = relations(founder, ({ many }) => ({
+  ventures: many(venture),
+  experiences: many(founderExperience),
 }));
 
-export const ventureRelations = relations(ventures, ({ one, many }) => ({
-  owner: one(users, {
-    fields: [ventures.ownerId],
-    references: [users.id],
-  }),
-  proofScores: many(proofScores),
-  documents: many(proofVaultDocuments),
-  teamMembers: many(teamMembers),
-  investorInteractions: many(investorInteractions),
-}));
-
-export const proofScoreRelations = relations(proofScores, ({ one }) => ({
-  venture: one(ventures, {
-    fields: [proofScores.ventureId],
-    references: [ventures.id],
+export const founderExperienceRelations = relations(founderExperience, ({ one }) => ({
+  founder: one(founder, {
+    fields: [founderExperience.founderId],
+    references: [founder.founderId],
   }),
 }));
 
-export const documentRelations = relations(proofVaultDocuments, ({ one }) => ({
-  venture: one(ventures, {
-    fields: [proofVaultDocuments.ventureId],
-    references: [ventures.id],
+export const ventureRelations = relations(venture, ({ one, many }) => ({
+  founder: one(founder, {
+    fields: [venture.founderId],
+    references: [founder.founderId],
   }),
-  uploader: one(users, {
-    fields: [proofVaultDocuments.uploadedBy],
-    references: [users.id],
-    relationName: "uploader",
-  }),
-  validator: one(users, {
-    fields: [proofVaultDocuments.validatedBy],
-    references: [users.id],
-    relationName: "validator",
+  evaluations: many(evaluation),
+  documents: many(proofVault),
+  teamMembers: many(teamMember),
+  socialMedia: many(ventureSocial),
+  fundraisingHistory: many(fundraisingHistory),
+}));
+
+export const ventureSocialRelations = relations(ventureSocial, ({ one }) => ({
+  venture: one(venture, {
+    fields: [ventureSocial.ventureId],
+    references: [venture.ventureId],
   }),
 }));
 
-export const teamMemberRelations = relations(teamMembers, ({ one }) => ({
-  venture: one(ventures, {
-    fields: [teamMembers.ventureId],
-    references: [ventures.id],
-  }),
-  user: one(users, {
-    fields: [teamMembers.userId],
-    references: [users.id],
+export const teamMemberRelations = relations(teamMember, ({ one }) => ({
+  venture: one(venture, {
+    fields: [teamMember.ventureId],
+    references: [venture.ventureId],
   }),
 }));
 
-export const investorInteractionRelations = relations(investorInteractions, ({ one }) => ({
-  venture: one(ventures, {
-    fields: [investorInteractions.ventureId],
-    references: [ventures.id],
+export const fundraisingHistoryRelations = relations(fundraisingHistory, ({ one }) => ({
+  venture: one(venture, {
+    fields: [fundraisingHistory.ventureId],
+    references: [venture.ventureId],
   }),
-  contactedBy: one(users, {
-    fields: [investorInteractions.contactedBy],
-    references: [users.id],
+}));
+
+export const evaluationRelations = relations(evaluation, ({ one, many }) => ({
+  venture: one(venture, {
+    fields: [evaluation.ventureId],
+    references: [venture.ventureId],
+  }),
+  categories: many(evaluationCategory),
+  documents: many(proofVault),
+}));
+
+export const evaluationCategoryRelations = relations(evaluationCategory, ({ one }) => ({
+  evaluation: one(evaluation, {
+    fields: [evaluationCategory.evaluationId],
+    references: [evaluation.evaluationId],
+  }),
+}));
+
+export const proofVaultRelations = relations(proofVault, ({ one }) => ({
+  venture: one(venture, {
+    fields: [proofVault.ventureId],
+    references: [venture.ventureId],
+  }),
+  evaluation: one(evaluation, {
+    fields: [proofVault.evaluationId],
+    references: [evaluation.evaluationId],
   }),
 }));
 
 // Export types
-export type User = typeof users.$inferSelect;
-export type InsertUser = typeof users.$inferInsert;
-export type Venture = typeof ventures.$inferSelect;
-export type InsertVenture = typeof ventures.$inferInsert;
-export type ProofScore = typeof proofScores.$inferSelect;
-export type InsertProofScore = typeof proofScores.$inferInsert;
-export type ProofVaultDocument = typeof proofVaultDocuments.$inferSelect;
-export type InsertProofVaultDocument = typeof proofVaultDocuments.$inferInsert;
-export type TeamMember = typeof teamMembers.$inferSelect;
-export type InsertTeamMember = typeof teamMembers.$inferInsert;
-export type InvestorInteraction = typeof investorInteractions.$inferSelect;
-export type InsertInvestorInteraction = typeof investorInteractions.$inferInsert;
+export type Founder = typeof founder.$inferSelect;
+export type InsertFounder = typeof founder.$inferInsert;
+export type FounderExperience = typeof founderExperience.$inferSelect;
+export type InsertFounderExperience = typeof founderExperience.$inferInsert;
+export type Venture = typeof venture.$inferSelect;
+export type InsertVenture = typeof venture.$inferInsert;
+export type VentureSocial = typeof ventureSocial.$inferSelect;
+export type InsertVentureSocial = typeof ventureSocial.$inferInsert;
+export type TeamMember = typeof teamMember.$inferSelect;
+export type InsertTeamMember = typeof teamMember.$inferInsert;
+export type FundraisingHistory = typeof fundraisingHistory.$inferSelect;
+export type InsertFundraisingHistory = typeof fundraisingHistory.$inferInsert;
+export type Evaluation = typeof evaluation.$inferSelect;
+export type InsertEvaluation = typeof evaluation.$inferInsert;
+export type EvaluationCategory = typeof evaluationCategory.$inferSelect;
+export type InsertEvaluationCategory = typeof evaluationCategory.$inferInsert;
+export type ProofVault = typeof proofVault.$inferSelect;
+export type InsertProofVault = typeof proofVault.$inferInsert;
 
 export const founderSchema = z.object({
-  name: z.string().min(1, "Name is required"),
+  fullName: z.string().min(1, "Name is required"),
   email: z.string().email("Invalid email address"),
   startupName: z.string().min(1, "Startup name is required"),
-  stage: z.enum(["idea", "mvp", "traction", "growth"]),
+  stage: z.enum(["None", "Pre-Revenue", "Early Revenue", "Scaling"]),
   acceleratorApplications: z.number().min(0).default(0),
   pitchDeck: z.string().optional(),
   dataRoom: z.string().optional(),
-  userId: z.number().optional(),
-  ventureId: z.number().optional(),
+  founderId: z.string().optional(),
+  ventureId: z.string().optional(),
+  positionRole: z.string().default("Founder"),
+  industry: z.string().default("Technology"),
+  geography: z.string().default("Global"),
+  businessModel: z.string().default("SaaS"),
 });
 
 export type FounderData = z.infer<typeof founderSchema>;

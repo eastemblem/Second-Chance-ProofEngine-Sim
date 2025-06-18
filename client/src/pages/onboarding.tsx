@@ -34,10 +34,10 @@ export default function OnboardingPage({
   const [isSubmitting, setIsSubmitting] = useState(false);
   const { toast } = useToast();
 
-  // Create user mutation
-  const createUserMutation = useMutation({
-    mutationFn: async (userData: any) => {
-      const res = await apiRequest("POST", "/api/users", userData);
+  // Create founder mutation
+  const createFounderMutation = useMutation({
+    mutationFn: async (founderData: any) => {
+      const res = await apiRequest("POST", "/api/founders", founderData);
       return await res.json();
     },
   });
@@ -71,27 +71,24 @@ export default function OnboardingPage({
     setIsSubmitting(true);
 
     try {
-      // Split name into first and last name
-      const nameParts = formData.name.trim().split(" ");
-      const firstName = nameParts[0];
-      const lastName = nameParts.slice(1).join(" ") || "";
-
-      // Create user
-      const userData = {
-        firstName,
-        lastName,
+      // Create founder
+      const founderData = {
+        fullName: formData.name,
         email: formData.email,
+        positionRole: "Founder",
       };
 
-      const user = await createUserMutation.mutateAsync(userData);
+      const founder = await createFounderMutation.mutateAsync(founderData);
 
       // Create venture
       const ventureData = {
         name: formData.startupName,
-        ownerId: user.id,
-        stage: formData.stage,
-        description: `Venture in ${formData.stage} stage`,
-        teamSize: 1,
+        founderId: founder.founderId,
+        industry: "Technology",
+        geography: "Global", 
+        businessModel: "SaaS",
+        revenueStage: "Pre-Revenue",
+        mvpStatus: "Prototype",
       };
 
       const venture = await createVentureMutation.mutateAsync(ventureData);
@@ -128,11 +125,11 @@ export default function OnboardingPage({
       //   }
       // }
 
-      // Store user and venture IDs for later use
+      // Store founder and venture IDs for later use
       const enhancedData = {
         ...formData,
-        userId: user.id,
-        ventureId: venture.id,
+        founderId: founder.founderId,
+        ventureId: venture.ventureId,
       };
 
       // Store onboarding data in session for use throughout the app

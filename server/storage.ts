@@ -3,13 +3,13 @@ import { db } from "./db";
 import { eq } from "drizzle-orm";
 
 export interface IStorage {
-  getUser(id: string): Promise<User | undefined>;
-  getUserByEmail(email: string): Promise<User | undefined>;
-  createUser(user: InsertUser): Promise<User>;
-  updateUser(id: string, user: Partial<InsertUser>): Promise<User>;
+  getFounder(id: string): Promise<Founder | undefined>;
+  getFounderByEmail(email: string): Promise<Founder | undefined>;
+  createFounder(founder: InsertFounder): Promise<Founder>;
+  updateFounder(id: string, founder: Partial<InsertFounder>): Promise<Founder>;
   
   getVenture(id: string): Promise<Venture | undefined>;
-  getVenturesByUserId(userId: string): Promise<Venture[]>;
+  getVenturesByFounderId(founderId: string): Promise<Venture[]>;
   createVenture(venture: InsertVenture): Promise<Venture>;
   updateVenture(id: string, venture: Partial<InsertVenture>): Promise<Venture>;
 }
