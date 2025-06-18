@@ -45,8 +45,11 @@ export const teamMemberSchema = z.object({
   email: z.string().email("Invalid email address"),
   role: z.string().min(1, "Role is required"),
   experience: z.string().min(1, "Experience is required"),
-  linkedinProfile: z.string().optional(),
-  background: z.string().optional(),
+  linkedinProfile: z.string().optional().transform(val => val === "" ? undefined : val),
+  background: z.string().optional().transform(val => val === "" ? undefined : val),
+  twitterUrl: z.string().optional().transform(val => val === "" ? undefined : val),
+  instagramUrl: z.string().optional().transform(val => val === "" ? undefined : val),
+  githubUrl: z.string().optional().transform(val => val === "" ? undefined : val),
   isCofounder: z.boolean().default(false),
 });
 

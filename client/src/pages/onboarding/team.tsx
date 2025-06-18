@@ -11,7 +11,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { ChevronLeft, Plus, Trash2, Users } from "lucide-react";
+import { ChevronLeft, Plus, Trash2, Users, Twitter, Instagram, Github } from "lucide-react";
 
 const teamMemberSchema = z.object({
   fullName: z.string().min(1, "Full name is required"),
@@ -20,6 +20,9 @@ const teamMemberSchema = z.object({
   experience: z.string().min(1, "Experience is required"),
   linkedinProfile: z.string().optional(),
   background: z.string().optional(),
+  twitterUrl: z.string().optional(),
+  instagramUrl: z.string().optional(),
+  githubUrl: z.string().optional(),
   isCofounder: z.boolean().default(false),
 });
 
@@ -54,6 +57,9 @@ export default function TeamOnboarding({
       email: "",
       linkedinProfile: "",
       background: "",
+      twitterUrl: "",
+      instagramUrl: "",
+      githubUrl: "",
       isCofounder: false,
     }
   });
@@ -292,6 +298,42 @@ export default function TeamOnboarding({
                     className="mt-1"
                     placeholder="https://linkedin.com/in/janesmith"
                   />
+                </div>
+
+                <div>
+                  <Label>Social Media Links (Optional)</Label>
+                  <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mt-2">
+                    <div className="relative">
+                      <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                        <Twitter className="h-4 w-4 text-gray-400" />
+                      </div>
+                      <Input
+                        {...form.register("twitterUrl")}
+                        placeholder="Twitter URL"
+                        className="pl-10"
+                      />
+                    </div>
+                    <div className="relative">
+                      <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                        <Instagram className="h-4 w-4 text-gray-400" />
+                      </div>
+                      <Input
+                        {...form.register("instagramUrl")}
+                        placeholder="Instagram URL"
+                        className="pl-10"
+                      />
+                    </div>
+                    <div className="relative">
+                      <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                        <Github className="h-4 w-4 text-gray-400" />
+                      </div>
+                      <Input
+                        {...form.register("githubUrl")}
+                        placeholder="GitHub URL"
+                        className="pl-10"
+                      />
+                    </div>
+                  </div>
                 </div>
 
                 <div>

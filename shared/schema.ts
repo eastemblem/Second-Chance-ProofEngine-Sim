@@ -89,6 +89,9 @@ export const teamMember = pgTable("team_member", {
   experience: text("experience").notNull(),
   background: text("background"),
   isCofounder: boolean("is_cofounder").default(false),
+  twitterUrl: varchar("twitter_url", { length: 200 }),
+  instagramUrl: varchar("instagram_url", { length: 200 }),
+  githubUrl: varchar("github_url", { length: 200 }),
   createdAt: timestamp("created_at").defaultNow().notNull(),
 });
 
