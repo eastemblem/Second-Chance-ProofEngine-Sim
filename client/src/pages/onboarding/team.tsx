@@ -49,6 +49,7 @@ export default function TeamOnboarding({
   const queryClient = useQueryClient();
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [showAddForm, setShowAddForm] = useState(false);
+  const [editingMember, setEditingMember] = useState<any>(null);
 
   const form = useForm<TeamMemberFormData>({
     resolver: zodResolver(teamMemberSchema),
@@ -78,7 +79,8 @@ export default function TeamOnboarding({
   });
 
   const teamMembers = teamData?.teamMembers || [];
-  const isValidTeam = teamMembers.length >= 3;
+  const teamMemberCount = teamMembers.length;
+  const isValidTeam = teamMemberCount >= 3;
 
   // Add team member mutation
   const addMemberMutation = useMutation({
@@ -93,10 +95,11 @@ export default function TeamOnboarding({
       if (data.success) {
         toast({
           title: "Success",
-          description: "Team member added successfully",
+          description: `${data.teamMember.fullName} added to the team`,
         });
         form.reset();
         setShowAddForm(false);
+        setEditingMember(null);
         refetch();
       }
     },
@@ -171,33 +174,63 @@ export default function TeamOnboarding({
         <div className="flex items-center justify-center space-x-2 text-sm">
           <Users className="w-4 h-4" />
           <span className={`font-medium ${isValidTeam ? 'text-green-600' : 'text-orange-600'}`}>
-            {teamMembers.length}/3 minimum team members
+            {teamMemberCount}/3 minimum team members
           </span>
         </div>
       </div>
 
       {/* Team Members List */}
       <div className="mb-8">
-        {teamMembers.length > 0 && (
+        {teamMemberCount > 0 && (
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
             {teamMembers.map((member: any, index: number) => (
-              <Card key={index} className="border-2">
+              <Card key={member.memberId || index} className="border-2">
                 <CardHeader className="pb-3">
-                  <CardTitle className="text-lg flex items-center justify-between">
-                    {member.fullName}
-                    {member.isCofounder && (
-                      <span className="text-xs bg-blue-100 text-blue-800 px-2 py-1 rounded-full">
-                        Co-founder
-                      </span>
-                    )}
-                  </CardTitle>
+                  <div className="flex items-center justify-between">
+                    <CardTitle className="text-lg flex items-center gap-2">
+                      {member.fullName}
+                      {member.isCofounder && (
+                        <span className="text-xs bg-blue-100 text-blue-800 px-2 py-1 rounded-full">
+                          Co-founder
+                        </span>
+                      )}
+                    </CardTitle>
+                    <div className="flex gap-1">
+                      <Button
+                        variant="ghost" 
+                        size="sm"
+                        onClick={() => onEditMember(member)}
+                      >
+                        <Edit className="w-4 h-4" />
+                      </Button>
+                      <Button
+                        variant="ghost"
+                        size="sm" 
+                        onClick={() => onDeleteMember(member.memberId)}
+                        className="text-red-600 hover:text-red-700"
+                      >
+                        <Trash2 className="w-4 h-4" />
+                      </Button>
+                    </div>
+                  </div>
                 </CardHeader>
                 <CardContent>
                   <p className="text-gray-600 text-sm mb-1">{member.role}</p>
-                  <p className="text-gray-500 text-xs">{member.email}</p>
-                  {member.linkedinProfile && (
-                    <a 
-                      href={member.linkedinProfile} 
+                  <p className="text-gray-500 text-xs mb-2">{member.email}</p>
+                  
+                  {/* Demographics */}
+                  {(member.age || member.gender) && (
+                    <div className="flex gap-4 text-xs text-gray-500 mb-2">
+                      {member.age && <span>Age: {member.age}</span>}
+                      {member.gender && <span>Gender: {member.gender}</span>}
+                    </div>
+                  )}
+
+                  {/* Social Media Links */}
+                  <div className="flex gap-2 mt-2">
+                    {member.linkedinProfile && (
+                      <a 
+                        href={member.linkedinProfile} 
                       target="_blank" 
                       rel="noopener noreferrer"
                       className="text-blue-600 text-xs hover:underline"
