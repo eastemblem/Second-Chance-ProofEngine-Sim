@@ -1,10 +1,9 @@
 import { useState, useEffect } from "react";
 import { motion } from "framer-motion";
 import { useMutation } from "@tanstack/react-query";
-import { Card, CardContent } from "@/components/ui/card";
-import { useToast } from "@/hooks/use-toast";
 import { apiRequest } from "@/lib/queryClient";
-import { Brain, CheckCircle, Clock, Loader } from "lucide-react";
+import { useToast } from "@/hooks/use-toast";
+import { Loader2, FileText, Brain, BarChart3, CheckCircle } from "lucide-react";
 
 interface ProcessingScreenProps {
   sessionId: string;
@@ -14,43 +13,41 @@ interface ProcessingScreenProps {
 
 const processingSteps = [
   {
-    title: "Analyzing Pitch Deck",
-    description: "Reading and extracting content from your pitch deck",
-    duration: 3000,
+    id: "upload",
+    label: "Document Upload",
+    description: "Processing your pitch deck",
+    icon: FileText,
   },
   {
-    title: "Evaluating Business Model",
-    description: "Assessing market opportunity and business viability",
-    duration: 4000,
+    id: "analysis",
+    label: "AI Analysis",
+    description: "Analyzing content and structure",
+    icon: Brain,
   },
   {
-    title: "Scoring Framework",
-    description: "Applying ProofScore methodology to your venture",
-    duration: 3000,
+    id: "scoring",
+    label: "ProofScore Calculation",
+    description: "Generating your investment readiness score",
+    icon: BarChart3,
   },
   {
-    title: "Generating Insights",
-    description: "Creating personalized recommendations and feedback",
-    duration: 5000,
-  },
-  {
-    title: "Finalizing Results",
-    description: "Preparing your comprehensive analysis report",
-    duration: 2000,
+    id: "complete",
+    label: "Analysis Complete",
+    description: "Preparing your results",
+    icon: CheckCircle,
   },
 ];
 
-export default function ProcessingScreen({
-  sessionId,
-  onNext,
-  onDataUpdate
+export default function ProcessingScreen({ 
+  sessionId, 
+  onNext, 
+  onDataUpdate 
 }: ProcessingScreenProps) {
-  const [currentStep, setCurrentStep] = useState(0);
-  const [isProcessing, setIsProcessing] = useState(true);
   const { toast } = useToast();
+  const [currentStep, setCurrentStep] = useState(0);
+  const [processingComplete, setProcessingComplete] = useState(false);
 
-  // Submit for scoring mutation
-  const scoringMutation = useMutation({
+  const submitForScoringMutation = useMutation({
     mutationFn: async () => {
       const res = await apiRequest("POST", "/api/submit-for-scoring", {
         sessionId
@@ -61,207 +58,139 @@ export default function ProcessingScreen({
       if (data.success) {
         onDataUpdate({ 
           scoringResult: data.scoringResult,
-          folderStructure: data.folderStructure,
-          completedAt: new Date()
+          analysis: data.analysis 
         });
-        
-        // Show completion message
-        toast({
-          title: "Analysis Complete!",
-          description: "Your ProofScore analysis is ready",
-        });
-        
-        // Move to next step after brief delay
+        setProcessingComplete(true);
         setTimeout(() => {
           onNext();
-        }, 1500);
+        }, 2000);
       }
     },
     onError: (error: any) => {
       toast({
-        title: "Processing Error", 
+        title: "Error",
         description: error.message || "Failed to process your submission",
         variant: "destructive",
       });
-      setIsProcessing(false);
     }
   });
 
-  // Auto-advance through processing steps
   useEffect(() => {
-    if (currentStep < processingSteps.length - 1) {
-      const timer = setTimeout(() => {
-        setCurrentStep(prev => prev + 1);
-      }, processingSteps[currentStep].duration);
+    // Simulate processing steps
+    const stepInterval = setInterval(() => {
+      setCurrentStep(prev => {
+        if (prev < processingSteps.length - 2) {
+          return prev + 1;
+        } else if (prev === processingSteps.length - 2) {
+          // Start actual processing when we reach the last step
+          clearInterval(stepInterval);
+          submitForScoringMutation.mutate();
+          return prev + 1;
+        }
+        return prev;
+      });
+    }, 2000);
 
-      return () => clearTimeout(timer);
-    } else {
-      // Start actual processing when visual steps complete
-      const processingTimer = setTimeout(() => {
-        scoringMutation.mutate();
-      }, processingSteps[currentStep].duration);
-
-      return () => clearTimeout(processingTimer);
-    }
-  }, [currentStep, scoringMutation]);
-
-  // Calculate overall progress
-  const overallProgress = scoringMutation.isPending 
-    ? 95 // Almost complete during actual processing
-    : Math.min(((currentStep + 1) / processingSteps.length) * 90, 90); // 90% when visual steps complete
+    return () => clearInterval(stepInterval);
+  }, []);
 
   return (
     <motion.div
       initial={{ opacity: 0, y: 20 }}
       animate={{ opacity: 1, y: 0 }}
-      className="max-w-2xl mx-auto"
+      className="max-w-2xl mx-auto text-center"
     >
-      <div className="text-center mb-8">
-        <div className="inline-flex items-center justify-center w-16 h-16 bg-purple-100 rounded-full mb-4">
-          <Brain className="h-8 w-8 text-purple-600" />
-        </div>
-        <h2 className="text-3xl font-bold text-gray-900 mb-2">Analyzing Your Venture</h2>
+      <div className="mb-8">
+        <h2 className="text-3xl font-bold text-gray-900 mb-2">
+          Processing Your Submission
+        </h2>
         <p className="text-gray-600">
-          Our AI is processing your information to generate your ProofScore
+          Our AI is analyzing your pitch deck and generating your ProofScore
         </p>
       </div>
 
-      {/* Overall Progress Bar */}
-      <div className="mb-8">
-        <div className="flex justify-between items-center mb-2">
-          <span className="text-sm font-medium text-gray-700">Overall Progress</span>
-          <span className="text-sm font-medium text-purple-600">{Math.round(overallProgress)}%</span>
-        </div>
-        <div className="w-full bg-gray-200 rounded-full h-3">
-          <div
-            className="bg-gradient-to-r from-purple-600 to-blue-600 h-3 rounded-full transition-all duration-500 ease-out"
-            style={{ width: `${overallProgress}%` }}
-          ></div>
-        </div>
-      </div>
-
-      {/* Processing Steps */}
-      <div className="space-y-4 mb-8">
+      <div className="space-y-6">
         {processingSteps.map((step, index) => {
-          const isActive = index === currentStep;
-          const isCompleted = index < currentStep || scoringMutation.isSuccess;
-          const isPending = index > currentStep && !scoringMutation.isSuccess;
+          const Icon = step.icon;
+          const isActive = index <= currentStep;
+          const isComplete = index < currentStep || processingComplete;
+          const isCurrent = index === currentStep && !processingComplete;
 
           return (
-            <Card
-              key={index}
-              className={`transition-all duration-500 ${
-                isActive
-                  ? "border-purple-500 shadow-md scale-[1.02]"
-                  : isCompleted
-                  ? "border-green-500 bg-green-50"
-                  : "border-gray-200"
+            <motion.div
+              key={step.id}
+              initial={{ opacity: 0, x: -20 }}
+              animate={{ opacity: 1, x: 0 }}
+              transition={{ delay: index * 0.2 }}
+              className={`flex items-center space-x-4 p-4 rounded-lg border-2 ${
+                isActive 
+                  ? 'border-blue-200 bg-blue-50' 
+                  : 'border-gray-200 bg-gray-50'
               }`}
             >
-              <CardContent className="p-4">
-                <div className="flex items-center">
-                  <div className={`mr-4 flex-shrink-0 ${
-                    isCompleted 
-                      ? "text-green-600" 
-                      : isActive 
-                      ? "text-purple-600" 
-                      : "text-gray-400"
-                  }`}>
-                    {isCompleted ? (
-                      <CheckCircle className="h-6 w-6" />
-                    ) : isActive ? (
-                      <div className="animate-spin">
-                        <Loader className="h-6 w-6" />
-                      </div>
-                    ) : (
-                      <Clock className="h-6 w-6" />
-                    )}
-                  </div>
-                  
-                  <div className="flex-grow">
-                    <h3 className={`font-semibold ${
-                      isActive ? "text-purple-900" : isCompleted ? "text-green-900" : "text-gray-700"
-                    }`}>
-                      {step.title}
-                    </h3>
-                    <p className={`text-sm ${
-                      isActive ? "text-purple-700" : isCompleted ? "text-green-700" : "text-gray-500"
-                    }`}>
-                      {step.description}
-                    </p>
-                  </div>
+              <div className={`relative flex-shrink-0 w-12 h-12 rounded-full flex items-center justify-center ${
+                isComplete 
+                  ? 'bg-green-600 text-white' 
+                  : isActive 
+                    ? 'bg-blue-600 text-white' 
+                    : 'bg-gray-300 text-gray-600'
+              }`}>
+                {isCurrent && !processingComplete ? (
+                  <Loader2 className="w-6 h-6 animate-spin" />
+                ) : (
+                  <Icon className="w-6 h-6" />
+                )}
+              </div>
+              
+              <div className="text-left flex-1">
+                <h3 className={`font-medium ${
+                  isActive ? 'text-gray-900' : 'text-gray-600'
+                }`}>
+                  {step.label}
+                </h3>
+                <p className={`text-sm ${
+                  isActive ? 'text-gray-700' : 'text-gray-500'
+                }`}>
+                  {step.description}
+                </p>
+              </div>
 
-                  {isActive && (
-                    <div className="ml-4">
-                      <div className="flex space-x-1">
-                        {[0, 1, 2].map((dot) => (
-                          <div
-                            key={dot}
-                            className="w-2 h-2 bg-purple-600 rounded-full animate-pulse"
-                            style={{
-                              animationDelay: `${dot * 0.2}s`,
-                              animationDuration: "1s"
-                            }}
-                          />
-                        ))}
-                      </div>
-                    </div>
-                  )}
-                </div>
-              </CardContent>
-            </Card>
+              {isComplete && (
+                <motion.div
+                  initial={{ scale: 0 }}
+                  animate={{ scale: 1 }}
+                  className="flex-shrink-0"
+                >
+                  <CheckCircle className="w-6 h-6 text-green-600" />
+                </motion.div>
+              )}
+            </motion.div>
           );
         })}
       </div>
 
-      {/* Final Processing Status */}
-      {scoringMutation.isPending && (
-        <Card className="border-purple-500 shadow-md">
-          <CardContent className="p-6 text-center">
-            <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-purple-600 mx-auto mb-4"></div>
-            <h3 className="font-semibold text-purple-900 mb-2">
-              Processing Your Submission...
-            </h3>
-            <p className="text-purple-700 text-sm">
-              This may take a few moments as we analyze your pitch deck and generate insights
-            </p>
-          </CardContent>
-        </Card>
+      {processingComplete && (
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          className="mt-8 p-6 bg-green-50 border-2 border-green-200 rounded-lg"
+        >
+          <CheckCircle className="w-12 h-12 text-green-600 mx-auto mb-4" />
+          <h3 className="text-lg font-medium text-green-900 mb-2">
+            Analysis Complete!
+          </h3>
+          <p className="text-green-700">
+            Your ProofScore and detailed analysis are ready. Redirecting to results...
+          </p>
+        </motion.div>
       )}
 
-      {scoringMutation.isSuccess && (
-        <Card className="border-green-500 bg-green-50">
-          <CardContent className="p-6 text-center">
-            <CheckCircle className="h-12 w-12 text-green-600 mx-auto mb-4" />
-            <h3 className="font-semibold text-green-900 mb-2">
-              Analysis Complete!
-            </h3>
-            <p className="text-green-700 text-sm">
-              Your ProofScore analysis is ready. Redirecting to results...
-            </p>
-          </CardContent>
-        </Card>
-      )}
-
-      {scoringMutation.isError && (
-        <Card className="border-red-500 bg-red-50">
-          <CardContent className="p-6 text-center">
-            <div className="text-red-600 mb-4">⚠️</div>
-            <h3 className="font-semibold text-red-900 mb-2">
-              Processing Failed
-            </h3>
-            <p className="text-red-700 text-sm mb-4">
-              There was an error processing your submission. Please try again.
-            </p>
-            <button
-              onClick={() => scoringMutation.mutate()}
-              className="px-4 py-2 bg-red-600 text-white rounded hover:bg-red-700 transition-colors"
-            >
-              Retry Processing
-            </button>
-          </CardContent>
-        </Card>
-      )}
+      <div className="mt-8 text-sm text-gray-600">
+        <p>
+          This process typically takes 2-3 minutes. We're analyzing your pitch deck against 
+          10+ key investment criteria used by top-tier VCs.
+        </p>
+      </div>
     </motion.div>
   );
 }

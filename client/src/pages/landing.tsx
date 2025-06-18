@@ -1,5 +1,6 @@
 import { motion } from "framer-motion";
 import { ArrowRight } from "lucide-react";
+import { useLocation } from "wouter";
 import Logo from "@/components/logo";
 import { Button } from "@/components/ui/button";
 import { socialProofMetrics } from "@/lib/data";
@@ -9,6 +10,12 @@ interface LandingPageProps {
 }
 
 export default function LandingPage({ onNext }: LandingPageProps) {
+  const [, setLocation] = useLocation();
+
+  const handleStartValidation = () => {
+    setLocation("/onboarding-flow");
+  };
+
   return (
     <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-background via-card to-background">
       <div className="max-w-4xl mx-auto px-6 text-center">
@@ -74,7 +81,7 @@ export default function LandingPage({ onNext }: LandingPageProps) {
             transition={{ duration: 0.6, delay: 0.8 }}
           >
             <Button
-              onClick={onNext}
+              onClick={handleStartValidation}
               className="gradient-button px-8 py-6 text-lg"
               size="lg"
             >

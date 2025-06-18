@@ -1,35 +1,38 @@
 import { useState } from "react";
 import { motion } from "framer-motion";
 import { useMutation } from "@tanstack/react-query";
+import { useForm } from "react-hook-form";
+import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
+import { apiRequest } from "@/lib/queryClient";
+import { useToast } from "@/hooks/use-toast";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Checkbox } from "@/components/ui/checkbox";
-import { useToast } from "@/hooks/use-toast";
-import { apiRequest } from "@/lib/queryClient";
-import { User } from "lucide-react";
-
-interface FounderOnboardingProps {
-  sessionId: string;
-  initialData?: any;
-  onNext: () => void;
-  onDataUpdate: (data: any) => void;
-}
+import { Switch } from "@/components/ui/switch";
 
 const founderSchema = z.object({
   fullName: z.string().min(1, "Full name is required"),
   email: z.string().email("Invalid email address"),
   positionRole: z.string().min(1, "Position/role is required"),
-  age: z.number().min(18, "Must be at least 18 years old").optional(),
-  linkedinProfile: z.string().url("Invalid LinkedIn URL").optional().or(z.literal("")),
+  age: z.number().optional(),
+  linkedinProfile: z.string().optional(),
   gender: z.string().optional(),
+  personalLinkedin: z.string().optional(),
   residence: z.string().optional(),
   isTechnical: z.boolean().default(false),
 });
 
-type FounderData = z.infer<typeof founderSchema>;
+type FounderFormData = z.infer<typeof founderSchema>;
+
+interface FounderOnboardingProps {
+  sessionId: string;
+  initialData?: Partial<FounderFormData>;
+  onNext: () => void;
+  onDataUpdate: (data: FounderFormData) => void;
+}
 
 export default function FounderOnboarding({ 
   sessionId, 
@@ -37,20 +40,26 @@ export default function FounderOnboarding({
   onNext, 
   onDataUpdate 
 }: FounderOnboardingProps) {
-  const [formData, setFormData] = useState<Partial<FounderData>>({
-    fullName: "",
-    email: "",
-    positionRole: "Founder",
-    isTechnical: false,
-    ...initialData
-  });
-  
-  const [errors, setErrors] = useState<Record<string, string>>({});
   const { toast } = useToast();
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
-  // Save founder data mutation
-  const saveFounderMutation = useMutation({
-    mutationFn: async (data: FounderData) => {
+  const form = useForm<FounderFormData>({
+    resolver: zodResolver(founderSchema),
+    defaultValues: {
+      fullName: initialData?.fullName || "",
+      email: initialData?.email || "",
+      positionRole: initialData?.positionRole || "",
+      age: initialData?.age || undefined,
+      linkedinProfile: initialData?.linkedinProfile || "",
+      gender: initialData?.gender || "",
+      personalLinkedin: initialData?.personalLinkedin || "",
+      residence: initialData?.residence || "",
+      isTechnical: initialData?.isTechnical || false,
+    }
+  });
+
+  const submitMutation = useMutation({
+    mutationFn: async (data: FounderFormData) => {
       const res = await apiRequest("POST", "/api/onboarding/founder", {
         sessionId,
         ...data
@@ -59,10 +68,9 @@ export default function FounderOnboarding({
     },
     onSuccess: (data) => {
       if (data.success) {
-        onDataUpdate(formData);
         toast({
-          title: "Founder Details Saved",
-          description: "Moving to venture information...",
+          title: "Success",
+          description: "Founder information saved successfully",
         });
         onNext();
       }
@@ -70,51 +78,17 @@ export default function FounderOnboarding({
     onError: (error: any) => {
       toast({
         title: "Error",
-        description: error.message || "Failed to save founder details",
+        description: error.message || "Failed to save founder information",
         variant: "destructive",
       });
     }
   });
 
-  const updateField = <K extends keyof FounderData>(field: K, value: FounderData[K]) => {
-    setFormData(prev => ({ ...prev, [field]: value }));
-    if (errors[field]) {
-      setErrors(prev => ({ ...prev, [field]: "" }));
-    }
-  };
-
-  const validateForm = () => {
-    try {
-      founderSchema.parse(formData);
-      setErrors({});
-      return true;
-    } catch (error) {
-      if (error instanceof z.ZodError) {
-        const newErrors: Record<string, string> = {};
-        error.errors.forEach((err) => {
-          if (err.path) {
-            newErrors[err.path[0] as string] = err.message;
-          }
-        });
-        setErrors(newErrors);
-      }
-      return false;
-    }
-  };
-
-  const handleSubmit = (e: React.FormEvent) => {
-    e.preventDefault();
-    
-    if (!validateForm()) {
-      toast({
-        title: "Validation Error",
-        description: "Please fix the errors below",
-        variant: "destructive",
-      });
-      return;
-    }
-
-    saveFounderMutation.mutate(formData as FounderData);
+  const onSubmit = async (data: FounderFormData) => {
+    setIsSubmitting(true);
+    onDataUpdate(data);
+    await submitMutation.mutateAsync(data);
+    setIsSubmitting(false);
   };
 
   return (
@@ -124,29 +98,28 @@ export default function FounderOnboarding({
       className="max-w-2xl mx-auto"
     >
       <div className="text-center mb-8">
-        <div className="inline-flex items-center justify-center w-16 h-16 bg-purple-100 rounded-full mb-4">
-          <User className="h-8 w-8 text-purple-600" />
-        </div>
-        <h2 className="text-3xl font-bold text-gray-900 mb-2">Tell us about yourself</h2>
+        <h2 className="text-3xl font-bold text-gray-900 mb-2">
+          Tell us about yourself
+        </h2>
         <p className="text-gray-600">
           Let's start with your personal information and background
         </p>
       </div>
 
-      <form onSubmit={handleSubmit} className="space-y-6">
+      <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
           <div>
             <Label htmlFor="fullName">Full Name *</Label>
             <Input
               id="fullName"
-              type="text"
-              value={formData.fullName || ""}
-              onChange={(e) => updateField("fullName", e.target.value)}
+              {...form.register("fullName")}
+              className="mt-1"
               placeholder="John Doe"
-              className={errors.fullName ? "border-red-500" : ""}
             />
-            {errors.fullName && (
-              <p className="text-red-500 text-sm mt-1">{errors.fullName}</p>
+            {form.formState.errors.fullName && (
+              <p className="text-red-500 text-sm mt-1">
+                {form.formState.errors.fullName.message}
+              </p>
             )}
           </div>
 
@@ -155,126 +128,97 @@ export default function FounderOnboarding({
             <Input
               id="email"
               type="email"
-              value={formData.email || ""}
-              onChange={(e) => updateField("email", e.target.value)}
+              {...form.register("email")}
+              className="mt-1"
               placeholder="john@example.com"
-              className={errors.email ? "border-red-500" : ""}
             />
-            {errors.email && (
-              <p className="text-red-500 text-sm mt-1">{errors.email}</p>
+            {form.formState.errors.email && (
+              <p className="text-red-500 text-sm mt-1">
+                {form.formState.errors.email.message}
+              </p>
             )}
           </div>
         </div>
 
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-          <div>
-            <Label htmlFor="positionRole">Position/Role *</Label>
-            <Select value={formData.positionRole || "Founder"} onValueChange={(value) => updateField("positionRole", value)}>
-              <SelectTrigger className={errors.positionRole ? "border-red-500" : ""}>
-                <SelectValue placeholder="Select your role" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="Founder">Founder</SelectItem>
-                <SelectItem value="CEO">CEO</SelectItem>
-                <SelectItem value="CTO">CTO</SelectItem>
-                <SelectItem value="COO">COO</SelectItem>
-                <SelectItem value="Co-Founder">Co-Founder</SelectItem>
-                <SelectItem value="Other">Other</SelectItem>
-              </SelectContent>
-            </Select>
-            {errors.positionRole && (
-              <p className="text-red-500 text-sm mt-1">{errors.positionRole}</p>
-            )}
-          </div>
+        <div>
+          <Label htmlFor="positionRole">Position/Role *</Label>
+          <Input
+            id="positionRole"
+            {...form.register("positionRole")}
+            className="mt-1"
+            placeholder="CEO, CTO, Founder"
+          />
+          {form.formState.errors.positionRole && (
+            <p className="text-red-500 text-sm mt-1">
+              {form.formState.errors.positionRole.message}
+            </p>
+          )}
+        </div>
 
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
           <div>
             <Label htmlFor="age">Age</Label>
             <Input
               id="age"
               type="number"
-              value={formData.age || ""}
-              onChange={(e) => updateField("age", e.target.value ? parseInt(e.target.value) : undefined)}
+              {...form.register("age", { valueAsNumber: true })}
+              className="mt-1"
               placeholder="30"
-              min="18"
-              max="100"
-              className={errors.age ? "border-red-500" : ""}
             />
-            {errors.age && (
-              <p className="text-red-500 text-sm mt-1">{errors.age}</p>
-            )}
-          </div>
-        </div>
-
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-          <div>
-            <Label htmlFor="linkedinProfile">LinkedIn Profile</Label>
-            <Input
-              id="linkedinProfile"
-              type="url"
-              value={formData.linkedinProfile || ""}
-              onChange={(e) => updateField("linkedinProfile", e.target.value)}
-              placeholder="https://linkedin.com/in/johndoe"
-              className={errors.linkedinProfile ? "border-red-500" : ""}
-            />
-            {errors.linkedinProfile && (
-              <p className="text-red-500 text-sm mt-1">{errors.linkedinProfile}</p>
-            )}
           </div>
 
           <div>
-            <Label htmlFor="residence">Location/Residence</Label>
-            <Input
-              id="residence"
-              type="text"
-              value={formData.residence || ""}
-              onChange={(e) => updateField("residence", e.target.value)}
-              placeholder="San Francisco, CA"
-            />
-          </div>
-        </div>
-
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-          <div>
-            <Label htmlFor="gender">Gender (Optional)</Label>
-            <Select value={formData.gender || ""} onValueChange={(value) => updateField("gender", value)}>
-              <SelectTrigger>
+            <Label htmlFor="gender">Gender</Label>
+            <Select onValueChange={(value) => form.setValue("gender", value)}>
+              <SelectTrigger className="mt-1">
                 <SelectValue placeholder="Select gender" />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="Male">Male</SelectItem>
-                <SelectItem value="Female">Female</SelectItem>
-                <SelectItem value="Non-binary">Non-binary</SelectItem>
-                <SelectItem value="Prefer not to say">Prefer not to say</SelectItem>
+                <SelectItem value="male">Male</SelectItem>
+                <SelectItem value="female">Female</SelectItem>
+                <SelectItem value="other">Other</SelectItem>
+                <SelectItem value="prefer-not-to-say">Prefer not to say</SelectItem>
               </SelectContent>
             </Select>
           </div>
+        </div>
 
-          <div className="flex items-center space-x-2 pt-6">
-            <Checkbox
-              id="isTechnical"
-              checked={formData.isTechnical || false}
-              onCheckedChange={(checked) => updateField("isTechnical", checked as boolean)}
-            />
-            <Label htmlFor="isTechnical" className="text-sm">
-              I have a technical background
-            </Label>
-          </div>
+        <div>
+          <Label htmlFor="residence">Residence</Label>
+          <Input
+            id="residence"
+            {...form.register("residence")}
+            className="mt-1"
+            placeholder="City, Country"
+          />
+        </div>
+
+        <div>
+          <Label htmlFor="linkedinProfile">LinkedIn Profile</Label>
+          <Input
+            id="linkedinProfile"
+            {...form.register("linkedinProfile")}
+            className="mt-1"
+            placeholder="https://linkedin.com/in/johndoe"
+          />
+        </div>
+
+        <div className="flex items-center space-x-2">
+          <Switch
+            id="isTechnical"
+            checked={form.watch("isTechnical")}
+            onCheckedChange={(checked) => form.setValue("isTechnical", checked)}
+          />
+          <Label htmlFor="isTechnical">I have a technical background</Label>
         </div>
 
         <div className="flex justify-end pt-6">
           <Button
             type="submit"
-            disabled={saveFounderMutation.isPending}
-            className="px-8 py-2 bg-purple-600 hover:bg-purple-700"
+            disabled={isSubmitting}
+            className="px-8 py-2"
           >
-            {saveFounderMutation.isPending ? (
-              <>
-                <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2"></div>
-                Saving...
-              </>
-            ) : (
-              "Continue to Venture Info"
-            )}
+            {isSubmitting ? "Saving..." : "Continue"}
           </Button>
         </div>
       </form>
