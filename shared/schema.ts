@@ -137,6 +137,8 @@ export const proofVault = pgTable("proof_vault", {
   subFolderId: varchar("sub_folder_id", { length: 255 }).notNull(),
   sharedUrl: varchar("shared_url", { length: 500 }).notNull(),
   folderName: varchar("folder_name", { length: 100 }).notNull(),
+  fileId: varchar("file_id", { length: 255 }),
+  fileUrl: varchar("file_url", { length: 500 }),
   description: text("description"),
   createdAt: timestamp("created_at").defaultNow().notNull(),
 });
