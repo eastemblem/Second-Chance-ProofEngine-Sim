@@ -393,6 +393,41 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Update team member
+  app.put("/api/onboarding/team/update/:memberId", async (req, res) => {
+    try {
+      const { memberId } = req.params;
+      const result = await onboardingManager.updateTeamMember(memberId, req.body);
+      
+      res.json({
+        success: true,
+        teamMember: result.teamMember
+      });
+    } catch (error) {
+      console.log(`Error updating team member: ${error}`);
+      if (error instanceof z.ZodError) {
+        return res.status(400).json({ 
+          error: "Validation error", 
+          details: error.errors 
+        });
+      }
+      res.status(500).json({ error: "Failed to update team member" });
+    }
+  });
+
+  // Delete team member
+  app.delete("/api/onboarding/team/delete/:memberId", async (req, res) => {
+    try {
+      const { memberId } = req.params;
+      await onboardingManager.deleteTeamMember(memberId);
+      
+      res.json({ success: true });
+    } catch (error) {
+      console.log(`Error deleting team member: ${error}`);
+      res.status(500).json({ error: "Failed to delete team member" });
+    }
+  });
+
   // Get team members
   app.get("/api/onboarding/team/:sessionId", async (req, res) => {
     try {

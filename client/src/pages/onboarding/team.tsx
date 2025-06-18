@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import { motion } from "framer-motion";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useForm } from "react-hook-form";
@@ -11,7 +11,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { ChevronLeft, Plus, Trash2, Users, Twitter, Instagram, Github } from "lucide-react";
+import { ChevronLeft, Plus, Trash2, Users, Twitter, Instagram, Github, Linkedin, Edit } from "lucide-react";
 
 const teamMemberSchema = z.object({
   fullName: z.string().min(1, "Full name is required"),
@@ -42,7 +42,7 @@ export default function TeamOnboarding({
   sessionId, 
   initialData, 
   onNext, 
-  onPrev,
+  onPrev, 
   onDataUpdate 
 }: TeamOnboardingProps) {
   const { toast } = useToast();
@@ -56,8 +56,8 @@ export default function TeamOnboarding({
     defaultValues: {
       fullName: "",
       role: "",
-      experience: "",
       email: "",
+      experience: "",
       linkedinProfile: "",
       background: "",
       twitterUrl: "",
@@ -112,6 +112,55 @@ export default function TeamOnboarding({
     }
   });
 
+  // Update team member mutation
+  const updateMemberMutation = useMutation({
+    mutationFn: async (data: TeamMemberFormData & { memberId: string }) => {
+      const res = await apiRequest("PUT", `/api/onboarding/team/update/${data.memberId}`, data);
+      return await res.json();
+    },
+    onSuccess: (data) => {
+      if (data.success) {
+        toast({
+          title: "Success", 
+          description: `${data.teamMember.fullName} updated successfully`,
+        });
+        refetch();
+        setEditingMember(null);
+        setShowAddForm(false);
+        form.reset();
+      }
+    },
+    onError: (error: any) => {
+      toast({
+        title: "Error",
+        description: error.message || "Failed to update team member",
+        variant: "destructive",
+      });
+    },
+  });
+
+  // Delete team member mutation
+  const deleteMemberMutation = useMutation({
+    mutationFn: async (memberId: string) => {
+      const res = await apiRequest("DELETE", `/api/onboarding/team/delete/${memberId}`, {});
+      return await res.json();
+    },
+    onSuccess: () => {
+      toast({
+        title: "Success",
+        description: "Team member removed",
+      });
+      refetch();
+    },
+    onError: (error: any) => {
+      toast({
+        title: "Error", 
+        description: error.message || "Failed to remove team member",
+        variant: "destructive",
+      });
+    },
+  });
+
   // Complete team step mutation
   const completeTeamMutation = useMutation({
     mutationFn: async () => {
@@ -120,33 +169,60 @@ export default function TeamOnboarding({
       });
       return await res.json();
     },
-    onSuccess: (data) => {
-      if (data.success) {
-        toast({
-          title: "Success",
-          description: "Team information saved successfully",
-        });
-        onNext();
-      }
+    onSuccess: () => {
+      toast({
+        title: "Success",
+        description: "Team information saved successfully",
+      });
+      onNext();
     },
     onError: (error: any) => {
       toast({
         title: "Error",
-        description: error.message || "Failed to complete team step",
+        description: error.message || "Failed to save team information",
         variant: "destructive",
       });
     }
   });
 
-  const onAddMember = async (data: TeamMemberFormData) => {
-    await addMemberMutation.mutateAsync(data);
+  const onSubmitMember = async (data: TeamMemberFormData) => {
+    if (editingMember) {
+      updateMemberMutation.mutate({ ...data, memberId: editingMember.memberId });
+    } else {
+      addMemberMutation.mutate(data);
+    }
   };
 
-  const handleContinue = async () => {
+  const onEditMember = (member: any) => {
+    setEditingMember(member);
+    setShowAddForm(true);
+    form.reset({
+      fullName: member.fullName || "",
+      role: member.role || "",
+      experience: member.experience || "",
+      email: member.email || "",
+      linkedinProfile: member.linkedinProfile || "",
+      background: member.background || "",
+      twitterUrl: member.twitterUrl || "",
+      instagramUrl: member.instagramUrl || "",
+      githubUrl: member.githubUrl || "",
+      age: member.age || undefined,
+      gender: member.gender || "",
+      isCofounder: member.isCofounder || false,
+    });
+  };
+
+  const onDeleteMember = (memberId: string) => {
+    if (confirm("Are you sure you want to remove this team member?")) {
+      deleteMemberMutation.mutate(memberId);
+    }
+  };
+
+  const handleNext = async () => {
     if (!isValidTeam) {
       toast({
         title: "Incomplete Team",
-        description: "Please add at least 3 team members to continue",
+        description: "Please add at least 3 team members before proceeding",
         variant: "destructive",
       });
       return;
@@ -230,14 +306,49 @@ export default function TeamOnboarding({
                   <div className="flex gap-2 mt-2">
                     {member.linkedinProfile && (
                       <a 
-                        href={member.linkedinProfile} 
-                      target="_blank" 
-                      rel="noopener noreferrer"
-                      className="text-blue-600 text-xs hover:underline"
-                    >
-                      LinkedIn Profile
-                    </a>
-                  )}
+                        href={member.linkedinProfile}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="text-blue-600 hover:text-blue-700 p-1"
+                        title="LinkedIn"
+                      >
+                        <Linkedin className="w-4 h-4" />
+                      </a>
+                    )}
+                    {member.twitterUrl && (
+                      <a 
+                        href={member.twitterUrl}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="text-blue-400 hover:text-blue-500 p-1"
+                        title="Twitter"
+                      >
+                        <Twitter className="w-4 h-4" />
+                      </a>
+                    )}
+                    {member.instagramUrl && (
+                      <a 
+                        href={member.instagramUrl}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="text-pink-600 hover:text-pink-700 p-1"
+                        title="Instagram"
+                      >
+                        <Instagram className="w-4 h-4" />
+                      </a>
+                    )}
+                    {member.githubUrl && (
+                      <a 
+                        href={member.githubUrl}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="text-gray-700 hover:text-gray-800 p-1"
+                        title="GitHub"
+                      >
+                        <Github className="w-4 h-4" />
+                      </a>
+                    )}
+                  </div>
                 </CardContent>
               </Card>
             ))}
@@ -245,25 +356,43 @@ export default function TeamOnboarding({
         )}
 
         {/* Add Member Button */}
-        {!showAddForm && (
-          <Button
-            onClick={() => setShowAddForm(true)}
-            variant="outline"
-            className="w-full border-dashed border-2 h-20 text-gray-600 hover:bg-gray-50"
-          >
-            <Plus className="w-6 h-6 mr-2" />
-            Add Team Member
-          </Button>
-        )}
+        <Button
+          onClick={() => {
+            setEditingMember(null);
+            setShowAddForm(true);
+            form.reset({
+              fullName: "",
+              role: "",
+              experience: "",
+              email: "",
+              linkedinProfile: "",
+              background: "",
+              twitterUrl: "",
+              instagramUrl: "",
+              githubUrl: "",
+              age: undefined,
+              gender: "",
+              isCofounder: false,
+            });
+          }}
+          className="w-full mb-6"
+          variant="outline"
+        >
+          <Plus className="w-4 h-4 mr-2" />
+          Add Team Member
+        </Button>
 
         {/* Add Member Form */}
         {showAddForm && (
-          <Card className="border-2 border-blue-200">
+          <Card className="border-2 border-dashed">
             <CardHeader>
-              <CardTitle className="text-lg">Add Team Member</CardTitle>
+              <CardTitle>
+                {editingMember ? `Edit ${editingMember.fullName}` : "Add Team Member"}
+              </CardTitle>
             </CardHeader>
             <CardContent>
-              <form onSubmit={form.handleSubmit(onAddMember)} className="space-y-4">
+              <form onSubmit={form.handleSubmit(onSubmitMember)} className="space-y-6">
+                {/* Basic Information */}
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   <div>
                     <Label htmlFor="fullName">Full Name *</Label>
@@ -286,7 +415,7 @@ export default function TeamOnboarding({
                       id="role"
                       {...form.register("role")}
                       className="mt-1"
-                      placeholder="CTO, VP of Marketing"
+                      placeholder="Chief Technology Officer"
                     />
                     {form.formState.errors.role && (
                       <p className="text-red-500 text-sm mt-1">
@@ -296,20 +425,32 @@ export default function TeamOnboarding({
                   </div>
                 </div>
 
-                <div>
-                  <Label htmlFor="email">Email Address *</Label>
-                  <Input
-                    id="email"
-                    type="email"
-                    {...form.register("email")}
-                    className="mt-1"
-                    placeholder="jane@example.com"
-                  />
-                  {form.formState.errors.email && (
-                    <p className="text-red-500 text-sm mt-1">
-                      {form.formState.errors.email.message}
-                    </p>
-                  )}
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div>
+                    <Label htmlFor="email">Email *</Label>
+                    <Input
+                      id="email"
+                      type="email"
+                      {...form.register("email")}
+                      className="mt-1"
+                      placeholder="jane@example.com"
+                    />
+                    {form.formState.errors.email && (
+                      <p className="text-red-500 text-sm mt-1">
+                        {form.formState.errors.email.message}
+                      </p>
+                    )}
+                  </div>
+
+                  <div>
+                    <Label htmlFor="linkedinProfile">LinkedIn Profile</Label>
+                    <Input
+                      id="linkedinProfile"
+                      {...form.register("linkedinProfile")}
+                      className="mt-1"
+                      placeholder="https://linkedin.com/in/jane-smith"
+                    />
+                  </div>
                 </div>
 
                 <div>
@@ -318,7 +459,7 @@ export default function TeamOnboarding({
                     id="experience"
                     {...form.register("experience")}
                     className="mt-1"
-                    placeholder="5+ years in product development, Former Google engineer"
+                    placeholder="10+ years in software engineering, former Google engineer"
                   />
                   {form.formState.errors.experience && (
                     <p className="text-red-500 text-sm mt-1">
@@ -327,19 +468,10 @@ export default function TeamOnboarding({
                   )}
                 </div>
 
+                {/* Social Media Links */}
                 <div>
-                  <Label htmlFor="linkedinProfile">LinkedIn Profile</Label>
-                  <Input
-                    id="linkedinProfile"
-                    {...form.register("linkedinProfile")}
-                    className="mt-1"
-                    placeholder="https://linkedin.com/in/janesmith"
-                  />
-                </div>
-
-                <div>
-                  <Label>Social Media Links (Optional)</Label>
-                  <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mt-2">
+                  <Label className="text-sm font-medium mb-3 block">Social Media Links</Label>
+                  <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                     <div className="relative">
                       <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
                         <Twitter className="h-4 w-4 text-gray-400" />
@@ -422,22 +554,27 @@ export default function TeamOnboarding({
                   <Label htmlFor="isCofounder">This person is a co-founder</Label>
                 </div>
 
-                <div className="flex justify-end space-x-2 pt-4">
+                <div className="flex gap-3">
+                  <Button
+                    type="submit"
+                    disabled={addMemberMutation.isPending || updateMemberMutation.isPending}
+                    className="flex-1"
+                  >
+                    {editingMember 
+                      ? (updateMemberMutation.isPending ? "Updating..." : "Update Member")
+                      : (addMemberMutation.isPending ? "Adding..." : "Add Member")
+                    }
+                  </Button>
                   <Button
                     type="button"
                     variant="outline"
                     onClick={() => {
                       setShowAddForm(false);
+                      setEditingMember(null);
                       form.reset();
                     }}
                   >
                     Cancel
-                  </Button>
-                  <Button
-                    type="submit"
-                    disabled={addMemberMutation.isPending}
-                  >
-                    {addMemberMutation.isPending ? "Adding..." : "Add Member"}
                   </Button>
                 </div>
               </form>
@@ -447,22 +584,22 @@ export default function TeamOnboarding({
       </div>
 
       {/* Navigation */}
-      <div className="flex justify-between pt-6">
+      <div className="flex justify-between items-center">
         <Button
-          type="button"
           variant="outline"
           onClick={onPrev}
-          className="px-6 py-2"
+          className="flex items-center gap-2"
         >
-          <ChevronLeft className="w-4 h-4 mr-2" />
-          Back
+          <ChevronLeft className="w-4 h-4" />
+          Previous
         </Button>
+        
         <Button
-          onClick={handleContinue}
+          onClick={handleNext}
           disabled={!isValidTeam || isSubmitting}
-          className="px-8 py-2"
+          className="bg-purple-600 hover:bg-purple-700"
         >
-          {isSubmitting ? "Saving..." : "Continue"}
+          {isSubmitting ? "Saving..." : "Next: Upload Documents"}
         </Button>
       </div>
     </motion.div>

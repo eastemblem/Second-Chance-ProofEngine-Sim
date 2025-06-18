@@ -246,6 +246,23 @@ export class OnboardingManager {
     return await storage.getTeamMembersByVentureId(ventureId);
   }
 
+  // Update team member
+  async updateTeamMember(memberId: string, memberData: any) {
+    const validatedData = teamMemberSchema.parse(memberData);
+    const updatedMember = await storage.updateTeamMember(memberId, validatedData);
+    
+    return {
+      success: true,
+      teamMember: updatedMember
+    };
+  }
+
+  // Delete team member
+  async deleteTeamMember(memberId: string) {
+    await storage.deleteTeamMember(memberId);
+    return { success: true };
+  }
+
   // Complete team step
   async completeTeamStep(sessionId: string) {
     const teamMembers = await this.getTeamMembers(sessionId);
