@@ -282,14 +282,16 @@ export default function TeamOnboarding({
       </div>
 
       {/* Debug Info - Remove in production */}
-      <div className="bg-gray-100 p-2 mb-4 text-xs border rounded">
-        <div><strong>Debug Info:</strong></div>
-        <div>Session: {sessionId}</div>
-        <div>Loading: {isLoading ? 'Yes' : 'No'}</div>
-        <div>Error: {error ? String(error) : 'None'}</div>
-        <div>Team Count: {teamMemberCount}</div>
-        <div>Valid Team: {isValidTeam ? 'Yes' : 'No'}</div>
-        <div>Raw Data: {JSON.stringify(teamData)?.slice(0, 150)}...</div>
+      <div className="bg-blue-50 border border-blue-200 p-3 mb-4 text-sm rounded-lg">
+        <div className="font-semibold text-blue-800 mb-2">Debug Information</div>
+        <div className="grid grid-cols-2 gap-2 text-xs">
+          <div>Session ID: <span className="font-mono">{sessionId?.slice(-8)}</span></div>
+          <div>Loading: <span className={isLoading ? 'text-orange-600' : 'text-green-600'}>{isLoading ? 'Yes' : 'No'}</span></div>
+          <div>Team Count: <span className="font-semibold">{teamMemberCount}</span></div>
+          <div>Valid Team: <span className={isValidTeam ? 'text-green-600' : 'text-red-600'}>{isValidTeam ? 'Yes' : 'No'}</span></div>
+          <div className="col-span-2">Error: <span className="text-red-600">{error ? String(error) : 'None'}</span></div>
+          <div className="col-span-2">Data: <span className="font-mono text-xs">{JSON.stringify(teamData)?.slice(0, 100)}...</span></div>
+        </div>
       </div>
 
       {/* Team Members List */}
