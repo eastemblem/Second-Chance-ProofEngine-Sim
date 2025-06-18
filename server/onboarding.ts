@@ -167,28 +167,28 @@ export class OnboardingManager {
     if (eastEmblemAPI.isConfigured()) {
       try {
         folderStructure = await eastEmblemAPI.createFolderStructure(
-          validatedData.name,
-          session.founderId
+          validatedData.name
         );
 
         // Create proof vault entries for each folder
         if (folderStructure && folderStructure.folders) {
-          const folderMappings = [
-            { key: '0_Overview', type: 'overview' as const, description: 'Company overview and general information' },
-            { key: '1_Problem_Proof', type: 'problem_proof' as const, description: 'Evidence of problem validation' },
-            { key: '2_Solution_Proof', type: 'solution_proof' as const, description: 'Solution validation and proof of concept' },
-            { key: '3_Demand_Proof', type: 'demand_proof' as const, description: 'Market demand validation' },
-            { key: '4_Credibility_Proof', type: 'credibility_proof' as const, description: 'Team and company credibility evidence' },
-            { key: '5_Commercial_Proof', type: 'commercial_proof' as const, description: 'Commercial viability and business model proof' },
-            { key: '6_Investor_Pack', type: 'investor_pack' as const, description: 'Investor presentation materials' }
+          const folderMappings: Array<{ key: keyof typeof folderStructure.folders; type: 'Pitch Deck' | 'Metrics Dashboard' | 'Demo Video' | 'Product Screenshot' | 'Customer Testimonial' | 'Technical Documentation' | 'Financial Model'; description: string }> = [
+            { key: '0_Overview', type: 'Pitch Deck', description: 'Company overview and general information' },
+            { key: '1_Problem_Proof', type: 'Technical Documentation', description: 'Evidence of problem validation' },
+            { key: '2_Solution_Proof', type: 'Demo Video', description: 'Solution validation and proof of concept' },
+            { key: '3_Demand_Proof', type: 'Metrics Dashboard', description: 'Market demand validation' },
+            { key: '4_Credibility_Proof', type: 'Customer Testimonial', description: 'Team and company credibility evidence' },
+            { key: '5_Commercial_Proof', type: 'Financial Model', description: 'Commercial viability and business model proof' },
+            { key: '6_Investor_Pack', type: 'Product Screenshot', description: 'Investor presentation materials' }
           ];
 
           for (const folder of folderMappings) {
-            if (folderStructure.folders[folder.key]) {
+            const folderId = folderStructure.folders[folder.key];
+            if (folderId) {
               await storage.createProofVault({
                 ventureId: venture.ventureId,
                 artefactType: folder.type,
-                fileId: folderStructure.folders[folder.key],
+                fileId: folderId,
                 fileUrl: folderStructure.url,
                 description: folder.description
               });
