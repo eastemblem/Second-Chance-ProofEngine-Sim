@@ -1,5 +1,6 @@
 import { Request, Response, NextFunction } from "express";
 import { z } from "zod";
+import fs from "fs";
 import { storage } from "./storage";
 import { db } from "./db";
 import { onboardingSession, founder, venture, teamMember, documentUpload, type OnboardingSession, type InsertOnboardingSession, type DocumentUpload, type InsertDocumentUpload } from "@shared/schema";
@@ -343,10 +344,14 @@ export class OnboardingManager {
     // Get all required data
     const upload = stepData?.upload?.upload;
     const venture = stepData?.venture;
-    const folderStructure = stepData?.venture?.folderStructure;
+    const folderStructure = stepData?.venture?.folderStructure || stepData?.team?.folderStructure;
     
     if (!upload || !venture) {
       throw new Error("Required onboarding steps not completed");
+    }
+
+    if (!folderStructure) {
+      throw new Error("Folder structure not found - venture step may not be completed");
     }
 
     let scoringResult = null;
@@ -354,14 +359,18 @@ export class OnboardingManager {
     // Process with EastEmblem API if configured
     if (eastEmblemAPI.isConfigured() && upload.filePath) {
       try {
-        // Upload file to EastEmblem
-        const fs = require('fs');
+        // Upload file to existing EastEmblem folder structure (created in venture step)
         const fileBuffer = fs.readFileSync(upload.filePath);
+        
+        const overviewFolderId = folderStructure?.folders?.["0_Overview"];
+        if (!overviewFolderId) {
+          throw new Error("Overview folder not found in existing folder structure");
+        }
         
         const uploadResult = await eastEmblemAPI.uploadFile(
           fileBuffer,
           upload.originalName,
-          folderStructure?.folders?.["0_Overview"] || folderStructure?.id
+          overviewFolderId
         );
 
         // Update upload record with EastEmblem file ID

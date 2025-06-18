@@ -137,7 +137,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const founderData = createFounderSchema.parse(req.body);
 
       // Check if founder already exists
-      const existingFounder = await storage.getFounderByEmail(founderData.email);
+      const existingFounder = await storage.getFounderByEmail(
+        founderData.email,
+      );
       if (existingFounder) {
         return res
           .status(409)
@@ -262,20 +264,20 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
   // Multi-step onboarding endpoints - Import will be added after fixing schema
   const { onboardingManager } = await import("./onboarding");
-  
+
   // Initialize or resume onboarding session
   app.post("/api/onboarding/session/init", async (req, res) => {
     try {
       const sessionId = await onboardingManager.initializeSession(req);
       const session = await onboardingManager.getSession(sessionId);
-      
+
       res.json({
         success: true,
         sessionId,
         currentStep: session?.currentStep || "founder",
         stepData: session?.stepData || {},
         completedSteps: session?.completedSteps || [],
-        isComplete: session?.isComplete || false
+        isComplete: session?.isComplete || false,
       });
     } catch (error) {
       console.error("Error initializing onboarding session:", error);
@@ -288,7 +290,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     try {
       const { sessionId } = req.params;
       const session = await onboardingManager.getSession(sessionId);
-      
+
       if (!session) {
         return res.status(404).json({ error: "Session not found" });
       }
@@ -300,8 +302,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
           currentStep: session.currentStep,
           stepData: session.stepData,
           completedSteps: session.completedSteps,
-          isComplete: session.isComplete
-        }
+          isComplete: session.isComplete,
+        },
       });
     } catch (error) {
       console.log(`Error fetching session: ${error}`);
@@ -313,24 +315,27 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.post("/api/onboarding/founder", async (req, res) => {
     try {
       const { sessionId, ...founderData } = req.body;
-      
+
       if (!sessionId) {
         return res.status(400).json({ error: "Session ID required" });
       }
 
-      const founderId = await onboardingManager.completeFounderStep(sessionId, founderData);
-      
+      const founderId = await onboardingManager.completeFounderStep(
+        sessionId,
+        founderData,
+      );
+
       res.json({
         success: true,
         founderId,
-        nextStep: "venture"
+        nextStep: "venture",
       });
     } catch (error) {
       console.log(`Error in founder onboarding: ${error}`);
       if (error instanceof z.ZodError) {
-        return res.status(400).json({ 
-          error: "Validation error", 
-          details: error.errors 
+        return res.status(400).json({
+          error: "Validation error",
+          details: error.errors,
         });
       }
       res.status(500).json({ error: "Failed to complete founder step" });
@@ -341,25 +346,28 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.post("/api/onboarding/venture", async (req, res) => {
     try {
       const { sessionId, ...ventureData } = req.body;
-      
+
       if (!sessionId) {
         return res.status(400).json({ error: "Session ID required" });
       }
 
-      const result = await onboardingManager.completeVentureStep(sessionId, ventureData);
-      
+      const result = await onboardingManager.completeVentureStep(
+        sessionId,
+        ventureData,
+      );
+
       res.json({
         success: true,
         venture: result.venture,
         folderStructure: result.folderStructure,
-        nextStep: "team"
+        nextStep: "team",
       });
     } catch (error) {
       console.log(`Error in venture onboarding: ${error}`);
       if (error instanceof z.ZodError) {
-        return res.status(400).json({ 
-          error: "Validation error", 
-          details: error.errors 
+        return res.status(400).json({
+          error: "Validation error",
+          details: error.errors,
         });
       }
       res.status(500).json({ error: "Failed to complete venture step" });
@@ -370,23 +378,26 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.post("/api/onboarding/team/add", async (req, res) => {
     try {
       const { sessionId, ...memberData } = req.body;
-      
+
       if (!sessionId) {
         return res.status(400).json({ error: "Session ID required" });
       }
 
-      const teamMember = await onboardingManager.addTeamMember(sessionId, memberData);
-      
+      const teamMember = await onboardingManager.addTeamMember(
+        sessionId,
+        memberData,
+      );
+
       res.json({
         success: true,
-        teamMember
+        teamMember,
       });
     } catch (error) {
       console.log(`Error adding team member: ${error}`);
       if (error instanceof z.ZodError) {
-        return res.status(400).json({ 
-          error: "Validation error", 
-          details: error.errors 
+        return res.status(400).json({
+          error: "Validation error",
+          details: error.errors,
         });
       }
       res.status(500).json({ error: "Failed to add team member" });
@@ -397,18 +408,21 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.put("/api/onboarding/team/update/:memberId", async (req, res) => {
     try {
       const { memberId } = req.params;
-      const result = await onboardingManager.updateTeamMember(memberId, req.body);
-      
+      const result = await onboardingManager.updateTeamMember(
+        memberId,
+        req.body,
+      );
+
       res.json({
         success: true,
-        teamMember: result.teamMember
+        teamMember: result.teamMember,
       });
     } catch (error) {
       console.log(`Error updating team member: ${error}`);
       if (error instanceof z.ZodError) {
-        return res.status(400).json({ 
-          error: "Validation error", 
-          details: error.errors 
+        return res.status(400).json({
+          error: "Validation error",
+          details: error.errors,
         });
       }
       res.status(500).json({ error: "Failed to update team member" });
@@ -420,7 +434,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     try {
       const { memberId } = req.params;
       await onboardingManager.deleteTeamMember(memberId);
-      
+
       res.json({ success: true });
     } catch (error) {
       console.log(`Error deleting team member: ${error}`);
@@ -433,12 +447,12 @@ export async function registerRoutes(app: Express): Promise<Server> {
     try {
       const { sessionId } = req.params;
       const teamMembers = await onboardingManager.getTeamMembers(sessionId);
-      
+
       res.json({
         success: true,
         teamMembers,
         count: teamMembers.length,
-        isValid: teamMembers.length >= 3
+        isValid: teamMembers.length >= 3,
       });
     } catch (error) {
       console.log(`Error fetching team members: ${error}`);
@@ -450,68 +464,86 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.post("/api/onboarding/team/complete", async (req, res) => {
     try {
       const { sessionId } = req.body;
-      
+
       if (!sessionId) {
         return res.status(400).json({ error: "Session ID required" });
       }
 
       const teamMembers = await onboardingManager.completeTeamStep(sessionId);
-      
+
       res.json({
         success: true,
         teamMembers,
-        nextStep: "upload"
+        nextStep: "upload",
       });
     } catch (error) {
       console.log(`Error completing team step: ${error}`);
-      res.status(400).json({ error: error instanceof Error ? error.message : "Unknown error" });
+      res
+        .status(400)
+        .json({
+          error: error instanceof Error ? error.message : "Unknown error",
+        });
     }
   });
 
   // Document upload
-  app.post("/api/onboarding/upload", upload.single("pitchDeck"), async (req, res) => {
-    try {
-      const { sessionId } = req.body;
-      
-      if (!sessionId) {
-        return res.status(400).json({ error: "Session ID required" });
-      }
+  app.post(
+    "/api/onboarding/upload",
+    upload.single("pitchDeck"),
+    async (req, res) => {
+      try {
+        const { sessionId } = req.body;
 
-      if (!req.file) {
-        return res.status(400).json({ error: "No file uploaded" });
-      }
+        if (!sessionId) {
+          return res.status(400).json({ error: "Session ID required" });
+        }
 
-      const uploadResult = await onboardingManager.handleDocumentUpload(sessionId, req.file);
-      
-      res.json({
-        success: true,
-        upload: uploadResult,
-        nextStep: "processing"
-      });
-    } catch (error) {
-      console.log(`Error uploading document: ${error}`);
-      res.status(500).json({ error: "Failed to upload document" });
-    }
-  });
+        if (!req.file) {
+          return res.status(400).json({ error: "No file uploaded" });
+        }
+
+        const uploadResult = await onboardingManager.handleDocumentUpload(
+          sessionId,
+          req.file,
+        );
+
+        res.json({
+          success: true,
+          upload: uploadResult,
+          nextStep: "processing",
+        });
+      } catch (error) {
+        console.log(`Error uploading document: ${error}`);
+        res.status(500).json({ error: "Failed to upload document" });
+      }
+    },
+  );
 
   // Submit for scoring
   app.post("/api/submit-for-scoring", async (req, res) => {
     try {
       const { sessionId } = req.body;
-      
+
       if (!sessionId) {
         return res.status(400).json({ error: "Session ID required" });
       }
 
       const result = await onboardingManager.submitForScoring(sessionId);
-      
+
       res.json({
         success: true,
-        ...result
+        ...result,
       });
     } catch (error) {
       console.log(`Error submitting for scoring: ${error}`);
-      res.status(500).json({ error: error instanceof Error ? error.message : "Failed to submit for scoring" });
+      res
+        .status(500)
+        .json({
+          error:
+            error instanceof Error
+              ? error.message
+              : "Failed to submit for scoring",
+        });
     }
   });
 
@@ -519,15 +551,15 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.post("/api/onboarding/store", async (req, res) => {
     try {
       const founderData = req.body;
-      
+
       console.log("Storing onboarding data in session:", founderData);
-      
+
       // Store founder data in session
-      updateSessionData(req, { 
+      updateSessionData(req, {
         founderData,
-        startupName: founderData.startupName 
+        startupName: founderData.startupName,
       });
-      
+
       return res.json({
         success: true,
         message: "Onboarding data stored successfully",
@@ -536,7 +568,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
     } catch (error) {
       console.error("Error storing onboarding data:", error);
       res.status(500).json({
-        error: error instanceof Error ? error.message : "Failed to store onboarding data",
+        error:
+          error instanceof Error
+            ? error.message
+            : "Failed to store onboarding data",
       });
     }
   });
@@ -630,7 +665,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     try {
       const file = req.file;
 
-      console.log("Inside upload-only endpoint !")
+      console.log("Inside upload-only endpoint !");
 
       if (!file) {
         return res.status(400).json({
@@ -683,7 +718,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
       const sessionData = getSessionData(req);
       const uploadedFile = sessionData.uploadedFile;
-      const startupName = sessionData.founderData?.startupName || sessionData.startupName || "SecondChanceStartup";
+      const folderStructure = sessionData.folderStructure;
 
       if (!uploadedFile) {
         return res.status(400).json({
@@ -692,26 +727,30 @@ export async function registerRoutes(app: Express): Promise<Server> {
         });
       }
 
+      if (!folderStructure) {
+        return res.status(400).json({
+          error: "No folder structure found",
+          message: "Please complete venture step first",
+        });
+      }
+
       console.log(
         `Starting scoring workflow for: ${uploadedFile.originalname}`,
       );
 
-      // Step 1: Create folder structure
-      console.log("Step 1: Creating folder structure...");
-      const folderStructure =
-        await eastEmblemAPI.createFolderStructure(startupName);
-
-      // Store folder structure in session
-      updateSessionData(req, {
-        folderStructure,
-        startupName,
-      });
-
-      // Step 2: Upload file to 0_Overview folder
-      console.log("Step 2: Uploading file to 0_Overview folder...");
+      // Use existing folder structure from venture step
+      console.log("Using existing folder structure from venture step...");
       const overviewFolderId = folderStructure.folders["0_Overview"];
 
-      // Read file from filesystem
+      if (!overviewFolderId) {
+        return res.status(400).json({
+          error: "Overview folder not found",
+          message: "Invalid folder structure",
+        });
+      }
+
+      // Upload file to 0_Overview folder
+      console.log("Uploading file to 0_Overview folder...");
       const fileBuffer = fs.readFileSync(uploadedFile.filepath);
 
       const uploadResult = await eastEmblemAPI.uploadFile(
