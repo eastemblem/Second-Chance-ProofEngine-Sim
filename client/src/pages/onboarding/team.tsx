@@ -70,15 +70,23 @@ export default function TeamOnboarding({
   });
 
   // Fetch team members
-  const { data: teamData, refetch, isLoading } = useQuery({
-    queryKey: ['/api/onboarding/team', sessionId],
+  const { data: teamData, refetch, isLoading, error } = useQuery({
+    queryKey: ['team-members', sessionId],
     queryFn: async () => {
-      const res = await apiRequest("GET", `/api/onboarding/team/${sessionId}`, {});
-      return await res.json();
+      console.log('Fetching team members for session:', sessionId);
+      const response = await fetch(`/api/onboarding/team/${sessionId}`);
+      if (!response.ok) {
+        throw new Error(`HTTP error! status: ${response.status}`);
+      }
+      const data = await response.json();
+      console.log('Team members response:', data);
+      return data;
     },
     enabled: !!sessionId,
     refetchOnMount: true,
-    refetchOnWindowFocus: false
+    refetchOnWindowFocus: true,
+    staleTime: 0,
+    gcTime: 0 // Don't cache at all
   });
 
   const teamMembers = teamData?.teamMembers || [];
@@ -105,6 +113,8 @@ export default function TeamOnboarding({
         form.reset();
         setShowAddForm(false);
         setEditingMember(null);
+        // Force immediate refetch and cache invalidation
+        queryClient.invalidateQueries({ queryKey: ['team-members'] });
         refetch();
       }
     },
@@ -129,6 +139,7 @@ export default function TeamOnboarding({
           title: "Success", 
           description: `${data.teamMember.fullName} updated successfully`,
         });
+        queryClient.invalidateQueries({ queryKey: ['team-members'] });
         refetch();
         setEditingMember(null);
         setShowAddForm(false);
@@ -155,6 +166,7 @@ export default function TeamOnboarding({
         title: "Success",
         description: "Team member removed",
       });
+      queryClient.invalidateQueries({ queryKey: ['team-members'] });
       refetch();
     },
     onError: (error: any) => {
@@ -261,11 +273,15 @@ export default function TeamOnboarding({
       </div>
 
       {/* Debug Info - Remove in production */}
-      {process.env.NODE_ENV === 'development' && (
-        <div className="bg-gray-100 p-2 mb-4 text-xs">
-          Debug: Session={sessionId}, Loading={isLoading ? 'Yes' : 'No'}, Members={teamMemberCount}, Data={JSON.stringify(teamData).slice(0, 100)}...
-        </div>
-      )}
+      <div className="bg-gray-100 p-2 mb-4 text-xs border rounded">
+        <div><strong>Debug Info:</strong></div>
+        <div>Session: {sessionId}</div>
+        <div>Loading: {isLoading ? 'Yes' : 'No'}</div>
+        <div>Error: {error ? String(error) : 'None'}</div>
+        <div>Team Count: {teamMemberCount}</div>
+        <div>Valid Team: {isValidTeam ? 'Yes' : 'No'}</div>
+        <div>Raw Data: {JSON.stringify(teamData)?.slice(0, 150)}...</div>
+      </div>
 
       {/* Team Members List */}
       <div className="mb-8">
