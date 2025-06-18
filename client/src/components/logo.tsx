@@ -9,8 +9,8 @@ export default function Logo({ size = "md", showTagline = true }: LogoProps) {
   const imageSize = {
     sm: "h-6",
     md: "h-8", 
-    lg: "h-12",
-    xl: "h-16"
+    lg: "h-60",
+    xl: "h-60"
   };
 
   return (
@@ -18,7 +18,8 @@ export default function Logo({ size = "md", showTagline = true }: LogoProps) {
       <img 
         src={logoMain} 
         alt="Second Chance - Powered by ProofScaling"
-        className={`${imageSize[size]} w-auto`}
+        className={`${size === 'lg' || size === 'xl' ? 'w-60' : imageSize[size]} w-auto`}
+        style={size === 'lg' || size === 'xl' ? { width: '15rem', height: 'auto' } : {}}
       />
     </div>
   );
