@@ -260,7 +260,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  // Multi-step onboarding endpoints
+  // Multi-step onboarding endpoints - Import will be added after fixing schema
+  const { onboardingManager } = await import("./onboarding");
   
   // Initialize or resume onboarding session
   app.post("/api/onboarding/session/init", async (req, res) => {

@@ -39,10 +39,10 @@ export const ventureOnboardingSchema = z.object({
 export const teamMemberSchema = z.object({
   fullName: z.string().min(1, "Full name is required"),
   email: z.string().email("Invalid email address"),
-  positionRole: z.string().min(1, "Position/role is required"),
+  role: z.string().min(1, "Role is required"),
+  experience: z.string().min(1, "Experience is required"),
   linkedinProfile: z.string().optional(),
-  equityPercentage: z.number().min(0).max(100).optional(),
-  isFounder: z.boolean().default(false),
+  background: z.string().optional(),
 });
 
 // Onboarding session management
@@ -199,13 +199,10 @@ export class OnboardingManager {
     const validatedData = teamMemberSchema.parse(memberData);
     
     // Create team member
-    const [newTeamMember] = await db
-      .insert(teamMember)
-      .values({
-        ...validatedData,
-        ventureId,
-      })
-      .returning();
+    const newTeamMember = await storage.createTeamMember({
+      ...validatedData,
+      ventureId,
+    });
 
     return newTeamMember;
   }
@@ -218,10 +215,7 @@ export class OnboardingManager {
     
     if (!ventureId) return [];
 
-    return await db
-      .select()
-      .from(teamMember)
-      .where(eq(teamMember.ventureId, ventureId));
+    return await storage.getTeamMembersByVentureId(ventureId);
   }
 
   // Complete team step
