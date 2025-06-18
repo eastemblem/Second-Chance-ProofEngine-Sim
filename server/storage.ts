@@ -1,4 +1,4 @@
-import { users, ventures, type User, type InsertUser, type Venture, type InsertVenture } from "@shared/schema";
+import { founder, venture, type Founder, type InsertFounder, type Venture, type InsertVenture } from "@shared/schema";
 import { db } from "./db";
 import { eq } from "drizzle-orm";
 
@@ -15,57 +15,51 @@ export interface IStorage {
 }
 
 export class DatabaseStorage implements IStorage {
-  async getUser(id: string): Promise<User | undefined> {
-    const [user] = await db.select().from(users).where(eq(users.id, id));
-    return user || undefined;
+  async getFounder(id: string): Promise<Founder | undefined> {
+    const [founderRecord] = await db.select().from(founder).where(eq(founder.founderId, id));
+    return founderRecord;
   }
 
-  async getUserByEmail(email: string): Promise<User | undefined> {
-    const [user] = await db.select().from(users).where(eq(users.email, email));
-    return user || undefined;
+  async getFounderByEmail(email: string): Promise<Founder | undefined> {
+    const [founderRecord] = await db.select().from(founder).where(eq(founder.email, email));
+    return founderRecord;
   }
 
-  async createUser(insertUser: InsertUser): Promise<User> {
-    const [user] = await db
-      .insert(users)
-      .values(insertUser)
+  async createFounder(insertFounder: InsertFounder): Promise<Founder> {
+    const [founderRecord] = await db.insert(founder).values(insertFounder).returning();
+    return founderRecord;
+  }
+
+  async updateFounder(id: string, updateFounder: Partial<InsertFounder>): Promise<Founder> {
+    const [founderRecord] = await db
+      .update(founder)
+      .set({ ...updateFounder, updatedAt: new Date() })
+      .where(eq(founder.founderId, id))
       .returning();
-    return user;
-  }
-
-  async updateUser(id: string, updateUser: Partial<InsertUser>): Promise<User> {
-    const [user] = await db
-      .update(users)
-      .set({ ...updateUser, updatedAt: new Date() })
-      .where(eq(users.id, id))
-      .returning();
-    return user;
+    return founderRecord;
   }
 
   async getVenture(id: string): Promise<Venture | undefined> {
-    const [venture] = await db.select().from(ventures).where(eq(ventures.id, id));
-    return venture || undefined;
+    const [ventureRecord] = await db.select().from(venture).where(eq(venture.ventureId, id));
+    return ventureRecord;
   }
 
-  async getVenturesByUserId(userId: string): Promise<Venture[]> {
-    return await db.select().from(ventures).where(eq(ventures.ownerId, userId));
+  async getVenturesByFounderId(founderId: string): Promise<Venture[]> {
+    return await db.select().from(venture).where(eq(venture.founderId, founderId));
   }
 
   async createVenture(insertVenture: InsertVenture): Promise<Venture> {
-    const [venture] = await db
-      .insert(ventures)
-      .values(insertVenture)
-      .returning();
-    return venture;
+    const [ventureRecord] = await db.insert(venture).values(insertVenture).returning();
+    return ventureRecord;
   }
 
   async updateVenture(id: string, updateVenture: Partial<InsertVenture>): Promise<Venture> {
-    const [venture] = await db
-      .update(ventures)
+    const [ventureRecord] = await db
+      .update(venture)
       .set({ ...updateVenture, updatedAt: new Date() })
-      .where(eq(ventures.id, id))
+      .where(eq(venture.ventureId, id))
       .returning();
-    return venture;
+    return ventureRecord;
   }
 }
 

@@ -30,6 +30,9 @@ export default function OnboardingPage({
 }: OnboardingPageProps) {
   const [formData, setFormData] = useState<Partial<FounderData>>({
     acceleratorApplications: 0,
+    fullName: "",
+    email: "",
+    startupName: "",
   });
   const [isSubmitting, setIsSubmitting] = useState(false);
   const { toast } = useToast();
@@ -59,7 +62,7 @@ export default function OnboardingPage({
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
 
-    if (!formData.name || !formData.email || !formData.startupName) {
+    if (!formData.fullName || !formData.email || !formData.startupName) {
       toast({
         title: "Missing Information",
         description: "Please fill in all required fields",
@@ -73,7 +76,7 @@ export default function OnboardingPage({
     try {
       // Create founder
       const founderData = {
-        fullName: formData.name,
+        fullName: formData.fullName,
         email: formData.email,
         positionRole: "Founder",
       };
