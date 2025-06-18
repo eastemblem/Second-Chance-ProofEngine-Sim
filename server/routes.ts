@@ -274,10 +274,11 @@ export async function registerRoutes(app: Express): Promise<Server> {
         sessionId,
         currentStep: session?.currentStep || "founder",
         stepData: session?.stepData || {},
-        completedSteps: session?.completedSteps || []
+        completedSteps: session?.completedSteps || [],
+        isComplete: session?.isComplete || false
       });
     } catch (error) {
-      console.log(`Error initializing onboarding session: ${error}`);
+      console.error("Error initializing onboarding session:", error);
       res.status(500).json({ error: "Failed to initialize session" });
     }
   });

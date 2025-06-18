@@ -49,26 +49,7 @@ export const teamMemberSchema = z.object({
 export class OnboardingManager {
   // Initialize or resume session
   async initializeSession(req: Request): Promise<string> {
-    const existingSessionId = (req as any).session?.onboardingSessionId;
-    
-    if (existingSessionId) {
-      // Check if session exists and is not complete
-      const [existingSession] = await db
-        .select()
-        .from(onboardingSession)
-        .where(
-          and(
-            eq(onboardingSession.sessionId, existingSessionId),
-            eq(onboardingSession.isComplete, false)
-          )
-        );
-      
-      if (existingSession) {
-        return existingSessionId;
-      }
-    }
-
-    // Create new session
+    // Create new session directly since we're not using express-session
     const [newSession] = await db
       .insert(onboardingSession)
       .values({
@@ -79,7 +60,7 @@ export class OnboardingManager {
       })
       .returning();
 
-    (req as any).session = { ...(req as any).session, onboardingSessionId: newSession.sessionId };
+    console.log("Created new onboarding session:", newSession.sessionId);
     return newSession.sessionId;
   }
 
@@ -126,6 +107,15 @@ export class OnboardingManager {
 
   // Complete founder onboarding step
   async completeFounderStep(sessionId: string, founderData: any) {
+    console.log("Completing founder step for session:", sessionId);
+    
+    // Check if session exists first
+    const session = await this.getSession(sessionId);
+    if (!session) {
+      console.error("Session not found:", sessionId);
+      throw new Error("Session not found");
+    }
+    
     // Validate data
     const validatedData = founderOnboardingSchema.parse(founderData);
     
