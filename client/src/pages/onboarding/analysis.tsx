@@ -95,10 +95,10 @@ export default function Analysis({
 
   // Use real scoring data only
   const analysisData = {
-    total_score: scoringResult.output?.total_score || scoringResult.total_score,
-    categories: scoringResult.output || {},
-    overall_feedback: scoringResult.output?.overall_feedback || [],
-    proofTags: scoringResult.output?.tags || scoringResult.tags || []
+    total_score: scoringResult?.output?.total_score || scoringResult?.total_score,
+    categories: scoringResult?.output || {},
+    overall_feedback: scoringResult?.output?.overall_feedback || [],
+    proofTags: scoringResult?.output?.tags || scoringResult?.tags || []
   };
 
   function generateProofTags(output: any) {
@@ -167,12 +167,12 @@ export default function Analysis({
       ]
     },
     insights: {
-      strengths: scoringResult.output?.key_insights?.filter((insight: any) => insight.title === "Strong Foundation") || 
-                scoringResult.key_insights?.filter((insight: any) => insight.title === "Strong Foundation") || [],
-      improvements: scoringResult.output?.key_insights?.filter((insight: any) => insight.title === "Needs Attention") || 
-                   scoringResult.key_insights?.filter((insight: any) => insight.title === "Needs Attention") || [],
-      recommendations: scoringResult.output?.key_insights?.filter((insight: any) => insight.title === "Next Steps") || 
-                      scoringResult.key_insights?.filter((insight: any) => insight.title === "Next Steps") || []
+      strengths: scoringResult?.output?.key_insights?.filter((insight: any) => insight.title === "Strong Foundation") || 
+                scoringResult?.key_insights?.filter((insight: any) => insight.title === "Strong Foundation") || [],
+      improvements: scoringResult?.output?.key_insights?.filter((insight: any) => insight.title === "Needs Attention") || 
+                   scoringResult?.key_insights?.filter((insight: any) => insight.title === "Needs Attention") || [],
+      recommendations: scoringResult?.output?.key_insights?.filter((insight: any) => insight.title === "Next Steps") || 
+                      scoringResult?.key_insights?.filter((insight: any) => insight.title === "Next Steps") || []
     }
   };
 
