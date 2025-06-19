@@ -118,27 +118,9 @@ export default function Analysis({
       ]
     },
     insights: {
-      strengths: scoringResult?.key_insights?.filter((insight: any) => insight.title === "Strong Foundation") || 
-        Object.entries(analysisData.categories)
-          .filter(([_, data]) => data.score >= 7)
-          .map(([category, data]) => ({
-            title: "Strength",
-            description: `Strong ${category.replace('_', ' ')}: ${data.justification}`
-          })),
-      improvements: scoringResult?.key_insights?.filter((insight: any) => insight.title === "Needs Attention") || 
-        Object.entries(analysisData.categories)
-          .filter(([_, data]) => data.score < 7)
-          .map(([category, data]) => ({
-            title: "Area for Improvement", 
-            description: `${category.replace('_', ' ')}: ${data.justification}`
-          })),
-      recommendations: scoringResult?.key_insights?.filter((insight: any) => insight.title === "Next Steps") || 
-        Object.entries(analysisData.categories)
-          .slice(0, 1)
-          .map(([_, data]) => ({
-            title: "Recommendation",
-            description: data.recommendation
-          }))
+      strengths: scoringResult.output.key_insights?.filter((insight: any) => insight.title === "Strong Foundation") || [],
+      improvements: scoringResult.output.key_insights?.filter((insight: any) => insight.title === "Needs Attention") || [],
+      recommendations: scoringResult.output.key_insights?.filter((insight: any) => insight.title === "Next Steps") || []
     }
   };
 

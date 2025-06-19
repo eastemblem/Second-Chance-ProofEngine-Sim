@@ -168,6 +168,7 @@ export const documentUpload = pgTable("document_upload", {
   uploadStatus: varchar("upload_status", { length: 50 }).default("pending"),
   processingStatus: varchar("processing_status", { length: 50 }).default("pending"),
   eastemblemFileId: varchar("eastemblem_file_id", { length: 100 }),
+  sharedUrl: varchar("shared_url", { length: 500 }),
   createdAt: timestamp("created_at").defaultNow().notNull(),
 });
 
