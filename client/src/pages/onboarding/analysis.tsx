@@ -35,6 +35,19 @@ export default function Analysis({
                      sessionData?.stepData?.processing?.scoringResult || 
                      sessionData?.processing?.scoringResult;
   
+  // Also try sessionStorage as fallback
+  if (!scoringResult) {
+    try {
+      const storedResult = sessionStorage.getItem('scoringResult');
+      if (storedResult) {
+        scoringResult = JSON.parse(storedResult);
+        console.log("Retrieved scoring result from sessionStorage:", scoringResult);
+      }
+    } catch (error) {
+      console.error("Error parsing sessionStorage scoring result:", error);
+    }
+  }
+  
   const founderData = sessionData?.stepData?.founder;
   const ventureData = sessionData?.stepData?.venture?.venture || sessionData?.stepData?.venture;
   

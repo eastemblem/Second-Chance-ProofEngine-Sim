@@ -248,7 +248,10 @@ export default function OnboardingFlow({ onComplete }: OnboardingFlowProps) {
             {currentStep.key === "analysis" && (
               <Analysis
                 sessionId={sessionData.sessionId}
-                sessionData={sessionData}
+                sessionData={{
+                  ...sessionData,
+                  scoringResult: sessionData?.stepData?.processing?.scoringResult
+                }}
                 onComplete={handleComplete}
               />
             )}
