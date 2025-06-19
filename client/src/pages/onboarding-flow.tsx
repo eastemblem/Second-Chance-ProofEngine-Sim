@@ -8,7 +8,7 @@ import VentureOnboarding from "./onboarding/venture";
 import TeamOnboarding from "./onboarding/team";
 import DocumentUpload from "./onboarding/upload";
 import ProcessingScreen from "./onboarding/processing";
-import DealRoom from "./onboarding/deal-room";
+import Analysis from "./onboarding/analysis";
 import ProgressBar from "@/components/progress-bar";
 
 interface OnboardingFlowProps {
@@ -246,7 +246,7 @@ export default function OnboardingFlow({ onComplete }: OnboardingFlowProps) {
             )}
             
             {currentStep.key === "analysis" && (
-              <DealRoom
+              <Analysis
                 sessionId={sessionData.sessionId}
                 sessionData={sessionData}
                 onComplete={handleComplete}
