@@ -25,6 +25,8 @@ export default function Analysis({
   onComplete 
 }: AnalysisProps) {
   // Extract data from session - check multiple possible locations
+  console.log("Analysis component received sessionData:", sessionData);
+  
   const scoringResult = sessionData?.scoringResult || 
                        sessionData?.stepData?.processing?.scoringResult || 
                        sessionData?.processing?.scoringResult;
@@ -33,18 +35,61 @@ export default function Analysis({
   const ventureData = sessionData?.stepData?.venture?.venture || sessionData?.stepData?.venture;
   
   console.log("Analysis component - scoringResult:", scoringResult);
+  console.log("Analysis component - sessionData keys:", Object.keys(sessionData || {}));
   
   // Check if we have valid scoring data
-  if (!scoringResult || (!scoringResult.output && !scoringResult.total_score)) {
-    console.error("No valid scoring result available:", scoringResult);
-    return (
-      <div className="min-h-screen bg-background p-6 flex items-center justify-center">
-        <div className="text-center">
-          <h2 className="text-2xl font-bold mb-4">Analysis Not Available</h2>
-          <p className="text-muted-foreground">Please complete the scoring process first.</p>
+  if (!scoringResult) {
+    console.error("No scoring result found in sessionData:", sessionData);
+    
+    // Try to fetch session data from API if not available
+    const [isLoading, setIsLoading] = useState(true);
+    const [sessionFromAPI, setSessionFromAPI] = useState(null);
+    
+    useEffect(() => {
+      const fetchSessionData = async () => {
+        try {
+          const response = await fetch(`/api/onboarding/session/${sessionId}`);
+          if (response.ok) {
+            const data = await response.json();
+            console.log("Fetched session data from API:", data);
+            setSessionFromAPI(data.session);
+          }
+        } catch (error) {
+          console.error("Failed to fetch session data:", error);
+        } finally {
+          setIsLoading(false);
+        }
+      };
+      
+      fetchSessionData();
+    }, [sessionId]);
+    
+    if (isLoading) {
+      return (
+        <div className="min-h-screen bg-background p-6 flex items-center justify-center">
+          <div className="text-center">
+            <h2 className="text-2xl font-bold mb-4">Loading Analysis...</h2>
+            <p className="text-muted-foreground">Retrieving your scoring results...</p>
+          </div>
         </div>
-      </div>
-    );
+      );
+    }
+    
+    // Check if API data has scoring result
+    const apiScoringResult = sessionFromAPI?.stepData?.processing?.scoringResult;
+    if (!apiScoringResult) {
+      return (
+        <div className="min-h-screen bg-background p-6 flex items-center justify-center">
+          <div className="text-center">
+            <h2 className="text-2xl font-bold mb-4">Analysis Not Available</h2>
+            <p className="text-muted-foreground">Please complete the scoring process first.</p>
+          </div>
+        </div>
+      );
+    }
+    
+    // Use API data if available
+    scoringResult = apiScoringResult;
   }
 
   // Use real scoring data only
