@@ -73,7 +73,12 @@ export default function FounderOnboarding({
           description: "Founder information saved successfully",
         });
         // Update session with founder data
-        onDataUpdate?.(data);
+        const founderData = {
+          ...data,
+          completedAt: new Date().toISOString()
+        };
+        console.log("Founder step completed. Calling onDataUpdate with:", founderData);
+        onDataUpdate?.(founderData);
         onNext();
       }
     },

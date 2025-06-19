@@ -95,10 +95,12 @@ export default function OnboardingFlow({ onComplete }: OnboardingFlowProps) {
       if (sessionData) {
         const updatedSession = {
           ...sessionData,
-          currentStep: steps[nextIndex].key
+          currentStep: steps[nextIndex].key,
+          currentStepIndex: nextIndex
         };
         setSessionData(updatedSession);
         localStorage.setItem('onboardingSession', JSON.stringify(updatedSession));
+        console.log(`Navigated to step ${nextIndex}: ${steps[nextIndex].key}`);
       }
     }
   };
@@ -120,34 +122,44 @@ export default function OnboardingFlow({ onComplete }: OnboardingFlowProps) {
     }
   };
 
-  // Update session data
+  // Update session data with proper merging
   const updateSessionData = (stepKey: string, data: any) => {
-    console.log(`🔄 Updating session data for step ${stepKey}:`, data);
-    console.log(`📊 Current session before update:`, sessionData);
+    console.log(`Updating session data for step ${stepKey}:`, data);
     
-    if (sessionData) {
-      const updatedSession = {
-        ...sessionData,
-        stepData: {
-          ...sessionData.stepData,
-          [stepKey]: data
-        },
-        completedSteps: sessionData.completedSteps?.includes(stepKey) 
-          ? sessionData.completedSteps 
-          : [...(sessionData.completedSteps || []), stepKey]
-      };
-      
-      console.log(`✅ Updated session data:`, updatedSession);
-      console.log(`💾 Storing in localStorage...`);
-      
-      setSessionData(updatedSession);
+    if (!sessionData) {
+      console.error('No sessionData available for update');
+      return;
+    }
+
+    // Ensure we don't overwrite existing step data
+    const currentStepData = sessionData.stepData?.[stepKey] || {};
+    const mergedStepData = { ...currentStepData, ...data };
+    
+    // Ensure completedSteps is an array and add current step if not already present
+    const currentCompleted = Array.isArray(sessionData.completedSteps) ? sessionData.completedSteps : [];
+    const updatedCompleted = currentCompleted.includes(stepKey) 
+      ? currentCompleted 
+      : [...currentCompleted, stepKey];
+
+    const updatedSession = {
+      ...sessionData,
+      stepData: {
+        ...sessionData.stepData,
+        [stepKey]: mergedStepData
+      },
+      completedSteps: updatedCompleted,
+      lastUpdated: new Date().toISOString()
+    };
+    
+    console.log('Session updated:', updatedSession);
+    
+    // Update both state and localStorage atomically
+    setSessionData(updatedSession);
+    try {
       localStorage.setItem('onboardingSession', JSON.stringify(updatedSession));
-      
-      // Verify localStorage was updated
-      const stored = localStorage.getItem('onboardingSession');
-      console.log(`🔍 Verified localStorage:`, JSON.parse(stored || '{}'));
-    } else {
-      console.error(`❌ No sessionData available for update`);
+      console.log('Successfully saved to localStorage');
+    } catch (error) {
+      console.error('Failed to save to localStorage:', error);
     }
   };
 
@@ -241,7 +253,7 @@ export default function OnboardingFlow({ onComplete }: OnboardingFlowProps) {
                 onNext={nextStep}
                 onPrev={prevStep}
                 onDataUpdate={(data: any) => {
-                  console.log("🏢 VentureOnboarding onDataUpdate called with:", data);
+                  console.log("VentureOnboarding onDataUpdate called with:", data);
                   updateSessionData("venture", data);
                 }}
               />
