@@ -317,9 +317,8 @@ export class OnboardingManager {
   async completeTeamStep(sessionId: string) {
     const teamMembers = await this.getTeamMembers(sessionId);
     
-    if (teamMembers.length < 3) {
-      throw new Error("Minimum 3 team members required");
-    }
+    // Allow completing team step with any number of members (0-4)
+    console.log(`Completing team step with ${teamMembers.length} team members`);
 
     // Update session progress
     await this.updateSession(sessionId, "upload", {}, false);

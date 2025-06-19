@@ -91,9 +91,9 @@ export default function TeamOnboarding({
 
   const teamMembers = teamData?.teamMembers || [];
   const teamMemberCount = teamMembers.length;
-  const isValidTeam = teamMemberCount >= 3;
+  const canSkip = true; // Always allow completing team step
 
-  console.log('Team Data Debug:', { teamData, teamMembers, teamMemberCount, isValidTeam });
+  console.log('Team Data Debug:', { teamData, teamMembers, teamMemberCount, canSkip });
 
   // Add team member mutation
   const addMemberMutation = useMutation({
