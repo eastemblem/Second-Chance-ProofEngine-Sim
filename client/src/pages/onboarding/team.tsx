@@ -245,17 +245,15 @@ export default function TeamOnboarding({
   };
 
   const handleNext = async () => {
-    if (!isValidTeam) {
-      toast({
-        title: "Incomplete Team",
-        description: "Please add at least 3 team members before proceeding",
-        variant: "destructive",
-      });
-      return;
-    }
-
     setIsSubmitting(true);
     onDataUpdate({ teamMembers });
+    await completeTeamMutation.mutateAsync();
+    setIsSubmitting(false);
+  };
+
+  const handleSkip = async () => {
+    setIsSubmitting(true);
+    onDataUpdate({ teamMembers: [] });
     await completeTeamMutation.mutateAsync();
     setIsSubmitting(false);
   };
@@ -271,12 +269,12 @@ export default function TeamOnboarding({
           Build Your Team
         </h2>
         <p className="text-muted-foreground mb-4">
-          Add your team members (minimum 3 required)
+          Add up to 4 team members (optional)
         </p>
         <div className="flex items-center justify-center space-x-2 text-sm">
           <Users className="w-4 h-4" />
-          <span className={`font-medium ${isValidTeam ? 'text-green-600' : 'text-orange-600'}`}>
-            {teamMemberCount}/3 minimum team members
+          <span className="font-medium text-blue-600">
+            {teamMemberCount}/4 team members added
           </span>
         </div>
       </div>
