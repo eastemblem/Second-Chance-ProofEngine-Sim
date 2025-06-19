@@ -24,12 +24,15 @@ export default function Analysis({
   sessionData, 
   onComplete 
 }: AnalysisProps) {
+  const [isLoading, setIsLoading] = useState(false);
+  const [sessionFromAPI, setSessionFromAPI] = useState<any>(null);
+
   // Extract data from session - check multiple possible locations
   console.log("Analysis component received sessionData:", sessionData);
   
-  const scoringResult = sessionData?.scoringResult || 
-                       sessionData?.stepData?.processing?.scoringResult || 
-                       sessionData?.processing?.scoringResult;
+  let scoringResult = sessionData?.scoringResult || 
+                     sessionData?.stepData?.processing?.scoringResult || 
+                     sessionData?.processing?.scoringResult;
   
   const founderData = sessionData?.stepData?.founder;
   const ventureData = sessionData?.stepData?.venture?.venture || sessionData?.stepData?.venture;
@@ -37,15 +40,10 @@ export default function Analysis({
   console.log("Analysis component - scoringResult:", scoringResult);
   console.log("Analysis component - sessionData keys:", Object.keys(sessionData || {}));
   
-  // Check if we have valid scoring data
-  if (!scoringResult) {
-    console.error("No scoring result found in sessionData:", sessionData);
-    
-    // Try to fetch session data from API if not available
-    const [isLoading, setIsLoading] = useState(true);
-    const [sessionFromAPI, setSessionFromAPI] = useState(null);
-    
-    useEffect(() => {
+  // Try to fetch session data from API if not available
+  useEffect(() => {
+    if (!scoringResult && sessionId) {
+      setIsLoading(true);
       const fetchSessionData = async () => {
         try {
           const response = await fetch(`/api/onboarding/session/${sessionId}`);
@@ -62,34 +60,37 @@ export default function Analysis({
       };
       
       fetchSessionData();
-    }, [sessionId]);
-    
-    if (isLoading) {
-      return (
-        <div className="min-h-screen bg-background p-6 flex items-center justify-center">
-          <div className="text-center">
-            <h2 className="text-2xl font-bold mb-4">Loading Analysis...</h2>
-            <p className="text-muted-foreground">Retrieving your scoring results...</p>
-          </div>
-        </div>
-      );
     }
-    
-    // Check if API data has scoring result
-    const apiScoringResult = sessionFromAPI?.stepData?.processing?.scoringResult;
-    if (!apiScoringResult) {
-      return (
-        <div className="min-h-screen bg-background p-6 flex items-center justify-center">
-          <div className="text-center">
-            <h2 className="text-2xl font-bold mb-4">Analysis Not Available</h2>
-            <p className="text-muted-foreground">Please complete the scoring process first.</p>
-          </div>
+  }, [sessionId, scoringResult]);
+  
+  // Use API data if available and no scoring result from props
+  if (!scoringResult && sessionFromAPI) {
+    scoringResult = sessionFromAPI?.stepData?.processing?.scoringResult;
+  }
+  
+  // Show loading state
+  if (isLoading) {
+    return (
+      <div className="min-h-screen bg-background p-6 flex items-center justify-center">
+        <div className="text-center">
+          <h2 className="text-2xl font-bold mb-4">Loading Analysis...</h2>
+          <p className="text-muted-foreground">Retrieving your scoring results...</p>
         </div>
-      );
-    }
-    
-    // Use API data if available
-    scoringResult = apiScoringResult;
+      </div>
+    );
+  }
+  
+  // Check if we have valid scoring data
+  if (!scoringResult) {
+    console.error("No scoring result found in sessionData:", sessionData);
+    return (
+      <div className="min-h-screen bg-background p-6 flex items-center justify-center">
+        <div className="text-center">
+          <h2 className="text-2xl font-bold mb-4">Analysis Not Available</h2>
+          <p className="text-muted-foreground">Please complete the scoring process first.</p>
+        </div>
+      </div>
+    );
   }
 
   // Use real scoring data only
