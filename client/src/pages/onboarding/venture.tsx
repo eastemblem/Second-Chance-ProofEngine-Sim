@@ -31,7 +31,7 @@ export default function VentureOnboarding({
   const { toast } = useToast();
   const [isSubmitting, setIsSubmitting] = useState(false);
 
-  const form = useForm<VentureFormData>({
+  const form = useForm({
     resolver: zodResolver(ventureSchema),
     defaultValues: {
       name: "",
@@ -50,7 +50,7 @@ export default function VentureOnboarding({
   });
 
   const submitMutation = useMutation({
-    mutationFn: async (data: VentureFormData) => {
+    mutationFn: async (data: any) => {
       const res = await apiRequest("POST", "/api/onboarding/venture", {
         sessionId,
         ...data
@@ -76,7 +76,7 @@ export default function VentureOnboarding({
     },
   });
 
-  const onSubmit = async (data: VentureFormData) => {
+  const onSubmit = async (data: any) => {
     setIsSubmitting(true);
     try {
       await submitMutation.mutateAsync(data);
@@ -121,12 +121,24 @@ export default function VentureOnboarding({
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
           <div>
             <Label htmlFor="industry">Industry *</Label>
-            <Input
-              id="industry"
-              {...form.register("industry")}
-              className="mt-1"
-              placeholder="SaaS, E-commerce, FinTech, etc."
-            />
+            <Select onValueChange={(value) => form.setValue("industry", value)}>
+              <SelectTrigger className="mt-1">
+                <SelectValue placeholder="Select industry" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="Technology">Technology</SelectItem>
+                <SelectItem value="Healthcare">Healthcare</SelectItem>
+                <SelectItem value="Finance">Finance</SelectItem>
+                <SelectItem value="Education">Education</SelectItem>
+                <SelectItem value="E-commerce">E-commerce</SelectItem>
+                <SelectItem value="Manufacturing">Manufacturing</SelectItem>
+                <SelectItem value="Real Estate">Real Estate</SelectItem>
+                <SelectItem value="Food & Beverage">Food & Beverage</SelectItem>
+                <SelectItem value="Transportation">Transportation</SelectItem>
+                <SelectItem value="Energy">Energy</SelectItem>
+                <SelectItem value="Other">Other</SelectItem>
+              </SelectContent>
+            </Select>
             {form.formState.errors.industry && (
               <p className="text-red-500 text-sm mt-1">
                 {form.formState.errors.industry.message}
@@ -136,12 +148,25 @@ export default function VentureOnboarding({
 
           <div>
             <Label htmlFor="geography">Geography *</Label>
-            <Input
-              id="geography"
-              {...form.register("geography")}
-              className="mt-1"
-              placeholder="United States, Europe, Global, etc."
-            />
+            <Select onValueChange={(value) => form.setValue("geography", value)}>
+              <SelectTrigger className="mt-1">
+                <SelectValue placeholder="Select geography" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="Global">Global</SelectItem>
+                <SelectItem value="North America">North America</SelectItem>
+                <SelectItem value="Europe">Europe</SelectItem>
+                <SelectItem value="Asia Pacific">Asia Pacific</SelectItem>
+                <SelectItem value="Latin America">Latin America</SelectItem>
+                <SelectItem value="Middle East & Africa">Middle East & Africa</SelectItem>
+                <SelectItem value="United States">United States</SelectItem>
+                <SelectItem value="Canada">Canada</SelectItem>
+                <SelectItem value="United Kingdom">United Kingdom</SelectItem>
+                <SelectItem value="Germany">Germany</SelectItem>
+                <SelectItem value="India">India</SelectItem>
+                <SelectItem value="Other">Other</SelectItem>
+              </SelectContent>
+            </Select>
             {form.formState.errors.geography && (
               <p className="text-red-500 text-sm mt-1">
                 {form.formState.errors.geography.message}
@@ -153,7 +178,7 @@ export default function VentureOnboarding({
         <div>
           <Label htmlFor="businessModel">Business Model *</Label>
           <Select onValueChange={(value) => form.setValue("businessModel", value)}>
-            <SelectTrigger>
+            <SelectTrigger className="mt-1">
               <SelectValue placeholder="Select business model" />
             </SelectTrigger>
             <SelectContent>
@@ -161,9 +186,12 @@ export default function VentureOnboarding({
               <SelectItem value="B2C SaaS">B2C SaaS</SelectItem>
               <SelectItem value="Marketplace">Marketplace</SelectItem>
               <SelectItem value="E-commerce">E-commerce</SelectItem>
-              <SelectItem value="FinTech">FinTech</SelectItem>
-              <SelectItem value="HealthTech">HealthTech</SelectItem>
-              <SelectItem value="EdTech">EdTech</SelectItem>
+              <SelectItem value="Subscription">Subscription</SelectItem>
+              <SelectItem value="Freemium">Freemium</SelectItem>
+              <SelectItem value="Transaction-based">Transaction-based</SelectItem>
+              <SelectItem value="Advertising">Advertising</SelectItem>
+              <SelectItem value="Licensing">Licensing</SelectItem>
+              <SelectItem value="Consulting">Consulting</SelectItem>
               <SelectItem value="Other">Other</SelectItem>
             </SelectContent>
           </Select>
@@ -191,10 +219,10 @@ export default function VentureOnboarding({
           </div>
 
           <div>
-            <Label htmlFor="mvpStatus">MVP Status *</Label>
-            <Select onValueChange={(value) => form.setValue("mvpStatus", value as "Mockup" | "Prototype" | "Launched")}>
-              <SelectTrigger>
-                <SelectValue placeholder="Select MVP status" />
+            <Label htmlFor="productStatus">Product Status *</Label>
+            <Select onValueChange={(value) => form.setValue("productStatus", value as "Mockup" | "Prototype" | "Launched")}>
+              <SelectTrigger className="mt-1">
+                <SelectValue placeholder="Select product status" />
               </SelectTrigger>
               <SelectContent>
                 <SelectItem value="Mockup">Mockup</SelectItem>
@@ -215,75 +243,7 @@ export default function VentureOnboarding({
           />
         </div>
 
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-          <div>
-            <Label htmlFor="marketSize">Market Size (Optional)</Label>
-            <Input
-              id="marketSize"
-              {...form.register("marketSize")}
-              className="mt-1"
-              placeholder="$10B TAM, $2B SAM"
-            />
-          </div>
 
-          <div>
-            <Label htmlFor="valuation">Current Valuation (Optional)</Label>
-            <Input
-              id="valuation"
-              {...form.register("valuation")}
-              className="mt-1"
-              placeholder="$5M pre-money"
-            />
-          </div>
-        </div>
-
-        <div>
-          <Label htmlFor="pilotsPartnerships">Pilots & Partnerships (Optional)</Label>
-          <Input
-            id="pilotsPartnerships"
-            {...form.register("pilotsPartnerships")}
-            className="mt-1"
-            placeholder="List any pilot programs or partnerships"
-          />
-        </div>
-
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-          <div>
-            <Label htmlFor="customerDiscoveryCount">Customer Interviews</Label>
-            <Input
-              id="customerDiscoveryCount"
-              type="number"
-              {...form.register("customerDiscoveryCount", { valueAsNumber: true })}
-              className="mt-1"
-              placeholder="0"
-              min="0"
-            />
-          </div>
-
-          <div>
-            <Label htmlFor="userSignups">User Signups</Label>
-            <Input
-              id="userSignups"
-              type="number"
-              {...form.register("userSignups", { valueAsNumber: true })}
-              className="mt-1"
-              placeholder="0"
-              min="0"
-            />
-          </div>
-
-          <div>
-            <Label htmlFor="lois">Letters of Intent</Label>
-            <Input
-              id="lois"
-              type="number"
-              {...form.register("lois", { valueAsNumber: true })}
-              className="mt-1"
-              placeholder="0"
-              min="0"
-            />
-          </div>
-        </div>
 
         <div>
           <Label htmlFor="description">Startup Description *</Label>
@@ -352,7 +312,7 @@ export default function VentureOnboarding({
             disabled={isSubmitting}
             className="px-6 py-2"
           >
-            {isSubmitting ? "Saving..." : "Continue"}
+            {isSubmitting ? "Saving..." : "Next: Team Members"}
           </Button>
         </div>
       </form>

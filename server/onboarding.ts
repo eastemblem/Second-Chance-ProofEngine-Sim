@@ -160,6 +160,7 @@ export class OnboardingManager {
     // Create venture
     const venture = await storage.createVenture({
       ...validatedData,
+      mvpStatus: validatedData.productStatus, // Map productStatus to mvpStatus for database compatibility
       founderId: session.founderId,
     });
 
