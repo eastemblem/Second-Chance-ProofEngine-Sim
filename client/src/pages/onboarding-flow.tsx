@@ -29,7 +29,7 @@ const steps = [
   { key: "team", name: "Team Members", description: "Add up to 4 team members (optional)" },
   { key: "upload", name: "Pitch Deck", description: "Upload your pitch deck" },
   { key: "processing", name: "Processing", description: "Analyzing your submission" },
-  { key: "analysis", name: "Deal Room", description: "Your ProofScore and deal room" }
+  { key: "analysis", name: "Analysis", description: "Your ProofScore analysis results" }
 ];
 
 export default function OnboardingFlow({ onComplete }: OnboardingFlowProps) {

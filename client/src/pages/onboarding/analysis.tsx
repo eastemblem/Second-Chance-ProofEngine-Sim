@@ -136,7 +136,7 @@ export default function Analysis({
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.6 }}
         >
-          <ProgressBar currentStep={6} totalSteps={6} stepName="Your ProofScore Results" />
+          <ProgressBar currentStep={6} totalSteps={6} stepName="Analysis" />
 
 
 
