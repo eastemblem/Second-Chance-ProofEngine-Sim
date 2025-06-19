@@ -122,6 +122,7 @@ export default function OnboardingFlow({ onComplete }: OnboardingFlowProps) {
 
   // Update session data
   const updateSessionData = (stepKey: string, data: any) => {
+    console.log(`Updating session data for step ${stepKey}:`, data);
     if (sessionData) {
       const updatedSession = {
         ...sessionData,
@@ -129,10 +130,11 @@ export default function OnboardingFlow({ onComplete }: OnboardingFlowProps) {
           ...sessionData.stepData,
           [stepKey]: data
         },
-        completedSteps: sessionData.completedSteps.includes(stepKey) 
+        completedSteps: sessionData.completedSteps?.includes(stepKey) 
           ? sessionData.completedSteps 
-          : [...sessionData.completedSteps, stepKey]
+          : [...(sessionData.completedSteps || []), stepKey]
       };
+      console.log("Updated session data:", updatedSession);
       setSessionData(updatedSession);
       localStorage.setItem('onboardingSession', JSON.stringify(updatedSession));
     }
