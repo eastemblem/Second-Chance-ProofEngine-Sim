@@ -154,27 +154,9 @@ export class OnboardingManager {
         const newFounder = await storage.createFounder(validatedData);
         founderId = newFounder.founderId;
       } catch (error: any) {
-        // Handle duplicate constraints by updating existing founder
-        if (error.message && error.message.includes('duplicate key value violates unique constraint')) {
-          console.log("Duplicate constraint error, attempting to find existing founder");
-          
-          // Try to find existing founder by email first
-          const existingByEmail = await storage.getFounderByEmail(validatedData.email);
-          if (existingByEmail) {
-            await storage.updateFounder(existingByEmail.founderId, validatedData);
-            founderId = existingByEmail.founderId;
-          } else {
-            // If no email match, create with a modified profile to avoid conflicts
-            const safeData = { 
-              ...validatedData, 
-              linkedinProfile: validatedData.linkedinProfile ? `${validatedData.linkedinProfile}_${Date.now()}` : undefined 
-            };
-            const newFounder = await storage.createFounder(safeData);
-            founderId = newFounder.founderId;
-          }
-        } else {
-          throw error;
-        }
+        // Handle any creation errors
+        console.error("Error creating founder:", error);
+        throw error;
       }
     }
 

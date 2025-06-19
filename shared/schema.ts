@@ -21,7 +21,7 @@ export const founder = pgTable("founder", {
   founderId: uuid("founder_id").primaryKey().defaultRandom(),
   fullName: varchar("full_name", { length: 100 }).notNull(),
   email: varchar("email", { length: 100 }).notNull().unique(),
-  linkedinProfile: varchar("linkedin_profile", { length: 200 }).unique(),
+  linkedinProfile: varchar("linkedin_profile", { length: 200 }),
   gender: varchar("gender", { length: 20 }),
   companyWebsite: varchar("company_website", { length: 200 }),
   age: smallint("age"),
