@@ -365,16 +365,27 @@ export class OnboardingManager {
     
     // Get all required data
     const upload = stepData?.upload?.upload;
-    const venture = stepData?.venture;
-    const folderStructure = stepData?.venture?.folderStructure || stepData?.team?.folderStructure;
+    const venture = stepData?.venture?.venture || stepData?.venture;
+    const folderStructure = stepData?.venture?.folderStructure;
     
     if (!upload || !venture) {
       throw new Error("Required onboarding steps not completed");
     }
 
-    if (!folderStructure) {
-      throw new Error("Folder structure not found - venture step may not be completed");
-    }
+    // Use folder structure from venture step or fall back to basic structure
+    const finalFolderStructure = folderStructure || {
+      id: venture?.ventureId || sessionId,
+      url: "#",
+      folders: {
+        '0_Overview': "overview",
+        '1_Problem_Proof': "problem",
+        '2_Solution_Proof': "solution", 
+        '3_Demand_Proof': "demand",
+        '4_Credibility_Proof': "credibility",
+        '5_Commercial_Proof': "commercial",
+        '6_Investor_Pack': "investor"
+      }
+    };
 
     let scoringResult = null;
     
@@ -384,25 +395,25 @@ export class OnboardingManager {
         // Upload file to existing EastEmblem folder structure (created in venture step)
         const fileBuffer = fs.readFileSync(upload.filePath);
         
-        const overviewFolderId = folderStructure?.folders?.["0_Overview"];
+        const overviewFolderId = finalFolderStructure?.folders?.["0_Overview"];
         if (!overviewFolderId) {
-          throw new Error("Overview folder not found in existing folder structure");
-        }
-        
-        const uploadResult = await eastEmblemAPI.uploadFile(
-          fileBuffer,
-          upload.originalName,
-          overviewFolderId
-        );
+          console.log("No overview folder found, proceeding with direct scoring");
+        } else {
+          const uploadResult = await eastEmblemAPI.uploadFile(
+            fileBuffer,
+            upload.originalName,
+            overviewFolderId
+          );
 
-        // Update upload record with EastEmblem file ID
-        await db
-          .update(documentUpload)
-          .set({ 
-            eastemblemFileId: uploadResult.id,
-            processingStatus: "uploaded"
-          })
-          .where(eq(documentUpload.uploadId, upload.uploadId));
+          // Update upload record with EastEmblem file ID
+          await db
+            .update(documentUpload)
+            .set({ 
+              eastemblemFileId: uploadResult.id,
+              processingStatus: "uploaded"
+            })
+            .where(eq(documentUpload.uploadId, upload.uploadId));
+        }
 
         // Score the pitch deck
         scoringResult = await eastEmblemAPI.scorePitchDeck(fileBuffer, upload.originalName);
