@@ -170,22 +170,32 @@ export default function OnboardingFlow({ onComplete }: OnboardingFlowProps) {
           
           {/* Step Indicator */}
           <div className="flex justify-between items-center mt-4 px-4">
-            {steps.map((step, index) => (
-              <div key={step.key} className="flex flex-col items-center">
-                <div className={`w-8 h-8 rounded-full flex items-center justify-center text-sm font-medium ${
-                  index <= currentStepIndex 
-                    ? 'bg-white text-purple-900' 
-                    : 'bg-purple-800 text-white'
-                }`}>
-                  {index + 1}
+            {steps.map((step, index) => {
+              const isCompleted = sessionData.completedSteps?.includes(step.key) || index < currentStepIndex;
+              const isCurrent = index === currentStepIndex;
+              const isActive = index <= currentStepIndex;
+              
+              return (
+                <div key={step.key} className="flex flex-col items-center">
+                  <div className={`w-8 h-8 rounded-full flex items-center justify-center text-sm font-medium ${
+                    isCompleted 
+                      ? 'bg-green-500 text-white' 
+                      : isCurrent
+                      ? 'bg-white text-purple-900 border-2 border-purple-500'
+                      : isActive
+                      ? 'bg-white text-purple-900' 
+                      : 'bg-purple-800 text-white'
+                  }`}>
+                    {isCompleted ? '✓' : index + 1}
+                  </div>
+                  <span className={`text-xs mt-1 ${
+                    isActive ? 'text-foreground' : 'text-muted-foreground'
+                  }`}>
+                    {step.name}
+                  </span>
                 </div>
-                <span className={`text-xs mt-1 ${
-                  index <= currentStepIndex ? 'text-foreground' : 'text-muted-foreground'
-                }`}>
-                  {step.name}
-                </span>
-              </div>
-            ))}
+              );
+            })}
           </div>
         </div>
 
