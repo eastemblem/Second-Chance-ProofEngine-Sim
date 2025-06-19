@@ -246,7 +246,7 @@ export default function OnboardingFlow({ onComplete }: OnboardingFlowProps) {
             )}
             
             {currentStep.key === "analysis" && (
-              <AnalysisScreen
+              <DealRoom
                 sessionId={sessionData.sessionId}
                 sessionData={sessionData}
                 onComplete={handleComplete}
