@@ -65,6 +65,7 @@ const createFounderSchema = z.object({
 const createVentureSchema = z.object({
   name: z.string().min(1, "Venture name is required"),
   founderId: z.string().uuid("Invalid founder ID format"),
+  description: z.string().min(1, "Description is required"),
   industry: z.string().min(1, "Industry is required"),
   geography: z.string().min(1, "Geography is required"),
   businessModel: z.string().min(1, "Business model is required"),

@@ -170,7 +170,11 @@ export class OnboardingManager {
   // Complete venture onboarding step
   async completeVentureStep(sessionId: string, inputData: any) {
     const session = await this.getSession(sessionId);
-    if (!session?.founderId) throw new Error("Founder step not completed");
+    if (!session) throw new Error("Session not found");
+    if (!session.founderId) {
+      console.log("Session data:", session);
+      throw new Error("Founder step not completed - no founderId in session");
+    }
 
     // Validate data
     const validatedData = ventureOnboardingSchema.parse(inputData);
@@ -179,6 +183,7 @@ export class OnboardingManager {
     const venture = await storage.createVenture({
       founderId: session.founderId,
       name: validatedData.name,
+      description: validatedData.description,
       industry: validatedData.industry,
       geography: validatedData.geography,
       businessModel: validatedData.businessModel,
@@ -186,7 +191,6 @@ export class OnboardingManager {
       mvpStatus: validatedData.productStatus, // Map productStatus to mvpStatus
       website: validatedData.website,
       hasTestimonials: validatedData.hasTestimonials,
-      description: validatedData.description,
       linkedinUrl: validatedData.linkedinUrl,
       twitterUrl: validatedData.twitterUrl,
       instagramUrl: validatedData.instagramUrl,
