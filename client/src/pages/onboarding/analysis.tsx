@@ -1,3 +1,4 @@
+import { useState, useEffect } from "react";
 import { motion } from "framer-motion";
 import { ArrowRight, Trophy, Users, Calendar, TrendingUp, Shield, Briefcase, DollarSign, Folder, FileText, CheckCircle, Star, Target, Lightbulb, BarChart3, ThumbsUp, AlertTriangle, Download, Lock } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -314,27 +315,7 @@ export default function Analysis({
 
 
 
-          {/* Overall Feedback */}
-          <Card className="p-6 border-border bg-card mb-8">
-            <h3 className="text-xl font-semibold mb-4 flex items-center">
-              <TrendingUp className="w-5 h-5 mr-2 text-primary" />
-              Overall Analysis Summary
-            </h3>
-            <div className="space-y-3">
-              {analysisData.overall_feedback.map((feedback: string, index: number) => (
-                <motion.div 
-                  key={index} 
-                  className="flex items-start space-x-3 p-3 bg-muted/50 rounded-lg"
-                  initial={{ opacity: 0, x: -20 }}
-                  animate={{ opacity: 1, x: 0 }}
-                  transition={{ delay: index * 0.2 }}
-                >
-                  <CheckCircle className="w-5 h-5 text-primary-gold mt-0.5 flex-shrink-0" />
-                  <p className="text-sm">{feedback}</p>
-                </motion.div>
-              ))}
-            </div>
-          </Card>
+
 
           {/* Generated Report */}
           <Card className="p-6 border-border bg-card mb-8">
