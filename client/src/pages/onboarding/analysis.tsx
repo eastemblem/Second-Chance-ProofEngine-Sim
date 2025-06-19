@@ -1,24 +1,22 @@
 import { motion } from "framer-motion";
-import {
-  ArrowRight,
-  Trophy,
-  Target,
-  Lightbulb,
-  BarChart3,
-  CheckCircle,
-  Star,
-  TrendingUp,
-} from "lucide-react";
+import { ArrowRight, Trophy, Users, Calendar, TrendingUp, Shield, Briefcase, DollarSign, Folder, FileText, CheckCircle, Star, Target, Lightbulb, BarChart3, ThumbsUp, AlertTriangle, Download, Lock } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { Card } from "@/components/ui/card";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Progress } from "@/components/ui/progress";
+import { Separator } from "@/components/ui/separator";
 import ProgressBar from "@/components/progress-bar";
+import { ProofScoreResult } from "@shared/schema";
 
 interface AnalysisProps {
   sessionId: string;
   sessionData: any;
   onComplete: () => void;
+}
+
+interface FeedbackPageProps {
+  onNext: () => void;
+  proofScore: ProofScoreResult;
 }
 
 export default function Analysis({ 
@@ -81,11 +79,47 @@ export default function Analysis({
     return tags.slice(0, 8); // Limit to 8 tags
   }
 
-  const analysisStats = [
-    { value: analysisData.total_score.toString(), label: "ProofScore", icon: Trophy },
-    { value: analysisData.proofTags.length.toString(), label: "ProofTags", icon: Star },
-    { value: Object.keys(analysisData.categories).length.toString(), label: "Categories", icon: Target },
-  ];
+  const dimensionColors = {
+    desirability: "bg-green-500",
+    feasibility: "bg-blue-500", 
+    viability: "bg-orange-500",
+    traction: "bg-yellow-500",
+    readiness: "bg-red-500"
+  };
+
+  const dimensionLabels = {
+    desirability: "🟩 Desirability",
+    feasibility: "🟦 Feasibility",
+    viability: "🟧 Viability", 
+    traction: "🟨 Traction",
+    readiness: "🟥 Readiness"
+  };
+
+  // Map to ProofScore format for consistency with feedback.tsx
+  const proofScore: ProofScoreResult = {
+    total: analysisData.total_score,
+    dimensions: {
+      desirability: analysisData.categories.Problem?.score || 7,
+      feasibility: analysisData.categories.solution?.score || 8,
+      viability: analysisData.categories.business_model?.score || 8,
+      traction: analysisData.categories.traction_milestones?.score || 7,
+      readiness: analysisData.categories.team?.score || 3,
+    },
+    prooTags: {
+      unlocked: analysisData.proofTags.length,
+      total: 20,
+      tags: analysisData.proofTags
+    },
+    insights: {
+      strengths: Object.entries(analysisData.categories)
+        .filter(([_, data]) => data.score >= 7)
+        .map(([category, _]) => category.replace('_', ' ')),
+      improvements: Object.entries(analysisData.categories)
+        .filter(([_, data]) => data.score < 7)
+        .map(([category, _]) => category.replace('_', ' ')),
+      recommendations: analysisData.overall_feedback
+    }
+  };
 
   return (
     <div className="min-h-screen py-12">
@@ -95,75 +129,157 @@ export default function Analysis({
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.6 }}
         >
-          <ProgressBar
-            currentStep={6}
-            totalSteps={6}
-            stepName="Analysis Results"
-          />
+          <ProgressBar currentStep={6} totalSteps={6} stepName="Your ProofScore Results" />
 
           {/* Header */}
           <div className="text-center mb-8">
-            <motion.div
+            <motion.div 
               className="w-16 h-16 bg-gradient-to-r from-primary to-primary-gold rounded-full flex items-center justify-center mx-auto mb-4"
               initial={{ scale: 0, rotate: -180 }}
               animate={{ scale: 1, rotate: 0 }}
               transition={{ duration: 0.8, ease: "backOut" }}
             >
-              <BarChart3 className="text-white text-2xl w-8 h-8" />
+              <Trophy className="text-white text-2xl w-8 h-8" />
             </motion.div>
-            <h2 className="text-3xl font-bold mb-4">
-              Pitch Deck Analysis Complete
-            </h2>
+            <h2 className="text-3xl font-bold mb-4">Your ProofScore Analysis</h2>
             <p className="text-xl text-muted-foreground">
-              Your comprehensive investment readiness assessment
+              Here's how your venture scores across key validation dimensions
             </p>
           </div>
 
-          {/* Analysis Stats */}
-          <Card className="p-6 border-border bg-card mb-8">
-            <div className="grid grid-cols-3 gap-8">
-              {analysisStats.map((stat, index) => (
-                <div key={index} className="text-center">
-                  <motion.div
-                    className="flex flex-col items-center"
-                    initial={{ opacity: 0, scale: 0 }}
-                    animate={{ opacity: 1, scale: 1 }}
-                    transition={{ delay: index * 0.2 }}
+          {/* ProofScore Summary */}
+          <Card className="p-8 border-border bg-card mb-8">
+            <motion.div 
+              className="text-center"
+              initial={{ opacity: 0, scale: 0.8 }}
+              animate={{ opacity: 1, scale: 1 }}
+              transition={{ duration: 0.6 }}
+            >
+              <div className="text-6xl font-bold gradient-text mb-4">
+                {proofScore.total}
+              </div>
+              <div className="text-xl text-muted-foreground mb-6">
+                Your Overall ProofScore
+              </div>
+              <div className="grid grid-cols-2 md:grid-cols-5 gap-4">
+                {Object.entries(proofScore.dimensions).map(([dimension, score]) => (
+                  <motion.div 
+                    key={dimension}
+                    className="text-center p-4 rounded-lg bg-muted/50"
+                    initial={{ opacity: 0, y: 20 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    transition={{ delay: Object.keys(proofScore.dimensions).indexOf(dimension) * 0.1 }}
                   >
-                    <stat.icon className="w-8 h-8 text-primary-gold mb-2" />
-                    <div className="text-3xl font-bold text-primary-gold mb-1">
-                      {stat.value}
+                    <div className="text-2xl font-bold mb-2">{score}</div>
+                    <div className="text-sm">
+                      {dimensionLabels[dimension as keyof typeof dimensionLabels]}
                     </div>
-                    <div className="text-sm text-muted-foreground">
-                      {stat.label}
-                    </div>
+                    <Progress 
+                      value={score} 
+                      className={`mt-2 h-2 ${dimensionColors[dimension as keyof typeof dimensionColors]}`}
+                    />
                   </motion.div>
-                </div>
-              ))}
-            </div>
+                ))}
+              </div>
+            </motion.div>
           </Card>
 
           {/* ProofTags */}
           <Card className="p-6 border-border bg-card mb-8">
-            <h3 className="text-xl font-semibold mb-4 flex items-center">
-              <Star className="w-5 h-5 mr-2 text-primary-gold" />
-              ProofTags Earned
-            </h3>
-            <div className="flex flex-wrap gap-2">
-              {analysisData.proofTags.map((tag, index) => (
-                <motion.div
-                  key={index}
-                  initial={{ opacity: 0, scale: 0 }}
-                  animate={{ opacity: 1, scale: 1 }}
-                  transition={{ delay: index * 0.1 }}
-                >
-                  <Badge className="bg-primary-gold text-black hover:bg-primary-gold/90">
-                    {tag}
-                  </Badge>
-                </motion.div>
-              ))}
-            </div>
+            <CardHeader className="pb-4">
+              <CardTitle className="flex items-center justify-between">
+                ProofTags Unlocked
+                <Badge variant="secondary">
+                  {proofScore.prooTags.unlocked} of {proofScore.prooTags.total}
+                </Badge>
+              </CardTitle>
+            </CardHeader>
+            <CardContent>
+              <div className="flex flex-wrap gap-2 mb-4">
+                {proofScore.prooTags.tags.map((tag: string, index: number) => (
+                  <motion.div
+                    key={index}
+                    initial={{ opacity: 0, scale: 0 }}
+                    animate={{ opacity: 1, scale: 1 }}
+                    transition={{ delay: index * 0.1 }}
+                  >
+                    <Badge className="bg-primary-gold text-black hover:bg-primary-gold/90">
+                      {tag}
+                    </Badge>
+                  </motion.div>
+                ))}
+              </div>
+              <Progress 
+                value={(proofScore.prooTags.unlocked / proofScore.prooTags.total) * 100} 
+                className="mb-2"
+              />
+              <p className="text-sm text-muted-foreground">
+                {Math.round((proofScore.prooTags.unlocked / proofScore.prooTags.total) * 100)}% of available ProofTags unlocked
+              </p>
+            </CardContent>
           </Card>
+
+          {/* Score Breakdown */}
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
+            {/* Dimension Scores */}
+            <Card className="p-6 border-border bg-card">
+              <h3 className="text-xl font-semibold mb-6">Validation Dimensions</h3>
+              <div className="space-y-4">
+                {Object.entries(proofScore.dimensions).map(([dimension, score]) => (
+                  <div key={dimension}>
+                    <div className="flex justify-between items-center mb-2">
+                      <span className="text-sm font-medium">
+                        {dimensionLabels[dimension as keyof typeof dimensionLabels]}
+                      </span>
+                      <span className="text-sm font-bold">{score}/20</span>
+                    </div>
+                    <div className="w-full bg-border rounded-full h-2">
+                      <motion.div
+                        className={`h-2 rounded-full ${dimensionColors[dimension as keyof typeof dimensionColors]}`}
+                        initial={{ width: 0 }}
+                        animate={{ width: `${(score / 20) * 100}%` }}
+                        transition={{ duration: 1, delay: 0.5 }}
+                      />
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </Card>
+
+            {/* Key Insights */}
+            <Card className="p-6 border-border bg-card">
+              <h3 className="text-xl font-semibold mb-6">Key Insights</h3>
+              <div className="space-y-4">
+                {proofScore.insights.strengths.slice(0, 1).map((strength, index) => (
+                  <div key={index} className="flex items-start space-x-3">
+                    <ThumbsUp className="text-green-500 mt-1 w-4 h-4 flex-shrink-0" />
+                    <div>
+                      <h4 className="font-medium text-green-400 text-sm">Strong Foundation</h4>
+                      <p className="text-sm text-muted-foreground">{strength}</p>
+                    </div>
+                  </div>
+                ))}
+                {proofScore.insights.improvements.slice(0, 1).map((improvement, index) => (
+                  <div key={index} className="flex items-start space-x-3">
+                    <AlertTriangle className="text-yellow-500 mt-1 w-4 h-4 flex-shrink-0" />
+                    <div>
+                      <h4 className="font-medium text-yellow-400 text-sm">Needs Attention</h4>
+                      <p className="text-sm text-muted-foreground">{improvement}</p>
+                    </div>
+                  </div>
+                ))}
+                {proofScore.insights.recommendations.slice(0, 1).map((recommendation, index) => (
+                  <div key={index} className="flex items-start space-x-3">
+                    <TrendingUp className="text-primary mt-1 w-4 h-4 flex-shrink-0" />
+                    <div>
+                      <h4 className="font-medium text-primary text-sm">Next Steps</h4>
+                      <p className="text-sm text-muted-foreground">{recommendation}</p>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </Card>
+          </div>
 
           {/* Analysis Breakdown */}
           <Card className="p-6 border-border bg-card mb-8">
@@ -230,53 +346,30 @@ export default function Analysis({
             </div>
           </Card>
 
-          {/* Investment Readiness Summary */}
+          {/* Generated Report */}
           <Card className="p-6 border-border bg-card mb-8">
-            <h3 className="text-xl font-semibold mb-4">Investment Readiness Summary</h3>
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+            <div className="flex items-center justify-between">
               <div>
-                <h4 className="font-medium mb-3 text-green-600">Strengths</h4>
-                <div className="space-y-2">
-                  {Object.entries(analysisData.categories)
-                    .filter(([_, data]) => data.score >= 7)
-                    .map(([category, data]) => (
-                      <div key={category} className="flex items-center space-x-2">
-                        <CheckCircle className="w-4 h-4 text-green-600" />
-                        <span className="text-sm capitalize">{category.replace('_', ' ')}</span>
-                        <span className="text-xs text-muted-foreground">({data.score}/10)</span>
-                      </div>
-                    ))}
-                </div>
+                <h3 className="text-xl font-semibold mb-2">Your Detailed Analysis Report</h3>
+                <p className="text-muted-foreground">
+                  Comprehensive pitch deck analysis with actionable recommendations
+                </p>
               </div>
-              <div>
-                <h4 className="font-medium mb-3 text-amber-600">Areas for Improvement</h4>
-                <div className="space-y-2">
-                  {Object.entries(analysisData.categories)
-                    .filter(([_, data]) => data.score < 7)
-                    .map(([category, data]) => (
-                      <div key={category} className="flex items-center space-x-2">
-                        <Target className="w-4 h-4 text-amber-600" />
-                        <span className="text-sm capitalize">{category.replace('_', ' ')}</span>
-                        <span className="text-xs text-muted-foreground">({data.score}/10)</span>
-                      </div>
-                    ))}
-                </div>
-              </div>
+              <Button className="gradient-button">
+                <Download className="mr-2 w-4 h-4" />
+                Download PDF
+              </Button>
             </div>
           </Card>
 
-          {/* Next Steps */}
+          {/* Call to Action */}
           <div className="text-center">
-            <Button
-              onClick={onComplete}
-              className="gradient-button px-8 py-6 text-lg"
-              size="lg"
-            >
-              Continue to Deal Room
+            <Button onClick={onComplete} className="gradient-button px-8 py-6 text-lg" size="lg">
+              Continue to Next Steps
               <ArrowRight className="ml-2 w-5 h-5" />
             </Button>
             <p className="text-sm text-muted-foreground mt-4">
-              Analysis complete • Ready for next steps • ProofVault prepared
+              Ready to enhance your venture with targeted improvements
             </p>
           </div>
         </motion.div>
