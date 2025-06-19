@@ -120,11 +120,13 @@ export default function Analysis({
     insights: {
       strengths: Object.entries(analysisData.categories)
         .filter(([_, data]) => data.score >= 7)
-        .map(([category, _]) => category.replace('_', ' ')),
+        .map(([category, data]) => `Strong ${category.replace('_', ' ')}: ${data.justification}`),
       improvements: Object.entries(analysisData.categories)
         .filter(([_, data]) => data.score < 7)
-        .map(([category, _]) => category.replace('_', ' ')),
-      recommendations: analysisData.overall_feedback
+        .map(([category, data]) => `${category.replace('_', ' ')}: ${data.justification}`),
+      recommendations: Object.entries(analysisData.categories)
+        .map(([_, data]) => data.recommendation)
+        .filter(rec => rec && rec.length > 0)
     }
   };
 
@@ -233,20 +235,20 @@ export default function Analysis({
             <Card className="p-6 border-border bg-card">
               <h3 className="text-xl font-semibold mb-6">Key Insights</h3>
               <div className="space-y-4">
-                {proofScore.insights.strengths.slice(0, 1).map((strength, index) => (
+                {proofScore.insights.strengths.slice(0, 2).map((strength, index) => (
                   <div key={index} className="flex items-start space-x-3">
                     <ThumbsUp className="text-green-500 mt-1 w-4 h-4 flex-shrink-0" />
                     <div>
-                      <h4 className="font-medium text-green-400 text-sm">Strong Foundation</h4>
+                      <h4 className="font-medium text-green-400 text-sm">Strength</h4>
                       <p className="text-sm text-muted-foreground">{strength}</p>
                     </div>
                   </div>
                 ))}
-                {proofScore.insights.improvements.slice(0, 1).map((improvement, index) => (
+                {proofScore.insights.improvements.slice(0, 2).map((improvement, index) => (
                   <div key={index} className="flex items-start space-x-3">
                     <AlertTriangle className="text-yellow-500 mt-1 w-4 h-4 flex-shrink-0" />
                     <div>
-                      <h4 className="font-medium text-yellow-400 text-sm">Needs Attention</h4>
+                      <h4 className="font-medium text-yellow-400 text-sm">Area for Improvement</h4>
                       <p className="text-sm text-muted-foreground">{improvement}</p>
                     </div>
                   </div>
@@ -255,7 +257,7 @@ export default function Analysis({
                   <div key={index} className="flex items-start space-x-3">
                     <TrendingUp className="text-primary mt-1 w-4 h-4 flex-shrink-0" />
                     <div>
-                      <h4 className="font-medium text-primary text-sm">Next Steps</h4>
+                      <h4 className="font-medium text-primary text-sm">Recommendation</h4>
                       <p className="text-sm text-muted-foreground">{recommendation}</p>
                     </div>
                   </div>
@@ -311,7 +313,7 @@ export default function Analysis({
           <Card className="p-6 border-border bg-card mb-8">
             <h3 className="text-xl font-semibold mb-4 flex items-center">
               <TrendingUp className="w-5 h-5 mr-2 text-primary" />
-              Key Insights & Recommendations
+              Overall Analysis Summary
             </h3>
             <div className="space-y-3">
               {analysisData.overall_feedback.map((feedback: string, index: number) => (
