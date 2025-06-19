@@ -138,21 +138,7 @@ export default function Analysis({
         >
           <ProgressBar currentStep={6} totalSteps={6} stepName="Your ProofScore Results" />
 
-          {/* Header */}
-          <div className="text-center mb-8">
-            <motion.div 
-              className="w-16 h-16 bg-gradient-to-r from-primary to-primary-gold rounded-full flex items-center justify-center mx-auto mb-4"
-              initial={{ scale: 0, rotate: -180 }}
-              animate={{ scale: 1, rotate: 0 }}
-              transition={{ duration: 0.8, ease: "backOut" }}
-            >
-              <Trophy className="text-white text-2xl w-8 h-8" />
-            </motion.div>
-            <h2 className="text-3xl font-bold mb-4">Your ProofScore Analysis</h2>
-            <p className="text-xl text-muted-foreground">
-              Here's how your venture scores across key validation dimensions
-            </p>
-          </div>
+
 
           {/* Score Header */}
           <Card className="p-8 border-border bg-card mb-8 text-center">
