@@ -64,7 +64,8 @@ export default function VentureOnboarding({
           description: "Venture information saved successfully",
         });
         // Pass the complete venture data including folder structure
-        console.log("Venture onSuccess - calling onDataUpdate with:", data);
+        console.log("🏢 Venture onSuccess - API response:", data);
+        console.log("🏢 Venture onSuccess - calling onDataUpdate with:", data);
         onDataUpdate?.(data);
         onNext();
       }

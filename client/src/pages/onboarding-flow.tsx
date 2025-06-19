@@ -122,7 +122,9 @@ export default function OnboardingFlow({ onComplete }: OnboardingFlowProps) {
 
   // Update session data
   const updateSessionData = (stepKey: string, data: any) => {
-    console.log(`Updating session data for step ${stepKey}:`, data);
+    console.log(`🔄 Updating session data for step ${stepKey}:`, data);
+    console.log(`📊 Current session before update:`, sessionData);
+    
     if (sessionData) {
       const updatedSession = {
         ...sessionData,
@@ -134,9 +136,18 @@ export default function OnboardingFlow({ onComplete }: OnboardingFlowProps) {
           ? sessionData.completedSteps 
           : [...(sessionData.completedSteps || []), stepKey]
       };
-      console.log("Updated session data:", updatedSession);
+      
+      console.log(`✅ Updated session data:`, updatedSession);
+      console.log(`💾 Storing in localStorage...`);
+      
       setSessionData(updatedSession);
       localStorage.setItem('onboardingSession', JSON.stringify(updatedSession));
+      
+      // Verify localStorage was updated
+      const stored = localStorage.getItem('onboardingSession');
+      console.log(`🔍 Verified localStorage:`, JSON.parse(stored || '{}'));
+    } else {
+      console.error(`❌ No sessionData available for update`);
     }
   };
 
@@ -230,7 +241,7 @@ export default function OnboardingFlow({ onComplete }: OnboardingFlowProps) {
                 onNext={nextStep}
                 onPrev={prevStep}
                 onDataUpdate={(data: any) => {
-                  console.log("VentureOnboarding onDataUpdate called with:", data);
+                  console.log("🏢 VentureOnboarding onDataUpdate called with:", data);
                   updateSessionData("venture", data);
                 }}
               />
