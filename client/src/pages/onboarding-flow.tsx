@@ -33,39 +33,26 @@ const steps = [
 ];
 
 export default function OnboardingFlow({ onComplete }: OnboardingFlowProps) {
-  const [sessionData, setSessionData] = useState<OnboardingSessionData | null>(null);
+  const [sessionData, setSessionData] = useState<SessionData | null>(null);
   const [currentStepIndex, setCurrentStepIndex] = useState(0);
   const { toast } = useToast();
   const queryClient = useQueryClient();
 
-  // Initialize session on component mount with proper structure
+  // Initialize session on component mount
   const initSessionMutation = useMutation({
     mutationFn: async () => {
       const res = await apiRequest("POST", "/api/onboarding/session/init", {});
       return await res.json();
     },
-    onSuccess: async (data) => {
+    onSuccess: (data) => {
       if (data.success) {
-        // Convert API response to proper session structure
-        const sessionData: OnboardingSessionData = {
-          sessionId: data.sessionId,
-          currentStep: data.currentStep || 'founder',
-          currentStepIndex: 0,
-          stepData: data.stepData || {},
-          completedSteps: data.completedSteps || [],
-          stepHistory: [],
-          isComplete: data.isComplete || false,
-          createdAt: new Date().toISOString(),
-          lastUpdated: new Date().toISOString(),
-          version: 1
-        };
-        
-        setSessionData(sessionData);
-        const stepIndex = steps.findIndex(step => step.key === sessionData.currentStep);
+        setSessionData(data);
+        // Find current step index
+        const stepIndex = steps.findIndex(step => step.key === data.currentStep);
         setCurrentStepIndex(stepIndex >= 0 ? stepIndex : 0);
         
-        // Save using SessionManager
-        await SessionManager.saveSession(sessionData);
+        // Store session in localStorage for persistence
+        localStorage.setItem('onboardingSession', JSON.stringify(data));
       }
     },
     onError: (error) => {
@@ -78,18 +65,24 @@ export default function OnboardingFlow({ onComplete }: OnboardingFlowProps) {
     }
   });
 
-  // Check for existing session on mount with validation
+  // Check for existing session on mount
   useEffect(() => {
-    const existingSession = SessionManager.loadSession();
-    if (existingSession && SessionManager.validateSession(existingSession) && !existingSession.isComplete) {
-      setSessionData(existingSession);
-      const stepIndex = steps.findIndex(step => step.key === existingSession.currentStep);
-      setCurrentStepIndex(stepIndex >= 0 ? stepIndex : 0);
-      console.log('Restored session:', existingSession);
-      return;
+    const existingSession = localStorage.getItem('onboardingSession');
+    if (existingSession) {
+      try {
+        const parsedSession = JSON.parse(existingSession);
+        if (!parsedSession.isComplete) {
+          setSessionData(parsedSession);
+          const stepIndex = steps.findIndex(step => step.key === parsedSession.currentStep);
+          setCurrentStepIndex(stepIndex >= 0 ? stepIndex : 0);
+          return;
+        }
+      } catch (error) {
+        console.error("Invalid session data in localStorage");
+      }
     }
     
-    // Initialize new session if none exists or invalid
+    // Initialize new session
     initSessionMutation.mutate();
   }, []);
 
@@ -129,36 +122,50 @@ export default function OnboardingFlow({ onComplete }: OnboardingFlowProps) {
     }
   };
 
-  // Update session data with proper merging and error handling
-  const updateSessionData = async (stepKey: string, data: any) => {
+  // Update session data with proper merging
+  const updateSessionData = (stepKey: string, data: any) => {
     console.log(`Updating session data for step ${stepKey}:`, data);
     
-    if (!sessionData || !SessionManager.validateSession(sessionData)) {
-      console.error('Invalid sessionData for update');
+    if (!sessionData) {
+      console.error('No sessionData available for update');
       return;
     }
 
+    // Ensure we don't overwrite existing step data
+    const currentStepData = sessionData.stepData?.[stepKey] || {};
+    const mergedStepData = { ...currentStepData, ...data };
+    
+    // Ensure completedSteps is an array and add current step if not already present
+    const currentCompleted = Array.isArray(sessionData.completedSteps) ? sessionData.completedSteps : [];
+    const updatedCompleted = currentCompleted.includes(stepKey) 
+      ? currentCompleted 
+      : [...currentCompleted, stepKey];
+
+    const updatedSession = {
+      ...sessionData,
+      stepData: {
+        ...sessionData.stepData,
+        [stepKey]: mergedStepData
+      },
+      completedSteps: updatedCompleted,
+      lastUpdated: new Date().toISOString()
+    };
+    
+    console.log('Session updated:', updatedSession);
+    
+    // Update both state and localStorage atomically
+    setSessionData(updatedSession);
     try {
-      const updatedSession = await SessionManager.updateStep(sessionData, stepKey, data);
-      setSessionData(updatedSession);
-      
-      // Log storage usage
-      const storageInfo = SessionManager.getStorageInfo();
-      console.log(`Storage usage: ${storageInfo.percentage.toFixed(1)}%`);
-      
+      localStorage.setItem('onboardingSession', JSON.stringify(updatedSession));
+      console.log('Successfully saved to localStorage');
     } catch (error) {
-      console.error('Failed to update session data:', error);
-      toast({
-        title: "Storage Error",
-        description: "Failed to save progress. Please try again.",
-        variant: "destructive"
-      });
+      console.error('Failed to save to localStorage:', error);
     }
   };
 
   const handleComplete = () => {
-    // Clear session using SessionManager
-    SessionManager.clearSession();
+    // Clear session from localStorage
+    localStorage.removeItem('onboardingSession');
     onComplete();
   };
 
