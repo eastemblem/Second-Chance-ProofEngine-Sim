@@ -266,48 +266,7 @@ export default function Analysis({
             </Card>
           </div>
 
-          {/* Analysis Breakdown */}
-          <Card className="p-6 border-border bg-card mb-8">
-            <h3 className="text-xl font-semibold mb-6 flex items-center">
-              <Target className="w-5 h-5 mr-2 text-primary" />
-              Detailed Analysis Breakdown
-            </h3>
-            <div className="space-y-4">
-              {Object.entries(analysisData.categories).map(([category, data]) => (
-                <motion.div 
-                  key={category} 
-                  className="border rounded-lg p-4"
-                  initial={{ opacity: 0, y: 10 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  transition={{ delay: Object.keys(analysisData.categories).indexOf(category) * 0.1 }}
-                >
-                  <div className="flex items-center justify-between mb-3">
-                    <h4 className="font-medium capitalize text-lg">
-                      {category.replace('_', ' ')}
-                    </h4>
-                    <div className="flex items-center space-x-2">
-                      <span className="text-2xl font-bold text-primary">
-                        {data.score}
-                      </span>
-                      <span className="text-muted-foreground">/10</span>
-                    </div>
-                  </div>
-                  <Progress value={data.score * 10} className="mb-3 h-2" />
-                  <div className="space-y-2">
-                    <p className="text-sm text-muted-foreground">
-                      <strong>Analysis:</strong> {data.justification}
-                    </p>
-                    <div className="flex items-start space-x-2">
-                      <Lightbulb className="w-4 h-4 text-primary-gold mt-0.5 flex-shrink-0" />
-                      <p className="text-sm text-primary font-medium">
-                        {data.recommendation}
-                      </p>
-                    </div>
-                  </div>
-                </motion.div>
-              ))}
-            </div>
-          </Card>
+
 
           {/* Overall Feedback */}
           <Card className="p-6 border-border bg-card mb-8">
