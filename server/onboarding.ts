@@ -114,11 +114,22 @@ export class OnboardingManager {
   async completeFounderStep(sessionId: string, founderData: any) {
     console.log("Completing founder step for session:", sessionId);
     
-    // Check if session exists first
-    const session = await this.getSession(sessionId);
+    // Check if session exists first, create if not
+    let session = await this.getSession(sessionId);
     if (!session) {
-      console.error("Session not found:", sessionId);
-      throw new Error("Session not found");
+      console.log("Session not found, creating new session:", sessionId);
+      try {
+        await db.insert(onboardingSession).values({
+          sessionId,
+          currentStep: "founder",
+          isCompleted: false,
+          data: {},
+        });
+        session = await this.getSession(sessionId);
+      } catch (error) {
+        console.error("Error creating session:", error);
+        throw new Error("Failed to create session");
+      }
     }
     
     // Validate data
