@@ -8,7 +8,7 @@ import VentureOnboarding from "./onboarding/venture";
 import TeamOnboarding from "./onboarding/team";
 import DocumentUpload from "./onboarding/upload";
 import ProcessingScreen from "./onboarding/processing";
-import AnalysisScreen from "./onboarding/analysis";
+import DealRoom from "./onboarding/deal-room";
 import ProgressBar from "@/components/progress-bar";
 
 interface OnboardingFlowProps {
@@ -29,7 +29,7 @@ const steps = [
   { key: "team", name: "Team Members", description: "Add up to 4 team members (optional)" },
   { key: "upload", name: "Pitch Deck", description: "Upload your pitch deck" },
   { key: "processing", name: "Processing", description: "Analyzing your submission" },
-  { key: "analysis", name: "Results", description: "Your ProofScore and insights" }
+  { key: "analysis", name: "Deal Room", description: "Your ProofScore and deal room" }
 ];
 
 export default function OnboardingFlow({ onComplete }: OnboardingFlowProps) {
