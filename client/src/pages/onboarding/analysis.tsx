@@ -257,24 +257,36 @@ export default function Analysis({
             <Card className="p-6 border-border bg-card">
               <h3 className="text-xl font-semibold mb-6">Validation Dimensions</h3>
               <div className="space-y-4">
-                {Object.entries(proofScore.dimensions).map(([dimension, score]) => (
-                  <div key={dimension}>
-                    <div className="flex justify-between items-center mb-2">
-                      <span className="text-sm font-medium">
-                        {dimensionLabels[dimension as keyof typeof dimensionLabels]}
-                      </span>
-                      <span className="text-sm font-bold">{score}/20</span>
+                {Object.entries(proofScore.dimensions).map(([dimension, score]) => {
+                  const maxScores = {
+                    desirability: 20,
+                    feasibility: 15,
+                    viability: 15,
+                    traction: 40,
+                    readiness: 10
+                  };
+                  const maxScore = maxScores[dimension as keyof typeof maxScores];
+                  const percentage = (score / maxScore) * 100;
+                  
+                  return (
+                    <div key={dimension}>
+                      <div className="flex justify-between items-center mb-2">
+                        <span className="text-sm font-medium">
+                          {dimensionLabels[dimension as keyof typeof dimensionLabels]}
+                        </span>
+                        <span className="text-sm font-bold">{score}/{maxScore}</span>
+                      </div>
+                      <div className="w-full bg-border rounded-full h-2">
+                        <motion.div
+                          className={`h-2 rounded-full ${dimensionColors[dimension as keyof typeof dimensionColors]}`}
+                          initial={{ width: 0 }}
+                          animate={{ width: `${percentage}%` }}
+                          transition={{ duration: 1, delay: 0.5 }}
+                        />
+                      </div>
                     </div>
-                    <div className="w-full bg-border rounded-full h-2">
-                      <motion.div
-                        className={`h-2 rounded-full ${dimensionColors[dimension as keyof typeof dimensionColors]}`}
-                        initial={{ width: 0 }}
-                        animate={{ width: `${(score / 20) * 100}%` }}
-                        transition={{ duration: 1, delay: 0.5 }}
-                      />
-                    </div>
-                  </div>
-                ))}
+                  );
+                })}
               </div>
             </Card>
 
