@@ -168,18 +168,28 @@ export class OnboardingManager {
   }
 
   // Complete venture onboarding step
-  async completeVentureStep(sessionId: string, ventureData: any) {
+  async completeVentureStep(sessionId: string, inputData: any) {
     const session = await this.getSession(sessionId);
     if (!session?.founderId) throw new Error("Founder step not completed");
 
     // Validate data
-    const validatedData = ventureOnboardingSchema.parse(ventureData);
+    const validatedData = ventureOnboardingSchema.parse(inputData);
     
-    // Create venture
+    // Create venture with mapped fields
     const venture = await storage.createVenture({
-      ...validatedData,
-      mvpStatus: validatedData.productStatus, // Map productStatus to mvpStatus for database compatibility
       founderId: session.founderId,
+      name: validatedData.name,
+      industry: validatedData.industry,
+      geography: validatedData.geography,
+      businessModel: validatedData.businessModel,
+      revenueStage: validatedData.revenueStage,
+      mvpStatus: validatedData.productStatus, // Map productStatus to mvpStatus
+      website: validatedData.website,
+      hasTestimonials: validatedData.hasTestimonials,
+      description: validatedData.description,
+      linkedinUrl: validatedData.linkedinUrl,
+      twitterUrl: validatedData.twitterUrl,
+      instagramUrl: validatedData.instagramUrl,
     });
 
     // Create folder structure via EastEmblem API

@@ -61,7 +61,24 @@ export class DatabaseStorage implements IStorage {
   }
 
   async createVenture(insertVenture: InsertVenture): Promise<Venture> {
-    const [ventureRecord] = await db.insert(venture).values(insertVenture).returning();
+    // Filter out any fields that don't exist in the database schema
+    const filteredVenture = {
+      founderId: insertVenture.founderId,
+      name: insertVenture.name,
+      industry: insertVenture.industry,
+      geography: insertVenture.geography,
+      businessModel: insertVenture.businessModel,
+      revenueStage: insertVenture.revenueStage,
+      mvpStatus: insertVenture.mvpStatus,
+      website: insertVenture.website,
+      hasTestimonials: insertVenture.hasTestimonials,
+      description: insertVenture.description,
+      linkedinUrl: insertVenture.linkedinUrl,
+      twitterUrl: insertVenture.twitterUrl,
+      instagramUrl: insertVenture.instagramUrl,
+    };
+    
+    const [ventureRecord] = await db.insert(venture).values(filteredVenture).returning();
     return ventureRecord;
   }
 
