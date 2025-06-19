@@ -81,9 +81,15 @@ export default function Analysis({
     );
   }
   
+  // If still no scoring result, try to use sessionFromAPI data directly
+  if (!scoringResult && sessionFromAPI?.stepData?.processing?.scoringResult) {
+    scoringResult = sessionFromAPI.stepData.processing.scoringResult;
+  }
+  
   // Check if we have valid scoring data
   if (!scoringResult) {
     console.error("No scoring result found in sessionData:", sessionData);
+    console.error("No scoring result found in sessionFromAPI:", sessionFromAPI);
     return (
       <div className="min-h-screen bg-background p-6 flex items-center justify-center">
         <div className="text-center">
@@ -149,23 +155,16 @@ export default function Analysis({
   const proofScore: ProofScoreResult = {
     total: analysisData.total_score,
     dimensions: {
-      desirability: analysisData.categories.Problem?.score || 7,
-      feasibility: analysisData.categories.solution?.score || 8,
-      viability: analysisData.categories.business_model?.score || 8,
-      traction: analysisData.categories.traction_milestones?.score || 7,
-      readiness: analysisData.categories.team?.score || 3,
+      desirability: analysisData.categories.Problem?.score || 0,
+      feasibility: analysisData.categories.solution?.score || 0,
+      viability: analysisData.categories.business_model?.score || 0,
+      traction: analysisData.categories.traction_milestones?.score || 0,
+      readiness: analysisData.categories.team?.score || 0,
     },
     prooTags: {
-      unlocked: Math.min(analysisData.proofTags.length, 6),
+      unlocked: Math.min(analysisData.proofTags.length, 0),
       total: 10,
-      tags: [
-        "Problem Validated",
-        "Persona Confirmed", 
-        "MVP Functional",
-        "Revenue Model Proven",
-        "Traction Validated",
-        "Investor Ready"
-      ]
+      tags: []
     },
     insights: {
       strengths: scoringResult?.output?.key_insights?.filter((insight: any) => insight.title === "Strong Foundation") || 
