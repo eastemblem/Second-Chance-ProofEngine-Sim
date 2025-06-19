@@ -106,9 +106,16 @@ export default function Analysis({
       readiness: analysisData.categories.team?.score || 3,
     },
     prooTags: {
-      unlocked: analysisData.proofTags.length,
-      total: 20,
-      tags: analysisData.proofTags
+      unlocked: Math.min(analysisData.proofTags.length, 6),
+      total: 10,
+      tags: [
+        "Problem Validated",
+        "Persona Confirmed", 
+        "MVP Functional",
+        "Revenue Model Proven",
+        "Traction Validated",
+        "Investor Ready"
+      ]
     },
     insights: {
       strengths: Object.entries(analysisData.categories)
@@ -147,77 +154,67 @@ export default function Analysis({
             </p>
           </div>
 
-          {/* ProofScore Summary */}
-          <Card className="p-8 border-border bg-card mb-8">
-            <motion.div 
-              className="text-center"
-              initial={{ opacity: 0, scale: 0.8 }}
-              animate={{ opacity: 1, scale: 1 }}
-              transition={{ duration: 0.6 }}
-            >
-              <div className="text-6xl font-bold gradient-text mb-4">
+          {/* Score Header */}
+          <Card className="p-8 border-border bg-card mb-8 text-center">
+            <h2 className="text-3xl font-bold mb-4">Your ProofScore is Ready</h2>
+            <div className="mb-6">
+              <motion.div 
+                className="text-6xl font-black gradient-text mb-2"
+                initial={{ scale: 0 }}
+                animate={{ scale: 1 }}
+                transition={{ duration: 0.5, delay: 0.2 }}
+              >
                 {proofScore.total}
-              </div>
-              <div className="text-xl text-muted-foreground mb-6">
-                Your Overall ProofScore
-              </div>
-              <div className="grid grid-cols-2 md:grid-cols-5 gap-4">
-                {Object.entries(proofScore.dimensions).map(([dimension, score]) => (
-                  <motion.div 
-                    key={dimension}
-                    className="text-center p-4 rounded-lg bg-muted/50"
-                    initial={{ opacity: 0, y: 20 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    transition={{ delay: Object.keys(proofScore.dimensions).indexOf(dimension) * 0.1 }}
+              </motion.div>
+              <p className="text-xl text-muted-foreground">out of 100</p>
+            </div>
+            
+            {/* ProofTags Tracker */}
+            <div className="bg-background rounded-lg p-6 mb-6">
+              <h3 className="text-lg font-semibold mb-4">
+                ProofTags Unlocked: {proofScore.prooTags.unlocked}/{proofScore.prooTags.total}
+              </h3>
+              <div className="flex justify-center gap-2 mb-4">
+                {Array.from({ length: proofScore.prooTags.total }).map((_, index) => (
+                  <div
+                    key={index}
+                    className={`w-8 h-8 rounded-full flex items-center justify-center ${
+                      index < proofScore.prooTags.unlocked
+                        ? index % 2 === 0 ? "bg-primary" : "bg-primary-gold"
+                        : "bg-border"
+                    }`}
                   >
-                    <div className="text-2xl font-bold mb-2">{score}</div>
-                    <div className="text-sm">
-                      {dimensionLabels[dimension as keyof typeof dimensionLabels]}
-                    </div>
-                    <Progress 
-                      value={score} 
-                      className={`mt-2 h-2 ${dimensionColors[dimension as keyof typeof dimensionColors]}`}
-                    />
-                  </motion.div>
+                    {index < proofScore.prooTags.unlocked ? (
+                      <motion.div
+                        initial={{ scale: 0 }}
+                        animate={{ scale: 1 }}
+                        transition={{ delay: index * 0.1 }}
+                      >
+                        <svg
+                          viewBox="0 0 24 24"
+                          fill="none"
+                          stroke="currentColor"
+                          strokeWidth="3"
+                          strokeLinecap="round"
+                          strokeLinejoin="round"
+                          className="w-4 h-4 text-white"
+                        >
+                          <polyline points="20 6 9 17 4 12" />
+                        </svg>
+                      </motion.div>
+                    ) : (
+                      <Lock className="w-3 h-3 text-muted-foreground" />
+                    )}
+                  </div>
                 ))}
               </div>
-            </motion.div>
+              <p className="text-sm text-muted-foreground">
+                {proofScore.prooTags.tags.join(" • ")}
+              </p>
+            </div>
           </Card>
 
-          {/* ProofTags */}
-          <Card className="p-6 border-border bg-card mb-8">
-            <CardHeader className="pb-4">
-              <CardTitle className="flex items-center justify-between">
-                ProofTags Unlocked
-                <Badge variant="secondary">
-                  {proofScore.prooTags.unlocked} of {proofScore.prooTags.total}
-                </Badge>
-              </CardTitle>
-            </CardHeader>
-            <CardContent>
-              <div className="flex flex-wrap gap-2 mb-4">
-                {proofScore.prooTags.tags.map((tag: string, index: number) => (
-                  <motion.div
-                    key={index}
-                    initial={{ opacity: 0, scale: 0 }}
-                    animate={{ opacity: 1, scale: 1 }}
-                    transition={{ delay: index * 0.1 }}
-                  >
-                    <Badge className="bg-primary-gold text-black hover:bg-primary-gold/90">
-                      {tag}
-                    </Badge>
-                  </motion.div>
-                ))}
-              </div>
-              <Progress 
-                value={(proofScore.prooTags.unlocked / proofScore.prooTags.total) * 100} 
-                className="mb-2"
-              />
-              <p className="text-sm text-muted-foreground">
-                {Math.round((proofScore.prooTags.unlocked / proofScore.prooTags.total) * 100)}% of available ProofTags unlocked
-              </p>
-            </CardContent>
-          </Card>
+
 
           {/* Score Breakdown */}
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
@@ -362,15 +359,12 @@ export default function Analysis({
             </div>
           </Card>
 
-          {/* Call to Action */}
+          {/* Continue Button */}
           <div className="text-center">
             <Button onClick={onComplete} className="gradient-button px-8 py-6 text-lg" size="lg">
-              Continue to Next Steps
+              See My Pathway
               <ArrowRight className="ml-2 w-5 h-5" />
             </Button>
-            <p className="text-sm text-muted-foreground mt-4">
-              Ready to enhance your venture with targeted improvements
-            </p>
           </div>
         </motion.div>
       </div>
