@@ -118,15 +118,27 @@ export default function Analysis({
       ]
     },
     insights: {
-      strengths: Object.entries(analysisData.categories)
-        .filter(([_, data]) => data.score >= 7)
-        .map(([category, data]) => `Strong ${category.replace('_', ' ')}: ${data.justification}`),
-      improvements: Object.entries(analysisData.categories)
-        .filter(([_, data]) => data.score < 7)
-        .map(([category, data]) => `${category.replace('_', ' ')}: ${data.justification}`),
-      recommendations: Object.entries(analysisData.categories)
-        .map(([_, data]) => data.recommendation)
-        .filter(rec => rec && rec.length > 0)
+      strengths: scoringResult?.key_insights?.filter((insight: any) => insight.title === "Strong Foundation") || 
+        Object.entries(analysisData.categories)
+          .filter(([_, data]) => data.score >= 7)
+          .map(([category, data]) => ({
+            title: "Strength",
+            description: `Strong ${category.replace('_', ' ')}: ${data.justification}`
+          })),
+      improvements: scoringResult?.key_insights?.filter((insight: any) => insight.title === "Needs Attention") || 
+        Object.entries(analysisData.categories)
+          .filter(([_, data]) => data.score < 7)
+          .map(([category, data]) => ({
+            title: "Area for Improvement", 
+            description: `${category.replace('_', ' ')}: ${data.justification}`
+          })),
+      recommendations: scoringResult?.key_insights?.filter((insight: any) => insight.title === "Next Steps") || 
+        Object.entries(analysisData.categories)
+          .slice(0, 1)
+          .map(([_, data]) => ({
+            title: "Recommendation",
+            description: data.recommendation
+          }))
     }
   };
 
@@ -235,30 +247,30 @@ export default function Analysis({
             <Card className="p-6 border-border bg-card">
               <h3 className="text-xl font-semibold mb-6">Key Insights</h3>
               <div className="space-y-4">
-                {proofScore.insights.strengths.slice(0, 2).map((strength, index) => (
+                {proofScore.insights.strengths.slice(0, 2).map((strength: any, index: number) => (
                   <div key={index} className="flex items-start space-x-3">
                     <ThumbsUp className="text-green-500 mt-1 w-4 h-4 flex-shrink-0" />
                     <div>
-                      <h4 className="font-medium text-green-400 text-sm">Strength</h4>
-                      <p className="text-sm text-muted-foreground">{strength}</p>
+                      <h4 className="font-medium text-green-400 text-sm">{strength.title || "Strength"}</h4>
+                      <p className="text-sm text-muted-foreground">{strength.description || strength}</p>
                     </div>
                   </div>
                 ))}
-                {proofScore.insights.improvements.slice(0, 2).map((improvement, index) => (
+                {proofScore.insights.improvements.slice(0, 2).map((improvement: any, index: number) => (
                   <div key={index} className="flex items-start space-x-3">
                     <AlertTriangle className="text-yellow-500 mt-1 w-4 h-4 flex-shrink-0" />
                     <div>
-                      <h4 className="font-medium text-yellow-400 text-sm">Area for Improvement</h4>
-                      <p className="text-sm text-muted-foreground">{improvement}</p>
+                      <h4 className="font-medium text-yellow-400 text-sm">{improvement.title || "Area for Improvement"}</h4>
+                      <p className="text-sm text-muted-foreground">{improvement.description || improvement}</p>
                     </div>
                   </div>
                 ))}
-                {proofScore.insights.recommendations.slice(0, 1).map((recommendation, index) => (
+                {proofScore.insights.recommendations.slice(0, 1).map((recommendation: any, index: number) => (
                   <div key={index} className="flex items-start space-x-3">
                     <TrendingUp className="text-primary mt-1 w-4 h-4 flex-shrink-0" />
                     <div>
-                      <h4 className="font-medium text-primary text-sm">Recommendation</h4>
-                      <p className="text-sm text-muted-foreground">{recommendation}</p>
+                      <h4 className="font-medium text-primary text-sm">{recommendation.title || "Recommendation"}</h4>
+                      <p className="text-sm text-muted-foreground">{recommendation.description || recommendation}</p>
                     </div>
                   </div>
                 ))}
