@@ -122,17 +122,17 @@ export default function ProcessingScreen({
               initial={{ opacity: 0, x: -20 }}
               animate={{ opacity: 1, x: 0 }}
               transition={{ delay: index * 0.2 }}
-              className={`flex items-center space-x-4 p-4 rounded-lg border-2 ${
+              className={`flex items-center space-x-4 p-4 rounded-lg border-2 transition-colors ${
                 isActive 
-                  ? 'border-blue-200 bg-blue-50' 
+                  ? 'border-purple-200 bg-purple-50' 
                   : 'border-gray-200 bg-gray-50'
               }`}
             >
-              <div className={`relative flex-shrink-0 w-12 h-12 rounded-full flex items-center justify-center ${
+              <div className={`relative flex-shrink-0 w-12 h-12 rounded-full flex items-center justify-center transition-colors ${
                 isComplete 
                   ? 'bg-green-600 text-white' 
                   : isActive 
-                    ? 'bg-blue-600 text-white' 
+                    ? 'bg-purple-600 text-white' 
                     : 'bg-gray-300 text-gray-600'
               }`}>
                 {isCurrent && !processingComplete ? (
@@ -173,13 +173,13 @@ export default function ProcessingScreen({
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
-          className="mt-8 p-6 bg-green-50 border-2 border-green-200 rounded-lg"
+          className="mt-8 p-6 bg-gradient-to-r from-purple-50 to-green-50 border-2 border-purple-200 rounded-lg"
         >
           <CheckCircle className="w-12 h-12 text-green-600 mx-auto mb-4" />
-          <h3 className="text-lg font-medium text-green-900 mb-2">
+          <h3 className="text-lg font-medium text-purple-900 mb-2">
             Analysis Complete!
           </h3>
-          <p className="text-green-700">
+          <p className="text-purple-700">
             Your ProofScore and detailed analysis are ready. Redirecting to results...
           </p>
         </motion.div>
