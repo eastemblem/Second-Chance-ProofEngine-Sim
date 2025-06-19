@@ -57,7 +57,7 @@ export default function DealRoom({
   
   // Map scoring result to structured data with proper fallbacks
   const proofScore = {
-    total: scoringResult?.total_score || scoringResult?.output?.total_score || 75,
+    total_score: scoringResult?.total_score || scoringResult?.output?.total_score || 75,
     dimensions: {
       desirability: scoringResult?.desirability || scoringResult?.output?.Problem?.score || scoringResult?.output?.problem?.score || 70,
       feasibility: scoringResult?.feasibility || scoringResult?.output?.solution?.score || scoringResult?.output?.product_technology?.score || 65,
@@ -140,7 +140,7 @@ export default function DealRoom({
               Welcome to the Deal Room
             </h2>
             <p className="text-xl text-muted-foreground">
-              Your ProofScore of {proofScore.total} qualifies you for direct
+              Your ProofScore of {proofScore.total_score} qualifies you for direct
               investor access
             </p>
           </div>
@@ -149,7 +149,7 @@ export default function DealRoom({
           <Card className="p-6 border-border bg-card mb-8">
             <div className="flex items-center justify-between mb-6">
               <h3 className="text-xl font-semibold">ProofVault Status</h3>
-              {sessionData?.success && sessionData.data?.folderStructure && (
+              {sessionData?.stepData?.processing?.folderStructure && (
                 <Badge className="bg-green-500 text-white">
                   <CheckCircle className="w-4 h-4 mr-1" />
                   Active
@@ -157,25 +157,25 @@ export default function DealRoom({
               )}
             </div>
 
-            {sessionLoading ? (
+            {false ? (
               <div className="text-center py-4">
                 <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary mx-auto"></div>
                 <p className="text-muted-foreground mt-2">
                   Loading vault status...
                 </p>
               </div>
-            ) : sessionData?.success && sessionData.data?.folderStructure ? (
+            ) : sessionData?.stepData?.processing?.folderStructure ? (
               <div className="space-y-4">
                 <div className="flex items-center text-green-600">
                   <Folder className="w-5 h-5 mr-2" />
                   <span>
                     Document structure created for{" "}
-                    {sessionData.data.startupName}
+                    {ventureData?.name || founderData?.startupName || "your startup"}
                   </span>
                 </div>
 
                 <div className="grid grid-cols-2 md:grid-cols-3 gap-4 mt-4">
-                  {Object.entries(sessionData.data.folderStructure.folders).map(
+                  {sessionData?.stepData?.processing?.folderStructure?.folders && Object.entries(sessionData.stepData.processing.folderStructure.folders).map(
                     ([key, folderId]) => (
                       <div
                         key={key}
