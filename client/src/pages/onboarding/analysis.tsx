@@ -24,32 +24,35 @@ export default function Analysis({
   sessionData, 
   onComplete 
 }: AnalysisProps) {
-  // Extract data from session
-  const scoringResult = sessionData?.stepData?.processing?.scoringResult;
+  // Extract data from session - check multiple possible locations
+  const scoringResult = sessionData?.scoringResult || 
+                       sessionData?.stepData?.processing?.scoringResult || 
+                       sessionData?.processing?.scoringResult;
+  
   const founderData = sessionData?.stepData?.founder;
   const ventureData = sessionData?.stepData?.venture?.venture || sessionData?.stepData?.venture;
   
-  // Map scoring result to structured data with proper fallbacks
+  console.log("Analysis component - scoringResult:", scoringResult);
+  
+  // Check if we have valid scoring data
+  if (!scoringResult || (!scoringResult.output && !scoringResult.total_score)) {
+    console.error("No valid scoring result available:", scoringResult);
+    return (
+      <div className="min-h-screen bg-background p-6 flex items-center justify-center">
+        <div className="text-center">
+          <h2 className="text-2xl font-bold mb-4">Analysis Not Available</h2>
+          <p className="text-muted-foreground">Please complete the scoring process first.</p>
+        </div>
+      </div>
+    );
+  }
+
+  // Use real scoring data only
   const analysisData = {
-    total_score: scoringResult?.total_score || scoringResult?.output?.total_score || 66,
-    categories: {
-      Problem: scoringResult?.output?.Problem || { score: 7, justification: "Problem analysis completed", recommendation: "Continue refining problem statement" },
-      solution: scoringResult?.output?.solution || { score: 8, justification: "Solution analysis completed", recommendation: "Enhance solution details" },
-      market_opportunity: scoringResult?.output?.market_opportunity || { score: 8, justification: "Market opportunity evaluated", recommendation: "Expand market research" },
-      product_technology: scoringResult?.output?.product_technology || { score: 6, justification: "Product technology assessed", recommendation: "Improve technical documentation" },
-      team: scoringResult?.output?.team || { score: 3, justification: "Team information reviewed", recommendation: "Add detailed team background" },
-      business_model: scoringResult?.output?.business_model || { score: 8, justification: "Business model analyzed", recommendation: "Include unit economics" },
-      traction_milestones: scoringResult?.output?.traction_milestones || { score: 7, justification: "Traction metrics reviewed", recommendation: "Add growth metrics" },
-      competition: scoringResult?.output?.competition || { score: 6, justification: "Competitive landscape analyzed", recommendation: "Strengthen competitive analysis" },
-      go_to_market_strategy: scoringResult?.output?.go_to_market_strategy || { score: 7, justification: "GTM strategy evaluated", recommendation: "Include acquisition metrics" },
-      financials_projections_ask: scoringResult?.output?.financials_projections_ask || { score: 4, justification: "Financial projections reviewed", recommendation: "Add detailed projections" },
-    },
-    overall_feedback: scoringResult?.output?.overall_feedback || [
-      "Analysis completed successfully",
-      "Key areas identified for improvement",
-      "Recommendations provided for enhancement"
-    ],
-    proofTags: generateProofTags(scoringResult?.output)
+    total_score: scoringResult.output?.total_score || scoringResult.total_score,
+    categories: scoringResult.output || {},
+    overall_feedback: scoringResult.output?.overall_feedback || [],
+    proofTags: scoringResult.output?.tags || scoringResult.tags || []
   };
 
   function generateProofTags(output: any) {
@@ -118,9 +121,12 @@ export default function Analysis({
       ]
     },
     insights: {
-      strengths: scoringResult.output.key_insights?.filter((insight: any) => insight.title === "Strong Foundation") || [],
-      improvements: scoringResult.output.key_insights?.filter((insight: any) => insight.title === "Needs Attention") || [],
-      recommendations: scoringResult.output.key_insights?.filter((insight: any) => insight.title === "Next Steps") || []
+      strengths: scoringResult.output?.key_insights?.filter((insight: any) => insight.title === "Strong Foundation") || 
+                scoringResult.key_insights?.filter((insight: any) => insight.title === "Strong Foundation") || [],
+      improvements: scoringResult.output?.key_insights?.filter((insight: any) => insight.title === "Needs Attention") || 
+                   scoringResult.key_insights?.filter((insight: any) => insight.title === "Needs Attention") || [],
+      recommendations: scoringResult.output?.key_insights?.filter((insight: any) => insight.title === "Next Steps") || 
+                      scoringResult.key_insights?.filter((insight: any) => insight.title === "Next Steps") || []
     }
   };
 

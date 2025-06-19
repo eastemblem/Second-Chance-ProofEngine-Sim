@@ -362,12 +362,39 @@ export class OnboardingManager {
   // Handle document upload
   async handleDocumentUpload(sessionId: string, file: any) {
     const session = await this.getSession(sessionId);
+    if (!session) throw new Error("Session not found");
+    
     const stepData = session?.stepData as any;
     const ventureId = stepData?.venture?.ventureId || stepData?.team?.ventureId;
+    const folderStructure = stepData?.venture?.folderStructure;
     
     if (!ventureId) throw new Error("Venture step not completed");
 
-    // Save upload record
+    let eastemblemFileId = null;
+    let sharedUrl = null;
+
+    // Upload to EastEmblem API if folder structure exists
+    if (eastEmblemAPI.isConfigured() && folderStructure?.folders?.['0_Overview']) {
+      try {
+        console.log("Uploading file to EastEmblem API in 0_Overview folder:", folderStructure.folders['0_Overview']);
+        const fileBuffer = require('fs').readFileSync(file.path);
+        
+        const uploadResult = await eastEmblemAPI.uploadFile(
+          fileBuffer,
+          file.originalname,
+          folderStructure.folders['0_Overview']
+        );
+        
+        eastemblemFileId = uploadResult.id;
+        sharedUrl = uploadResult.url || uploadResult.download_url;
+        
+        console.log("File uploaded successfully to EastEmblem:", { fileId: eastemblemFileId, sharedUrl });
+      } catch (error) {
+        console.error("Failed to upload to EastEmblem API:", error);
+      }
+    }
+
+    // Save upload record with EastEmblem data
     const [upload] = await db
       .insert(documentUpload)
       .values({
@@ -380,14 +407,25 @@ export class OnboardingManager {
         mimeType: file.mimetype,
         uploadStatus: "completed",
         processingStatus: "pending",
+        eastemblemFileId: eastemblemFileId,
+        sharedUrl: sharedUrl
       })
       .returning();
 
-    // Update session progress
-    await this.updateSession(sessionId, "processing", { uploadId: upload.uploadId }, false);
-    await this.updateSession(sessionId, "upload", { upload }, true);
+    // Update session with complete upload info
+    await this.updateSession(sessionId, "upload", { 
+      upload: {
+        ...upload,
+        folderStructure: folderStructure,
+        uploadedToBox: !!eastemblemFileId
+      }
+    }, true);
 
-    return upload;
+    return {
+      ...upload,
+      uploadedToBox: !!eastemblemFileId,
+      folderStructure: folderStructure
+    };
   }
 
   // Submit for scoring
@@ -448,50 +486,59 @@ export class OnboardingManager {
         }
 
         // Score the pitch deck
-        scoringResult = await eastEmblemAPI.scorePitchDeck(fileBuffer, upload.originalName);
+        console.log("Starting pitch deck scoring for file:", upload.originalName);
+        scoringResult = await eastEmblemAPI.scorePitchDeck(
+          fileBuffer,
+          upload.originalName
+        );
         
-        // Update processing status
-        await db
-          .update(documentUpload)
-          .set({ processingStatus: "scored" })
-          .where(eq(documentUpload.uploadId, upload.uploadId));
-
-      } catch (error) {
-        console.error("EastEmblem API error:", error);
+        console.log("Pitch deck scoring completed successfully");
+        console.log("Raw scoring result:", JSON.stringify(scoringResult, null, 2));
         
-        // Update processing status to error  
-        if (upload.uploadId) {
-          await db
-            .update(documentUpload)
-            .set({ processingStatus: "error" })
-            .where(eq(documentUpload.uploadId, upload.uploadId));
-        }
+      } catch (error: any) {
+        console.error("Failed to score pitch deck:", error);
+        throw new Error(`Scoring failed: ${error.message}`);
       }
+    } else {
+      throw new Error("EastEmblem API not configured or no file uploaded");
     }
+
+    // Update session with complete scoring results
+    await this.updateSession(sessionId, "processing", {
+      scoringResult,
+      isComplete: true,
+      completedAt: new Date().toISOString()
+    }, true);
 
     // Mark session as complete
     await db
       .update(onboardingSession)
       .set({ 
         isComplete: true,
-        updatedAt: new Date()
+        stepData: {
+          ...(session?.stepData || {}),
+          processing: {
+            scoringResult,
+            isComplete: true,
+            completedAt: new Date().toISOString()
+          }
+        }
       })
       .where(eq(onboardingSession.sessionId, sessionId));
 
-    // Update final session data
-    await this.updateSession(sessionId, "complete", { 
-      scoringResult, 
-      completedAt: new Date() 
-    }, true);
-
     return {
-      session,
-      scoringResult,
-      folderStructure,
-      venture: stepData?.venture,
-      founder: stepData?.founder,
-      teamMembers: stepData?.team?.teamMembers || [],
-      upload
+      session: {
+        sessionId,
+        scoringResult,
+        isComplete: true,
+        stepData: {
+          ...(session?.stepData || {}),
+          processing: {
+            scoringResult,
+            isComplete: true
+          }
+        }
+      }
     };
   }
 }

@@ -56,10 +56,9 @@ export default function ProcessingScreen({
     },
     onSuccess: (data) => {
       if (data.success) {
-        onDataUpdate({ 
-          scoringResult: data.scoringResult,
-          analysis: data.analysis 
-        });
+        console.log("Scoring completed, passing data to analysis:", data.session);
+        
+        onDataUpdate(data.session);
         setProcessingComplete(true);
         setTimeout(() => {
           onNext();
