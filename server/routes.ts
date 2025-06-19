@@ -316,18 +316,15 @@ export async function registerRoutes(app: Express): Promise<Server> {
     try {
       const { sessionId, ...founderData } = req.body;
 
-      if (!sessionId) {
-        return res.status(400).json({ error: "Session ID required" });
-      }
-
-      const founderId = await onboardingManager.completeFounderStep(
-        sessionId,
+      const result = await onboardingManager.completeFounderStep(
+        sessionId, // Can be null/undefined, will be generated in the method
         founderData,
       );
 
       res.json({
         success: true,
-        founderId,
+        sessionId: result.sessionId,
+        founderId: result.founderId,
         nextStep: "venture",
       });
     } catch (error) {

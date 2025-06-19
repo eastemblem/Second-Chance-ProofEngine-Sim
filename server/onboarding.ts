@@ -71,12 +71,17 @@ export class OnboardingManager {
 
   // Get session data
   async getSession(sessionId: string) {
-    const [session] = await db
-      .select()
-      .from(onboardingSession)
-      .where(eq(onboardingSession.sessionId, sessionId));
-    
-    return session;
+    try {
+      const [session] = await db
+        .select()
+        .from(onboardingSession)
+        .where(eq(onboardingSession.sessionId, sessionId));
+      
+      return session || null;
+    } catch (error) {
+      console.error('Error getting session:', error);
+      return null;
+    }
   }
 
   // Update session step and data
@@ -119,12 +124,14 @@ export class OnboardingManager {
     if (!session) {
       console.log("Session not found, creating new session:", sessionId);
       try {
-        await db.insert(onboardingSession).values({
-          sessionId,
+        const [newSession] = await db.insert(onboardingSession).values({
           currentStep: "founder",
-          isCompleted: false,
-          data: {},
-        });
+          isComplete: false,
+          stepData: {},
+        }).returning();
+        
+        // Update the sessionId to match the generated one
+        sessionId = newSession.sessionId;
         session = await this.getSession(sessionId);
       } catch (error) {
         console.error("Error creating session:", error);
