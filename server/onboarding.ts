@@ -122,17 +122,17 @@ export class OnboardingManager {
     // Check if session exists first, create if not
     let session = await this.getSession(sessionId);
     if (!session) {
-      console.log("Session not found, creating new session:", sessionId);
+      console.log("Session not found, creating new session with provided ID:", sessionId);
       try {
+        // Use the provided sessionId instead of generating a new one
         const [newSession] = await db.insert(onboardingSession).values({
+          sessionId: sessionId, // Use the provided sessionId
           currentStep: "founder",
           isComplete: false,
           stepData: {},
         }).returning();
         
-        // Update the sessionId to match the generated one
-        sessionId = newSession.sessionId;
-        session = await this.getSession(sessionId);
+        session = newSession;
       } catch (error) {
         console.error("Error creating session:", error);
         throw new Error("Failed to create session");
@@ -169,8 +169,12 @@ export class OnboardingManager {
 
   // Complete venture onboarding step
   async completeVentureStep(sessionId: string, inputData: any) {
+    console.log("Completing venture step for session:", sessionId);
     const session = await this.getSession(sessionId);
-    if (!session) throw new Error("Session not found");
+    if (!session) {
+      console.log("Session not found for ID:", sessionId);
+      throw new Error("Session not found");
+    }
     if (!session.founderId) {
       console.log("Session data:", session);
       throw new Error("Founder step not completed - no founderId in session");
