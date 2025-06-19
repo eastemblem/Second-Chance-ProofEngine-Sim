@@ -1,227 +1,190 @@
 import { motion } from "framer-motion";
+import { ArrowRight, Download, ThumbsUp, AlertTriangle, TrendingUp, Lock } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Badge } from "@/components/ui/badge";
+import { Card } from "@/components/ui/card";
 import { Progress } from "@/components/ui/progress";
-import { 
-  Trophy, 
-  TrendingUp, 
-  AlertCircle, 
-  CheckCircle, 
-  ExternalLink,
-  Download,
-  Share2
-} from "lucide-react";
+import ProgressBar from "@/components/progress-bar";
+import { ProofScoreResult } from "@shared/schema";
 
-interface AnalysisScreenProps {
-  sessionId: string;
-  sessionData: any;
-  onComplete: () => void;
+interface FeedbackPageProps {
+  onNext: () => void;
+  proofScore: ProofScoreResult;
 }
 
-export default function AnalysisScreen({ 
-  sessionId, 
-  sessionData, 
-  onComplete 
-}: AnalysisScreenProps) {
-  // Extract data from session
-  const scoringResult = sessionData?.stepData?.processing?.scoringResult;
-  const founderData = sessionData?.stepData?.founder;
-  const ventureData = sessionData?.stepData?.venture;
-  
-  // Mock ProofScore data (replace with actual scoring result)
-  const proofScore = {
-    total: scoringResult?.total_score || 78,
-    dimensions: {
-      problem: scoringResult?.output?.Problem?.score || 85,
-      solution: scoringResult?.output?.solution?.score || 75,
-      market: scoringResult?.output?.market_opportunity?.score || 82,
-      team: scoringResult?.output?.team?.score || 70,
-      traction: scoringResult?.output?.traction_milestones?.score || 68,
-      financials: scoringResult?.output?.financials_projections_ask?.score || 80,
-    },
-    feedback: scoringResult?.output?.overall_feedback || [
-      "Strong problem identification and market validation",
-      "Solution demonstrates clear value proposition",
-      "Team has relevant experience but could benefit from technical co-founder",
-      "Financial projections are realistic and well-structured"
-    ],
-    recommendations: [
-      "Strengthen your traction metrics with specific KPIs",
-      "Add more competitive analysis depth",
-      "Include customer testimonials or case studies",
-      "Clarify your go-to-market strategy"
-    ]
+export default function FeedbackPage({ onNext, proofScore }: FeedbackPageProps) {
+  const dimensionColors = {
+    desirability: "bg-green-500",
+    feasibility: "bg-blue-500",
+    viability: "bg-orange-500",
+    traction: "bg-yellow-500",
+    readiness: "bg-red-500"
   };
 
-  const getScoreColor = (score: number) => {
-    if (score >= 80) return "text-green-600";
-    if (score >= 60) return "text-purple-600";
-    return "text-red-600";
-  };
-
-  const getScoreLabel = (score: number) => {
-    if (score >= 80) return "Excellent";
-    if (score >= 60) return "Good";
-    return "Needs Improvement";
+  const dimensionLabels = {
+    desirability: "🟩 Desirability",
+    feasibility: "🟦 Feasibility", 
+    viability: "🟧 Viability",
+    traction: "🟨 Traction",
+    readiness: "🟥 Readiness"
   };
 
   return (
-    <motion.div
-      initial={{ opacity: 0, y: 20 }}
-      animate={{ opacity: 1, y: 0 }}
-      className="max-w-4xl mx-auto"
-    >
-      {/* Header */}
-      <div className="text-center mb-8">
+    <div className="min-h-screen py-12">
+      <div className="max-w-4xl mx-auto px-6">
         <motion.div
-          initial={{ scale: 0 }}
-          animate={{ scale: 1 }}
-          transition={{ delay: 0.2 }}
-          className="inline-flex items-center justify-center w-20 h-20 bg-gradient-to-r from-purple-600 to-yellow-500 rounded-full mb-4"
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.6 }}
         >
-          <Trophy className="w-10 h-10 text-white" />
-        </motion.div>
-        <h2 className="text-3xl font-bold text-foreground mb-2">
-          Your ProofScore Analysis
-        </h2>
-        <p className="text-muted-foreground">
-          Comprehensive analysis of {ventureData?.startupName || "your startup"}'s investment readiness
-        </p>
-      </div>
+          <ProgressBar currentStep={3} totalSteps={4} stepName="Your ProofScore" />
 
-      {/* Overall Score */}
-      <Card className="mb-8 border-2">
-        <CardHeader className="text-center">
-          <CardTitle className="text-2xl">Overall ProofScore</CardTitle>
-        </CardHeader>
-        <CardContent>
-          <div className="text-center">
-            <motion.div
-              initial={{ scale: 0 }}
-              animate={{ scale: 1 }}
-              transition={{ delay: 0.4 }}
-              className={`text-6xl font-bold mb-2 ${getScoreColor(proofScore.total)}`}
-            >
-              {proofScore.total}
-            </motion.div>
-            <Badge 
-              variant={proofScore.total >= 80 ? "default" : proofScore.total >= 60 ? "secondary" : "destructive"}
-              className="text-lg px-4 py-1"
-            >
-              {getScoreLabel(proofScore.total)}
-            </Badge>
-            <Progress value={proofScore.total} className="mt-4 h-3" />
-          </div>
-        </CardContent>
-      </Card>
+          {/* Score Header */}
+          <Card className="p-8 border-border bg-card mb-8 text-center">
+            <h2 className="text-3xl font-bold mb-4">Your ProofScore is Ready</h2>
+            <div className="mb-6">
+              <motion.div 
+                className="text-6xl font-black gradient-text mb-2"
+                initial={{ scale: 0 }}
+                animate={{ scale: 1 }}
+                transition={{ duration: 0.5, delay: 0.2 }}
+              >
+                {proofScore.total}
+              </motion.div>
+              <p className="text-xl text-muted-foreground">out of 100</p>
+            </div>
 
-      {/* Dimension Scores */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 mb-8">
-        {Object.entries(proofScore.dimensions).map(([key, score], index) => (
-          <motion.div
-            key={key}
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: 0.6 + index * 0.1 }}
-          >
-            <Card>
-              <CardHeader className="pb-3">
-                <CardTitle className="text-lg capitalize flex items-center justify-between">
-                  {key}
-                  <span className={`text-2xl font-bold ${getScoreColor(score as number)}`}>
-                    {score}
-                  </span>
-                </CardTitle>
-              </CardHeader>
-              <CardContent>
-                <Progress value={score as number} className="h-2" />
-              </CardContent>
+            {/* ProofTags Tracker */}
+            <div className="bg-background rounded-lg p-6 mb-6">
+              <h3 className="text-lg font-semibold mb-4">
+                ProofTags Unlocked: {proofScore.prooTags.unlocked}/{proofScore.prooTags.total}
+              </h3>
+              <div className="flex justify-center gap-2 mb-4">
+                {Array.from({ length: proofScore.prooTags.total }).map((_, index) => (
+                  <div
+                    key={index}
+                    className={`w-8 h-8 rounded-full flex items-center justify-center ${
+                      index < proofScore.prooTags.unlocked
+                        ? index % 2 === 0 ? "bg-primary" : "bg-primary-gold"
+                        : "bg-border"
+                    }`}
+                  >
+                    {index < proofScore.prooTags.unlocked ? (
+                      <motion.div
+                        initial={{ scale: 0 }}
+                        animate={{ scale: 1 }}
+                        transition={{ delay: index * 0.1 }}
+                      >
+                        <svg
+                          viewBox="0 0 24 24"
+                          fill="none"
+                          stroke="currentColor"
+                          strokeWidth="3"
+                          strokeLinecap="round"
+                          strokeLinejoin="round"
+                          className="w-4 h-4 text-white"
+                        >
+                          <polyline points="20 6 9 17 4 12" />
+                        </svg>
+                      </motion.div>
+                    ) : (
+                      <Lock className="w-3 h-3 text-muted-foreground" />
+                    )}
+                  </div>
+                ))}
+              </div>
+              <p className="text-sm text-muted-foreground">
+                {proofScore.prooTags.tags.join(" • ")}
+              </p>
+            </div>
+          </Card>
+
+          {/* Score Breakdown */}
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
+            {/* Dimension Scores */}
+            <Card className="p-6 border-border bg-card">
+              <h3 className="text-xl font-semibold mb-6">Validation Dimensions</h3>
+              <div className="space-y-4">
+                {Object.entries(proofScore.dimensions).map(([dimension, score]) => (
+                  <div key={dimension}>
+                    <div className="flex justify-between items-center mb-2">
+                      <span className="text-sm font-medium">
+                        {dimensionLabels[dimension as keyof typeof dimensionLabels]}
+                      </span>
+                      <span className="text-sm font-bold">{score}/20</span>
+                    </div>
+                    <div className="w-full bg-border rounded-full h-2">
+                      <motion.div
+                        className={`h-2 rounded-full ${dimensionColors[dimension as keyof typeof dimensionColors]}`}
+                        initial={{ width: 0 }}
+                        animate={{ width: `${(score / 20) * 100}%` }}
+                        transition={{ duration: 1, delay: 0.5 }}
+                      />
+                    </div>
+                  </div>
+                ))}
+              </div>
             </Card>
-          </motion.div>
-        ))}
+
+            {/* Key Insights */}
+            <Card className="p-6 border-border bg-card">
+              <h3 className="text-xl font-semibold mb-6">Key Insights</h3>
+              <div className="space-y-4">
+                {proofScore.insights.strengths.slice(0, 1).map((strength, index) => (
+                  <div key={index} className="flex items-start space-x-3">
+                    <ThumbsUp className="text-green-500 mt-1 w-4 h-4 flex-shrink-0" />
+                    <div>
+                      <h4 className="font-medium text-green-400 text-sm">Strong Foundation</h4>
+                      <p className="text-sm text-muted-foreground">{strength}</p>
+                    </div>
+                  </div>
+                ))}
+                {proofScore.insights.improvements.slice(0, 1).map((improvement, index) => (
+                  <div key={index} className="flex items-start space-x-3">
+                    <AlertTriangle className="text-yellow-500 mt-1 w-4 h-4 flex-shrink-0" />
+                    <div>
+                      <h4 className="font-medium text-yellow-400 text-sm">Needs Attention</h4>
+                      <p className="text-sm text-muted-foreground">{improvement}</p>
+                    </div>
+                  </div>
+                ))}
+                {proofScore.insights.recommendations.slice(0, 1).map((recommendation, index) => (
+                  <div key={index} className="flex items-start space-x-3">
+                    <TrendingUp className="text-primary mt-1 w-4 h-4 flex-shrink-0" />
+                    <div>
+                      <h4 className="font-medium text-primary text-sm">Next Steps</h4>
+                      <p className="text-sm text-muted-foreground">{recommendation}</p>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </Card>
+          </div>
+
+          {/* Generated Report */}
+          <Card className="p-6 border-border bg-card mb-8">
+            <div className="flex items-center justify-between">
+              <div>
+                <h3 className="text-xl font-semibold mb-2">Your Detailed Founder Report</h3>
+                <p className="text-muted-foreground">
+                  Comprehensive analysis with actionable recommendations
+                </p>
+              </div>
+              <Button className="gradient-button">
+                <Download className="mr-2 w-4 h-4" />
+                Download PDF
+              </Button>
+            </div>
+          </Card>
+
+          {/* Continue Button */}
+          <div className="text-center">
+            <Button onClick={onNext} className="gradient-button px-8 py-6 text-lg" size="lg">
+              See My Pathway
+              <ArrowRight className="ml-2 w-5 h-5" />
+            </Button>
+          </div>
+        </motion.div>
       </div>
-
-      {/* Feedback and Recommendations */}
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-8">
-        {/* Strengths */}
-        <Card>
-          <CardHeader>
-            <CardTitle className="flex items-center text-green-700">
-              <CheckCircle className="w-5 h-5 mr-2" />
-              Key Strengths
-            </CardTitle>
-          </CardHeader>
-          <CardContent>
-            <ul className="space-y-2">
-              {proofScore.feedback.slice(0, 2).map((item: string, index: number) => (
-                <li key={index} className="flex items-start">
-                  <CheckCircle className="w-4 h-4 text-green-600 mt-0.5 mr-2 flex-shrink-0" />
-                  <span className="text-sm text-gray-700">{item}</span>
-                </li>
-              ))}
-            </ul>
-          </CardContent>
-        </Card>
-
-        {/* Recommendations */}
-        <Card>
-          <CardHeader>
-            <CardTitle className="flex items-center text-orange-700">
-              <AlertCircle className="w-5 h-5 mr-2" />
-              Recommendations
-            </CardTitle>
-          </CardHeader>
-          <CardContent>
-            <ul className="space-y-2">
-              {proofScore.recommendations.slice(0, 3).map((item: string, index: number) => (
-                <li key={index} className="flex items-start">
-                  <TrendingUp className="w-4 h-4 text-orange-600 mt-0.5 mr-2 flex-shrink-0" />
-                  <span className="text-sm text-gray-700">{item}</span>
-                </li>
-              ))}
-            </ul>
-          </CardContent>
-        </Card>
-      </div>
-
-      {/* Action Buttons */}
-      <div className="flex flex-wrap gap-4 justify-center mb-8">
-        <Button variant="outline" className="flex items-center">
-          <Download className="w-4 h-4 mr-2" />
-          Download Report
-        </Button>
-        <Button variant="outline" className="flex items-center">
-          <Share2 className="w-4 h-4 mr-2" />
-          Share Results
-        </Button>
-        <Button variant="outline" className="flex items-center">
-          <ExternalLink className="w-4 h-4 mr-2" />
-          Get Detailed Analysis
-        </Button>
-      </div>
-
-      {/* Next Steps */}
-      <Card className="bg-gradient-to-r from-blue-50 to-purple-50 border-2 border-blue-200">
-        <CardHeader>
-          <CardTitle className="text-center text-xl">
-            Ready to improve your ProofScore?
-          </CardTitle>
-        </CardHeader>
-        <CardContent className="text-center">
-          <p className="text-gray-700 mb-6">
-            Based on your analysis, we recommend focusing on traction metrics and competitive positioning. 
-            Our ProofSync™ platform can help you build the proof investors need to see.
-          </p>
-          <Button
-            onClick={onComplete}
-            size="lg"
-            className="px-8 py-3 bg-purple-600 hover:bg-purple-700"
-          >
-            Continue to Dashboard
-          </Button>
-        </CardContent>
-      </Card>
-    </motion.div>
+    </div>
   );
 }
