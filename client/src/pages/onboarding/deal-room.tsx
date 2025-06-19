@@ -19,9 +19,10 @@ import { ProofScoreResult } from "@shared/schema";
 import { useQuery } from "@tanstack/react-query";
 import { useEffect, useState } from "react";
 
-interface DealRoomPageProps {
-  onNext: () => void;
-  proofScore: ProofScoreResult;
+interface DealRoomProps {
+  sessionId: string;
+  sessionData: any;
+  onComplete: () => void;
 }
 
 interface SessionResponse {
@@ -44,16 +45,39 @@ interface SessionResponse {
   };
 }
 
-export default function DealRoomPage({
-  onNext,
-  proofScore,
-}: DealRoomPageProps) {
-  // Fetch ProofVault session data
-  const { data: sessionData, isLoading: sessionLoading } =
-    useQuery<SessionResponse>({
-      queryKey: ["/api/vault/session"],
-      staleTime: 5 * 60 * 1000, // 5 minutes
-    });
+export default function DealRoom({ 
+  sessionId, 
+  sessionData, 
+  onComplete 
+}: DealRoomProps) {
+  // Extract data from session
+  const scoringResult = sessionData?.stepData?.processing?.scoringResult;
+  const founderData = sessionData?.stepData?.founder;
+  const ventureData = sessionData?.stepData?.venture?.venture || sessionData?.stepData?.venture;
+  
+  // Map scoring result to structured data with proper fallbacks
+  const proofScore = {
+    total: scoringResult?.total_score || scoringResult?.output?.total_score || 75,
+    dimensions: {
+      desirability: scoringResult?.desirability || scoringResult?.output?.Problem?.score || scoringResult?.output?.problem?.score || 70,
+      feasibility: scoringResult?.feasibility || scoringResult?.output?.solution?.score || scoringResult?.output?.product_technology?.score || 65,
+      viability: scoringResult?.viability || scoringResult?.output?.business_model?.score || scoringResult?.output?.financials_projections_ask?.score || 72,
+      traction: scoringResult?.traction || scoringResult?.output?.traction_milestones?.score || scoringResult?.output?.go_to_market_strategy?.score || 68,
+      readiness: scoringResult?.readiness || scoringResult?.output?.team?.score || scoringResult?.output?.competition?.score || 70,
+    },
+    insights: scoringResult?.key_insights || (scoringResult?.output?.overall_feedback ? [
+      {
+        title: "Analysis Summary",
+        description: scoringResult.output.overall_feedback.join(" ")
+      }
+    ] : [
+      {
+        title: "Investment Analysis Complete",
+        description: "Your pitch deck has been analyzed for investment readiness across multiple criteria."
+      }
+    ]),
+    tags: scoringResult?.tags || []
+  };
 
   const matchedInvestors = [
     {
@@ -378,11 +402,11 @@ export default function DealRoomPage({
           {/* CTA */}
           <div className="text-center">
             <Button
-              onClick={onNext}
+              onClick={onComplete}
               className="gradient-button px-8 py-6 text-lg"
               size="lg"
             >
-              Enter Deal Room
+              Continue to Dashboard
               <ArrowRight className="ml-2 w-5 h-5" />
             </Button>
             <p className="text-sm text-muted-foreground mt-4">
