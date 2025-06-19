@@ -26,7 +26,7 @@ interface SessionData {
 const steps = [
   { key: "founder", name: "Founder Details", description: "Personal information and experience" },
   { key: "venture", name: "Venture Info", description: "Company details and market information" },
-  { key: "team", name: "Team Members", description: "Add your team members (minimum 3)" },
+  { key: "team", name: "Team Members", description: "Add up to 4 team members (optional)" },
   { key: "upload", name: "Pitch Deck", description: "Upload your pitch deck" },
   { key: "processing", name: "Processing", description: "Analyzing your submission" },
   { key: "analysis", name: "Results", description: "Your ProofScore and insights" }

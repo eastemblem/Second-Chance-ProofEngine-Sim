@@ -56,7 +56,7 @@ export default function AnalysisScreen({
 
   const getScoreColor = (score: number) => {
     if (score >= 80) return "text-green-600";
-    if (score >= 60) return "text-yellow-600";
+    if (score >= 60) return "text-purple-600";
     return "text-red-600";
   };
 
@@ -78,7 +78,7 @@ export default function AnalysisScreen({
           initial={{ scale: 0 }}
           animate={{ scale: 1 }}
           transition={{ delay: 0.2 }}
-          className="inline-flex items-center justify-center w-20 h-20 bg-gradient-to-r from-blue-600 to-purple-600 rounded-full mb-4"
+          className="inline-flex items-center justify-center w-20 h-20 bg-gradient-to-r from-purple-600 to-yellow-500 rounded-full mb-4"
         >
           <Trophy className="w-10 h-10 text-white" />
         </motion.div>
@@ -216,7 +216,7 @@ export default function AnalysisScreen({
           <Button
             onClick={onComplete}
             size="lg"
-            className="px-8 py-3"
+            className="px-8 py-3 bg-purple-600 hover:bg-purple-700"
           >
             Continue to Dashboard
           </Button>

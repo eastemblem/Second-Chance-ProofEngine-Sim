@@ -15,7 +15,7 @@ export default function ProgressBar({ currentStep, totalSteps, stepName }: Progr
       </div>
       <div className="w-full bg-border rounded-full h-2">
         <div 
-          className="bg-gradient-to-r from-primary to-primary-gold h-2 rounded-full transition-all duration-500" 
+          className="bg-gradient-to-r from-purple-600 to-yellow-500 h-2 rounded-full transition-all duration-500" 
           style={{ width: `${progress}%` }}
         />
       </div>
