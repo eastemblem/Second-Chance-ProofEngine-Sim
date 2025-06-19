@@ -157,7 +157,7 @@ export default function FounderOnboarding({
 
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
           <div>
-            <Label htmlFor="age">Age</Label>
+            <Label htmlFor="age">Age (Optional)</Label>
             <Input
               id="age"
               type="number"
@@ -168,7 +168,7 @@ export default function FounderOnboarding({
           </div>
 
           <div>
-            <Label htmlFor="gender">Gender</Label>
+            <Label htmlFor="gender">Gender (Optional)</Label>
             <Select onValueChange={(value) => form.setValue("gender", value)}>
               <SelectTrigger className="mt-1">
                 <SelectValue placeholder="Select gender" />
@@ -218,7 +218,7 @@ export default function FounderOnboarding({
             disabled={isSubmitting}
             className="px-8 py-2"
           >
-            {isSubmitting ? "Saving..." : "Continue"}
+            {isSubmitting ? "Saving..." : "Next: Venture Info"}
           </Button>
         </div>
       </form>
