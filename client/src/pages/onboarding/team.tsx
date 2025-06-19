@@ -630,16 +630,26 @@ export default function TeamOnboarding({
           className="flex items-center gap-2"
         >
           <ChevronLeft className="w-4 h-4" />
-          Previous
+          Back
         </Button>
         
-        <Button
-          onClick={handleNext}
-          disabled={!isValidTeam || isSubmitting}
-          className="bg-purple-600 hover:bg-purple-700"
-        >
-          {isSubmitting ? "Saving..." : "Next: Upload Documents"}
-        </Button>
+        <div className="flex space-x-3">
+          <Button
+            variant="ghost"
+            onClick={handleSkip}
+            disabled={isSubmitting}
+            className="px-6 py-2"
+          >
+            Skip Team
+          </Button>
+          <Button
+            onClick={handleNext}
+            disabled={isSubmitting}
+            className="bg-purple-600 hover:bg-purple-700 px-6 py-2"
+          >
+            {isSubmitting ? "Saving..." : "Next: Upload Pitch Deck"}
+          </Button>
+        </div>
       </div>
     </motion.div>
   );
