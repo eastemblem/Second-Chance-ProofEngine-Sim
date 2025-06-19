@@ -24,6 +24,7 @@ export default function DocumentUpload({
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
   const [uploadProgress, setUploadProgress] = useState(0);
   const [isUploading, setIsUploading] = useState(false);
+  const [isDragOver, setIsDragOver] = useState(false);
 
   const uploadMutation = useMutation({
     mutationFn: async (file: File) => {
@@ -62,36 +63,61 @@ export default function DocumentUpload({
     }
   });
 
+  const validateFile = (file: File) => {
+    const allowedTypes = [
+      "application/pdf",
+      "application/vnd.ms-powerpoint",
+      "application/vnd.openxmlformats-officedocument.presentationml.presentation",
+    ];
+
+    if (!allowedTypes.includes(file.type)) {
+      toast({
+        title: "Invalid File Type",
+        description: "Please upload a PDF, PPT, or PPTX file",
+        variant: "destructive",
+      });
+      return false;
+    }
+
+    if (file.size > 10 * 1024 * 1024) {
+      toast({
+        title: "File Too Large",
+        description: "Please upload a file smaller than 10MB",
+        variant: "destructive",
+      });
+      return false;
+    }
+
+    return true;
+  };
+
   const handleFileSelect = (event: React.ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0];
-    if (file) {
-      // Validate file type
-      const allowedTypes = [
-        "application/pdf",
-        "application/vnd.ms-powerpoint",
-        "application/vnd.openxmlformats-officedocument.presentationml.presentation",
-      ];
-
-      if (!allowedTypes.includes(file.type)) {
-        toast({
-          title: "Invalid File Type",
-          description: "Please upload a PDF, PPT, or PPTX file",
-          variant: "destructive",
-        });
-        return;
-      }
-
-      // Validate file size (10MB limit)
-      if (file.size > 10 * 1024 * 1024) {
-        toast({
-          title: "File Too Large",
-          description: "Please upload a file smaller than 10MB",
-          variant: "destructive",
-        });
-        return;
-      }
-
+    if (file && validateFile(file)) {
       setSelectedFile(file);
+    }
+  };
+
+  const handleDragOver = (event: React.DragEvent) => {
+    event.preventDefault();
+    setIsDragOver(true);
+  };
+
+  const handleDragLeave = (event: React.DragEvent) => {
+    event.preventDefault();
+    setIsDragOver(false);
+  };
+
+  const handleDrop = (event: React.DragEvent) => {
+    event.preventDefault();
+    setIsDragOver(false);
+    
+    const files = event.dataTransfer.files;
+    if (files.length > 0) {
+      const file = files[0];
+      if (validateFile(file)) {
+        setSelectedFile(file);
+      }
     }
   };
 
@@ -143,16 +169,30 @@ export default function DocumentUpload({
         </p>
       </div>
 
-      <Card className="border-2 border-dashed border-gray-300 hover:border-gray-400 transition-colors">
+      <Card 
+        className={`border-2 border-dashed transition-all cursor-pointer ${
+          isDragOver 
+            ? "border-blue-400 bg-blue-50" 
+            : "border-gray-300 hover:border-gray-400"
+        }`}
+        onDragOver={handleDragOver}
+        onDragLeave={handleDragLeave}
+        onDrop={handleDrop}
+        onClick={() => !selectedFile && document.getElementById("pitchDeck")?.click()}
+      >
         <CardContent className="p-8">
           {!selectedFile ? (
             <div className="text-center">
-              <Upload className="w-16 h-16 text-gray-400 mx-auto mb-4" />
-              <h3 className="text-lg font-medium text-gray-900 mb-2">
-                Choose your pitch deck
+              <Upload className={`w-16 h-16 mx-auto mb-4 ${
+                isDragOver ? "text-blue-500" : "text-gray-400"
+              }`} />
+              <h3 className={`text-lg font-medium mb-2 ${
+                isDragOver ? "text-blue-700" : "text-gray-900"
+              }`}>
+                {isDragOver ? "Drop your pitch deck here" : "Choose your pitch deck"}
               </h3>
               <p className="text-gray-600 mb-4">
-                Supported formats: PDF, PPT, PPTX (max 10MB)
+                Drag and drop or click to select • PDF, PPT, PPTX (max 10MB)
               </p>
               <input
                 type="file"
@@ -162,7 +202,10 @@ export default function DocumentUpload({
                 className="hidden"
               />
               <Button
-                onClick={() => document.getElementById("pitchDeck")?.click()}
+                onClick={(e) => {
+                  e.stopPropagation();
+                  document.getElementById("pitchDeck")?.click();
+                }}
                 className="px-6 py-2"
               >
                 Select File
