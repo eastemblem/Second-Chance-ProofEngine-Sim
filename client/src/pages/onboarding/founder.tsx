@@ -73,11 +73,7 @@ export default function FounderOnboarding({
           description: "Founder information saved successfully",
         });
         // Update session with founder data
-        onDataUpdate?.({
-          ...data,
-          isCompleted: true,
-          completedAt: new Date().toISOString()
-        });
+        onDataUpdate?.(data);
         onNext();
       }
     },
@@ -92,7 +88,6 @@ export default function FounderOnboarding({
 
   const onSubmit = async (data: FounderFormData) => {
     setIsSubmitting(true);
-    onDataUpdate(data);
     await submitMutation.mutateAsync(data);
     setIsSubmitting(false);
   };

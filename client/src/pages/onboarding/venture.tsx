@@ -64,12 +64,8 @@ export default function VentureOnboarding({
           description: "Venture information saved successfully",
         });
         // Pass the complete venture data including folder structure
-        onDataUpdate?.({
-          venture: data.venture,
-          folderStructure: data.folderStructure,
-          isCompleted: true,
-          completedAt: new Date().toISOString()
-        });
+        console.log("Venture onSuccess - calling onDataUpdate with:", data);
+        onDataUpdate?.(data);
         onNext();
       }
     },

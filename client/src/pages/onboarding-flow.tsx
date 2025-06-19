@@ -216,7 +216,10 @@ export default function OnboardingFlow({ onComplete }: OnboardingFlowProps) {
                 sessionId={sessionData.sessionId}
                 initialData={sessionData.stepData.founder}
                 onNext={nextStep}
-                onDataUpdate={(data: any) => updateSessionData("founder", data)}
+                onDataUpdate={(data: any) => {
+                  console.log("FounderOnboarding onDataUpdate called with:", data);
+                  updateSessionData("founder", data);
+                }}
               />
             )}
             
@@ -226,7 +229,10 @@ export default function OnboardingFlow({ onComplete }: OnboardingFlowProps) {
                 initialData={sessionData.stepData.venture}
                 onNext={nextStep}
                 onPrev={prevStep}
-                onDataUpdate={(data: any) => updateSessionData("venture", data)}
+                onDataUpdate={(data: any) => {
+                  console.log("VentureOnboarding onDataUpdate called with:", data);
+                  updateSessionData("venture", data);
+                }}
               />
             )}
             
