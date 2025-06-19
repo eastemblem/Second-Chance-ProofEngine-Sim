@@ -172,8 +172,8 @@ export default function DocumentUpload({
       <Card 
         className={`border-2 border-dashed transition-all cursor-pointer ${
           isDragOver 
-            ? "border-blue-400 bg-blue-50" 
-            : "border-gray-300 hover:border-gray-400"
+            ? "border-purple-400 bg-purple-50 shadow-lg" 
+            : "border-gray-300 hover:border-purple-300 hover:bg-purple-25"
         }`}
         onDragOver={handleDragOver}
         onDragLeave={handleDragLeave}
@@ -183,11 +183,11 @@ export default function DocumentUpload({
         <CardContent className="p-8">
           {!selectedFile ? (
             <div className="text-center">
-              <Upload className={`w-16 h-16 mx-auto mb-4 ${
-                isDragOver ? "text-blue-500" : "text-gray-400"
+              <Upload className={`w-16 h-16 mx-auto mb-4 transition-colors ${
+                isDragOver ? "text-purple-600" : "text-gray-400"
               }`} />
-              <h3 className={`text-lg font-medium mb-2 ${
-                isDragOver ? "text-blue-700" : "text-gray-900"
+              <h3 className={`text-lg font-medium mb-2 transition-colors ${
+                isDragOver ? "text-purple-700" : "text-gray-900"
               }`}>
                 {isDragOver ? "Drop your pitch deck here" : "Choose your pitch deck"}
               </h3>
@@ -206,7 +206,7 @@ export default function DocumentUpload({
                   e.stopPropagation();
                   document.getElementById("pitchDeck")?.click();
                 }}
-                className="px-6 py-2"
+                className="px-6 py-2 bg-purple-600 hover:bg-purple-700"
               >
                 Select File
               </Button>
@@ -240,7 +240,7 @@ export default function DocumentUpload({
                   </div>
                   <div className="w-full bg-gray-200 rounded-full h-2">
                     <div 
-                      className="bg-blue-600 h-2 rounded-full transition-all duration-300"
+                      className="bg-purple-600 h-2 rounded-full transition-all duration-300"
                       style={{ width: `${uploadProgress}%` }}
                     />
                   </div>
@@ -257,7 +257,7 @@ export default function DocumentUpload({
               {!isUploading && uploadProgress === 0 && (
                 <Button
                   onClick={handleUpload}
-                  className="w-full"
+                  className="w-full bg-purple-600 hover:bg-purple-700"
                   size="lg"
                 >
                   Upload Pitch Deck
@@ -290,7 +290,7 @@ export default function DocumentUpload({
         {selectedFile && !isUploading && uploadProgress === 0 && (
           <Button
             onClick={handleUpload}
-            className="px-8 py-2"
+            className="px-8 py-2 bg-purple-600 hover:bg-purple-700"
           >
             Upload & Continue
           </Button>
