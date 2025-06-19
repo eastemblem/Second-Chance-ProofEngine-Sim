@@ -164,7 +164,7 @@ export class OnboardingManager {
     await this.updateSession(sessionId, "founder", validatedData, true);
     
     console.log("Founder step completed successfully for session:", sessionId);
-    return founderId;
+    return { sessionId, founderId };
   }
 
   // Complete venture onboarding step
