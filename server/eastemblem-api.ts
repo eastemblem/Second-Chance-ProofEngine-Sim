@@ -318,10 +318,10 @@ class EastEmblemAPI {
       }
 
       const result = (await response.json()) as any;
-      console.log(
-        "Pitch deck scored successfully - RAW API RESPONSE:",
-        JSON.stringify(result, null, 2),
-      );
+      // console.log(
+      //   "Pitch deck scored successfully - RAW API RESPONSE:",
+      //   JSON.stringify(result, null, 2),
+      // );
 
       return result;
     } catch (error) {

@@ -246,9 +246,27 @@ export class OnboardingManager {
       }
     }
 
-    // Update session progress
-    await this.updateSession(sessionId, "team", { ventureId: venture.ventureId, folderStructure }, false);
-    await this.updateSession(sessionId, "venture", { ...validatedData, ventureId: venture.ventureId }, true);
+    // Update session with venture data and folderStructure
+    await this.updateSession(sessionId, "venture", { 
+      ...validatedData,
+      venture: venture, 
+      ventureId: venture.ventureId, 
+      folderStructure 
+    }, true);
+    
+    // Store folderStructure at session root level for easy access
+    const currentSession = await this.getSession(sessionId);
+    const [updatedSession] = await db
+      .update(onboardingSession)
+      .set({
+        stepData: currentSession.stepData,
+        folderStructure: folderStructure,
+        ventureId: venture.ventureId,
+        currentStep: "team",
+        updatedAt: new Date(),
+      })
+      .where(eq(onboardingSession.sessionId, sessionId))
+      .returning();
 
     return { venture, folderStructure };
   }
@@ -346,12 +364,25 @@ export class OnboardingManager {
     const session = await this.getSession(sessionId);
     if (!session) throw new Error("Session not found");
     
+    console.log("Full session data:", JSON.stringify(session, null, 2));
+    
     const stepData = session?.stepData as any;
-    const ventureId = stepData?.venture?.ventureId || stepData?.team?.ventureId;
-    const folderStructure = stepData?.venture?.folderStructure;
+    console.log("Step Data keys:", Object.keys(stepData || {}));
+    console.log("Venture step data:", stepData?.venture);
+    
+    // Check multiple locations for folderStructure
+    const folderStructure = stepData?.venture?.folderStructure || 
+                           session?.folderStructure || 
+                           stepData?.folderStructure;
+    
+    // Check multiple locations for ventureId
+    const ventureId = stepData?.venture?.ventureId || 
+                     stepData?.venture?.venture?.ventureId ||
+                     stepData?.team?.ventureId ||
+                     session?.ventureId;
 
-    console.log("Step Data: ", stepData);
-    console.log("Folder Structure: ", folderStructure);
+    console.log("Found ventureId:", ventureId);
+    console.log("Found folderStructure:", folderStructure);
     
     if (!ventureId) throw new Error("Venture step not completed");
 
@@ -362,8 +393,7 @@ export class OnboardingManager {
     if (eastEmblemAPI.isConfigured() && folderStructure?.folders?.['0_Overview']) {
       try {
         console.log("Uploading file to EastEmblem API in 0_Overview folder:", folderStructure.folders['0_Overview']);
-        // Use buffer if available (multer memory storage), otherwise read from disk
-        const fileBuffer = file.buffer || require('fs').readFileSync(file.path);
+        const fileBuffer = require('fs').readFileSync(file.path);
         
         const uploadResult = await eastEmblemAPI.uploadFile(
           fileBuffer,
@@ -423,6 +453,8 @@ export class OnboardingManager {
     const upload = stepData?.upload?.upload;
     const venture = stepData?.venture?.venture || stepData?.venture;
     const folderStructure = stepData?.venture?.folderStructure;
+
+    console.log("Submit for scoring : ", folderStructure);
     
     if (!upload || !venture) {
       throw new Error("Required onboarding steps not completed");
