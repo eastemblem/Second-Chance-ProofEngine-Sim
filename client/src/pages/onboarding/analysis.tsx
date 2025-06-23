@@ -141,38 +141,58 @@ export default function Analysis({
   // Use real scoring data only
   const analysisData = {
     total_score:
-      scoringResult?.output?.total_score || scoringResult?.total_score,
+      scoringResult?.output?.total_score || scoringResult?.total_score || 0,
     categories: scoringResult?.output || {},
     overall_feedback: scoringResult?.output?.overall_feedback || [],
     proofTags: scoringResult?.output?.tags || scoringResult?.tags || [],
   };
 
-  function generateProofTags(output: any) {
-    const tags = [];
-    if (!output)
-      return ["Analysis Complete", "Investment Ready", "Validation Needed"];
+  console.log("Analysis data for ProofTags:", analysisData);
 
-    // Generate tags based on scores
-    Object.entries(output).forEach(([key, value]: [string, any]) => {
-      if (value?.score >= 8) {
-        tags.push(`Strong ${key.replace("_", " ")}`);
-      } else if (value?.score >= 6) {
-        tags.push(`Good ${key.replace("_", " ")}`);
-      } else if (value?.score > 0) {
-        tags.push(`Needs ${key.replace("_", " ")} Work`);
-      }
-    });
-
-    // Add general tags based on total score
-    if (analysisData.total_score >= 80) {
-      tags.push("Investment Ready", "High Potential");
-    } else if (analysisData.total_score >= 60) {
-      tags.push("Promising Venture", "Refinement Needed");
-    } else {
-      tags.push("Early Stage", "Development Required");
+  // Generate ProofTags based on scoring data
+  function generateProofTags(scoringOutput: any, totalScore: number) {
+    const unlockedTags: string[] = [];
+    
+    console.log("Generating ProofTags from:", { scoringOutput, totalScore });
+    
+    if (!scoringOutput) {
+      console.log("No scoring output, returning default tags");
+      return {
+        unlocked: 2,
+        total: 10,
+        tags: ["Analysis Complete", "Validation Started"]
+      };
     }
 
-    return tags.slice(0, 8); // Limit to 8 tags
+    // Score-based tag unlocking (similar to data.ts logic)
+    const categories = scoringOutput;
+    
+    // Check each category score for tag unlocking
+    if (categories.Problem?.score >= 7) unlockedTags.push("Problem Validated");
+    if (categories.solution?.score >= 7) unlockedTags.push("Solution Proven");
+    if (categories.market_opportunity?.score >= 7) unlockedTags.push("Market Validated");
+    if (categories.product_technology?.score >= 7) unlockedTags.push("MVP Functional");
+    if (categories.business_model?.score >= 6) unlockedTags.push("Revenue Model");
+    if (categories.traction_milestones?.score >= 6) unlockedTags.push("Traction Proven");
+    if (categories.team?.score >= 7) unlockedTags.push("Strong Team");
+    if (categories.financials_projections_ask?.score >= 6) unlockedTags.push("Investor Ready");
+    
+    // Total score based tags
+    if (totalScore >= 80) {
+      unlockedTags.push("High Potential", "Investment Ready");
+    } else if (totalScore >= 60) {
+      unlockedTags.push("Promising Venture");
+    } else if (totalScore >= 40) {
+      unlockedTags.push("Development Stage");
+    }
+
+    console.log("Generated ProofTags:", unlockedTags);
+
+    return {
+      unlocked: unlockedTags.length,
+      total: 10,
+      tags: unlockedTags.slice(0, 10)
+    };
   }
 
   const dimensionColors = {
@@ -191,21 +211,22 @@ export default function Analysis({
     readiness: "🟥 Readiness",
   };
 
+  // Generate ProofTags from actual scoring data
+  const generatedProofTags = generateProofTags(analysisData.categories, analysisData.total_score);
+  
+  console.log("Generated ProofTags result:", generatedProofTags);
+
   // Map to ProofScore format for consistency with feedback.tsx
   const proofScore: ProofScoreResult = {
     total: analysisData.total_score,
     dimensions: {
-      desirability: analysisData.categories.Problem?.score || 0,
-      feasibility: analysisData.categories.solution?.score || 0,
-      viability: analysisData.categories.business_model?.score || 0,
-      traction: analysisData.categories.traction_milestones?.score || 0,
-      readiness: analysisData.categories.team?.score || 0,
+      desirability: analysisData.categories.Problem?.score || analysisData.categories.desirability?.score || 0,
+      feasibility: analysisData.categories.product_technology?.score || analysisData.categories.feasibility?.score || 0,
+      viability: analysisData.categories.business_model?.score || analysisData.categories.viability?.score || 0,
+      traction: analysisData.categories.traction_milestones?.score || analysisData.categories.traction?.score || 0,
+      readiness: analysisData.categories.financials_projections_ask?.score || analysisData.categories.readiness?.score || 0,
     },
-    prooTags: {
-      unlocked: Math.min(analysisData.proofTags.length, 0),
-      total: 10,
-      tags: [],
-    },
+    prooTags: generatedProofTags,
     insights: {
       strengths:
         scoringResult?.output?.key_insights?.filter(
@@ -303,9 +324,23 @@ export default function Analysis({
                   ),
                 )}
               </div>
-              <p className="text-sm text-muted-foreground">
-                {proofScore.prooTags.tags.join(" • ")}
-              </p>
+              {proofScore.prooTags.tags.length > 0 ? (
+                <div className="flex flex-wrap justify-center gap-2">
+                  {proofScore.prooTags.tags.map((tag, index) => (
+                    <Badge
+                      key={index}
+                      variant="secondary"
+                      className="bg-primary/10 text-primary"
+                    >
+                      {tag}
+                    </Badge>
+                  ))}
+                </div>
+              ) : (
+                <p className="text-sm text-muted-foreground text-center">
+                  Complete more validation steps to unlock ProofTags
+                </p>
+              )}
             </div>
           </Card>
 
