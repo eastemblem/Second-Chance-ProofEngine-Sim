@@ -500,14 +500,14 @@ export async function registerRoutes(app: Express): Promise<Server> {
           return res.status(400).json({ error: "No file uploaded" });
         }
 
-        const uploadResult = await onboardingManager.handleDocumentUpload(
+        const result = await onboardingManager.handleDocumentUpload(
           sessionId,
           req.file,
         );
 
         res.json({
           success: true,
-          upload: uploadResult,
+          upload: result.upload,
           nextStep: "processing",
         });
       } catch (error) {

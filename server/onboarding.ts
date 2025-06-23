@@ -362,7 +362,8 @@ export class OnboardingManager {
     if (eastEmblemAPI.isConfigured() && folderStructure?.folders?.['0_Overview']) {
       try {
         console.log("Uploading file to EastEmblem API in 0_Overview folder:", folderStructure.folders['0_Overview']);
-        const fileBuffer = require('fs').readFileSync(file.path);
+        // Use buffer if available (multer memory storage), otherwise read from disk
+        const fileBuffer = file.buffer || require('fs').readFileSync(file.path);
         
         const uploadResult = await eastEmblemAPI.uploadFile(
           fileBuffer,
