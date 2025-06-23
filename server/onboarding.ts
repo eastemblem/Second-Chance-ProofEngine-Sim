@@ -349,6 +349,9 @@ export class OnboardingManager {
     const stepData = session?.stepData as any;
     const ventureId = stepData?.venture?.ventureId || stepData?.team?.ventureId;
     const folderStructure = stepData?.venture?.folderStructure;
+
+    console.log("Step Data: ", stepData);
+    console.log("Folder Structure: ", folderStructure);
     
     if (!ventureId) throw new Error("Venture step not completed");
 

@@ -51,26 +51,26 @@ export default function Analysis({
   // Extract data from session - check multiple possible locations
   console.log("Analysis component received sessionData:", sessionData);
 
-  let scoringResult =
-    sessionData?.scoringResult ||
-    sessionData?.stepData?.processing?.scoringResult ||
-    sessionData?.processing?.scoringResult;
+  let scoringResult = {};
+  // sessionData?.scoringResult ||
+  // sessionData?.stepData?.processing?.scoringResult ||
+  // sessionData?.processing?.scoringResult;
 
   // Also try sessionStorage as fallback
-  if (!scoringResult) {
-    try {
-      const storedResult = sessionStorage.getItem("scoringResult");
-      if (storedResult) {
-        scoringResult = JSON.parse(storedResult);
-        console.log(
-          "Retrieved scoring result from sessionStorage:",
-          scoringResult,
-        );
-      }
-    } catch (error) {
-      console.error("Error parsing sessionStorage scoring result:", error);
-    }
-  }
+  // if (!scoringResult) {
+  //   try {
+  //     const storedResult = sessionStorage.getItem("scoringResult");
+  //     if (storedResult) {
+  //       scoringResult = JSON.parse(storedResult);
+  //       console.log(
+  //         "Retrieved scoring result from sessionStorage:",
+  //         scoringResult,
+  //       );
+  //     }
+  //   } catch (error) {
+  //     console.error("Error parsing sessionStorage scoring result:", error);
+  //   }
+  // }
 
   const founderData = sessionData?.stepData?.founder;
   const ventureData =
