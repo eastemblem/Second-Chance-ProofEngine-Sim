@@ -149,49 +149,24 @@ export default function Analysis({
 
   console.log("Analysis data for ProofTags:", analysisData);
 
-  // Generate ProofTags based on scoring data
-  function generateProofTags(scoringOutput: any, totalScore: number) {
-    const unlockedTags: string[] = [];
+  // Extract ProofTags directly from API response
+  function extractProofTags(scoringResult: any) {
+    console.log("Extracting ProofTags from scoring result:", scoringResult);
     
-    console.log("Generating ProofTags from:", { scoringOutput, totalScore });
+    // Look for tags in various locations in the API response
+    const apiTags = scoringResult?.output?.tags || 
+                   scoringResult?.tags || 
+                   scoringResult?.output?.proof_tags ||
+                   scoringResult?.proof_tags ||
+                   [];
     
-    if (!scoringOutput) {
-      console.log("No scoring output, returning default tags");
-      return {
-        unlocked: 2,
-        total: 10,
-        tags: ["Analysis Complete", "Validation Started"]
-      };
-    }
-
-    // Score-based tag unlocking (similar to data.ts logic)
-    const categories = scoringOutput;
+    console.log("Found API tags:", apiTags);
     
-    // Check each category score for tag unlocking
-    if (categories.Problem?.score >= 7) unlockedTags.push("Problem Validated");
-    if (categories.solution?.score >= 7) unlockedTags.push("Solution Proven");
-    if (categories.market_opportunity?.score >= 7) unlockedTags.push("Market Validated");
-    if (categories.product_technology?.score >= 7) unlockedTags.push("MVP Functional");
-    if (categories.business_model?.score >= 6) unlockedTags.push("Revenue Model");
-    if (categories.traction_milestones?.score >= 6) unlockedTags.push("Traction Proven");
-    if (categories.team?.score >= 7) unlockedTags.push("Strong Team");
-    if (categories.financials_projections_ask?.score >= 6) unlockedTags.push("Investor Ready");
-    
-    // Total score based tags
-    if (totalScore >= 80) {
-      unlockedTags.push("High Potential", "Investment Ready");
-    } else if (totalScore >= 60) {
-      unlockedTags.push("Promising Venture");
-    } else if (totalScore >= 40) {
-      unlockedTags.push("Development Stage");
-    }
-
-    console.log("Generated ProofTags:", unlockedTags);
-
+    // Only use tags from the API response, no generation
     return {
-      unlocked: unlockedTags.length,
+      unlocked: apiTags.length,
       total: 10,
-      tags: unlockedTags.slice(0, 10)
+      tags: apiTags
     };
   }
 
@@ -211,10 +186,10 @@ export default function Analysis({
     readiness: "🟥 Readiness",
   };
 
-  // Generate ProofTags from actual scoring data
-  const generatedProofTags = generateProofTags(analysisData.categories, analysisData.total_score);
+  // Extract ProofTags directly from API response
+  const extractedProofTags = extractProofTags(scoringResult);
   
-  console.log("Generated ProofTags result:", generatedProofTags);
+  console.log("Extracted ProofTags result:", extractedProofTags);
 
   // Map to ProofScore format for consistency with feedback.tsx
   const proofScore: ProofScoreResult = {
@@ -226,7 +201,7 @@ export default function Analysis({
       traction: analysisData.categories.traction_milestones?.score || analysisData.categories.traction?.score || 0,
       readiness: analysisData.categories.financials_projections_ask?.score || analysisData.categories.readiness?.score || 0,
     },
-    prooTags: generatedProofTags,
+    prooTags: extractedProofTags,
     insights: {
       strengths:
         scoringResult?.output?.key_insights?.filter(
