@@ -51,10 +51,10 @@ export default function Analysis({
   // Extract data from session - check multiple possible locations
   console.log("Analysis component received sessionData:", sessionData);
 
-  let scoringResult = {};
-  // sessionData?.scoringResult ||
-  // sessionData?.stepData?.processing?.scoringResult ||
-  // sessionData?.processing?.scoringResult;
+  let scoringResult =
+    sessionData?.scoringResult ||
+    sessionData?.stepData?.processing?.scoringResult ||
+    sessionData?.processing?.scoringResult;
 
   // Also try sessionStorage as fallback
   // if (!scoringResult) {

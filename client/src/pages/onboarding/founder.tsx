@@ -66,19 +66,19 @@ export default function FounderOnboarding({
       });
       return await res.json();
     },
-    onSuccess: (data) => {
+    onSuccess: async (data) => {
       if (data.success) {
         toast({
           title: "Success",
           description: "Founder information saved successfully",
         });
-        // Update session with founder data
-        const founderData = {
-          ...data,
-          completedAt: new Date().toISOString()
-        };
-        console.log("Founder step completed. Calling onDataUpdate with:", founderData);
-        onDataUpdate?.(founderData);
+        
+        console.log("👤 Founder step completed successfully");
+        
+        // Trigger session refresh from server
+        await onDataUpdate?.("founder", data);
+        
+        // Navigate to next step
         onNext();
       }
     },

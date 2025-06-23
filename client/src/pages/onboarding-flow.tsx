@@ -244,12 +244,9 @@ export default function OnboardingFlow({ onComplete }: OnboardingFlowProps) {
             {currentStep.key === "founder" && (
               <FounderOnboarding
                 sessionId={sessionData.sessionId}
-                initialData={sessionData.stepData.founder}
+                initialData={sessionData.stepData?.founder}
                 onNext={nextStep}
-                onDataUpdate={(data: any) => {
-                  console.log("FounderOnboarding onDataUpdate called with:", data);
-                  updateSessionData("founder", data);
-                }}
+                onDataUpdate={updateSessionData}
               />
             )}
             
@@ -269,10 +266,10 @@ export default function OnboardingFlow({ onComplete }: OnboardingFlowProps) {
             {currentStep.key === "team" && (
               <TeamOnboarding
                 sessionId={sessionData.sessionId}
-                initialData={sessionData.stepData.team}
+                initialData={sessionData.stepData?.team}
                 onNext={nextStep}
                 onPrev={prevStep}
-                onDataUpdate={(data: any) => updateSessionData("team", data)}
+                onDataUpdate={updateSessionData}
               />
             )}
             
@@ -281,7 +278,7 @@ export default function OnboardingFlow({ onComplete }: OnboardingFlowProps) {
                 sessionId={sessionData.sessionId}
                 onNext={nextStep}
                 onPrev={prevStep}
-                onDataUpdate={(data: any) => updateSessionData("upload", data)}
+                onDataUpdate={updateSessionData}
               />
             )}
             
@@ -289,7 +286,7 @@ export default function OnboardingFlow({ onComplete }: OnboardingFlowProps) {
               <ProcessingScreen
                 sessionId={sessionData.sessionId}
                 onNext={nextStep}
-                onDataUpdate={(data: any) => updateSessionData("processing", data)}
+                onDataUpdate={updateSessionData}
               />
             )}
             
