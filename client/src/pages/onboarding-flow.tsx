@@ -46,13 +46,20 @@ export default function OnboardingFlow({ onComplete }: OnboardingFlowProps) {
     },
     onSuccess: (data) => {
       if (data.success) {
+        console.log(`🎯 Initialized session:`, data);
+        
         setSessionData(data);
         // Find current step index
         const stepIndex = steps.findIndex(step => step.key === data.currentStep);
         setCurrentStepIndex(stepIndex >= 0 ? stepIndex : 0);
         
         // Store session in localStorage for persistence
-        localStorage.setItem('onboardingSession', JSON.stringify(data));
+        try {
+          localStorage.setItem('onboardingSession', JSON.stringify(data));
+          console.log(`💾 Initial session stored in localStorage`);
+        } catch (error) {
+          console.error(`❌ Failed to store initial session:`, error);
+        }
       }
     },
     onError: (error) => {
