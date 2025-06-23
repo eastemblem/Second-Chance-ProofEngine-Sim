@@ -48,29 +48,16 @@ export default function Analysis({
   const [isLoading, setIsLoading] = useState(false);
   const [sessionFromAPI, setSessionFromAPI] = useState<any>(null);
 
-  // Extract data from session - check multiple possible locations
+  // Extract data from session with comprehensive checking
   console.log("Analysis component received sessionData:", sessionData);
-
-  let scoringResult =
-    sessionData?.scoringResult ||
-    sessionData?.stepData?.processing?.scoringResult ||
-    sessionData?.processing?.scoringResult;
-
-  // Also try sessionStorage as fallback
-  // if (!scoringResult) {
-  //   try {
-  //     const storedResult = sessionStorage.getItem("scoringResult");
-  //     if (storedResult) {
-  //       scoringResult = JSON.parse(storedResult);
-  //       console.log(
-  //         "Retrieved scoring result from sessionStorage:",
-  //         scoringResult,
-  //       );
-  //     }
-  //   } catch (error) {
-  //     console.error("Error parsing sessionStorage scoring result:", error);
-  //   }
-  // }
+  console.log("SessionData stepData:", sessionData?.stepData);
+  console.log("Processing step data:", sessionData?.stepData?.processing);
+  
+  let scoringResult = sessionData?.scoringResult || 
+                     sessionData?.stepData?.processing?.scoringResult || 
+                     sessionData?.processing?.scoringResult;
+  
+  console.log("Initial scoringResult found:", scoringResult);
 
   const founderData = sessionData?.stepData?.founder;
   const ventureData =
@@ -105,9 +92,15 @@ export default function Analysis({
     }
   }, [sessionId, scoringResult]);
 
-  // Use API data if available and no scoring result from props
-  if (!scoringResult && sessionFromAPI) {
-    scoringResult = sessionFromAPI?.stepData?.processing?.scoringResult;
+  // Use API data if available (prioritize fresh API data)
+  if (sessionFromAPI) {
+    const apiScoringResult = sessionFromAPI?.stepData?.processing?.scoringResult;
+    if (apiScoringResult) {
+      console.log("Using scoring result from API:", apiScoringResult);
+      scoringResult = apiScoringResult;
+    } else {
+      console.log("No scoring result in API data. SessionFromAPI stepData:", sessionFromAPI?.stepData);
+    }
   }
 
   // Show loading state

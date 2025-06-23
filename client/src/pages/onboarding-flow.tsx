@@ -129,7 +129,43 @@ export default function OnboardingFlow({ onComplete }: OnboardingFlowProps) {
     }
   };
 
-  // Update session data with proper merging
+  // Refresh session data from server API
+  const refreshSessionFromServer = async () => {
+    if (!sessionData?.sessionId) {
+      console.error('No sessionId available for refresh');
+      return;
+    }
+
+    try {
+      console.log(`Refreshing session data from server...`);
+      const response = await fetch(`/api/onboarding/session/${sessionData.sessionId}`);
+      
+      if (response.ok) {
+        const serverSession = await response.json();
+        console.log(`Server session retrieved:`, serverSession.session);
+        
+        // Update local state with server data
+        const updatedSession = {
+          ...sessionData,
+          ...serverSession.session,
+          stepData: serverSession.session.stepData || {},
+          completedSteps: serverSession.session.completedSteps || []
+        };
+        
+        setSessionData(updatedSession);
+        localStorage.setItem('onboardingSession', JSON.stringify(updatedSession));
+        
+        console.log(`Local session synchronized with server`);
+        return updatedSession;
+      } else {
+        console.error(`Failed to fetch session: ${response.status}`);
+      }
+    } catch (error) {
+      console.error(`Error refreshing session:`, error);
+    }
+  };
+
+  // Simplified update - just trigger server refresh
   const updateSessionData = (stepKey: string, data: any) => {
     console.log(`Updating session data for step ${stepKey}:`, data);
     
