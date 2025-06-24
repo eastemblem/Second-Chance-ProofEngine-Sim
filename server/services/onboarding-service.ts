@@ -328,15 +328,22 @@ export class OnboardingService {
       throw new Error("Venture step not completed");
     }
 
+    // Ensure we have the file name
+    const fileName = file.originalname || file.filename || 'uploaded_pitch_deck.pdf';
+    console.log('Creating upload record with fileName:', fileName, 'file object:', file);
+
     // Save upload to database
     const upload = await db
       .insert(documentUpload)
       .values({
         sessionId,
-        fileName: file.originalname,
+        fileName: fileName,
+        originalName: fileName,
         filePath: file.path,
         fileSize: file.size,
         mimeType: file.mimetype,
+        uploadStatus: 'pending',
+        processingStatus: 'pending'
       })
       .returning();
 
