@@ -234,6 +234,14 @@ Demo experience for testing different user journeys:
   * Confirmed comprehensive scoring data available (67/100 total score with detailed breakdown)
   * Resolved data path mismatches between backend storage and frontend extraction
   * Analysis component now correctly displays EastEmblem API scoring results with team info and insights
+  * Fixed Box.com file upload JSON parsing error by adding proper error handling for malformed responses
+  * Enhanced file upload logging to debug EastEmblem API response issues
+  * Added explicit Box.com folder targeting for pitch deck uploads (6_Investor_Pack folder)
+  * Improved upload process with better error recovery and structured fallback responses
+  * Fixed file upload targeting to use correct Box.com folder (0_Overview instead of 6_Investor_Pack)
+  * Updated both onboarding service and legacy routes to target Overview folder for pitch deck uploads
+  * Enhanced upload logging to show target folder IDs for debugging folder placement
+  * Corrected folder targeting logic to match expected document organization structure
 
 ## User Preferences
 

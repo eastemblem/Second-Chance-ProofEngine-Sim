@@ -234,9 +234,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
       throw new Error("Overview folder not found");
     }
 
+    console.log(`Uploading ${uploadedFile.originalname} to Overview folder: ${overviewFolderId}`);
     const fileBuffer = fs.readFileSync(uploadedFile.filepath);
     
-    // Upload file and score
+    // Upload file to Overview folder and score
     const uploadResult = await eastEmblemAPI.uploadFile(
       fileBuffer,
       uploadedFile.originalname,
@@ -244,6 +245,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       sessionId,
       true
     );
+    console.log("Overview folder upload result:", uploadResult);
 
     const pitchDeckScore = await eastEmblemAPI.scorePitchDeck(
       fileBuffer,

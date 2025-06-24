@@ -407,13 +407,16 @@ export class OnboardingService {
         if (fs.existsSync(upload.filePath)) {
           const fileBuffer = fs.readFileSync(upload.filePath);
           
-          // Upload file to EastEmblem
-          await eastEmblemAPI.uploadFile(
+          // Upload file to EastEmblem Box.com folder (0_Overview)
+          console.log("Uploading file to Box.com folder:", folderStructure?.folders?.["0_Overview"]);
+          const uploadResult = await eastEmblemAPI.uploadFile(
             fileBuffer,
             upload.fileName,
-            folderStructure?.folders?.["6_Investor_Pack"] || "investor-pack",
-            sessionId
+            folderStructure?.folders?.["0_Overview"] || "overview",
+            sessionId,
+            true // allowShare
           );
+          console.log("Box.com upload result:", uploadResult);
 
           // Score the pitch deck
           scoringResult = await eastEmblemAPI.scorePitchDeck(
