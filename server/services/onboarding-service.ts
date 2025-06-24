@@ -303,16 +303,22 @@ export class OnboardingService {
       // Try to find session by looking up venture with this sessionId as founderId
       const ventures = await storage.getVenturesByFounderId(sessionId);
       if (ventures.length > 0) {
-        // Create a mock session for upload purposes
+        // Get the founder data to create a proper session context
+        const founder = await storage.getFounder(sessionId);
         session = {
           sessionId,
           currentStep: 'upload',
-          stepData: { founderId: sessionId, ventureId: ventures[0].ventureId },
+          stepData: { 
+            founder: founder ? { founderId: founder.founderId, ...founder } : { founderId: sessionId },
+            venture: { ventureId: ventures[0].ventureId, ...ventures[0] },
+            founderId: sessionId,
+            ventureId: ventures[0].ventureId 
+          },
           completedSteps: ['founder', 'venture', 'team'],
           isComplete: false
         };
       } else {
-        throw new Error("Session not found");
+        throw new Error(`Session not found for ID: ${sessionId}`);
       }
     }
 
