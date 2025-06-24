@@ -144,10 +144,8 @@ export default function TeamOnboarding({
         setShowAddForm(false);
         setEditingMember(null);
         // Force immediate refetch and cache invalidation
-        setTimeout(() => {
-          queryClient.invalidateQueries({ queryKey: ['team-members'] });
-          refetch();
-        }, 100);
+        queryClient.invalidateQueries({ queryKey: ['team-members', sessionId] });
+        refetch();
       }
     },
     onError: (error: any) => {
@@ -176,7 +174,7 @@ export default function TeamOnboarding({
           title: "Success", 
           description: `${memberName} updated successfully`,
         });
-        queryClient.invalidateQueries({ queryKey: ['team-members'] });
+        queryClient.invalidateQueries({ queryKey: ['team-members', sessionId] });
         refetch();
         setEditingMember(null);
         setShowAddForm(false);

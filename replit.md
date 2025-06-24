@@ -189,6 +189,9 @@ Demo experience for testing different user journeys:
   * Added automatic session data format conversion and validation
   * Implemented session recovery mechanism with restart functionality
   * Enhanced session initialization to handle both saved and new session scenarios
+  * Fixed team member UI refresh issues by correcting query cache invalidation keys
+  * Added Slack notifications for team member additions with proper formatting
+  * Enhanced team member operations to properly update UI state after database changes
 
 ## User Preferences
 

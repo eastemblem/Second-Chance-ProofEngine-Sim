@@ -1,6 +1,7 @@
 import { Request } from "express";
 import { storage } from "../storage";
 import { eastEmblemAPI } from "../eastemblem-api";
+import { eastEmblemAPI } from "../eastemblem-api";
 import { getSessionId, getSessionData, updateSessionData } from "../utils/session-manager";
 import { db } from "../db";
 import { onboardingSession, documentUpload } from "@shared/schema";
@@ -219,6 +220,16 @@ export class OnboardingService {
       ...memberData,
       ventureId: venture.ventureId,
     });
+
+    // Send Slack notification for team member addition
+    try {
+      await eastEmblemAPI.sendSlackNotification(
+        `\`Onboarding Id : ${sessionId}\`\n👥 Team Member Added - ${memberData.fullName} (${memberData.role}) to #notifications`,
+        sessionId
+      );
+    } catch (error) {
+      console.error('Failed to send Slack notification for team member:', error);
+    }
 
     return teamMember;
   }
