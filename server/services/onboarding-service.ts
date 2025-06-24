@@ -189,16 +189,21 @@ export class OnboardingService {
    * Add team member
    */
   async addTeamMember(sessionId: string, memberData: any) {
+    console.log(`Looking for session: ${sessionId}`);
     const session = await this.getSession(sessionId);
     if (!session) {
+      console.log(`Session ${sessionId} not found`);
       throw new Error("Session not found");
     }
 
+    console.log(`Session found:`, JSON.stringify(session, null, 2));
     const venture = session.stepData?.venture;
     if (!venture || !venture.ventureId) {
+      console.log(`Venture step not completed. Venture:`, venture);
       throw new Error("Venture step not completed or venture ID missing");
     }
 
+    console.log(`Creating team member for venture: ${venture.ventureId}`);
     const teamMember = await storage.createTeamMember({
       ...memberData,
       ventureId: venture.ventureId,
