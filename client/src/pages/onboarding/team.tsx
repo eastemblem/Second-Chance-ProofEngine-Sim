@@ -110,9 +110,10 @@ export default function TeamOnboarding({
     },
     onSuccess: (data) => {
       if (data?.success) {
+        const memberName = data?.data?.teamMember?.fullName || "Team member";
         toast({
           title: "Success",
-          description: `${data?.teamMember?.fullName} added to the team`,
+          description: `${memberName} added to the team`,
         });
         form.reset();
         setShowAddForm(false);
@@ -145,9 +146,10 @@ export default function TeamOnboarding({
     },
     onSuccess: (data) => {
       if (data?.success) {
+        const memberName = data?.data?.teamMember?.fullName || "Team member";
         toast({
           title: "Success", 
-          description: `${data?.teamMember?.fullName} updated successfully`,
+          description: `${memberName} updated successfully`,
         });
         queryClient.invalidateQueries({ queryKey: ['team-members'] });
         refetch();

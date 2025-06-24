@@ -169,6 +169,9 @@ Demo experience for testing different user journeys:
   * Fixed session data persistence issues across all onboarding stages
   * Enhanced team member and document upload endpoints with robust venture lookup
   * Completed comprehensive fix for remaining onboarding stage errors
+  * Fixed "undefined added to team" toast message by correcting data path access
+  * Updated team member success messages to properly display member names
+  * Enhanced frontend toast notifications with proper error handling for missing data
 
 ## User Preferences
 
