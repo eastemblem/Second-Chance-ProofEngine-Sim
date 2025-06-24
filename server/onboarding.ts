@@ -66,6 +66,20 @@ export class OnboardingManager {
       .returning();
 
     console.log("Created new onboarding session:", newSession.sessionId);
+    
+    // Send Slack notification for session start
+    try {
+      if (eastEmblemAPI.isConfigured()) {
+        await eastEmblemAPI.sendSlackNotification(
+          `Onboarding Id : ${newSession.sessionId}\nℹ️ Started Onboarding !`,
+          "#notifications",
+          newSession.sessionId
+        );
+      }
+    } catch (error) {
+      console.log("Failed to send session start notification:", error);
+    }
+    
     return newSession.sessionId;
   }
 
@@ -466,6 +480,19 @@ export class OnboardingManager {
       }
     }, true);
 
+    // Send Slack notification for document upload
+    try {
+      if (eastEmblemAPI.isConfigured()) {
+        await eastEmblemAPI.sendSlackNotification(
+          `Onboarding Id : ${sessionId}\n📄 Document Uploaded - ${file.originalname}`,
+          "#notifications",
+          sessionId
+        );
+      }
+    } catch (error) {
+      console.log("Failed to send document upload notification:", error);
+    }
+
     return {
       ...upload,
       uploadedToBox: !!eastemblemFileId,
@@ -572,6 +599,20 @@ export class OnboardingManager {
         }
       })
       .where(eq(onboardingSession.sessionId, sessionId));
+
+    // Send Slack notification for analysis completion
+    try {
+      if (eastEmblemAPI.isConfigured()) {
+        const totalScore = scoringResult?.output?.total_score || 0;
+        await eastEmblemAPI.sendSlackNotification(
+          `Onboarding Id : ${sessionId}\n🎯 Analysis Completed - Pitch Deck Score: ${totalScore}/100`,
+          "#notifications",
+          sessionId
+        );
+      }
+    } catch (error) {
+      console.log("Failed to send analysis completion notification:", error);
+    }
 
     return {
       session: {
