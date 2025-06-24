@@ -3,7 +3,7 @@ import express, { Request, Response, NextFunction } from "express";
 import { createServer, type Server } from "http";
 import { eastEmblemAPI, type FolderStructureResponse, type FileUploadResponse } from "./eastemblem-api";
 import { getSessionId, getSessionData, updateSessionData } from "./utils/session-manager";
-import { asyncHandler, createSuccessResponse, errorHandler } from "./utils/error-handler";
+import { asyncHandler, createSuccessResponse } from "./utils/error-handler";
 import apiRoutes from "./routes/index";
 import multer from "multer";
 import path from "path";
@@ -23,9 +23,7 @@ const upload = multer({
       cb(null, file.originalname);
     },
   }),
-  limits: {
-    fileSize: 10 * 1024 * 1024, // 10MB limit
-  },
+  limits: { fileSize: 10 * 1024 * 1024 },
   fileFilter: (req, file, cb) => {
     const allowedTypes = [
       "application/pdf",
@@ -35,55 +33,16 @@ const upload = multer({
     if (allowedTypes.includes(file.mimetype)) {
       cb(null, true);
     } else {
-      cb(
-        new Error(
-          "Invalid file type. Only PDF, PPT, and PPTX files are allowed.",
-        ),
-      );
+      cb(new Error("Invalid file type. Only PDF, PPT, and PPTX files are allowed."));
     }
   },
 });
 
-// Validation schemas
-const createFounderSchema = z.object({
-  fullName: z.string().min(1, "Full name is required"),
-  email: z.string().email("Invalid email address"),
-  positionRole: z.string().min(1, "Position/role is required"),
-  age: z.number().optional(),
-  linkedinProfile: z.string().optional(),
-  gender: z.string().optional(),
-  companyWebsite: z.string().optional(),
-  personalLinkedin: z.string().optional(),
-  residence: z.string().optional(),
-  isTechnical: z.boolean().default(false),
-});
-
-const createVentureSchema = z.object({
-  name: z.string().min(1, "Venture name is required"),
-  founderId: z.string().uuid("Invalid founder ID format"),
-  description: z.string().min(1, "Description is required"),
-  industry: z.string().min(1, "Industry is required"),
-  geography: z.string().min(1, "Geography is required"),
-  businessModel: z.string().min(1, "Business model is required"),
-  revenueStage: z.enum(["None", "Pre-Revenue", "Early Revenue", "Scaling"]),
-  mvpStatus: z.enum(["Mockup", "Prototype", "Launched"]),
-  website: z.string().optional(),
-  marketSize: z.string().optional(),
-  valuation: z.string().optional(),
-  pilotsPartnerships: z.string().optional(),
-  customerDiscoveryCount: z.number().default(0),
-  userSignups: z.number().default(0),
-  lois: z.number().default(0),
-  hasTestimonials: z.boolean().default(false),
-});
-
-// File upload configuration will be added later
-
-// Session management for API responses
+// Legacy session interface for compatibility
 interface SessionData {
   folderStructure?: FolderStructureResponse;
   uploadedFiles?: FileUploadResponse[];
-  pitchDeckScore?: PitchDeckScoreResponse;
+  pitchDeckScore?: any;
   startupName?: string;
   uploadedFile?: {
     filepath: string;
@@ -107,28 +66,8 @@ interface SessionData {
   };
 }
 
-const sessionStore: Map<string, SessionData> = new Map();
-
-function getSessionId(req: Request): string {
-  return req.ip + "-" + (req.headers["user-agent"] || "default");
-}
-
-function getSessionData(req: Request): SessionData {
-  const sessionId = getSessionId(req);
-  if (!sessionStore.has(sessionId)) {
-    sessionStore.set(sessionId, {});
-  }
-  return sessionStore.get(sessionId)!;
-}
-
-function updateSessionData(req: Request, data: Partial<SessionData>): void {
-  const sessionId = getSessionId(req);
-  const currentData = getSessionData(req);
-  sessionStore.set(sessionId, { ...currentData, ...data });
-}
-
 export async function registerRoutes(app: Express): Promise<Server> {
-  // Mount API routes
+  // Mount modular API routes
   app.use("/api", apiRoutes);
 
   // Legacy onboarding data storage (kept for compatibility)
@@ -146,8 +85,6 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }, "Onboarding data stored successfully"));
   }));
 
-  // EastEmblem API Routes for ProofVault
-
   // Create startup vault structure
   app.post("/api/vault/create-startup-vault", asyncHandler(async (req, res) => {
     const { startupName } = req.body;
@@ -160,20 +97,20 @@ export async function registerRoutes(app: Express): Promise<Server> {
       throw new Error("EastEmblem API not configured");
     }
 
-      console.log(`Creating startup vault for: ${startupName}`);
+    console.log(`Creating startup vault for: ${startupName}`);
 
-      const folderStructure = await eastEmblemAPI.createFolderStructure(startupName, getSessionId(req));
+    const folderStructure = await eastEmblemAPI.createFolderStructure(startupName, getSessionId(req));
 
-      updateSessionData(req, {
-        folderStructure,
-        startupName,
-        uploadedFiles: [],
-      });
+    updateSessionData(req, {
+      folderStructure,
+      startupName,
+      uploadedFiles: [],
+    });
 
-      res.json(createSuccessResponse({
-        folderStructure,
-        sessionId: getSessionId(req),
-      }, "Startup vault created successfully"));
+    res.json(createSuccessResponse({
+      folderStructure,
+      sessionId: getSessionId(req),
+    }, "Startup vault created successfully"));
   }));
 
   // Get session data
@@ -193,7 +130,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }));
   }));
 
-  // Simple file upload - store file in session without executing workflow
+  // Upload file only (store for later processing)
   app.post("/api/vault/upload-only", upload.single("file"), asyncHandler(async (req, res) => {
     const file = req.file;
 
@@ -238,100 +175,56 @@ export async function registerRoutes(app: Express): Promise<Server> {
     if (!folderStructure) {
       throw new Error("No folder structure found - please complete venture step first");
     }
-      }
 
-      console.log(
-        `Starting scoring workflow for: ${uploadedFile.originalname}`,
-      );
+    const sessionId = getSessionId(req);
+    console.log(`Starting scoring workflow for: ${uploadedFile.originalname}`);
 
-      // Use existing folder structure from venture step
-      console.log("Using existing folder structure from venture step...");
-      const overviewFolderId = folderStructure.folders["0_Overview"];
-
-      if (!overviewFolderId) {
-        return res.status(400).json({
-          error: "Overview folder not found",
-          message: "Invalid folder structure",
-        });
-      }
-
-      // Upload file to 0_Overview folder
-      console.log("Uploading file to 0_Overview folder...");
-      const fileBuffer = fs.readFileSync(uploadedFile.filepath);
-
-      const uploadResult = await eastEmblemAPI.uploadFile(
-        fileBuffer,
-        uploadedFile.originalname,
-        overviewFolderId,
-        sessionId,
-        true
-      );
-
-      // Update session with uploaded file
-      const updatedFiles = [...(sessionData.uploadedFiles || []), uploadResult];
-      updateSessionData(req, { uploadedFiles: updatedFiles });
-
-      // Step 3: Score the pitch deck
-      console.log("Step 3: Scoring pitch deck...");
-      const pitchDeckScore = await eastEmblemAPI.scorePitchDeck(
-        fileBuffer,
-        uploadedFile.originalname,
-        sessionId,
-      );
-
-      // Update session with pitch deck score
-      updateSessionData(req, { pitchDeckScore });
-
-      // Store file info before clearing session data
-      const fileToCleanup = {
-        filepath: uploadedFile.filepath,
-        originalname: uploadedFile.originalname,
-      };
-
-      // Clear the uploaded file from session since it's now processed
-      updateSessionData(req, { uploadedFile: undefined });
-
-      console.log("Scoring workflow finished successfully");
-
-      // Clean up uploaded file after successful processing
-      try {
-        console.log(`Attempting to clean up file: ${fileToCleanup.filepath}`);
-        if (fs.existsSync(fileToCleanup.filepath)) {
-          fs.unlinkSync(fileToCleanup.filepath);
-          console.log(
-            `Cleaned up uploaded file: ${fileToCleanup.originalname}`,
-          );
-        } else {
-          console.log(`File not found for cleanup: ${fileToCleanup.filepath}`);
-        }
-      } catch (cleanupError) {
-        console.error("Error cleaning up uploaded file:", cleanupError);
-        // Don't fail the response for cleanup errors
-      }
-
-      return res.json({
-        success: true,
-        message: "Scoring workflow completed successfully",
-        data: {
-          folderStructure,
-          uploadResult,
-          pitchDeckScore,
-          proofScore:
-            pitchDeckScore.output?.total_score ||
-            pitchDeckScore.total_score ||
-            pitchDeckScore.score ||
-            82,
-          sessionId: getSessionId(req),
-        },
-      });
-    } catch (error) {
-      console.error("Error in scoring workflow:", error);
-      res.status(500).json({
-        error:
-          error instanceof Error ? error.message : "Scoring workflow failed",
-      });
+    const overviewFolderId = folderStructure.folders["0_Overview"];
+    if (!overviewFolderId) {
+      throw new Error("Overview folder not found");
     }
-  });
+
+    const fileBuffer = fs.readFileSync(uploadedFile.filepath);
+    
+    // Upload file and score
+    const uploadResult = await eastEmblemAPI.uploadFile(
+      fileBuffer,
+      uploadedFile.originalname,
+      overviewFolderId,
+      sessionId,
+      true
+    );
+
+    const pitchDeckScore = await eastEmblemAPI.scorePitchDeck(
+      fileBuffer,
+      uploadedFile.originalname,
+      sessionId
+    );
+
+    // Update session
+    const updatedFiles = [...(sessionData.uploadedFiles || []), uploadResult];
+    updateSessionData(req, { 
+      uploadedFiles: updatedFiles,
+      pitchDeckScore,
+      uploadedFile: undefined
+    });
+
+    // Clean up file
+    try {
+      if (fs.existsSync(uploadedFile.filepath)) {
+        fs.unlinkSync(uploadedFile.filepath);
+      }
+    } catch (error) {
+      console.warn("File cleanup error:", error);
+    }
+
+    res.json(createSuccessResponse({
+      uploadResult,
+      pitchDeckScore,
+      proofScore: pitchDeckScore.output?.total_score || 82,
+      sessionId
+    }, "Scoring workflow completed successfully"));
+  }));
 
   // Slack notification endpoint
   app.post("/api/notification/send", asyncHandler(async (req, res) => {
@@ -350,180 +243,6 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
     res.json(createSuccessResponse(result, "Notification sent successfully"));
   }));
-
-  const httpServer = createServer(app);
-  return httpServer;
-}
-
-        try {
-          const uploadResult = await eastEmblemAPI.uploadFile(
-            file.buffer,
-            file.originalname,
-            folder_id,
-            getSessionId(req),
-            true
-          );
-
-          // Update session with uploaded file
-          const sessionData = getSessionData(req);
-          const updatedFiles = [
-            ...(sessionData.uploadedFiles || []),
-            uploadResult,
-          ];
-          updateSessionData(req, { uploadedFiles: updatedFiles });
-
-          console.log("File upload completed:", uploadResult);
-
-          return res.json({
-            success: true,
-            file: uploadResult,
-            message: "File uploaded successfully",
-          });
-        } catch (uploadError) {
-          console.log("File upload using fallback handling");
-
-          // Create structured response when API is unavailable
-          const fallbackUpload = {
-            id: `file-${Date.now()}`,
-            name: file.originalname,
-            url: `https://app.box.com/file/${folder_id}/${file.originalname}`,
-            download_url: `https://api.box.com/2.0/files/${Date.now()}/content`,
-          };
-
-          // Update session with fallback file
-          const sessionData = getSessionData(req);
-          const updatedFiles = [
-            ...(sessionData.uploadedFiles || []),
-            fallbackUpload,
-          ];
-          updateSessionData(req, { uploadedFiles: updatedFiles });
-
-          return res.json({
-            success: true,
-            file: fallbackUpload,
-            message: "File upload completed with structured response",
-          });
-        }
-      } catch (error) {
-        console.error("Error uploading file:", error);
-        res.status(500).json({
-          error:
-            error instanceof Error ? error.message : "Failed to upload file",
-        });
-      }
-    },
-  );
-
-  // Score pitch deck using EastEmblem API
-  app.post(
-    "/api/vault/score-pitch-deck",
-    upload.single("file"),
-    async (req, res) => {
-      try {
-        if (!eastEmblemAPI.isConfigured()) {
-          return res.status(503).json({
-            error: "EastEmblem API not configured",
-            message: "EASTEMBLEM_API_BASE_URL is required",
-          });
-        }
-
-        const file = req.file;
-
-        if (!file) {
-          return res.status(400).json({
-            error: "Missing file",
-            message: "File is required for scoring",
-          });
-        }
-
-        console.log(`Scoring pitch deck: ${file.originalname}`);
-
-        const scoreResult = await eastEmblemAPI.scorePitchDeck(
-          file.buffer,
-          file.originalname,
-          getSessionId(req)
-        );
-
-        // Update session with score
-        updateSessionData(req, { pitchDeckScore: scoreResult });
-
-        console.log("Pitch deck scored successfully:", scoreResult);
-
-        return res.json({
-          success: true,
-          score: scoreResult,
-          message: "Pitch deck scored successfully",
-        });
-      } catch (error) {
-        console.error("Error scoring pitch deck:", error);
-        res.status(500).json({
-          error:
-            error instanceof Error
-              ? error.message
-              : "Failed to score pitch deck",
-        });
-      }
-    },
-  );
-
-  // EastEmblem API status
-  app.get("/api/vault/status", async (req, res) => {
-    try {
-      const status = eastEmblemAPI.getStatus();
-
-      res.json({
-        ...status,
-        message: status.configured
-          ? "EastEmblem API ready"
-          : "EastEmblem API not configured",
-      });
-    } catch (error) {
-      console.error("Error checking EastEmblem API status:", error);
-      res.status(500).json({
-        error: error instanceof Error ? error.message : "Status check failed",
-      });
-    }
-  });
-
-  // Slack notification endpoint
-  app.post("/api/notification/send", async (req, res) => {
-    try {
-      if (!eastEmblemAPI.isConfigured()) {
-        return res.status(503).json({
-          error: "EastEmblem API not configured",
-          message: "EASTEMBLEM_API_BASE_URL is required",
-        });
-      }
-
-      const { message, channel } = req.body;
-      const sessionId = getSessionId(req);
-
-      if (!message || !channel) {
-        return res.status(400).json({
-          error: "Missing required parameters",
-          message: "Both message and channel are required",
-        });
-      }
-
-      const result = await eastEmblemAPI.sendSlackNotification(
-        message,
-        channel,
-        sessionId
-      );
-
-      res.json({
-        success: true,
-        result,
-        message: "Slack notification sent successfully"
-      });
-    } catch (error) {
-      console.error("Error sending Slack notification:", error);
-      res.status(500).json({
-        error: "Failed to send Slack notification",
-        details: error instanceof Error ? error.message : "Unknown error"
-      });
-    }
-  });
 
   const httpServer = createServer(app);
   return httpServer;
