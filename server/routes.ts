@@ -5,6 +5,7 @@ import { eastEmblemAPI, type FolderStructureResponse, type FileUploadResponse } 
 import { getSessionId, getSessionData, updateSessionData } from "./utils/session-manager";
 import { asyncHandler, createSuccessResponse } from "./utils/error-handler";
 import { cleanupUploadedFile } from "./utils/file-cleanup";
+import { onboardingService } from "./services/onboarding-service";
 import apiRoutes from "./routes/index";
 import multer from "multer";
 import path from "path";
@@ -68,6 +69,54 @@ interface SessionData {
 }
 
 export async function registerRoutes(app: Express): Promise<Server> {
+  // Direct submit for scoring endpoint (must be before general API routes)
+  app.post("/api/submit-for-scoring", asyncHandler(async (req, res) => {
+    console.log('Direct submit-for-scoring endpoint called');
+    const { sessionId } = req.body;
+    
+    if (!sessionId) {
+      res.setHeader('Content-Type', 'application/json');
+      return res.status(400).json({
+        success: false,
+        error: {
+          message: "sessionId is required",
+          status: 400
+        }
+      });
+    }
+
+    try {
+      const result = await onboardingService.submitForScoring(sessionId);
+      
+      const response = {
+        success: true,
+        data: {
+          session: {
+            sessionId,
+            stepData: {
+              processing: result.scoringResult
+            }
+          },
+          ...result
+        }
+      };
+      
+      res.setHeader('Content-Type', 'application/json');
+      res.json(response);
+    } catch (error) {
+      console.error('Submit for scoring error:', error);
+      res.setHeader('Content-Type', 'application/json');
+      res.status(500).json({
+        success: false,
+        error: {
+          message: error.message,
+          status: 500
+        },
+        sessionId
+      });
+    }
+  }));
+
   // Mount modular API routes
   app.use("/api", apiRoutes);
 
@@ -220,6 +269,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
       sessionId
     }, "Scoring workflow completed successfully"));
   }));
+
+
 
   // Slack notification endpoint
   app.post("/api/notification/send", asyncHandler(async (req, res) => {

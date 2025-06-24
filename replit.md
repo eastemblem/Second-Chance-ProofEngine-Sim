@@ -220,6 +220,10 @@ Demo experience for testing different user journeys:
   * Added comprehensive error handling and logging for debugging API response parsing
   * Confirmed EastEmblem API integration working with detailed scoring results (60/100 total score)
   * Complete end-to-end functionality: file upload → analysis → JSON response → UI processing
+  * Added legacy /api/submit-for-scoring endpoint to prevent HTML fallthrough responses
+  * Fixed routing issue where frontend was calling wrong endpoint path
+  * Ensured all scoring endpoints return proper JSON with explicit content-type headers
+  * Resolved HTML response issue by adding direct endpoint mapping to onboarding service
 
 ## User Preferences
 
