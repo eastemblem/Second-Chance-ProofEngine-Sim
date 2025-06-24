@@ -133,10 +133,20 @@ router.post("/upload", upload.single("pitchDeck"), asyncHandler(async (req, res)
 router.post("/team/add", asyncHandler(async (req, res) => {
   // Try to get sessionId from body first, then from session middleware
   const { sessionId: bodySessionId, ...memberData } = req.body;
-  const sessionId = bodySessionId || getSessionId(req);
+  let sessionId = bodySessionId;
   
+  // Fallback to session middleware if no sessionId in body
   if (!sessionId) {
-    throw new Error("Session ID required");
+    try {
+      sessionId = getSessionId(req);
+    } catch (error) {
+      // If session middleware fails, still require sessionId in body
+      throw new Error("Session ID required in request body");
+    }
+  }
+  
+  if (!sessionId || sessionId === 'undefined') {
+    throw new Error("Valid session ID required");
   }
   
   const validation = safeValidate(teamMemberSchema, memberData);

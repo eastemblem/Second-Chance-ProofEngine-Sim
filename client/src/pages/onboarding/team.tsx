@@ -51,6 +51,18 @@ export default function TeamOnboarding({
   const [showAddForm, setShowAddForm] = useState(false);
   const [editingMember, setEditingMember] = useState<any>(null);
 
+  // Validate sessionId on component mount
+  if (!sessionId || sessionId === 'undefined') {
+    console.error('TeamOnboarding: Invalid sessionId provided:', sessionId);
+    return (
+      <div className="max-w-4xl mx-auto p-6">
+        <div className="text-center text-red-600">
+          Session error: Please restart the onboarding process.
+        </div>
+      </div>
+    );
+  }
+
   const form = useForm<TeamMemberFormData>({
     resolver: zodResolver(teamMemberSchema),
     defaultValues: {
@@ -101,11 +113,22 @@ export default function TeamOnboarding({
   // Add team member mutation
   const addMemberMutation = useMutation({
     mutationFn: async (data: TeamMemberFormData) => {
+      if (!sessionId || sessionId === 'undefined') {
+        throw new Error('Invalid session ID - please restart onboarding');
+      }
+      
+      console.log('Adding team member with sessionId:', sessionId);
       const response = await fetch("/api/onboarding/team/add", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ sessionId, ...data })
       });
+      
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.error?.message || 'Failed to add team member');
+      }
+      
       return await response.json();
     },
     onSuccess: (data) => {
@@ -195,10 +218,23 @@ export default function TeamOnboarding({
   // Complete team step mutation
   const completeTeamMutation = useMutation({
     mutationFn: async () => {
-      const res = await apiRequest("POST", "/api/onboarding/team/complete", {
-        sessionId
+      if (!sessionId || sessionId === 'undefined') {
+        throw new Error('Invalid session ID - please restart onboarding');
+      }
+      
+      console.log('Completing team step with sessionId:', sessionId);
+      const response = await fetch("/api/onboarding/team/complete", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ sessionId })
       });
-      return await res.json();
+      
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.error?.message || 'Failed to complete team step');
+      }
+      
+      return await response.json();
     },
     onSuccess: () => {
       toast({

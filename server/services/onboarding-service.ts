@@ -189,9 +189,13 @@ export class OnboardingService {
    * Add team member
    */
   async addTeamMember(sessionId: string, memberData: any) {
+    if (!sessionId || sessionId === 'undefined') {
+      throw new Error("Invalid session ID provided");
+    }
+
     const session = await this.getSession(sessionId);
     if (!session) {
-      throw new Error("Session not found");
+      throw new Error(`Session ${sessionId} not found - onboarding may have expired`);
     }
 
     // Look for venture data in session or get most recent venture for the founder
@@ -209,7 +213,7 @@ export class OnboardingService {
     }
 
     if (!venture || !venture.ventureId) {
-      throw new Error("Venture step not completed or venture ID missing");
+      throw new Error("Venture information missing - please complete the venture step first");
     }
     const teamMember = await storage.createTeamMember({
       ...memberData,
