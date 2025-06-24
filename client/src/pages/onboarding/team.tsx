@@ -106,10 +106,10 @@ export default function TeamOnboarding({
       return await response.json();
     },
     onSuccess: (data) => {
-      if (data.success) {
+      if (data?.success) {
         toast({
           title: "Success",
-          description: `${data.teamMember.fullName} added to the team`,
+          description: `${data?.teamMember?.fullName} added to the team`,
         });
         form.reset();
         setShowAddForm(false);
@@ -141,10 +141,10 @@ export default function TeamOnboarding({
       return await response.json();
     },
     onSuccess: (data) => {
-      if (data.success) {
+      if (data?.success) {
         toast({
           title: "Success", 
-          description: `${data.teamMember.fullName} updated successfully`,
+          description: `${data?.teamMember?.fullName} updated successfully`,
         });
         queryClient.invalidateQueries({ queryKey: ['team-members'] });
         refetch();
@@ -223,18 +223,18 @@ export default function TeamOnboarding({
     setEditingMember(member);
     setShowAddForm(true);
     form.reset({
-      fullName: member.fullName || "",
-      role: member.role || "",
-      experience: member.experience || "",
-      email: member.email || "",
-      linkedinProfile: member.linkedinProfile || "",
-      background: member.background || "",
-      twitterUrl: member.twitterUrl || "",
-      instagramUrl: member.instagramUrl || "",
-      githubUrl: member.githubUrl || "",
-      age: member.age || undefined,
-      gender: member.gender || "",
-      isCofounder: member.isCofounder || false,
+      fullName: member?.fullName || "",
+      role: member?.role || "",
+      experience: member?.experience || "",
+      email: member?.email || "",
+      linkedinProfile: member?.linkedinProfile || "",
+      background: member?.background || "",
+      twitterUrl: member?.twitterUrl || "",
+      instagramUrl: member?.instagramUrl || "",
+      githubUrl: member?.githubUrl || "",
+      age: member?.age || undefined,
+      gender: member?.gender || "",
+      isCofounder: member?.isCofounder || false,
     });
   };
 

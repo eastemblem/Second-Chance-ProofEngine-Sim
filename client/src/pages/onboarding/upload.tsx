@@ -49,7 +49,7 @@ export default function DocumentUpload({
           title: "Success",
           description: "Pitch deck uploaded successfully",
         });
-        onDataUpdate({ upload: data.upload });
+        onDataUpdate({ upload: data?.upload });
         onNext();
       }
     },

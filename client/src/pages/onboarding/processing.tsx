@@ -55,14 +55,14 @@ export default function ProcessingScreen({
       return await res.json();
     },
     onSuccess: async (data) => {
-      if (data.success) {
+      if (data?.success) {
         console.log("Processing completed. Full response:", data);
         console.log("Session data from processing:", data.session);
         console.log("Session stepData:", data.session?.stepData);
         console.log("Processing step data:", data.session?.stepData?.processing);
         
         // Update session data with processing results
-        await onDataUpdate("processing", data.session?.stepData?.processing);
+        await onDataUpdate("processing", data?.session?.stepData?.processing);
         setProcessingComplete(true);
         
         setTimeout(() => {
