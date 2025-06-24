@@ -7,6 +7,7 @@ import { TooltipProvider } from "@/components/ui/tooltip";
 import { lazy, Suspense } from "react";
 import { PerformanceMonitor } from "@/components/performance-monitor";
 import { MemoryOptimizer } from "@/components/memory-optimizer";
+import { PerformanceBoundary } from "@/components/performance-boundary";
 // CriticalLoader removed - optimizations moved to main.tsx
 
 // Lazy load page components with preload hints
@@ -165,14 +166,16 @@ function Router() {
 
 function App() {
   return (
-    <QueryClientProvider client={queryClient}>
-      <TooltipProvider>
-        <PerformanceMonitor />
-        <MemoryOptimizer />
-        <Toaster />
-        <Router />
-      </TooltipProvider>
-    </QueryClientProvider>
+    <PerformanceBoundary>
+      <QueryClientProvider client={queryClient}>
+        <TooltipProvider>
+          <PerformanceMonitor />
+          <MemoryOptimizer />
+          <Toaster />
+          <Router />
+        </TooltipProvider>
+      </QueryClientProvider>
+    </PerformanceBoundary>
   );
 }
 
