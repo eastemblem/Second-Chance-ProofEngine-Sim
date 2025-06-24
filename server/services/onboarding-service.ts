@@ -31,6 +31,19 @@ export class OnboardingService {
         completedSteps: [],
         isComplete: false,
       });
+
+      // Send Slack notification for onboarding start (async, no wait)
+      if (eastEmblemAPI.isConfigured()) {
+        eastEmblemAPI
+          .sendSlackNotification(
+            `\`Onboarding Id : ${sessionId}\`\n🚀 New Onboarding Session Started`,
+            "#notifications",
+            sessionId,
+          )
+          .catch((error) => {
+            console.log("Failed to send onboarding start notification:", error);
+          });
+      }
     }
 
     return sessionId;
@@ -220,14 +233,17 @@ export class OnboardingService {
       ventureId: venture.ventureId,
     });
 
-    // Send Slack notification for team member addition
-    try {
-      await eastEmblemAPI.sendSlackNotification(
-        `\`Onboarding Id : ${sessionId}\`\n👥 Team Member Added - ${memberData.fullName} (${memberData.role}) to #notifications`,
-        sessionId
-      );
-    } catch (error) {
-      console.error('Failed to send Slack notification for team member:', error);
+    // Send Slack notification for team member addition (async, no wait)
+    if (eastEmblemAPI.isConfigured()) {
+      eastEmblemAPI
+        .sendSlackNotification(
+          `\`Onboarding Id : ${sessionId}\`\n👤 Team Member Added - ${memberData.fullName} (${memberData.role})`,
+          "#notifications",
+          sessionId,
+        )
+        .catch((error) => {
+          console.log("Failed to send team member addition notification:", error);
+        });
     }
 
     return teamMember;
