@@ -1,7 +1,6 @@
 import { Request } from "express";
 import { storage } from "../storage";
 import { eastEmblemAPI } from "../eastemblem-api";
-import { eastEmblemAPI } from "../eastemblem-api";
 import { getSessionId, getSessionData, updateSessionData } from "../utils/session-manager";
 import { db } from "../db";
 import { onboardingSession, documentUpload } from "@shared/schema";
