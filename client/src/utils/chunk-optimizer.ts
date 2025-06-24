@@ -50,31 +50,16 @@ export function initializeOptimizations() {
 // Add resource hints for faster loading
 function optimizeResourceHints() {
   if (typeof document !== 'undefined') {
-    // Preconnect to external domains
-    const preconnectDomains = [
-      'https://fonts.googleapis.com',
-      'https://fonts.gstatic.com'
-    ];
-    
-    preconnectDomains.forEach(domain => {
-      const link = document.createElement('link');
-      link.rel = 'preconnect';
-      link.href = domain;
-      document.head.appendChild(link);
-    });
-    
-    // DNS prefetch for likely resources
-    const prefetchDomains = [
-      '//api.eastemblem.com',
-      '//cdn.jsdelivr.net'
-    ];
-    
-    prefetchDomains.forEach(domain => {
-      const link = document.createElement('link');
-      link.rel = 'dns-prefetch';
-      link.href = domain;
-      document.head.appendChild(link);
-    });
+    // Simple bundle analysis for development
+    if (process.env.NODE_ENV === 'development') {
+      setTimeout(() => {
+        const scripts = document.querySelectorAll('script[src]');
+        console.log('Performance Analysis:', {
+          'Script Tags': scripts.length,
+          'DOM Ready': performance.now() + 'ms'
+        });
+      }, 2000);
+    }
   }
 }
 
