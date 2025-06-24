@@ -85,6 +85,19 @@ export class OnboardingService {
       completedSteps: ["founder"],
     });
 
+    // Send Slack notification for founder step completion (async, no wait)
+    if (eastEmblemAPI.isConfigured()) {
+      eastEmblemAPI
+        .sendSlackNotification(
+          `\`Onboarding Id : ${sessionId}\`\n👤 Founder Profile Completed - ${founder.fullName} (${founder.email})`,
+          "#notifications",
+          sessionId,
+        )
+        .catch((error) => {
+          console.log("Failed to send founder completion notification:", error);
+        });
+    }
+
     return {
       sessionId,
       founderId: founder.id,
@@ -135,6 +148,19 @@ export class OnboardingService {
       },
       completedSteps: [...session.completedSteps, "venture"],
     });
+
+    // Send Slack notification for venture step completion (async, no wait)
+    if (eastEmblemAPI.isConfigured()) {
+      eastEmblemAPI
+        .sendSlackNotification(
+          `\`Onboarding Id : ${sessionId}\`\n🏢 Venture Info Completed - ${venture.name} (${venture.industry})`,
+          "#notifications",
+          sessionId,
+        )
+        .catch((error) => {
+          console.log("Failed to send venture completion notification:", error);
+        });
+    }
 
     return { venture, folderStructure };
   }
@@ -250,6 +276,20 @@ export class OnboardingService {
       completedSteps: [...session.completedSteps, "scoring"],
       isComplete: true,
     });
+
+    // Send Slack notification for scoring completion (async, no wait)
+    if (eastEmblemAPI.isConfigured()) {
+      const totalScore = scoringResult?.output?.total_score || scoringResult?.total_score || 0;
+      eastEmblemAPI
+        .sendSlackNotification(
+          `\`Onboarding Id : ${sessionId}\`\n🎯 ProofScore Analysis Complete - Total Score: ${totalScore}/100`,
+          "#notifications",
+          sessionId,
+        )
+        .catch((error) => {
+          console.log("Failed to send scoring completion notification:", error);
+        });
+    }
 
     return {
       scoringResult,
