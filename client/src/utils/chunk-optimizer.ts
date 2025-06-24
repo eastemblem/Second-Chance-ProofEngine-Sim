@@ -4,7 +4,8 @@ export function preloadCriticalChunks() {
   const criticalModules = [
     () => import("@tanstack/react-query"),
     () => import("zod"),
-    () => import("react-hook-form")
+    () => import("react-hook-form"),
+    () => import("framer-motion")
   ];
 
   // Use requestIdleCallback to preload during idle time
@@ -36,9 +37,29 @@ export function initializeOptimizations() {
     document.addEventListener('DOMContentLoaded', () => {
       preloadCriticalChunks();
       optimizeImageLoading();
+      enablePerformanceObserver();
     });
   } else {
     preloadCriticalChunks();
     optimizeImageLoading();
+    enablePerformanceObserver();
+  }
+}
+
+// Enable performance observer for monitoring
+function enablePerformanceObserver() {
+  if ('PerformanceObserver' in window && process.env.NODE_ENV === 'development') {
+    const observer = new PerformanceObserver((list) => {
+      list.getEntries().forEach((entry) => {
+        if (entry.entryType === 'largest-contentful-paint') {
+          console.log('LCP:', entry.startTime);
+        }
+        if (entry.entryType === 'first-input') {
+          console.log('FID:', entry.processingStart - entry.startTime);
+        }
+      });
+    });
+    
+    observer.observe({ entryTypes: ['largest-contentful-paint', 'first-input'] });
   }
 }

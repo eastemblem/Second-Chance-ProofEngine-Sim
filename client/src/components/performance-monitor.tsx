@@ -4,16 +4,7 @@ import { useEffect } from 'react';
 export function PerformanceMonitor() {
   useEffect(() => {
     if (process.env.NODE_ENV === 'development') {
-      // Monitor Core Web Vitals
-      if ('web-vital' in window) {
-        import('web-vitals').then(({ getCLS, getFID, getFCP, getLCP, getTTFB }) => {
-          getCLS(console.log);
-          getFID(console.log);
-          getFCP(console.log);
-          getLCP(console.log);
-          getTTFB(console.log);
-        });
-      }
+      // Basic performance monitoring without external dependencies
 
       // Simple performance timing
       window.addEventListener('load', () => {

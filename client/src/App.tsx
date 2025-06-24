@@ -6,6 +6,7 @@ import { Toaster } from "@/components/ui/toaster";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { lazy, Suspense } from "react";
 import { PerformanceMonitor } from "@/components/performance-monitor";
+import { MemoryOptimizer } from "@/components/memory-optimizer";
 
 // Lazy load page components for better performance
 const LandingPage = lazy(() => import("@/pages/landing"));
@@ -153,6 +154,7 @@ function App() {
     <QueryClientProvider client={queryClient}>
       <TooltipProvider>
         <PerformanceMonitor />
+        <MemoryOptimizer />
         <Toaster />
         <Router />
       </TooltipProvider>
