@@ -480,6 +480,19 @@ export class OnboardingService {
               githubUrl: ''
             });
             console.log(`✓ Added team member: ${teamMember.name} (${teamMember.role})`);
+            
+            // Send Slack notification for team member from analysis (async, no wait)
+            if (eastEmblemAPI.isConfigured()) {
+              eastEmblemAPI
+                .sendSlackNotification(
+                  `\`Onboarding Id : ${sessionId}\`\n👤 Team Member Auto-Added from Analysis - ${teamMember.name} (${teamMember.role})`,
+                  "#notifications",
+                  sessionId,
+                )
+                .catch((error) => {
+                  console.log("Failed to send auto team member notification:", error);
+                });
+            }
           } catch (error) {
             console.warn(`Failed to add team member ${teamMember.name}:`, error);
           }

@@ -247,6 +247,10 @@ Demo experience for testing different user journeys:
   * Enhanced scoring completion to populate venture with team members from pitch deck analysis
   * Added team member mapping with role detection (CTO flagged as technical, etc.)
   * Integrated team data from scoring response into database for complete venture profiles
+  * Added missing Slack notifications for onboarding session initialization
+  * Enhanced team member addition with Slack notifications for manual and auto-added members
+  * Implemented comprehensive notification system for all onboarding workflow events
+  * Added async notification handling to prevent blocking user operations
 
 ## User Preferences
 
