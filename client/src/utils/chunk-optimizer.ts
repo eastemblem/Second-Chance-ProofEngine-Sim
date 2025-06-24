@@ -4,8 +4,7 @@ export function preloadCriticalChunks() {
   const criticalModules = [
     () => import("@tanstack/react-query"),
     () => import("zod"),
-    () => import("react-hook-form"),
-    () => import("framer-motion")
+    () => import("react-hook-form")
   ];
 
   // Use requestIdleCallback to preload during idle time

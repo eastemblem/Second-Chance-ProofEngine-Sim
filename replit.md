@@ -127,7 +127,8 @@ Demo experience for testing different user journeys:
   * Phase 2: Chart lazy loading, memory optimization, resource preloading
   * Performance monitoring and chunk optimization implemented
   * Production build optimized with vendor splitting
-  * Load time improved from 15+ seconds to 2-3 seconds target
+  * Current LCP: 10.3s (improved from 15+ seconds, targeting sub-3s)
+  * Critical resource preloading added for faster startup
 
 ## User Preferences
 
