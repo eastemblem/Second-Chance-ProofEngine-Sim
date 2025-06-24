@@ -175,16 +175,6 @@ export async function registerRoutes(app: Express): Promise<Server> {
         sessionId: getSessionId(req),
       }, "Startup vault created successfully"));
   }));
-    } catch (error) {
-      console.error("Error creating startup vault:", error);
-      res.status(500).json({
-        error:
-          error instanceof Error
-            ? error.message
-            : "Failed to create startup vault",
-      });
-    }
-  });
 
   // Get session data
   app.get("/api/vault/session", asyncHandler(async (req, res) => {
@@ -230,25 +220,6 @@ export async function registerRoutes(app: Express): Promise<Server> {
       },
     }, "File uploaded and ready for processing"));
   }));
-
-  // Submit for scoring workflow - uses file stored in session
-  app.post("/api/vault/submit-for-scoring", async (req, res) => {
-    try {
-      if (!eastEmblemAPI.isConfigured()) {
-        return res.status(503).json({
-          error: "EastEmblem API not configured",
-          message: "EASTEMBLEM_API_BASE_URL is required",
-        });
-      }
-
-      const sessionData = getSessionData(req);
-      const uploadedFile = sessionData.uploadedFile;
-      const folderStructure = sessionData.folderStructure;
-
-      if (!uploadedFile) {
-        return res.status(400).json({
-          error: "No file found",
-          message: "Please upload a file first",
         });
       }
 
@@ -352,24 +323,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  // Upload file to EastEmblem API
-  app.post(
-    "/api/vault/upload-file",
-    upload.single("file"),
-    async (req, res) => {
-      try {
-        if (!eastEmblemAPI.isConfigured()) {
-          return res.status(503).json({
-            error: "EastEmblem API not configured",
-            message: "EASTEMBLEM_API_BASE_URL is required",
-          });
-        }
-
-        const folder_id = req.body.folder_id;
-        const file = req.file;
-
-        if (!file || !folder_id) {
-          return res.status(400).json({
+  // Legacy vault routes have been moved to modular system
             error: "Missing required fields",
             message: "File and folder_id are required",
             debug: { hasFile: !!file, folderId: folder_id, body: req.body },

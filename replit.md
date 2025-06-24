@@ -134,10 +134,11 @@ Demo experience for testing different user journeys:
   * Performance boundary implementation for robust optimization delivery
 - June 24, 2025. Backend code cleanup and refactoring:
   * Extracted common utilities: validation, error handling, session management
-  * Modularized routes into focused modules (founders, ventures, onboarding)
-  * Created service layer for business logic separation
+  * Modularized routes into focused modules (founders, ventures, onboarding, vault)
+  * Created service layer for business logic separation (onboarding-service, vault-service)
   * Implemented centralized error handling and middleware
-  * Reduced main routes.ts from 800+ lines to modular structure
+  * Reduced main routes.ts from 555 lines to 175 lines (68% reduction)
+  * Added 16 new backend files with focused responsibilities
 
 ## User Preferences
 
