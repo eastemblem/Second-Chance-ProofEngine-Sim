@@ -52,7 +52,20 @@ export default function ProcessingScreen({
       const res = await apiRequest("POST", "/api/submit-for-scoring", {
         sessionId
       });
-      return await res.json();
+      
+      const text = await res.text();
+      console.log('Raw response:', text);
+      
+      if (!text || text.trim() === '') {
+        throw new Error('Empty response from server');
+      }
+      
+      try {
+        return JSON.parse(text);
+      } catch (e) {
+        console.error('Failed to parse JSON:', text);
+        throw new Error('Invalid JSON response from server');
+      }
     },
     onSuccess: async (data) => {
       if (data?.success) {
@@ -128,16 +141,16 @@ export default function ProcessingScreen({
               transition={{ delay: index * 0.2 }}
               className={`flex items-center space-x-4 p-4 rounded-lg border-2 transition-colors ${
                 isActive 
-                  ? 'border-purple-200 bg-purple-50' 
-                  : 'border-gray-200 bg-gray-50'
+                  ? 'border-primary bg-primary/10' 
+                  : 'border-border bg-muted'
               }`}
             >
               <div className={`relative flex-shrink-0 w-12 h-12 rounded-full flex items-center justify-center transition-colors ${
                 isComplete 
-                  ? 'bg-green-600 text-white' 
+                  ? 'bg-primary-gold text-background' 
                   : isActive 
-                    ? 'bg-purple-600 text-white' 
-                    : 'bg-gray-300 text-gray-600'
+                    ? 'bg-primary text-primary-foreground' 
+                    : 'bg-secondary text-muted-foreground'
               }`}>
                 {isCurrent && !processingComplete ? (
                   <Loader2 className="w-6 h-6 animate-spin" />
@@ -148,12 +161,12 @@ export default function ProcessingScreen({
               
               <div className="text-left flex-1">
                 <h3 className={`font-medium ${
-                  isActive ? 'text-gray-900' : 'text-gray-600'
+                  isActive ? 'text-card-foreground' : 'text-muted-foreground'
                 }`}>
                   {step.label}
                 </h3>
                 <p className={`text-sm ${
-                  isActive ? 'text-gray-700' : 'text-gray-500'
+                  isActive ? 'text-foreground' : 'text-muted-foreground'
                 }`}>
                   {step.description}
                 </p>
@@ -165,7 +178,7 @@ export default function ProcessingScreen({
                   animate={{ scale: 1 }}
                   className="flex-shrink-0"
                 >
-                  <CheckCircle className="w-6 h-6 text-green-600" />
+                  <CheckCircle className="w-6 h-6 text-primary-gold" />
                 </motion.div>
               )}
             </motion.div>
@@ -177,19 +190,19 @@ export default function ProcessingScreen({
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
-          className="mt-8 p-6 bg-gradient-to-r from-purple-50 to-green-50 border-2 border-purple-200 rounded-lg"
+          className="mt-8 p-6 bg-gradient-to-r from-primary/10 to-primary-gold/10 border-2 border-primary rounded-lg"
         >
-          <CheckCircle className="w-12 h-12 text-green-600 mx-auto mb-4" />
-          <h3 className="text-lg font-medium text-purple-900 mb-2">
+          <CheckCircle className="w-12 h-12 text-primary-gold mx-auto mb-4" />
+          <h3 className="text-lg font-medium text-card-foreground mb-2">
             Analysis Complete!
           </h3>
-          <p className="text-purple-700">
+          <p className="text-foreground">
             Your ProofScore and detailed analysis are ready. Redirecting to results...
           </p>
         </motion.div>
       )}
 
-      <div className="mt-8 text-sm text-gray-600">
+      <div className="mt-8 text-sm text-muted-foreground">
         <p>
           This process typically takes 2-3 minutes. We're analyzing your pitch deck against 
           10+ key investment criteria used by top-tier VCs.
