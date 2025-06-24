@@ -224,6 +224,11 @@ Demo experience for testing different user journeys:
   * Fixed routing issue where frontend was calling wrong endpoint path
   * Ensured all scoring endpoints return proper JSON with explicit content-type headers
   * Resolved HTML response issue by adding direct endpoint mapping to onboarding service
+  * Fixed "Analysis Not Available" issue by properly storing scoring results in session stepData
+  * Added file existence check to prevent ENOENT errors when files are cleaned up after processing
+  * Enhanced session data structure to include processing results with scoringResult nested properly
+  * Fixed frontend data path extraction to handle response structure changes (data.data vs data.session)
+  * Ensured scoring results persist in database for subsequent analysis display
 
 ## User Preferences
 

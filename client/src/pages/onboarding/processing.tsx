@@ -70,12 +70,13 @@ export default function ProcessingScreen({
     onSuccess: async (data) => {
       if (data?.success) {
         console.log("Processing completed. Full response:", data);
-        console.log("Session data from processing:", data.session);
-        console.log("Session stepData:", data.session?.stepData);
-        console.log("Processing step data:", data.session?.stepData?.processing);
+        console.log("Session data from processing:", data.data?.session);
+        console.log("Session stepData:", data.data?.session?.stepData);
+        console.log("Processing step data:", data.data?.session?.stepData?.processing);
         
-        // Update session data with processing results
-        await onDataUpdate("processing", data?.session?.stepData?.processing);
+        // Update session data with processing results - use data.data structure
+        const processingData = data.data?.session?.stepData?.processing || data.data?.scoringResult;
+        await onDataUpdate("processing", processingData);
         setProcessingComplete(true);
         
         setTimeout(() => {

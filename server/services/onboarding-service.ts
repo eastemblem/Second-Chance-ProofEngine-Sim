@@ -397,25 +397,33 @@ export class OnboardingService {
 
     let scoringResult = null;
 
-    // Process with EastEmblem API if configured
-    if (eastEmblemAPI.isConfigured() && upload.filePath) {
+    // Check if we already have scoring results in session
+    if (stepData.processing?.scoringResult) {
+      console.log("Using existing scoring result from session");
+      scoringResult = stepData.processing.scoringResult;
+    } else if (eastEmblemAPI.isConfigured() && upload.filePath) {
       try {
-        const fileBuffer = fs.readFileSync(upload.filePath);
-        
-        // Upload file to EastEmblem
-        await eastEmblemAPI.uploadFile(
-          fileBuffer,
-          upload.fileName,
-          folderStructure?.folders?.["6_Investor_Pack"] || "investor-pack",
-          sessionId
-        );
+        // Check if file still exists before trying to read it
+        if (fs.existsSync(upload.filePath)) {
+          const fileBuffer = fs.readFileSync(upload.filePath);
+          
+          // Upload file to EastEmblem
+          await eastEmblemAPI.uploadFile(
+            fileBuffer,
+            upload.fileName,
+            folderStructure?.folders?.["6_Investor_Pack"] || "investor-pack",
+            sessionId
+          );
 
-        // Score the pitch deck
-        scoringResult = await eastEmblemAPI.scorePitchDeck(
-          fileBuffer,
-          upload.fileName,
-          sessionId
-        );
+          // Score the pitch deck
+          scoringResult = await eastEmblemAPI.scorePitchDeck(
+            fileBuffer,
+            upload.fileName,
+            sessionId
+          );
+        } else {
+          console.warn("File no longer exists, using default scoring");
+        }
       } catch (error) {
         console.warn("EastEmblem API error:", error);
       }
@@ -434,12 +442,16 @@ export class OnboardingService {
       }
     }
 
-    // Update session as complete
+    // Update session as complete with scoring results
     await this.updateSession(sessionId, {
       currentStep: "complete",
       stepData: {
         ...session.stepData,
         scoringResult,
+        processing: {
+          scoringResult,
+          isComplete: true
+        }
       },
       completedSteps: [...session.completedSteps, "scoring"],
       isComplete: true,
