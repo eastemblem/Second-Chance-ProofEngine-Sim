@@ -123,15 +123,13 @@ export class OnboardingService {
       throw new Error("Session not found - founder step must be completed first");
     }
 
-    const currentSession = session || await this.getSession(sessionId);
-    console.log("Current session data:", JSON.stringify(currentSession, null, 2));
+    console.log("Session found, proceeding with venture creation");
+    const founderData = session.stepData?.founder;
+    console.log("Founder data from session:", JSON.stringify(founderData, null, 2));
     
-    const founderData = currentSession?.stepData?.founder;
     if (!founderData) {
       throw new Error("Founder step not completed");
     }
-    
-    console.log("Founder data from session:", JSON.stringify(founderData, null, 2));
 
     // Create venture with proper founder ID
     const founderId = founderData.founderId || founderData.id;
@@ -141,6 +139,7 @@ export class OnboardingService {
       throw new Error("Founder ID not found in session data");
     }
     
+    console.log("Creating venture with founder ID:", founderId);
     const venture = await storage.createVenture({
       ...ventureData,
       founderId: founderId,
