@@ -573,6 +573,7 @@ export class OnboardingManager {
           file.originalname,
           folderStructure.folders["0_Overview"],
           sessionId,
+          true
         );
 
         eastemblemFileId = uploadResult.id;
@@ -688,6 +689,8 @@ export class OnboardingManager {
             fileBuffer,
             upload.originalName,
             overviewFolderId,
+            undefined,
+            true
           );
 
           // Update upload record with EastEmblem file ID
