@@ -79,7 +79,7 @@ export default function Analysis({
           if (response.ok) {
             const data = await response.json();
             console.log("Fetched session data from API:", data);
-            setSessionFromAPI(data.session);
+            setSessionFromAPI(data?.session);
           }
         } catch (error) {
           console.error("Failed to fetch session data:", error);

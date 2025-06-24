@@ -44,7 +44,7 @@ export default function DocumentUpload({
       return await res.json();
     },
     onSuccess: (data) => {
-      if (data.success) {
+      if (data?.success) {
         toast({
           title: "Success",
           description: "Pitch deck uploaded successfully",

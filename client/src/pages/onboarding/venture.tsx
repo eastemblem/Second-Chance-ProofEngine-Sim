@@ -58,7 +58,7 @@ export default function VentureOnboarding({
       return await res.json();
     },
     onSuccess: (data) => {
-      if (data.success) {
+      if (data?.success) {
         toast({
           title: "Success",
           description: "Venture information saved successfully",
@@ -68,10 +68,10 @@ export default function VentureOnboarding({
         
         // Ensure we pass the data in the correct format for session storage
         const ventureData = {
-          venture: data.venture,
-          folderStructure: data.folderStructure,
+          venture: data?.venture,
+          folderStructure: data?.folderStructure,
           completedAt: new Date().toISOString(),
-          success: data.success
+          success: data?.success
         };
         
         console.log("Calling onDataUpdate with structured data:", ventureData);
