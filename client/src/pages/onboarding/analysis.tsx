@@ -1,5 +1,7 @@
-import { useState, useEffect } from "react";
-import { motion } from "framer-motion";
+import { useState, useEffect, lazy, Suspense } from "react";
+
+// Lazy load motion for animations
+const motion = lazy(() => import("framer-motion").then(mod => ({ default: mod.motion })));
 import {
   ArrowRight,
   Trophy,
