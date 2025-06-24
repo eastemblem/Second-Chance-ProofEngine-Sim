@@ -84,6 +84,7 @@ export class OnboardingService {
       stepData: { 
         founder: {
           ...founder,
+          id: founder.id,
           founderId: founder.id,
         }
       },
@@ -136,7 +137,9 @@ export class OnboardingService {
     console.log("Extracted founder ID:", founderId);
     
     if (!founderId) {
-      throw new Error("Founder ID not found in session data");
+      // If no founder ID in session, we need to get it from the founder data
+      console.error("No founder ID found, checking founder data keys:", Object.keys(founderData));
+      throw new Error("Founder ID not found in session data - founder step may not have completed properly");
     }
     
     console.log("Creating venture with founder ID:", founderId);

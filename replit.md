@@ -149,6 +149,8 @@ Demo experience for testing different user journeys:
   * Fixed "Missing required fields: sessionId" error in venture stage by using session middleware
   * Fixed founder_id null constraint violation by ensuring proper founder ID linkage in venture creation
   * Added comprehensive session handling with fallback initialization for missing sessions
+  * Fixed session data storage to properly include founder ID in stepData for venture creation
+  * Enhanced debugging with detailed session data logging to trace founder ID propagation
 
 ## User Preferences
 
