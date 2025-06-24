@@ -3,7 +3,17 @@ import { z } from "zod";
 import fs from "fs";
 import { storage } from "./storage";
 import { db } from "./db";
-import { onboardingSession, founder, venture, teamMember, documentUpload, type OnboardingSession, type InsertOnboardingSession, type DocumentUpload, type InsertDocumentUpload } from "@shared/schema";
+import {
+  onboardingSession,
+  founder,
+  venture,
+  teamMember,
+  documentUpload,
+  type OnboardingSession,
+  type InsertOnboardingSession,
+  type DocumentUpload,
+  type InsertDocumentUpload,
+} from "@shared/schema";
 import { eq, and } from "drizzle-orm";
 import { eastEmblemAPI } from "./eastemblem-api";
 
@@ -27,12 +37,24 @@ export const ventureOnboardingSchema = z.object({
   businessModel: z.string().min(1, "Business model is required"),
   revenueStage: z.enum(["None", "Pre-Revenue", "Early Revenue", "Scaling"]),
   productStatus: z.enum(["Mockup", "Prototype", "Launched"]),
-  website: z.string().optional().transform(val => val === "" ? undefined : val),
+  website: z
+    .string()
+    .optional()
+    .transform((val) => (val === "" ? undefined : val)),
   hasTestimonials: z.boolean().default(false),
   description: z.string().min(1, "Startup description is required"),
-  linkedinUrl: z.string().optional().transform(val => val === "" ? undefined : val),
-  twitterUrl: z.string().optional().transform(val => val === "" ? undefined : val),
-  instagramUrl: z.string().optional().transform(val => val === "" ? undefined : val),
+  linkedinUrl: z
+    .string()
+    .optional()
+    .transform((val) => (val === "" ? undefined : val)),
+  twitterUrl: z
+    .string()
+    .optional()
+    .transform((val) => (val === "" ? undefined : val)),
+  instagramUrl: z
+    .string()
+    .optional()
+    .transform((val) => (val === "" ? undefined : val)),
 });
 
 export const teamMemberSchema = z.object({
@@ -40,13 +62,34 @@ export const teamMemberSchema = z.object({
   email: z.string().email("Invalid email address"),
   role: z.string().min(1, "Role is required"),
   experience: z.string().min(1, "Experience is required"),
-  linkedinProfile: z.string().optional().transform(val => val === "" ? undefined : val),
-  background: z.string().optional().transform(val => val === "" ? undefined : val),
-  twitterUrl: z.string().optional().transform(val => val === "" ? undefined : val),
-  instagramUrl: z.string().optional().transform(val => val === "" ? undefined : val),
-  githubUrl: z.string().optional().transform(val => val === "" ? undefined : val),
-  age: z.number().or(z.string().transform(val => val === "" ? undefined : Number(val))).optional(),
-  gender: z.string().optional().transform(val => val === "" ? undefined : val),
+  linkedinProfile: z
+    .string()
+    .optional()
+    .transform((val) => (val === "" ? undefined : val)),
+  background: z
+    .string()
+    .optional()
+    .transform((val) => (val === "" ? undefined : val)),
+  twitterUrl: z
+    .string()
+    .optional()
+    .transform((val) => (val === "" ? undefined : val)),
+  instagramUrl: z
+    .string()
+    .optional()
+    .transform((val) => (val === "" ? undefined : val)),
+  githubUrl: z
+    .string()
+    .optional()
+    .transform((val) => (val === "" ? undefined : val)),
+  age: z
+    .number()
+    .or(z.string().transform((val) => (val === "" ? undefined : Number(val))))
+    .optional(),
+  gender: z
+    .string()
+    .optional()
+    .transform((val) => (val === "" ? undefined : val)),
   isCofounder: z.boolean().default(false),
 });
 
@@ -66,18 +109,20 @@ export class OnboardingManager {
       .returning();
 
     console.log("Created new onboarding session:", newSession.sessionId);
-    
+
     // Send Slack notification for session start (async, no wait)
     if (eastEmblemAPI.isConfigured()) {
-      eastEmblemAPI.sendSlackNotification(
-        `Onboarding Id : ${newSession.sessionId}\nℹ️ Started Onboarding !`,
-        "#notifications",
-        newSession.sessionId
-      ).catch(error => {
-        console.log("Failed to send session start notification:", error);
-      });
+      eastEmblemAPI
+        .sendSlackNotification(
+          `\`Onboarding Id : ${newSession.sessionId} + \`\nℹ️ Started Onboarding !`,
+          "#notifications",
+          newSession.sessionId,
+        )
+        .catch((error) => {
+          console.log("Failed to send session start notification:", error);
+        });
     }
-    
+
     return newSession.sessionId;
   }
 
@@ -88,30 +133,30 @@ export class OnboardingManager {
         .select()
         .from(onboardingSession)
         .where(eq(onboardingSession.sessionId, sessionId));
-      
+
       return session || null;
     } catch (error) {
-      console.error('Error getting session:', error);
+      console.error("Error getting session:", error);
       return null;
     }
   }
 
   // Update session step and data
   async updateSession(
-    sessionId: string, 
-    step: string, 
-    data: any, 
-    markCompleted: boolean = false
+    sessionId: string,
+    step: string,
+    data: any,
+    markCompleted: boolean = false,
   ) {
     const session = await this.getSession(sessionId);
     if (!session) throw new Error("Session not found");
 
     const stepData = session.stepData || {};
     const updatedStepData = { ...stepData, [step]: data };
-    const completedSteps = Array.isArray(session.completedSteps) 
-      ? session.completedSteps 
+    const completedSteps = Array.isArray(session.completedSteps)
+      ? session.completedSteps
       : [];
-    
+
     if (markCompleted && !completedSteps.includes(step)) {
       completedSteps.push(step);
     }
@@ -130,34 +175,42 @@ export class OnboardingManager {
   // Complete founder onboarding step
   async completeFounderStep(sessionId: string, founderData: any) {
     console.log("Completing founder step for session:", sessionId);
-    
+
     // Check if session exists first, create if not
     let session = await this.getSession(sessionId);
     if (!session) {
-      console.log("Session not found, creating new session with provided ID:", sessionId);
+      console.log(
+        "Session not found, creating new session with provided ID:",
+        sessionId,
+      );
       try {
         // Use the provided sessionId instead of generating a new one
-        const [newSession] = await db.insert(onboardingSession).values({
-          sessionId: sessionId, // Use the provided sessionId
-          currentStep: "founder",
-          isComplete: false,
-          stepData: {},
-        }).returning();
-        
+        const [newSession] = await db
+          .insert(onboardingSession)
+          .values({
+            sessionId: sessionId, // Use the provided sessionId
+            currentStep: "founder",
+            isComplete: false,
+            stepData: {},
+          })
+          .returning();
+
         session = newSession;
       } catch (error) {
         console.error("Error creating session:", error);
         throw new Error("Failed to create session");
       }
     }
-    
+
     // Validate data
     const validatedData = founderOnboardingSchema.parse(founderData);
-    
+
     // Create or update founder
     let founderId: string;
-    const existingFounder = await storage.getFounderByEmail(validatedData.email);
-    
+    const existingFounder = await storage.getFounderByEmail(
+      validatedData.email,
+    );
+
     if (existingFounder) {
       await storage.updateFounder(existingFounder.founderId, validatedData);
       founderId = existingFounder.founderId;
@@ -180,20 +233,22 @@ export class OnboardingManager {
 
     // Update session progress
     await this.updateSession(sessionId, "founder", validatedData, true);
-    
+
     console.log("Founder step completed successfully for session:", sessionId);
-    
+
     // Send Slack notification for founder step completion (async, no wait)
     if (eastEmblemAPI.isConfigured()) {
-      eastEmblemAPI.sendSlackNotification(
-        `Onboarding Id : ${sessionId}\n✅ Founder Details Completed - ${validatedData.fullName}`,
-        "#notifications",
-        sessionId
-      ).catch(error => {
-        console.log("Failed to send founder completion notification:", error);
-      });
+      eastEmblemAPI
+        .sendSlackNotification(
+          `Onboarding Id : ${sessionId}\n✅ Founder Details Completed - ${validatedData.fullName}`,
+          "#notifications",
+          sessionId,
+        )
+        .catch((error) => {
+          console.log("Failed to send founder completion notification:", error);
+        });
     }
-    
+
     return { sessionId, founderId };
   }
 
@@ -212,7 +267,7 @@ export class OnboardingManager {
 
     // Validate data
     const validatedData = ventureOnboardingSchema.parse(inputData);
-    
+
     // Create venture with mapped fields
     const venture = await storage.createVenture({
       founderId: session.founderId,
@@ -236,19 +291,66 @@ export class OnboardingManager {
       try {
         folderStructure = await eastEmblemAPI.createFolderStructure(
           validatedData.name,
-          sessionId
+          sessionId,
         );
 
         // Create proof vault entries for each folder
         if (folderStructure && folderStructure.folders) {
-          const folderMappings: Array<{ key: keyof typeof folderStructure.folders; type: 'Pitch Deck' | 'Metrics Dashboard' | 'Demo Video' | 'Product Screenshot' | 'Customer Testimonial' | 'Technical Documentation' | 'Financial Model'; name: string; description: string }> = [
-            { key: '0_Overview', type: 'Pitch Deck', name: 'Overview', description: 'Company overview and general information' },
-            { key: '1_Problem_Proof', type: 'Technical Documentation', name: 'Problem Proof', description: 'Evidence of problem validation' },
-            { key: '2_Solution_Proof', type: 'Demo Video', name: 'Solution Proof', description: 'Solution validation and proof of concept' },
-            { key: '3_Demand_Proof', type: 'Metrics Dashboard', name: 'Demand Proof', description: 'Market demand validation' },
-            { key: '4_Credibility_Proof', type: 'Customer Testimonial', name: 'Credibility Proof', description: 'Team and company credibility evidence' },
-            { key: '5_Commercial_Proof', type: 'Financial Model', name: 'Commercial Proof', description: 'Commercial viability and business model proof' },
-            { key: '6_Investor_Pack', type: 'Product Screenshot', name: 'Investor Pack', description: 'Investor presentation materials' }
+          const folderMappings: Array<{
+            key: keyof typeof folderStructure.folders;
+            type:
+              | "Pitch Deck"
+              | "Metrics Dashboard"
+              | "Demo Video"
+              | "Product Screenshot"
+              | "Customer Testimonial"
+              | "Technical Documentation"
+              | "Financial Model";
+            name: string;
+            description: string;
+          }> = [
+            {
+              key: "0_Overview",
+              type: "Pitch Deck",
+              name: "Overview",
+              description: "Company overview and general information",
+            },
+            {
+              key: "1_Problem_Proof",
+              type: "Technical Documentation",
+              name: "Problem Proof",
+              description: "Evidence of problem validation",
+            },
+            {
+              key: "2_Solution_Proof",
+              type: "Demo Video",
+              name: "Solution Proof",
+              description: "Solution validation and proof of concept",
+            },
+            {
+              key: "3_Demand_Proof",
+              type: "Metrics Dashboard",
+              name: "Demand Proof",
+              description: "Market demand validation",
+            },
+            {
+              key: "4_Credibility_Proof",
+              type: "Customer Testimonial",
+              name: "Credibility Proof",
+              description: "Team and company credibility evidence",
+            },
+            {
+              key: "5_Commercial_Proof",
+              type: "Financial Model",
+              name: "Commercial Proof",
+              description: "Commercial viability and business model proof",
+            },
+            {
+              key: "6_Investor_Pack",
+              type: "Product Screenshot",
+              name: "Investor Pack",
+              description: "Investor presentation materials",
+            },
           ];
 
           for (const folder of folderMappings) {
@@ -261,7 +363,7 @@ export class OnboardingManager {
                 subFolderId: subFolderId,
                 sharedUrl: folderStructure.url,
                 folderName: folder.name,
-                description: folder.description
+                description: folder.description,
               });
             }
           }
@@ -272,13 +374,18 @@ export class OnboardingManager {
     }
 
     // Update session with venture data and folderStructure
-    await this.updateSession(sessionId, "venture", { 
-      ...validatedData,
-      venture: venture, 
-      ventureId: venture.ventureId, 
-      folderStructure 
-    }, true);
-    
+    await this.updateSession(
+      sessionId,
+      "venture",
+      {
+        ...validatedData,
+        venture: venture,
+        ventureId: venture.ventureId,
+        folderStructure,
+      },
+      true,
+    );
+
     // Store folderStructure at session root level for easy access
     const currentSession = await this.getSession(sessionId);
     const [updatedSession] = await db
@@ -295,13 +402,15 @@ export class OnboardingManager {
 
     // Send Slack notification for venture step completion (async, no wait)
     if (eastEmblemAPI.isConfigured()) {
-      eastEmblemAPI.sendSlackNotification(
-        `Onboarding Id : ${sessionId}\n🏢 Venture Info Completed - ${validatedData.name}`,
-        "#notifications",
-        sessionId
-      ).catch(error => {
-        console.log("Failed to send venture completion notification:", error);
-      });
+      eastEmblemAPI
+        .sendSlackNotification(
+          `Onboarding Id : ${sessionId}\n🏢 Venture Info Completed - ${validatedData.name}`,
+          "#notifications",
+          sessionId,
+        )
+        .catch((error) => {
+          console.log("Failed to send venture completion notification:", error);
+        });
     }
 
     return { venture, folderStructure };
@@ -311,13 +420,15 @@ export class OnboardingManager {
   async addTeamMember(sessionId: string, memberData: any) {
     const session = await this.getSession(sessionId);
     if (!session) throw new Error("Session not found");
-    
+
     const stepData = session?.stepData as any;
     let ventureId = stepData?.venture?.ventureId || stepData?.team?.ventureId;
-    
+
     // If no venture ID in step data, get from founder's ventures
     if (!ventureId && stepData?.founder?.founderId) {
-      const ventures = await storage.getVenturesByFounderId(stepData.founder.founderId);
+      const ventures = await storage.getVenturesByFounderId(
+        stepData.founder.founderId,
+      );
       if (ventures.length > 0) {
         ventureId = ventures[ventures.length - 1].ventureId;
       }
@@ -329,7 +440,7 @@ export class OnboardingManager {
 
     // Validate member data
     const validatedData = teamMemberSchema.parse(memberData);
-    
+
     // Create team member
     const newTeamMember = await storage.createTeamMember({
       ...validatedData,
@@ -344,18 +455,20 @@ export class OnboardingManager {
     if (!session) {
       return [];
     }
-    
+
     const stepData = session?.stepData as any;
     let ventureId = stepData?.venture?.ventureId || stepData?.team?.ventureId;
-    
+
     // If no venture ID in step data, try to find from founder's ventures
     if (!ventureId && stepData?.founder?.founderId) {
-      const ventures = await storage.getVenturesByFounderId(stepData.founder.founderId);
+      const ventures = await storage.getVenturesByFounderId(
+        stepData.founder.founderId,
+      );
       if (ventures.length > 0) {
         ventureId = ventures[ventures.length - 1].ventureId; // Get the most recent venture
       }
     }
-    
+
     if (!ventureId) {
       return [];
     }
@@ -367,11 +480,14 @@ export class OnboardingManager {
   // Update team member
   async updateTeamMember(memberId: string, memberData: any) {
     const validatedData = teamMemberSchema.parse(memberData);
-    const updatedMember = await storage.updateTeamMember(memberId, validatedData);
-    
+    const updatedMember = await storage.updateTeamMember(
+      memberId,
+      validatedData,
+    );
+
     return {
       success: true,
-      teamMember: updatedMember
+      teamMember: updatedMember,
     };
   }
 
@@ -384,7 +500,7 @@ export class OnboardingManager {
   // Complete team step
   async completeTeamStep(sessionId: string) {
     const teamMembers = await this.getTeamMembers(sessionId);
-    
+
     // Allow completing team step with any number of members (0-4)
     console.log(`Completing team step with ${teamMembers.length} team members`);
 
@@ -394,13 +510,15 @@ export class OnboardingManager {
 
     // Send Slack notification for team step completion (async, no wait)
     if (eastEmblemAPI.isConfigured()) {
-      eastEmblemAPI.sendSlackNotification(
-        `Onboarding Id : ${sessionId}\n👥 Team Details Completed - ${teamMembers.length} member(s)`,
-        "#notifications",
-        sessionId
-      ).catch(error => {
-        console.log("Failed to send team completion notification:", error);
-      });
+      eastEmblemAPI
+        .sendSlackNotification(
+          `Onboarding Id : ${sessionId}\n👥 Team Details Completed - ${teamMembers.length} member(s)`,
+          "#notifications",
+          sessionId,
+        )
+        .catch((error) => {
+          console.log("Failed to send team completion notification:", error);
+        });
     }
 
     return teamMembers;
@@ -410,49 +528,60 @@ export class OnboardingManager {
   async handleDocumentUpload(sessionId: string, file: any) {
     const session = await this.getSession(sessionId);
     if (!session) throw new Error("Session not found");
-    
+
     console.log("Full session data:", JSON.stringify(session, null, 2));
-    
+
     const stepData = session?.stepData as any;
     console.log("Step Data keys:", Object.keys(stepData || {}));
     console.log("Venture step data:", stepData?.venture);
-    
+
     // Check multiple locations for folderStructure
-    const folderStructure = stepData?.venture?.folderStructure || 
-                           session?.folderStructure || 
-                           stepData?.folderStructure;
-    
+    const folderStructure =
+      stepData?.venture?.folderStructure ||
+      session?.folderStructure ||
+      stepData?.folderStructure;
+
     // Check multiple locations for ventureId
-    const ventureId = stepData?.venture?.ventureId || 
-                     stepData?.venture?.venture?.ventureId ||
-                     stepData?.team?.ventureId ||
-                     session?.ventureId;
+    const ventureId =
+      stepData?.venture?.ventureId ||
+      stepData?.venture?.venture?.ventureId ||
+      stepData?.team?.ventureId ||
+      session?.ventureId;
 
     console.log("Found ventureId:", ventureId);
     console.log("Found folderStructure:", folderStructure);
-    
+
     if (!ventureId) throw new Error("Venture step not completed");
 
     let eastemblemFileId = null;
     let sharedUrl = null;
 
     // Upload to EastEmblem API if folder structure exists
-    if (eastEmblemAPI.isConfigured() && folderStructure?.folders?.['0_Overview']) {
+    if (
+      eastEmblemAPI.isConfigured() &&
+      folderStructure?.folders?.["0_Overview"]
+    ) {
       try {
-        console.log("Uploading file to EastEmblem API in 0_Overview folder:", folderStructure.folders['0_Overview']);
-        const fileBuffer = require('fs').readFileSync(file.path);
-        
+        console.log(
+          "Uploading file to EastEmblem API in 0_Overview folder:",
+          folderStructure.folders["0_Overview"],
+        );
+        const fileBuffer = require("fs").readFileSync(file.path);
+
         const uploadResult = await eastEmblemAPI.uploadFile(
           fileBuffer,
           file.originalname,
-          folderStructure.folders['0_Overview'],
-          sessionId
+          folderStructure.folders["0_Overview"],
+          sessionId,
         );
-        
+
         eastemblemFileId = uploadResult.id;
         sharedUrl = uploadResult.url || uploadResult.download_url;
-        
-        console.log("File uploaded successfully to EastEmblem:", { fileId: eastemblemFileId, sharedUrl });
+
+        console.log("File uploaded successfully to EastEmblem:", {
+          fileId: eastemblemFileId,
+          sharedUrl,
+        });
       } catch (error) {
         console.error("Failed to upload to EastEmblem API:", error);
       }
@@ -472,34 +601,41 @@ export class OnboardingManager {
         uploadStatus: "completed",
         processingStatus: "pending",
         eastemblemFileId: eastemblemFileId,
-        sharedUrl: sharedUrl
+        sharedUrl: sharedUrl,
       })
       .returning();
 
     // Update session with complete upload info
-    await this.updateSession(sessionId, "upload", { 
-      upload: {
-        ...upload,
-        folderStructure: folderStructure,
-        uploadedToBox: !!eastemblemFileId
-      }
-    }, true);
+    await this.updateSession(
+      sessionId,
+      "upload",
+      {
+        upload: {
+          ...upload,
+          folderStructure: folderStructure,
+          uploadedToBox: !!eastemblemFileId,
+        },
+      },
+      true,
+    );
 
     // Send Slack notification for document upload (async, no wait)
     if (eastEmblemAPI.isConfigured()) {
-      eastEmblemAPI.sendSlackNotification(
-        `Onboarding Id : ${sessionId}\n📄 Document Uploaded - ${file.originalname}`,
-        "#notifications",
-        sessionId
-      ).catch(error => {
-        console.log("Failed to send document upload notification:", error);
-      });
+      eastEmblemAPI
+        .sendSlackNotification(
+          `Onboarding Id : ${sessionId}\n📄 Document Uploaded - ${file.originalname}`,
+          "#notifications",
+          sessionId,
+        )
+        .catch((error) => {
+          console.log("Failed to send document upload notification:", error);
+        });
     }
 
     return {
       ...upload,
       uploadedToBox: !!eastemblemFileId,
-      folderStructure: folderStructure
+      folderStructure: folderStructure,
     };
   }
 
@@ -507,14 +643,14 @@ export class OnboardingManager {
   async submitForScoring(sessionId: string) {
     const session = await this.getSession(sessionId);
     const stepData = session?.stepData as any;
-    
+
     // Get all required data
     const upload = stepData?.upload?.upload;
     const venture = stepData?.venture?.venture || stepData?.venture;
     const folderStructure = stepData?.venture?.folderStructure;
 
     console.log("Submit for scoring : ", folderStructure);
-    
+
     if (!upload || !venture) {
       throw new Error("Required onboarding steps not completed");
     }
@@ -524,54 +660,61 @@ export class OnboardingManager {
       id: venture?.ventureId || sessionId,
       url: "#",
       folders: {
-        '0_Overview': "overview",
-        '1_Problem_Proof': "problem",
-        '2_Solution_Proof': "solution", 
-        '3_Demand_Proof': "demand",
-        '4_Credibility_Proof': "credibility",
-        '5_Commercial_Proof': "commercial",
-        '6_Investor_Pack': "investor"
-      }
+        "0_Overview": "overview",
+        "1_Problem_Proof": "problem",
+        "2_Solution_Proof": "solution",
+        "3_Demand_Proof": "demand",
+        "4_Credibility_Proof": "credibility",
+        "5_Commercial_Proof": "commercial",
+        "6_Investor_Pack": "investor",
+      },
     };
 
     let scoringResult = null;
-    
+
     // Process with EastEmblem API if configured
     if (eastEmblemAPI.isConfigured() && upload.filePath) {
       try {
         // Upload file to existing EastEmblem folder structure (created in venture step)
         const fileBuffer = fs.readFileSync(upload.filePath);
-        
+
         const overviewFolderId = finalFolderStructure?.folders?.["0_Overview"];
         if (!overviewFolderId) {
-          console.log("No overview folder found, proceeding with direct scoring");
+          console.log(
+            "No overview folder found, proceeding with direct scoring",
+          );
         } else {
           const uploadResult = await eastEmblemAPI.uploadFile(
             fileBuffer,
             upload.originalName,
-            overviewFolderId
+            overviewFolderId,
           );
 
           // Update upload record with EastEmblem file ID
           await db
             .update(documentUpload)
-            .set({ 
+            .set({
               eastemblemFileId: uploadResult.id,
-              processingStatus: "uploaded"
+              processingStatus: "uploaded",
             })
             .where(eq(documentUpload.uploadId, upload.uploadId));
         }
 
         // Score the pitch deck
-        console.log("Starting pitch deck scoring for file:", upload.originalName);
+        console.log(
+          "Starting pitch deck scoring for file:",
+          upload.originalName,
+        );
         scoringResult = await eastEmblemAPI.scorePitchDeck(
           fileBuffer,
-          upload.originalName
+          upload.originalName,
         );
-        
+
         console.log("Pitch deck scoring completed successfully");
-        console.log("Raw scoring result:", JSON.stringify(scoringResult, null, 2));
-        
+        console.log(
+          "Raw scoring result:",
+          JSON.stringify(scoringResult, null, 2),
+        );
       } catch (error: any) {
         console.error("Failed to score pitch deck:", error);
         throw new Error(`Scoring failed: ${error.message}`);
@@ -581,38 +724,48 @@ export class OnboardingManager {
     }
 
     // Update session with complete scoring results
-    await this.updateSession(sessionId, "processing", {
-      scoringResult,
-      isComplete: true,
-      completedAt: new Date().toISOString()
-    }, true);
+    await this.updateSession(
+      sessionId,
+      "processing",
+      {
+        scoringResult,
+        isComplete: true,
+        completedAt: new Date().toISOString(),
+      },
+      true,
+    );
 
     // Mark session as complete
     await db
       .update(onboardingSession)
-      .set({ 
+      .set({
         isComplete: true,
         stepData: {
           ...(session?.stepData || {}),
           processing: {
             scoringResult,
             isComplete: true,
-            completedAt: new Date().toISOString()
-          }
-        }
+            completedAt: new Date().toISOString(),
+          },
+        },
       })
       .where(eq(onboardingSession.sessionId, sessionId));
 
     // Send Slack notification for analysis completion (async, no wait)
     if (eastEmblemAPI.isConfigured()) {
       const totalScore = scoringResult?.output?.total_score || 0;
-      eastEmblemAPI.sendSlackNotification(
-        `Onboarding Id : ${sessionId}\n🎯 Analysis Completed - Pitch Deck Score: ${totalScore}/100`,
-        "#notifications",
-        sessionId
-      ).catch(error => {
-        console.log("Failed to send analysis completion notification:", error);
-      });
+      eastEmblemAPI
+        .sendSlackNotification(
+          `Onboarding Id : ${sessionId}\n🎯 Analysis Completed - Pitch Deck Score: ${totalScore}/100`,
+          "#notifications",
+          sessionId,
+        )
+        .catch((error) => {
+          console.log(
+            "Failed to send analysis completion notification:",
+            error,
+          );
+        });
     }
 
     return {
@@ -624,10 +777,10 @@ export class OnboardingManager {
           ...(session?.stepData || {}),
           processing: {
             scoringResult,
-            isComplete: true
-          }
-        }
-      }
+            isComplete: true,
+          },
+        },
+      },
     };
   }
 }

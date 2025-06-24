@@ -857,7 +857,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
             file.buffer,
             file.originalname,
             folder_id,
-            req.body.onboarding_id || "unknown",
+            getSessionId(req)
           );
 
           // Update session with uploaded file
