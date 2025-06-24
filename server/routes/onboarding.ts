@@ -114,8 +114,19 @@ router.post("/venture", asyncHandler(async (req, res) => {
 
 // Document upload
 router.post("/upload", upload.single("pitchDeck"), asyncHandler(async (req, res) => {
-  // Use session from middleware
-  const sessionId = getSessionId(req);
+  // Get sessionId from body (sent by frontend) or fallback to session middleware
+  const sessionId = req.body.sessionId || getSessionId(req);
+  
+  console.log('Upload request received:', { 
+    sessionId, 
+    hasFile: !!req.file, 
+    fileName: req.file?.originalname,
+    bodySessionId: req.body.sessionId 
+  });
+
+  if (!sessionId) {
+    throw new Error("Session ID is required");
+  }
 
   if (!req.file) {
     throw new Error("No file uploaded");

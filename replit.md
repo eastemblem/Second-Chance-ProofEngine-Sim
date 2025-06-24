@@ -204,6 +204,9 @@ Demo experience for testing different user journeys:
   * Enhanced pitch deck upload UI with app theme using CSS custom properties
   * Applied consistent theming to drag-and-drop interface, progress bar, and buttons
   * Improved visual hierarchy with proper foreground and background color usage
+  * Fixed pitch deck upload endpoint to handle sessionId from request body instead of middleware
+  * Enhanced upload error handling and session validation with venture fallback mechanism
+  * Resolved 404 upload errors by properly extracting sessionId from frontend requests
 
 ## User Preferences
 

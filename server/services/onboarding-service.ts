@@ -298,9 +298,22 @@ export class OnboardingService {
    * Handle document upload
    */
   async handleDocumentUpload(sessionId: string, file: any) {
-    const session = await this.getSession(sessionId);
+    let session = await this.getSession(sessionId);
     if (!session) {
-      throw new Error("Session not found");
+      // Try to find session by looking up venture with this sessionId as founderId
+      const ventures = await storage.getVenturesByFounderId(sessionId);
+      if (ventures.length > 0) {
+        // Create a mock session for upload purposes
+        session = {
+          sessionId,
+          currentStep: 'upload',
+          stepData: { founderId: sessionId, ventureId: ventures[0].ventureId },
+          completedSteps: ['founder', 'venture', 'team'],
+          isComplete: false
+        };
+      } else {
+        throw new Error("Session not found");
+      }
     }
 
     const stepData = session.stepData || {};
