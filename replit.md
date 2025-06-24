@@ -210,6 +210,11 @@ Demo experience for testing different user journeys:
   * Fixed document upload database constraint violation by ensuring originalName field is never null
   * Added filename fallback handling for file upload processing
   * Completed pitch deck upload functionality with proper error handling and session management
+  * Updated processing component UI to match app's purple-gold theme with CSS custom properties
+  * Applied consistent theming to all processing steps, progress indicators, and completion messages
+  * Fixed "not valid json" error in submit-for-scoring endpoint with proper JSON response formatting
+  * Enhanced JSON parsing with detailed error handling and debugging for processing flow
+  * Verified complete onboarding flow: founder → venture → team → upload → processing → scoring
 
 ## User Preferences
 

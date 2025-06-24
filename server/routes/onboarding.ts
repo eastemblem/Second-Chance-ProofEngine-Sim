@@ -233,9 +233,23 @@ router.post("/team/complete", asyncHandler(async (req, res) => {
 // Submit for scoring
 router.post("/submit-for-scoring", requireFields(['sessionId']), asyncHandler(async (req, res) => {
   const { sessionId } = req.body;
+  console.log('Submit for scoring request:', { sessionId });
+  
   const result = await onboardingService.submitForScoring(sessionId);
+  console.log('Submit for scoring result:', result);
 
-  res.json(createSuccessResponse(result));
+  const response = createSuccessResponse({
+    session: {
+      sessionId,
+      stepData: {
+        processing: result.scoringResult
+      }
+    },
+    ...result
+  });
+  
+  console.log('Sending response:', JSON.stringify(response, null, 2));
+  res.json(response);
 }));
 
 export default router;
