@@ -451,24 +451,35 @@ export class OnboardingService {
       if (venture?.ventureId) {
         console.log("Adding team members from analysis to venture:", venture.ventureId);
         
+        // Check existing team members to avoid duplicates
+        const existingMembers = await storage.getTeamMembersByVentureId(venture.ventureId);
+        const existingNames = existingMembers.map(m => m.fullName.toLowerCase());
+        
         for (const teamMember of scoringResult.output.team) {
           try {
+            // Skip if team member already exists
+            if (existingNames.includes(teamMember.name?.toLowerCase())) {
+              console.log(`Skipping duplicate team member: ${teamMember.name}`);
+              continue;
+            }
+            
             await storage.createTeamMember({
               ventureId: venture.ventureId,
               fullName: teamMember.name || 'Unknown',
               email: '', // Not provided in analysis
-              positionOrRole: teamMember.role || 'Team Member',
-              department: 'General',
+              role: teamMember.role || 'Team Member',
               linkedinProfile: '',
-              personalLinkedin: '',
               isTechnical: teamMember.role?.toLowerCase().includes('cto') || teamMember.role?.toLowerCase().includes('tech'),
               experience: teamMember.experience || teamMember.background || '',
-              skills: teamMember.background || '',
-              education: '',
-              previousCompanies: teamMember.background || '',
-              achievements: teamMember.experience || ''
+              background: teamMember.background || '',
+              isCofounder: teamMember.role?.toLowerCase().includes('founder') || teamMember.role?.toLowerCase().includes('ceo'),
+              age: null,
+              gender: null,
+              twitterUrl: '',
+              instagramUrl: '',
+              githubUrl: ''
             });
-            console.log(`Added team member: ${teamMember.name} (${teamMember.role})`);
+            console.log(`✓ Added team member: ${teamMember.name} (${teamMember.role})`);
           } catch (error) {
             console.warn(`Failed to add team member ${teamMember.name}:`, error);
           }
