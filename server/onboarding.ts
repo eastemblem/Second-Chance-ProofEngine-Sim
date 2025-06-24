@@ -645,10 +645,10 @@ export class OnboardingManager {
     const session = await this.getSession(sessionId);
     const stepData = session?.stepData as any;
 
-    // Get all required data
-    const upload = stepData?.upload?.upload;
+    // Get all required data with safe property access
+    const upload = stepData?.upload?.upload || stepData?.upload;
     const venture = stepData?.venture?.venture || stepData?.venture;
-    const folderStructure = stepData?.venture?.folderStructure;
+    const folderStructure = stepData?.venture?.folderStructure || stepData?.folderStructure;
 
     console.log("Submit for scoring : ", folderStructure);
 

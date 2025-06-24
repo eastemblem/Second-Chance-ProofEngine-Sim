@@ -148,7 +148,8 @@ export class OnboardingService {
       throw new Error("Session not found");
     }
 
-    const venture = session.stepData?.venture;
+    const stepData = session.stepData || {};
+    const venture = stepData.venture;
     if (!venture) {
       throw new Error("Venture step not completed");
     }
@@ -187,9 +188,17 @@ export class OnboardingService {
       throw new Error("Session not found");
     }
 
-    const { upload, venture, folderStructure } = session.stepData;
-    if (!upload || !venture) {
-      throw new Error("Required onboarding steps not completed");
+    const stepData = session.stepData || {};
+    const upload = stepData.upload;
+    const venture = stepData.venture;
+    const folderStructure = stepData.folderStructure;
+    
+    if (!upload) {
+      throw new Error("Document upload step not completed");
+    }
+    
+    if (!venture) {
+      throw new Error("Venture step not completed");
     }
 
     let scoringResult = null;
