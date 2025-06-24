@@ -114,7 +114,7 @@ export class OnboardingManager {
     if (eastEmblemAPI.isConfigured()) {
       eastEmblemAPI
         .sendSlackNotification(
-          `\`Onboarding Id : ${newSession.sessionId} + \`\nℹ️ Started Onboarding !`,
+          `\`Onboarding Id : ${newSession.sessionId}\`\nℹ️ Started Onboarding !`,
           "#notifications",
           newSession.sessionId,
         )
