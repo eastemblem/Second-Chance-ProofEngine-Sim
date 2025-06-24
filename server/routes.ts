@@ -755,6 +755,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         fileBuffer,
         uploadedFile.originalname,
         overviewFolderId,
+        sessionId,
       );
 
       // Update session with uploaded file
@@ -766,6 +767,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const pitchDeckScore = await eastEmblemAPI.scorePitchDeck(
         fileBuffer,
         uploadedFile.originalname,
+        sessionId,
       );
 
       // Update session with pitch deck score
@@ -855,6 +857,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
             file.buffer,
             file.originalname,
             folder_id,
+            req.body.onboarding_id || "unknown",
           );
 
           // Update session with uploaded file

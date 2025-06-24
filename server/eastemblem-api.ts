@@ -287,7 +287,7 @@ class EastEmblemAPI {
     }
   }
 
-  async scorePitchDeck(fileBuffer: Buffer, fileName: string): Promise<any> {
+  async scorePitchDeck(fileBuffer: Buffer, fileName: string, onboardingId: string): Promise<any> {
     try {
       const formData = new FormData();
       formData.append("data", fileBuffer, fileName);

@@ -211,7 +211,8 @@ export class OnboardingManager {
     if (eastEmblemAPI.isConfigured()) {
       try {
         folderStructure = await eastEmblemAPI.createFolderStructure(
-          validatedData.name
+          validatedData.name,
+          sessionId
         );
 
         // Create proof vault entries for each folder
@@ -398,7 +399,8 @@ export class OnboardingManager {
         const uploadResult = await eastEmblemAPI.uploadFile(
           fileBuffer,
           file.originalname,
-          folderStructure.folders['0_Overview']
+          folderStructure.folders['0_Overview'],
+          sessionId
         );
         
         eastemblemFileId = uploadResult.id;
