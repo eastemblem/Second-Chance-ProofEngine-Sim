@@ -44,11 +44,12 @@ export function getSessionId(req: Request): string {
     throw new Error("Session middleware not configured");
   }
   
-  if (!req.session.id) {
-    req.session.id = generateSessionId();
+  // Use Express session ID or create custom one
+  if (!req.session.customId) {
+    req.session.customId = generateSessionId();
   }
   
-  return req.session.id;
+  return req.session.customId;
 }
 
 /**

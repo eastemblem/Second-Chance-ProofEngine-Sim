@@ -6,6 +6,7 @@ import { db } from "../db";
 import { onboardingSession, documentUpload } from "@shared/schema";
 import { eq } from "drizzle-orm";
 import fs from "fs";
+import crypto from "crypto";
 
 export class OnboardingService {
   /**
@@ -66,7 +67,7 @@ export class OnboardingService {
    */
   async completeFounderStep(sessionId: string | null, founderData: any) {
     if (!sessionId) {
-      sessionId = `onb_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
+      sessionId = crypto.randomBytes(16).toString('hex');
     }
 
     // Check if founder exists by email
