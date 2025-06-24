@@ -119,10 +119,14 @@ class EastEmblemAPI {
 
   async createFolderStructure(
     folderName: string,
+    onboardingId?: string,
   ): Promise<FolderStructureResponse> {
     try {
       const formData = new FormData();
       formData.append("folderName", folderName);
+      if (onboardingId) {
+        formData.append("onboarding_id", onboardingId);
+      }
 
       console.log(`Creating folder structure for: ${folderName}`);
       console.log(
@@ -226,11 +230,15 @@ class EastEmblemAPI {
     fileBuffer: Buffer,
     fileName: string,
     folderId: string,
+    onboardingId?: string,
   ): Promise<FileUploadResponse> {
     try {
       const formData = new FormData();
       formData.append("data", fileBuffer, fileName);
       formData.append("folder_id", folderId);
+      if (onboardingId) {
+        formData.append("onboarding_id", onboardingId);
+      }
 
       console.log(`Uploading file: ${fileName} to folder: ${folderId}`);
       console.log(`API endpoint: ${this.getEndpoint("/vault/file/upload")}`);
@@ -287,10 +295,13 @@ class EastEmblemAPI {
     }
   }
 
-  async scorePitchDeck(fileBuffer: Buffer, fileName: string, onboardingId: string): Promise<any> {
+  async scorePitchDeck(fileBuffer: Buffer, fileName: string, onboardingId?: string): Promise<any> {
     try {
       const formData = new FormData();
       formData.append("data", fileBuffer, fileName);
+      if (onboardingId) {
+        formData.append("onboarding_id", onboardingId);
+      }
 
       console.log(`Scoring pitch deck: ${fileName}`);
       console.log(`API endpoint: ${this.getEndpoint("/score/pitch-deck")}`);
@@ -426,6 +437,35 @@ class EastEmblemAPI {
 
   isConfigured(): boolean {
     return !!this.baseUrl;
+  }
+
+  async sendSlackNotification(
+    message: string,
+    channel: string,
+    onboardingId?: string,
+  ): Promise<any> {
+    try {
+      const response = await fetch(this.getEndpoint("/notification/slack"), {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          message,
+          channel,
+          onboarding_id: onboardingId,
+        }),
+      });
+
+      if (!response.ok) {
+        throw new Error(`Slack notification failed: ${response.status} ${response.statusText}`);
+      }
+
+      return await response.json();
+    } catch (error) {
+      console.error("Error sending Slack notification:", error);
+      throw error;
+    }
   }
 
   getStatus(): { configured: boolean; baseUrl: string } {
