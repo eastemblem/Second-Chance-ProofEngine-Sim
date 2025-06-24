@@ -30,10 +30,10 @@ export interface SessionData {
 }
 
 /**
- * Generate a unique session ID
+ * Generate a unique session ID in UUID v4 format
  */
 export function generateSessionId(): string {
-  return crypto.randomBytes(16).toString('hex');
+  return crypto.randomUUID();
 }
 
 /**
@@ -44,7 +44,7 @@ export function getSessionId(req: Request): string {
     throw new Error("Session middleware not configured");
   }
   
-  // Use Express session ID or create custom one
+  // Use Express session ID or create custom UUID
   if (!req.session.customId) {
     req.session.customId = generateSessionId();
   }

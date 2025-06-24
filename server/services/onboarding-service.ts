@@ -67,7 +67,7 @@ export class OnboardingService {
    */
   async completeFounderStep(sessionId: string | null, founderData: any) {
     if (!sessionId) {
-      sessionId = crypto.randomBytes(16).toString('hex');
+      sessionId = crypto.randomUUID();
     }
 
     // Check if founder exists by email
