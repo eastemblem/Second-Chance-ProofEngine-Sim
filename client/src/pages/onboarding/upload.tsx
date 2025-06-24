@@ -172,8 +172,8 @@ export default function DocumentUpload({
       <Card 
         className={`border-2 border-dashed transition-all cursor-pointer ${
           isDragOver 
-            ? "border-purple-400 bg-purple-50 shadow-lg" 
-            : "border-gray-300 hover:border-purple-300 hover:bg-purple-25"
+            ? "border-primary bg-primary/10 shadow-lg" 
+            : "border-border hover:border-primary hover:bg-primary/5"
         }`}
         onDragOver={handleDragOver}
         onDragLeave={handleDragLeave}
@@ -184,14 +184,14 @@ export default function DocumentUpload({
           {!selectedFile ? (
             <div className="text-center">
               <Upload className={`w-16 h-16 mx-auto mb-4 transition-colors ${
-                isDragOver ? "text-purple-600" : "text-gray-400"
+                isDragOver ? "text-primary" : "text-muted-foreground"
               }`} />
               <h3 className={`text-lg font-medium mb-2 transition-colors ${
-                isDragOver ? "text-purple-700" : "text-gray-900"
+                isDragOver ? "text-primary" : "text-card-foreground"
               }`}>
                 {isDragOver ? "Drop your pitch deck here" : "Choose your pitch deck"}
               </h3>
-              <p className="text-gray-600 mb-4">
+              <p className="text-muted-foreground mb-4">
                 Drag and drop or click to select • PDF, PPT, PPTX (max 10MB)
               </p>
               <input
@@ -206,18 +206,18 @@ export default function DocumentUpload({
                   e.stopPropagation();
                   document.getElementById("pitchDeck")?.click();
                 }}
-                className="px-6 py-2 bg-purple-600 hover:bg-purple-700"
+                className="px-6 py-2 bg-primary hover:bg-primary/90"
               >
                 Select File
               </Button>
             </div>
           ) : (
             <div className="space-y-4">
-              <div className="flex items-center space-x-3 p-4 bg-gray-50 rounded-lg">
-                <FileText className="w-8 h-8 text-blue-600" />
+              <div className="flex items-center space-x-3 p-4 bg-muted rounded-lg border border-border">
+                <FileText className="w-8 h-8 text-primary" />
                 <div className="flex-1">
-                  <p className="font-medium text-gray-900">{selectedFile.name}</p>
-                  <p className="text-sm text-gray-600">
+                  <p className="font-medium text-card-foreground">{selectedFile.name}</p>
+                  <p className="text-sm text-muted-foreground">
                     {formatFileSize(selectedFile.size)}
                   </p>
                 </div>
@@ -234,13 +234,13 @@ export default function DocumentUpload({
 
               {isUploading && (
                 <div className="space-y-2">
-                  <div className="flex justify-between text-sm">
+                  <div className="flex justify-between text-sm text-card-foreground">
                     <span>Uploading...</span>
                     <span>{uploadProgress}%</span>
                   </div>
-                  <div className="w-full bg-gray-200 rounded-full h-2">
+                  <div className="w-full bg-secondary rounded-full h-3">
                     <div 
-                      className="bg-purple-600 h-2 rounded-full transition-all duration-300"
+                      className="bg-gradient-to-r from-primary to-primary-gold h-3 rounded-full transition-all duration-300"
                       style={{ width: `${uploadProgress}%` }}
                     />
                   </div>
@@ -248,7 +248,7 @@ export default function DocumentUpload({
               )}
 
               {uploadProgress === 100 && (
-                <div className="flex items-center space-x-2 text-green-600">
+                <div className="flex items-center space-x-2 text-primary-gold">
                   <CheckCircle className="w-5 h-5" />
                   <span>Upload complete!</span>
                 </div>
@@ -257,7 +257,7 @@ export default function DocumentUpload({
               {!isUploading && uploadProgress === 0 && (
                 <Button
                   onClick={handleUpload}
-                  className="w-full bg-purple-600 hover:bg-purple-700"
+                  className="w-full bg-primary hover:bg-primary/90"
                   size="lg"
                 >
                   Upload Pitch Deck
@@ -268,7 +268,7 @@ export default function DocumentUpload({
         </CardContent>
       </Card>
 
-      <div className="mt-6 text-center text-sm text-gray-600">
+      <div className="mt-6 text-center text-sm text-muted-foreground">
         <p>
           Your pitch deck will be analyzed for structure, content quality, and investment readiness.
           We use industry-standard frameworks to provide actionable feedback.
@@ -290,7 +290,7 @@ export default function DocumentUpload({
         {selectedFile && !isUploading && uploadProgress === 0 && (
           <Button
             onClick={handleUpload}
-            className="px-8 py-2 bg-purple-600 hover:bg-purple-700"
+            className="px-8 py-2 bg-primary hover:bg-primary/90"
           >
             Upload & Continue
           </Button>

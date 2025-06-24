@@ -201,6 +201,9 @@ Demo experience for testing different user journeys:
   * Enhanced team member card UI with purple-gold theme matching and reduced card size
   * Removed age and gender fields from display to streamline card design
   * Updated colors to match app's purple and gold branding
+  * Enhanced pitch deck upload UI with app theme using CSS custom properties
+  * Applied consistent theming to drag-and-drop interface, progress bar, and buttons
+  * Improved visual hierarchy with proper foreground and background color usage
 
 ## User Preferences
 
