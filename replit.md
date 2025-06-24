@@ -120,6 +120,7 @@ Demo experience for testing different user journeys:
 - June 24, 2025. Added onboarding_id parameter to all EastEmblem API calls
 - June 24, 2025. Added Slack notification endpoint at /api/notification/send
 - June 24, 2025. Implemented comprehensive async Slack notifications for all onboarding steps
+- June 24, 2025. Removed @slack/web-api package dependency - notifications handled via EastEmblem API
 - June 24, 2025. Fixed missing onboarding_id parameter in createFolderStructure call
 - June 24, 2025. Added allowShare=true parameter to all file upload operations
 - June 24, 2025. Updated all Slack notifications to use backtick formatting for onboarding IDs
