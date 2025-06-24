@@ -80,14 +80,14 @@ export class OnboardingService {
 
     // Update session with founder data and ID
     console.log("Founder object from database:", JSON.stringify(founder, null, 2));
-    console.log("Founder ID:", founder.id);
+    console.log("Founder ID (founderId):", founder.founderId);
     
     // Store founder ID separately for reliable access
     await this.updateSession(sessionId, {
       currentStep: "venture",
       stepData: { 
         founder: founder,
-        founderId: founder.id,  // Store separately for easy access
+        founderId: founder.founderId,  // Use founderId field from schema
       },
       completedSteps: ["founder"],
     });
@@ -107,7 +107,7 @@ export class OnboardingService {
 
     return {
       sessionId,
-      founderId: founder.id,
+      founderId: founder.founderId,
       founder,
     };
   }
@@ -126,10 +126,14 @@ export class OnboardingService {
     }
 
     console.log("Session found, proceeding with venture creation");
+    console.log("Full session stepData:", JSON.stringify(session.stepData, null, 2));
+    
     const founderData = session.stepData?.founder;
-    const founderId = session.stepData?.founderId;
+    const founderId = session.stepData?.founderId || founderData?.founderId;
     console.log("Founder data from session:", JSON.stringify(founderData, null, 2));
-    console.log("Founder ID from session:", founderId);
+    console.log("Founder ID from session stepData:", session.stepData?.founderId);
+    console.log("Founder ID from founderData:", founderData?.founderId);
+    console.log("Final founder ID:", founderId);
     
     if (!founderData) {
       throw new Error("Founder step not completed");
