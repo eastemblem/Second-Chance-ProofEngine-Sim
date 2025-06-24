@@ -129,6 +129,70 @@ router.post("/upload", upload.single("pitchDeck"), asyncHandler(async (req, res)
   }));
 }));
 
+// Team member endpoints
+router.post("/team/add", asyncHandler(async (req, res) => {
+  const sessionId = getSessionId(req);
+  const { sessionId: _, ...memberData } = req.body;
+  
+  const validation = safeValidate(teamMemberSchema, memberData);
+  if (!validation.success) {
+    throw validation.errors;
+  }
+
+  const result = await onboardingService.addTeamMember(sessionId, validation.data);
+
+  res.json(createSuccessResponse({
+    teamMember: result,
+    nextStep: "team",
+  }));
+}));
+
+router.get("/team/:sessionId", asyncHandler(async (req, res) => {
+  const { sessionId } = req.params;
+  
+  const teamMembers = await onboardingService.getTeamMembers(sessionId);
+
+  res.json(createSuccessResponse({
+    teamMembers,
+  }));
+}));
+
+router.put("/team/update/:memberId", asyncHandler(async (req, res) => {
+  const { memberId } = req.params;
+  const { memberId: _, ...memberData } = req.body;
+  
+  const validation = safeValidate(teamMemberSchema, memberData);
+  if (!validation.success) {
+    throw validation.errors;
+  }
+
+  const result = await onboardingService.updateTeamMember(memberId, validation.data);
+
+  res.json(createSuccessResponse({
+    teamMember: result,
+  }));
+}));
+
+router.delete("/team/delete/:memberId", asyncHandler(async (req, res) => {
+  const { memberId } = req.params;
+  
+  await onboardingService.deleteTeamMember(memberId);
+
+  res.json(createSuccessResponse({
+    message: "Team member deleted successfully",
+  }));
+}));
+
+router.post("/team/complete", asyncHandler(async (req, res) => {
+  const sessionId = getSessionId(req);
+  
+  const result = await onboardingService.completeTeamStep(sessionId);
+
+  res.json(createSuccessResponse({
+    nextStep: "upload",
+  }));
+}));
+
 // Submit for scoring
 router.post("/submit-for-scoring", requireFields(['sessionId']), asyncHandler(async (req, res) => {
   const { sessionId } = req.body;

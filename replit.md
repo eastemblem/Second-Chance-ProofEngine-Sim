@@ -156,6 +156,9 @@ Demo experience for testing different user journeys:
   * Successfully completed full onboarding flow: founder → venture → upload → scoring
   * Cleaned up debug logging and optimized session management code
   * Verified complete integration with EastEmblem API and Slack notifications
+  * Added missing team member endpoints: add, get, update, delete, complete
+  * Fixed "Not valid json" error in team member operations
+  * Implemented complete team management functionality with venture linkage
 
 ## User Preferences
 

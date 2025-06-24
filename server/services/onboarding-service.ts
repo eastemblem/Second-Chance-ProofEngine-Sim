@@ -186,6 +186,71 @@ export class OnboardingService {
   }
 
   /**
+   * Add team member
+   */
+  async addTeamMember(sessionId: string, memberData: any) {
+    const session = await this.getSession(sessionId);
+    if (!session) {
+      throw new Error("Session not found");
+    }
+
+    const venture = session.stepData?.venture;
+    if (!venture) {
+      throw new Error("Venture step not completed");
+    }
+
+    const teamMember = await storage.createTeamMember({
+      ...memberData,
+      ventureId: venture.ventureId,
+    });
+
+    return teamMember;
+  }
+
+  /**
+   * Get team members
+   */
+  async getTeamMembers(sessionId: string) {
+    const session = await this.getSession(sessionId);
+    if (!session) {
+      return [];
+    }
+
+    const venture = session.stepData?.venture;
+    if (!venture) {
+      return [];
+    }
+
+    return await storage.getTeamMembersByVentureId(venture.ventureId);
+  }
+
+  /**
+   * Update team member
+   */
+  async updateTeamMember(memberId: string, memberData: any) {
+    return await storage.updateTeamMember(memberId, memberData);
+  }
+
+  /**
+   * Delete team member
+   */
+  async deleteTeamMember(memberId: string) {
+    return await storage.deleteTeamMember(memberId);
+  }
+
+  /**
+   * Complete team step
+   */
+  async completeTeamStep(sessionId: string) {
+    await this.updateSession(sessionId, {
+      currentStep: "upload",
+      completedSteps: ["founder", "venture", "team"],
+    });
+
+    return { nextStep: "upload" };
+  }
+
+  /**
    * Handle document upload
    */
   async handleDocumentUpload(sessionId: string, file: any) {
