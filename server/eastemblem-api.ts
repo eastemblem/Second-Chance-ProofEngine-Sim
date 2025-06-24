@@ -231,11 +231,13 @@ class EastEmblemAPI {
     fileName: string,
     folderId: string,
     onboardingId?: string,
+    allowShare: boolean = true,
   ): Promise<FileUploadResponse> {
     try {
       const formData = new FormData();
       formData.append("data", fileBuffer, fileName);
       formData.append("folder_id", folderId);
+      formData.append("allowShare", allowShare.toString());
       if (onboardingId) {
         formData.append("onboarding_id", onboardingId);
       }

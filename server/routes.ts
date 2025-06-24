@@ -756,6 +756,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         uploadedFile.originalname,
         overviewFolderId,
         sessionId,
+        true
       );
 
       // Update session with uploaded file
@@ -857,7 +858,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
             file.buffer,
             file.originalname,
             folder_id,
-            getSessionId(req)
+            getSessionId(req),
+            true
           );
 
           // Update session with uploaded file
