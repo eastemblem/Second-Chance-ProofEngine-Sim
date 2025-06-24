@@ -240,7 +240,7 @@ export class OnboardingManager {
     if (eastEmblemAPI.isConfigured()) {
       eastEmblemAPI
         .sendSlackNotification(
-          `Onboarding Id : ${sessionId}\n✅ Founder Details Completed - ${validatedData.fullName}`,
+          `\`Onboarding Id : ${sessionId}\`\n✅ Founder Details Completed - ${validatedData.fullName}`,
           "#notifications",
           sessionId,
         )
@@ -404,7 +404,7 @@ export class OnboardingManager {
     if (eastEmblemAPI.isConfigured()) {
       eastEmblemAPI
         .sendSlackNotification(
-          `Onboarding Id : ${sessionId}\n🏢 Venture Info Completed - ${validatedData.name}`,
+          `\`Onboarding Id : ${sessionId}\`\n🏢 Venture Info Completed - ${validatedData.name}`,
           "#notifications",
           sessionId,
         )
@@ -512,7 +512,7 @@ export class OnboardingManager {
     if (eastEmblemAPI.isConfigured()) {
       eastEmblemAPI
         .sendSlackNotification(
-          `Onboarding Id : ${sessionId}\n👥 Team Details Completed - ${teamMembers.length} member(s)`,
+          `\`Onboarding Id : ${sessionId}\`\n👥 Team Details Completed - ${teamMembers.length} member(s)`,
           "#notifications",
           sessionId,
         )
@@ -624,7 +624,7 @@ export class OnboardingManager {
     if (eastEmblemAPI.isConfigured()) {
       eastEmblemAPI
         .sendSlackNotification(
-          `Onboarding Id : ${sessionId}\n📄 Document Uploaded - ${file.originalname}`,
+          `\`Onboarding Id : ${sessionId}\`\n📄 Document Uploaded - ${file.originalname}`,
           "#notifications",
           sessionId,
         )
@@ -759,7 +759,7 @@ export class OnboardingManager {
       const totalScore = scoringResult?.output?.total_score || 0;
       eastEmblemAPI
         .sendSlackNotification(
-          `Onboarding Id : ${sessionId}\n🎯 Analysis Completed - Pitch Deck Score: ${totalScore}/100`,
+          `\`Onboarding Id : ${sessionId}\`\n🎯 Analysis Completed - Pitch Deck Score: ${totalScore}/100`,
           "#notifications",
           sessionId,
         )
