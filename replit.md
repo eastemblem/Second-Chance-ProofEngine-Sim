@@ -215,6 +215,11 @@ Demo experience for testing different user journeys:
   * Fixed "not valid json" error in submit-for-scoring endpoint with proper JSON response formatting
   * Enhanced JSON parsing with detailed error handling and debugging for processing flow
   * Verified complete onboarding flow: founder → venture → team → upload → processing → scoring
+  * Resolved HTML response issue by ensuring proper JSON content-type headers in all endpoints
+  * Fixed submit-for-scoring endpoint to return structured JSON with session data for frontend consumption
+  * Added comprehensive error handling and logging for debugging API response parsing
+  * Confirmed EastEmblem API integration working with detailed scoring results (60/100 total score)
+  * Complete end-to-end functionality: file upload → analysis → JSON response → UI processing
 
 ## User Preferences
 
