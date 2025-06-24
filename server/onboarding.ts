@@ -297,6 +297,19 @@ export class OnboardingManager {
       .where(eq(onboardingSession.sessionId, sessionId))
       .returning();
 
+    // Send Slack notification for venture step completion
+    try {
+      if (eastEmblemAPI.isConfigured()) {
+        await eastEmblemAPI.sendSlackNotification(
+          `Onboarding Id : ${sessionId}\n🏢 Venture Info Completed - ${validatedData.name}`,
+          "#notifications",
+          sessionId
+        );
+      }
+    } catch (error) {
+      console.log("Failed to send venture completion notification:", error);
+    }
+
     return { venture, folderStructure };
   }
 
