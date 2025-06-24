@@ -4,7 +4,7 @@ import { createServer, type Server } from "http";
 import { eastEmblemAPI, type FolderStructureResponse, type FileUploadResponse } from "./eastemblem-api";
 import { getSessionId, getSessionData, updateSessionData } from "./utils/session-manager";
 import { asyncHandler, createSuccessResponse, errorHandler } from "./utils/error-handler";
-import apiRoutes from "./routes";
+import apiRoutes from "./routes/index";
 import multer from "multer";
 import path from "path";
 import fs from "fs";
@@ -149,48 +149,32 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // EastEmblem API Routes for ProofVault
 
   // Create startup vault structure
-  app.post("/api/vault/create-startup-vault", async (req, res) => {
-    try {
-      const { startupName } = req.body;
+  app.post("/api/vault/create-startup-vault", asyncHandler(async (req, res) => {
+    const { startupName } = req.body;
 
-      if (!startupName) {
-        return res.status(400).json({
-          error: "Missing required field",
-          message: "startupName is required",
-        });
-      }
+    if (!startupName) {
+      throw new Error("startupName is required");
+    }
 
-      if (!eastEmblemAPI.isConfigured()) {
-        return res.status(503).json({
-          error: "EastEmblem API not configured",
-          message: "EASTEMBLEM_API_BASE_URL is required",
-        });
-      }
+    if (!eastEmblemAPI.isConfigured()) {
+      throw new Error("EastEmblem API not configured");
+    }
 
       console.log(`Creating startup vault for: ${startupName}`);
 
-      // Create folder structure using EastEmblem API
-      const folderStructure =
-        await eastEmblemAPI.createFolderStructure(startupName, getSessionId(req));
+      const folderStructure = await eastEmblemAPI.createFolderStructure(startupName, getSessionId(req));
 
-      // Store in session
       updateSessionData(req, {
         folderStructure,
         startupName,
         uploadedFiles: [],
       });
 
-      console.log("Session updated with folder structure:", {
-        sessionId: getSessionId(req),
+      res.json(createSuccessResponse({
         folderStructure,
-      });
-
-      return res.json({
-        success: true,
-        folderStructure,
-        message: "Startup vault created successfully",
         sessionId: getSessionId(req),
-      });
+      }, "Startup vault created successfully"));
+  }));
     } catch (error) {
       console.error("Error creating startup vault:", error);
       res.status(500).json({
@@ -203,78 +187,49 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
 
   // Get session data
-  app.get("/api/vault/session", async (req, res) => {
-    try {
-      const sessionData = getSessionData(req);
+  app.get("/api/vault/session", asyncHandler(async (req, res) => {
+    const sessionData = getSessionData(req);
 
-      console.log("Retrieved session data:", {
-        sessionId: getSessionId(req),
-        hasStructure: !!sessionData.folderStructure,
-        filesCount: sessionData.uploadedFiles?.length || 0,
-        hasScore: !!sessionData.pitchDeckScore,
-      });
+    console.log("Retrieved session data:", {
+      sessionId: getSessionId(req),
+      hasStructure: !!sessionData.folderStructure,
+      filesCount: sessionData.uploadedFiles?.length || 0,
+      hasScore: !!sessionData.pitchDeckScore,
+    });
 
-      return res.json({
-        success: true,
-        sessionId: getSessionId(req),
-        data: sessionData,
-      });
-    } catch (error) {
-      console.error("Error retrieving session data:", error);
-      res.status(500).json({
-        error:
-          error instanceof Error
-            ? error.message
-            : "Failed to retrieve session data",
-      });
-    }
-  });
+    res.json(createSuccessResponse({
+      sessionId: getSessionId(req),
+      data: sessionData,
+    }));
+  }));
 
   // Simple file upload - store file in session without executing workflow
-  app.post("/api/vault/upload-only", upload.single("file"), (req, res) => {
-    try {
-      const file = req.file;
+  app.post("/api/vault/upload-only", upload.single("file"), asyncHandler(async (req, res) => {
+    const file = req.file;
 
-      console.log("Inside upload-only endpoint !");
-
-      if (!file) {
-        return res.status(400).json({
-          success: false,
-          error: "Missing file",
-          message: "File is required for upload",
-        });
-      }
-
-      console.log(`Storing file for later processing: ${file.originalname}`);
-
-      // Store file path in session for later processing
-      updateSessionData(req, {
-        uploadedFile: {
-          filepath: file.path,
-          originalname: file.originalname,
-          mimetype: file.mimetype,
-          size: file.size,
-        },
-      });
-
-      res.json({
-        success: true,
-        message: "File uploaded and ready for processing",
-        file: {
-          name: file.originalname,
-          size: file.size,
-          type: file.mimetype,
-        },
-      });
-    } catch (error) {
-      console.error("Error storing file:", error);
-      res.status(500).json({
-        success: false,
-        error: error instanceof Error ? error.message : "File storage failed",
-        message: "Upload failed",
-      });
+    if (!file) {
+      throw new Error("File is required for upload");
     }
-  });
+
+    console.log(`Storing file for later processing: ${file.originalname}`);
+
+    updateSessionData(req, {
+      uploadedFile: {
+        filepath: file.path,
+        originalname: file.originalname,
+        mimetype: file.mimetype,
+        size: file.size,
+      },
+    });
+
+    res.json(createSuccessResponse({
+      file: {
+        name: file.originalname,
+        size: file.size,
+        type: file.mimetype,
+      },
+    }, "File uploaded and ready for processing"));
+  }));
 
   // Submit for scoring workflow - uses file stored in session
   app.post("/api/vault/submit-for-scoring", async (req, res) => {
