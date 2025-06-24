@@ -90,8 +90,10 @@ router.post("/founder", asyncHandler(async (req, res) => {
 }));
 
 // Venture onboarding step
-router.post("/venture", requireFields(['sessionId']), asyncHandler(async (req, res) => {
-  const { sessionId, ...ventureData } = req.body;
+router.post("/venture", asyncHandler(async (req, res) => {
+  // Use session from middleware, ignore any provided sessionId
+  const sessionId = getSessionId(req);
+  const { sessionId: _, ...ventureData } = req.body; // Remove sessionId from body
   
   const validation = safeValidate(ventureOnboardingSchema, ventureData);
   if (!validation.success) {
@@ -108,8 +110,9 @@ router.post("/venture", requireFields(['sessionId']), asyncHandler(async (req, r
 }));
 
 // Document upload
-router.post("/upload", upload.single("pitchDeck"), requireFields(['sessionId']), asyncHandler(async (req, res) => {
-  const { sessionId } = req.body;
+router.post("/upload", upload.single("pitchDeck"), asyncHandler(async (req, res) => {
+  // Use session from middleware
+  const sessionId = getSessionId(req);
 
   if (!req.file) {
     throw new Error("No file uploaded");
