@@ -189,21 +189,28 @@ export class OnboardingService {
    * Add team member
    */
   async addTeamMember(sessionId: string, memberData: any) {
-    console.log(`Looking for session: ${sessionId}`);
     const session = await this.getSession(sessionId);
     if (!session) {
-      console.log(`Session ${sessionId} not found`);
       throw new Error("Session not found");
     }
 
-    console.log(`Session found:`, JSON.stringify(session, null, 2));
-    const venture = session.stepData?.venture;
+    // Look for venture data in session or get most recent venture for the founder
+    let venture = session.stepData?.venture;
+    
     if (!venture || !venture.ventureId) {
-      console.log(`Venture step not completed. Venture:`, venture);
-      throw new Error("Venture step not completed or venture ID missing");
+      // Fallback: get venture by founder ID from session
+      const founderData = session.stepData?.founder;
+      if (founderData?.founderId) {
+        const ventures = await storage.getVenturesByFounderId(founderData.founderId);
+        if (ventures && ventures.length > 0) {
+          venture = ventures[0]; // Use most recent venture
+        }
+      }
     }
 
-    console.log(`Creating team member for venture: ${venture.ventureId}`);
+    if (!venture || !venture.ventureId) {
+      throw new Error("Venture step not completed or venture ID missing");
+    }
     const teamMember = await storage.createTeamMember({
       ...memberData,
       ventureId: venture.ventureId,
@@ -221,8 +228,21 @@ export class OnboardingService {
       return [];
     }
 
-    const venture = session.stepData?.venture;
-    if (!venture) {
+    // Look for venture data in session or get most recent venture for the founder
+    let venture = session.stepData?.venture;
+    
+    if (!venture || !venture.ventureId) {
+      // Fallback: get venture by founder ID from session
+      const founderData = session.stepData?.founder;
+      if (founderData?.founderId) {
+        const ventures = await storage.getVenturesByFounderId(founderData.founderId);
+        if (ventures && ventures.length > 0) {
+          venture = ventures[0]; // Use most recent venture
+        }
+      }
+    }
+
+    if (!venture || !venture.ventureId) {
       return [];
     }
 
@@ -247,6 +267,11 @@ export class OnboardingService {
    * Complete team step
    */
   async completeTeamStep(sessionId: string) {
+    const session = await this.getSession(sessionId);
+    if (!session) {
+      throw new Error("Session not found");
+    }
+
     await this.updateSession(sessionId, {
       currentStep: "upload",
       completedSteps: ["founder", "venture", "team"],
