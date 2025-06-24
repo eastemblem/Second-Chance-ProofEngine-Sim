@@ -7,9 +7,9 @@ import { TooltipProvider } from "@/components/ui/tooltip";
 import { lazy, Suspense } from "react";
 import { PerformanceMonitor } from "@/components/performance-monitor";
 import { MemoryOptimizer } from "@/components/memory-optimizer";
-import { CriticalLoader } from "@/components/critical-loader";
+// CriticalLoader removed - optimizations moved to main.tsx
 
-// Lazy load page components for better performance
+// Lazy load page components with preload hints
 const LandingPage = lazy(() => import("@/pages/landing"));
 const OnboardingPage = lazy(() => import("@/pages/onboarding"));
 const OnboardingFlow = lazy(() => import("@/pages/onboarding-flow"));
@@ -19,6 +19,19 @@ const PathwayPage = lazy(() => import("@/pages/pathway"));
 const DealRoomPage = lazy(() => import("@/pages/deal-room"));
 const ProofScalingDashboard = lazy(() => import("@/pages/proofscaling-dashboard"));
 const FinalPage = lazy(() => import("@/pages/final"));
+
+// Preload likely next components
+const preloadComponents = () => {
+  if ('requestIdleCallback' in window) {
+    requestIdleCallback(() => {
+      import("@/pages/onboarding");
+      import("@/pages/scoring");
+    });
+  }
+};
+
+// Initialize preloading
+setTimeout(preloadComponents, 2000);
 import { useSimulation } from "@/hooks/use-simulation";
 import NotFound from "@/pages/not-found";
 
@@ -154,7 +167,6 @@ function App() {
   return (
     <QueryClientProvider client={queryClient}>
       <TooltipProvider>
-        <CriticalLoader />
         <PerformanceMonitor />
         <MemoryOptimizer />
         <Toaster />
