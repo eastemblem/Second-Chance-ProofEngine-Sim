@@ -49,17 +49,21 @@ export function initializeOptimizations() {
 // Enable performance observer for monitoring
 function enablePerformanceObserver() {
   if ('PerformanceObserver' in window && process.env.NODE_ENV === 'development') {
-    const observer = new PerformanceObserver((list) => {
-      list.getEntries().forEach((entry) => {
-        if (entry.entryType === 'largest-contentful-paint') {
-          console.log('LCP:', entry.startTime);
-        }
-        if (entry.entryType === 'first-input') {
-          console.log('FID:', entry.processingStart - entry.startTime);
-        }
+    try {
+      const observer = new PerformanceObserver((list) => {
+        list.getEntries().forEach((entry) => {
+          if (entry.entryType === 'largest-contentful-paint') {
+            console.log('LCP:', Math.round(entry.startTime) + 'ms');
+          }
+          if (entry.entryType === 'first-input') {
+            console.log('FID:', Math.round(entry.processingStart - entry.startTime) + 'ms');
+          }
+        });
       });
-    });
-    
-    observer.observe({ entryTypes: ['largest-contentful-paint', 'first-input'] });
+      
+      observer.observe({ entryTypes: ['largest-contentful-paint', 'first-input'] });
+    } catch (error) {
+      // Silently handle observer errors
+    }
   }
 }
