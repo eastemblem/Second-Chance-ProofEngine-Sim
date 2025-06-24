@@ -170,6 +170,20 @@ export class OnboardingManager {
     await this.updateSession(sessionId, "founder", validatedData, true);
     
     console.log("Founder step completed successfully for session:", sessionId);
+    
+    // Send Slack notification for founder step completion
+    try {
+      if (eastEmblemAPI.isConfigured()) {
+        await eastEmblemAPI.sendSlackNotification(
+          `Onboarding Id : ${sessionId}\n✅ Founder Details Completed - ${validatedData.fullName}`,
+          "#notifications",
+          sessionId
+        );
+      }
+    } catch (error) {
+      console.log("Failed to send founder completion notification:", error);
+    }
+    
     return { sessionId, founderId };
   }
 
@@ -356,6 +370,19 @@ export class OnboardingManager {
     // Update session progress
     await this.updateSession(sessionId, "upload", {}, false);
     await this.updateSession(sessionId, "team", { teamMembers }, true);
+
+    // Send Slack notification for team step completion
+    try {
+      if (eastEmblemAPI.isConfigured()) {
+        await eastEmblemAPI.sendSlackNotification(
+          `Onboarding Id : ${sessionId}\n👥 Team Details Completed - ${teamMembers.length} member(s)`,
+          "#notifications",
+          sessionId
+        );
+      }
+    } catch (error) {
+      console.log("Failed to send team completion notification:", error);
+    }
 
     return teamMembers;
   }
