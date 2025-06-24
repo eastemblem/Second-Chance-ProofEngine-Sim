@@ -78,10 +78,15 @@ export class OnboardingService {
       founder = await storage.createFounder(founderData);
     }
 
-    // Update session
+    // Update session with founder data and ID
     await this.updateSession(sessionId, {
       currentStep: "venture",
-      stepData: { founder },
+      stepData: { 
+        founder: {
+          ...founder,
+          founderId: founder.id,
+        }
+      },
       completedSteps: ["founder"],
     });
 
@@ -125,11 +130,18 @@ export class OnboardingService {
     if (!founderData) {
       throw new Error("Founder step not completed");
     }
+    
+    console.log("Founder data from session:", JSON.stringify(founderData, null, 2));
 
-    // Create venture
+    // Create venture with proper founder ID
+    const founderId = founderData.founderId || founderData.id;
+    if (!founderId) {
+      throw new Error("Founder ID not found in session data");
+    }
+    
     const venture = await storage.createVenture({
       ...ventureData,
-      founderId: founderData.id,
+      founderId: founderId,
     });
 
     // Create folder structure with EastEmblem API
