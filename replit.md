@@ -151,6 +151,8 @@ Demo experience for testing different user journeys:
   * Added comprehensive session handling with fallback initialization for missing sessions
   * Fixed session data storage to properly include founder ID in stepData for venture creation
   * Enhanced debugging with detailed session data logging to trace founder ID propagation
+  * Fixed founder_id constraint violation by properly extracting and storing founderId from database
+  * Fixed mvp_status constraint violation by mapping productStatus field to database schema
 
 ## User Preferences
 

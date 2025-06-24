@@ -151,10 +151,18 @@ export class OnboardingService {
     }
     
     console.log("Creating venture with founder ID:", founderId);
-    const venture = await storage.createVenture({
+    console.log("Venture data received:", JSON.stringify(ventureData, null, 2));
+    
+    // Map productStatus to mvpStatus for database schema compatibility
+    const ventureForDb = {
       ...ventureData,
       founderId: founderId,
-    });
+      mvpStatus: ventureData.productStatus || ventureData.mvpStatus, // Map productStatus to mvpStatus
+    };
+    
+    console.log("Venture data for database:", JSON.stringify(ventureForDb, null, 2));
+    
+    const venture = await storage.createVenture(ventureForDb);
 
     // Create folder structure with EastEmblem API
     let folderStructure = null;
