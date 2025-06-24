@@ -3,6 +3,7 @@ import { onboardingService } from "../services/onboarding-service";
 import { asyncHandler, createSuccessResponse } from "../utils/error-handler";
 import { validateRequestBody, safeValidate } from "../utils/validation";
 import { requireSession, requireFields } from "../middleware/auth";
+import { getSessionId } from "../utils/session-manager";
 import { founderOnboardingSchema, ventureOnboardingSchema, teamMemberSchema } from "../onboarding";
 import multer from "multer";
 import path from "path";
@@ -73,7 +74,9 @@ router.get("/session/:sessionId", asyncHandler(async (req, res) => {
 
 // Founder onboarding step
 router.post("/founder", asyncHandler(async (req, res) => {
-  const { sessionId, ...founderData } = req.body;
+  // Use session from middleware, ignore any provided sessionId
+  const sessionId = getSessionId(req);
+  const { sessionId: _, ...founderData } = req.body; // Remove sessionId from body
   
   const validation = safeValidate(founderOnboardingSchema, founderData);
   if (!validation.success) {
