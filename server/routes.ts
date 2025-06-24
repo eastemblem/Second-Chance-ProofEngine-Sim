@@ -599,7 +599,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
       // Create folder structure using EastEmblem API
       const folderStructure =
-        await eastEmblemAPI.createFolderStructure(startupName);
+        await eastEmblemAPI.createFolderStructure(startupName, getSessionId(req));
 
       // Store in session
       updateSessionData(req, {
