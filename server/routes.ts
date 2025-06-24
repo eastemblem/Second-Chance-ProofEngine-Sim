@@ -220,14 +220,24 @@ export async function registerRoutes(app: Express): Promise<Server> {
       },
     }, "File uploaded and ready for processing"));
   }));
-        });
-      }
 
-      if (!folderStructure) {
-        return res.status(400).json({
-          error: "No folder structure found",
-          message: "Please complete venture step first",
-        });
+  // Submit for scoring workflow  
+  app.post("/api/vault/submit-for-scoring", asyncHandler(async (req, res) => {
+    if (!eastEmblemAPI.isConfigured()) {
+      throw new Error("EastEmblem API not configured");
+    }
+
+    const sessionData = getSessionData(req);
+    const uploadedFile = sessionData.uploadedFile;
+    const folderStructure = sessionData.folderStructure;
+
+    if (!uploadedFile) {
+      throw new Error("No file found - please upload a file first");
+    }
+
+    if (!folderStructure) {
+      throw new Error("No folder structure found - please complete venture step first");
+    }
       }
 
       console.log(
@@ -323,16 +333,27 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  // Legacy vault routes have been moved to modular system
-            error: "Missing required fields",
-            message: "File and folder_id are required",
-            debug: { hasFile: !!file, folderId: folder_id, body: req.body },
-          });
-        }
+  // Slack notification endpoint
+  app.post("/api/notification/send", asyncHandler(async (req, res) => {
+    const { message } = req.body;
+    
+    if (!message) {
+      throw new Error("Message is required");
+    }
 
-        console.log(
-          `Uploading file: ${file.originalname} to folder: ${folder_id}`,
-        );
+    if (!eastEmblemAPI.isConfigured()) {
+      throw new Error("EastEmblem API not configured");
+    }
+
+    const sessionId = getSessionId(req);
+    const result = await eastEmblemAPI.sendSlackNotification(message, sessionId);
+
+    res.json(createSuccessResponse(result, "Notification sent successfully"));
+  }));
+
+  const httpServer = createServer(app);
+  return httpServer;
+}
 
         try {
           const uploadResult = await eastEmblemAPI.uploadFile(
