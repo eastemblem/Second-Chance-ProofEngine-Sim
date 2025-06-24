@@ -217,6 +217,19 @@ export class OnboardingService {
       }
     }
 
+    // Clean up uploaded file after successful analysis
+    if (upload.filePath) {
+      try {
+        if (fs.existsSync(upload.filePath)) {
+          fs.unlinkSync(upload.filePath);
+          console.log(`✓ Analysis complete - cleaned up file: ${upload.fileName}`);
+        }
+      } catch (error) {
+        console.error("File cleanup error:", error);
+        // Don't fail the request for cleanup errors
+      }
+    }
+
     // Update session as complete
     await this.updateSession(sessionId, {
       currentStep: "complete",

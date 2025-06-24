@@ -1,6 +1,7 @@
 import fs from "fs";
 import { eastEmblemAPI } from "../eastemblem-api";
 import { getSessionData, updateSessionData } from "../utils/session-manager";
+import { cleanupUploadedFile } from "../utils/file-cleanup";
 import { Request } from "express";
 
 export class VaultService {
@@ -91,15 +92,8 @@ export class VaultService {
       uploadedFile: undefined // Clear processed file
     });
 
-    // Clean up file
-    try {
-      if (fs.existsSync(uploadedFile.filepath)) {
-        fs.unlinkSync(uploadedFile.filepath);
-        console.log(`Cleaned up file: ${uploadedFile.originalname}`);
-      }
-    } catch (error) {
-      console.warn("File cleanup error:", error);
-    }
+    // Clean up file after successful analysis
+    cleanupUploadedFile(uploadedFile.filepath, uploadedFile.originalname, "Analysis complete");
 
     return {
       uploadResult,

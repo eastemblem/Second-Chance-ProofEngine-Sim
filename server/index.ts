@@ -2,6 +2,8 @@ import express, { type Request, Response, NextFunction } from "express";
 import { registerRoutes } from "./routes";
 import { setupVite, serveStatic, log } from "./vite";
 import { errorHandler } from "./utils/error-handler";
+import { schedulePeriodicCleanup } from "./utils/file-cleanup";
+import path from "path";
 
 const app = express();
 app.use(express.json());
@@ -51,6 +53,10 @@ app.use((req, res, next) => {
   } else {
     serveStatic(app);
   }
+
+  // Schedule periodic cleanup of old uploaded files
+  const uploadDir = path.join(process.cwd(), "uploads");
+  schedulePeriodicCleanup(uploadDir, 6); // Clean every 6 hours
 
   // ALWAYS serve the app on port 5000
   // this serves both the API and the client.

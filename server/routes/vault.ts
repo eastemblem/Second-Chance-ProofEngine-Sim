@@ -3,6 +3,7 @@ import { vaultService } from "../services/vault-service";
 import { eastEmblemAPI } from "../eastemblem-api";
 import { getSessionId, getSessionData, updateSessionData } from "../utils/session-manager";
 import { asyncHandler, createSuccessResponse } from "../utils/error-handler";
+import { cleanupUploadedFile } from "../utils/file-cleanup";
 import { requireFields } from "../middleware/auth";
 import multer from "multer";
 import path from "path";
@@ -134,12 +135,8 @@ router.post("/upload-file", upload.single("file"), requireFields(['folder_id']),
   const updatedFiles = [...(sessionData.uploadedFiles || []), uploadResult];
   updateSessionData(req, { uploadedFiles: updatedFiles });
 
-  // Clean up uploaded file
-  try {
-    fs.unlinkSync(file.path);
-  } catch (error) {
-    console.warn("File cleanup error:", error);
-  }
+  // Clean up uploaded file after processing
+  cleanupUploadedFile(file.path, file.originalname, "Upload complete");
 
   res.json(createSuccessResponse({
     upload: uploadResult,

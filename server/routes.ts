@@ -4,6 +4,7 @@ import { createServer, type Server } from "http";
 import { eastEmblemAPI, type FolderStructureResponse, type FileUploadResponse } from "./eastemblem-api";
 import { getSessionId, getSessionData, updateSessionData } from "./utils/session-manager";
 import { asyncHandler, createSuccessResponse } from "./utils/error-handler";
+import { cleanupUploadedFile } from "./utils/file-cleanup";
 import apiRoutes from "./routes/index";
 import multer from "multer";
 import path from "path";
@@ -209,14 +210,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
       uploadedFile: undefined
     });
 
-    // Clean up file
-    try {
-      if (fs.existsSync(uploadedFile.filepath)) {
-        fs.unlinkSync(uploadedFile.filepath);
-      }
-    } catch (error) {
-      console.warn("File cleanup error:", error);
-    }
+    // Clean up file after successful analysis
+    cleanupUploadedFile(uploadedFile.filepath, uploadedFile.originalname, "Analysis complete");
 
     res.json(createSuccessResponse({
       uploadResult,
