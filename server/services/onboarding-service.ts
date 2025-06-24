@@ -79,14 +79,15 @@ export class OnboardingService {
     }
 
     // Update session with founder data and ID
+    console.log("Founder object from database:", JSON.stringify(founder, null, 2));
+    console.log("Founder ID:", founder.id);
+    
+    // Store founder ID separately for reliable access
     await this.updateSession(sessionId, {
       currentStep: "venture",
       stepData: { 
-        founder: {
-          ...founder,
-          id: founder.id,
-          founderId: founder.id,
-        }
+        founder: founder,
+        founderId: founder.id,  // Store separately for easy access
       },
       completedSteps: ["founder"],
     });
@@ -126,19 +127,15 @@ export class OnboardingService {
 
     console.log("Session found, proceeding with venture creation");
     const founderData = session.stepData?.founder;
+    const founderId = session.stepData?.founderId;
     console.log("Founder data from session:", JSON.stringify(founderData, null, 2));
+    console.log("Founder ID from session:", founderId);
     
     if (!founderData) {
       throw new Error("Founder step not completed");
     }
 
-    // Create venture with proper founder ID
-    const founderId = founderData.founderId || founderData.id;
-    console.log("Extracted founder ID:", founderId);
-    
     if (!founderId) {
-      // If no founder ID in session, we need to get it from the founder data
-      console.error("No founder ID found, checking founder data keys:", Object.keys(founderData));
       throw new Error("Founder ID not found in session data - founder step may not have completed properly");
     }
     
