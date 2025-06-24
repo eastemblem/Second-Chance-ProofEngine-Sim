@@ -147,6 +147,8 @@ Demo experience for testing different user journeys:
   * Added periodic cleanup system for old uploaded files (every 6 hours)
   * Fixed venture data access errors with proper null checking and safe property access
   * Fixed "Missing required fields: sessionId" error in venture stage by using session middleware
+  * Fixed founder_id null constraint violation by ensuring proper founder ID linkage in venture creation
+  * Added comprehensive session handling with fallback initialization for missing sessions
 
 ## User Preferences
 

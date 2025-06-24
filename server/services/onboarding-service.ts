@@ -111,10 +111,17 @@ export class OnboardingService {
   async completeVentureStep(sessionId: string, ventureData: any) {
     const session = await this.getSession(sessionId);
     if (!session) {
-      throw new Error("Session not found");
+      console.error(`Session not found for ID: ${sessionId}`);
+      // Initialize session if it doesn't exist
+      await this.initializeSession({ session: { id: sessionId } } as any);
+      const newSession = await this.getSession(sessionId);
+      if (!newSession) {
+        throw new Error("Failed to create session");
+      }
     }
 
-    const founderData = session.stepData?.founder;
+    const currentSession = session || await this.getSession(sessionId);
+    const founderData = currentSession?.stepData?.founder;
     if (!founderData) {
       throw new Error("Founder step not completed");
     }
