@@ -79,11 +79,7 @@ export class OnboardingService {
     }
 
     // Update session with founder data and ID
-    console.log("Founder object from database:", JSON.stringify(founder, null, 2));
-    
-    // The primary key in the schema is 'founderId' so we extract it correctly
     const founderId = founder.founderId;
-    console.log("Extracted founder ID:", founderId);
     
     if (!founderId) {
       throw new Error("Failed to create founder - no ID returned");
@@ -123,24 +119,14 @@ export class OnboardingService {
    * Complete venture onboarding step
    */
   async completeVentureStep(sessionId: string, ventureData: any) {
-    console.log(`Starting venture step for session: ${sessionId}`);
     const session = await this.getSession(sessionId);
-    console.log("Initial session lookup result:", session ? "found" : "not found");
     
     if (!session) {
-      console.error(`Session not found for ID: ${sessionId}`);
       throw new Error("Session not found - founder step must be completed first");
     }
 
-    console.log("Session found, proceeding with venture creation");
-    console.log("Full session stepData:", JSON.stringify(session.stepData, null, 2));
-    
     const founderData = session.stepData?.founder;
     const founderId = session.stepData?.founderId || founderData?.founderId;
-    console.log("Founder data from session:", JSON.stringify(founderData, null, 2));
-    console.log("Founder ID from session stepData:", session.stepData?.founderId);
-    console.log("Founder ID from founderData:", founderData?.founderId);
-    console.log("Final founder ID:", founderId);
     
     if (!founderData) {
       throw new Error("Founder step not completed");
@@ -150,17 +136,12 @@ export class OnboardingService {
       throw new Error("Founder ID not found in session data - founder step may not have completed properly");
     }
     
-    console.log("Creating venture with founder ID:", founderId);
-    console.log("Venture data received:", JSON.stringify(ventureData, null, 2));
-    
     // Map productStatus to mvpStatus for database schema compatibility
     const ventureForDb = {
       ...ventureData,
       founderId: founderId,
-      mvpStatus: ventureData.productStatus || ventureData.mvpStatus, // Map productStatus to mvpStatus
+      mvpStatus: ventureData.productStatus || ventureData.mvpStatus,
     };
-    
-    console.log("Venture data for database:", JSON.stringify(ventureForDb, null, 2));
     
     const venture = await storage.createVenture(ventureForDb);
 
