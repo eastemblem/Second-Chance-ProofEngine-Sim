@@ -111,7 +111,8 @@ Demo experience for testing different user journeys:
 ## Changelog
 - June 24, 2025. Initial setup
 - June 24, 2025. Added onboarding_id parameter to all EastEmblem API calls
-- June 24, 2025. Added Slack notification endpoint at /api/slack/notify
+- June 24, 2025. Added Slack notification endpoint at /api/notification/send
+- June 24, 2025. Implemented comprehensive async Slack notifications for all onboarding steps
 
 ## User Preferences
 
