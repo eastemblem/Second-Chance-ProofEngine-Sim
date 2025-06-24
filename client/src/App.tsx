@@ -5,6 +5,7 @@ import { queryClient } from "./lib/queryClient";
 import { Toaster } from "@/components/ui/toaster";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { lazy, Suspense } from "react";
+import { PerformanceMonitor } from "@/components/performance-monitor";
 
 // Lazy load page components for better performance
 const LandingPage = lazy(() => import("@/pages/landing"));
@@ -138,7 +139,9 @@ function Router() {
     <Switch>
       <Route path="/" component={SimulationFlow} />
       <Route path="/onboarding-flow" component={() => (
-        <OnboardingFlow onComplete={() => window.location.href = '/'} />
+        <Suspense fallback={<div className="h-screen flex items-center justify-center"><div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div></div>}>
+          <OnboardingFlow onComplete={() => window.location.href = '/'} />
+        </Suspense>
       )} />
       <Route component={NotFound} />
     </Switch>
@@ -149,6 +152,7 @@ function App() {
   return (
     <QueryClientProvider client={queryClient}>
       <TooltipProvider>
+        <PerformanceMonitor />
         <Toaster />
         <Router />
       </TooltipProvider>

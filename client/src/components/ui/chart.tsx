@@ -1,7 +1,10 @@
 "use client"
 
 import * as React from "react"
-import * as RechartsPrimitive from "recharts"
+import { lazy } from "react"
+
+// Lazy load Recharts for better performance
+const RechartsPrimitive = lazy(() => import("recharts"))
 
 import { cn } from "@/lib/utils"
 
