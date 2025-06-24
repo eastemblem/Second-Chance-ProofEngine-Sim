@@ -353,21 +353,21 @@ export default function TeamOnboarding({
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ delay: index * 0.1 }}
               >
-                <Card className="group relative overflow-hidden border border-purple-200/50 dark:border-purple-700/50 hover:border-purple-400 dark:hover:border-purple-500 hover:shadow-xl transition-all duration-300 bg-gradient-to-br from-white via-purple-50/20 to-white dark:from-gray-900 dark:via-purple-900/10 dark:to-gray-900">
+                <Card className="group relative overflow-hidden border border-border hover:border-primary hover:shadow-xl transition-all duration-300 bg-card">
                   {/* Background Pattern */}
-                  <div className="absolute inset-0 bg-gradient-to-br from-purple-100/20 via-transparent to-gold-100/20 dark:from-purple-900/10 dark:to-amber-900/10 opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
+                  <div className="absolute inset-0 bg-gradient-to-br from-primary/5 via-transparent to-primary-gold/5 opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
                   
                   <CardHeader className="relative pb-3">
                     <div className="flex items-start justify-between">
                       <div className="flex items-start gap-4 flex-1">
                         {/* Professional Avatar */}
                         <div className="relative flex-shrink-0">
-                          <div className="w-12 h-12 bg-gradient-to-br from-purple-600 via-purple-700 to-amber-600 rounded-full flex items-center justify-center text-white font-bold text-lg shadow-lg ring-2 ring-purple-200 dark:ring-purple-800">
+                          <div className="w-12 h-12 bg-gradient-to-br from-primary to-primary-gold rounded-full flex items-center justify-center text-primary-foreground font-bold text-lg shadow-lg ring-2 ring-border">
                             {member.fullName?.charAt(0)?.toUpperCase() || 'U'}
                           </div>
                           {member.isCofounder && (
-                            <div className="absolute -bottom-1 -right-1 w-5 h-5 bg-amber-500 rounded-full border-2 border-white dark:border-gray-900 flex items-center justify-center">
-                              <User className="w-2.5 h-2.5 text-white" />
+                            <div className="absolute -bottom-1 -right-1 w-5 h-5 bg-primary-gold rounded-full border-2 border-card flex items-center justify-center">
+                              <User className="w-2.5 h-2.5 text-background" />
                             </div>
                           )}
                         </div>
@@ -375,11 +375,11 @@ export default function TeamOnboarding({
                         {/* Member Info */}
                         <div className="flex-1 min-w-0">
                           <div className="flex items-center gap-2 mb-1">
-                            <CardTitle className="text-lg font-bold text-gray-900 dark:text-gray-100 truncate">
+                            <CardTitle className="text-lg font-bold text-card-foreground truncate">
                               {member.fullName}
                             </CardTitle>
                             {member.isCofounder && (
-                              <span className="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-semibold bg-gradient-to-r from-amber-100 to-yellow-100 text-amber-800 dark:from-amber-900/30 dark:to-yellow-900/30 dark:text-amber-300 border border-amber-200 dark:border-amber-700">
+                              <span className="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-semibold bg-primary-gold/20 text-primary-gold border border-primary-gold/30">
                                 Co-founder
                               </span>
                             )}
@@ -387,13 +387,13 @@ export default function TeamOnboarding({
                           
                           <div className="space-y-1">
                             <div className="flex items-center gap-2">
-                              <Briefcase className="w-3.5 h-3.5 text-purple-500 flex-shrink-0" />
-                              <span className="text-sm font-medium text-purple-600 dark:text-purple-400">{member.role}</span>
+                              <Briefcase className="w-3.5 h-3.5 text-primary flex-shrink-0" />
+                              <span className="text-sm font-medium text-primary">{member.role}</span>
                             </div>
                             
                             <div className="flex items-center gap-2">
-                              <Mail className="w-3.5 h-3.5 text-gray-400 flex-shrink-0" />
-                              <span className="text-xs text-gray-600 dark:text-gray-400 truncate">{member.email}</span>
+                              <Mail className="w-3.5 h-3.5 text-muted-foreground flex-shrink-0" />
+                              <span className="text-xs text-muted-foreground truncate">{member.email}</span>
                             </div>
                           </div>
                         </div>
@@ -405,17 +405,17 @@ export default function TeamOnboarding({
                           variant="ghost"
                           size="sm"
                           onClick={() => onEditMember(member)}
-                          className="h-7 w-7 p-0 hover:bg-purple-100 dark:hover:bg-purple-900/30 rounded-full"
+                          className="h-7 w-7 p-0 hover:bg-accent rounded-full"
                         >
-                          <Edit className="w-3.5 h-3.5 text-gray-500 hover:text-purple-600" />
+                          <Edit className="w-3.5 h-3.5 text-muted-foreground hover:text-primary" />
                         </Button>
                         <Button
                           variant="ghost"
                           size="sm"
                           onClick={() => onDeleteMember(member.memberId)}
-                          className="h-7 w-7 p-0 hover:bg-red-100 dark:hover:bg-red-900/30 rounded-full"
+                          className="h-7 w-7 p-0 hover:bg-destructive/20 rounded-full"
                         >
-                          <Trash2 className="w-3.5 h-3.5 text-gray-500 hover:text-red-600" />
+                          <Trash2 className="w-3.5 h-3.5 text-muted-foreground hover:text-destructive" />
                         </Button>
                       </div>
                     </div>
@@ -424,37 +424,37 @@ export default function TeamOnboarding({
                   <CardContent className="relative space-y-3">
                     {/* Experience Section */}
                     {member.experience && (
-                      <div className="flex items-start gap-2 p-2.5 bg-purple-50 dark:bg-purple-900/20 rounded-lg border border-purple-200 dark:border-purple-700">
-                        <Clock className="w-3.5 h-3.5 text-purple-500 flex-shrink-0 mt-0.5" />
+                      <div className="flex items-start gap-2 p-2.5 bg-muted rounded-lg border border-border">
+                        <Clock className="w-3.5 h-3.5 text-primary flex-shrink-0 mt-0.5" />
                         <div>
-                          <p className="text-xs font-medium text-purple-700 dark:text-purple-300 mb-0.5">Experience</p>
-                          <p className="text-xs text-purple-600 dark:text-purple-400">{member.experience}</p>
+                          <p className="text-xs font-medium text-foreground mb-0.5">Experience</p>
+                          <p className="text-xs text-muted-foreground">{member.experience}</p>
                         </div>
                       </div>
                     )}
                     
                     {/* Background Section */}
                     {member.background && (
-                      <div className="flex items-start gap-2 p-2.5 bg-amber-50 dark:bg-amber-900/20 rounded-lg border border-amber-200 dark:border-amber-700">
-                        <User className="w-3.5 h-3.5 text-amber-600 flex-shrink-0 mt-0.5" />
+                      <div className="flex items-start gap-2 p-2.5 bg-secondary rounded-lg border border-border">
+                        <User className="w-3.5 h-3.5 text-primary-gold flex-shrink-0 mt-0.5" />
                         <div>
-                          <p className="text-xs font-medium text-amber-700 dark:text-amber-300 mb-0.5">Background</p>
-                          <p className="text-xs text-amber-600 dark:text-amber-400">{member.background}</p>
+                          <p className="text-xs font-medium text-foreground mb-0.5">Background</p>
+                          <p className="text-xs text-muted-foreground">{member.background}</p>
                         </div>
                       </div>
                     )}
                     
                     {/* Social Links */}
                     {(member.linkedinProfile || member.twitterUrl || member.instagramUrl || member.githubUrl) && (
-                      <div className="pt-1 border-t border-purple-200 dark:border-purple-700">
-                        <p className="text-xs font-medium text-purple-600 dark:text-purple-400 mb-1.5">Connect</p>
+                      <div className="pt-1 border-t border-border">
+                        <p className="text-xs font-medium text-primary mb-1.5">Connect</p>
                         <div className="flex gap-1.5 flex-wrap">
                           {member.linkedinProfile && (
                             <a
                               href={member.linkedinProfile}
                               target="_blank"
                               rel="noopener noreferrer"
-                              className="flex items-center gap-1 px-2 py-1 bg-blue-600 hover:bg-blue-700 text-white rounded-md text-xs font-medium transition-all duration-200 hover:scale-105"
+                              className="flex items-center gap-1 px-2 py-1 bg-primary hover:bg-primary/90 text-primary-foreground rounded-md text-xs font-medium transition-all duration-200 hover:scale-105"
                             >
                               <Linkedin className="w-3 h-3" />
                               LinkedIn
@@ -466,7 +466,7 @@ export default function TeamOnboarding({
                               href={member.twitterUrl}
                               target="_blank"
                               rel="noopener noreferrer"
-                              className="flex items-center gap-1 px-2 py-1 bg-sky-500 hover:bg-sky-600 text-white rounded-md text-xs font-medium transition-all duration-200 hover:scale-105"
+                              className="flex items-center gap-1 px-2 py-1 bg-primary hover:bg-primary/90 text-primary-foreground rounded-md text-xs font-medium transition-all duration-200 hover:scale-105"
                             >
                               <Twitter className="w-3 h-3" />
                               Twitter
@@ -478,7 +478,7 @@ export default function TeamOnboarding({
                               href={member.githubUrl}
                               target="_blank"
                               rel="noopener noreferrer"
-                              className="flex items-center gap-1 px-2 py-1 bg-gray-800 hover:bg-gray-900 text-white rounded-md text-xs font-medium transition-all duration-200 hover:scale-105"
+                              className="flex items-center gap-1 px-2 py-1 bg-secondary hover:bg-secondary/90 text-secondary-foreground rounded-md text-xs font-medium transition-all duration-200 hover:scale-105"
                             >
                               <Github className="w-3 h-3" />
                               GitHub
@@ -490,7 +490,7 @@ export default function TeamOnboarding({
                               href={member.instagramUrl}
                               target="_blank"
                               rel="noopener noreferrer"
-                              className="flex items-center gap-1 px-2 py-1 bg-gradient-to-r from-purple-500 to-pink-500 hover:from-purple-600 hover:to-pink-600 text-white rounded-md text-xs font-medium transition-all duration-200 hover:scale-105"
+                              className="flex items-center gap-1 px-2 py-1 bg-gradient-to-r from-primary to-primary-gold hover:from-primary/90 hover:to-primary-gold/90 text-primary-foreground rounded-md text-xs font-medium transition-all duration-200 hover:scale-105"
                             >
                               <Instagram className="w-3 h-3" />
                               Instagram
