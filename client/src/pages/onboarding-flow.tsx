@@ -223,6 +223,19 @@ export default function OnboardingFlow({ onComplete }: OnboardingFlowProps) {
     );
   }
 
+  // Additional validation for sessionId
+  if (!sessionData.sessionId) {
+    console.error('OnboardingFlow: sessionData exists but sessionId is missing', sessionData);
+    return (
+      <div className="min-h-screen bg-gradient-to-br from-background via-card to-background flex items-center justify-center">
+        <div className="text-foreground text-center text-red-600">
+          <p>Session initialization error. Please refresh the page.</p>
+          <p className="text-sm mt-2">Session data: {JSON.stringify(sessionData, null, 2)}</p>
+        </div>
+      </div>
+    );
+  }
+
   const currentStep = steps[currentStepIndex];
 
   return (
@@ -301,8 +314,8 @@ export default function OnboardingFlow({ onComplete }: OnboardingFlowProps) {
             
             {currentStep.key === "team" && (
               <TeamOnboarding
-                sessionId={sessionData.sessionId}
-                initialData={sessionData.stepData?.team}
+                sessionId={sessionData?.sessionId || ''}
+                initialData={sessionData?.stepData?.team}
                 onNext={nextStep}
                 onPrev={prevStep}
                 onDataUpdate={updateSessionData}
