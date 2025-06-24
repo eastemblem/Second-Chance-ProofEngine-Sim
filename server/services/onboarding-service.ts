@@ -202,6 +202,19 @@ export class OnboardingService {
       completedSteps: [...session.completedSteps, "upload"],
     });
 
+    // Send Slack notification for document upload (async, no wait)
+    if (eastEmblemAPI.isConfigured()) {
+      eastEmblemAPI
+        .sendSlackNotification(
+          `\`Onboarding Id : ${sessionId}\`\n📄 Document Uploaded - ${file.originalname} (${Math.round(file.size / 1024)}KB)`,
+          "#notifications",
+          sessionId,
+        )
+        .catch((error) => {
+          console.log("Failed to send document upload notification:", error);
+        });
+    }
+
     return { upload: upload[0] };
   }
 
