@@ -195,8 +195,8 @@ export class OnboardingService {
     }
 
     const venture = session.stepData?.venture;
-    if (!venture) {
-      throw new Error("Venture step not completed");
+    if (!venture || !venture.ventureId) {
+      throw new Error("Venture step not completed or venture ID missing");
     }
 
     const teamMember = await storage.createTeamMember({
