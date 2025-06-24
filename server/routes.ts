@@ -937,6 +937,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         const scoreResult = await eastEmblemAPI.scorePitchDeck(
           file.buffer,
           file.originalname,
+          getSessionId(req)
         );
 
         // Update session with score
@@ -976,6 +977,46 @@ export async function registerRoutes(app: Express): Promise<Server> {
       console.error("Error checking EastEmblem API status:", error);
       res.status(500).json({
         error: error instanceof Error ? error.message : "Status check failed",
+      });
+    }
+  });
+
+  // Slack notification endpoint
+  app.post("/api/notification/send", async (req, res) => {
+    try {
+      if (!eastEmblemAPI.isConfigured()) {
+        return res.status(503).json({
+          error: "EastEmblem API not configured",
+          message: "EASTEMBLEM_API_BASE_URL is required",
+        });
+      }
+
+      const { message, channel } = req.body;
+      const sessionId = getSessionId(req);
+
+      if (!message || !channel) {
+        return res.status(400).json({
+          error: "Missing required parameters",
+          message: "Both message and channel are required",
+        });
+      }
+
+      const result = await eastEmblemAPI.sendSlackNotification(
+        message,
+        channel,
+        sessionId
+      );
+
+      res.json({
+        success: true,
+        result,
+        message: "Slack notification sent successfully"
+      });
+    } catch (error) {
+      console.error("Error sending Slack notification:", error);
+      res.status(500).json({
+        error: "Failed to send Slack notification",
+        details: error instanceof Error ? error.message : "Unknown error"
       });
     }
   });
