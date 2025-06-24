@@ -80,14 +80,21 @@ export class OnboardingService {
 
     // Update session with founder data and ID
     console.log("Founder object from database:", JSON.stringify(founder, null, 2));
-    console.log("Founder ID (founderId):", founder.founderId);
+    
+    // The primary key in the schema is 'founderId' so we extract it correctly
+    const founderId = founder.founderId;
+    console.log("Extracted founder ID:", founderId);
+    
+    if (!founderId) {
+      throw new Error("Failed to create founder - no ID returned");
+    }
     
     // Store founder ID separately for reliable access
     await this.updateSession(sessionId, {
       currentStep: "venture",
       stepData: { 
         founder: founder,
-        founderId: founder.founderId,  // Use founderId field from schema
+        founderId: founderId,
       },
       completedSteps: ["founder"],
     });
