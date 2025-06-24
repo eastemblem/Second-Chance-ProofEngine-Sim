@@ -55,6 +55,7 @@ export default function Analysis({
   
   let scoringResult = sessionData?.scoringResult || 
                      sessionData?.stepData?.processing?.scoringResult || 
+                     sessionData?.stepData?.scoringResult ||
                      sessionData?.processing?.scoringResult;
   
   console.log("Initial scoringResult found:", scoringResult);
@@ -79,7 +80,7 @@ export default function Analysis({
           if (response.ok) {
             const data = await response.json();
             console.log("Fetched session data from API:", data);
-            setSessionFromAPI(data?.session);
+            setSessionFromAPI(data?.data || data?.session || data);
           }
         } catch (error) {
           console.error("Failed to fetch session data:", error);
@@ -94,12 +95,15 @@ export default function Analysis({
 
   // Use API data if available (prioritize fresh API data)
   if (sessionFromAPI) {
-    const apiScoringResult = sessionFromAPI?.stepData?.processing?.scoringResult;
+    const apiScoringResult = sessionFromAPI?.stepData?.processing?.scoringResult ||
+                            sessionFromAPI?.stepData?.scoringResult ||
+                            sessionFromAPI?.scoringResult;
     if (apiScoringResult) {
       console.log("Using scoring result from API:", apiScoringResult);
       scoringResult = apiScoringResult;
     } else {
       console.log("No scoring result in API data. SessionFromAPI stepData:", sessionFromAPI?.stepData);
+      console.log("Full sessionFromAPI:", sessionFromAPI);
     }
   }
 
