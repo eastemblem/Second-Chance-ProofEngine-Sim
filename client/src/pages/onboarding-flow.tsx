@@ -289,7 +289,7 @@ export default function OnboardingFlow({ onComplete }: OnboardingFlowProps) {
             {currentStep.key === "venture" && (
               <VentureOnboarding
                 sessionId={sessionData.sessionId}
-                initialData={sessionData.stepData.venture}
+                initialData={sessionData.stepData?.venture}
                 onNext={nextStep}
                 onPrev={prevStep}
                 onDataUpdate={(data: any) => {
