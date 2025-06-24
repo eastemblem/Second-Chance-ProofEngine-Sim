@@ -97,7 +97,12 @@ export default function TeamOnboarding({
       }
       const data = await response.json();
       console.log('Team members response:', data);
-      return data;
+      
+      // Return the team members directly for easier access
+      if (data.success && data.data) {
+        return data.data.teamMembers || [];
+      }
+      return data.teamMembers || [];
     },
     enabled: !!sessionId && sessionId !== 'undefined',
     refetchOnMount: true,
@@ -106,11 +111,16 @@ export default function TeamOnboarding({
     gcTime: 0 // Don't cache at all
   });
 
-  const teamMembers = teamData?.teamMembers || [];
+  const teamMembers = teamData || [];
   const teamMemberCount = teamMembers.length;
   const canSkip = true; // Always allow completing team step
 
-  console.log('Team Data Debug:', { teamData, teamMembers, teamMemberCount, canSkip });
+  console.log('Team Data Debug:', { 
+    teamData, 
+    teamMembers, 
+    teamMemberCount, 
+    canSkip
+  });
 
   // Add team member mutation
   const addMemberMutation = useMutation({
@@ -145,7 +155,10 @@ export default function TeamOnboarding({
         setEditingMember(null);
         // Force immediate refetch and cache invalidation
         queryClient.invalidateQueries({ queryKey: ['team-members', sessionId] });
-        refetch();
+        queryClient.invalidateQueries({ queryKey: ['team-members'] });
+        setTimeout(() => {
+          refetch();
+        }, 500);
       }
     },
     onError: (error: any) => {
