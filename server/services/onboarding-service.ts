@@ -114,18 +114,18 @@ export class OnboardingService {
    * Complete venture onboarding step
    */
   async completeVentureStep(sessionId: string, ventureData: any) {
+    console.log(`Starting venture step for session: ${sessionId}`);
     const session = await this.getSession(sessionId);
+    console.log("Initial session lookup result:", session ? "found" : "not found");
+    
     if (!session) {
       console.error(`Session not found for ID: ${sessionId}`);
-      // Initialize session if it doesn't exist
-      await this.initializeSession({ session: { id: sessionId } } as any);
-      const newSession = await this.getSession(sessionId);
-      if (!newSession) {
-        throw new Error("Failed to create session");
-      }
+      throw new Error("Session not found - founder step must be completed first");
     }
 
     const currentSession = session || await this.getSession(sessionId);
+    console.log("Current session data:", JSON.stringify(currentSession, null, 2));
+    
     const founderData = currentSession?.stepData?.founder;
     if (!founderData) {
       throw new Error("Founder step not completed");
@@ -135,6 +135,8 @@ export class OnboardingService {
 
     // Create venture with proper founder ID
     const founderId = founderData.founderId || founderData.id;
+    console.log("Extracted founder ID:", founderId);
+    
     if (!founderId) {
       throw new Error("Founder ID not found in session data");
     }
