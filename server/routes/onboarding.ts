@@ -150,6 +150,11 @@ router.post("/team/add", asyncHandler(async (req, res) => {
 router.get("/team/:sessionId", asyncHandler(async (req, res) => {
   const { sessionId } = req.params;
   
+  // Validate sessionId is not undefined or invalid
+  if (!sessionId || sessionId === 'undefined') {
+    return res.status(400).json(createErrorResponse("Invalid session ID", 400));
+  }
+  
   const teamMembers = await onboardingService.getTeamMembers(sessionId);
 
   res.json(createSuccessResponse({

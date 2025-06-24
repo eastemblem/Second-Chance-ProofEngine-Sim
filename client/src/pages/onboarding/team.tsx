@@ -73,6 +73,9 @@ export default function TeamOnboarding({
   const { data: teamData, refetch, isLoading, error } = useQuery({
     queryKey: ['team-members', sessionId],
     queryFn: async () => {
+      if (!sessionId || sessionId === 'undefined') {
+        throw new Error('Invalid session ID');
+      }
       console.log('Fetching team members for session:', sessionId);
       const response = await fetch(`/api/onboarding/team/${sessionId}`);
       if (!response.ok) {
@@ -82,7 +85,7 @@ export default function TeamOnboarding({
       console.log('Team members response:', data);
       return data;
     },
-    enabled: !!sessionId,
+    enabled: !!sessionId && sessionId !== 'undefined',
     refetchOnMount: true,
     refetchOnWindowFocus: true,
     staleTime: 0,
