@@ -1,9 +1,7 @@
-import { useState, useRef, lazy, Suspense } from "react";
+import { useState, useRef } from "react";
+import { motion } from "framer-motion";
 import { Upload, Check, FileText, Loader } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
-
-// Lazy load motion for animations
-const motion = lazy(() => import("framer-motion").then(mod => ({ default: mod.motion })));
 
 interface FileUploadProps {
   label: string;
@@ -179,8 +177,7 @@ export default function FileUpload({
             <p className="text-sm mt-1">{description}</p>
           </div>
         )}
-        </motion.div>
-      </Suspense>
+      </motion.div>
     </div>
   );
 }

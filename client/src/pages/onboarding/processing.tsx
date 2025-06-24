@@ -1,11 +1,9 @@
-import { useState, useEffect, lazy, Suspense } from "react";
+import { useState, useEffect } from "react";
+import { motion } from "framer-motion";
 import { useMutation } from "@tanstack/react-query";
 import { apiRequest } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
 import { Loader2, FileText, Brain, BarChart3, CheckCircle } from "lucide-react";
-
-// Lazy load motion for animations
-const motion = lazy(() => import("framer-motion").then(mod => ({ default: mod.motion })));
 
 interface ProcessingScreenProps {
   sessionId: string;

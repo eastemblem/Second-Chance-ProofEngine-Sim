@@ -12,8 +12,9 @@ Second Chance is a startup validation platform that helps entrepreneurs assess t
 - **State Management**: React Hooks with custom simulation state management
 - **UI Components**: Radix UI primitives with shadcn/ui design system
 - **Styling**: Tailwind CSS with custom theme and gradient utilities
-- **Animations**: Framer Motion for smooth transitions and micro-interactions
+- **Animations**: Framer Motion for smooth transitions and micro-interactions (lazy loaded)
 - **Data Fetching**: TanStack Query (React Query) for server state management
+- **Performance**: Code splitting with lazy loading for components and heavy dependencies
 
 ### Backend Architecture
 - **Runtime**: Node.js with Express.js
@@ -116,6 +117,7 @@ Demo experience for testing different user journeys:
 - June 24, 2025. Fixed missing onboarding_id parameter in createFolderStructure call
 - June 24, 2025. Added allowShare=true parameter to all file upload operations
 - June 24, 2025. Updated all Slack notifications to use backtick formatting for onboarding IDs
+- June 24, 2025. Implemented performance optimizations including code splitting and build optimization
 
 ## User Preferences
 

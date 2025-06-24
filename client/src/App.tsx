@@ -4,16 +4,18 @@ import { motion, AnimatePresence } from "framer-motion";
 import { queryClient } from "./lib/queryClient";
 import { Toaster } from "@/components/ui/toaster";
 import { TooltipProvider } from "@/components/ui/tooltip";
+import { lazy, Suspense } from "react";
 
-import LandingPage from "@/pages/landing";
-import OnboardingPage from "@/pages/onboarding";
-import OnboardingFlow from "@/pages/onboarding-flow";
-import ScoringPage from "@/pages/scoring";
-import FeedbackPage from "@/pages/feedback";
-import PathwayPage from "@/pages/pathway";
-import DealRoomPage from "@/pages/deal-room";
-import ProofScalingDashboard from "@/pages/proofscaling-dashboard";
-import FinalPage from "@/pages/final";
+// Lazy load page components for better performance
+const LandingPage = lazy(() => import("@/pages/landing"));
+const OnboardingPage = lazy(() => import("@/pages/onboarding"));
+const OnboardingFlow = lazy(() => import("@/pages/onboarding-flow"));
+const ScoringPage = lazy(() => import("@/pages/scoring"));
+const FeedbackPage = lazy(() => import("@/pages/feedback"));
+const PathwayPage = lazy(() => import("@/pages/pathway"));
+const DealRoomPage = lazy(() => import("@/pages/deal-room"));
+const ProofScalingDashboard = lazy(() => import("@/pages/proofscaling-dashboard"));
+const FinalPage = lazy(() => import("@/pages/final"));
 import { useSimulation } from "@/hooks/use-simulation";
 import NotFound from "@/pages/not-found";
 
@@ -42,16 +44,20 @@ function SimulationFlow() {
     switch (state.currentPage) {
       case 1:
         return (
-          <LandingPage 
-            onNext={() => setCurrentPage(2)} 
-          />
+          <Suspense fallback={<div className="h-screen flex items-center justify-center"><div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div></div>}>
+            <LandingPage 
+              onNext={() => setCurrentPage(2)} 
+            />
+          </Suspense>
         );
       case 2:
         return (
-          <OnboardingPage 
-            onNext={() => setCurrentPage(3)}
-            onDataUpdate={updateFounderData}
-          />
+          <Suspense fallback={<div className="h-screen flex items-center justify-center"><div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div></div>}>
+            <OnboardingPage 
+              onNext={() => setCurrentPage(3)}
+              onDataUpdate={updateFounderData}
+            />
+          </Suspense>
         );
       case 3:
         return (
