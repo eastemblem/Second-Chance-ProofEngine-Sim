@@ -445,6 +445,37 @@ export class OnboardingService {
       }
     }
 
+    // Extract team members from scoring result and add to venture
+    if (scoringResult?.output?.team && Array.isArray(scoringResult.output.team)) {
+      const venture = stepData.venture?.venture || stepData.venture;
+      if (venture?.ventureId) {
+        console.log("Adding team members from analysis to venture:", venture.ventureId);
+        
+        for (const teamMember of scoringResult.output.team) {
+          try {
+            await storage.createTeamMember({
+              ventureId: venture.ventureId,
+              fullName: teamMember.name || 'Unknown',
+              email: '', // Not provided in analysis
+              positionOrRole: teamMember.role || 'Team Member',
+              department: 'General',
+              linkedinProfile: '',
+              personalLinkedin: '',
+              isTechnical: teamMember.role?.toLowerCase().includes('cto') || teamMember.role?.toLowerCase().includes('tech'),
+              experience: teamMember.experience || teamMember.background || '',
+              skills: teamMember.background || '',
+              education: '',
+              previousCompanies: teamMember.background || '',
+              achievements: teamMember.experience || ''
+            });
+            console.log(`Added team member: ${teamMember.name} (${teamMember.role})`);
+          } catch (error) {
+            console.warn(`Failed to add team member ${teamMember.name}:`, error);
+          }
+        }
+      }
+    }
+
     // Update session as complete with scoring results
     await this.updateSession(sessionId, {
       currentStep: "complete",

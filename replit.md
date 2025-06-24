@@ -242,6 +242,11 @@ Demo experience for testing different user journeys:
   * Updated both onboarding service and legacy routes to target Overview folder for pitch deck uploads
   * Enhanced upload logging to show target folder IDs for debugging folder placement
   * Corrected folder targeting logic to match expected document organization structure
+  * Added automatic team member extraction from scoring analysis results
+  * Implemented team member creation from EastEmblem API analysis data
+  * Enhanced scoring completion to populate venture with team members from pitch deck analysis
+  * Added team member mapping with role detection (CTO flagged as technical, etc.)
+  * Integrated team data from scoring response into database for complete venture profiles
 
 ## User Preferences
 
