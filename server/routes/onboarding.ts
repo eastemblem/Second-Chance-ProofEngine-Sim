@@ -131,8 +131,13 @@ router.post("/upload", upload.single("pitchDeck"), asyncHandler(async (req, res)
 
 // Team member endpoints
 router.post("/team/add", asyncHandler(async (req, res) => {
-  const sessionId = getSessionId(req);
-  const { sessionId: _, ...memberData } = req.body;
+  // Try to get sessionId from body first, then from session middleware
+  const { sessionId: bodySessionId, ...memberData } = req.body;
+  const sessionId = bodySessionId || getSessionId(req);
+  
+  if (!sessionId) {
+    throw new Error("Session ID required");
+  }
   
   const validation = safeValidate(teamMemberSchema, memberData);
   if (!validation.success) {
@@ -189,7 +194,13 @@ router.delete("/team/delete/:memberId", asyncHandler(async (req, res) => {
 }));
 
 router.post("/team/complete", asyncHandler(async (req, res) => {
-  const sessionId = getSessionId(req);
+  // Try to get sessionId from body first, then from session middleware
+  const { sessionId: bodySessionId } = req.body;
+  const sessionId = bodySessionId || getSessionId(req);
+  
+  if (!sessionId) {
+    throw new Error("Session ID required");
+  }
   
   const result = await onboardingService.completeTeamStep(sessionId);
 

@@ -162,6 +162,9 @@ Demo experience for testing different user journeys:
   * Fixed sessionId "undefined" error in team member GET endpoint with proper validation
   * Added client-side sessionId validation to prevent invalid UUID errors
   * Enhanced error handling for invalid session IDs in team endpoints
+  * Fixed session management in team endpoints to accept sessionId from request body
+  * Updated team add and complete endpoints to handle both body and middleware session IDs
+  * Resolved persistent "Session not found" errors in team member operations
 
 ## User Preferences
 
