@@ -52,12 +52,14 @@ export default function TeamOnboarding({
   const [editingMember, setEditingMember] = useState<any>(null);
 
   // Validate sessionId on component mount
-  if (!sessionId || sessionId === 'undefined') {
+  if (!sessionId || sessionId === 'undefined' || sessionId === '') {
     console.error('TeamOnboarding: Invalid sessionId provided:', sessionId);
+    console.log('SessionId type:', typeof sessionId, 'Value:', sessionId);
     return (
       <div className="max-w-4xl mx-auto p-6">
         <div className="text-center text-red-600">
-          Session error: Please restart the onboarding process.
+          <p>Session error: Please restart the onboarding process.</p>
+          <p className="text-sm mt-2 text-gray-500">Session ID: {sessionId || 'undefined'}</p>
         </div>
       </div>
     );
