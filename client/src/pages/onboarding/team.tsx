@@ -11,7 +11,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { ChevronLeft, Plus, Trash2, Users, Twitter, Instagram, Github, Linkedin, Edit } from "lucide-react";
+import { ChevronLeft, Plus, Trash2, Users, Twitter, Instagram, Github, Linkedin, Edit, Briefcase, Mail, Clock, User, ExternalLink } from "lucide-react";
 
 const teamMemberSchema = z.object({
   fullName: z.string().min(1, "Full name is required"),
@@ -345,99 +345,183 @@ export default function TeamOnboarding({
         )}
         
         {!isLoading && teamMemberCount > 0 ? (
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-6">
             {teamMembers.map((member: any, index: number) => (
-              <Card key={member.memberId || index} className="border-2">
-                <CardHeader className="pb-3">
-                  <div className="flex items-center justify-between">
-                    <CardTitle className="text-lg flex items-center gap-2">
-                      {member.fullName}
-                      {member.isCofounder && (
-                        <span className="text-xs bg-blue-100 text-blue-800 px-2 py-1 rounded-full">
-                          Co-founder
-                        </span>
-                      )}
-                    </CardTitle>
-                    <div className="flex gap-1">
-                      <Button
-                        variant="ghost" 
-                        size="sm"
-                        onClick={() => onEditMember(member)}
-                      >
-                        <Edit className="w-4 h-4" />
-                      </Button>
-                      <Button
-                        variant="ghost"
-                        size="sm" 
-                        onClick={() => onDeleteMember(member.memberId)}
-                        className="text-red-600 hover:text-red-700"
-                      >
-                        <Trash2 className="w-4 h-4" />
-                      </Button>
-                    </div>
-                  </div>
-                </CardHeader>
-                <CardContent>
-                  <p className="text-gray-600 text-sm mb-1">{member.role}</p>
-                  <p className="text-gray-500 text-xs mb-2">{member.email}</p>
+              <motion.div
+                key={member.memberId || index}
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ delay: index * 0.1 }}
+              >
+                <Card className="group relative overflow-hidden border-2 border-gray-200 dark:border-gray-700 hover:border-blue-300 dark:hover:border-blue-600 hover:shadow-xl transition-all duration-300 bg-gradient-to-br from-white to-gray-50 dark:from-gray-800 dark:to-gray-900">
+                  {/* Background Pattern */}
+                  <div className="absolute inset-0 bg-gradient-to-br from-blue-50/30 via-transparent to-purple-50/30 dark:from-blue-900/10 dark:to-purple-900/10 opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
                   
-                  {/* Demographics */}
-                  {(member.age || member.gender) && (
-                    <div className="flex gap-4 text-xs text-gray-500 mb-2">
-                      {member.age && <span>Age: {member.age}</span>}
-                      {member.gender && <span>Gender: {member.gender}</span>}
+                  <CardHeader className="relative pb-4">
+                    <div className="flex items-start justify-between">
+                      <div className="flex items-start gap-4 flex-1">
+                        {/* Professional Avatar */}
+                        <div className="relative flex-shrink-0">
+                          <div className="w-14 h-14 bg-gradient-to-br from-blue-500 via-purple-500 to-blue-600 rounded-full flex items-center justify-center text-white font-bold text-xl shadow-lg ring-4 ring-white dark:ring-gray-800">
+                            {member.fullName?.charAt(0)?.toUpperCase() || 'U'}
+                          </div>
+                          {member.isCofounder && (
+                            <div className="absolute -bottom-1 -right-1 w-6 h-6 bg-green-500 rounded-full border-2 border-white dark:border-gray-800 flex items-center justify-center">
+                              <User className="w-3 h-3 text-white" />
+                            </div>
+                          )}
+                        </div>
+                        
+                        {/* Member Info */}
+                        <div className="flex-1 min-w-0">
+                          <div className="flex items-center gap-2 mb-2">
+                            <CardTitle className="text-xl font-bold text-gray-900 dark:text-gray-100 truncate">
+                              {member.fullName}
+                            </CardTitle>
+                            {member.isCofounder && (
+                              <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-semibold bg-gradient-to-r from-green-100 to-emerald-100 text-green-800 dark:from-green-900/30 dark:to-emerald-900/30 dark:text-green-300 border border-green-200 dark:border-green-700">
+                                Co-founder
+                              </span>
+                            )}
+                          </div>
+                          
+                          <div className="space-y-2">
+                            <div className="flex items-center gap-2">
+                              <Briefcase className="w-4 h-4 text-blue-500 flex-shrink-0" />
+                              <span className="text-sm font-semibold text-blue-600 dark:text-blue-400">{member.role}</span>
+                            </div>
+                            
+                            <div className="flex items-center gap-2">
+                              <Mail className="w-4 h-4 text-gray-400 flex-shrink-0" />
+                              <span className="text-sm text-gray-600 dark:text-gray-400 truncate">{member.email}</span>
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+                      
+                      {/* Action Buttons */}
+                      <div className="flex gap-1 opacity-0 group-hover:opacity-100 transition-opacity duration-200">
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          onClick={() => onEditMember(member)}
+                          className="h-8 w-8 p-0 hover:bg-blue-100 dark:hover:bg-blue-900/30 rounded-full"
+                        >
+                          <Edit className="w-4 h-4 text-gray-500 hover:text-blue-600" />
+                        </Button>
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          onClick={() => onDeleteMember(member.memberId)}
+                          className="h-8 w-8 p-0 hover:bg-red-100 dark:hover:bg-red-900/30 rounded-full"
+                        >
+                          <Trash2 className="w-4 h-4 text-gray-500 hover:text-red-600" />
+                        </Button>
+                      </div>
                     </div>
-                  )}
-
-                  {/* Social Media Links */}
-                  <div className="flex gap-2 mt-2">
-                    {member.linkedinProfile && (
-                      <a 
-                        href={member.linkedinProfile}
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        className="text-blue-600 hover:text-blue-700 p-1"
-                        title="LinkedIn"
-                      >
-                        <Linkedin className="w-4 h-4" />
-                      </a>
+                  </CardHeader>
+                  
+                  <CardContent className="relative space-y-4">
+                    {/* Experience Section */}
+                    {member.experience && (
+                      <div className="flex items-start gap-2 p-3 bg-gray-50 dark:bg-gray-800/50 rounded-lg border border-gray-200 dark:border-gray-700">
+                        <Clock className="w-4 h-4 text-purple-500 flex-shrink-0 mt-0.5" />
+                        <div>
+                          <p className="text-xs font-medium text-gray-700 dark:text-gray-300 mb-1">Experience</p>
+                          <p className="text-sm text-gray-600 dark:text-gray-400">{member.experience}</p>
+                        </div>
+                      </div>
                     )}
-                    {member.twitterUrl && (
-                      <a 
-                        href={member.twitterUrl}
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        className="text-blue-400 hover:text-blue-500 p-1"
-                        title="Twitter"
-                      >
-                        <Twitter className="w-4 h-4" />
-                      </a>
+                    
+                    {/* Background Section */}
+                    {member.background && (
+                      <div className="flex items-start gap-2 p-3 bg-blue-50 dark:bg-blue-900/20 rounded-lg border border-blue-200 dark:border-blue-700">
+                        <User className="w-4 h-4 text-blue-500 flex-shrink-0 mt-0.5" />
+                        <div>
+                          <p className="text-xs font-medium text-blue-700 dark:text-blue-300 mb-1">Background</p>
+                          <p className="text-sm text-blue-600 dark:text-blue-400">{member.background}</p>
+                        </div>
+                      </div>
                     )}
-                    {member.instagramUrl && (
-                      <a 
-                        href={member.instagramUrl}
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        className="text-pink-600 hover:text-pink-700 p-1"
-                        title="Instagram"
-                      >
-                        <Instagram className="w-4 h-4" />
-                      </a>
+                    
+                    {/* Demographics */}
+                    {(member.age || member.gender) && (
+                      <div className="flex gap-3">
+                        {member.age && (
+                          <span className="inline-flex items-center px-2.5 py-1 rounded-full text-xs font-medium bg-gray-100 text-gray-700 dark:bg-gray-700 dark:text-gray-300">
+                            Age: {member.age}
+                          </span>
+                        )}
+                        {member.gender && (
+                          <span className="inline-flex items-center px-2.5 py-1 rounded-full text-xs font-medium bg-gray-100 text-gray-700 dark:bg-gray-700 dark:text-gray-300">
+                            {member.gender}
+                          </span>
+                        )}
+                      </div>
                     )}
-                    {member.githubUrl && (
-                      <a 
-                        href={member.githubUrl}
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        className="text-gray-700 hover:text-gray-800 p-1"
-                        title="GitHub"
-                      >
-                        <Github className="w-4 h-4" />
-                      </a>
+                    
+                    {/* Social Links */}
+                    {(member.linkedinProfile || member.twitterUrl || member.instagramUrl || member.githubUrl) && (
+                      <div className="pt-2 border-t border-gray-200 dark:border-gray-700">
+                        <p className="text-xs font-medium text-gray-500 dark:text-gray-400 mb-2">Connect</p>
+                        <div className="flex gap-2">
+                          {member.linkedinProfile && (
+                            <a
+                              href={member.linkedinProfile}
+                              target="_blank"
+                              rel="noopener noreferrer"
+                              className="flex items-center gap-1 px-3 py-1.5 bg-blue-600 hover:bg-blue-700 text-white rounded-full text-xs font-medium transition-all duration-200 hover:scale-105"
+                            >
+                              <Linkedin className="w-3 h-3" />
+                              LinkedIn
+                              <ExternalLink className="w-3 h-3 opacity-70" />
+                            </a>
+                          )}
+                          
+                          {member.twitterUrl && (
+                            <a
+                              href={member.twitterUrl}
+                              target="_blank"
+                              rel="noopener noreferrer"
+                              className="flex items-center gap-1 px-3 py-1.5 bg-sky-500 hover:bg-sky-600 text-white rounded-full text-xs font-medium transition-all duration-200 hover:scale-105"
+                            >
+                              <Twitter className="w-3 h-3" />
+                              Twitter
+                              <ExternalLink className="w-3 h-3 opacity-70" />
+                            </a>
+                          )}
+                          
+                          {member.githubUrl && (
+                            <a
+                              href={member.githubUrl}
+                              target="_blank"
+                              rel="noopener noreferrer"
+                              className="flex items-center gap-1 px-3 py-1.5 bg-gray-800 hover:bg-gray-900 text-white rounded-full text-xs font-medium transition-all duration-200 hover:scale-105"
+                            >
+                              <Github className="w-3 h-3" />
+                              GitHub
+                              <ExternalLink className="w-3 h-3 opacity-70" />
+                            </a>
+                          )}
+                          
+                          {member.instagramUrl && (
+                            <a
+                              href={member.instagramUrl}
+                              target="_blank"
+                              rel="noopener noreferrer"
+                              className="flex items-center gap-1 px-3 py-1.5 bg-gradient-to-r from-purple-500 to-pink-500 hover:from-purple-600 hover:to-pink-600 text-white rounded-full text-xs font-medium transition-all duration-200 hover:scale-105"
+                            >
+                              <Instagram className="w-3 h-3" />
+                              Instagram
+                              <ExternalLink className="w-3 h-3 opacity-70" />
+                            </a>
+                          )}
+                        </div>
+                      </div>
                     )}
-                  </div>
-                </CardContent>
-              </Card>
+                  </CardContent>
+                </Card>
+              </motion.div>
             ))}
           </div>
         ) : !isLoading && teamMemberCount === 0 && (
