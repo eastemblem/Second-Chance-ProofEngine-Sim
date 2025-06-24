@@ -44,18 +44,27 @@ export default function OnboardingFlow({ onComplete }: OnboardingFlowProps) {
       const res = await apiRequest("POST", "/api/onboarding/session/init", {});
       return await res.json();
     },
-    onSuccess: (data) => {
-      if (data.success) {
-        console.log(`🎯 Initialized session:`, data);
+    onSuccess: (response) => {
+      if (response.success && response.data) {
+        console.log(`🎯 Initialized session:`, response);
         
-        setSessionData(data);
+        // Extract session data from API response format
+        const sessionData = {
+          sessionId: response.data.sessionId,
+          currentStep: response.data.currentStep,
+          stepData: response.data.stepData,
+          completedSteps: response.data.completedSteps,
+          isComplete: response.data.isComplete
+        };
+        
+        setSessionData(sessionData);
         // Find current step index
-        const stepIndex = steps.findIndex(step => step.key === data.currentStep);
+        const stepIndex = steps.findIndex(step => step.key === sessionData.currentStep);
         setCurrentStepIndex(stepIndex >= 0 ? stepIndex : 0);
         
         // Store session in localStorage for persistence
         try {
-          localStorage.setItem('onboardingSession', JSON.stringify(data));
+          localStorage.setItem('onboardingSession', JSON.stringify(sessionData));
           console.log(`💾 Initial session stored in localStorage`);
         } catch (error) {
           console.error(`❌ Failed to store initial session:`, error);
@@ -226,11 +235,34 @@ export default function OnboardingFlow({ onComplete }: OnboardingFlowProps) {
   // Additional validation for sessionId
   if (!sessionData.sessionId) {
     console.error('OnboardingFlow: sessionData exists but sessionId is missing', sessionData);
+    
+    // Try to fix the session data structure if it's in API response format
+    if (sessionData.success && sessionData.data && sessionData.data.sessionId) {
+      const fixedSessionData = {
+        sessionId: sessionData.data.sessionId,
+        currentStep: sessionData.data.currentStep,
+        stepData: sessionData.data.stepData,
+        completedSteps: sessionData.data.completedSteps,
+        isComplete: sessionData.data.isComplete
+      };
+      setSessionData(fixedSessionData);
+      localStorage.setItem('onboardingSession', JSON.stringify(fixedSessionData));
+      return null; // Re-render with fixed data
+    }
+    
     return (
       <div className="min-h-screen bg-gradient-to-br from-background via-card to-background flex items-center justify-center">
         <div className="text-foreground text-center text-red-600">
           <p>Session initialization error. Please refresh the page.</p>
-          <p className="text-sm mt-2">Session data: {JSON.stringify(sessionData, null, 2)}</p>
+          <button 
+            onClick={() => {
+              localStorage.removeItem('onboardingSession');
+              window.location.reload();
+            }}
+            className="mt-4 px-4 py-2 bg-primary text-primary-foreground rounded"
+          >
+            Restart Onboarding
+          </button>
         </div>
       </div>
     );
