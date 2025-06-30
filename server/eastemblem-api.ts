@@ -204,25 +204,11 @@ class EastEmblemAPI {
       );
       return transformedResult;
     } catch (error) {
-      console.error("Error creating folder structure, using fallback:", error);
-
-      // Provide structured fallback response
-      const fallbackFolders: FolderStructureResponse = {
-        id: `folder-${Date.now()}`,
-        url: `https://app.box.com/s/${folderName.toLowerCase()}`,
-        folders: {
-          "0_Overview": `${Date.now()}-overview`,
-          "1_Problem_Proof": `${Date.now()}-problem`,
-          "2_Solution_Proof": `${Date.now()}-solution`,
-          "3_Demand_Proof": `${Date.now()}-demand`,
-          "4_Credibility_Proof": `${Date.now()}-credibility`,
-          "5_Commercial_Proof": `${Date.now()}-commercial`,
-          "6_Investor_Pack": `${Date.now()}-investor`,
-        },
-      };
-
-      console.log("Folder structure fallback response:", fallbackFolders);
-      return fallbackFolders;
+      console.error("Error creating folder structure:", error);
+      if (!this.isConfigured()) {
+        throw new Error("EastEmblem API is not configured. Please provide EASTEMBLEM_API_URL and EASTEMBLEM_API_KEY.");
+      }
+      throw new Error(`Failed to create folder structure: ${error instanceof Error ? error.message : 'Unknown error'}`);
     }
   }
 
@@ -260,23 +246,15 @@ class EastEmblemAPI {
         const errorText = await response.text();
         console.error(`File upload failed with status ${response.status}:`, errorText);
         
-        // Check if this is a real API error or service unavailable
         if (response.status >= 500) {
-          console.log("EastEmblem API service temporarily unavailable");
+          throw new Error(`EastEmblem API service unavailable (${response.status}). Please try again later.`);
+        } else if (response.status === 401) {
+          throw new Error("EastEmblem API authentication failed. Please check API credentials.");
+        } else if (response.status === 403) {
+          throw new Error("EastEmblem API access forbidden. Please verify API permissions.");
         } else {
-          console.log("File upload request rejected by API");
+          throw new Error(`File upload failed (${response.status}): ${errorText}`);
         }
-
-        // Return structured response showing upload attempt was made
-        const structuredResponse: FileUploadResponse = {
-          id: `file-${Date.now()}`,
-          name: fileName,
-          url: `https://app.box.com/file/${folderId}/${fileName}`,
-          download_url: `https://api.box.com/2.0/files/${Date.now()}/content`,
-        };
-
-        console.log("File upload fallback response:", structuredResponse);
-        return structuredResponse;
       }
 
       const responseText = await response.text();
@@ -289,31 +267,14 @@ class EastEmblemAPI {
       } catch (parseError) {
         console.error("Failed to parse upload response JSON:", parseError);
         console.log("Response was:", responseText);
-        
-        // Return structured response with actual upload attempt
-        const structuredResponse: FileUploadResponse = {
-          id: `file-${Date.now()}`,
-          name: fileName,
-          url: `https://app.box.com/file/${folderId}/${fileName}`,
-          download_url: `https://api.box.com/2.0/files/${Date.now()}/content`,
-        };
-
-        console.log("File upload using structured response after parse error:", structuredResponse);
-        return structuredResponse;
+        throw new Error(`File upload succeeded but response parsing failed: ${parseError instanceof Error ? parseError.message : 'Invalid JSON'}`);
       }
     } catch (error) {
-      console.error("Error uploading file, using fallback:", error);
-
-      // Provide structured fallback response
-      const fallbackResponse: FileUploadResponse = {
-        id: `file-${Date.now()}`,
-        name: fileName,
-        url: `https://app.box.com/file/${folderId}/${fileName}`,
-        download_url: `https://api.box.com/2.0/files/${Date.now()}/content`,
-      };
-
-      console.log("File upload fallback response:", fallbackResponse);
-      return fallbackResponse;
+      console.error("Error uploading file:", error);
+      if (!this.isConfigured()) {
+        throw new Error("EastEmblem API is not configured. Please provide EASTEMBLEM_API_URL and EASTEMBLEM_API_KEY.");
+      }
+      throw new Error(`File upload failed: ${error instanceof Error ? error.message : 'Unknown error'}`);
     }
   }
 
