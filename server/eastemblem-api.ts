@@ -371,31 +371,22 @@ class EastEmblemAPI {
         }
       }
 
-      // Try to parse JSON response
       const responseText = await response.text();
       try {
-        return JSON.parse(responseText);
+        const result = JSON.parse(responseText);
+        console.log("Slack notification sent successfully:", result);
+        return result;
       } catch (parseError) {
-        console.log("Failed to parse Slack API response, using mock success");
-        return {
-          success: true,
-          message: "Slack notification sent (mock due to parse error)",
-          channel,
-          timestamp: new Date().toISOString(),
-          raw_response: responseText,
-        };
+        console.error("Failed to parse Slack response JSON:", parseError);
+        console.log("Response was:", responseText);
+        throw new Error(`Slack notification succeeded but response parsing failed: ${parseError instanceof Error ? parseError.message : 'Invalid JSON'}`);
       }
     } catch (error) {
-      console.error("Error sending Slack notification, using fallback:", error);
-      
-      // Provide fallback response for development
-      return {
-        success: true,
-        message: "Slack notification sent (fallback)",
-        channel,
-        timestamp: new Date().toISOString(),
-        error_handled: true,
-      };
+      console.error("Slack notification error:", error);
+      if (!this.isConfigured()) {
+        throw new Error("EastEmblem API is not configured. Please provide EASTEMBLEM_API_URL and EASTEMBLEM_API_KEY.");
+      }
+      throw new Error(`Slack notification failed: ${error instanceof Error ? error.message : 'Unknown error'}`);
     }
   }
 
