@@ -251,6 +251,12 @@ Demo experience for testing different user journeys:
   * Enhanced team member addition with Slack notifications for manual and auto-added members
   * Implemented comprehensive notification system for all onboarding workflow events
   * Added async notification handling to prevent blocking user operations
+  * Fixed improper error handling that was returning mock/fallback values instead of proper errors
+  * Replaced all EastEmblem API fallback responses with proper error throwing and user feedback
+  * Enhanced error messages to distinguish between API unavailability, authentication, and permission issues
+  * Removed mock Slack notification responses in favor of proper error propagation
+  * Improved file upload, scoring, and notification error handling with specific error types
+  * Added proper API configuration checks before attempting operations
 
 ## User Preferences
 

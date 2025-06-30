@@ -302,13 +302,17 @@ class EastEmblemAPI {
 
       if (!response.ok) {
         const errorText = await response.text();
-        console.log(
-          "Pitch deck scoring endpoint not available, using structured response",
-          response,
-        );
-
-        console.log("Pitch deck scoring structured response:", errorText);
-        return response.json();
+        console.error(`Pitch deck scoring failed with status ${response.status}:`, errorText);
+        
+        if (response.status >= 500) {
+          throw new Error(`EastEmblem scoring service unavailable (${response.status}). Please try again later.`);
+        } else if (response.status === 401) {
+          throw new Error("EastEmblem API authentication failed. Please check API credentials.");
+        } else if (response.status === 403) {
+          throw new Error("EastEmblem API access forbidden. Please verify API permissions.");
+        } else {
+          throw new Error(`Pitch deck scoring failed (${response.status}): ${errorText}`);
+        }
       }
 
       const result = (await response.json()) as any;
@@ -319,102 +323,11 @@ class EastEmblemAPI {
 
       return result;
     } catch (error) {
-      console.error("Error scoring pitch deck, using fallback:", error);
-
-      // Provide structured fallback response matching real API format
-      const fallbackScore: PitchDeckScoreResponse = {
-        output: {
-          Problem: {
-            score: 7,
-            justification:
-              "Clear problem statement addressing real pain points for travelers seeking affordable and authentic experiences.",
-            related_slides: ["2"],
-            recommendation:
-              "Include data or testimonials showing urgency to strengthen the problem statement.",
-          },
-          solution: {
-            score: 8,
-            justification:
-              "Well-defined solution that directly addresses the stated problem with clear value proposition.",
-            related_slides: ["3"],
-            recommendation:
-              "Add more detail on platform features and user journey to show solution feasibility.",
-          },
-          market_opportunity: {
-            score: 8,
-            justification:
-              "Large addressable market with clear target audience and growth potential demonstrated.",
-            related_slides: ["5"],
-            recommendation:
-              "Add market growth trends and segmentation details to deepen market analysis.",
-          },
-          product_technology: {
-            score: 6,
-            justification:
-              "Basic product features shown but lacks detail on technological innovation or development stage.",
-            related_slides: ["6"],
-            recommendation:
-              "Include product development stage, key features, and competitive technology advantages.",
-          },
-          team: {
-            score: 7,
-            justification:
-              "Team composition and relevant experience clearly presented with appropriate skill coverage.",
-            related_slides: ["4"],
-            recommendation:
-              "Add advisory board information and highlight specific domain expertise.",
-          },
-          business_model: {
-            score: 8,
-            justification:
-              "Clear revenue model with sustainable and scalable monetization strategy explained.",
-            related_slides: ["7"],
-            recommendation:
-              "Include detailed unit economics and customer lifetime value projections.",
-          },
-          traction_milestones: {
-            score: 7,
-            justification:
-              "Good early validation metrics and growth indicators showing market adoption.",
-            related_slides: ["8"],
-            recommendation:
-              "Add user growth metrics and concrete customer testimonials to validate traction.",
-          },
-          competition: {
-            score: 6,
-            justification:
-              "Competitive landscape addressed with some differentiation points identified.",
-            related_slides: ["9"],
-            recommendation:
-              "Provide more detailed competitor analysis and clearer competitive advantages.",
-          },
-          go_to_market_strategy: {
-            score: 7,
-            justification:
-              "Credible go-to-market approach with multiple acquisition channels identified.",
-            related_slides: ["10"],
-            recommendation:
-              "Include customer acquisition costs and channel performance metrics.",
-          },
-          financials_projections_ask: {
-            score: 6,
-            justification:
-              "Basic financial projections provided but lacks detailed multi-year forecasts.",
-            related_slides: ["11"],
-            recommendation:
-              "Add clear fundraising ask and detailed use of funds breakdown.",
-          },
-          total_score: 73,
-          overall_feedback: [
-            "Strong problem-solution fit with clear value proposition and market opportunity.",
-            "Good foundation with viable business model and initial traction indicators.",
-            "Recommend strengthening team presentation and detailed competitive analysis for improved fundability.",
-          ],
-        },
-      };
-
-      console.log("Pitch deck scoring fallback response:", fallbackScore);
-      return fallbackScore;
+      console.error("Error scoring pitch deck:", error);
+      if (!this.isConfigured()) {
+        throw new Error("EastEmblem API is not configured. Please provide EASTEMBLEM_API_URL and EASTEMBLEM_API_KEY.");
+      }
+      throw new Error(`Pitch deck scoring failed: ${error instanceof Error ? error.message : 'Unknown error'}`);
     }
   }
 
@@ -445,15 +358,17 @@ class EastEmblemAPI {
 
       if (!response.ok) {
         const errorText = await response.text();
-        console.log("Slack notification endpoint not available, using mock response");
+        console.error(`Slack notification failed with status ${response.status}:`, errorText);
         
-        // Return mock success response for development
-        return {
-          success: true,
-          message: "Slack notification sent (mock)",
-          channel,
-          timestamp: new Date().toISOString(),
-        };
+        if (response.status >= 500) {
+          throw new Error(`Slack notification service unavailable (${response.status}). Please try again later.`);
+        } else if (response.status === 401) {
+          throw new Error("Slack notification authentication failed. Please check API credentials.");
+        } else if (response.status === 403) {
+          throw new Error("Slack notification access forbidden. Please verify API permissions.");
+        } else {
+          throw new Error(`Slack notification failed (${response.status}): ${errorText}`);
+        }
       }
 
       // Try to parse JSON response

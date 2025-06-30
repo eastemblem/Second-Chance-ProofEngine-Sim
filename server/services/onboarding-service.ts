@@ -441,11 +441,14 @@ export class OnboardingService {
             sessionId
           );
         } else {
-          console.warn("File no longer exists, using default scoring");
+          throw new Error("Uploaded file no longer exists - file may have been cleaned up");
         }
       } catch (error) {
-        console.warn("EastEmblem API error:", error);
+        console.error("EastEmblem API error:", error);
+        throw new Error(`Analysis failed: ${error instanceof Error ? error.message : 'Unknown error'}`);
       }
+    } else if (!eastEmblemAPI.isConfigured()) {
+      throw new Error("EastEmblem API is not configured. Please provide EASTEMBLEM_API_URL and EASTEMBLEM_API_KEY.");
     }
 
     // Clean up uploaded file after successful analysis
