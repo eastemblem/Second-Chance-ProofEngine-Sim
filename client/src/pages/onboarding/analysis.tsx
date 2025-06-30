@@ -190,24 +190,6 @@ export default function Analysis({
     readiness: "🟥 Readiness",
   };
 
-  // Achievement descriptions for ProofTags
-  function getAchievementDescription(tag: string): string {
-    const descriptions: { [key: string]: string } = {
-      "Problem Validated": "Successfully identified and validated a real market problem",
-      "Persona Confirmed": "Clearly defined and confirmed your target customer persona",
-      "Demand Signal Detected": "Found evidence of market demand for your solution", 
-      "MVP Functional": "Built and deployed a working minimum viable product",
-      "Revenue Model Proven": "Demonstrated a viable path to generating revenue",
-      "Traction Validated": "Achieved measurable customer traction and engagement",
-      "Investor Ready": "Prepared comprehensive materials for investor consideration",
-      "Team Assembled": "Built a strong founding team with complementary skills",
-      "Market Opportunity": "Identified and sized a significant market opportunity",
-      "Technical Feasibility": "Proven the technical viability of your solution"
-    };
-    
-    return descriptions[tag] || "Achievement unlocked in your startup validation journey";
-  }
-
   // Extract ProofTags directly from API response
   const extractedProofTags = extractProofTags(scoringResult);
   
@@ -277,115 +259,67 @@ export default function Analysis({
               <p className="text-xl text-muted-foreground">out of 100</p>
             </div>
 
-            {/* ProofTags Achievements */}
-            <div className="bg-gradient-to-br from-primary/5 to-primary-gold/5 rounded-xl p-6 mb-6 border border-primary/20">
-              <div className="text-center mb-6">
-                <motion.div
-                  initial={{ opacity: 0, y: -10 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  className="flex items-center justify-center gap-2 mb-2"
-                >
-                  <Trophy className="w-6 h-6 text-primary-gold" />
-                  <h3 className="text-xl font-bold bg-gradient-to-r from-primary to-primary-gold bg-clip-text text-transparent">
-                    Achievements Unlocked
-                  </h3>
-                  <Trophy className="w-6 h-6 text-primary-gold" />
-                </motion.div>
-                <p className="text-sm text-muted-foreground">
-                  {proofScore.prooTags.unlocked} of {proofScore.prooTags.total} ProofTags earned
-                </p>
-              </div>
-
-              {proofScore.prooTags.tags.length > 0 ? (
-                <div className="space-y-3">
-                  {proofScore.prooTags.tags.map((tag, index) => (
-                    <motion.div
+            {/* ProofTags Tracker */}
+            <div className="bg-background rounded-lg p-6 mb-6">
+              <h3 className="text-lg font-semibold mb-4">
+                ProofTags Unlocked: {proofScore.prooTags.unlocked}/
+                {proofScore.prooTags.total}
+              </h3>
+              <div className="flex justify-center gap-2 mb-4">
+                {Array.from({ length: proofScore.prooTags.total }).map(
+                  (_, index) => (
+                    <div
                       key={index}
-                      initial={{ opacity: 0, x: -20, scale: 0.9 }}
-                      animate={{ opacity: 1, x: 0, scale: 1 }}
-                      transition={{ delay: index * 0.2, duration: 0.5 }}
-                      className="relative"
+                      className={`w-8 h-8 rounded-full flex items-center justify-center ${
+                        index < proofScore.prooTags.unlocked
+                          ? index % 2 === 0
+                            ? "bg-primary"
+                            : "bg-primary-gold"
+                          : "bg-border"
+                      }`}
                     >
-                      <div className="flex items-center gap-4 bg-background/80 backdrop-blur-sm rounded-lg p-4 border border-primary/30 shadow-lg hover:shadow-xl transition-all duration-300">
-                        {/* Achievement Icon */}
+                      {index < proofScore.prooTags.unlocked ? (
                         <motion.div
-                          initial={{ rotate: -180, scale: 0 }}
-                          animate={{ rotate: 0, scale: 1 }}
-                          transition={{ delay: index * 0.2 + 0.3, duration: 0.6, type: "spring" }}
-                          className="flex-shrink-0"
+                          initial={{ scale: 0 }}
+                          animate={{ scale: 1 }}
+                          transition={{ delay: index * 0.1 }}
                         >
-                          <div className="w-12 h-12 rounded-full bg-gradient-to-br from-primary-gold via-primary to-primary-gold p-0.5">
-                            <div className="w-full h-full rounded-full bg-background flex items-center justify-center">
-                              <Trophy className="w-6 h-6 text-primary-gold" />
-                            </div>
-                          </div>
+                          <svg
+                            viewBox="0 0 24 24"
+                            fill="none"
+                            stroke="currentColor"
+                            strokeWidth="3"
+                            strokeLinecap="round"
+                            strokeLinejoin="round"
+                            className="w-4 h-4 text-white"
+                          >
+                            <polyline points="20 6 9 17 4 12" />
+                          </svg>
                         </motion.div>
-
-                        {/* Achievement Content */}
-                        <div className="flex-1">
-                          <div className="flex items-center gap-2 mb-1">
-                            <h4 className="font-semibold text-foreground">{tag}</h4>
-                            <motion.div
-                              initial={{ opacity: 0 }}
-                              animate={{ opacity: 1 }}
-                              transition={{ delay: index * 0.2 + 0.5 }}
-                              className="text-xs bg-primary-gold/20 text-primary-gold px-2 py-1 rounded-full"
-                            >
-                              UNLOCKED
-                            </motion.div>
-                          </div>
-                          <p className="text-sm text-muted-foreground">
-                            {getAchievementDescription(tag)}
-                          </p>
-                        </div>
-
-                        {/* Sparkle Effect */}
-                        <motion.div
-                          initial={{ opacity: 0 }}
-                          animate={{ opacity: [0, 1, 0] }}
-                          transition={{ delay: index * 0.2 + 0.7, duration: 1.5, repeat: Infinity, repeatDelay: 3 }}
-                          className="absolute -top-1 -right-1"
-                        >
-                          <Star className="w-4 h-4 text-primary-gold fill-current" />
-                        </motion.div>
-                      </div>
-
-                      {/* Glow Effect */}
-                      <motion.div
-                        initial={{ opacity: 0 }}
-                        animate={{ opacity: [0, 0.3, 0] }}
-                        transition={{ delay: index * 0.2 + 1, duration: 2, repeat: Infinity, repeatDelay: 4 }}
-                        className="absolute inset-0 bg-gradient-to-r from-primary/20 to-primary-gold/20 rounded-lg blur-lg -z-10"
-                      />
-                    </motion.div>
+                      ) : (
+                        <Lock className="w-3 h-3 text-muted-foreground" />
+                      )}
+                    </div>
+                  ),
+                )}
+              </div>
+              {proofScore.prooTags.tags.length > 0 ? (
+                <div className="flex flex-wrap justify-center gap-2">
+                  {proofScore.prooTags.tags.map((tag, index) => (
+                    <Badge
+                      key={index}
+                      variant="secondary"
+                      className="bg-primary/10 text-primary"
+                    >
+                      {tag}
+                    </Badge>
                   ))}
                 </div>
               ) : (
-                <div className="text-center p-8">
-                  <Lock className="w-16 h-16 text-muted-foreground mx-auto mb-4 opacity-50" />
-                  <p className="text-muted-foreground">
-                    Complete more validation steps to unlock your first ProofTag achievement
-                  </p>
-                </div>
+                <p className="text-sm text-muted-foreground text-center">
+                  Complete more validation steps to unlock ProofTags
+                </p>
               )}
-
-              {/* Progress Bar */}
-              <div className="mt-6 pt-4 border-t border-border/50">
-                <div className="flex items-center justify-between mb-2">
-                  <span className="text-sm font-medium">Achievement Progress</span>
-                  <span className="text-sm text-muted-foreground">
-                    {Math.round((proofScore.prooTags.unlocked / proofScore.prooTags.total) * 100)}%
-                  </span>
-                </div>
-                <div className="w-full bg-border rounded-full h-2 overflow-hidden">
-                  <motion.div
-                    className="h-full bg-gradient-to-r from-primary to-primary-gold rounded-full"
-                    initial={{ width: 0 }}
-                    animate={{ width: `${(proofScore.prooTags.unlocked / proofScore.prooTags.total) * 100}%` }}
-                    transition={{ duration: 1.5, delay: 1 }}
-                  />
-                </div>
-              </div>
             </div>
           </Card>
 
