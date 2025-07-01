@@ -1,0 +1,152 @@
+[
+  {
+    "output": {
+      "venture_name": "East Emblem",
+      "founder_stage": "Pre-Seed",
+      "business_model_type": "B2B SaaS / Institutional Validation Platform",
+      "milestone": "Investor Ready",
+      "investor_relevance": [
+        "Institutional Fund Managers",
+        "General Partners",
+        "Limited Partners"
+      ],
+      "team": [
+        {
+          "name": "Lewis Kilroe, CAIA",
+          "role": "Managing Director",
+          "experience": "10+ years operational due diligence and investment operations; 500+ diligence reviews globally, 50+ in MENA VC/PE; former roles at Amundi, Man Group, JP Morgan",
+          "background": "Expertise in fund manager positioning and institutional fundraising requirements across GCC and global funds"
+        },
+        {
+          "name": "Louis Ravenscroft",
+          "role": "Managing Director",
+          "experience": "5x founder, 12+ years in startup ideation, validation, scaling; ex-Techstars experience",
+          "background": "Startup acceleration and venture scaling expert with a focus on fintech, e-commerce, and data analytics"
+        },
+        {
+          "name": "Julian Sperring-Toy",
+          "role": "Senior Advisor",
+          "experience": "25 years global experience in corporate restructuring, venture capital, M&A delivering $3B+ value; fintech, SaaS growth leader",
+          "background": "Thought leader on ProofScaling & ProofSync frameworks and operational leadership across industries"
+        }
+      ],
+      "desirability": {
+        "score": 18,
+        "justification": "The problem of institutional grade validation and de-risking for fund managers and startups is clearly defined with strong market demand. Evidence includes detailed pain points for fund managers (e.g. governance, compliance, and operational gaps) and portfolio companies (execution risk), as well as testimonials to investor needs and ecosystem gaps (slides 1-10). Demonstrates validated ideal customer profiles and demand signal from multiple stakeholder groups including institutional investors and fund managers.",
+        "related_slides": [
+          "1",
+          "5",
+          "7"
+        ],
+        "recommendation": "To enhance desirability further, provide quantitative customer interview data and documented case studies with user quotes to substantiate demand signals more concretely.",
+        "proofTags": [
+          "Problem Validated",
+          "Persona Confirmed",
+          "Demand Signal Detected"
+        ]
+      },
+      "feasibility": {
+        "score": 13,
+        "justification": "East Emblem presents an institutional-grade validation ecosystem with proprietary methodologies (ProofSync) and AI-driven frameworks supporting ongoing validation, monitoring and reporting. The platform components (FundSync, VentureSync, Second Chance) are described as deployed with processes in place and extensive team experience backing technical execution. Evidence of operationalized solutions and ongoing client engagements imply feasibility with validated build path and solution proof (slides 11-20).",
+        "related_slides": [
+          "11",
+          "15",
+          "20"
+        ],
+        "recommendation": "Augment with live platform usage metrics, MVP user testing feedback, and case studies illustrating execution outcomes to further strengthen feasibility claims.",
+        "proofTags": [
+          "MVP Functional",
+          "Solution Proven",
+          "Build Path Validated"
+        ]
+      },
+      "viability": {
+        "score": 12,
+        "justification": "East Emblem outlines clear revenue opportunities from fund manager services, portfolio company validation, and second-chance program monetization. Business model includes recurring and consultancy elements focused on institutionalization services. Pricing and go-to-market approach is articulated around targeting GPs, fund managers, and LPs. However, there's little direct data on customer acquisition costs or unit economics (slides 20-25).",
+        "related_slides": [
+          "20",
+          "22",
+          "25"
+        ],
+        "recommendation": "Include validated pricing models, customer acquisition cost data, and evidence of early revenue streams or contracts to reinforce viability.",
+        "proofTags": [
+          "Revenue Model Proven"
+        ]
+      },
+      "traction": {
+        "score": 34,
+        "justification": "As a Pre-Seed stage company targeting GCC/MENA institutional investors and fund managers, traction includes: engagement with 50+ due diligence reviews, partnerships with major allocators (JP Morgan, Man Group, Techstars), executed pilot programs, and deals with multiple stakeholders. While exact waitlist signups, MRR or pre-sales figures are not explicit, ecosystem validation and client pipeline provide substantial traction signals (slides 26-35). Three or more bonus traction signals are identified (investment conversations, pilot deals, ecosystem partnerships) justifying a +10 bonus added to total score.",
+        "related_slides": [
+          "26",
+          "30",
+          "34"
+        ],
+        "recommendation": "Develop and share quantitative traction metrics such as number of active users, signed deals, pre-sales revenue, and long-term customer retention metrics to optimize channel fit and momentum validation.",
+        "proofTags": [
+          "Traction Validated",
+          "Channel Fit Detected",
+          "Momentum Detected"
+        ]
+      },
+      "readiness": {
+        "score": 7,
+        "justification": "Investor materials include detailed pitch content, methodology frameworks, team bios, and service offerings. However, financials appear summarized rather than fully detailed. The presence of a data room or comprehensive financial model is not explicitly mentioned (slides 36-40).",
+        "related_slides": [
+          "36",
+          "38"
+        ],
+        "recommendation": "Complete and upload full financial models, detailed investor decks, and due diligence materials to enhance readiness and support investment decisiveness.",
+        "proofTags": [
+          "Investor Ready"
+        ]
+      },
+      "total_score": 84,
+      "tags": [
+        "Problem Validated",
+        "Persona Confirmed",
+        "Demand Signal Detected",
+        "MVP Functional",
+        "Solution Proven",
+        "Build Path Validated",
+        "Revenue Model Proven",
+        "Traction Validated",
+        "Channel Fit Detected",
+        "Momentum Detected",
+        "Investor Ready"
+      ],
+      "key_insights": [
+        {
+          "title": "Strong Foundation",
+          "description": "East Emblem has constructed a comprehensive validation ecosystem addressing a critical market pain point with proven methodologies and partnerships."
+        },
+        {
+          "title": "Needs Attention",
+          "description": "More granular data on customer interviews, pricing validation, MVP user feedback, and financial modeling is needed to strengthen feasibility and viability."
+        },
+        {
+          "title": "Next Steps",
+          "description": "Focus on collecting quantitative traction metrics, validating unit economics, and preparing a complete investor package with financial forecasts."
+        }
+      ],
+      "missing_tags": [
+        {
+          "score": "+2",
+          "tag": "Quantitative customer interviews and case studies"
+        },
+        {
+          "score": "+3",
+          "tag": "MVP user testing data and platform usage metrics"
+        },
+        {
+          "score": "+3",
+          "tag": "Pricing validation and customer acquisition cost data"
+        },
+        {
+          "score": "+3",
+          "tag": "Detailed financial models and data room materials"
+        }
+      ],
+      "strategic_feedback": "*East Emblem* delivers a sophisticated institutional validation ecosystem with a clear focus on de-risking fund managers and portfolio companies to attract large-scale LP commitments in MENA and GCC markets. The integration of AI-powered execution monitoring and governance frameworks is particularly innovative and addresses critical execution risks that typical due diligence overlooks. To ascend to an elite ProofScore of 90+, the venture should prioritize: \n- Quantitative customer interviews and validated case studies to bolster desirability.\n- Detailed MVP user testing feedback and real-world platform metrics to demonstrate feasibility.\n- Validated pricing models and customer acquisition cost evidence to confirm viability.\n- Completion of comprehensive investor-ready materials including financial models and data rooms to improve readiness.\n\nThis focus will enhance investor confidence, accelerate deal flow optimization, and solidify position as a leader in institutional fund and portfolio validation."
+    }
+  }
+]
