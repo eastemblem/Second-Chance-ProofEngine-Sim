@@ -29,6 +29,16 @@ import { Separator } from "@/components/ui/separator";
 import ProgressBar from "@/components/progress-bar";
 import { ProofScoreResult } from "@shared/schema";
 
+// Import score badges
+import Badge01 from "../../assets/badges/score/Badge_01.svg";
+import Badge02 from "../../assets/badges/score/Badge_02.svg";
+import Badge03 from "../../assets/badges/score/Badge_03.svg";
+import Badge04 from "../../assets/badges/score/Badge_04.svg";
+import Badge05 from "../../assets/badges/score/Badge_05.svg";
+import Badge06 from "../../assets/badges/score/Badge_06.svg";
+import Badge07 from "../../assets/badges/score/Badge_07.svg";
+import Badge09 from "../../assets/badges/score/Badge_09.svg";
+
 interface AnalysisProps {
   sessionId: string;
   sessionData: any;
@@ -195,6 +205,34 @@ export default function Analysis({
   
   console.log("Extracted ProofTags result:", extractedProofTags);
 
+  // Score badge mapping function
+  function getScoreBadge(score: number): string | null {
+    const badges = {
+      1: Badge01,
+      2: Badge02,
+      3: Badge03,
+      4: Badge04,
+      5: Badge05,
+      6: Badge06,
+      7: Badge07,
+      8: Badge07, // Using Badge07 as fallback since Badge08 is missing
+      9: Badge09,
+    };
+
+    if (score < 10) return null; // No badge for scores below 10
+    if (score >= 91) return badges[9]; // Score 91-100 → Badge 9
+    
+    // Calculate badge number (10-90 maps to badges 1-8)
+    const badgeNumber = Math.ceil((score - 10) / 10) + 1;
+    const clampedBadgeNumber = Math.min(Math.max(badgeNumber, 1), 9);
+    
+    return badges[clampedBadgeNumber as keyof typeof badges] || null;
+  }
+
+  // Get badge for current score
+  const scoreBadge = getScoreBadge(analysisData.total_score);
+  const badgeNumber = analysisData.total_score >= 91 ? 9 : Math.ceil((analysisData.total_score - 10) / 10) + 1;
+
   // Map to ProofScore format for consistency with feedback.tsx
   const proofScore: ProofScoreResult = {
     total: analysisData.total_score,
@@ -247,6 +285,36 @@ export default function Analysis({
             <h2 className="text-3xl font-bold mb-4">
               Your ProofScore is Ready
             </h2>
+            
+            {/* Score Badge */}
+            {scoreBadge && (
+              <motion.div
+                className="flex justify-center mb-6"
+                initial={{ opacity: 0, scale: 0.5 }}
+                animate={{ opacity: 1, scale: 1 }}
+                transition={{ duration: 0.6, delay: 0.1 }}
+              >
+                <div className="relative">
+                  <img 
+                    src={scoreBadge} 
+                    alt={`Score Badge ${badgeNumber}`}
+                    className="w-32 h-32 drop-shadow-lg"
+                  />
+                  <motion.div
+                    className="absolute inset-0 rounded-full bg-primary/10"
+                    initial={{ scale: 0 }}
+                    animate={{ scale: 1.1 }}
+                    transition={{ 
+                      duration: 1.5, 
+                      repeat: Infinity, 
+                      repeatType: "reverse",
+                      delay: 0.5 
+                    }}
+                  />
+                </div>
+              </motion.div>
+            )}
+            
             <div className="mb-6">
               <motion.div
                 className="text-6xl font-black gradient-text mb-2"
@@ -257,6 +325,18 @@ export default function Analysis({
                 {proofScore.total}
               </motion.div>
               <p className="text-xl text-muted-foreground">out of 100</p>
+              
+              {/* Badge Achievement Text */}
+              {scoreBadge && (
+                <motion.p 
+                  className="text-sm text-primary font-medium mt-2"
+                  initial={{ opacity: 0 }}
+                  animate={{ opacity: 1 }}
+                  transition={{ delay: 0.8 }}
+                >
+                  Achievement Badge #{badgeNumber} Unlocked!
+                </motion.p>
+              )}
             </div>
 
             {/* ProofTags Tracker */}
