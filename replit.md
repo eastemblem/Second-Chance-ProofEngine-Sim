@@ -257,6 +257,15 @@ Demo experience for testing different user journeys:
   * Removed mock Slack notification responses in favor of proper error propagation
   * Improved file upload, scoring, and notification error handling with specific error types
   * Added proper API configuration checks before attempting operations
+- July 1, 2025. Fixed EastEmblem API timeout and JSON parsing issues:
+  * Increased file upload timeout from 30s to 60s, scoring timeout from 30s to 120s (2 minutes)
+  * Added automatic JSON repair for malformed responses with unquoted UUID values
+  * Enhanced "File already exists!" error handling - now treated as success, scoring continues
+  * Updated scoring response handling for new array-based format from EastEmblem API
+  * Added robust error messaging for timeout scenarios with user-friendly explanations
+  * Generated comprehensive badge asset library (12 SVG badges) for ProofTag display
+  * Badge assets created: problem-validated, solution-proven, traction-validated, investor-ready, revenue-model-proven, mvp-functional, channel-fit-detected, momentum-detected, persona-confirmed, demand-signal-detected, build-path-validated
+  * All badges follow hexagonal design with gradients, icons, sparkles, and ribbon text matching app theme
 
 ## User Preferences
 
