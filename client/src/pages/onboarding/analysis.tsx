@@ -546,28 +546,28 @@ export default function Analysis({
                     }}
                     className="group"
                   >
-                    <div className="relative bg-muted/30 border border-muted rounded-lg p-3 hover:border-muted-foreground/20 transition-all duration-300">
-                      {/* Locked overlay */}
-                      <div className="absolute inset-0 bg-muted/20 rounded-lg" />
+                    <div className="relative bg-background border border-primary/10 rounded-lg p-3 hover:border-primary/20 transition-all duration-300 opacity-60">
+                      {/* Locked overlay with theme colors */}
+                      <div className="absolute inset-0 bg-background/80 rounded-lg" />
                       
-                      {/* Lock icon */}
+                      {/* Lock icon with theme colors */}
                       <div className="relative flex items-center justify-center mb-2">
-                        <div className="w-6 h-6 bg-muted-foreground/20 rounded-full flex items-center justify-center">
-                          <Lock className="w-3 h-3 text-muted-foreground" />
+                        <div className="w-6 h-6 bg-primary/20 rounded-full flex items-center justify-center">
+                          <Lock className="w-3 h-3 text-primary/60" />
                         </div>
                       </div>
                       
-                      {/* Tag text */}
-                      <p className="relative text-center text-xs font-medium text-muted-foreground leading-tight mb-1">
+                      {/* Tag text with theme colors */}
+                      <p className="relative text-center text-xs font-medium text-foreground/60 leading-tight mb-1">
                         {lockedTag.name}
                       </p>
                       
-                      {/* Lock requirement */}
+                      {/* Lock requirement with theme colors */}
                       <div className="relative text-center">
-                        <span className="text-[10px] text-muted-foreground/80">
+                        <span className="text-[10px] text-primary/60 font-semibold">
                           LOCKED
                         </span>
-                        <p className="text-[9px] text-muted-foreground/60 mt-0.5 leading-tight">
+                        <p className="text-[9px] text-foreground/40 mt-0.5 leading-tight">
                           Need {lockedTag.neededScore - lockedTag.currentScore} more points
                         </p>
                       </div>
@@ -582,21 +582,21 @@ export default function Analysis({
                   initial={{ opacity: 0, y: 20 }}
                   animate={{ opacity: 1, y: 0 }}
                   transition={{ delay: 1.2 }}
-                  className="mt-8 p-4 bg-muted/30 rounded-lg border border-muted"
+                  className="mt-8 p-4 bg-primary/5 rounded-lg border border-primary/10"
                 >
-                  <h4 className="text-sm font-semibold text-foreground mb-3 flex items-center gap-2">
+                  <h4 className="text-sm font-semibold text-primary mb-3 flex items-center gap-2">
                     <Target className="w-4 h-4 text-primary" />
                     Unlock Requirements
                   </h4>
                   <div className="space-y-2">
                     {extractedProofTags.lockedTags.slice(0, 3).map((lockedTag, index) => (
                       <div key={index} className="flex items-center justify-between text-xs">
-                        <span className="text-muted-foreground">{lockedTag.name}</span>
-                        <span className="text-muted-foreground/80">{lockedTag.requirement}</span>
+                        <span className="text-foreground/70">{lockedTag.name}</span>
+                        <span className="text-primary/80">{lockedTag.requirement}</span>
                       </div>
                     ))}
                     {extractedProofTags.lockedTags.length > 3 && (
-                      <p className="text-xs text-muted-foreground/60 text-center pt-2">
+                      <p className="text-xs text-foreground/60 text-center pt-2">
                         +{extractedProofTags.lockedTags.length - 3} more tags to unlock
                       </p>
                     )}
