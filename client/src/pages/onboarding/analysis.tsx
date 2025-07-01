@@ -272,6 +272,21 @@ export default function Analysis({
     scoreBadge: scoreBadge ? "Found" : "Not found"
   });
 
+  console.log("ProofTag Debug - Categories from API:", analysisData.categories);
+  console.log("ProofTag Debug - Extracted tags:", extractedProofTags);
+  console.log("ProofTag Debug - All category scores:", {
+    Problem: analysisData.categories.Problem?.score,
+    solution: analysisData.categories.solution?.score,
+    market_opportunity: analysisData.categories.market_opportunity?.score,
+    product_technology: analysisData.categories.product_technology?.score,
+    team: analysisData.categories.team?.score,
+    business_model: analysisData.categories.business_model?.score,
+    traction_milestones: analysisData.categories.traction_milestones?.score,
+    competition: analysisData.categories.competition?.score,
+    go_to_market_strategy: analysisData.categories.go_to_market_strategy?.score,
+    financials_projections_ask: analysisData.categories.financials_projections_ask?.score
+  });
+
   // Map to ProofScore format for consistency with feedback.tsx
   const proofScore: ProofScoreResult = {
     total: analysisData.total_score,
