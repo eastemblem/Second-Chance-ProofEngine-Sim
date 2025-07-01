@@ -345,66 +345,151 @@ export default function Analysis({
               )}
             </div>
 
-            {/* ProofTags Tracker */}
-            <div className="bg-background rounded-lg p-6 mb-6">
-              <h3 className="text-lg font-semibold mb-4">
-                ProofTags Unlocked: {proofScore.prooTags.unlocked}/
-                {proofScore.prooTags.total}
-              </h3>
-              <div className="flex justify-center gap-2 mb-4">
-                {Array.from({ length: proofScore.prooTags.total }).map(
-                  (_, index) => (
-                    <div
-                      key={index}
-                      className={`w-8 h-8 rounded-full flex items-center justify-center ${
-                        index < proofScore.prooTags.unlocked
-                          ? index % 2 === 0
-                            ? "bg-primary"
-                            : "bg-primary-gold"
-                          : "bg-border"
-                      }`}
+            {/* ProofTags Achievement Section */}
+            <div className="bg-gradient-to-br from-primary/5 to-primary-gold/5 rounded-xl p-8 mb-6 border border-primary/10">
+              <motion.div
+                initial={{ opacity: 0, y: 10 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ delay: 0.4 }}
+                className="text-center mb-6"
+              >
+                <h3 className="text-2xl font-bold mb-2 gradient-text">
+                  🏆 ProofTags Achieved
+                </h3>
+                <p className="text-lg text-muted-foreground">
+                  {proofScore.prooTags.unlocked} of {proofScore.prooTags.total} validation milestones unlocked
+                </p>
+              </motion.div>
+
+              {/* Achievement Progress Ring */}
+              <div className="flex justify-center mb-8">
+                <div className="relative w-32 h-32">
+                  <svg className="w-32 h-32 transform -rotate-90" viewBox="0 0 100 100">
+                    {/* Background circle */}
+                    <circle
+                      cx="50"
+                      cy="50"
+                      r="40"
+                      stroke="currentColor"
+                      strokeWidth="8"
+                      fill="none"
+                      className="text-border"
+                    />
+                    {/* Progress circle */}
+                    <motion.circle
+                      cx="50"
+                      cy="50"
+                      r="40"
+                      stroke="url(#progressGradient)"
+                      strokeWidth="8"
+                      fill="none"
+                      strokeLinecap="round"
+                      strokeDasharray={`${2 * Math.PI * 40}`}
+                      initial={{ strokeDashoffset: 2 * Math.PI * 40 }}
+                      animate={{ 
+                        strokeDashoffset: 2 * Math.PI * 40 * (1 - proofScore.prooTags.unlocked / proofScore.prooTags.total)
+                      }}
+                      transition={{ duration: 1.5, delay: 0.5 }}
+                    />
+                    <defs>
+                      <linearGradient id="progressGradient" x1="0%" y1="0%" x2="100%" y2="100%">
+                        <stop offset="0%" stopColor="hsl(var(--primary))" />
+                        <stop offset="100%" stopColor="hsl(var(--primary-gold))" />
+                      </linearGradient>
+                    </defs>
+                  </svg>
+                  {/* Center text */}
+                  <div className="absolute inset-0 flex items-center justify-center">
+                    <motion.div
+                      className="text-center"
+                      initial={{ scale: 0 }}
+                      animate={{ scale: 1 }}
+                      transition={{ delay: 0.8 }}
                     >
-                      {index < proofScore.prooTags.unlocked ? (
-                        <motion.div
-                          initial={{ scale: 0 }}
-                          animate={{ scale: 1 }}
-                          transition={{ delay: index * 0.1 }}
-                        >
-                          <svg
-                            viewBox="0 0 24 24"
-                            fill="none"
-                            stroke="currentColor"
-                            strokeWidth="3"
-                            strokeLinecap="round"
-                            strokeLinejoin="round"
-                            className="w-4 h-4 text-white"
-                          >
-                            <polyline points="20 6 9 17 4 12" />
-                          </svg>
-                        </motion.div>
-                      ) : (
-                        <Lock className="w-3 h-3 text-muted-foreground" />
-                      )}
-                    </div>
-                  ),
-                )}
+                      <div className="text-2xl font-bold gradient-text">
+                        {Math.round((proofScore.prooTags.unlocked / proofScore.prooTags.total) * 100)}%
+                      </div>
+                      <div className="text-xs text-muted-foreground">Complete</div>
+                    </motion.div>
+                  </div>
+                </div>
               </div>
+
+              {/* Unlocked ProofTags Grid */}
               {proofScore.prooTags.tags.length > 0 ? (
-                <div className="flex flex-wrap justify-center gap-2">
+                <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
                   {proofScore.prooTags.tags.map((tag, index) => (
-                    <Badge
+                    <motion.div
                       key={index}
-                      variant="secondary"
-                      className="bg-primary/10 text-primary"
+                      initial={{ opacity: 0, scale: 0.8, y: 20 }}
+                      animate={{ opacity: 1, scale: 1, y: 0 }}
+                      transition={{ 
+                        delay: 0.6 + index * 0.1,
+                        type: "spring",
+                        stiffness: 200,
+                        damping: 20
+                      }}
+                      className="group"
                     >
-                      {tag}
-                    </Badge>
+                      <div className="relative bg-card border border-primary/20 rounded-lg p-4 hover:border-primary/40 transition-all duration-300 hover:shadow-lg hover:shadow-primary/10">
+                        {/* Achievement glow effect */}
+                        <div className="absolute inset-0 bg-gradient-to-r from-primary/5 to-primary-gold/5 rounded-lg opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
+                        
+                        {/* Achievement icon */}
+                        <div className="relative flex items-center justify-center mb-2">
+                          <div className="w-8 h-8 bg-gradient-to-r from-primary to-primary-gold rounded-full flex items-center justify-center">
+                            <motion.div
+                              initial={{ rotate: 0 }}
+                              animate={{ rotate: 360 }}
+                              transition={{ delay: 0.8 + index * 0.1, duration: 0.6 }}
+                            >
+                              <CheckCircle className="w-4 h-4 text-white" />
+                            </motion.div>
+                          </div>
+                          {/* Sparkle effect */}
+                          <motion.div
+                            className="absolute -top-1 -right-1 w-3 h-3 bg-primary-gold rounded-full"
+                            initial={{ scale: 0, opacity: 0 }}
+                            animate={{ scale: 1, opacity: 1 }}
+                            transition={{ delay: 1 + index * 0.1 }}
+                          />
+                        </div>
+                        
+                        {/* Tag text */}
+                        <p className="relative text-center text-sm font-medium text-foreground leading-tight">
+                          {tag}
+                        </p>
+                        
+                        {/* Unlock indicator */}
+                        <div className="relative flex justify-center mt-2">
+                          <span className="text-xs text-primary font-semibold">UNLOCKED</span>
+                        </div>
+                      </div>
+                    </motion.div>
                   ))}
                 </div>
               ) : (
-                <p className="text-sm text-muted-foreground text-center">
-                  Complete more validation steps to unlock ProofTags
-                </p>
+                <div className="text-center py-8">
+                  <Lock className="w-12 h-12 text-muted-foreground/50 mx-auto mb-4" />
+                  <p className="text-muted-foreground">
+                    Complete validation steps to unlock your first ProofTag
+                  </p>
+                </div>
+              )}
+
+              {/* Achievement celebration */}
+              {proofScore.prooTags.unlocked > 0 && (
+                <motion.div
+                  initial={{ opacity: 0, y: 20 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ delay: 1.5 }}
+                  className="text-center mt-6 p-4 bg-primary/5 rounded-lg border border-primary/10"
+                >
+                  <Star className="w-6 h-6 text-primary-gold mx-auto mb-2" />
+                  <p className="text-sm font-medium text-primary">
+                    Great progress! You've validated {proofScore.prooTags.unlocked} key aspects of your startup.
+                  </p>
+                </motion.div>
               )}
             </div>
           </Card>
