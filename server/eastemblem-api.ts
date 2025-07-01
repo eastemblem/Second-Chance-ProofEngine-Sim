@@ -232,7 +232,7 @@ class EastEmblemAPI {
       console.log(`API endpoint: ${this.getEndpoint("/vault/file/upload")}`);
 
       const controller = new AbortController();
-      const timeoutId = setTimeout(() => controller.abort(), 30000);
+      const timeoutId = setTimeout(() => controller.abort(), 60000); // Increase to 1 minute for file upload
 
       const response = await fetch(this.getEndpoint("/vault/file/upload"), {
         method: "POST",
@@ -274,6 +274,12 @@ class EastEmblemAPI {
       if (!this.isConfigured()) {
         throw new Error("EastEmblem API is not configured. Please provide EASTEMBLEM_API_URL and EASTEMBLEM_API_KEY.");
       }
+      
+      // Provide more specific error messaging for timeout issues
+      if (error instanceof Error && error.name === 'AbortError') {
+        throw new Error("File upload is taking longer than expected. The file may be large or the service may be experiencing high load. Please try again in a few minutes.");
+      }
+      
       throw new Error(`File upload failed: ${error instanceof Error ? error.message : 'Unknown error'}`);
     }
   }
@@ -290,7 +296,7 @@ class EastEmblemAPI {
       console.log(`API endpoint: ${this.getEndpoint("/score/pitch-deck")}`);
 
       const controller = new AbortController();
-      const timeoutId = setTimeout(() => controller.abort(), 30000);
+      const timeoutId = setTimeout(() => controller.abort(), 120000); // Increase to 2 minutes for scoring
 
       const response = await fetch(this.getEndpoint("/score/pitch-deck"), {
         method: "POST",
@@ -327,6 +333,12 @@ class EastEmblemAPI {
       if (!this.isConfigured()) {
         throw new Error("EastEmblem API is not configured. Please provide EASTEMBLEM_API_URL and EASTEMBLEM_API_KEY.");
       }
+      
+      // Provide more specific error messaging for timeout issues
+      if (error instanceof Error && error.name === 'AbortError') {
+        throw new Error("Pitch deck analysis is taking longer than expected. The scoring service may be processing a large file or experiencing high load. Please try again in a few minutes.");
+      }
+      
       throw new Error(`Pitch deck scoring failed: ${error instanceof Error ? error.message : 'Unknown error'}`);
     }
   }

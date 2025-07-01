@@ -445,6 +445,12 @@ export class OnboardingService {
         }
       } catch (error) {
         console.error("EastEmblem API error:", error);
+        
+        // Check if this is a timeout/abort error and provide user-friendly message
+        if (error instanceof Error && error.message.includes('taking longer than expected')) {
+          throw error; // Pass through the user-friendly timeout message
+        }
+        
         throw new Error(`Analysis failed: ${error instanceof Error ? error.message : 'Unknown error'}`);
       }
     } else if (!eastEmblemAPI.isConfigured()) {
