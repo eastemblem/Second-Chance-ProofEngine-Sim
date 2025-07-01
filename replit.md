@@ -277,6 +277,7 @@ Demo experience for testing different user journeys:
   * Replaced "UNLOCKED" text with unlock icon for cleaner visual design
   * Updated achievement icons to use Lock/Unlock icons instead of checkboxes for better clarity
   * Removed small unlock icons from below ProofTag names for cleaner design
+  * Removed "LOCKED" text and requirement details from locked ProofTag cards for consistent minimal design
   * Added animated badge presentation with glow effects and achievement unlocking visual feedback
 
 ## User Preferences

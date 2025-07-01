@@ -559,19 +559,9 @@ export default function Analysis({
                       </div>
                       
                       {/* Tag text with theme colors */}
-                      <p className="relative text-center text-xs font-medium text-foreground/60 leading-tight mb-1">
+                      <p className="relative text-center text-xs font-medium text-foreground/60 leading-tight">
                         {lockedTag.name}
                       </p>
-                      
-                      {/* Lock requirement with theme colors */}
-                      <div className="relative text-center">
-                        <span className="text-[10px] text-primary/60 font-semibold">
-                          LOCKED
-                        </span>
-                        <p className="text-[9px] text-foreground/40 mt-0.5 leading-tight">
-                          Need {lockedTag.neededScore - lockedTag.currentScore} more points
-                        </p>
-                      </div>
                     </div>
                   </motion.div>
                 ))}
