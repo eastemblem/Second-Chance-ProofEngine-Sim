@@ -276,6 +276,7 @@ Demo experience for testing different user journeys:
   * Fixed ProofTag extraction to use API response "tags" field directly instead of calculating from individual scores
   * Replaced "UNLOCKED" text with unlock icon for cleaner visual design
   * Updated achievement icons to use Lock/Unlock icons instead of checkboxes for better clarity
+  * Removed small unlock icons from below ProofTag names for cleaner design
   * Added animated badge presentation with glow effects and achievement unlocking visual feedback
 
 ## User Preferences

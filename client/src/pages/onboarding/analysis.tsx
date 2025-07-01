@@ -526,16 +526,9 @@ export default function Analysis({
                       </div>
                       
                       {/* Tag text */}
-                      <p className="relative text-center text-xs font-medium text-foreground leading-tight mb-1">
+                      <p className="relative text-center text-xs font-medium text-foreground leading-tight">
                         {tag}
                       </p>
-                      
-                      {/* Unlock indicator */}
-                      <div className="relative flex justify-center">
-                        <div className="w-4 h-4 bg-primary-gold rounded-full flex items-center justify-center">
-                          <Unlock className="w-2 h-2 text-white" />
-                        </div>
-                      </div>
                     </div>
                   </motion.div>
                 ))}
