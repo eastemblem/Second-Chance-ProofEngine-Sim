@@ -415,57 +415,55 @@ export default function Analysis({
                 </div>
               </div>
 
-              {/* Unlocked ProofTags List */}
+              {/* Unlocked ProofTags Small Cards */}
               {proofScore.prooTags.tags.length > 0 ? (
-                <div className="space-y-3">
+                <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3">
                   {proofScore.prooTags.tags.map((tag, index) => (
                     <motion.div
                       key={index}
-                      initial={{ opacity: 0, x: -20 }}
-                      animate={{ opacity: 1, x: 0 }}
+                      initial={{ opacity: 0, scale: 0.8, y: 20 }}
+                      animate={{ opacity: 1, scale: 1, y: 0 }}
                       transition={{ 
                         delay: 0.6 + index * 0.1,
                         type: "spring",
                         stiffness: 200,
                         damping: 20
                       }}
-                      className="flex items-center gap-4 py-3 px-4 bg-gradient-to-r from-primary/5 to-transparent rounded-lg border-l-4 border-primary"
+                      className="group"
                     >
-                      {/* Achievement icon */}
-                      <div className="flex-shrink-0">
-                        <div className="w-8 h-8 bg-gradient-to-r from-primary to-primary-gold rounded-full flex items-center justify-center">
+                      <div className="relative bg-card border border-primary/20 rounded-lg p-3 hover:border-primary/40 transition-all duration-300 hover:shadow-lg hover:shadow-primary/10">
+                        {/* Achievement glow effect */}
+                        <div className="absolute inset-0 bg-gradient-to-r from-primary/5 to-primary-gold/5 rounded-lg opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
+                        
+                        {/* Achievement icon */}
+                        <div className="relative flex items-center justify-center mb-2">
+                          <div className="w-6 h-6 bg-gradient-to-r from-primary to-primary-gold rounded-full flex items-center justify-center">
+                            <motion.div
+                              initial={{ rotate: 0 }}
+                              animate={{ rotate: 360 }}
+                              transition={{ delay: 0.8 + index * 0.1, duration: 0.6 }}
+                            >
+                              <CheckCircle className="w-3 h-3 text-white" />
+                            </motion.div>
+                          </div>
+                          {/* Sparkle effect */}
                           <motion.div
-                            initial={{ rotate: 0, scale: 0 }}
-                            animate={{ rotate: 360, scale: 1 }}
-                            transition={{ delay: 0.8 + index * 0.1, duration: 0.6 }}
-                          >
-                            <CheckCircle className="w-4 h-4 text-white" />
-                          </motion.div>
+                            className="absolute -top-0.5 -right-0.5 w-2 h-2 bg-primary-gold rounded-full"
+                            initial={{ scale: 0, opacity: 0 }}
+                            animate={{ scale: 1, opacity: 1 }}
+                            transition={{ delay: 1 + index * 0.1 }}
+                          />
                         </div>
-                        {/* Sparkle effect */}
-                        <motion.div
-                          className="absolute w-2 h-2 bg-primary-gold rounded-full ml-6 -mt-2"
-                          initial={{ scale: 0, opacity: 0 }}
-                          animate={{ scale: 1, opacity: 1 }}
-                          transition={{ delay: 1 + index * 0.1 }}
-                        />
-                      </div>
-                      
-                      {/* Tag content */}
-                      <div className="flex-grow">
-                        <p className="font-medium text-foreground">{tag}</p>
-                        <p className="text-xs text-primary font-semibold">ACHIEVEMENT UNLOCKED</p>
-                      </div>
-                      
-                      {/* Trophy icon */}
-                      <div className="flex-shrink-0">
-                        <motion.div
-                          initial={{ scale: 0 }}
-                          animate={{ scale: 1 }}
-                          transition={{ delay: 1.2 + index * 0.1 }}
-                        >
-                          <Trophy className="w-5 h-5 text-primary-gold" />
-                        </motion.div>
+                        
+                        {/* Tag text */}
+                        <p className="relative text-center text-xs font-medium text-foreground leading-tight mb-1">
+                          {tag}
+                        </p>
+                        
+                        {/* Unlock indicator */}
+                        <div className="relative flex justify-center">
+                          <span className="text-[10px] text-primary font-semibold">UNLOCKED</span>
+                        </div>
                       </div>
                     </motion.div>
                   ))}
