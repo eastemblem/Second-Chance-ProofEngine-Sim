@@ -531,7 +531,19 @@ export default function Analysis({
                       
                       {/* Unlock indicator */}
                       <div className="relative flex justify-center">
-                        <span className="text-[10px] text-primary font-semibold">UNLOCKED</span>
+                        <div className="w-4 h-4 bg-primary-gold rounded-full flex items-center justify-center">
+                          <svg
+                            viewBox="0 0 24 24"
+                            fill="none"
+                            stroke="currentColor"
+                            strokeWidth="3"
+                            strokeLinecap="round"
+                            strokeLinejoin="round"
+                            className="w-2 h-2 text-white"
+                          >
+                            <polyline points="20 6 9 17 4 12" />
+                          </svg>
+                        </div>
                       </div>
                     </div>
                   </motion.div>
