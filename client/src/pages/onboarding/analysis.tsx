@@ -163,24 +163,57 @@ export default function Analysis({
 
   console.log("Analysis data for ProofTags:", analysisData);
 
-  // Extract ProofTags directly from API response
+  // Define all possible ProofTags with unlock requirements
+  const allProofTags = [
+    { name: "Problem Validated", requirement: "Score 7+ on Problem validation", unlockScore: 7, category: "Problem" },
+    { name: "Solution Proven", requirement: "Score 7+ on Solution validation", unlockScore: 7, category: "solution" },
+    { name: "Market Fit Detected", requirement: "Score 7+ on Market Opportunity", unlockScore: 7, category: "market_opportunity" },
+    { name: "Technical Feasibility", requirement: "Score 7+ on Product Technology", unlockScore: 7, category: "product_technology" },
+    { name: "Team Credibility", requirement: "Score 7+ on Team assessment", unlockScore: 7, category: "team" },
+    { name: "Revenue Model Proven", requirement: "Score 7+ on Business Model", unlockScore: 7, category: "business_model" },
+    { name: "Traction Validated", requirement: "Score 7+ on Traction & Milestones", unlockScore: 7, category: "traction_milestones" },
+    { name: "Competitive Edge", requirement: "Score 7+ on Competition analysis", unlockScore: 7, category: "competition" },
+    { name: "Go-to-Market Ready", requirement: "Score 7+ on GTM Strategy", unlockScore: 7, category: "go_to_market_strategy" },
+    { name: "Investor Ready", requirement: "Score 7+ on Financials & Ask", unlockScore: 7, category: "financials_projections_ask" }
+  ];
+
+  // Extract ProofTags based on scoring results
   function extractProofTags(scoringResult: any) {
     console.log("Extracting ProofTags from scoring result:", scoringResult);
     
-    // Look for tags in various locations in the API response
-    const apiTags = scoringResult?.output?.tags || 
-                   scoringResult?.tags || 
-                   scoringResult?.output?.proof_tags ||
-                   scoringResult?.proof_tags ||
-                   [];
+    const categories = scoringResult?.output || {};
+    const unlockedTags: string[] = [];
+    const lockedTags: {
+      name: string;
+      requirement: string;
+      currentScore: number;
+      neededScore: number;
+    }[] = [];
     
-    console.log("Found API tags:", apiTags);
+    allProofTags.forEach(tag => {
+      const categoryScore = categories[tag.category]?.score || 0;
+      const isUnlocked = categoryScore >= tag.unlockScore;
+      
+      if (isUnlocked) {
+        unlockedTags.push(tag.name);
+      } else {
+        lockedTags.push({
+          name: tag.name,
+          requirement: tag.requirement,
+          currentScore: categoryScore,
+          neededScore: tag.unlockScore
+        });
+      }
+    });
     
-    // Only use tags from the API response, no generation
+    console.log("Unlocked tags:", unlockedTags);
+    console.log("Locked tags:", lockedTags);
+    
     return {
-      unlocked: apiTags.length,
-      total: 10,
-      tags: apiTags
+      unlocked: unlockedTags.length,
+      total: allProofTags.length,
+      unlockedTags,
+      lockedTags
     };
   }
 
@@ -200,7 +233,7 @@ export default function Analysis({
     readiness: "🟥 Readiness",
   };
 
-  // Extract ProofTags directly from API response
+  // Extract ProofTags with unlock status
   const extractedProofTags = extractProofTags(scoringResult);
   
   console.log("Extracted ProofTags result:", extractedProofTags);
@@ -249,7 +282,11 @@ export default function Analysis({
       traction: analysisData.categories.traction_milestones?.score || analysisData.categories.traction?.score || 0,
       readiness: analysisData.categories.financials_projections_ask?.score || analysisData.categories.readiness?.score || 0,
     },
-    prooTags: extractedProofTags,
+    prooTags: {
+      unlocked: extractedProofTags.unlocked,
+      total: extractedProofTags.total,
+      tags: extractedProofTags.unlockedTags
+    },
     insights: {
       strengths:
         scoringResult?.output?.key_insights?.filter(
@@ -354,11 +391,23 @@ export default function Analysis({
                 className="text-center mb-6"
               >
                 <h3 className="text-2xl font-bold mb-2 gradient-text">
-                  🏆 ProofTags Achieved
+                  🏆 ProofTag Validation Progress
                 </h3>
-                <p className="text-lg text-muted-foreground">
+                <p className="text-lg text-muted-foreground mb-2">
                   {proofScore.prooTags.unlocked} of {proofScore.prooTags.total} validation milestones unlocked
                 </p>
+                {/* Progress Tracker */}
+                <div className="inline-flex items-center gap-2 px-4 py-2 bg-primary/10 rounded-full border border-primary/20">
+                  <Target className="w-4 h-4 text-primary" />
+                  <span className="text-sm font-semibold text-primary">
+                    {proofScore.prooTags.unlocked}/{proofScore.prooTags.total} Tags Unlocked
+                  </span>
+                  {proofScore.prooTags.unlocked < proofScore.prooTags.total && (
+                    <span className="text-sm text-muted-foreground">
+                      - {proofScore.prooTags.total - proofScore.prooTags.unlocked} to go
+                    </span>
+                  )}
+                </div>
               </motion.div>
 
               {/* Achievement Progress Ring */}
@@ -415,66 +464,129 @@ export default function Analysis({
                 </div>
               </div>
 
-              {/* Unlocked ProofTags Small Cards */}
-              {proofScore.prooTags.tags.length > 0 ? (
-                <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3">
-                  {proofScore.prooTags.tags.map((tag, index) => (
-                    <motion.div
-                      key={index}
-                      initial={{ opacity: 0, scale: 0.8, y: 20 }}
-                      animate={{ opacity: 1, scale: 1, y: 0 }}
-                      transition={{ 
-                        delay: 0.6 + index * 0.1,
-                        type: "spring",
-                        stiffness: 200,
-                        damping: 20
-                      }}
-                      className="group"
-                    >
-                      <div className="relative bg-card border border-primary/20 rounded-lg p-3 hover:border-primary/40 transition-all duration-300 hover:shadow-lg hover:shadow-primary/10">
-                        {/* Achievement glow effect */}
-                        <div className="absolute inset-0 bg-gradient-to-r from-primary/5 to-primary-gold/5 rounded-lg opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
-                        
-                        {/* Achievement icon */}
-                        <div className="relative flex items-center justify-center mb-2">
-                          <div className="w-6 h-6 bg-gradient-to-r from-primary to-primary-gold rounded-full flex items-center justify-center">
-                            <motion.div
-                              initial={{ rotate: 0 }}
-                              animate={{ rotate: 360 }}
-                              transition={{ delay: 0.8 + index * 0.1, duration: 0.6 }}
-                            >
-                              <CheckCircle className="w-3 h-3 text-white" />
-                            </motion.div>
-                          </div>
-                          {/* Sparkle effect */}
+              {/* ProofTags Grid - Unlocked and Locked */}
+              <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3">
+                {/* Unlocked Tags */}
+                {proofScore.prooTags.tags.map((tag, index) => (
+                  <motion.div
+                    key={`unlocked-${index}`}
+                    initial={{ opacity: 0, scale: 0.8, y: 20 }}
+                    animate={{ opacity: 1, scale: 1, y: 0 }}
+                    transition={{ 
+                      delay: 0.6 + index * 0.1,
+                      type: "spring",
+                      stiffness: 200,
+                      damping: 20
+                    }}
+                    className="group"
+                  >
+                    <div className="relative bg-card border border-primary/20 rounded-lg p-3 hover:border-primary/40 transition-all duration-300 hover:shadow-lg hover:shadow-primary/10">
+                      {/* Achievement glow effect */}
+                      <div className="absolute inset-0 bg-gradient-to-r from-primary/5 to-primary-gold/5 rounded-lg opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
+                      
+                      {/* Achievement icon */}
+                      <div className="relative flex items-center justify-center mb-2">
+                        <div className="w-6 h-6 bg-gradient-to-r from-primary to-primary-gold rounded-full flex items-center justify-center">
                           <motion.div
-                            className="absolute -top-0.5 -right-0.5 w-2 h-2 bg-primary-gold rounded-full"
-                            initial={{ scale: 0, opacity: 0 }}
-                            animate={{ scale: 1, opacity: 1 }}
-                            transition={{ delay: 1 + index * 0.1 }}
-                          />
+                            initial={{ rotate: 0 }}
+                            animate={{ rotate: 360 }}
+                            transition={{ delay: 0.8 + index * 0.1, duration: 0.6 }}
+                          >
+                            <CheckCircle className="w-3 h-3 text-white" />
+                          </motion.div>
                         </div>
-                        
-                        {/* Tag text */}
-                        <p className="relative text-center text-xs font-medium text-foreground leading-tight mb-1">
-                          {tag}
-                        </p>
-                        
-                        {/* Unlock indicator */}
-                        <div className="relative flex justify-center">
-                          <span className="text-[10px] text-primary font-semibold">UNLOCKED</span>
+                        {/* Sparkle effect */}
+                        <motion.div
+                          className="absolute -top-0.5 -right-0.5 w-2 h-2 bg-primary-gold rounded-full"
+                          initial={{ scale: 0, opacity: 0 }}
+                          animate={{ scale: 1, opacity: 1 }}
+                          transition={{ delay: 1 + index * 0.1 }}
+                        />
+                      </div>
+                      
+                      {/* Tag text */}
+                      <p className="relative text-center text-xs font-medium text-foreground leading-tight mb-1">
+                        {tag}
+                      </p>
+                      
+                      {/* Unlock indicator */}
+                      <div className="relative flex justify-center">
+                        <span className="text-[10px] text-primary font-semibold">UNLOCKED</span>
+                      </div>
+                    </div>
+                  </motion.div>
+                ))}
+
+                {/* Locked Tags */}
+                {extractedProofTags.lockedTags.map((lockedTag, index) => (
+                  <motion.div
+                    key={`locked-${index}`}
+                    initial={{ opacity: 0, scale: 0.8, y: 20 }}
+                    animate={{ opacity: 1, scale: 1, y: 0 }}
+                    transition={{ 
+                      delay: 0.6 + (proofScore.prooTags.tags.length + index) * 0.1,
+                      type: "spring",
+                      stiffness: 200,
+                      damping: 20
+                    }}
+                    className="group"
+                  >
+                    <div className="relative bg-muted/30 border border-muted rounded-lg p-3 hover:border-muted-foreground/20 transition-all duration-300">
+                      {/* Locked overlay */}
+                      <div className="absolute inset-0 bg-muted/20 rounded-lg" />
+                      
+                      {/* Lock icon */}
+                      <div className="relative flex items-center justify-center mb-2">
+                        <div className="w-6 h-6 bg-muted-foreground/20 rounded-full flex items-center justify-center">
+                          <Lock className="w-3 h-3 text-muted-foreground" />
                         </div>
                       </div>
-                    </motion.div>
-                  ))}
-                </div>
-              ) : (
-                <div className="text-center py-8">
-                  <Lock className="w-12 h-12 text-muted-foreground/50 mx-auto mb-4" />
-                  <p className="text-muted-foreground">
-                    Complete validation steps to unlock your first ProofTag
-                  </p>
-                </div>
+                      
+                      {/* Tag text */}
+                      <p className="relative text-center text-xs font-medium text-muted-foreground leading-tight mb-1">
+                        {lockedTag.name}
+                      </p>
+                      
+                      {/* Lock requirement */}
+                      <div className="relative text-center">
+                        <span className="text-[10px] text-muted-foreground/80">
+                          LOCKED
+                        </span>
+                        <p className="text-[9px] text-muted-foreground/60 mt-0.5 leading-tight">
+                          Need {lockedTag.neededScore - lockedTag.currentScore} more points
+                        </p>
+                      </div>
+                    </div>
+                  </motion.div>
+                ))}
+              </div>
+
+              {/* Unlock Requirements Section */}
+              {extractedProofTags.lockedTags.length > 0 && (
+                <motion.div
+                  initial={{ opacity: 0, y: 20 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ delay: 1.2 }}
+                  className="mt-8 p-4 bg-muted/30 rounded-lg border border-muted"
+                >
+                  <h4 className="text-sm font-semibold text-foreground mb-3 flex items-center gap-2">
+                    <Target className="w-4 h-4 text-primary" />
+                    Unlock Requirements
+                  </h4>
+                  <div className="space-y-2">
+                    {extractedProofTags.lockedTags.slice(0, 3).map((lockedTag, index) => (
+                      <div key={index} className="flex items-center justify-between text-xs">
+                        <span className="text-muted-foreground">{lockedTag.name}</span>
+                        <span className="text-muted-foreground/80">{lockedTag.requirement}</span>
+                      </div>
+                    ))}
+                    {extractedProofTags.lockedTags.length > 3 && (
+                      <p className="text-xs text-muted-foreground/60 text-center pt-2">
+                        +{extractedProofTags.lockedTags.length - 3} more tags to unlock
+                      </p>
+                    )}
+                  </div>
+                </motion.div>
               )}
 
               {/* Achievement celebration */}
