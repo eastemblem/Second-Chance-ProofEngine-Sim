@@ -177,12 +177,15 @@ export default function Analysis({
     { name: "Investor Ready", requirement: "Score 7+ on Financials & Ask", unlockScore: 7, category: "financials_projections_ask" }
   ];
 
-  // Extract ProofTags based on scoring results
+  // Extract ProofTags from API response
   function extractProofTags(scoringResult: any) {
     console.log("Extracting ProofTags from scoring result:", scoringResult);
     
-    const categories = scoringResult?.output || {};
-    const unlockedTags: string[] = [];
+    // Get tags directly from API response
+    const apiTags = scoringResult?.output?.tags || [];
+    console.log("API provided tags:", apiTags);
+    
+    const unlockedTags: string[] = apiTags;
     const lockedTags: {
       name: string;
       requirement: string;
@@ -190,13 +193,15 @@ export default function Analysis({
       neededScore: number;
     }[] = [];
     
+    // Find which predefined tags are NOT in the API response (these are locked)
     allProofTags.forEach(tag => {
-      const categoryScore = categories[tag.category]?.score || 0;
-      const isUnlocked = categoryScore >= tag.unlockScore;
+      const isUnlocked = apiTags.includes(tag.name);
       
-      if (isUnlocked) {
-        unlockedTags.push(tag.name);
-      } else {
+      if (!isUnlocked) {
+        // Get category score for lock requirement display
+        const categories = scoringResult?.output || {};
+        const categoryScore = categories[tag.category]?.score || 0;
+        
         lockedTags.push({
           name: tag.name,
           requirement: tag.requirement,
@@ -206,8 +211,8 @@ export default function Analysis({
       }
     });
     
-    console.log("Unlocked tags:", unlockedTags);
-    console.log("Locked tags:", lockedTags);
+    console.log("Unlocked tags from API:", unlockedTags);
+    console.log("Locked tags calculated:", lockedTags);
     
     return {
       unlocked: unlockedTags.length,

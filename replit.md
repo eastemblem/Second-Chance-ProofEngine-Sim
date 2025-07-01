@@ -273,6 +273,7 @@ Demo experience for testing different user journeys:
   * Added progress tracker displaying "X/10 Tags Unlocked - Y to go" format
   * Created unlock requirements section showing how to earn locked ProofTags
   * Updated ProofTag styling to follow app's purple-gold theme instead of default muted colors
+  * Fixed ProofTag extraction to use API response "tags" field directly instead of calculating from individual scores
   * Added animated badge presentation with glow effects and achievement unlocking visual feedback
 
 ## User Preferences
