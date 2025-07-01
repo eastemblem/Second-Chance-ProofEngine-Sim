@@ -423,18 +423,27 @@ export class OnboardingService {
         if (fs.existsSync(upload.filePath)) {
           const fileBuffer = fs.readFileSync(upload.filePath);
           
-          // Upload file to EastEmblem Box.com folder (0_Overview)
+          // Try to upload file to EastEmblem Box.com folder (0_Overview)
           console.log("Uploading file to Box.com folder:", folderStructure?.folders?.["0_Overview"]);
-          const uploadResult = await eastEmblemAPI.uploadFile(
-            fileBuffer,
-            upload.fileName,
-            folderStructure?.folders?.["0_Overview"] || "overview",
-            sessionId,
-            true // allowShare
-          );
-          console.log("Box.com upload result:", uploadResult);
+          try {
+            const uploadResult = await eastEmblemAPI.uploadFile(
+              fileBuffer,
+              upload.fileName,
+              folderStructure?.folders?.["0_Overview"] || "overview",
+              sessionId,
+              true // allowShare
+            );
+            console.log("Box.com upload result:", uploadResult);
+          } catch (uploadError) {
+            // If upload fails due to file already exists, that's OK - continue with scoring
+            if (uploadError instanceof Error && uploadError.message.includes('File already exists')) {
+              console.log("File already exists in Box.com, proceeding with scoring");
+            } else {
+              throw uploadError; // Re-throw other upload errors
+            }
+          }
 
-          // Score the pitch deck
+          // Score the pitch deck (this is the main operation we need)
           scoringResult = await eastEmblemAPI.scorePitchDeck(
             fileBuffer,
             upload.fileName,

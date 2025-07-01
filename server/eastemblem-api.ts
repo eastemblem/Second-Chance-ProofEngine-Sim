@@ -252,6 +252,15 @@ class EastEmblemAPI {
           throw new Error("EastEmblem API authentication failed. Please check API credentials.");
         } else if (response.status === 403) {
           throw new Error("EastEmblem API access forbidden. Please verify API permissions.");
+        } else if (response.status === 400 && errorText.includes("File already exists")) {
+          // Handle file already exists - this is actually OK, we can proceed
+          console.log("File already exists in Box.com, continuing with existing file");
+          return {
+            id: `existing-${Date.now()}`,
+            name: fileName,
+            url: `https://app.box.com/file/${folderId}/${fileName}`,
+            onboarding_id: onboardingId,
+          };
         } else {
           throw new Error(`File upload failed (${response.status}): ${errorText}`);
         }
@@ -267,7 +276,21 @@ class EastEmblemAPI {
       } catch (parseError) {
         console.error("Failed to parse upload response JSON:", parseError);
         console.log("Response was:", responseText);
-        throw new Error(`File upload succeeded but response parsing failed: ${parseError instanceof Error ? parseError.message : 'Invalid JSON'}`);
+        
+        // Try to fix common JSON issues with unquoted UUIDs
+        try {
+          const fixedJson = responseText.replace(
+            /"onboarding_id":\s*([a-f0-9\-]{36})/g, 
+            '"onboarding_id": "$1"'
+          );
+          console.log("Attempting to parse fixed JSON:", fixedJson);
+          const result = JSON.parse(fixedJson) as FileUploadResponse;
+          console.log("Successfully parsed fixed JSON:", result);
+          return result;
+        } catch (fixError) {
+          console.error("Even fixed JSON parsing failed:", fixError);
+          throw new Error(`File upload succeeded but response parsing failed: ${parseError instanceof Error ? parseError.message : 'Invalid JSON'}`);
+        }
       }
     } catch (error) {
       console.error("Error uploading file:", error);
@@ -321,13 +344,44 @@ class EastEmblemAPI {
         }
       }
 
-      const result = (await response.json()) as any;
-      // console.log(
-      //   "Pitch deck scored successfully - RAW API RESPONSE:",
-      //   JSON.stringify(result, null, 2),
-      // );
-
-      return result;
+      const responseText = await response.text();
+      console.log("Raw scoring response:", responseText);
+      
+      try {
+        const result = JSON.parse(responseText) as any;
+        console.log("Pitch deck scored successfully:", result);
+        
+        // Handle the new response format - extract the first item from array if needed
+        if (Array.isArray(result) && result.length > 0) {
+          console.log("Extracting first result from array response");
+          return result[0];
+        }
+        
+        return result;
+      } catch (parseError) {
+        console.error("Failed to parse scoring response JSON:", parseError);
+        console.log("Response was:", responseText);
+        
+        // Try to fix common JSON issues
+        try {
+          const fixedJson = responseText.replace(
+            /"onboarding_id":\s*([a-f0-9\-]{36})/g, 
+            '"onboarding_id": "$1"'
+          );
+          const result = JSON.parse(fixedJson);
+          console.log("Successfully parsed fixed scoring JSON:", result);
+          
+          // Handle array format
+          if (Array.isArray(result) && result.length > 0) {
+            return result[0];
+          }
+          
+          return result;
+        } catch (fixError) {
+          console.error("Even fixed scoring JSON parsing failed:", fixError);
+          throw new Error(`Pitch deck scoring succeeded but response parsing failed: ${parseError instanceof Error ? parseError.message : 'Invalid JSON'}`);
+        }
+      }
     } catch (error) {
       console.error("Error scoring pitch deck:", error);
       if (!this.isConfigured()) {
