@@ -20,6 +20,7 @@ import {
   AlertTriangle,
   Download,
   Lock,
+  Unlock,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -508,11 +509,11 @@ export default function Analysis({
                       <div className="relative flex items-center justify-center mb-2">
                         <div className="w-6 h-6 bg-gradient-to-r from-primary to-primary-gold rounded-full flex items-center justify-center">
                           <motion.div
-                            initial={{ rotate: 0 }}
-                            animate={{ rotate: 360 }}
+                            initial={{ scale: 0 }}
+                            animate={{ scale: 1 }}
                             transition={{ delay: 0.8 + index * 0.1, duration: 0.6 }}
                           >
-                            <CheckCircle className="w-3 h-3 text-white" />
+                            <Unlock className="w-3 h-3 text-white" />
                           </motion.div>
                         </div>
                         {/* Sparkle effect */}
@@ -532,17 +533,7 @@ export default function Analysis({
                       {/* Unlock indicator */}
                       <div className="relative flex justify-center">
                         <div className="w-4 h-4 bg-primary-gold rounded-full flex items-center justify-center">
-                          <svg
-                            viewBox="0 0 24 24"
-                            fill="none"
-                            stroke="currentColor"
-                            strokeWidth="3"
-                            strokeLinecap="round"
-                            strokeLinejoin="round"
-                            className="w-2 h-2 text-white"
-                          >
-                            <polyline points="20 6 9 17 4 12" />
-                          </svg>
+                          <Unlock className="w-2 h-2 text-white" />
                         </div>
                       </div>
                     </div>
