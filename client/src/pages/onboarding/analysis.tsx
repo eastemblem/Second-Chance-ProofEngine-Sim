@@ -232,6 +232,12 @@ export default function Analysis({
   // Get badge for current score
   const scoreBadge = getScoreBadge(analysisData.total_score);
   const badgeNumber = analysisData.total_score >= 91 ? 9 : Math.ceil((analysisData.total_score - 10) / 10) + 1;
+  
+  console.log("Score Badge Debug:", {
+    totalScore: analysisData.total_score,
+    badgeNumber,
+    scoreBadge: scoreBadge ? "Found" : "Not found"
+  });
 
   // Map to ProofScore format for consistency with feedback.tsx
   const proofScore: ProofScoreResult = {
