@@ -618,47 +618,49 @@ export default function Analysis({
               </motion.div>
             </motion.div>
             
-            {/* Score Badge */}
-            {scoreBadge && (
-              <motion.div
-                className="flex justify-center mb-6"
-                initial={{ opacity: 0, scale: 0.5 }}
-                animate={{ opacity: 1, scale: 1 }}
-                transition={{ duration: 0.6, delay: 0.1 }}
-              >
-                <div className="relative">
-                  <img 
-                    src={scoreBadge} 
-                    alt={`Score Badge ${badgeNumber}`}
-                    className="w-32 h-32 drop-shadow-lg"
-                  />
-                  <motion.div
-                    className="absolute inset-0 rounded-full bg-primary/10"
-                    initial={{ scale: 0 }}
-                    animate={{ scale: 1.1 }}
-                    transition={{ 
-                      duration: 1.5, 
-                      repeat: Infinity, 
-                      repeatType: "reverse",
-                      delay: 0.5 
-                    }}
-                  />
-                </div>
-              </motion.div>
-            )}
-            
-            <div className="mb-6">
-              <motion.div
-                className="text-6xl font-black gradient-text mb-2"
-                initial={{ scale: 0 }}
-                animate={{ scale: 1 }}
-                transition={{ duration: 0.5, delay: 0.2 }}
-              >
-                {proofScore.total}
-              </motion.div>
-              <p className="text-xl text-muted-foreground">out of 100</p>
-              
-              {/* Badge Achievement Text - Removed per user request */}
+            {/* Score and Badge Side by Side */}
+            <div className="flex items-center justify-center gap-8 mb-6">
+              {/* Score Display */}
+              <div className="text-center">
+                <motion.div
+                  className="text-6xl font-black gradient-text mb-2"
+                  initial={{ scale: 0 }}
+                  animate={{ scale: 1 }}
+                  transition={{ duration: 0.5, delay: 0.2 }}
+                >
+                  {proofScore.total}
+                </motion.div>
+                <p className="text-xl text-muted-foreground">out of 100</p>
+              </div>
+
+              {/* Score Badge */}
+              {scoreBadge && (
+                <motion.div
+                  className="flex justify-center"
+                  initial={{ opacity: 0, scale: 0.5 }}
+                  animate={{ opacity: 1, scale: 1 }}
+                  transition={{ duration: 0.6, delay: 0.1 }}
+                >
+                  <div className="relative">
+                    <img 
+                      src={scoreBadge} 
+                      alt={`Score Badge ${badgeNumber}`}
+                      className="w-24 h-24 drop-shadow-lg"
+                    />
+                    <motion.div
+                      className="absolute inset-0 rounded-full bg-primary/10"
+                      initial={{ scale: 0 }}
+                      animate={{ scale: 1.1 }}
+                      transition={{ 
+                        duration: 1.5, 
+                        repeat: Infinity, 
+                        repeatType: "reverse",
+                        delay: 0.5 
+                      }}
+                    />
+                  </div>
+                </motion.div>
+              )}
             </div>
 
             {/* ProofTags Achievement Section */}
