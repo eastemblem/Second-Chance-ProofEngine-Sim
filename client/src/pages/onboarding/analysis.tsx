@@ -147,6 +147,25 @@ export default function Analysis({
     }
   }, [sessionId, scoringResult]);
 
+  // Celebration effect - moved to top level to maintain hook order
+  useEffect(() => {
+    // Only trigger celebration if we have valid scoring data
+    const currentScoringResult = sessionFromAPI?.stepData?.processing?.scoringResult ||
+                                sessionFromAPI?.stepData?.scoringResult ||
+                                sessionFromAPI?.scoringResult ||
+                                scoringResult;
+    
+    if (currentScoringResult?.total_score > 70 && !showCelebration) {
+      const timer = setTimeout(() => {
+        setShowCelebration(true);
+        // Auto-hide celebration after 3 seconds
+        setTimeout(() => setShowCelebration(false), 3000);
+      }, 1500); // Delay to let other animations settle
+      
+      return () => clearTimeout(timer);
+    }
+  }, [sessionFromAPI, scoringResult, showCelebration]);
+
   // Use API data if available (prioritize fresh API data)
   if (sessionFromAPI) {
     const apiScoringResult = sessionFromAPI?.stepData?.processing?.scoringResult ||
@@ -378,19 +397,6 @@ export default function Analysis({
         [],
     },
   };
-
-  // Trigger celebration animation if score is over 70
-  useEffect(() => {
-    if (proofScore.total > 70 && !showCelebration) {
-      const timer = setTimeout(() => {
-        setShowCelebration(true);
-        // Auto-hide celebration after 3 seconds
-        setTimeout(() => setShowCelebration(false), 3000);
-      }, 1500); // Delay to let other animations settle
-      
-      return () => clearTimeout(timer);
-    }
-  }, [proofScore.total, showCelebration]);
 
   return (
     <div className="min-h-screen py-12 relative">
