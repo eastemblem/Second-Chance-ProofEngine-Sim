@@ -83,39 +83,11 @@ const getProofTagJustification = (tagName: string, analysisData: any): string =>
   if (!proofTag) return "No justification available for this ProofTag.";
   
   const category = proofTag.category;
-  const categories = analysisData?.categories || {};
   
-  // Detailed explanations for each ProofTag
-  const tagExplanations: Record<string, string> = {
-    "Problem Hunter": "Validates that you've identified and deeply understand a genuine customer problem worth solving. Shows market demand exists.",
-    "Target Locked": "Confirms you've defined your ideal customer persona and can reach them effectively with your solution.",
-    "Signal Chaser": "Demonstrates you've detected early demand signals from potential customers showing interest in your solution.",
-    "Prototype Pilot": "Shows you have a working prototype or MVP that proves your solution concept is technically feasible.",
-    "Solution Stamped": "Validates that your solution effectively addresses the identified problem and delivers clear value.",
-    "Builder's Blueprint": "Confirms you have a clear technical roadmap and the capability to build and scale your solution.",
-    "Revenue Radar": "Demonstrates you've identified viable revenue streams and understand how to monetize your solution.",
-    "Price Proven": "Shows you've validated pricing models and customers are willing to pay for your solution.",
-    "CAC Commander": "Proves you understand customer acquisition costs and have sustainable unit economics.",
-    "Traction Tracker": "Validates measurable progress in customer acquisition, revenue, or other key growth metrics.",
-    "Channel Sniper": "Shows you've identified and validated effective channels to reach and acquire customers.",
-    "Momentum Master": "Demonstrates consistent growth momentum and ability to scale customer acquisition.",
-    "Vault Ready": "Confirms your documentation and processes are organized for due diligence and investment readiness.",
-    "Score Surged": "Shows strong overall validation across multiple dimensions of your startup.",
-    "Founder Fit Check": "Validates that you and your team have the right skills and experience to execute on this opportunity.",
-    "Metrics Ready": "Demonstrates you're tracking the right KPIs and have data-driven decision making processes.",
-    "Data Room Complete": "Shows comprehensive documentation and transparency for investor evaluation.",
-    "Vision Aligned": "Confirms your long-term vision aligns with market opportunity and execution capability.",
-    "Iteration Loop Active": "Demonstrates continuous learning and improvement based on customer feedback.",
-    "Narrative Coherence": "Shows you can clearly communicate your value proposition and growth strategy.",
-    "Moat Identified": "Validates sustainable competitive advantages that will protect your market position."
-  };
+  // Get justification from API response categories
+  const output = analysisData?.output || analysisData;
   
-  // Try to get specific explanation first
-  if (tagExplanations[tagName]) {
-    return tagExplanations[tagName];
-  }
-  
-  // Fall back to category-based API data
+  // Map ProofTag categories to API response fields
   const categoryMapping: Record<string, string> = {
     desirability: "Problem",
     feasibility: "solution", 
@@ -125,11 +97,40 @@ const getProofTagJustification = (tagName: string, analysisData: any): string =>
   };
   
   const apiField = categoryMapping[category];
-  if (apiField && categories[apiField]) {
-    const categoryData = categories[apiField];
+  if (apiField && output?.[apiField]) {
+    const categoryData = output[apiField];
     const justification = categoryData.justification || categoryData.recommendation;
     if (justification && justification.length > 10) {
       return justification;
+    }
+  }
+  
+  // Also check for exact field match (like "Problem" instead of "Problem")
+  const directApiFields = ["Problem", "solution", "market_opportunity", "product_technology", "team", "business_model", "traction_milestones", "competition", "go_to_market_strategy", "financials_projections_ask"];
+  
+  for (const field of directApiFields) {
+    if (output?.[field]) {
+      const categoryData = output[field];
+      const justification = categoryData.justification || categoryData.recommendation;
+      if (justification && justification.length > 10) {
+        // Map this field to the relevant category
+        const fieldCategoryMap: Record<string, string> = {
+          "Problem": "desirability",
+          "solution": "feasibility",
+          "market_opportunity": "desirability",
+          "product_technology": "feasibility",
+          "team": "readiness",
+          "business_model": "viability",
+          "traction_milestones": "traction",
+          "competition": "viability",
+          "go_to_market_strategy": "traction",
+          "financials_projections_ask": "viability"
+        };
+        
+        if (fieldCategoryMap[field] === category) {
+          return justification;
+        }
+      }
     }
   }
   
