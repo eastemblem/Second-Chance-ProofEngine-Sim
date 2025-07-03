@@ -619,7 +619,7 @@ export default function Analysis({
             </motion.div>
             
             {/* Badge and Score Side by Side */}
-            <div className="flex items-center justify-center gap-12 mb-8 mx-8">
+            <div className="flex items-center justify-center gap-12 my-12 mx-8">
               {/* Score Badge on Left */}
               {scoreBadge && (
                 <motion.div
