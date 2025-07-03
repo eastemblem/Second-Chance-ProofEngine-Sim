@@ -960,11 +960,9 @@ export default function Analysis({
                     }}
                     className="group"
                   >
-                    <Tooltip>
-                      <TooltipTrigger asChild>
-                        <div className="relative bg-background border border-primary/10 rounded-lg p-3 hover:border-primary/20 transition-all duration-300 opacity-60 cursor-pointer">
-                          {/* Locked overlay with theme colors */}
-                          <div className="absolute inset-0 bg-background/80 rounded-lg" />
+                    <div className="relative bg-background border border-primary/10 rounded-lg p-3 hover:border-primary/20 transition-all duration-300 opacity-60">
+                      {/* Locked overlay with theme colors */}
+                      <div className="absolute inset-0 bg-background/80 rounded-lg" />
 
                       {/* Achievement icon */}
                       <div className="relative flex items-center justify-center mb-2">
@@ -980,18 +978,13 @@ export default function Analysis({
                         {lockedTag.name}
                       </p>
 
-                          {/* Score requirement */}
-                          {/* <div className="relative text-center">
-                            <p className="text-[10px] text-primary/60 font-medium">
-                              {lockedTag.pointsNeeded > 0 ? `+${lockedTag.pointsNeeded}` : `${lockedTag.neededScore}`}
-                            </p>
-                          </div> */}
-                        </div>
-                      </TooltipTrigger>
-                      <TooltipContent side="top" className="max-w-sm p-3">
-                        <p className="text-sm">{getProofTagJustification(lockedTag.name, analysisData)}</p>
-                      </TooltipContent>
-                    </Tooltip>
+                      {/* Score requirement */}
+                      {/* <div className="relative text-center">
+                        <p className="text-[10px] text-primary/60 font-medium">
+                          {lockedTag.pointsNeeded > 0 ? `+${lockedTag.pointsNeeded}` : `${lockedTag.neededScore}`}
+                        </p>
+                      </div> */}
+                    </div>
                   </motion.div>
                 ))}
               </div>
