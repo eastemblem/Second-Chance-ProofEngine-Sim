@@ -77,7 +77,7 @@ const PROOF_TAG_ICONS: Record<string, string> = ALL_PROOF_TAGS.reduce(
 );
 
 // Function to get justification message for a ProofTag based on its category
-const getProofTagJustification = (tagName: string, analysisData: any): string => {
+const getProofTagJustification = (tagName: string, scoringResult: any): string => {
   // Find the ProofTag to get its category
   const proofTag = ALL_PROOF_TAGS.find(tag => tag.name === tagName);
   if (!proofTag) return "No justification available for this ProofTag.";
@@ -85,10 +85,12 @@ const getProofTagJustification = (tagName: string, analysisData: any): string =>
   const category = proofTag.category;
   
   console.log("Getting justification for tag:", tagName, "category:", category);
-  console.log("Analysis data structure:", JSON.stringify(analysisData, null, 2));
+  console.log("Raw scoring result:", JSON.stringify(scoringResult, null, 2));
   
-  // Get justification from API response categories
-  const categories = analysisData?.categories || {};
+  // Get justification from API response - try both output and direct access
+  const output = scoringResult?.output || scoringResult;
+  
+  console.log("Output structure:", JSON.stringify(output, null, 2));
   
   // Direct API field mapping to try all possible fields
   const allApiFields = ["Problem", "solution", "market_opportunity", "product_technology", "team", "business_model", "traction_milestones", "competition", "go_to_market_strategy", "financials_projections_ask"];
@@ -106,11 +108,12 @@ const getProofTagJustification = (tagName: string, analysisData: any): string =>
   
   // Check each relevant field for this category
   for (const field of fieldsToCheck) {
-    if (categories[field]) {
-      const categoryData = categories[field];
+    if (output[field]) {
+      const categoryData = output[field];
       const justification = categoryData.justification || categoryData.recommendation;
       console.log(`Checking field ${field} for category ${category}:`, justification);
       if (justification && justification.length > 10) {
+        console.log(`Found justification for ${tagName} in ${field}:`, justification);
         return justification;
       }
     }
@@ -118,8 +121,8 @@ const getProofTagJustification = (tagName: string, analysisData: any): string =>
   
   // Try all API fields as fallback
   for (const field of allApiFields) {
-    if (categories[field]) {
-      const categoryData = categories[field];
+    if (output[field]) {
+      const categoryData = output[field];
       const justification = categoryData.justification || categoryData.recommendation;
       if (justification && justification.length > 10) {
         console.log(`Found justification in ${field}:`, justification);
@@ -128,7 +131,7 @@ const getProofTagJustification = (tagName: string, analysisData: any): string =>
     }
   }
   
-  console.log("No API justification found, using fallback");
+  console.log("No API justification found, using fallback for category:", category);
   
   // Final fallback with category description
   const categoryDescriptions: Record<string, string> = {
@@ -939,7 +942,7 @@ export default function Analysis({
                         </div>
                       </TooltipTrigger>
                       <TooltipContent side="top" className="max-w-sm p-3">
-                        <p className="text-sm">{getProofTagJustification(tag, analysisData)}</p>
+                        <p className="text-sm">{getProofTagJustification(tag, scoringResult)}</p>
                       </TooltipContent>
                     </Tooltip>
                   </motion.div>
