@@ -902,21 +902,11 @@ export default function Analysis({
                     }}
                     className="group"
                   >
-                    <div className="relative bg-card border border-primary/20 rounded-lg p-3 hover:border-primary/40 transition-all duration-300 hover:shadow-lg hover:shadow-primary/10">
-                      {/* Achievement glow effect */}
-                      <div className="absolute inset-0 bg-gradient-to-r from-primary/5 to-primary-gold/5 rounded-lg opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
-
-                      {/* Help Icon - Top Right */}
-                      <Tooltip>
-                        <TooltipTrigger asChild>
-                          <button className="absolute top-2 right-2 opacity-60 hover:opacity-100 transition-opacity">
-                            <HelpCircle className="w-3 h-3 text-muted-foreground" />
-                          </button>
-                        </TooltipTrigger>
-                        <TooltipContent side="top" className="max-w-sm p-3">
-                          <p className="text-sm">{getProofTagJustification(tag, analysisData)}</p>
-                        </TooltipContent>
-                      </Tooltip>
+                    <Tooltip>
+                      <TooltipTrigger asChild>
+                        <div className="relative bg-card border border-primary/20 rounded-lg p-3 hover:border-primary/40 transition-all duration-300 hover:shadow-lg hover:shadow-primary/10 cursor-pointer">
+                          {/* Achievement glow effect */}
+                          <div className="absolute inset-0 bg-gradient-to-r from-primary/5 to-primary-gold/5 rounded-lg opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
 
                       {/* Achievement icon */}
                       <div className="relative flex items-center justify-center mb-2">
@@ -942,11 +932,16 @@ export default function Analysis({
                         />
                       </div>
 
-                      {/* Tag text */}
-                      <p className="relative text-center text-xs font-medium text-foreground leading-tight">
-                        {tag}
-                      </p>
-                    </div>
+                          {/* Tag text */}
+                          <p className="relative text-center text-xs font-medium text-foreground leading-tight">
+                            {tag}
+                          </p>
+                        </div>
+                      </TooltipTrigger>
+                      <TooltipContent side="top" className="max-w-sm p-3">
+                        <p className="text-sm">{getProofTagJustification(tag, analysisData)}</p>
+                      </TooltipContent>
+                    </Tooltip>
                   </motion.div>
                 ))}
 
@@ -965,21 +960,11 @@ export default function Analysis({
                     }}
                     className="group"
                   >
-                    <div className="relative bg-background border border-primary/10 rounded-lg p-3 hover:border-primary/20 transition-all duration-300 opacity-60">
-                      {/* Locked overlay with theme colors */}
-                      <div className="absolute inset-0 bg-background/80 rounded-lg" />
-
-                      {/* Help Icon - Top Right */}
-                      <Tooltip>
-                        <TooltipTrigger asChild>
-                          <button className="absolute top-2 right-2 opacity-40 hover:opacity-70 transition-opacity">
-                            <HelpCircle className="w-3 h-3 text-muted-foreground" />
-                          </button>
-                        </TooltipTrigger>
-                        <TooltipContent side="top" className="max-w-sm p-3">
-                          <p className="text-sm">{getProofTagJustification(lockedTag.name, analysisData)}</p>
-                        </TooltipContent>
-                      </Tooltip>
+                    <Tooltip>
+                      <TooltipTrigger asChild>
+                        <div className="relative bg-background border border-primary/10 rounded-lg p-3 hover:border-primary/20 transition-all duration-300 opacity-60 cursor-pointer">
+                          {/* Locked overlay with theme colors */}
+                          <div className="absolute inset-0 bg-background/80 rounded-lg" />
 
                       {/* Achievement icon */}
                       <div className="relative flex items-center justify-center mb-2">
@@ -995,13 +980,18 @@ export default function Analysis({
                         {lockedTag.name}
                       </p>
 
-                      {/* Score requirement */}
-                      {/* <div className="relative text-center">
-                        <p className="text-[10px] text-primary/60 font-medium">
-                          {lockedTag.pointsNeeded > 0 ? `+${lockedTag.pointsNeeded}` : `${lockedTag.neededScore}`}
-                        </p>
-                      </div> */}
-                    </div>
+                          {/* Score requirement */}
+                          {/* <div className="relative text-center">
+                            <p className="text-[10px] text-primary/60 font-medium">
+                              {lockedTag.pointsNeeded > 0 ? `+${lockedTag.pointsNeeded}` : `${lockedTag.neededScore}`}
+                            </p>
+                          </div> */}
+                        </div>
+                      </TooltipTrigger>
+                      <TooltipContent side="top" className="max-w-sm p-3">
+                        <p className="text-sm">{getProofTagJustification(lockedTag.name, analysisData)}</p>
+                      </TooltipContent>
+                    </Tooltip>
                   </motion.div>
                 ))}
               </div>
