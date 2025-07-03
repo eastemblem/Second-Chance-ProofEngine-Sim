@@ -155,7 +155,12 @@ export default function Analysis({
                                 sessionFromAPI?.scoringResult ||
                                 scoringResult;
     
+    console.log("Celebration check - currentScoringResult:", currentScoringResult);
+    console.log("Celebration check - total_score:", currentScoringResult?.total_score);
+    console.log("Celebration check - showCelebration:", showCelebration);
+    
     if (currentScoringResult?.total_score > 70 && !showCelebration) {
+      console.log("🎉 Triggering celebration animation!");
       const timer = setTimeout(() => {
         setShowCelebration(true);
         // Auto-hide celebration after 3 seconds
