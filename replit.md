@@ -284,7 +284,7 @@ Demo experience for testing different user journeys:
   * Fixed React hooks ordering issue and verified celebration animation works correctly for high scores
   * Added toast notification in bottom right corner displaying "Outstanding Score!" message for scores > 70
   * Fixed multiple animation triggers by adding ref to track celebration state and prevent duplicate executions
-  * Added outstanding score dialog box positioned in top right corner with gradient styling and animated emoji
+  * Removed dialog box logic, keeping celebration confetti animation and toast notification for clean user experience
   * Added animated badge presentation with glow effects and achievement unlocking visual feedback
 
 ## User Preferences
