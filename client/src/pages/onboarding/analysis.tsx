@@ -170,13 +170,20 @@ export default function Analysis({
                       currentScoringResult?.output?.total_score || 
                       currentScoringResult?.score;
     
-
+    console.log("Celebration Debug:");
+    console.log("- currentScoringResult:", currentScoringResult);
+    console.log("- totalScore:", totalScore);
+    console.log("- showCelebration:", showCelebration);
+    console.log("- celebrationTriggered.current:", celebrationTriggered.current);
+    console.log("- Score > 70?", totalScore > 70);
     
     if (totalScore > 70 && !showCelebration && !celebrationTriggered.current) {
+      console.log("🎉 TRIGGERING CELEBRATION ANIMATION!");
       celebrationTriggered.current = true;
       
       const timer = setTimeout(() => {
         setShowCelebration(true);
+        console.log("Celebration animation started!");
         
         // Show toast notification
         toast({
@@ -191,7 +198,7 @@ export default function Analysis({
       
       return () => clearTimeout(timer);
     }
-  }, [sessionFromAPI, scoringResult, showCelebration]);
+  }, [sessionFromAPI, scoringResult, showCelebration, toast]);
 
   // Use API data if available (prioritize fresh API data)
   if (sessionFromAPI) {
