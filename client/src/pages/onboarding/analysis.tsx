@@ -989,8 +989,8 @@ export default function Analysis({
                 ))}
               </div>
 
-              {/* Unlock Requirements Section */}
-              {extractedProofTags.lockedTags.length > 0 && (
+              {/* Unlock Requirements Section - Hidden per user request */}
+              {/* {extractedProofTags.lockedTags.length > 0 && (
                 <motion.div
                   initial={{ opacity: 0, y: 20 }}
                   animate={{ opacity: 1, y: 0 }}
@@ -1027,7 +1027,7 @@ export default function Analysis({
                     )}
                   </div>
                 </motion.div>
-              )}
+              )} */}
 
 
             </div>
