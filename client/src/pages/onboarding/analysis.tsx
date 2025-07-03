@@ -26,6 +26,7 @@ import { Badge } from "@/components/ui/badge";
 import { Progress } from "@/components/ui/progress";
 import { Separator } from "@/components/ui/separator";
 import ProgressBar from "@/components/progress-bar";
+import { useToast } from "@/hooks/use-toast";
 import { ProofScoreResult } from "@shared/schema";
 
 // Import score badges
@@ -101,6 +102,7 @@ export default function Analysis({
   const [isLoading, setIsLoading] = useState(false);
   const [sessionFromAPI, setSessionFromAPI] = useState<any>(null);
   const [showCelebration, setShowCelebration] = useState(false);
+  const { toast } = useToast();
 
   // Extract data from session with comprehensive checking
   console.log("Analysis component received sessionData:", sessionData);
@@ -165,6 +167,14 @@ export default function Analysis({
     if (totalScore > 70 && !showCelebration) {
       const timer = setTimeout(() => {
         setShowCelebration(true);
+        
+        // Show toast notification
+        toast({
+          title: "🎉 Outstanding Score!",
+          description: `Your startup achieved ${totalScore} points - excellent validation signals!`,
+          duration: 5000,
+        });
+        
         // Auto-hide celebration after 3 seconds
         setTimeout(() => setShowCelebration(false), 3000);
       }, 1500); // Delay to let other animations settle
