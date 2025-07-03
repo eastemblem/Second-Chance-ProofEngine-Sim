@@ -290,6 +290,7 @@ Demo experience for testing different user journeys:
   * Enhanced milestone text typography with gradient styling matching ProofTag headings for better visual hierarchy
   * Implemented complete ProofTag system with all 21 tags, proper score thresholds, and unlock requirements display
   * Added detailed locked tag information showing points needed and next unlockable ProofTags section
+  * Removed celebration text overlay, keeping only confetti particles and toast notification for cleaner animation
   * Added animated badge presentation with glow effects and achievement unlocking visual feedback
 
 ## User Preferences

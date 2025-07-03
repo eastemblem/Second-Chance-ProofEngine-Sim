@@ -447,37 +447,7 @@ export default function Analysis({
             />
           ))}
           
-          {/* Celebration text */}
-          <motion.div
-            initial={{ opacity: 0, scale: 0.5, y: 50 }}
-            animate={{ opacity: 1, scale: 1, y: 0 }}
-            exit={{ opacity: 0, scale: 0.5, y: -50 }}
-            transition={{ duration: 0.8, ease: "backOut" }}
-            className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 text-center"
-          >
-            <div className="bg-gradient-to-r from-primary to-primary-gold p-6 rounded-2xl shadow-2xl border border-primary/20">
-              <motion.div
-                animate={{ 
-                  scale: [1, 1.1, 1],
-                  rotate: [0, 5, -5, 0]
-                }}
-                transition={{ 
-                  duration: 0.6, 
-                  repeat: 2,
-                  ease: "easeInOut"
-                }}
-                className="text-4xl mb-2"
-              >
-                🎉
-              </motion.div>
-              <h3 className="text-2xl font-bold text-white mb-2">
-                Outstanding Score!
-              </h3>
-              <p className="text-white/90 text-lg">
-                Your startup shows strong validation signals
-              </p>
-            </div>
-          </motion.div>
+
         </div>
       )}
 
