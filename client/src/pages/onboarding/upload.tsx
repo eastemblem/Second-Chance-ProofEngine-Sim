@@ -66,14 +66,12 @@ export default function DocumentUpload({
   const validateFile = (file: File) => {
     const allowedTypes = [
       "application/pdf",
-      "application/vnd.ms-powerpoint",
-      "application/vnd.openxmlformats-officedocument.presentationml.presentation",
     ];
 
     if (!allowedTypes.includes(file.type)) {
       toast({
         title: "Invalid File Type",
-        description: "Please upload a PDF, PPT, or PPTX file",
+        description: "Please upload a PDF file only",
         variant: "destructive",
       });
       return false;
@@ -192,12 +190,12 @@ export default function DocumentUpload({
                 {isDragOver ? "Drop your pitch deck here" : "Choose your pitch deck"}
               </h3>
               <p className="text-muted-foreground mb-4">
-                Drag and drop or click to select • PDF, PPT, PPTX (max 10MB)
+                Drag and drop or click to select • PDF only (max 10MB)
               </p>
               <input
                 type="file"
                 id="pitchDeck"
-                accept=".pdf,.ppt,.pptx"
+                accept=".pdf"
                 onChange={handleFileSelect}
                 className="hidden"
               />
