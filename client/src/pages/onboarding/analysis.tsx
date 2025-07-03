@@ -652,14 +652,14 @@ export default function Analysis({
               {/* Score Display on Right */}
               <div className="text-center ml-4">
                 <motion.div
-                  className="text-6xl font-black gradient-text mb-2"
+                  className="text-4xl font-black gradient-text mb-2"
                   initial={{ scale: 0 }}
                   animate={{ scale: 1 }}
                   transition={{ duration: 0.5, delay: 0.2 }}
                 >
                   {proofScore.total}
                 </motion.div>
-                <p className="text-xl text-muted-foreground">out of 100</p>
+                <p className="text-lg text-muted-foreground">out of 100</p>
               </div>
             </div>
 
