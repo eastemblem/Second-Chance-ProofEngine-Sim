@@ -555,17 +555,7 @@ export default function Analysis({
               </motion.div>
               <p className="text-xl text-muted-foreground">out of 100</p>
               
-              {/* Badge Achievement Text */}
-              {scoreBadge && (
-                <motion.p 
-                  className="text-sm text-primary font-medium mt-2"
-                  initial={{ opacity: 0 }}
-                  animate={{ opacity: 1 }}
-                  transition={{ delay: 0.8 }}
-                >
-                  Achievement Badge #{badgeNumber} Unlocked!
-                </motion.p>
-              )}
+              {/* Badge Achievement Text - Removed per user request */}
             </div>
 
             {/* ProofTags Achievement Section */}
