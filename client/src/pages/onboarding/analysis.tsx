@@ -425,34 +425,130 @@ export default function Analysis({
 
   return (
     <div className="min-h-screen py-12 relative">
-      {/* Celebration Animation */}
+      {/* Enhanced Celebration Animation */}
       {showCelebration && (
         <div className="fixed inset-0 pointer-events-none z-50 overflow-hidden">
-          {/* Confetti particles */}
-          {Array.from({ length: 50 }).map((_, i) => (
+          {/* Sparkle Stars */}
+          {Array.from({ length: 30 }).map((_, i) => (
             <motion.div
-              key={i}
-              className="absolute w-2 h-2 rounded-full"
+              key={`star-${i}`}
+              className="absolute text-2xl"
               style={{
-                background: i % 3 === 0 ? '#8B5CF6' : i % 3 === 1 ? '#F59E0B' : '#EC4899',
                 left: `${Math.random() * 100}%`,
-                top: '-10px',
+                top: `${Math.random() * 100}%`,
               }}
+              initial={{ scale: 0, opacity: 0 }}
               animate={{
-                y: [0, typeof window !== 'undefined' ? window.innerHeight + 100 : 800],
-                x: [0, (Math.random() - 0.5) * 200],
-                rotate: [0, Math.random() * 360],
-                opacity: [1, 0],
+                scale: [0, 1.5, 0],
+                opacity: [0, 1, 0],
+                rotate: [0, 180, 360],
               }}
               transition={{
-                duration: 2 + Math.random() * 2,
-                delay: Math.random() * 0.5,
+                duration: 1.5 + Math.random(),
+                delay: Math.random() * 2,
+                ease: "easeInOut",
+              }}
+            >
+              ✨
+            </motion.div>
+          ))}
+
+          {/* Floating Emojis */}
+          {Array.from({ length: 15 }).map((_, i) => {
+            const emojis = ['🎉', '🚀', '🏆', '⭐', '💎', '🎯', '🔥'];
+            const emoji = emojis[i % emojis.length];
+            return (
+              <motion.div
+                key={`emoji-${i}`}
+                className="absolute text-3xl"
+                style={{
+                  left: `${Math.random() * 100}%`,
+                  top: '100%',
+                }}
+                animate={{
+                  y: [0, -window.innerHeight - 100],
+                  x: [0, (Math.random() - 0.5) * 300],
+                  rotate: [0, Math.random() * 720 - 360],
+                  scale: [1, 1.2, 0.8, 1],
+                }}
+                transition={{
+                  duration: 3 + Math.random() * 2,
+                  delay: Math.random() * 1,
+                  ease: "easeOut",
+                }}
+              >
+                {emoji}
+              </motion.div>
+            );
+          })}
+
+          {/* Gradient Confetti */}
+          {Array.from({ length: 40 }).map((_, i) => {
+            const shapes = ['circle', 'square', 'triangle'];
+            const shape = shapes[i % shapes.length];
+            const colors = [
+              'linear-gradient(45deg, #8B5CF6, #EC4899)',
+              'linear-gradient(45deg, #F59E0B, #EF4444)',
+              'linear-gradient(45deg, #10B981, #3B82F6)',
+              'linear-gradient(45deg, #F97316, #84CC16)',
+            ];
+            
+            return (
+              <motion.div
+                key={`confetti-${i}`}
+                className={`absolute ${shape === 'circle' ? 'rounded-full' : shape === 'square' ? 'rounded-sm' : ''}`}
+                style={{
+                  width: shape === 'triangle' ? '0' : '6px',
+                  height: shape === 'triangle' ? '0' : '6px',
+                  background: shape === 'triangle' ? 'transparent' : colors[i % colors.length],
+                  borderLeft: shape === 'triangle' ? '3px solid transparent' : 'none',
+                  borderRight: shape === 'triangle' ? '3px solid transparent' : 'none',
+                  borderBottom: shape === 'triangle' ? `6px solid ${['#8B5CF6', '#F59E0B', '#EC4899', '#10B981'][i % 4]}` : 'none',
+                  left: `${Math.random() * 100}%`,
+                  top: '-10px',
+                  boxShadow: '0 0 10px rgba(139, 92, 246, 0.3)',
+                }}
+                animate={{
+                  y: [0, window.innerHeight + 100],
+                  x: [0, (Math.random() - 0.5) * 400],
+                  rotate: [0, Math.random() * 1080],
+                  scale: [1, 0.8, 1.1, 0],
+                  opacity: [1, 0.8, 0.6, 0],
+                }}
+                transition={{
+                  duration: 2.5 + Math.random() * 1.5,
+                  delay: Math.random() * 0.8,
+                  ease: "easeOut",
+                }}
+              />
+            );
+          })}
+
+          {/* Pulsing Rings */}
+          {Array.from({ length: 8 }).map((_, i) => (
+            <motion.div
+              key={`ring-${i}`}
+              className="absolute border-2 border-primary/30 rounded-full"
+              style={{
+                left: '50%',
+                top: '50%',
+                width: '20px',
+                height: '20px',
+                marginLeft: '-10px',
+                marginTop: '-10px',
+              }}
+              animate={{
+                scale: [0, 8],
+                opacity: [0.8, 0],
+                borderWidth: [2, 0],
+              }}
+              transition={{
+                duration: 2,
+                delay: i * 0.2,
                 ease: "easeOut",
               }}
             />
           ))}
-          
-
         </div>
       )}
 
