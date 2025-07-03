@@ -531,18 +531,21 @@ export default function Analysis({
                   🚀
                 </motion.span>
               </div>
-              <motion.p
+              <motion.div
                 initial={{ opacity: 0 }}
                 animate={{ opacity: 1 }}
                 transition={{ delay: 0.8 }}
-                className="text-lg text-muted-foreground"
+                className="text-center"
               >
-                You are {(() => {
-                  if (proofScore.total > 90) return "Leader in Validation";
-                  if (proofScore.total >= 80) return "Investor Match Ready";
-                  return "ProofScaler Candidate";
-                })()}
-              </motion.p>
+                <span className="text-lg text-muted-foreground">You are </span>
+                <span className="text-xl font-bold bg-gradient-to-r from-primary to-primary-gold bg-clip-text text-transparent">
+                  {(() => {
+                    if (proofScore.total > 90) return "Leader in Validation";
+                    if (proofScore.total >= 80) return "Investor Match Ready";
+                    return "ProofScaler Candidate";
+                  })()}
+                </span>
+              </motion.div>
             </motion.div>
             
             {/* Score Badge */}

@@ -287,6 +287,7 @@ Demo experience for testing different user journeys:
   * Removed dialog box logic, keeping celebration confetti animation and toast notification for clean user experience
   * Gamified "Your ProofScore is Ready" text with "Congratulations Founder!" and animated target/rocket emojis for engaging achievement presentation
   * Added dynamic milestone system: ProofScaler Candidate (<70), Investor Match Ready (80-90), Leader in Validation (>90)
+  * Enhanced milestone text typography with gradient styling matching ProofTag headings for better visual hierarchy
   * Added animated badge presentation with glow effects and achievement unlocking visual feedback
 
 ## User Preferences
