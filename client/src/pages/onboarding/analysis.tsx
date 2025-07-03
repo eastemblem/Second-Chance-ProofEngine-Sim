@@ -513,7 +513,7 @@ export default function Analysis({
                   🎯
                 </motion.span>
                 <h2 className="text-3xl font-bold bg-gradient-to-r from-primary to-primary-gold bg-clip-text text-transparent">
-                  Mission Complete!
+                  Congratulations Founder!
                 </h2>
                 <motion.span
                   animate={{ 
@@ -537,7 +537,11 @@ export default function Analysis({
                 transition={{ delay: 0.8 }}
                 className="text-lg text-muted-foreground"
               >
-                Your validation journey is complete - level up achieved!
+                You are {(() => {
+                  if (proofScore.total > 90) return "Leader in Validation";
+                  if (proofScore.total >= 80) return "Investor Match Ready";
+                  return "ProofScaler Candidate";
+                })()}
               </motion.p>
             </motion.div>
             
