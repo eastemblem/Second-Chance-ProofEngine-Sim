@@ -618,25 +618,12 @@ export default function Analysis({
               </motion.div>
             </motion.div>
             
-            {/* Score and Badge Side by Side */}
-            <div className="flex items-center justify-center gap-8 mb-6">
-              {/* Score Display */}
-              <div className="text-center">
-                <motion.div
-                  className="text-6xl font-black gradient-text mb-2"
-                  initial={{ scale: 0 }}
-                  animate={{ scale: 1 }}
-                  transition={{ duration: 0.5, delay: 0.2 }}
-                >
-                  {proofScore.total}
-                </motion.div>
-                <p className="text-xl text-muted-foreground">out of 100</p>
-              </div>
-
-              {/* Score Badge */}
+            {/* Badge and Score Side by Side */}
+            <div className="flex items-center justify-center gap-12 mb-8 mx-8">
+              {/* Score Badge on Left */}
               {scoreBadge && (
                 <motion.div
-                  className="flex justify-center"
+                  className="flex justify-center mr-4"
                   initial={{ opacity: 0, scale: 0.5 }}
                   animate={{ opacity: 1, scale: 1 }}
                   transition={{ duration: 0.6, delay: 0.1 }}
@@ -645,7 +632,7 @@ export default function Analysis({
                     <img 
                       src={scoreBadge} 
                       alt={`Score Badge ${badgeNumber}`}
-                      className="w-24 h-24 drop-shadow-lg"
+                      className="w-28 h-28 drop-shadow-lg"
                     />
                     <motion.div
                       className="absolute inset-0 rounded-full bg-primary/10"
@@ -661,6 +648,19 @@ export default function Analysis({
                   </div>
                 </motion.div>
               )}
+
+              {/* Score Display on Right */}
+              <div className="text-center ml-4">
+                <motion.div
+                  className="text-6xl font-black gradient-text mb-2"
+                  initial={{ scale: 0 }}
+                  animate={{ scale: 1 }}
+                  transition={{ duration: 0.5, delay: 0.2 }}
+                >
+                  {proofScore.total}
+                </motion.div>
+                <p className="text-xl text-muted-foreground">out of 100</p>
+              </div>
             </div>
 
             {/* ProofTags Achievement Section */}
