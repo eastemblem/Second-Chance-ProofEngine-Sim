@@ -173,8 +173,6 @@ export default function Analysis({
       
       const timer = setTimeout(() => {
         setShowCelebration(true);
-        setAchievedScore(totalScore);
-        setShowScoreDialog(true);
         
         // Show toast notification
         toast({
@@ -485,64 +483,6 @@ export default function Analysis({
           </motion.div>
         </div>
       )}
-
-      {/* Outstanding Score Dialog - Top Right Position */}
-      <Dialog open={showScoreDialog} onOpenChange={setShowScoreDialog}>
-        <DialogContent className="fixed top-4 right-4 max-w-md p-0 border-0 bg-transparent shadow-none">
-          <motion.div
-            initial={{ opacity: 0, scale: 0.8, x: 100 }}
-            animate={{ opacity: 1, scale: 1, x: 0 }}
-            exit={{ opacity: 0, scale: 0.8, x: 100 }}
-            transition={{ duration: 0.5, ease: "backOut" }}
-            className="bg-gradient-to-r from-primary to-primary-gold p-6 rounded-2xl shadow-2xl border border-primary/20"
-          >
-            <DialogHeader className="space-y-0 pb-4">
-              <DialogTitle className="text-white text-center">
-                <motion.div
-                  animate={{ 
-                    scale: [1, 1.1, 1],
-                    rotate: [0, 5, -5, 0]
-                  }}
-                  transition={{ 
-                    duration: 0.8, 
-                    repeat: 1,
-                    ease: "easeInOut"
-                  }}
-                  className="text-4xl mb-2"
-                >
-                  🎉
-                </motion.div>
-                <h3 className="text-2xl font-bold mb-2">
-                  Outstanding Score!
-                </h3>
-              </DialogTitle>
-            </DialogHeader>
-            
-            <div className="text-center space-y-3">
-              <div className="bg-white/20 rounded-lg p-4">
-                <div className="text-3xl font-bold text-white mb-1">
-                  {achievedScore}/100
-                </div>
-                <div className="text-white/90 text-sm">
-                  ProofScore Achievement
-                </div>
-              </div>
-              
-              <p className="text-white/90 text-base leading-relaxed">
-                Your startup demonstrates strong validation signals and investment readiness!
-              </p>
-              
-              <Button 
-                onClick={() => setShowScoreDialog(false)}
-                variant="secondary"
-                className="mt-4 w-full bg-white/20 hover:bg-white/30 text-white border-white/30"
-              >
-                Continue
-              </Button>
-            </div>
-          </motion.div>
-        </DialogContent>
-      </Dialog>
 
       <div className="max-w-4xl mx-auto px-6">
         <motion.div
