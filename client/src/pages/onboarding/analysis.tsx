@@ -173,6 +173,8 @@ export default function Analysis({
       
       const timer = setTimeout(() => {
         setShowCelebration(true);
+        setAchievedScore(totalScore);
+        setShowScoreDialog(true);
         
         // Show toast notification
         toast({
@@ -183,6 +185,8 @@ export default function Analysis({
         
         // Auto-hide celebration after 3 seconds
         setTimeout(() => setShowCelebration(false), 3000);
+        // Auto-hide dialog after 5 seconds
+        setTimeout(() => setShowScoreDialog(false), 5000);
       }, 1500); // Delay to let other animations settle
       
       return () => clearTimeout(timer);
@@ -483,6 +487,58 @@ export default function Analysis({
           </motion.div>
         </div>
       )}
+
+      {/* Outstanding Score Dialog - Top Right */}
+      <Dialog open={showScoreDialog} onOpenChange={setShowScoreDialog}>
+        <DialogContent className="fixed top-4 right-4 w-80 p-0 bg-gradient-to-r from-primary to-primary-gold border-none shadow-2xl">
+          <div className="relative overflow-hidden rounded-lg">
+            {/* Background pattern */}
+            <div className="absolute inset-0 bg-white/10 backdrop-blur-sm" />
+            <div className="absolute top-0 right-0 w-20 h-20 bg-white/10 rounded-full -translate-y-10 translate-x-10" />
+            <div className="absolute bottom-0 left-0 w-16 h-16 bg-white/10 rounded-full translate-y-8 -translate-x-8" />
+            
+            <DialogHeader className="relative p-6 pb-4">
+              <div className="flex items-center justify-center mb-4">
+                <motion.div
+                  animate={{ 
+                    scale: [1, 1.2, 1],
+                    rotate: [0, 10, -10, 0]
+                  }}
+                  transition={{ 
+                    duration: 1, 
+                    repeat: Infinity,
+                    repeatDelay: 2
+                  }}
+                  className="text-4xl"
+                >
+                  🎉
+                </motion.div>
+              </div>
+              <DialogTitle className="text-center text-white text-2xl font-bold mb-2">
+                Outstanding Score!
+              </DialogTitle>
+              <div className="text-center">
+                <div className="text-3xl font-bold text-white mb-2">
+                  {achievedScore}/100
+                </div>
+                <p className="text-white/90 text-sm leading-relaxed">
+                  Your startup shows excellent validation signals and strong market readiness!
+                </p>
+              </div>
+            </DialogHeader>
+            
+            <div className="relative px-6 pb-6">
+              <Button
+                onClick={() => setShowScoreDialog(false)}
+                className="w-full bg-white/20 hover:bg-white/30 text-white border-white/30 transition-all duration-200"
+                variant="outline"
+              >
+                Continue
+              </Button>
+            </div>
+          </div>
+        </DialogContent>
+      </Dialog>
 
       <div className="max-w-4xl mx-auto px-6">
         <motion.div
