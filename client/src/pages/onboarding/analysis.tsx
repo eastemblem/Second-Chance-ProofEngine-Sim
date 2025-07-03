@@ -175,9 +175,9 @@ export default function Analysis({
     console.log("- totalScore:", totalScore);
     console.log("- showCelebration:", showCelebration);
     console.log("- celebrationTriggered.current:", celebrationTriggered.current);
-    console.log("- Score > 70?", totalScore > 70);
+    console.log("- Score > 50?", totalScore > 50);
     
-    if (totalScore > 70 && !showCelebration && !celebrationTriggered.current) {
+    if (totalScore > 50 && !showCelebration && !celebrationTriggered.current) {
       console.log("🎉 TRIGGERING CELEBRATION ANIMATION!");
       celebrationTriggered.current = true;
       
