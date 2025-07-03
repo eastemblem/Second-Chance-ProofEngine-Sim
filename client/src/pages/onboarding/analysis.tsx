@@ -155,19 +155,41 @@ export default function Analysis({
                                 sessionFromAPI?.scoringResult ||
                                 scoringResult;
     
+    // Check multiple possible score fields
+    const totalScore = currentScoringResult?.total_score || 
+                      currentScoringResult?.output?.total_score || 
+                      currentScoringResult?.score;
+    
     console.log("Celebration check - currentScoringResult:", currentScoringResult);
-    console.log("Celebration check - total_score:", currentScoringResult?.total_score);
+    console.log("Celebration check - total_score fields:", {
+      total_score: currentScoringResult?.total_score,
+      output_total_score: currentScoringResult?.output?.total_score,
+      score: currentScoringResult?.score
+    });
+    console.log("Celebration check - final totalScore:", totalScore);
     console.log("Celebration check - showCelebration:", showCelebration);
     
-    if (currentScoringResult?.total_score > 70 && !showCelebration) {
-      console.log("🎉 Triggering celebration animation!");
+    if (totalScore > 70 && !showCelebration) {
+      console.log("🎉 Triggering celebration animation for score:", totalScore);
       const timer = setTimeout(() => {
         setShowCelebration(true);
+        console.log("🎉 Celebration animation started!");
         // Auto-hide celebration after 3 seconds
-        setTimeout(() => setShowCelebration(false), 3000);
+        setTimeout(() => {
+          setShowCelebration(false);
+          console.log("🎉 Celebration animation ended!");
+        }, 3000);
       }, 1500); // Delay to let other animations settle
       
       return () => clearTimeout(timer);
+    }
+    
+    // Temporary: Also trigger if score is available (for testing)
+    if (totalScore && totalScore > 0 && !showCelebration) {
+      console.log("DEBUG: Would celebrate for any score:", totalScore);
+      // Uncomment next lines to test animation regardless of score
+      // setShowCelebration(true);
+      // setTimeout(() => setShowCelebration(false), 3000);
     }
   }, [sessionFromAPI, scoringResult, showCelebration]);
 
@@ -472,6 +494,23 @@ export default function Analysis({
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.6 }}
         >
+          {/* Debug celebration trigger */}
+          <div className="mb-4 text-center">
+            <button
+              onClick={() => {
+                console.log("Manual celebration trigger");
+                setShowCelebration(true);
+                setTimeout(() => setShowCelebration(false), 3000);
+              }}
+              className="px-4 py-2 bg-primary text-white rounded"
+            >
+              Test Celebration
+            </button>
+            <span className="ml-4 text-sm text-muted-foreground">
+              showCelebration: {showCelebration.toString()}
+            </span>
+          </div>
+
           {/* Score Header */}
           <Card className="p-8 border-border bg-card mb-8 text-center">
             <h2 className="text-3xl font-bold mb-4">
