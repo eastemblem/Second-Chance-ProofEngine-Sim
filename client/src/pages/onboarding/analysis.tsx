@@ -40,30 +40,36 @@ import Badge06 from "../../assets/badges/score/Badge_06.svg";
 import Badge07 from "../../assets/badges/score/Badge_07.svg";
 import Badge09 from "../../assets/badges/score/Badge_09.svg";
 
-// ProofTag icon mapping
-const PROOF_TAG_ICONS: Record<string, string> = {
-  "Problem Hunter": "🧠",
-  "Target Locked": "🎯", 
-  "Signal Chaser": "🛁",
-  "Prototype Pilot": "🛠",
-  "Solution Stamped": "✅",
-  "Builder's Blueprint": "🧱",
-  "Revenue Radar": "💰",
-  "Price Proven": "🧪",
-  "CAC Commander": "🎯",
-  "Traction Tracker": "📈",
-  "Channel Sniper": "🚀",
-  "Momentum Master": "⚡",
-  "Vault Ready": "📂",
-  "Score Surged": "🔢",
-  "Founder Fit Check": "🧠",
-  "Metrics Ready": "📊",
-  "Data Room Complete": "🗃️",
-  "Vision Aligned": "🗺️",
-  "Iteration Loop Active": "🔄",
-  "Narrative Coherence": "🎤",
-  "Moat Identified": "🔬"
-};
+// Complete ProofTag system with all 21 tags
+const ALL_PROOF_TAGS = [
+  { name: "Problem Hunter", emoji: "🧠", scoreThreshold: 10 },
+  { name: "Target Locked", emoji: "🎯", scoreThreshold: 15 },
+  { name: "Signal Chaser", emoji: "🛁", scoreThreshold: 20 },
+  { name: "Prototype Pilot", emoji: "🛠", scoreThreshold: 25 },
+  { name: "Solution Stamped", emoji: "✅", scoreThreshold: 30 },
+  { name: "Builder's Blueprint", emoji: "🧱", scoreThreshold: 35 },
+  { name: "Revenue Radar", emoji: "💰", scoreThreshold: 40 },
+  { name: "Price Proven", emoji: "🧪", scoreThreshold: 45 },
+  { name: "CAC Commander", emoji: "🎯", scoreThreshold: 50 },
+  { name: "Traction Tracker", emoji: "📈", scoreThreshold: 55 },
+  { name: "Channel Sniper", emoji: "🚀", scoreThreshold: 60 },
+  { name: "Momentum Master", emoji: "⚡", scoreThreshold: 65 },
+  { name: "Vault Ready", emoji: "📂", scoreThreshold: 70 },
+  { name: "Score Surged", emoji: "🔢", scoreThreshold: 75 },
+  { name: "Founder Fit Check", emoji: "🧠", scoreThreshold: 80 },
+  { name: "Metrics Ready", emoji: "📊", scoreThreshold: 82 },
+  { name: "Data Room Complete", emoji: "🗃️", scoreThreshold: 85 },
+  { name: "Vision Aligned", emoji: "🗺️", scoreThreshold: 87 },
+  { name: "Iteration Loop Active", emoji: "🔄", scoreThreshold: 90 },
+  { name: "Narrative Coherence", emoji: "🎤", scoreThreshold: 95 },
+  { name: "Moat Identified", emoji: "🔬", scoreThreshold: 98 }
+];
+
+// ProofTag icon mapping for backward compatibility
+const PROOF_TAG_ICONS: Record<string, string> = ALL_PROOF_TAGS.reduce((acc, tag) => {
+  acc[tag.name] = tag.emoji;
+  return acc;
+}, {} as Record<string, string>);
 
 // Function to get icon for a ProofTag
 const getProofTagIcon = (tagName: string): string => {
@@ -247,60 +253,53 @@ export default function Analysis({
 
   console.log("Analysis data for ProofTags:", analysisData);
 
-  // Define all possible ProofTags with unlock requirements
-  const allProofTags = [
-    { name: "Problem Validated", requirement: "Score 7+ on Problem validation", unlockScore: 7, category: "Problem" },
-    { name: "Solution Proven", requirement: "Score 7+ on Solution validation", unlockScore: 7, category: "solution" },
-    { name: "Market Fit Detected", requirement: "Score 7+ on Market Opportunity", unlockScore: 7, category: "market_opportunity" },
-    { name: "Technical Feasibility", requirement: "Score 7+ on Product Technology", unlockScore: 7, category: "product_technology" },
-    { name: "Team Credibility", requirement: "Score 7+ on Team assessment", unlockScore: 7, category: "team" },
-    { name: "Revenue Model Proven", requirement: "Score 7+ on Business Model", unlockScore: 7, category: "business_model" },
-    { name: "Traction Validated", requirement: "Score 7+ on Traction & Milestones", unlockScore: 7, category: "traction_milestones" },
-    { name: "Competitive Edge", requirement: "Score 7+ on Competition analysis", unlockScore: 7, category: "competition" },
-    { name: "Go-to-Market Ready", requirement: "Score 7+ on GTM Strategy", unlockScore: 7, category: "go_to_market_strategy" },
-    { name: "Investor Ready", requirement: "Score 7+ on Financials & Ask", unlockScore: 7, category: "financials_projections_ask" }
-  ];
 
-  // Extract ProofTags from API response
+
+  // Extract ProofTags from API response or calculate from score
   function extractProofTags(scoringResult: any) {
     console.log("Extracting ProofTags from scoring result:", scoringResult);
+    
+    const currentScore = analysisData?.total_score || 0;
     
     // Get tags directly from API response
     const apiTags = scoringResult?.output?.tags || [];
     console.log("API provided tags:", apiTags);
     
-    const unlockedTags: string[] = apiTags;
+    // Use API tags if available, otherwise calculate based on score thresholds
+    const unlockedTags: string[] = apiTags.length > 0 ? 
+      apiTags : 
+      ALL_PROOF_TAGS.filter(tag => currentScore >= tag.scoreThreshold).map(tag => tag.name);
+    
     const lockedTags: {
       name: string;
-      requirement: string;
+      emoji: string;
       currentScore: number;
       neededScore: number;
+      pointsNeeded: number;
     }[] = [];
     
-    // Find which predefined tags are NOT in the API response (these are locked)
-    allProofTags.forEach(tag => {
-      const isUnlocked = apiTags.includes(tag.name);
+    // Find which tags are NOT unlocked (these are locked)
+    ALL_PROOF_TAGS.forEach(tag => {
+      const isUnlocked = unlockedTags.includes(tag.name);
       
       if (!isUnlocked) {
-        // Get category score for lock requirement display
-        const categories = scoringResult?.output || {};
-        const categoryScore = categories[tag.category]?.score || 0;
-        
         lockedTags.push({
           name: tag.name,
-          requirement: tag.requirement,
-          currentScore: categoryScore,
-          neededScore: tag.unlockScore
+          emoji: tag.emoji,
+          currentScore: currentScore,
+          neededScore: tag.scoreThreshold,
+          pointsNeeded: Math.max(0, tag.scoreThreshold - currentScore)
         });
       }
     });
     
-    console.log("Unlocked tags from API:", unlockedTags);
-    console.log("Locked tags calculated:", lockedTags);
+    console.log("Current score:", currentScore);
+    console.log("Unlocked tags:", unlockedTags);
+    console.log("Locked tags with requirements:", lockedTags);
     
     return {
       unlocked: unlockedTags.length,
-      total: allProofTags.length,
+      total: ALL_PROOF_TAGS.length,
       unlockedTags,
       lockedTags
     };
@@ -754,15 +753,22 @@ export default function Analysis({
                       <div className="relative flex items-center justify-center mb-2">
                         <div className="w-8 h-8 bg-muted/50 rounded-full flex items-center justify-center">
                           <div className="text-lg opacity-40">
-                            {getProofTagIcon(lockedTag.name)}
+                            {lockedTag.emoji}
                           </div>
                         </div>
                       </div>
                       
                       {/* Tag text with theme colors */}
-                      <p className="relative text-center text-xs font-medium text-foreground/60 leading-tight">
+                      <p className="relative text-center text-xs font-medium text-foreground/60 leading-tight mb-1">
                         {lockedTag.name}
                       </p>
+                      
+                      {/* Score requirement */}
+                      <div className="relative text-center">
+                        <p className="text-[10px] text-primary/60 font-medium">
+                          {lockedTag.pointsNeeded > 0 ? `+${lockedTag.pointsNeeded} pts` : `${lockedTag.neededScore} pts`}
+                        </p>
+                      </div>
                     </div>
                   </motion.div>
                 ))}
@@ -784,7 +790,9 @@ export default function Analysis({
                     {extractedProofTags.lockedTags.slice(0, 3).map((lockedTag, index) => (
                       <div key={index} className="flex items-center justify-between text-xs">
                         <span className="text-foreground/70">{lockedTag.name}</span>
-                        <span className="text-primary/80">{lockedTag.requirement}</span>
+                        <span className="text-primary/80">
+                          {lockedTag.pointsNeeded > 0 ? `+${lockedTag.pointsNeeded} pts` : `${lockedTag.neededScore} pts`}
+                        </span>
                       </div>
                     ))}
                     {extractedProofTags.lockedTags.length > 3 && (
