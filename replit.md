@@ -280,6 +280,7 @@ Demo experience for testing different user journeys:
   * Removed "LOCKED" text and requirement details from locked ProofTag cards for consistent minimal design
   * Replaced lock/unlock icons with specific emojis for each ProofTag (🧠 Problem Hunter, 🎯 Target Locked, etc.)
   * Enhanced ProofTag visual appeal with larger emoji icons and proper fallback matching system
+  * Added celebration animation with confetti particles and congratulations message when total score > 70
   * Added animated badge presentation with glow effects and achievement unlocking visual feedback
 
 ## User Preferences

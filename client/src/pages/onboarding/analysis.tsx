@@ -100,6 +100,7 @@ export default function Analysis({
 }: AnalysisProps) {
   const [isLoading, setIsLoading] = useState(false);
   const [sessionFromAPI, setSessionFromAPI] = useState<any>(null);
+  const [showCelebration, setShowCelebration] = useState(false);
 
   // Extract data from session with comprehensive checking
   console.log("Analysis component received sessionData:", sessionData);
@@ -378,8 +379,82 @@ export default function Analysis({
     },
   };
 
+  // Trigger celebration animation if score is over 70
+  useEffect(() => {
+    if (proofScore.total > 70 && !showCelebration) {
+      const timer = setTimeout(() => {
+        setShowCelebration(true);
+        // Auto-hide celebration after 3 seconds
+        setTimeout(() => setShowCelebration(false), 3000);
+      }, 1500); // Delay to let other animations settle
+      
+      return () => clearTimeout(timer);
+    }
+  }, [proofScore.total, showCelebration]);
+
   return (
-    <div className="min-h-screen py-12">
+    <div className="min-h-screen py-12 relative">
+      {/* Celebration Animation */}
+      {showCelebration && (
+        <div className="fixed inset-0 pointer-events-none z-50 overflow-hidden">
+          {/* Confetti particles */}
+          {Array.from({ length: 50 }).map((_, i) => (
+            <motion.div
+              key={i}
+              className="absolute w-2 h-2 rounded-full"
+              style={{
+                background: i % 3 === 0 ? '#8B5CF6' : i % 3 === 1 ? '#F59E0B' : '#EC4899',
+                left: `${Math.random() * 100}%`,
+                top: '-10px',
+              }}
+              animate={{
+                y: [0, typeof window !== 'undefined' ? window.innerHeight + 100 : 800],
+                x: [0, (Math.random() - 0.5) * 200],
+                rotate: [0, Math.random() * 360],
+                opacity: [1, 0],
+              }}
+              transition={{
+                duration: 2 + Math.random() * 2,
+                delay: Math.random() * 0.5,
+                ease: "easeOut",
+              }}
+            />
+          ))}
+          
+          {/* Celebration text */}
+          <motion.div
+            initial={{ opacity: 0, scale: 0.5, y: 50 }}
+            animate={{ opacity: 1, scale: 1, y: 0 }}
+            exit={{ opacity: 0, scale: 0.5, y: -50 }}
+            transition={{ duration: 0.8, ease: "backOut" }}
+            className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 text-center"
+          >
+            <div className="bg-gradient-to-r from-primary to-primary-gold p-6 rounded-2xl shadow-2xl border border-primary/20">
+              <motion.div
+                animate={{ 
+                  scale: [1, 1.1, 1],
+                  rotate: [0, 5, -5, 0]
+                }}
+                transition={{ 
+                  duration: 0.6, 
+                  repeat: 2,
+                  ease: "easeInOut"
+                }}
+                className="text-4xl mb-2"
+              >
+                🎉
+              </motion.div>
+              <h3 className="text-2xl font-bold text-white mb-2">
+                Outstanding Score!
+              </h3>
+              <p className="text-white/90 text-lg">
+                Your startup shows strong validation signals
+              </p>
+            </div>
+          </motion.div>
+        </div>
+      )}
+
       <div className="max-w-4xl mx-auto px-6">
         <motion.div
           initial={{ opacity: 0, y: 20 }}
