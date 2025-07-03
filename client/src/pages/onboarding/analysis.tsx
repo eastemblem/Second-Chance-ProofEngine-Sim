@@ -261,13 +261,17 @@ export default function Analysis({
     
     const currentScore = analysisData?.total_score || 0;
     
-    // Get tags directly from API response
+    // Get tags directly from API response or from proofScore.prooTags.tags
     const apiTags = scoringResult?.output?.tags || [];
+    const proofScoreTags = proofScore.prooTags.tags || [];
     console.log("API provided tags:", apiTags);
+    console.log("ProofScore tags:", proofScoreTags);
     
-    // Use API tags if available, otherwise calculate based on score thresholds
+    // Use API tags if available, otherwise use proofScore tags, or calculate based on score thresholds
     const unlockedTags: string[] = apiTags.length > 0 ? 
       apiTags : 
+      proofScoreTags.length > 0 ?
+      proofScoreTags :
       ALL_PROOF_TAGS.filter(tag => currentScore >= tag.scoreThreshold).map(tag => tag.name);
     
     const lockedTags: {
@@ -294,8 +298,8 @@ export default function Analysis({
     });
     
     console.log("Current score:", currentScore);
-    console.log("Unlocked tags:", unlockedTags);
-    console.log("Locked tags with requirements:", lockedTags);
+    console.log("Final unlocked tags:", unlockedTags);
+    console.log("Final locked tags with requirements:", lockedTags);
     
     return {
       unlocked: unlockedTags.length,

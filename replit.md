@@ -291,6 +291,7 @@ Demo experience for testing different user journeys:
   * Implemented complete ProofTag system with all 21 tags, proper score thresholds, and unlock requirements display
   * Added detailed locked tag information showing points needed and next unlockable ProofTags section
   * Removed celebration text overlay, keeping only confetti particles and toast notification for cleaner animation
+  * Fixed ProofTag unlock/lock determination to prevent duplicate display of unlocked tags in requirements section
   * Added animated badge presentation with glow effects and achievement unlocking visual feedback
 
 ## User Preferences
