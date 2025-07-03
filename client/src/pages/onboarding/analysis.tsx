@@ -322,9 +322,6 @@ export default function Analysis({
     readiness: "🟥 Readiness",
   };
 
-  // Extract ProofTags with unlock status
-  const extractedProofTags = extractProofTags(scoringResult);
-  
   console.log("Extracted ProofTags result:", extractedProofTags);
 
   // Score badge mapping function
