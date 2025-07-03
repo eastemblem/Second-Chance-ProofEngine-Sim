@@ -1029,21 +1029,7 @@ export default function Analysis({
                 </motion.div>
               )}
 
-              {/* Achievement celebration */}
-              {proofScore.prooTags.unlocked > 0 && (
-                <motion.div
-                  initial={{ opacity: 0, y: 20 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  transition={{ delay: 1.5 }}
-                  className="text-center mt-6 p-4 bg-primary/5 rounded-lg border border-primary/10"
-                >
-                  <Star className="w-6 h-6 text-primary-gold mx-auto mb-2" />
-                  <p className="text-sm font-medium text-primary">
-                    Great progress! You've validated{" "}
-                    {proofScore.prooTags.unlocked} key aspects of your startup.
-                  </p>
-                </motion.div>
-              )}
+
             </div>
           </Card>
 
