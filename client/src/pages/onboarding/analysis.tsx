@@ -909,8 +909,8 @@ export default function Analysis({
                       {/* Help Icon - Top Right */}
                       <Tooltip>
                         <TooltipTrigger asChild>
-                          <button className="absolute top-1 right-1 p-1 rounded-full bg-white/90 hover:bg-white border border-primary/20 hover:border-primary/40 transition-all duration-200 shadow-sm z-10">
-                            <HelpCircle className="w-3.5 h-3.5 text-primary" />
+                          <button className="absolute top-1 right-1 p-1.5 rounded-full bg-primary text-white hover:bg-primary-gold transition-all duration-200 shadow-lg z-10 border-2 border-white">
+                            <HelpCircle className="w-4 h-4 fill-current" />
                           </button>
                         </TooltipTrigger>
                         <TooltipContent side="top" className="max-w-sm p-3 bg-card border border-primary/20">
@@ -972,8 +972,8 @@ export default function Analysis({
                       {/* Help Icon - Top Right */}
                       <Tooltip>
                         <TooltipTrigger asChild>
-                          <button className="absolute top-1 right-1 p-1 rounded-full bg-white/70 hover:bg-white/90 border border-muted hover:border-muted-foreground/40 transition-all duration-200 shadow-sm z-10">
-                            <HelpCircle className="w-3.5 h-3.5 text-muted-foreground" />
+                          <button className="absolute top-1 right-1 p-1.5 rounded-full bg-muted-foreground text-white hover:bg-foreground transition-all duration-200 shadow-lg z-10 border-2 border-white">
+                            <HelpCircle className="w-4 h-4 fill-current" />
                           </button>
                         </TooltipTrigger>
                         <TooltipContent side="top" className="max-w-sm p-3 bg-card border border-muted">
