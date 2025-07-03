@@ -40,7 +40,7 @@ import Badge06 from "../../assets/badges/score/Badge_06.svg";
 import Badge07 from "../../assets/badges/score/Badge_07.svg";
 import Badge09 from "../../assets/badges/score/Badge_09.svg";
 
-// Complete ProofTag system with all 21 tags - text only names
+// Complete ProofTag system with all 21 tags
 const ALL_PROOF_TAGS = [
   { name: "Problem Hunter", emoji: "🧠", scoreThreshold: 10 },
   { name: "Target Locked", emoji: "🎯", scoreThreshold: 15 },
@@ -62,17 +62,14 @@ const ALL_PROOF_TAGS = [
   { name: "Vision Aligned", emoji: "🗺️", scoreThreshold: 87 },
   { name: "Iteration Loop Active", emoji: "🔄", scoreThreshold: 90 },
   { name: "Narrative Coherence", emoji: "🎤", scoreThreshold: 95 },
-  { name: "Moat Identified", emoji: "🔬", scoreThreshold: 98 },
+  { name: "Moat Identified", emoji: "🔬", scoreThreshold: 98 }
 ];
 
 // ProofTag icon mapping for backward compatibility
-const PROOF_TAG_ICONS: Record<string, string> = ALL_PROOF_TAGS.reduce(
-  (acc, tag) => {
-    acc[tag.name] = tag.emoji;
-    return acc;
-  },
-  {} as Record<string, string>,
-);
+const PROOF_TAG_ICONS: Record<string, string> = ALL_PROOF_TAGS.reduce((acc, tag) => {
+  acc[tag.name] = tag.emoji;
+  return acc;
+}, {} as Record<string, string>);
 
 // Function to get icon for a ProofTag
 const getProofTagIcon = (tagName: string): string => {
@@ -80,18 +77,15 @@ const getProofTagIcon = (tagName: string): string => {
   if (PROOF_TAG_ICONS[tagName]) {
     return PROOF_TAG_ICONS[tagName];
   }
-
+  
   // Try partial matching for similar names
   const lowerTagName = tagName.toLowerCase();
   for (const [key, icon] of Object.entries(PROOF_TAG_ICONS)) {
-    if (
-      key.toLowerCase().includes(lowerTagName) ||
-      lowerTagName.includes(key.toLowerCase())
-    ) {
+    if (key.toLowerCase().includes(lowerTagName) || lowerTagName.includes(key.toLowerCase())) {
       return icon;
     }
   }
-
+  
   // Default fallback
   return "✨";
 };
@@ -122,13 +116,12 @@ export default function Analysis({
   console.log("Analysis component received sessionData:", sessionData);
   console.log("SessionData stepData:", sessionData?.stepData);
   console.log("Processing step data:", sessionData?.stepData?.processing);
-
-  let scoringResult =
-    sessionData?.scoringResult ||
-    sessionData?.stepData?.processing?.scoringResult ||
-    sessionData?.stepData?.scoringResult ||
-    sessionData?.processing?.scoringResult;
-
+  
+  let scoringResult = sessionData?.scoringResult || 
+                     sessionData?.stepData?.processing?.scoringResult || 
+                     sessionData?.stepData?.scoringResult ||
+                     sessionData?.processing?.scoringResult;
+  
   console.log("Initial scoringResult found:", scoringResult);
 
   const founderData = sessionData?.stepData?.founder;
@@ -167,53 +160,49 @@ export default function Analysis({
   // Celebration effect - moved to top level to maintain hook order
   useEffect(() => {
     // Only trigger celebration if we have valid scoring data
-    const currentScoringResult =
-      sessionFromAPI?.stepData?.processing?.scoringResult ||
-      sessionFromAPI?.stepData?.scoringResult ||
-      sessionFromAPI?.scoringResult ||
-      scoringResult;
-
+    const currentScoringResult = sessionFromAPI?.stepData?.processing?.scoringResult ||
+                                sessionFromAPI?.stepData?.scoringResult ||
+                                sessionFromAPI?.scoringResult ||
+                                scoringResult;
+    
     // Check multiple possible score fields
-    const totalScore =
-      currentScoringResult?.total_score ||
-      currentScoringResult?.output?.total_score ||
-      currentScoringResult?.score;
+    const totalScore = currentScoringResult?.total_score || 
+                      currentScoringResult?.output?.total_score || 
+                      currentScoringResult?.score;
+    
 
+    
     if (totalScore > 70 && !showCelebration && !celebrationTriggered.current) {
       celebrationTriggered.current = true;
-
+      
       const timer = setTimeout(() => {
         setShowCelebration(true);
-
+        
         // Show toast notification
         toast({
           title: "🎉 Outstanding Score!",
           description: `Your startup achieved ${totalScore} points - excellent validation signals!`,
           duration: 5000,
         });
-
+        
         // Auto-hide celebration after 3 seconds
         setTimeout(() => setShowCelebration(false), 3000);
       }, 1500); // Delay to let other animations settle
-
+      
       return () => clearTimeout(timer);
     }
   }, [sessionFromAPI, scoringResult, showCelebration]);
 
   // Use API data if available (prioritize fresh API data)
   if (sessionFromAPI) {
-    const apiScoringResult =
-      sessionFromAPI?.stepData?.processing?.scoringResult ||
-      sessionFromAPI?.stepData?.scoringResult ||
-      sessionFromAPI?.scoringResult;
+    const apiScoringResult = sessionFromAPI?.stepData?.processing?.scoringResult ||
+                            sessionFromAPI?.stepData?.scoringResult ||
+                            sessionFromAPI?.scoringResult;
     if (apiScoringResult) {
       console.log("Using scoring result from API:", apiScoringResult);
       scoringResult = apiScoringResult;
     } else {
-      console.log(
-        "No scoring result in API data. SessionFromAPI stepData:",
-        sessionFromAPI?.stepData,
-      );
+      console.log("No scoring result in API data. SessionFromAPI stepData:", sessionFromAPI?.stepData);
       console.log("Full sessionFromAPI:", sessionFromAPI);
     }
   }
@@ -267,36 +256,18 @@ export default function Analysis({
   // Extract ProofTags from API response or calculate from score
   function extractProofTags(scoringResult: any) {
     console.log("Extracting ProofTags from scoring result:", scoringResult);
-
+    
     const currentScore = analysisData?.total_score || 0;
-
+    
     // Get tags directly from API response first
     const apiTags = scoringResult?.output?.tags || [];
     console.log("API provided tags:", apiTags);
-
-    // Clean and map API tags to our text-only format
-    const cleanApiTags = apiTags.map((tag: string) => {
-      // Remove emojis and extra spaces, normalize to text-only format
-      const cleanTag = tag.replace(/[\\u{1F600}-\\u{1F64F}]|[\u{1F300}-\\u{1F5FF}]|[\u{1F680}-\\u{1F6FF}]|[\\u{1F1E0}-\\u{1F1FF}]|[\\u{2600}-\\u{26FF}]|[\\u{2700}-\\u{27BF}]/gu, '').trim();
-      
-      // Try to match to our standard tags
-      const matchedTag = ALL_PROOF_TAGS.find(standardTag => 
-        standardTag.name.toLowerCase() === cleanTag.toLowerCase() ||
-        cleanTag.toLowerCase().includes(standardTag.name.toLowerCase()) ||
-        standardTag.name.toLowerCase().includes(cleanTag.toLowerCase())
-      );
-      
-      return matchedTag ? matchedTag.name : cleanTag;
-    }).filter(Boolean);
-
-    // Use cleaned API tags if available, otherwise calculate based on score thresholds
-    const unlockedTags: string[] =
-      cleanApiTags.length > 0
-        ? cleanApiTags
-        : ALL_PROOF_TAGS.filter(
-            (tag) => currentScore >= tag.scoreThreshold,
-          ).map((tag) => tag.name)
-
+    
+    // Use API tags if available, otherwise calculate based on score thresholds
+    const unlockedTags: string[] = apiTags.length > 0 ? 
+      apiTags : 
+      ALL_PROOF_TAGS.filter(tag => currentScore >= tag.scoreThreshold).map(tag => tag.name);
+    
     const lockedTags: {
       name: string;
       emoji: string;
@@ -304,31 +275,31 @@ export default function Analysis({
       neededScore: number;
       pointsNeeded: number;
     }[] = [];
-
+    
     // Find which tags are NOT unlocked (these are locked)
-    ALL_PROOF_TAGS.forEach((tag) => {
+    ALL_PROOF_TAGS.forEach(tag => {
       const isUnlocked = unlockedTags.includes(tag.name);
-
+      
       if (!isUnlocked) {
         lockedTags.push({
           name: tag.name,
           emoji: tag.emoji,
           currentScore: currentScore,
           neededScore: tag.scoreThreshold,
-          pointsNeeded: Math.max(0, tag.scoreThreshold - currentScore),
+          pointsNeeded: Math.max(0, tag.scoreThreshold - currentScore)
         });
       }
     });
-
+    
     console.log("Current score:", currentScore);
     console.log("Final unlocked tags:", unlockedTags);
     console.log("Final locked tags with requirements:", lockedTags);
-
+    
     return {
       unlocked: unlockedTags.length,
       total: ALL_PROOF_TAGS.length,
       unlockedTags,
-      lockedTags,
+      lockedTags
     };
   }
 
@@ -369,25 +340,22 @@ export default function Analysis({
 
     if (score < 10) return null; // No badge for scores below 10
     if (score >= 91) return badges[9]; // Score 91-100 → Badge 9
-
+    
     // Calculate badge number (10-90 maps to badges 1-8)
     const badgeNumber = Math.ceil((score - 10) / 10) + 1;
     const clampedBadgeNumber = Math.min(Math.max(badgeNumber, 1), 9);
-
+    
     return badges[clampedBadgeNumber as keyof typeof badges] || null;
   }
 
   // Get badge for current score
   const scoreBadge = getScoreBadge(analysisData.total_score);
-  const badgeNumber =
-    analysisData.total_score >= 91
-      ? 9
-      : Math.ceil((analysisData.total_score - 10) / 10) + 1;
-
+  const badgeNumber = analysisData.total_score >= 91 ? 9 : Math.ceil((analysisData.total_score - 10) / 10) + 1;
+  
   console.log("Score Badge Debug:", {
     totalScore: analysisData.total_score,
     badgeNumber,
-    scoreBadge: scoreBadge ? "Found" : "Not found",
+    scoreBadge: scoreBadge ? "Found" : "Not found"
   });
 
   console.log("ProofTag Debug - Categories from API:", analysisData.categories);
@@ -402,39 +370,23 @@ export default function Analysis({
     traction_milestones: analysisData.categories.traction_milestones?.score,
     competition: analysisData.categories.competition?.score,
     go_to_market_strategy: analysisData.categories.go_to_market_strategy?.score,
-    financials_projections_ask:
-      analysisData.categories.financials_projections_ask?.score,
+    financials_projections_ask: analysisData.categories.financials_projections_ask?.score
   });
 
   // Map to ProofScore format for consistency with feedback.tsx
   const proofScore: ProofScoreResult = {
     total: analysisData.total_score,
     dimensions: {
-      desirability:
-        analysisData.categories.Problem?.score ||
-        analysisData.categories.desirability?.score ||
-        0,
-      feasibility:
-        analysisData.categories.product_technology?.score ||
-        analysisData.categories.feasibility?.score ||
-        0,
-      viability:
-        analysisData.categories.business_model?.score ||
-        analysisData.categories.viability?.score ||
-        0,
-      traction:
-        analysisData.categories.traction_milestones?.score ||
-        analysisData.categories.traction?.score ||
-        0,
-      readiness:
-        analysisData.categories.financials_projections_ask?.score ||
-        analysisData.categories.readiness?.score ||
-        0,
+      desirability: analysisData.categories.Problem?.score || analysisData.categories.desirability?.score || 0,
+      feasibility: analysisData.categories.product_technology?.score || analysisData.categories.feasibility?.score || 0,
+      viability: analysisData.categories.business_model?.score || analysisData.categories.viability?.score || 0,
+      traction: analysisData.categories.traction_milestones?.score || analysisData.categories.traction?.score || 0,
+      readiness: analysisData.categories.financials_projections_ask?.score || analysisData.categories.readiness?.score || 0,
     },
     prooTags: {
       unlocked: extractedProofTags.unlocked,
       total: extractedProofTags.total,
-      tags: extractedProofTags.unlockedTags,
+      tags: extractedProofTags.unlockedTags
     },
     insights: {
       strengths:
@@ -475,18 +427,12 @@ export default function Analysis({
               key={i}
               className="absolute w-2 h-2 rounded-full"
               style={{
-                background:
-                  i % 3 === 0 ? "#8B5CF6" : i % 3 === 1 ? "#F59E0B" : "#EC4899",
+                background: i % 3 === 0 ? '#8B5CF6' : i % 3 === 1 ? '#F59E0B' : '#EC4899',
                 left: `${Math.random() * 100}%`,
-                top: "-10px",
+                top: '-10px',
               }}
               animate={{
-                y: [
-                  0,
-                  typeof window !== "undefined"
-                    ? window.innerHeight + 100
-                    : 800,
-                ],
+                y: [0, typeof window !== 'undefined' ? window.innerHeight + 100 : 800],
                 x: [0, (Math.random() - 0.5) * 200],
                 rotate: [0, Math.random() * 360],
                 opacity: [1, 0],
@@ -498,8 +444,12 @@ export default function Analysis({
               }}
             />
           ))}
+          
+
         </div>
       )}
+
+
 
       <div className="max-w-4xl mx-auto px-6">
         <motion.div
@@ -516,14 +466,14 @@ export default function Analysis({
             >
               <div className="flex items-center justify-center gap-3 mb-4">
                 <motion.span
-                  animate={{
+                  animate={{ 
                     rotate: [0, 10, -10, 0],
-                    scale: [1, 1.1, 1],
+                    scale: [1, 1.1, 1]
                   }}
-                  transition={{
+                  transition={{ 
                     duration: 2,
                     repeat: Infinity,
-                    repeatDelay: 3,
+                    repeatDelay: 3
                   }}
                   className="text-3xl"
                 >
@@ -533,15 +483,15 @@ export default function Analysis({
                   Congratulations Founder!
                 </h2>
                 <motion.span
-                  animate={{
+                  animate={{ 
                     rotate: [0, -10, 10, 0],
-                    scale: [1, 1.1, 1],
+                    scale: [1, 1.1, 1]
                   }}
-                  transition={{
+                  transition={{ 
                     duration: 2,
                     repeat: Infinity,
                     repeatDelay: 3,
-                    delay: 0.5,
+                    delay: 0.5
                   }}
                   className="text-3xl"
                 >
@@ -564,7 +514,7 @@ export default function Analysis({
                 </span>
               </motion.div>
             </motion.div>
-
+            
             {/* Score Badge */}
             {scoreBadge && (
               <motion.div
@@ -574,8 +524,8 @@ export default function Analysis({
                 transition={{ duration: 0.6, delay: 0.1 }}
               >
                 <div className="relative">
-                  <img
-                    src={scoreBadge}
+                  <img 
+                    src={scoreBadge} 
                     alt={`Score Badge ${badgeNumber}`}
                     className="w-32 h-32 drop-shadow-lg"
                   />
@@ -583,17 +533,17 @@ export default function Analysis({
                     className="absolute inset-0 rounded-full bg-primary/10"
                     initial={{ scale: 0 }}
                     animate={{ scale: 1.1 }}
-                    transition={{
-                      duration: 1.5,
-                      repeat: Infinity,
+                    transition={{ 
+                      duration: 1.5, 
+                      repeat: Infinity, 
                       repeatType: "reverse",
-                      delay: 0.5,
+                      delay: 0.5 
                     }}
                   />
                 </div>
               </motion.div>
             )}
-
+            
             <div className="mb-6">
               <motion.div
                 className="text-6xl font-black gradient-text mb-2"
@@ -604,10 +554,10 @@ export default function Analysis({
                 {proofScore.total}
               </motion.div>
               <p className="text-xl text-muted-foreground">out of 100</p>
-
+              
               {/* Badge Achievement Text */}
               {scoreBadge && (
-                <motion.p
+                <motion.p 
                   className="text-sm text-primary font-medium mt-2"
                   initial={{ opacity: 0 }}
                   animate={{ opacity: 1 }}
@@ -630,21 +580,17 @@ export default function Analysis({
                   🏆 ProofTag Validation Progress
                 </h3>
                 <p className="text-lg text-muted-foreground mb-2">
-                  {proofScore.prooTags.unlocked} of {proofScore.prooTags.total}{" "}
-                  validation milestones unlocked
+                  {proofScore.prooTags.unlocked} of {proofScore.prooTags.total} validation milestones unlocked
                 </p>
                 {/* Progress Tracker */}
                 <div className="inline-flex items-center gap-2 px-4 py-2 bg-primary/10 rounded-full border border-primary/20">
                   <Target className="w-4 h-4 text-primary" />
                   <span className="text-sm font-semibold text-primary">
-                    {proofScore.prooTags.unlocked}/{proofScore.prooTags.total}{" "}
-                    Tags Unlocked
+                    {proofScore.prooTags.unlocked}/{proofScore.prooTags.total} Tags Unlocked
                   </span>
                   {proofScore.prooTags.unlocked < proofScore.prooTags.total && (
                     <span className="text-sm text-muted-foreground">
-                      -{" "}
-                      {proofScore.prooTags.total - proofScore.prooTags.unlocked}{" "}
-                      to go
+                      - {proofScore.prooTags.total - proofScore.prooTags.unlocked} to go
                     </span>
                   )}
                 </div>
@@ -653,10 +599,7 @@ export default function Analysis({
               {/* Achievement Progress Ring */}
               <div className="flex justify-center mb-8">
                 <div className="relative w-32 h-32">
-                  <svg
-                    className="w-32 h-32 transform -rotate-90"
-                    viewBox="0 0 100 100"
-                  >
+                  <svg className="w-32 h-32 transform -rotate-90" viewBox="0 0 100 100">
                     {/* Background circle */}
                     <circle
                       cx="50"
@@ -678,30 +621,15 @@ export default function Analysis({
                       strokeLinecap="round"
                       strokeDasharray={`${2 * Math.PI * 40}`}
                       initial={{ strokeDashoffset: 2 * Math.PI * 40 }}
-                      animate={{
-                        strokeDashoffset:
-                          2 *
-                          Math.PI *
-                          40 *
-                          (1 -
-                            proofScore.prooTags.unlocked /
-                              proofScore.prooTags.total),
+                      animate={{ 
+                        strokeDashoffset: 2 * Math.PI * 40 * (1 - proofScore.prooTags.unlocked / proofScore.prooTags.total)
                       }}
                       transition={{ duration: 1.5, delay: 0.5 }}
                     />
                     <defs>
-                      <linearGradient
-                        id="progressGradient"
-                        x1="0%"
-                        y1="0%"
-                        x2="100%"
-                        y2="100%"
-                      >
+                      <linearGradient id="progressGradient" x1="0%" y1="0%" x2="100%" y2="100%">
                         <stop offset="0%" stopColor="hsl(var(--primary))" />
-                        <stop
-                          offset="100%"
-                          stopColor="hsl(var(--primary-gold))"
-                        />
+                        <stop offset="100%" stopColor="hsl(var(--primary-gold))" />
                       </linearGradient>
                     </defs>
                   </svg>
@@ -714,16 +642,9 @@ export default function Analysis({
                       transition={{ delay: 0.8 }}
                     >
                       <div className="text-2xl font-bold gradient-text">
-                        {Math.round(
-                          (proofScore.prooTags.unlocked /
-                            proofScore.prooTags.total) *
-                            100,
-                        )}
-                        %
+                        {Math.round((proofScore.prooTags.unlocked / proofScore.prooTags.total) * 100)}%
                       </div>
-                      <div className="text-xs text-muted-foreground">
-                        Complete
-                      </div>
+                      <div className="text-xs text-muted-foreground">Complete</div>
                     </motion.div>
                   </div>
                 </div>
@@ -737,28 +658,25 @@ export default function Analysis({
                     key={`unlocked-${index}`}
                     initial={{ opacity: 0, scale: 0.8, y: 20 }}
                     animate={{ opacity: 1, scale: 1, y: 0 }}
-                    transition={{
+                    transition={{ 
                       delay: 0.6 + index * 0.1,
                       type: "spring",
                       stiffness: 200,
-                      damping: 20,
+                      damping: 20
                     }}
                     className="group"
                   >
                     <div className="relative bg-card border border-primary/20 rounded-lg p-3 hover:border-primary/40 transition-all duration-300 hover:shadow-lg hover:shadow-primary/10">
                       {/* Achievement glow effect */}
                       <div className="absolute inset-0 bg-gradient-to-r from-primary/5 to-primary-gold/5 rounded-lg opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
-
+                      
                       {/* Achievement icon */}
                       <div className="relative flex items-center justify-center mb-2">
                         <div className="w-8 h-8 bg-gradient-to-r from-primary to-primary-gold rounded-full flex items-center justify-center">
                           <motion.div
                             initial={{ scale: 0 }}
                             animate={{ scale: 1 }}
-                            transition={{
-                              delay: 0.8 + index * 0.1,
-                              duration: 0.6,
-                            }}
+                            transition={{ delay: 0.8 + index * 0.1, duration: 0.6 }}
                             className="text-lg"
                           >
                             {getProofTagIcon(tag)}
@@ -772,7 +690,7 @@ export default function Analysis({
                           transition={{ delay: 1 + index * 0.1 }}
                         />
                       </div>
-
+                      
                       {/* Tag text */}
                       <p className="relative text-center text-xs font-medium text-foreground leading-tight">
                         {tag}
@@ -787,19 +705,18 @@ export default function Analysis({
                     key={`locked-${index}`}
                     initial={{ opacity: 0, scale: 0.8, y: 20 }}
                     animate={{ opacity: 1, scale: 1, y: 0 }}
-                    transition={{
-                      delay:
-                        0.6 + (proofScore.prooTags.tags.length + index) * 0.1,
+                    transition={{ 
+                      delay: 0.6 + (proofScore.prooTags.tags.length + index) * 0.1,
                       type: "spring",
                       stiffness: 200,
-                      damping: 20,
+                      damping: 20
                     }}
                     className="group"
                   >
                     <div className="relative bg-background border border-primary/10 rounded-lg p-3 hover:border-primary/20 transition-all duration-300 opacity-60">
                       {/* Locked overlay with theme colors */}
                       <div className="absolute inset-0 bg-background/80 rounded-lg" />
-
+                      
                       {/* Achievement icon */}
                       <div className="relative flex items-center justify-center mb-2">
                         <div className="w-8 h-8 bg-muted/50 rounded-full flex items-center justify-center">
@@ -808,18 +725,16 @@ export default function Analysis({
                           </div>
                         </div>
                       </div>
-
+                      
                       {/* Tag text with theme colors */}
                       <p className="relative text-center text-xs font-medium text-foreground/60 leading-tight mb-1">
                         {lockedTag.name}
                       </p>
-
+                      
                       {/* Score requirement */}
                       <div className="relative text-center">
                         <p className="text-[10px] text-primary/60 font-medium">
-                          {lockedTag.pointsNeeded > 0
-                            ? `+${lockedTag.pointsNeeded} pts`
-                            : `${lockedTag.neededScore} pts`}
+                          {lockedTag.pointsNeeded > 0 ? `+${lockedTag.pointsNeeded} pts` : `${lockedTag.neededScore} pts`}
                         </p>
                       </div>
                     </div>
@@ -840,27 +755,17 @@ export default function Analysis({
                     Unlock Requirements
                   </h4>
                   <div className="space-y-2">
-                    {extractedProofTags.lockedTags
-                      .slice(0, 3)
-                      .map((lockedTag, index) => (
-                        <div
-                          key={index}
-                          className="flex items-center justify-between text-xs"
-                        >
-                          <span className="text-foreground/70">
-                            {lockedTag.name}
-                          </span>
-                          <span className="text-primary/80">
-                            {lockedTag.pointsNeeded > 0
-                              ? `+${lockedTag.pointsNeeded} pts`
-                              : `${lockedTag.neededScore} pts`}
-                          </span>
-                        </div>
-                      ))}
+                    {extractedProofTags.lockedTags.slice(0, 3).map((lockedTag, index) => (
+                      <div key={index} className="flex items-center justify-between text-xs">
+                        <span className="text-foreground/70">{lockedTag.name}</span>
+                        <span className="text-primary/80">
+                          {lockedTag.pointsNeeded > 0 ? `+${lockedTag.pointsNeeded} pts` : `${lockedTag.neededScore} pts`}
+                        </span>
+                      </div>
+                    ))}
                     {extractedProofTags.lockedTags.length > 3 && (
                       <p className="text-xs text-foreground/60 text-center pt-2">
-                        +{extractedProofTags.lockedTags.length - 3} more tags to
-                        unlock
+                        +{extractedProofTags.lockedTags.length - 3} more tags to unlock
                       </p>
                     )}
                   </div>
@@ -877,8 +782,7 @@ export default function Analysis({
                 >
                   <Star className="w-6 h-6 text-primary-gold mx-auto mb-2" />
                   <p className="text-sm font-medium text-primary">
-                    Great progress! You've validated{" "}
-                    {proofScore.prooTags.unlocked} key aspects of your startup.
+                    Great progress! You've validated {proofScore.prooTags.unlocked} key aspects of your startup.
                   </p>
                 </motion.div>
               )}
