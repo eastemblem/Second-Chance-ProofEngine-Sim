@@ -884,6 +884,7 @@ export default function Analysis({
                         )}
                         %
                       </span>
+                      </div>
                     </div>
                   </div>
                 </div>
