@@ -85,7 +85,37 @@ const getProofTagJustification = (tagName: string, analysisData: any): string =>
   const category = proofTag.category;
   const categories = analysisData?.categories || {};
   
-  // Map category names to API response field names
+  // Detailed explanations for each ProofTag
+  const tagExplanations: Record<string, string> = {
+    "Problem Hunter": "Validates that you've identified and deeply understand a genuine customer problem worth solving. Shows market demand exists.",
+    "Target Locked": "Confirms you've defined your ideal customer persona and can reach them effectively with your solution.",
+    "Signal Chaser": "Demonstrates you've detected early demand signals from potential customers showing interest in your solution.",
+    "Prototype Pilot": "Shows you have a working prototype or MVP that proves your solution concept is technically feasible.",
+    "Solution Stamped": "Validates that your solution effectively addresses the identified problem and delivers clear value.",
+    "Builder's Blueprint": "Confirms you have a clear technical roadmap and the capability to build and scale your solution.",
+    "Revenue Radar": "Demonstrates you've identified viable revenue streams and understand how to monetize your solution.",
+    "Price Proven": "Shows you've validated pricing models and customers are willing to pay for your solution.",
+    "CAC Commander": "Proves you understand customer acquisition costs and have sustainable unit economics.",
+    "Traction Tracker": "Validates measurable progress in customer acquisition, revenue, or other key growth metrics.",
+    "Channel Sniper": "Shows you've identified and validated effective channels to reach and acquire customers.",
+    "Momentum Master": "Demonstrates consistent growth momentum and ability to scale customer acquisition.",
+    "Vault Ready": "Confirms your documentation and processes are organized for due diligence and investment readiness.",
+    "Score Surged": "Shows strong overall validation across multiple dimensions of your startup.",
+    "Founder Fit Check": "Validates that you and your team have the right skills and experience to execute on this opportunity.",
+    "Metrics Ready": "Demonstrates you're tracking the right KPIs and have data-driven decision making processes.",
+    "Data Room Complete": "Shows comprehensive documentation and transparency for investor evaluation.",
+    "Vision Aligned": "Confirms your long-term vision aligns with market opportunity and execution capability.",
+    "Iteration Loop Active": "Demonstrates continuous learning and improvement based on customer feedback.",
+    "Narrative Coherence": "Shows you can clearly communicate your value proposition and growth strategy.",
+    "Moat Identified": "Validates sustainable competitive advantages that will protect your market position."
+  };
+  
+  // Try to get specific explanation first
+  if (tagExplanations[tagName]) {
+    return tagExplanations[tagName];
+  }
+  
+  // Fall back to category-based API data
   const categoryMapping: Record<string, string> = {
     desirability: "Problem",
     feasibility: "solution", 
@@ -95,12 +125,24 @@ const getProofTagJustification = (tagName: string, analysisData: any): string =>
   };
   
   const apiField = categoryMapping[category];
-  if (!apiField || !categories[apiField]) {
-    return `This ${category} ProofTag validates your startup's ability to ${category === 'desirability' ? 'solve real customer problems' : category === 'feasibility' ? 'build and deliver solutions' : category === 'viability' ? 'generate sustainable revenue' : category === 'traction' ? 'acquire and retain customers' : 'scale and attract investment'}.`;
+  if (apiField && categories[apiField]) {
+    const categoryData = categories[apiField];
+    const justification = categoryData.justification || categoryData.recommendation;
+    if (justification && justification.length > 10) {
+      return justification;
+    }
   }
   
-  const categoryData = categories[apiField];
-  return categoryData.justification || categoryData.recommendation || `This ${category} ProofTag shows strong validation signals in your startup.`;
+  // Final fallback with category description
+  const categoryDescriptions: Record<string, string> = {
+    desirability: "This ProofTag validates your startup's ability to solve real customer problems and create market demand.",
+    feasibility: "This ProofTag confirms your technical capability to build and deliver your solution effectively.",
+    viability: "This ProofTag demonstrates your ability to generate sustainable revenue and achieve profitability.",
+    traction: "This ProofTag shows your success in acquiring customers and building measurable growth momentum.",
+    readiness: "This ProofTag validates your preparedness to scale operations and attract investment."
+  };
+  
+  return categoryDescriptions[category] || `This ${category} ProofTag shows strong validation signals in your startup.`;
 };
 
 // Function to get icon for a ProofTag
@@ -867,12 +909,12 @@ export default function Analysis({
                       {/* Help Icon - Top Right */}
                       <Tooltip>
                         <TooltipTrigger asChild>
-                          <button className="absolute top-2 right-2 p-1 rounded-full bg-primary/10 hover:bg-primary/20 transition-colors duration-200 opacity-60 hover:opacity-100">
-                            <HelpCircle className="w-3 h-3 text-primary" />
+                          <button className="absolute top-1 right-1 p-1 rounded-full bg-white/90 hover:bg-white border border-primary/20 hover:border-primary/40 transition-all duration-200 shadow-sm z-10">
+                            <HelpCircle className="w-3.5 h-3.5 text-primary" />
                           </button>
                         </TooltipTrigger>
-                        <TooltipContent side="top" className="max-w-xs">
-                          <p className="text-sm">{getProofTagJustification(tag, analysisData)}</p>
+                        <TooltipContent side="top" className="max-w-sm p-3 bg-card border border-primary/20">
+                          <p className="text-sm text-foreground">{getProofTagJustification(tag, analysisData)}</p>
                         </TooltipContent>
                       </Tooltip>
 
@@ -930,12 +972,12 @@ export default function Analysis({
                       {/* Help Icon - Top Right */}
                       <Tooltip>
                         <TooltipTrigger asChild>
-                          <button className="absolute top-2 right-2 p-1 rounded-full bg-muted/20 hover:bg-muted/40 transition-colors duration-200 opacity-40 hover:opacity-60">
-                            <HelpCircle className="w-3 h-3 text-muted-foreground" />
+                          <button className="absolute top-1 right-1 p-1 rounded-full bg-white/70 hover:bg-white/90 border border-muted hover:border-muted-foreground/40 transition-all duration-200 shadow-sm z-10">
+                            <HelpCircle className="w-3.5 h-3.5 text-muted-foreground" />
                           </button>
                         </TooltipTrigger>
-                        <TooltipContent side="top" className="max-w-xs">
-                          <p className="text-sm">{getProofTagJustification(lockedTag.name, analysisData)}</p>
+                        <TooltipContent side="top" className="max-w-sm p-3 bg-card border border-muted">
+                          <p className="text-sm text-foreground">{getProofTagJustification(lockedTag.name, analysisData)}</p>
                         </TooltipContent>
                       </Tooltip>
 
