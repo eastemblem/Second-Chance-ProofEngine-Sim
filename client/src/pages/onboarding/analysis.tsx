@@ -253,25 +253,19 @@ export default function Analysis({
 
   console.log("Analysis data for ProofTags:", analysisData);
 
-
-
   // Extract ProofTags from API response or calculate from score
   function extractProofTags(scoringResult: any) {
     console.log("Extracting ProofTags from scoring result:", scoringResult);
     
     const currentScore = analysisData?.total_score || 0;
     
-    // Get tags directly from API response or from proofScore.prooTags.tags
+    // Get tags directly from API response first
     const apiTags = scoringResult?.output?.tags || [];
-    const proofScoreTags = proofScore.prooTags.tags || [];
     console.log("API provided tags:", apiTags);
-    console.log("ProofScore tags:", proofScoreTags);
     
-    // Use API tags if available, otherwise use proofScore tags, or calculate based on score thresholds
+    // Use API tags if available, otherwise calculate based on score thresholds
     const unlockedTags: string[] = apiTags.length > 0 ? 
       apiTags : 
-      proofScoreTags.length > 0 ?
-      proofScoreTags :
       ALL_PROOF_TAGS.filter(tag => currentScore >= tag.scoreThreshold).map(tag => tag.name);
     
     const lockedTags: {
@@ -308,6 +302,9 @@ export default function Analysis({
       lockedTags
     };
   }
+
+  // Extract ProofTags data
+  const extractedProofTags = extractProofTags(scoringResult);
 
   const dimensionColors = {
     desirability: "bg-green-500",
