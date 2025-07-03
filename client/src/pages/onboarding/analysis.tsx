@@ -19,8 +19,6 @@ import {
   ThumbsUp,
   AlertTriangle,
   Download,
-  Lock,
-  Unlock,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -39,6 +37,50 @@ import Badge05 from "../../assets/badges/score/Badge_05.svg";
 import Badge06 from "../../assets/badges/score/Badge_06.svg";
 import Badge07 from "../../assets/badges/score/Badge_07.svg";
 import Badge09 from "../../assets/badges/score/Badge_09.svg";
+
+// ProofTag icon mapping
+const PROOF_TAG_ICONS: Record<string, string> = {
+  "Problem Hunter": "🧠",
+  "Target Locked": "🎯", 
+  "Signal Chaser": "🛁",
+  "Prototype Pilot": "🛠",
+  "Solution Stamped": "✅",
+  "Builder's Blueprint": "🧱",
+  "Revenue Radar": "💰",
+  "Price Proven": "🧪",
+  "CAC Commander": "🎯",
+  "Traction Tracker": "📈",
+  "Channel Sniper": "🚀",
+  "Momentum Master": "⚡",
+  "Vault Ready": "📂",
+  "Score Surged": "🔢",
+  "Founder Fit Check": "🧠",
+  "Metrics Ready": "📊",
+  "Data Room Complete": "🗃️",
+  "Vision Aligned": "🗺️",
+  "Iteration Loop Active": "🔄",
+  "Narrative Coherence": "🎤",
+  "Moat Identified": "🔬"
+};
+
+// Function to get icon for a ProofTag
+const getProofTagIcon = (tagName: string): string => {
+  // Try exact match first
+  if (PROOF_TAG_ICONS[tagName]) {
+    return PROOF_TAG_ICONS[tagName];
+  }
+  
+  // Try partial matching for similar names
+  const lowerTagName = tagName.toLowerCase();
+  for (const [key, icon] of Object.entries(PROOF_TAG_ICONS)) {
+    if (key.toLowerCase().includes(lowerTagName) || lowerTagName.includes(key.toLowerCase())) {
+      return icon;
+    }
+  }
+  
+  // Default fallback
+  return "✨";
+};
 
 interface AnalysisProps {
   sessionId: string;
@@ -507,13 +549,14 @@ export default function Analysis({
                       
                       {/* Achievement icon */}
                       <div className="relative flex items-center justify-center mb-2">
-                        <div className="w-6 h-6 bg-gradient-to-r from-primary to-primary-gold rounded-full flex items-center justify-center">
+                        <div className="w-8 h-8 bg-gradient-to-r from-primary to-primary-gold rounded-full flex items-center justify-center">
                           <motion.div
                             initial={{ scale: 0 }}
                             animate={{ scale: 1 }}
                             transition={{ delay: 0.8 + index * 0.1, duration: 0.6 }}
+                            className="text-lg"
                           >
-                            <Unlock className="w-3 h-3 text-white" />
+                            {getProofTagIcon(tag)}
                           </motion.div>
                         </div>
                         {/* Sparkle effect */}
@@ -551,10 +594,12 @@ export default function Analysis({
                       {/* Locked overlay with theme colors */}
                       <div className="absolute inset-0 bg-background/80 rounded-lg" />
                       
-                      {/* Lock icon with theme colors */}
+                      {/* Achievement icon */}
                       <div className="relative flex items-center justify-center mb-2">
-                        <div className="w-6 h-6 bg-primary/20 rounded-full flex items-center justify-center">
-                          <Lock className="w-3 h-3 text-primary/60" />
+                        <div className="w-8 h-8 bg-muted/50 rounded-full flex items-center justify-center">
+                          <div className="text-lg opacity-40">
+                            {getProofTagIcon(lockedTag.name)}
+                          </div>
                         </div>
                       </div>
                       

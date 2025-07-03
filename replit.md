@@ -278,6 +278,8 @@ Demo experience for testing different user journeys:
   * Updated achievement icons to use Lock/Unlock icons instead of checkboxes for better clarity
   * Removed small unlock icons from below ProofTag names for cleaner design
   * Removed "LOCKED" text and requirement details from locked ProofTag cards for consistent minimal design
+  * Replaced lock/unlock icons with specific emojis for each ProofTag (🧠 Problem Hunter, 🎯 Target Locked, etc.)
+  * Enhanced ProofTag visual appeal with larger emoji icons and proper fallback matching system
   * Added animated badge presentation with glow effects and achievement unlocking visual feedback
 
 ## User Preferences
