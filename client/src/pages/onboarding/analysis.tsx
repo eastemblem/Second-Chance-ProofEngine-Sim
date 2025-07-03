@@ -875,7 +875,7 @@ export default function Analysis({
 
                     {/* Percentage in center */}
                     <div className="absolute inset-0 flex items-center justify-center">
-                      <span className="text-sm font-bold text-primary">
+                      <span className="text-lg font-bold text-primary">
                         {Math.round(
                           (proofScore.prooTags.unlocked /
                             proofScore.prooTags.total) *
