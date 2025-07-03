@@ -492,9 +492,54 @@ export default function Analysis({
         >
           {/* Score Header */}
           <Card className="p-8 border-border bg-card mb-8 text-center">
-            <h2 className="text-3xl font-bold mb-4">
-              Your ProofScore is Ready
-            </h2>
+            <motion.div
+              initial={{ opacity: 0, y: -20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.6, delay: 0.3 }}
+            >
+              <div className="flex items-center justify-center gap-3 mb-4">
+                <motion.span
+                  animate={{ 
+                    rotate: [0, 10, -10, 0],
+                    scale: [1, 1.1, 1]
+                  }}
+                  transition={{ 
+                    duration: 2,
+                    repeat: Infinity,
+                    repeatDelay: 3
+                  }}
+                  className="text-3xl"
+                >
+                  🎯
+                </motion.span>
+                <h2 className="text-3xl font-bold bg-gradient-to-r from-primary to-primary-gold bg-clip-text text-transparent">
+                  Mission Complete!
+                </h2>
+                <motion.span
+                  animate={{ 
+                    rotate: [0, -10, 10, 0],
+                    scale: [1, 1.1, 1]
+                  }}
+                  transition={{ 
+                    duration: 2,
+                    repeat: Infinity,
+                    repeatDelay: 3,
+                    delay: 0.5
+                  }}
+                  className="text-3xl"
+                >
+                  🚀
+                </motion.span>
+              </div>
+              <motion.p
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                transition={{ delay: 0.8 }}
+                className="text-lg text-muted-foreground"
+              >
+                Your validation journey is complete - level up achieved!
+              </motion.p>
+            </motion.div>
             
             {/* Score Badge */}
             {scoreBadge && (
