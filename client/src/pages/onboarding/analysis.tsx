@@ -25,6 +25,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Progress } from "@/components/ui/progress";
 import { Separator } from "@/components/ui/separator";
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import ProgressBar from "@/components/progress-bar";
 import { useToast } from "@/hooks/use-toast";
 import { ProofScoreResult } from "@shared/schema";
@@ -102,6 +103,8 @@ export default function Analysis({
   const [isLoading, setIsLoading] = useState(false);
   const [sessionFromAPI, setSessionFromAPI] = useState<any>(null);
   const [showCelebration, setShowCelebration] = useState(false);
+  const [showScoreDialog, setShowScoreDialog] = useState(false);
+  const [achievedScore, setAchievedScore] = useState(0);
   const { toast } = useToast();
   const celebrationTriggered = useRef(false);
 
