@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { motion } from "framer-motion";
 import {
   ArrowRight,
@@ -103,6 +103,7 @@ export default function Analysis({
   const [sessionFromAPI, setSessionFromAPI] = useState<any>(null);
   const [showCelebration, setShowCelebration] = useState(false);
   const { toast } = useToast();
+  const celebrationTriggered = useRef(false);
 
   // Extract data from session with comprehensive checking
   console.log("Analysis component received sessionData:", sessionData);
@@ -164,7 +165,9 @@ export default function Analysis({
     
 
     
-    if (totalScore > 70 && !showCelebration) {
+    if (totalScore > 70 && !showCelebration && !celebrationTriggered.current) {
+      celebrationTriggered.current = true;
+      
       const timer = setTimeout(() => {
         setShowCelebration(true);
         
