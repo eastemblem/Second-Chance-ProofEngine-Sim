@@ -909,12 +909,12 @@ export default function Analysis({
                       {/* Help Icon - Top Right */}
                       <Tooltip>
                         <TooltipTrigger asChild>
-                          <button className="absolute top-1 right-1 p-1.5 rounded-full bg-primary text-white hover:bg-primary-gold transition-all duration-200 shadow-lg z-10 border-2 border-white">
-                            <HelpCircle className="w-4 h-4 fill-current" />
+                          <button className="absolute top-2 right-2 opacity-60 hover:opacity-100 transition-opacity">
+                            <HelpCircle className="w-3 h-3 text-muted-foreground" />
                           </button>
                         </TooltipTrigger>
-                        <TooltipContent side="top" className="max-w-sm p-3 bg-card border border-primary/20">
-                          <p className="text-sm text-foreground">{getProofTagJustification(tag, analysisData)}</p>
+                        <TooltipContent side="top" className="max-w-sm p-3">
+                          <p className="text-sm">{getProofTagJustification(tag, analysisData)}</p>
                         </TooltipContent>
                       </Tooltip>
 
@@ -972,12 +972,12 @@ export default function Analysis({
                       {/* Help Icon - Top Right */}
                       <Tooltip>
                         <TooltipTrigger asChild>
-                          <button className="absolute top-1 right-1 p-1.5 rounded-full bg-muted-foreground text-white hover:bg-foreground transition-all duration-200 shadow-lg z-10 border-2 border-white">
-                            <HelpCircle className="w-4 h-4 fill-current" />
+                          <button className="absolute top-2 right-2 opacity-40 hover:opacity-70 transition-opacity">
+                            <HelpCircle className="w-3 h-3 text-muted-foreground" />
                           </button>
                         </TooltipTrigger>
-                        <TooltipContent side="top" className="max-w-sm p-3 bg-card border border-muted">
-                          <p className="text-sm text-foreground">{getProofTagJustification(lockedTag.name, analysisData)}</p>
+                        <TooltipContent side="top" className="max-w-sm p-3">
+                          <p className="text-sm">{getProofTagJustification(lockedTag.name, analysisData)}</p>
                         </TooltipContent>
                       </Tooltip>
 
