@@ -84,55 +84,51 @@ const getProofTagJustification = (tagName: string, analysisData: any): string =>
   
   const category = proofTag.category;
   
-  // Get justification from API response categories
-  const output = analysisData?.output || analysisData;
+  console.log("Getting justification for tag:", tagName, "category:", category);
+  console.log("Analysis data structure:", JSON.stringify(analysisData, null, 2));
   
-  // Map ProofTag categories to API response fields
-  const categoryMapping: Record<string, string> = {
-    desirability: "Problem",
-    feasibility: "solution", 
-    viability: "business_model",
-    traction: "traction_milestones",
-    readiness: "team"
+  // Get justification from API response categories
+  const categories = analysisData?.categories || {};
+  
+  // Direct API field mapping to try all possible fields
+  const allApiFields = ["Problem", "solution", "market_opportunity", "product_technology", "team", "business_model", "traction_milestones", "competition", "go_to_market_strategy", "financials_projections_ask"];
+  
+  // Map ProofTag categories to multiple possible API response fields
+  const categoryToFieldsMap: Record<string, string[]> = {
+    desirability: ["Problem", "market_opportunity"],
+    feasibility: ["solution", "product_technology"], 
+    viability: ["business_model", "competition", "financials_projections_ask"],
+    traction: ["traction_milestones", "go_to_market_strategy"],
+    readiness: ["team"]
   };
   
-  const apiField = categoryMapping[category];
-  if (apiField && output?.[apiField]) {
-    const categoryData = output[apiField];
-    const justification = categoryData.justification || categoryData.recommendation;
-    if (justification && justification.length > 10) {
-      return justification;
-    }
-  }
+  const fieldsToCheck = categoryToFieldsMap[category] || [];
   
-  // Also check for exact field match (like "Problem" instead of "Problem")
-  const directApiFields = ["Problem", "solution", "market_opportunity", "product_technology", "team", "business_model", "traction_milestones", "competition", "go_to_market_strategy", "financials_projections_ask"];
-  
-  for (const field of directApiFields) {
-    if (output?.[field]) {
-      const categoryData = output[field];
+  // Check each relevant field for this category
+  for (const field of fieldsToCheck) {
+    if (categories[field]) {
+      const categoryData = categories[field];
       const justification = categoryData.justification || categoryData.recommendation;
+      console.log(`Checking field ${field} for category ${category}:`, justification);
       if (justification && justification.length > 10) {
-        // Map this field to the relevant category
-        const fieldCategoryMap: Record<string, string> = {
-          "Problem": "desirability",
-          "solution": "feasibility",
-          "market_opportunity": "desirability",
-          "product_technology": "feasibility",
-          "team": "readiness",
-          "business_model": "viability",
-          "traction_milestones": "traction",
-          "competition": "viability",
-          "go_to_market_strategy": "traction",
-          "financials_projections_ask": "viability"
-        };
-        
-        if (fieldCategoryMap[field] === category) {
-          return justification;
-        }
+        return justification;
       }
     }
   }
+  
+  // Try all API fields as fallback
+  for (const field of allApiFields) {
+    if (categories[field]) {
+      const categoryData = categories[field];
+      const justification = categoryData.justification || categoryData.recommendation;
+      if (justification && justification.length > 10) {
+        console.log(`Found justification in ${field}:`, justification);
+        return justification;
+      }
+    }
+  }
+  
+  console.log("No API justification found, using fallback");
   
   // Final fallback with category description
   const categoryDescriptions: Record<string, string> = {
