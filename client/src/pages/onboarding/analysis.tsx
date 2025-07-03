@@ -734,7 +734,7 @@ export default function Analysis({
                       {/* Score requirement */}
                       <div className="relative text-center">
                         <p className="text-[10px] text-primary/60 font-medium">
-                          {lockedTag.pointsNeeded > 0 ? `+${lockedTag.pointsNeeded} pts` : `${lockedTag.neededScore} pts`}
+                          {lockedTag.pointsNeeded > 0 ? `+${lockedTag.pointsNeeded}` : `${lockedTag.neededScore}`}
                         </p>
                       </div>
                     </div>
@@ -759,7 +759,7 @@ export default function Analysis({
                       <div key={index} className="flex items-center justify-between text-xs">
                         <span className="text-foreground/70">{lockedTag.name}</span>
                         <span className="text-primary/80">
-                          {lockedTag.pointsNeeded > 0 ? `+${lockedTag.pointsNeeded} pts` : `${lockedTag.neededScore} pts`}
+                          {lockedTag.pointsNeeded > 0 ? `+${lockedTag.pointsNeeded}` : `${lockedTag.neededScore}`}
                         </span>
                       </div>
                     ))}
