@@ -1130,8 +1130,8 @@ export default function Analysis({
                       >
                         <ThumbsUp className="text-green-400 mt-1 w-4 h-4 flex-shrink-0" />
                         <div>
-                          <h4 className="font-semibold text-green-300 text-sm mb-1">
-                            {strength.title || "Strength"}
+                          <h4 className="font-semibold text-green-300 text-base mb-1">
+                            {strength.title || "Strong Foundation"}
                           </h4>
                           <p className="text-xs text-green-100/80 leading-relaxed">
                             {strength.description || strength}
@@ -1151,8 +1151,8 @@ export default function Analysis({
                       >
                         <AlertTriangle className="text-yellow-400 mt-1 w-4 h-4 flex-shrink-0" />
                         <div>
-                          <h4 className="font-semibold text-yellow-300 text-sm mb-1">
-                            {improvement.title || "Area for Improvement"}
+                          <h4 className="font-semibold text-yellow-300 text-base mb-1">
+                            {improvement.title || "Needs Attention"}
                           </h4>
                           <p className="text-xs text-yellow-100/80 leading-relaxed">
                             {improvement.description || improvement}
@@ -1172,8 +1172,8 @@ export default function Analysis({
                       >
                         <TrendingUp className="text-violet-400 mt-1 w-4 h-4 flex-shrink-0" />
                         <div>
-                          <h4 className="font-semibold text-violet-300 text-sm mb-1">
-                            {recommendation.title || "Recommendation"}
+                          <h4 className="font-semibold text-violet-300 text-base mb-1">
+                            {recommendation.title || "Next Steps"}
                           </h4>
                           <p className="text-xs text-violet-100/80 leading-relaxed">
                             {recommendation.description || recommendation}
