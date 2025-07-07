@@ -212,11 +212,6 @@ export default function Analysis({
     sessionFromAPI?.stepData?.venture?.venture || sessionFromAPI?.stepData?.venture;
   
   const ventureName = ventureData?.name || apiVentureData?.name;
-  
-  console.log("Analysis component - ventureData:", ventureData);
-  console.log("Analysis component - apiVentureData:", apiVentureData);
-  console.log("Analysis component - ventureName extracted:", ventureName);
-  console.log("Analysis component - venture name type:", typeof ventureName);
 
   console.log("Analysis component - scoringResult:", scoringResult);
   console.log(
@@ -1049,107 +1044,159 @@ export default function Analysis({
             </div>
           </Card>
 
-          {/* Score Breakdown */}
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
-            {/* Dimension Scores */}
-            <Card className="p-6 border-border bg-card">
-              <h3 className="text-xl font-semibold mb-6">
-                Validation Dimensions
-              </h3>
-              <div className="space-y-4">
-                {Object.entries(proofScore.dimensions).map(
-                  ([dimension, score]) => {
-                    const maxScores = {
-                      desirability: 20,
-                      feasibility: 15,
-                      viability: 15,
-                      traction: 40,
-                      readiness: 10,
-                    };
-                    const maxScore =
-                      maxScores[dimension as keyof typeof maxScores];
-                    const percentage = (score / maxScore) * 100;
+          {/* Two Column Layout: Stacked Validation Info on Left, Leaderboard on Right */}
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 mb-8">
+            {/* Left Column: Stacked Validation Dimensions and Key Insights */}
+            <div className="space-y-6">
+              {/* Validation Dimensions */}
+              <motion.div
+                initial={{ opacity: 0, x: -20 }}
+                animate={{ opacity: 1, x: 0 }}
+                transition={{ delay: 0.8, duration: 0.6 }}
+              >
+                <Card className="p-6 border-border bg-gradient-to-br from-primary/5 to-primary-gold/5 border-primary/10">
+                  <h3 className="text-xl font-semibold mb-6 gradient-text flex items-center gap-2">
+                    <div className="p-1.5 rounded-lg bg-gradient-to-r from-violet-500 to-amber-500">
+                      <BarChart3 className="w-4 h-4 text-white" />
+                    </div>
+                    Validation Dimensions
+                  </h3>
+                  <div className="space-y-4">
+                    {Object.entries(proofScore.dimensions).map(
+                      ([dimension, score]) => {
+                        const maxScores = {
+                          desirability: 20,
+                          feasibility: 15,
+                          viability: 15,
+                          traction: 40,
+                          readiness: 10,
+                        };
+                        const maxScore =
+                          maxScores[dimension as keyof typeof maxScores];
+                        const percentage = (score / maxScore) * 100;
 
-                    return (
-                      <div key={dimension}>
-                        <div className="flex justify-between items-center mb-2">
-                          <span className="text-sm font-medium">
-                            {
-                              dimensionLabels[
-                                dimension as keyof typeof dimensionLabels
-                              ]
-                            }
-                          </span>
-                          <span className="text-sm font-bold">
-                            {score}/{maxScore}
-                          </span>
-                        </div>
-                        <div className="w-full bg-border rounded-full h-2">
-                          <motion.div
-                            className={`h-2 rounded-full ${dimensionColors[dimension as keyof typeof dimensionColors]}`}
-                            initial={{ width: 0 }}
-                            animate={{ width: `${percentage}%` }}
-                            transition={{ duration: 1, delay: 0.5 }}
-                          />
-                        </div>
-                      </div>
-                    );
-                  },
-                )}
-              </div>
-            </Card>
+                        return (
+                          <div key={dimension} className="bg-background/50 rounded-lg p-4 border border-primary/10">
+                            <div className="flex justify-between items-center mb-3">
+                              <span className="text-sm font-semibold text-foreground">
+                                {
+                                  dimensionLabels[
+                                    dimension as keyof typeof dimensionLabels
+                                  ]
+                                }
+                              </span>
+                              <span className="text-sm font-bold bg-gradient-to-r from-primary to-primary-gold bg-clip-text text-transparent">
+                                {score}/{maxScore}
+                              </span>
+                            </div>
+                            <div className="w-full bg-border/50 rounded-full h-3 shadow-inner">
+                              <motion.div
+                                className={`h-3 rounded-full ${dimensionColors[dimension as keyof typeof dimensionColors]} shadow-sm`}
+                                initial={{ width: 0 }}
+                                animate={{ width: `${percentage}%` }}
+                                transition={{ duration: 1.2, delay: 1.0 + Object.keys(proofScore.dimensions).indexOf(dimension) * 0.1 }}
+                              />
+                            </div>
+                          </div>
+                        );
+                      },
+                    )}
+                  </div>
+                </Card>
+              </motion.div>
 
-            {/* Key Insights */}
-            <Card className="p-6 border-border bg-card">
-              <h3 className="text-xl font-semibold mb-6">Key Insights</h3>
-              <div className="space-y-4">
-                {proofScore.insights.strengths
-                  .slice(0, 2)
-                  .map((strength: any, index: number) => (
-                    <div key={index} className="flex items-start space-x-3">
-                      <ThumbsUp className="text-green-500 mt-1 w-4 h-4 flex-shrink-0" />
-                      <div>
-                        <h4 className="font-medium text-green-400 text-sm">
-                          {strength.title || "Strength"}
-                        </h4>
-                        <p className="text-sm text-muted-foreground">
-                          {strength.description || strength}
-                        </p>
-                      </div>
+              {/* Key Insights */}
+              <motion.div
+                initial={{ opacity: 0, x: -20 }}
+                animate={{ opacity: 1, x: 0 }}
+                transition={{ delay: 1.2, duration: 0.6 }}
+              >
+                <Card className="p-6 border-border bg-gradient-to-br from-primary/5 to-primary-gold/5 border-primary/10">
+                  <h3 className="text-xl font-semibold mb-6 gradient-text flex items-center gap-2">
+                    <div className="p-1.5 rounded-lg bg-gradient-to-r from-violet-500 to-amber-500">
+                      <Lightbulb className="w-4 h-4 text-white" />
                     </div>
-                  ))}
-                {proofScore.insights.improvements
-                  .slice(0, 2)
-                  .map((improvement: any, index: number) => (
-                    <div key={index} className="flex items-start space-x-3">
-                      <AlertTriangle className="text-yellow-500 mt-1 w-4 h-4 flex-shrink-0" />
-                      <div>
-                        <h4 className="font-medium text-yellow-400 text-sm">
-                          {improvement.title || "Area for Improvement"}
-                        </h4>
-                        <p className="text-sm text-muted-foreground">
-                          {improvement.description || improvement}
-                        </p>
-                      </div>
-                    </div>
-                  ))}
-                {proofScore.insights.recommendations
-                  .slice(0, 1)
-                  .map((recommendation: any, index: number) => (
-                    <div key={index} className="flex items-start space-x-3">
-                      <TrendingUp className="text-primary mt-1 w-4 h-4 flex-shrink-0" />
-                      <div>
-                        <h4 className="font-medium text-primary text-sm">
-                          {recommendation.title || "Recommendation"}
-                        </h4>
-                        <p className="text-sm text-muted-foreground">
-                          {recommendation.description || recommendation}
-                        </p>
-                      </div>
-                    </div>
-                  ))}
-              </div>
-            </Card>
+                    Key Insights
+                  </h3>
+                  <div className="space-y-4">
+                    {proofScore.insights.strengths
+                      .slice(0, 2)
+                      .map((strength: any, index: number) => (
+                        <motion.div 
+                          key={index} 
+                          className="flex items-start space-x-3 bg-green-500/10 rounded-lg p-4 border border-green-500/20"
+                          initial={{ opacity: 0, y: 10 }}
+                          animate={{ opacity: 1, y: 0 }}
+                          transition={{ delay: 1.4 + index * 0.1 }}
+                        >
+                          <ThumbsUp className="text-green-500 mt-1 w-4 h-4 flex-shrink-0" />
+                          <div>
+                            <h4 className="font-semibold text-green-400 text-sm mb-1">
+                              {strength.title || "Strength"}
+                            </h4>
+                            <p className="text-sm text-muted-foreground leading-relaxed">
+                              {strength.description || strength}
+                            </p>
+                          </div>
+                        </motion.div>
+                      ))}
+                    {proofScore.insights.improvements
+                      .slice(0, 2)
+                      .map((improvement: any, index: number) => (
+                        <motion.div 
+                          key={index} 
+                          className="flex items-start space-x-3 bg-yellow-500/10 rounded-lg p-4 border border-yellow-500/20"
+                          initial={{ opacity: 0, y: 10 }}
+                          animate={{ opacity: 1, y: 0 }}
+                          transition={{ delay: 1.6 + index * 0.1 }}
+                        >
+                          <AlertTriangle className="text-yellow-500 mt-1 w-4 h-4 flex-shrink-0" />
+                          <div>
+                            <h4 className="font-semibold text-yellow-400 text-sm mb-1">
+                              {improvement.title || "Area for Improvement"}
+                            </h4>
+                            <p className="text-sm text-muted-foreground leading-relaxed">
+                              {improvement.description || improvement}
+                            </p>
+                          </div>
+                        </motion.div>
+                      ))}
+                    {proofScore.insights.recommendations
+                      .slice(0, 1)
+                      .map((recommendation: any, index: number) => (
+                        <motion.div 
+                          key={index} 
+                          className="flex items-start space-x-3 bg-primary/10 rounded-lg p-4 border border-primary/20"
+                          initial={{ opacity: 0, y: 10 }}
+                          animate={{ opacity: 1, y: 0 }}
+                          transition={{ delay: 1.8 + index * 0.1 }}
+                        >
+                          <TrendingUp className="text-primary mt-1 w-4 h-4 flex-shrink-0" />
+                          <div>
+                            <h4 className="font-semibold text-primary text-sm mb-1">
+                              {recommendation.title || "Recommendation"}
+                            </h4>
+                            <p className="text-sm text-muted-foreground leading-relaxed">
+                              {recommendation.description || recommendation}
+                            </p>
+                          </div>
+                        </motion.div>
+                      ))}
+                  </div>
+                </Card>
+              </motion.div>
+            </div>
+
+            {/* Right Column: Leaderboard */}
+            <div className="lg:sticky lg:top-8 lg:self-start">
+              <motion.div
+                initial={{ opacity: 0, x: 20 }}
+                animate={{ opacity: 1, x: 0 }}
+                transition={{ delay: 1.0, duration: 0.6 }}
+              >
+                <Leaderboard currentVentureName={ventureName} />
+              </motion.div>
+            </div>
           </div>
 
           {/* Generated Report */}
@@ -1171,15 +1218,7 @@ export default function Analysis({
             </div>
           </Card>
 
-          {/* Leaderboard Section */}
-          <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: 2.5, duration: 0.6 }}
-            className="mb-8"
-          >
-            <Leaderboard currentVentureName={ventureName} />
-          </motion.div>
+
 
           {/* Continue Button */}
           <div className="text-center">

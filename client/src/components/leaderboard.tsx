@@ -22,8 +22,6 @@ interface LeaderboardProps {
 }
 
 export function Leaderboard({ currentVentureName }: LeaderboardProps) {
-  console.log("Leaderboard received currentVentureName:", currentVentureName);
-  
   const { data, isLoading, error } = useQuery<LeaderboardResponse>({
     queryKey: ['/api/leaderboard'],
     staleTime: 1000 * 60 * 5, // 5 minutes
@@ -84,18 +82,6 @@ export function Leaderboard({ currentVentureName }: LeaderboardProps) {
   const entries = data.data || [];
   const topThree = entries.slice(0, 3);
   const remaining = entries.slice(3);
-  
-  console.log("Leaderboard data entries:", entries.map(e => ({ name: e.ventureName, rank: e.rank })));
-  console.log("Checking for currentVentureName match:", currentVentureName);
-  console.log("Current venture name length:", currentVentureName?.length);
-  console.log("Current venture name char codes:", currentVentureName?.split('').map(c => c.charCodeAt(0)));
-  
-  entries.forEach(entry => {
-    const isMatch = entry.ventureName === currentVentureName;
-    const trimmedMatch = entry.ventureName.trim() === currentVentureName?.trim();
-    console.log(`"${entry.ventureName}" === "${currentVentureName}"? ${isMatch} (trimmed: ${trimmedMatch})`);
-    console.log(`Entry name length: ${entry.ventureName.length}, current name length: ${currentVentureName?.length}`);
-  });
 
   return (
     <Card className="w-full bg-gradient-to-br from-background to-background/80 border-border/50 shadow-xl">
