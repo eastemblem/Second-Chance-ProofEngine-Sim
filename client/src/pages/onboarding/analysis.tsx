@@ -1041,6 +1041,7 @@ export default function Analysis({
 
 
             </motion.div>
+            </motion.div>
           </Card>
 
           {/* Two Column Layout: Stacked Validation Info on Left, Leaderboard on Right */}
