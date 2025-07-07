@@ -787,16 +787,16 @@ export default function Analysis({
               </div>
             </div>
 
-            {/* ProofTags Achievement Section */}
-            <motion.div
-              initial={{ opacity: 0, y: 10 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: 0.4 }}
-              className="text-center mb-6"
-            >
-              <h3 className="text-2xl font-bold mb-4 gradient-text">
-                🏆 ProofTag Validation Progress
-              </h3>
+              {/* ProofTags Achievement Section */}
+              <motion.div
+                initial={{ opacity: 0, y: 10 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ delay: 0.4 }}
+                className="text-center mb-6"
+              >
+                <h3 className="text-2xl font-bold mb-4 gradient-text">
+                  🏆 ProofTag Validation Progress
+                </h3>
 
                 {/* Milestones Text and Progress Bar - Side by Side */}
                 <div className="flex items-center justify-center gap-8 mx-6 mb-4">
@@ -1040,7 +1040,7 @@ export default function Analysis({
               )} */}
 
 
-            </motion.div>
+              </motion.div>
             </motion.div>
           </Card>
 
