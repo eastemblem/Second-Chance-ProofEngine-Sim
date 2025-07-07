@@ -44,15 +44,31 @@ export async function getLeaderboard(req: Request, res: Response) {
     
     // Otherwise, mix real data with mock data
     const mockData = generateMockLeaderboard();
-    const combinedData = [
-      ...realData.map((entry, index) => ({
+    const allEntries = [
+      ...realData.map(entry => ({
+        ventureName: entry.ventureName,
+        totalScore: entry.totalScore,
+        analysisDate: entry.analysisDate,
+        isReal: true
+      })),
+      ...mockData.map(entry => ({
+        ventureName: entry.ventureName,
+        totalScore: entry.totalScore,
+        isReal: false
+      }))
+    ];
+    
+    // Sort all entries by score descending and assign proper ranks
+    const combinedData = allEntries
+      .sort((a, b) => b.totalScore - a.totalScore)
+      .slice(0, limit)
+      .map((entry, index) => ({
         ventureName: entry.ventureName,
         totalScore: entry.totalScore,
         rank: index + 1,
-        analysisDate: entry.analysisDate
-      })),
-      ...mockData.slice(realData.length)
-    ].slice(0, limit);
+        analysisDate: entry.analysisDate,
+        isReal: entry.isReal
+      }));
     
     res.json({
       success: true,

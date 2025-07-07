@@ -29,6 +29,7 @@ export interface IStorage {
   getLeaderboard(limit?: number): Promise<Leaderboard[]>;
   createLeaderboardEntry(entry: InsertLeaderboard): Promise<Leaderboard>;
   getLeaderboardByVentureId(ventureId: string): Promise<Leaderboard | undefined>;
+  updateLeaderboard(id: string, entry: Partial<InsertLeaderboard>): Promise<Leaderboard>;
 }
 
 export class DatabaseStorage implements IStorage {
@@ -162,6 +163,11 @@ export class DatabaseStorage implements IStorage {
 
   async getLeaderboardByVentureId(ventureId: string): Promise<Leaderboard | undefined> {
     const [leaderboardRecord] = await db.select().from(leaderboard).where(eq(leaderboard.ventureId, ventureId));
+    return leaderboardRecord;
+  }
+
+  async updateLeaderboard(id: string, updateEntry: Partial<InsertLeaderboard>): Promise<Leaderboard> {
+    const [leaderboardRecord] = await db.update(leaderboard).set(updateEntry).where(eq(leaderboard.leaderboardId, id)).returning();
     return leaderboardRecord;
   }
 }

@@ -549,6 +549,51 @@ export class OnboardingService {
       isComplete: true,
     });
 
+    // Create leaderboard entry after successful scoring
+    if (scoringResult && venture) {
+      try {
+        const totalScore = scoringResult?.output?.total_score || scoringResult?.total_score || 0;
+        const extractedTags = scoringResult?.output?.tags || [];
+        
+        // Extract dimension scores safely
+        const dimensionScores = {
+          desirability: scoringResult?.output?.problem?.score || 0,
+          feasibility: scoringResult?.output?.solution?.score || 0,
+          viability: scoringResult?.output?.business_model?.score || 0,
+          traction: scoringResult?.output?.traction?.score || 0,
+          readiness: scoringResult?.output?.readiness?.score || 0,
+        };
+
+        // Check if leaderboard entry already exists for this venture
+        const existingEntry = await storage.getLeaderboardByVentureId(venture.ventureId);
+        
+        if (existingEntry) {
+          // Update existing entry if new score is higher
+          if (totalScore > existingEntry.totalScore) {
+            await storage.updateLeaderboard(existingEntry.leaderboardId, {
+              totalScore,
+              dimensionScores,
+              analysisDate: new Date(),
+            });
+            console.log(`✓ Updated leaderboard entry for ${venture.name} with higher score: ${totalScore}`);
+          }
+        } else {
+          // Create new leaderboard entry
+          await storage.createLeaderboardEntry({
+            ventureId: venture.ventureId,
+            ventureName: venture.name,
+            totalScore,
+            dimensionScores,
+            analysisDate: new Date(),
+          });
+          console.log(`✓ Created leaderboard entry for ${venture.name} with score: ${totalScore}`);
+        }
+      } catch (leaderboardError) {
+        console.error("Failed to create leaderboard entry:", leaderboardError);
+        // Don't fail the entire scoring process if leaderboard creation fails
+      }
+    }
+
     // Send Slack notification for scoring completion (async, no wait)
     if (eastEmblemAPI.isConfigured()) {
       const totalScore = scoringResult?.output?.total_score || scoringResult?.total_score || 0;
