@@ -751,23 +751,13 @@ export default function TeamOnboarding({
           Back
         </Button>
         
-        <div className="flex space-x-3">
-          <Button
-            variant="ghost"
-            onClick={handleSkip}
-            disabled={isSubmitting}
-            className="px-6 py-2"
-          >
-            Skip Team
-          </Button>
-          <Button
-            onClick={handleNext}
-            disabled={isSubmitting}
-            className="bg-purple-600 hover:bg-purple-700 px-6 py-2"
-          >
-            {isSubmitting ? "Saving..." : "Next: Upload Pitch Deck"}
-          </Button>
-        </div>
+        <Button
+          onClick={handleNext}
+          disabled={isSubmitting}
+          className="bg-purple-600 hover:bg-purple-700 px-6 py-2"
+        >
+          {isSubmitting ? "Saving..." : "Next: Upload Pitch Deck"}
+        </Button>
       </div>
     </motion.div>
   );
