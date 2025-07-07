@@ -1053,56 +1053,55 @@ export default function Analysis({
                 initial={{ opacity: 0, x: -20 }}
                 animate={{ opacity: 1, x: 0 }}
                 transition={{ delay: 0.8, duration: 0.6 }}
+                className="space-y-3"
               >
-                <Card className="p-8 border-violet-500/20 bg-gradient-to-br from-violet-950/40 to-amber-950/20 backdrop-blur-sm shadow-xl">
-                  <h3 className="text-lg font-semibold mb-6 bg-gradient-to-r from-violet-400 to-amber-400 bg-clip-text text-transparent flex items-center gap-2">
-                    <div className="p-1.5 rounded-lg bg-gradient-to-r from-violet-500 to-amber-500 shadow-lg">
-                      <BarChart3 className="w-4 h-4 text-white" />
-                    </div>
-                    Validation Dimensions
-                  </h3>
-                  <div className="space-y-4">
-                    {Object.entries(proofScore.dimensions).map(
-                      ([dimension, score]) => {
-                        const maxScores = {
-                          desirability: 20,
-                          feasibility: 15,
-                          viability: 15,
-                          traction: 40,
-                          readiness: 10,
-                        };
-                        const maxScore =
-                          maxScores[dimension as keyof typeof maxScores];
-                        const percentage = (score / maxScore) * 100;
-
-                        return (
-                          <div key={dimension} className="bg-gradient-to-r from-violet-950/30 to-amber-950/10 rounded-xl p-5 border border-violet-500/30 shadow-lg backdrop-blur-sm">
-                            <div className="flex justify-between items-center mb-4">
-                              <span className="text-base font-bold text-violet-200">
-                                {
-                                  dimensionLabels[
-                                    dimension as keyof typeof dimensionLabels
-                                  ]
-                                }
-                              </span>
-                              <span className="text-lg font-bold bg-gradient-to-r from-violet-300 to-amber-300 bg-clip-text text-transparent">
-                                {score}/{maxScore}
-                              </span>
-                            </div>
-                            <div className="w-full bg-violet-950/40 rounded-full h-4 shadow-inner border border-violet-800/50">
-                              <motion.div
-                                className={`h-4 rounded-full ${dimensionColors[dimension as keyof typeof dimensionColors]} shadow-lg ring-1 ring-white/20`}
-                                initial={{ width: 0 }}
-                                animate={{ width: `${percentage}%` }}
-                                transition={{ duration: 1.2, delay: 1.0 + Object.keys(proofScore.dimensions).indexOf(dimension) * 0.1 }}
-                              />
-                            </div>
-                          </div>
-                        );
-                      },
-                    )}
+                <h3 className="text-base font-semibold mb-4 bg-gradient-to-r from-violet-400 to-amber-400 bg-clip-text text-transparent flex items-center gap-2">
+                  <div className="p-1 rounded-lg bg-gradient-to-r from-violet-500 to-amber-500 shadow-lg">
+                    <BarChart3 className="w-3 h-3 text-white" />
                   </div>
-                </Card>
+                  Validation Dimensions
+                </h3>
+                <div className="space-y-3">
+                  {Object.entries(proofScore.dimensions).map(
+                    ([dimension, score]) => {
+                      const maxScores = {
+                        desirability: 20,
+                        feasibility: 15,
+                        viability: 15,
+                        traction: 40,
+                        readiness: 10,
+                      };
+                      const maxScore =
+                        maxScores[dimension as keyof typeof maxScores];
+                      const percentage = (score / maxScore) * 100;
+
+                      return (
+                        <div key={dimension} className="bg-gradient-to-r from-violet-950/30 to-amber-950/10 rounded-lg p-3 border border-violet-500/30 shadow-md backdrop-blur-sm">
+                          <div className="flex justify-between items-center mb-2">
+                            <span className="text-sm font-semibold text-violet-200">
+                              {
+                                dimensionLabels[
+                                  dimension as keyof typeof dimensionLabels
+                                ]
+                              }
+                            </span>
+                            <span className="text-sm font-bold bg-gradient-to-r from-violet-300 to-amber-300 bg-clip-text text-transparent">
+                              {score}/{maxScore}
+                            </span>
+                          </div>
+                          <div className="w-full bg-violet-950/40 rounded-full h-3 shadow-inner border border-violet-800/50">
+                            <motion.div
+                              className={`h-3 rounded-full ${dimensionColors[dimension as keyof typeof dimensionColors]} shadow-lg ring-1 ring-white/20`}
+                              initial={{ width: 0 }}
+                              animate={{ width: `${percentage}%` }}
+                              transition={{ duration: 1.2, delay: 1.0 + Object.keys(proofScore.dimensions).indexOf(dimension) * 0.1 }}
+                            />
+                          </div>
+                        </div>
+                      );
+                    },
+                  )}
+                </div>
               </motion.div>
 
               {/* Key Insights */}
@@ -1110,80 +1109,79 @@ export default function Analysis({
                 initial={{ opacity: 0, x: -20 }}
                 animate={{ opacity: 1, x: 0 }}
                 transition={{ delay: 1.2, duration: 0.6 }}
+                className="space-y-3"
               >
-                <Card className="p-8 border-violet-500/20 bg-gradient-to-br from-violet-950/40 to-amber-950/20 backdrop-blur-sm shadow-xl">
-                  <h3 className="text-lg font-semibold mb-6 bg-gradient-to-r from-violet-400 to-amber-400 bg-clip-text text-transparent flex items-center gap-2">
-                    <div className="p-1.5 rounded-lg bg-gradient-to-r from-violet-500 to-amber-500 shadow-lg">
-                      <Lightbulb className="w-4 h-4 text-white" />
-                    </div>
-                    Key Insights
-                  </h3>
-                  <div className="space-y-4">
-                    {proofScore.insights.strengths
-                      .slice(0, 2)
-                      .map((strength: any, index: number) => (
-                        <motion.div 
-                          key={index} 
-                          className="flex items-start space-x-4 bg-gradient-to-r from-green-950/40 to-emerald-950/20 rounded-xl p-5 border border-green-500/30 shadow-lg backdrop-blur-sm"
-                          initial={{ opacity: 0, y: 10 }}
-                          animate={{ opacity: 1, y: 0 }}
-                          transition={{ delay: 1.4 + index * 0.1 }}
-                        >
-                          <ThumbsUp className="text-green-400 mt-1 w-5 h-5 flex-shrink-0" />
-                          <div>
-                            <h4 className="font-bold text-green-300 text-base mb-2">
-                              {strength.title || "Strength"}
-                            </h4>
-                            <p className="text-sm text-green-100/80 leading-relaxed">
-                              {strength.description || strength}
-                            </p>
-                          </div>
-                        </motion.div>
-                      ))}
-                    {proofScore.insights.improvements
-                      .slice(0, 2)
-                      .map((improvement: any, index: number) => (
-                        <motion.div 
-                          key={index} 
-                          className="flex items-start space-x-4 bg-gradient-to-r from-yellow-950/40 to-orange-950/20 rounded-xl p-5 border border-yellow-500/30 shadow-lg backdrop-blur-sm"
-                          initial={{ opacity: 0, y: 10 }}
-                          animate={{ opacity: 1, y: 0 }}
-                          transition={{ delay: 1.6 + index * 0.1 }}
-                        >
-                          <AlertTriangle className="text-yellow-400 mt-1 w-5 h-5 flex-shrink-0" />
-                          <div>
-                            <h4 className="font-bold text-yellow-300 text-base mb-2">
-                              {improvement.title || "Area for Improvement"}
-                            </h4>
-                            <p className="text-sm text-yellow-100/80 leading-relaxed">
-                              {improvement.description || improvement}
-                            </p>
-                          </div>
-                        </motion.div>
-                      ))}
-                    {proofScore.insights.recommendations
-                      .slice(0, 1)
-                      .map((recommendation: any, index: number) => (
-                        <motion.div 
-                          key={index} 
-                          className="flex items-start space-x-4 bg-gradient-to-r from-violet-950/40 to-purple-950/20 rounded-xl p-5 border border-violet-500/30 shadow-lg backdrop-blur-sm"
-                          initial={{ opacity: 0, y: 10 }}
-                          animate={{ opacity: 1, y: 0 }}
-                          transition={{ delay: 1.8 + index * 0.1 }}
-                        >
-                          <TrendingUp className="text-violet-400 mt-1 w-5 h-5 flex-shrink-0" />
-                          <div>
-                            <h4 className="font-bold text-violet-300 text-base mb-2">
-                              {recommendation.title || "Recommendation"}
-                            </h4>
-                            <p className="text-sm text-violet-100/80 leading-relaxed">
-                              {recommendation.description || recommendation}
-                            </p>
-                          </div>
-                        </motion.div>
-                      ))}
+                <h3 className="text-base font-semibold mb-4 bg-gradient-to-r from-violet-400 to-amber-400 bg-clip-text text-transparent flex items-center gap-2">
+                  <div className="p-1 rounded-lg bg-gradient-to-r from-violet-500 to-amber-500 shadow-lg">
+                    <Lightbulb className="w-3 h-3 text-white" />
                   </div>
-                </Card>
+                  Key Insights
+                </h3>
+                <div className="space-y-3">
+                  {proofScore.insights.strengths
+                    .slice(0, 2)
+                    .map((strength: any, index: number) => (
+                      <motion.div 
+                        key={index} 
+                        className="flex items-start space-x-3 bg-gradient-to-r from-green-950/40 to-emerald-950/20 rounded-lg p-3 border border-green-500/30 shadow-md backdrop-blur-sm"
+                        initial={{ opacity: 0, y: 10 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        transition={{ delay: 1.4 + index * 0.1 }}
+                      >
+                        <ThumbsUp className="text-green-400 mt-1 w-4 h-4 flex-shrink-0" />
+                        <div>
+                          <h4 className="font-semibold text-green-300 text-sm mb-1">
+                            {strength.title || "Strength"}
+                          </h4>
+                          <p className="text-xs text-green-100/80 leading-relaxed">
+                            {strength.description || strength}
+                          </p>
+                        </div>
+                      </motion.div>
+                    ))}
+                  {proofScore.insights.improvements
+                    .slice(0, 2)
+                    .map((improvement: any, index: number) => (
+                      <motion.div 
+                        key={index} 
+                        className="flex items-start space-x-3 bg-gradient-to-r from-yellow-950/40 to-orange-950/20 rounded-lg p-3 border border-yellow-500/30 shadow-md backdrop-blur-sm"
+                        initial={{ opacity: 0, y: 10 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        transition={{ delay: 1.6 + index * 0.1 }}
+                      >
+                        <AlertTriangle className="text-yellow-400 mt-1 w-4 h-4 flex-shrink-0" />
+                        <div>
+                          <h4 className="font-semibold text-yellow-300 text-sm mb-1">
+                            {improvement.title || "Area for Improvement"}
+                          </h4>
+                          <p className="text-xs text-yellow-100/80 leading-relaxed">
+                            {improvement.description || improvement}
+                          </p>
+                        </div>
+                      </motion.div>
+                    ))}
+                  {proofScore.insights.recommendations
+                    .slice(0, 1)
+                    .map((recommendation: any, index: number) => (
+                      <motion.div 
+                        key={index} 
+                        className="flex items-start space-x-3 bg-gradient-to-r from-violet-950/40 to-purple-950/20 rounded-lg p-3 border border-violet-500/30 shadow-md backdrop-blur-sm"
+                        initial={{ opacity: 0, y: 10 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        transition={{ delay: 1.8 + index * 0.1 }}
+                      >
+                        <TrendingUp className="text-violet-400 mt-1 w-4 h-4 flex-shrink-0" />
+                        <div>
+                          <h4 className="font-semibold text-violet-300 text-sm mb-1">
+                            {recommendation.title || "Recommendation"}
+                          </h4>
+                          <p className="text-xs text-violet-100/80 leading-relaxed">
+                            {recommendation.description || recommendation}
+                          </p>
+                        </div>
+                      </motion.div>
+                    ))}
+                </div>
               </motion.div>
             </div>
 
