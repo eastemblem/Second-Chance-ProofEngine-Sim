@@ -37,10 +37,10 @@ function getPodiumIcon(rank: number) {
 }
 
 function getRankStyling(rank: number, isCurrentVenture: boolean) {
-  const baseClasses = "relative transition-all duration-300 rounded-xl";
+  const baseClasses = "relative transition-all duration-300 rounded-xl overflow-hidden";
   
   if (isCurrentVenture) {
-    return `${baseClasses} bg-gradient-to-r from-violet-500/20 to-amber-500/20 border-2 border-violet-400 shadow-lg shadow-violet-500/25`;
+    return `${baseClasses} bg-gradient-to-r from-violet-500/20 to-amber-500/20 border-2 border-transparent shadow-lg shadow-violet-500/25`;
   }
 
   if (rank === 1) {
@@ -146,12 +146,37 @@ export function Leaderboard({ currentVentureName }: LeaderboardProps) {
                   className="text-center"
                 >
                   <div className={getRankStyling(2, topThree[1].ventureName === currentVentureName)}>
-                    <div className="p-4 pb-6">
+                    {topThree[1].ventureName === currentVentureName && (
+                      <>
+                        {/* Animated border for podium */}
+                        <div className="absolute inset-0 pointer-events-none rounded-xl">
+                          <motion.div 
+                            className="absolute inset-0 rounded-xl"
+                            style={{
+                              background: 'linear-gradient(45deg, #8b5cf6, #f59e0b, #8b5cf6, #f59e0b)',
+                              backgroundSize: '400% 400%',
+                            }}
+                            animate={{
+                              backgroundPosition: ['0% 50%', '100% 50%', '0% 50%'],
+                            }}
+                            transition={{
+                              duration: 3,
+                              repeat: Infinity,
+                              ease: "easeInOut"
+                            }}
+                          />
+                          <div className="absolute inset-[2px] bg-background/95 rounded-xl" />
+                        </div>
+                        <div className="absolute -top-1 -right-1 w-3 h-3 bg-gradient-to-r from-violet-400 to-amber-400 rounded-full animate-pulse z-10"></div>
+                      </>
+                    )}
+                    <div className="relative z-10 p-4 pb-6">
                       <div className="w-16 h-16 mx-auto mb-3 bg-gradient-to-br from-gray-400 to-slate-500 rounded-full flex items-center justify-center">
                         <Medal className="w-8 h-8 text-gray-100" />
                       </div>
-                      <h4 className="font-semibold text-sm text-foreground truncate max-w-[120px]">
+                      <h4 className={`font-semibold text-sm truncate max-w-[120px] ${topThree[1].ventureName === currentVentureName ? 'text-violet-400' : 'text-foreground'}`}>
                         {topThree[1].ventureName}
+                        {topThree[1].ventureName === currentVentureName && <span className="block text-xs text-amber-400">(You)</span>}
                       </h4>
                       <div className="flex items-center justify-center gap-2 mt-2">
                         <Star className="w-4 h-4 text-gray-400" />
@@ -171,13 +196,38 @@ export function Leaderboard({ currentVentureName }: LeaderboardProps) {
                   className="text-center"
                 >
                   <div className={getRankStyling(1, topThree[0].ventureName === currentVentureName)}>
-                    <div className="p-4 pb-6">
+                    {topThree[0].ventureName === currentVentureName && (
+                      <>
+                        {/* Animated border for podium */}
+                        <div className="absolute inset-0 pointer-events-none rounded-xl">
+                          <motion.div 
+                            className="absolute inset-0 rounded-xl"
+                            style={{
+                              background: 'linear-gradient(45deg, #8b5cf6, #f59e0b, #8b5cf6, #f59e0b)',
+                              backgroundSize: '400% 400%',
+                            }}
+                            animate={{
+                              backgroundPosition: ['0% 50%', '100% 50%', '0% 50%'],
+                            }}
+                            transition={{
+                              duration: 3,
+                              repeat: Infinity,
+                              ease: "easeInOut"
+                            }}
+                          />
+                          <div className="absolute inset-[2px] bg-background/95 rounded-xl" />
+                        </div>
+                        <div className="absolute -top-1 -right-1 w-3 h-3 bg-gradient-to-r from-violet-400 to-amber-400 rounded-full animate-pulse z-10"></div>
+                      </>
+                    )}
+                    <div className="relative z-10 p-4 pb-6">
                       <Crown className="w-6 h-6 text-yellow-500 mx-auto mb-2" />
                       <div className="w-20 h-20 mx-auto mb-3 bg-gradient-to-br from-yellow-400 to-amber-500 rounded-full flex items-center justify-center">
                         <Trophy className="w-10 h-10 text-yellow-100" />
                       </div>
-                      <h4 className="font-semibold text-foreground truncate max-w-[140px]">
+                      <h4 className={`font-semibold truncate max-w-[140px] ${topThree[0].ventureName === currentVentureName ? 'text-violet-400' : 'text-foreground'}`}>
                         {topThree[0].ventureName}
+                        {topThree[0].ventureName === currentVentureName && <span className="block text-xs text-amber-400">(You)</span>}
                       </h4>
                       <div className="flex items-center justify-center gap-2 mt-2">
                         <Star className="w-4 h-4 text-yellow-500" />
@@ -197,12 +247,37 @@ export function Leaderboard({ currentVentureName }: LeaderboardProps) {
                   className="text-center"
                 >
                   <div className={getRankStyling(3, topThree[2].ventureName === currentVentureName)}>
-                    <div className="p-4 pb-6">
+                    {topThree[2].ventureName === currentVentureName && (
+                      <>
+                        {/* Animated border for podium */}
+                        <div className="absolute inset-0 pointer-events-none rounded-xl">
+                          <motion.div 
+                            className="absolute inset-0 rounded-xl"
+                            style={{
+                              background: 'linear-gradient(45deg, #8b5cf6, #f59e0b, #8b5cf6, #f59e0b)',
+                              backgroundSize: '400% 400%',
+                            }}
+                            animate={{
+                              backgroundPosition: ['0% 50%', '100% 50%', '0% 50%'],
+                            }}
+                            transition={{
+                              duration: 3,
+                              repeat: Infinity,
+                              ease: "easeInOut"
+                            }}
+                          />
+                          <div className="absolute inset-[2px] bg-background/95 rounded-xl" />
+                        </div>
+                        <div className="absolute -top-1 -right-1 w-3 h-3 bg-gradient-to-r from-violet-400 to-amber-400 rounded-full animate-pulse z-10"></div>
+                      </>
+                    )}
+                    <div className="relative z-10 p-4 pb-6">
                       <div className="w-16 h-16 mx-auto mb-3 bg-gradient-to-br from-amber-600 to-orange-500 rounded-full flex items-center justify-center">
                         <Medal className="w-8 h-8 text-amber-100" />
                       </div>
-                      <h4 className="font-semibold text-sm text-foreground truncate max-w-[120px]">
+                      <h4 className={`font-semibold text-sm truncate max-w-[120px] ${topThree[2].ventureName === currentVentureName ? 'text-violet-400' : 'text-foreground'}`}>
                         {topThree[2].ventureName}
+                        {topThree[2].ventureName === currentVentureName && <span className="block text-xs text-amber-400">(You)</span>}
                       </h4>
                       <div className="flex items-center justify-center gap-2 mt-2">
                         <Star className="w-4 h-4 text-amber-600" />
@@ -230,7 +305,34 @@ export function Leaderboard({ currentVentureName }: LeaderboardProps) {
                   transition={{ delay: (index + 3) * 0.1 }}
                   className={getRankStyling(entry.rank, isCurrentVenture)}
                 >
-                  <div className="flex items-center gap-4 p-4">
+                  {isCurrentVenture && (
+                    <>
+                      {/* Animated border */}
+                      <div className="absolute inset-0 pointer-events-none rounded-xl">
+                        <motion.div 
+                          className="absolute inset-0 rounded-xl"
+                          style={{
+                            background: 'linear-gradient(45deg, #8b5cf6, #f59e0b, #8b5cf6, #f59e0b)',
+                            backgroundSize: '400% 400%',
+                          }}
+                          animate={{
+                            backgroundPosition: ['0% 50%', '100% 50%', '0% 50%'],
+                          }}
+                          transition={{
+                            duration: 3,
+                            repeat: Infinity,
+                            ease: "easeInOut"
+                          }}
+                        />
+                        <div className="absolute inset-[2px] bg-background/95 rounded-xl" />
+                      </div>
+                      
+                      {/* Pulse indicator */}
+                      <div className="absolute -top-1 -right-1 w-3 h-3 bg-gradient-to-r from-violet-400 to-amber-400 rounded-full animate-pulse z-10"></div>
+                    </>
+                  )}
+                  
+                  <div className="relative z-10 flex items-center gap-4 p-4">
                     <div className="flex items-center justify-center w-10 h-10 rounded-full bg-muted/50">
                       <span className="text-sm font-bold text-muted-foreground">
                         {entry.rank}
@@ -255,12 +357,6 @@ export function Leaderboard({ currentVentureName }: LeaderboardProps) {
                       </div>
                     </div>
                   </div>
-                  
-                  {isCurrentVenture && (
-                    <div className="absolute inset-0 pointer-events-none">
-                      <div className="absolute -top-1 -right-1 w-3 h-3 bg-gradient-to-r from-violet-400 to-amber-400 rounded-full animate-pulse"></div>
-                    </div>
-                  )}
                 </motion.div>
               );
             })}
