@@ -1041,6 +1041,7 @@ export default function Analysis({
 
 
             </motion.div>
+          </Card>
 
           {/* Two Column Layout: Stacked Validation Info on Left, Leaderboard on Right */}
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 mb-8">
