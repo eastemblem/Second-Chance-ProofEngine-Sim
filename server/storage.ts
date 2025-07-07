@@ -1,6 +1,6 @@
-import { founder, venture, teamMember, proofVault, type Founder, type InsertFounder, type Venture, type InsertVenture, type TeamMember, type InsertTeamMember, type ProofVault, type InsertProofVault } from "@shared/schema";
+import { founder, venture, teamMember, proofVault, leaderboard, type Founder, type InsertFounder, type Venture, type InsertVenture, type TeamMember, type InsertTeamMember, type ProofVault, type InsertProofVault, type Leaderboard, type InsertLeaderboard } from "@shared/schema";
 import { db } from "./db";
-import { eq } from "drizzle-orm";
+import { eq, desc } from "drizzle-orm";
 
 export interface IStorage {
   getFounder(id: string): Promise<Founder | undefined>;
@@ -24,6 +24,11 @@ export interface IStorage {
   createProofVault(proofVault: InsertProofVault): Promise<ProofVault>;
   updateProofVault(id: string, proofVault: Partial<InsertProofVault>): Promise<ProofVault>;
   deleteProofVault(id: string): Promise<void>;
+  
+  // Leaderboard methods
+  getLeaderboard(limit?: number): Promise<Leaderboard[]>;
+  createLeaderboardEntry(entry: InsertLeaderboard): Promise<Leaderboard>;
+  getLeaderboardByVentureId(ventureId: string): Promise<Leaderboard | undefined>;
 }
 
 export class DatabaseStorage implements IStorage {
@@ -143,6 +148,21 @@ export class DatabaseStorage implements IStorage {
 
   async deleteProofVault(id: string): Promise<void> {
     await db.delete(proofVault).where(eq(proofVault.vaultId, id));
+  }
+
+  // Leaderboard methods
+  async getLeaderboard(limit: number = 10): Promise<Leaderboard[]> {
+    return db.select().from(leaderboard).orderBy(desc(leaderboard.totalScore)).limit(limit);
+  }
+
+  async createLeaderboardEntry(insertLeaderboard: InsertLeaderboard): Promise<Leaderboard> {
+    const [leaderboardRecord] = await db.insert(leaderboard).values(insertLeaderboard).returning();
+    return leaderboardRecord;
+  }
+
+  async getLeaderboardByVentureId(ventureId: string): Promise<Leaderboard | undefined> {
+    const [leaderboardRecord] = await db.select().from(leaderboard).where(eq(leaderboard.ventureId, ventureId));
+    return leaderboardRecord;
   }
 }
 

@@ -31,6 +31,7 @@ import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/comp
 import ProgressBar from "@/components/progress-bar";
 import { useToast } from "@/hooks/use-toast";
 import { ProofScoreResult } from "@shared/schema";
+import { Leaderboard } from "@/components/leaderboard";
 
 // Import score badges
 import Badge01 from "../../assets/badges/score/Badge_01.svg";
@@ -1158,6 +1159,16 @@ export default function Analysis({
               </Button>
             </div>
           </Card>
+
+          {/* Leaderboard Section */}
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 2.5, duration: 0.6 }}
+            className="mb-8"
+          >
+            <Leaderboard />
+          </motion.div>
 
           {/* Continue Button */}
           <div className="text-center">

@@ -172,6 +172,23 @@ export const documentUpload = pgTable("document_upload", {
   createdAt: timestamp("created_at").defaultNow().notNull(),
 });
 
+// Leaderboard table for tracking venture scores
+export const leaderboard = pgTable("leaderboard", {
+  leaderboardId: uuid("leaderboard_id").primaryKey().defaultRandom(),
+  ventureId: uuid("venture_id").references(() => venture.ventureId),
+  ventureName: varchar("venture_name", { length: 255 }).notNull(),
+  totalScore: integer("total_score").notNull(),
+  dimensionScores: jsonb("dimension_scores").$type<{
+    desirability: number;
+    feasibility: number;
+    viability: number;
+    traction: number;
+    readiness: number;
+  }>(),
+  analysisDate: timestamp("analysis_date").notNull().defaultNow(),
+  createdAt: timestamp("created_at").notNull().defaultNow(),
+});
+
 // Relations
 export const founderRelations = relations(founder, ({ many }) => ({
   ventures: many(venture),
@@ -264,6 +281,13 @@ export const documentUploadRelations = relations(documentUpload, ({ one }) => ({
   }),
 }));
 
+export const leaderboardRelations = relations(leaderboard, ({ one }) => ({
+  venture: one(venture, {
+    fields: [leaderboard.ventureId],
+    references: [venture.ventureId],
+  }),
+}));
+
 // Export types
 export type Founder = typeof founder.$inferSelect;
 export type InsertFounder = typeof founder.$inferInsert;
@@ -287,6 +311,8 @@ export type OnboardingSession = typeof onboardingSession.$inferSelect;
 export type InsertOnboardingSession = typeof onboardingSession.$inferInsert;
 export type DocumentUpload = typeof documentUpload.$inferSelect;
 export type InsertDocumentUpload = typeof documentUpload.$inferInsert;
+export type Leaderboard = typeof leaderboard.$inferSelect;
+export type InsertLeaderboard = typeof leaderboard.$inferInsert;
 
 export const founderSchema = z.object({
   fullName: z.string().min(1, "Name is required"),

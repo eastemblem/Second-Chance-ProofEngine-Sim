@@ -7,6 +7,7 @@ import { asyncHandler, createSuccessResponse } from "./utils/error-handler";
 import { cleanupUploadedFile } from "./utils/file-cleanup";
 import { onboardingService } from "./services/onboarding-service";
 import apiRoutes from "./routes/index";
+import { getLeaderboard, createLeaderboardEntry } from "./routes/leaderboard";
 import multer from "multer";
 import path from "path";
 import fs from "fs";
@@ -119,6 +120,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
   // Mount modular API routes
   app.use("/api", apiRoutes);
+
+  // Leaderboard routes
+  app.get("/api/leaderboard", asyncHandler(getLeaderboard));
+  app.post("/api/leaderboard", asyncHandler(createLeaderboardEntry));
 
   // Legacy onboarding data storage (kept for compatibility)
   app.post("/api/onboarding/store", asyncHandler(async (req, res) => {
