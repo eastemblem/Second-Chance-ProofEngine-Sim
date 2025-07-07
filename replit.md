@@ -300,6 +300,14 @@ Demo experience for testing different user journeys:
   * Removed individual help icons in favor of full-card hover interaction
   * Enhanced user experience with intuitive hover-to-learn functionality
   * Maintained celebration animations and milestone progression system
+- July 7, 2025. Fixed ProofTag duplication bug and streamlined team onboarding:
+  * Fixed Builder's Blueprint appearing in both unlocked and locked sections
+  * Root cause: inconsistent data sources between unlocked and locked tag displays
+  * Synchronized all ProofTag displays to use single extractedProofTags data source
+  * Enhanced tag filtering with case-insensitive comparison for robustness
+  * Removed duplicate "Skip Team" button from team onboarding interface
+  * Streamlined navigation with single "Next: Upload Pitch Deck" button
+  * Maintained all existing functionality while improving user experience
 
 ## User Preferences
 
