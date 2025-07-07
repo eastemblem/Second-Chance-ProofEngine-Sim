@@ -1055,9 +1055,9 @@ export default function Analysis({
                 transition={{ delay: 0.8, duration: 0.6 }}
               >
                 <Card className="p-8 border-violet-500/20 bg-gradient-to-br from-violet-950/40 to-amber-950/20 backdrop-blur-sm shadow-xl">
-                  <h3 className="text-2xl font-bold mb-8 bg-gradient-to-r from-violet-400 to-amber-400 bg-clip-text text-transparent flex items-center gap-3">
-                    <div className="p-2 rounded-xl bg-gradient-to-r from-violet-500 to-amber-500 shadow-lg">
-                      <BarChart3 className="w-5 h-5 text-white" />
+                  <h3 className="text-lg font-semibold mb-6 bg-gradient-to-r from-violet-400 to-amber-400 bg-clip-text text-transparent flex items-center gap-2">
+                    <div className="p-1.5 rounded-lg bg-gradient-to-r from-violet-500 to-amber-500 shadow-lg">
+                      <BarChart3 className="w-4 h-4 text-white" />
                     </div>
                     Validation Dimensions
                   </h3>
@@ -1112,9 +1112,9 @@ export default function Analysis({
                 transition={{ delay: 1.2, duration: 0.6 }}
               >
                 <Card className="p-8 border-violet-500/20 bg-gradient-to-br from-violet-950/40 to-amber-950/20 backdrop-blur-sm shadow-xl">
-                  <h3 className="text-2xl font-bold mb-8 bg-gradient-to-r from-violet-400 to-amber-400 bg-clip-text text-transparent flex items-center gap-3">
-                    <div className="p-2 rounded-xl bg-gradient-to-r from-violet-500 to-amber-500 shadow-lg">
-                      <Lightbulb className="w-5 h-5 text-white" />
+                  <h3 className="text-lg font-semibold mb-6 bg-gradient-to-r from-violet-400 to-amber-400 bg-clip-text text-transparent flex items-center gap-2">
+                    <div className="p-1.5 rounded-lg bg-gradient-to-r from-violet-500 to-amber-500 shadow-lg">
+                      <Lightbulb className="w-4 h-4 text-white" />
                     </div>
                     Key Insights
                   </h3>
