@@ -787,7 +787,8 @@ export default function Analysis({
               </div>
             </div>
 
-              {/* ProofTags Achievement Section */}
+            {/* ProofTags Achievement Section */}
+            <div className="bg-gradient-to-br from-primary/5 to-primary-gold/5 rounded-xl p-8 mb-6 border border-primary/10">
               <motion.div
                 initial={{ opacity: 0, y: 10 }}
                 animate={{ opacity: 1, y: 0 }}
@@ -1040,8 +1041,7 @@ export default function Analysis({
               )} */}
 
 
-              </motion.div>
-            </motion.div>
+            </div>
           </Card>
 
           {/* Two Column Layout: Stacked Validation Info on Left, Leaderboard on Right */}
