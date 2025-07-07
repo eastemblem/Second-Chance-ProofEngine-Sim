@@ -543,6 +543,9 @@ export default function Analysis({
       }
     });
 
+    console.log("Debug filtering - Unlocked tags:", unlockedTags);
+    console.log("Debug filtering - Locked tags:", lockedTags.map(t => t.name));
+
     console.log(
       "ProofTags extracted - Unlocked:",
       unlockedTags.length,
