@@ -22,6 +22,8 @@ interface LeaderboardProps {
 }
 
 export function Leaderboard({ currentVentureName }: LeaderboardProps) {
+  console.log("Leaderboard received currentVentureName:", currentVentureName);
+  
   const { data, isLoading, error } = useQuery<LeaderboardResponse>({
     queryKey: ['/api/leaderboard'],
     staleTime: 1000 * 60 * 5, // 5 minutes
@@ -82,6 +84,18 @@ export function Leaderboard({ currentVentureName }: LeaderboardProps) {
   const entries = data.data || [];
   const topThree = entries.slice(0, 3);
   const remaining = entries.slice(3);
+  
+  console.log("Leaderboard data entries:", entries.map(e => ({ name: e.ventureName, rank: e.rank })));
+  console.log("Checking for currentVentureName match:", currentVentureName);
+  console.log("Current venture name length:", currentVentureName?.length);
+  console.log("Current venture name char codes:", currentVentureName?.split('').map(c => c.charCodeAt(0)));
+  
+  entries.forEach(entry => {
+    const isMatch = entry.ventureName === currentVentureName;
+    const trimmedMatch = entry.ventureName.trim() === currentVentureName?.trim();
+    console.log(`"${entry.ventureName}" === "${currentVentureName}"? ${isMatch} (trimmed: ${trimmedMatch})`);
+    console.log(`Entry name length: ${entry.ventureName.length}, current name length: ${currentVentureName?.length}`);
+  });
 
   return (
     <Card className="w-full bg-gradient-to-br from-background to-background/80 border-border/50 shadow-xl">
@@ -107,7 +121,7 @@ export function Leaderboard({ currentVentureName }: LeaderboardProps) {
                 <PodiumCard 
                   entry={topThree[1]} 
                   rank={2} 
-                  isCurrentVenture={topThree[1].ventureName === currentVentureName}
+                  isCurrentVenture={topThree[1].ventureName.trim() === currentVentureName?.trim()}
                   delay={0.2}
                 />
               )}
@@ -117,7 +131,7 @@ export function Leaderboard({ currentVentureName }: LeaderboardProps) {
                 <PodiumCard 
                   entry={topThree[0]} 
                   rank={1} 
-                  isCurrentVenture={topThree[0].ventureName === currentVentureName}
+                  isCurrentVenture={topThree[0].ventureName.trim() === currentVentureName?.trim()}
                   delay={0.1}
                 />
               )}
@@ -127,7 +141,7 @@ export function Leaderboard({ currentVentureName }: LeaderboardProps) {
                 <PodiumCard 
                   entry={topThree[2]} 
                   rank={3} 
-                  isCurrentVenture={topThree[2].ventureName === currentVentureName}
+                  isCurrentVenture={topThree[2].ventureName.trim() === currentVentureName?.trim()}
                   delay={0.3}
                 />
               )}
@@ -138,14 +152,17 @@ export function Leaderboard({ currentVentureName }: LeaderboardProps) {
         {/* Rest of rankings */}
         {remaining.length > 0 && (
           <div className="space-y-3">
-            {remaining.map((entry, index) => (
-              <ListCard
-                key={entry.rank}
-                entry={entry}
-                isCurrentVenture={entry.ventureName === currentVentureName}
-                delay={(index + 3) * 0.1}
-              />
-            ))}
+            {remaining.map((entry, index) => {
+              const isCurrentVenture = entry.ventureName.trim() === currentVentureName?.trim();
+              return (
+                <ListCard
+                  key={entry.rank}
+                  entry={entry}
+                  isCurrentVenture={isCurrentVenture}
+                  delay={(index + 3) * 0.1}
+                />
+              );
+            })}
           </div>
         )}
       </CardContent>

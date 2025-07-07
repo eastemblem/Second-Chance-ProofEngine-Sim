@@ -206,7 +206,17 @@ export default function Analysis({
   const founderData = sessionData?.stepData?.founder;
   const ventureData =
     sessionData?.stepData?.venture?.venture || sessionData?.stepData?.venture;
-  const ventureName = ventureData?.name;
+  
+  // Also check sessionFromAPI for venture name
+  const apiVentureData = 
+    sessionFromAPI?.stepData?.venture?.venture || sessionFromAPI?.stepData?.venture;
+  
+  const ventureName = ventureData?.name || apiVentureData?.name;
+  
+  console.log("Analysis component - ventureData:", ventureData);
+  console.log("Analysis component - apiVentureData:", apiVentureData);
+  console.log("Analysis component - ventureName extracted:", ventureName);
+  console.log("Analysis component - venture name type:", typeof ventureName);
 
   console.log("Analysis component - scoringResult:", scoringResult);
   console.log(
