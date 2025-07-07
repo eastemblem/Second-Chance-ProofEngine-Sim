@@ -1054,10 +1054,10 @@ export default function Analysis({
                 animate={{ opacity: 1, x: 0 }}
                 transition={{ delay: 0.8, duration: 0.6 }}
               >
-                <Card className="p-6 border-border bg-gradient-to-br from-primary/5 to-primary-gold/5 border-primary/10">
-                  <h3 className="text-xl font-semibold mb-6 gradient-text flex items-center gap-2">
-                    <div className="p-1.5 rounded-lg bg-gradient-to-r from-violet-500 to-amber-500">
-                      <BarChart3 className="w-4 h-4 text-white" />
+                <Card className="p-8 border-violet-500/20 bg-gradient-to-br from-violet-950/40 to-amber-950/20 backdrop-blur-sm shadow-xl">
+                  <h3 className="text-2xl font-bold mb-8 bg-gradient-to-r from-violet-400 to-amber-400 bg-clip-text text-transparent flex items-center gap-3">
+                    <div className="p-2 rounded-xl bg-gradient-to-r from-violet-500 to-amber-500 shadow-lg">
+                      <BarChart3 className="w-5 h-5 text-white" />
                     </div>
                     Validation Dimensions
                   </h3>
@@ -1076,22 +1076,22 @@ export default function Analysis({
                         const percentage = (score / maxScore) * 100;
 
                         return (
-                          <div key={dimension} className="bg-background/50 rounded-lg p-4 border border-primary/10">
-                            <div className="flex justify-between items-center mb-3">
-                              <span className="text-sm font-semibold text-foreground">
+                          <div key={dimension} className="bg-gradient-to-r from-violet-950/30 to-amber-950/10 rounded-xl p-5 border border-violet-500/30 shadow-lg backdrop-blur-sm">
+                            <div className="flex justify-between items-center mb-4">
+                              <span className="text-base font-bold text-violet-200">
                                 {
                                   dimensionLabels[
                                     dimension as keyof typeof dimensionLabels
                                   ]
                                 }
                               </span>
-                              <span className="text-sm font-bold bg-gradient-to-r from-primary to-primary-gold bg-clip-text text-transparent">
+                              <span className="text-lg font-bold bg-gradient-to-r from-violet-300 to-amber-300 bg-clip-text text-transparent">
                                 {score}/{maxScore}
                               </span>
                             </div>
-                            <div className="w-full bg-border/50 rounded-full h-3 shadow-inner">
+                            <div className="w-full bg-violet-950/40 rounded-full h-4 shadow-inner border border-violet-800/50">
                               <motion.div
-                                className={`h-3 rounded-full ${dimensionColors[dimension as keyof typeof dimensionColors]} shadow-sm`}
+                                className={`h-4 rounded-full ${dimensionColors[dimension as keyof typeof dimensionColors]} shadow-lg ring-1 ring-white/20`}
                                 initial={{ width: 0 }}
                                 animate={{ width: `${percentage}%` }}
                                 transition={{ duration: 1.2, delay: 1.0 + Object.keys(proofScore.dimensions).indexOf(dimension) * 0.1 }}
@@ -1111,10 +1111,10 @@ export default function Analysis({
                 animate={{ opacity: 1, x: 0 }}
                 transition={{ delay: 1.2, duration: 0.6 }}
               >
-                <Card className="p-6 border-border bg-gradient-to-br from-primary/5 to-primary-gold/5 border-primary/10">
-                  <h3 className="text-xl font-semibold mb-6 gradient-text flex items-center gap-2">
-                    <div className="p-1.5 rounded-lg bg-gradient-to-r from-violet-500 to-amber-500">
-                      <Lightbulb className="w-4 h-4 text-white" />
+                <Card className="p-8 border-violet-500/20 bg-gradient-to-br from-violet-950/40 to-amber-950/20 backdrop-blur-sm shadow-xl">
+                  <h3 className="text-2xl font-bold mb-8 bg-gradient-to-r from-violet-400 to-amber-400 bg-clip-text text-transparent flex items-center gap-3">
+                    <div className="p-2 rounded-xl bg-gradient-to-r from-violet-500 to-amber-500 shadow-lg">
+                      <Lightbulb className="w-5 h-5 text-white" />
                     </div>
                     Key Insights
                   </h3>
@@ -1124,17 +1124,17 @@ export default function Analysis({
                       .map((strength: any, index: number) => (
                         <motion.div 
                           key={index} 
-                          className="flex items-start space-x-3 bg-green-500/10 rounded-lg p-4 border border-green-500/20"
+                          className="flex items-start space-x-4 bg-gradient-to-r from-green-950/40 to-emerald-950/20 rounded-xl p-5 border border-green-500/30 shadow-lg backdrop-blur-sm"
                           initial={{ opacity: 0, y: 10 }}
                           animate={{ opacity: 1, y: 0 }}
                           transition={{ delay: 1.4 + index * 0.1 }}
                         >
-                          <ThumbsUp className="text-green-500 mt-1 w-4 h-4 flex-shrink-0" />
+                          <ThumbsUp className="text-green-400 mt-1 w-5 h-5 flex-shrink-0" />
                           <div>
-                            <h4 className="font-semibold text-green-400 text-sm mb-1">
+                            <h4 className="font-bold text-green-300 text-base mb-2">
                               {strength.title || "Strength"}
                             </h4>
-                            <p className="text-sm text-muted-foreground leading-relaxed">
+                            <p className="text-sm text-green-100/80 leading-relaxed">
                               {strength.description || strength}
                             </p>
                           </div>
@@ -1145,17 +1145,17 @@ export default function Analysis({
                       .map((improvement: any, index: number) => (
                         <motion.div 
                           key={index} 
-                          className="flex items-start space-x-3 bg-yellow-500/10 rounded-lg p-4 border border-yellow-500/20"
+                          className="flex items-start space-x-4 bg-gradient-to-r from-yellow-950/40 to-orange-950/20 rounded-xl p-5 border border-yellow-500/30 shadow-lg backdrop-blur-sm"
                           initial={{ opacity: 0, y: 10 }}
                           animate={{ opacity: 1, y: 0 }}
                           transition={{ delay: 1.6 + index * 0.1 }}
                         >
-                          <AlertTriangle className="text-yellow-500 mt-1 w-4 h-4 flex-shrink-0" />
+                          <AlertTriangle className="text-yellow-400 mt-1 w-5 h-5 flex-shrink-0" />
                           <div>
-                            <h4 className="font-semibold text-yellow-400 text-sm mb-1">
+                            <h4 className="font-bold text-yellow-300 text-base mb-2">
                               {improvement.title || "Area for Improvement"}
                             </h4>
-                            <p className="text-sm text-muted-foreground leading-relaxed">
+                            <p className="text-sm text-yellow-100/80 leading-relaxed">
                               {improvement.description || improvement}
                             </p>
                           </div>
@@ -1166,17 +1166,17 @@ export default function Analysis({
                       .map((recommendation: any, index: number) => (
                         <motion.div 
                           key={index} 
-                          className="flex items-start space-x-3 bg-primary/10 rounded-lg p-4 border border-primary/20"
+                          className="flex items-start space-x-4 bg-gradient-to-r from-violet-950/40 to-purple-950/20 rounded-xl p-5 border border-violet-500/30 shadow-lg backdrop-blur-sm"
                           initial={{ opacity: 0, y: 10 }}
                           animate={{ opacity: 1, y: 0 }}
                           transition={{ delay: 1.8 + index * 0.1 }}
                         >
-                          <TrendingUp className="text-primary mt-1 w-4 h-4 flex-shrink-0" />
+                          <TrendingUp className="text-violet-400 mt-1 w-5 h-5 flex-shrink-0" />
                           <div>
-                            <h4 className="font-semibold text-primary text-sm mb-1">
+                            <h4 className="font-bold text-violet-300 text-base mb-2">
                               {recommendation.title || "Recommendation"}
                             </h4>
-                            <p className="text-sm text-muted-foreground leading-relaxed">
+                            <p className="text-sm text-violet-100/80 leading-relaxed">
                               {recommendation.description || recommendation}
                             </p>
                           </div>
