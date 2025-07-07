@@ -391,15 +391,7 @@ export default function Analysis({
       }
     });
 
-    console.log("Current score:", currentScore);
-    console.log("Final unlocked tags:", unlockedTags);
-    console.log("Final locked tags with requirements:", lockedTags);
-    console.log("ProofTag Debug - Builder's Blueprint check:", {
-      inUnlockedList: unlockedTags.includes("Builder's Blueprint"),
-      inApiTags: apiTags.includes("Builder's Blueprint"),
-      unlockedTagsArray: unlockedTags,
-      apiTagsArray: apiTags
-    });
+    console.log("ProofTags extracted - Unlocked:", unlockedTags.length, "Locked:", lockedTags.length);
 
     return {
       unlocked: unlockedTags.length,
@@ -805,21 +797,21 @@ export default function Analysis({
                   {/* Milestones Text - Center Aligned */}
                   <div className="text-center flex-1">
                     <p className="text-lg text-muted-foreground mb-2">
-                      {proofScore.prooTags.unlocked} of{" "}
-                      {proofScore.prooTags.total} validation milestones unlocked
+                      {extractedProofTags.unlocked} of{" "}
+                      {extractedProofTags.total} validation milestones unlocked
                     </p>
                     <div className="inline-flex items-center gap-2 px-4 py-2 bg-primary/10 rounded-full border border-primary/20">
                       <Target className="w-4 h-4 text-primary" />
                       <span className="text-sm font-semibold text-primary">
-                        {proofScore.prooTags.unlocked}/{proofScore.prooTags.total}{" "}
+                        {extractedProofTags.unlocked}/{extractedProofTags.total}{" "}
                         Tags Unlocked
                       </span>
-                      {proofScore.prooTags.unlocked <
-                        proofScore.prooTags.total && (
+                      {extractedProofTags.unlocked <
+                        extractedProofTags.total && (
                         <span className="text-sm text-muted-foreground">
                           -{" "}
-                          {proofScore.prooTags.total -
-                            proofScore.prooTags.unlocked}{" "}
+                          {extractedProofTags.total -
+                            extractedProofTags.unlocked}{" "}
                           to go
                         </span>
                       )}
@@ -860,8 +852,8 @@ export default function Analysis({
                             Math.PI *
                             40 *
                             (1 -
-                              proofScore.prooTags.unlocked /
-                                proofScore.prooTags.total),
+                              extractedProofTags.unlocked /
+                                extractedProofTags.total),
                         }}
                         transition={{ duration: 1.5, delay: 0.5 }}
                       />
@@ -886,8 +878,8 @@ export default function Analysis({
                     <div className="absolute inset-0 flex items-center justify-center">
                       <span className="text-lg font-bold text-primary">
                         {Math.round(
-                          (proofScore.prooTags.unlocked /
-                            proofScore.prooTags.total) *
+                          (extractedProofTags.unlocked /
+                            extractedProofTags.total) *
                             100,
                         )}
                         %
@@ -901,7 +893,7 @@ export default function Analysis({
               {/* ProofTags Grid - Unlocked and Locked */}
               <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3">
                 {/* Unlocked Tags */}
-                {proofScore.prooTags.tags.map((tag, index) => (
+                {extractedProofTags.unlockedTags.map((tag, index) => (
                   <motion.div
                     key={`unlocked-${index}`}
                     initial={{ opacity: 0, scale: 0.8, y: 20 }}
@@ -965,7 +957,7 @@ export default function Analysis({
                     animate={{ opacity: 1, scale: 1, y: 0 }}
                     transition={{
                       delay:
-                        0.6 + (proofScore.prooTags.tags.length + index) * 0.1,
+                        0.6 + (extractedProofTags.unlockedTags.length + index) * 0.1,
                       type: "spring",
                       stiffness: 200,
                       damping: 20,
