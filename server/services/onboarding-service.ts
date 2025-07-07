@@ -555,13 +555,13 @@ export class OnboardingService {
         const totalScore = scoringResult?.output?.total_score || scoringResult?.total_score || 0;
         const extractedTags = scoringResult?.output?.tags || [];
         
-        // Extract dimension scores safely
+        // Extract dimension scores safely - map API categories to our 5 dimensions
         const dimensionScores = {
-          desirability: scoringResult?.output?.problem?.score || 0,
-          feasibility: scoringResult?.output?.solution?.score || 0,
-          viability: scoringResult?.output?.business_model?.score || 0,
-          traction: scoringResult?.output?.traction?.score || 0,
-          readiness: scoringResult?.output?.readiness?.score || 0,
+          desirability: (scoringResult?.output?.problem?.score || 0) + (scoringResult?.output?.market_opportunity?.score || 0),
+          feasibility: (scoringResult?.output?.solution?.score || 0) + (scoringResult?.output?.product_technology?.score || 0),
+          viability: (scoringResult?.output?.business_model?.score || 0) + (scoringResult?.output?.financials_projections_ask?.score || 0),
+          traction: (scoringResult?.output?.traction?.score || 0) + (scoringResult?.output?.go_to_market_strategy?.score || 0),
+          readiness: (scoringResult?.output?.readiness?.score || 0) + (scoringResult?.output?.team?.score || 0),
         };
 
         // Check if leaderboard entry already exists for this venture
@@ -587,6 +587,23 @@ export class OnboardingService {
             analysisDate: new Date(),
           });
           console.log(`✓ Created leaderboard entry for ${venture.name} with score: ${totalScore}`);
+        }
+
+        // Store complete evaluation data in evaluation table
+        try {
+          await storage.createEvaluation({
+            ventureId: venture.ventureId,
+            evaluationDate: new Date().toISOString().split('T')[0], // YYYY-MM-DD format
+            proofscore: totalScore,
+            prooftags: extractedTags,
+            folderId: folderStructure?.id || null,
+            folderUrl: folderStructure?.url || null,
+            isCurrent: true,
+          });
+          console.log(`✓ Created evaluation record for ${venture.name}`);
+        } catch (evaluationError) {
+          console.error("Failed to create evaluation record:", evaluationError);
+          // Don't fail the entire scoring process if evaluation creation fails
         }
       } catch (leaderboardError) {
         console.error("Failed to create leaderboard entry:", leaderboardError);

@@ -1,4 +1,4 @@
-import { founder, venture, teamMember, proofVault, leaderboard, type Founder, type InsertFounder, type Venture, type InsertVenture, type TeamMember, type InsertTeamMember, type ProofVault, type InsertProofVault, type Leaderboard, type InsertLeaderboard } from "@shared/schema";
+import { founder, venture, teamMember, proofVault, leaderboard, evaluation, type Founder, type InsertFounder, type Venture, type InsertVenture, type TeamMember, type InsertTeamMember, type ProofVault, type InsertProofVault, type Leaderboard, type InsertLeaderboard, type Evaluation, type InsertEvaluation } from "@shared/schema";
 import { db } from "./db";
 import { eq, desc } from "drizzle-orm";
 
@@ -24,6 +24,13 @@ export interface IStorage {
   createProofVault(proofVault: InsertProofVault): Promise<ProofVault>;
   updateProofVault(id: string, proofVault: Partial<InsertProofVault>): Promise<ProofVault>;
   deleteProofVault(id: string): Promise<void>;
+  
+  // Evaluation methods
+  getEvaluation(id: string): Promise<Evaluation | undefined>;
+  getEvaluationsByVentureId(ventureId: string): Promise<Evaluation[]>;
+  createEvaluation(evaluation: InsertEvaluation): Promise<Evaluation>;
+  updateEvaluation(id: string, evaluation: Partial<InsertEvaluation>): Promise<Evaluation>;
+  deleteEvaluation(id: string): Promise<void>;
   
   // Leaderboard methods
   getLeaderboard(limit?: number): Promise<Leaderboard[]>;
@@ -149,6 +156,30 @@ export class DatabaseStorage implements IStorage {
 
   async deleteProofVault(id: string): Promise<void> {
     await db.delete(proofVault).where(eq(proofVault.vaultId, id));
+  }
+
+  // Evaluation methods
+  async getEvaluation(id: string): Promise<Evaluation | undefined> {
+    const [evaluationRecord] = await db.select().from(evaluation).where(eq(evaluation.evaluationId, id));
+    return evaluationRecord;
+  }
+
+  async getEvaluationsByVentureId(ventureId: string): Promise<Evaluation[]> {
+    return db.select().from(evaluation).where(eq(evaluation.ventureId, ventureId)).orderBy(desc(evaluation.evaluationDate));
+  }
+
+  async createEvaluation(insertEvaluation: InsertEvaluation): Promise<Evaluation> {
+    const [evaluationRecord] = await db.insert(evaluation).values(insertEvaluation).returning();
+    return evaluationRecord;
+  }
+
+  async updateEvaluation(id: string, updateEvaluation: Partial<InsertEvaluation>): Promise<Evaluation> {
+    const [evaluationRecord] = await db.update(evaluation).set(updateEvaluation).where(eq(evaluation.evaluationId, id)).returning();
+    return evaluationRecord;
+  }
+
+  async deleteEvaluation(id: string): Promise<void> {
+    await db.delete(evaluation).where(eq(evaluation.evaluationId, id));
   }
 
   // Leaderboard methods
