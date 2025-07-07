@@ -206,6 +206,7 @@ export default function Analysis({
   const founderData = sessionData?.stepData?.founder;
   const ventureData =
     sessionData?.stepData?.venture?.venture || sessionData?.stepData?.venture;
+  const ventureName = ventureData?.name;
 
   console.log("Analysis component - scoringResult:", scoringResult);
   console.log(
@@ -1167,7 +1168,7 @@ export default function Analysis({
             transition={{ delay: 2.5, duration: 0.6 }}
             className="mb-8"
           >
-            <Leaderboard />
+            <Leaderboard currentVentureName={ventureName} />
           </motion.div>
 
           {/* Continue Button */}
