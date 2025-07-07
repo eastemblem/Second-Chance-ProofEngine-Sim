@@ -3,16 +3,10 @@ import { useQuery } from "@tanstack/react-query";
 import { motion } from "framer-motion";
 import { Crown, Trophy, Medal, Star } from "lucide-react";
 
-// Import score badge assets
-import Badge01 from "../assets/badges/score/Badge_01.svg";
-import Badge02 from "../assets/badges/score/Badge_02.svg";
-import Badge03 from "../assets/badges/score/Badge_03.svg";
-import Badge04 from "../assets/badges/score/Badge_04.svg";
-import Badge05 from "../assets/badges/score/Badge_05.svg";
-import Badge06 from "../assets/badges/score/Badge_06.svg";
-import Badge07 from "../assets/badges/score/Badge_07.svg";
-import Badge08 from "../assets/badges/score/Badge_08.svg";
-import Badge09 from "../assets/badges/score/Badge_09.svg";
+// Import rank medal assets
+import GoldMedal from "../assets/rank/gold-medal.svg";
+import SilverMedal from "../assets/rank/silver-medal.svg";
+import BronzeMedal from "../assets/rank/bronze-medal.svg";
 
 interface LeaderboardEntry {
   ventureName: string;
@@ -32,28 +26,12 @@ interface LeaderboardProps {
   currentVentureName?: string;
 }
 
-// Get score badge mapping function
-function getScoreBadge(score: number): string | null {
-  const badges = {
-    1: Badge01,
-    2: Badge02, 
-    3: Badge03,
-    4: Badge04,
-    5: Badge05,
-    6: Badge06,
-    7: Badge07,
-    8: Badge08,
-    9: Badge09,
-  };
-
-  if (score < 10) return null; // No badge for scores below 10
-  if (score >= 91) return badges[9]; // Score 91-100 → Badge 9
-
-  // Calculate badge number (10-90 maps to badges 1-8)
-  const badgeNumber = Math.ceil((score - 10) / 10) + 1;
-  const clampedBadgeNumber = Math.min(Math.max(badgeNumber, 1), 9);
-
-  return badges[clampedBadgeNumber as keyof typeof badges] || null;
+// Get rank medal for podium positions
+function getRankMedal(rank: number): string | null {
+  if (rank === 1) return GoldMedal;
+  if (rank === 2) return SilverMedal;
+  if (rank === 3) return BronzeMedal;
+  return null;
 }
 
 function getPodiumIcon(rank: number) {
@@ -175,7 +153,7 @@ export function Leaderboard({ currentVentureName }: LeaderboardProps) {
                   <div className={getRankStyling(2, topThree[1].ventureName === currentVentureName)}>
                     <div className="p-4 pb-6">
                       <div className="w-16 h-16 mx-auto mb-3 bg-gradient-to-br from-gray-400 to-slate-500 rounded-full flex items-center justify-center">
-                        <span className="text-white font-bold text-xl">2</span>
+                        <img src={SilverMedal} alt="Silver Medal" className="w-8 h-8" />
                       </div>
                       <h4 className="font-semibold text-sm text-foreground truncate max-w-[120px]">
                         {topThree[1].ventureName}
@@ -184,13 +162,6 @@ export function Leaderboard({ currentVentureName }: LeaderboardProps) {
                         <Star className="w-4 h-4 text-gray-400" />
                         <span className="text-lg font-bold text-gray-400">{topThree[1].totalScore}</span>
                       </div>
-                      {getScoreBadge(topThree[1].totalScore) && (
-                        <img 
-                          src={getScoreBadge(topThree[1].totalScore)!} 
-                          alt="Score Badge" 
-                          className="w-8 h-8 mx-auto mt-2"
-                        />
-                      )}
                     </div>
                   </div>
                 </motion.div>
@@ -208,7 +179,7 @@ export function Leaderboard({ currentVentureName }: LeaderboardProps) {
                     <div className="p-4 pb-6">
                       <Crown className="w-6 h-6 text-yellow-500 mx-auto mb-2" />
                       <div className="w-20 h-20 mx-auto mb-3 bg-gradient-to-br from-yellow-400 to-amber-500 rounded-full flex items-center justify-center">
-                        <span className="text-white font-bold text-2xl">1</span>
+                        <img src={GoldMedal} alt="Gold Medal" className="w-10 h-10" />
                       </div>
                       <h4 className="font-semibold text-foreground truncate max-w-[140px]">
                         {topThree[0].ventureName}
@@ -217,13 +188,6 @@ export function Leaderboard({ currentVentureName }: LeaderboardProps) {
                         <Star className="w-4 h-4 text-yellow-500" />
                         <span className="text-xl font-bold text-yellow-500">{topThree[0].totalScore}</span>
                       </div>
-                      {getScoreBadge(topThree[0].totalScore) && (
-                        <img 
-                          src={getScoreBadge(topThree[0].totalScore)!} 
-                          alt="Score Badge" 
-                          className="w-10 h-10 mx-auto mt-2"
-                        />
-                      )}
                     </div>
                   </div>
                 </motion.div>
@@ -240,7 +204,7 @@ export function Leaderboard({ currentVentureName }: LeaderboardProps) {
                   <div className={getRankStyling(3, topThree[2].ventureName === currentVentureName)}>
                     <div className="p-4 pb-6">
                       <div className="w-16 h-16 mx-auto mb-3 bg-gradient-to-br from-amber-600 to-orange-500 rounded-full flex items-center justify-center">
-                        <span className="text-white font-bold text-xl">3</span>
+                        <img src={BronzeMedal} alt="Bronze Medal" className="w-8 h-8" />
                       </div>
                       <h4 className="font-semibold text-sm text-foreground truncate max-w-[120px]">
                         {topThree[2].ventureName}
@@ -249,13 +213,6 @@ export function Leaderboard({ currentVentureName }: LeaderboardProps) {
                         <Star className="w-4 h-4 text-amber-600" />
                         <span className="text-lg font-bold text-amber-600">{topThree[2].totalScore}</span>
                       </div>
-                      {getScoreBadge(topThree[2].totalScore) && (
-                        <img 
-                          src={getScoreBadge(topThree[2].totalScore)!} 
-                          alt="Score Badge" 
-                          className="w-8 h-8 mx-auto mt-2"
-                        />
-                      )}
                     </div>
                   </div>
                 </motion.div>
@@ -290,11 +247,6 @@ export function Leaderboard({ currentVentureName }: LeaderboardProps) {
                         {entry.ventureName}
                         {isCurrentVenture && <span className="ml-2 text-amber-400">(You)</span>}
                       </h4>
-                      {entry.isReal && (
-                        <p className="text-xs text-green-600 dark:text-green-400">
-                          Real venture
-                        </p>
-                      )}
                     </div>
 
                     <div className="flex items-center gap-3">
@@ -306,14 +258,6 @@ export function Leaderboard({ currentVentureName }: LeaderboardProps) {
                           points
                         </div>
                       </div>
-                      
-                      {getScoreBadge(entry.totalScore) && (
-                        <img 
-                          src={getScoreBadge(entry.totalScore)!} 
-                          alt="Score Badge" 
-                          className="w-8 h-8"
-                        />
-                      )}
                     </div>
                   </div>
                   
@@ -328,13 +272,7 @@ export function Leaderboard({ currentVentureName }: LeaderboardProps) {
           </div>
         )}
 
-        {data.source === 'mixed' && (
-          <div className="mt-6 pt-4 border-t border-border/50">
-            <p className="text-xs text-muted-foreground text-center">
-              Complete your venture analysis to secure your position on the real leaderboard
-            </p>
-          </div>
-        )}
+
       </CardContent>
     </Card>
   );
