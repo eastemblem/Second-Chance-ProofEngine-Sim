@@ -304,3 +304,10 @@ Demo experience for testing different user journeys:
 ## User Preferences
 
 Preferred communication style: Simple, everyday language.
+
+**Development Communication Pattern**:
+- Apply question-first approach to all technical development tasks
+- Before implementing any feature or fix, ask relevant counter-questions to gather context
+- Only proceed after asking "Do you want me to ask more questions, or should I proceed with the answer?"
+- This approach reduces unnecessary work and produces better outputs by understanding requirements fully
+- Continue this pattern throughout entire conversation
