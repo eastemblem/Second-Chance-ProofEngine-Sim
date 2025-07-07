@@ -375,7 +375,10 @@ export default function Analysis({
 
     // Find which tags are NOT unlocked (these are locked)
     ALL_PROOF_TAGS.forEach((tag) => {
-      const isUnlocked = unlockedTags.includes(tag.name);
+      // Check if tag is in the unlocked list (case-insensitive comparison)
+      const isUnlocked = unlockedTags.some(unlockedTag => 
+        unlockedTag.toLowerCase().trim() === tag.name.toLowerCase().trim()
+      );
 
       if (!isUnlocked) {
         lockedTags.push({
@@ -391,6 +394,12 @@ export default function Analysis({
     console.log("Current score:", currentScore);
     console.log("Final unlocked tags:", unlockedTags);
     console.log("Final locked tags with requirements:", lockedTags);
+    console.log("ProofTag Debug - Builder's Blueprint check:", {
+      inUnlockedList: unlockedTags.includes("Builder's Blueprint"),
+      inApiTags: apiTags.includes("Builder's Blueprint"),
+      unlockedTagsArray: unlockedTags,
+      apiTagsArray: apiTags
+    });
 
     return {
       unlocked: unlockedTags.length,

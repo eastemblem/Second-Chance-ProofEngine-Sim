@@ -1,0 +1,149 @@
+[
+  {
+    "output": {
+      "venture_name": "East Emblem",
+      "founder_stage": "Seed",
+      "business_model_type": "B2B SaaS Platform for Institutional Fund and Portfolio Validation",
+      "milestone": "ProofScaler Candidate",
+      "investor_relevance": [
+        "Institutional Investors in MENA/GCC",
+        "GPs and Fund Managers seeking scalable capital raising"
+      ],
+      "team": [
+        {
+          "name": "Lewis Kilroe, CAIA",
+          "role": "Managing Director",
+          "experience": "10+ years in operational due diligence and investment operations with over 500 due diligence reviews globally",
+          "background": "Former roles at Amundi, Man Group, JP Morgan advising sovereign wealth funds and institutional allocators in GCC"
+        },
+        {
+          "name": "Louis Ravenscroft",
+          "role": "Managing Director",
+          "experience": "5x Founder, 12+ years in startup ideation, validation, and scaling",
+          "background": "Ex-Techstars, launched ventures in fintech, e-commerce, and data analytics"
+        },
+        {
+          "name": "Julian Sperring-Toy",
+          "role": "Senior Advisor",
+          "experience": "25 years in corporate restructuring, venture capital, and scaling businesses with $3B+ delivered in M&A and operational leadership",
+          "background": "Experience across fintech, SaaS, and global manufacturing"
+        }
+      ],
+      "desirability": {
+        "score": 16,
+        "justification": "Strong articulation of the core problem of institutional investment challenges in MENA/GCC with validated demand signals such as increased global allocations, high rejection rates for accelerator applicants, and lack of structured second chance validation. The pitch clearly identifies investor and GP pain points with evidence of market needs and ecosystem gaps (slides 1-5, 13-19).",
+        "related_slides": [
+          "1",
+          "2",
+          "4",
+          "13",
+          "15"
+        ],
+        "recommendation": "Include specific quantified customer interviews or testimonials from GPs and fund managers to strengthen qualitative evidence and deepen persona profiles.",
+        "proofTags": [
+          "Problem Hunter",
+          "Target Locked",
+          "Signal Chaser"
+        ]
+      },
+      "feasibility": {
+        "score": 13,
+        "justification": "Provides a detailed, structured methodology and platform ecosystem (FundSync, VentureSync, Second Chance Program) with technology-enabled validation and AI-powered analytics. Roadmaps, frameworks, and proven execution approaches demonstrate solution viability but lack MVP or direct user testing data from startups or fund managers explicitly in the pitch (slides 6-12, 24-29).",
+        "related_slides": [
+          "6",
+          "9",
+          "22",
+          "24"
+        ],
+        "recommendation": "Showcase MVP demos, pilot user feedback, or operational metrics from current clients or pilot programs to confirm product-market fit and execution success.",
+        "proofTags": [
+          "Prototype Pilot",
+          "Solution Stamped",
+          "Builder’s Blueprint"
+        ]
+      },
+      "viability": {
+        "score": 10,
+        "justification": "Clear business model focusing on institutional fund validation SaaS services, deal flow optimization, and fractional institutionalization support. Monetization models are implied but detailed pricing validation, CAC, LTV, and acquisition funnel metrics are not shown. Go-to-market strategy is outlined but lacks specific economics or customer acquisition data in the deck (slides 30-33).",
+        "related_slides": [
+          "30",
+          "31",
+          "32"
+        ],
+        "recommendation": "Include validated pricing experiments, customer acquisition cost data, and unit economics to strengthen business viability evidence.",
+        "proofTags": [
+          "Revenue Radar"
+        ]
+      },
+      "traction": {
+        "score": 22,
+        "justification": "The venture shows strong industry validation including over 500 due diligence exercises done, established client partnerships (JP Morgan, Man Group, Techstars), and ecosystem traction via AI-powered platform user adoption. However, direct startup or fund manager traction metrics such as MRR, LOIs, or signed deals are not explicitly presented. Ecosystem engagement and investor interest are evident qualitatively (slides 19-24, 34).",
+        "related_slides": [
+          "19",
+          "21",
+          "34"
+        ],
+        "recommendation": "Provide quantitative traction data such as active clients, recurring revenue figures, letters of intent, or pilot deals to demonstrate measurable market adoption and growth.",
+        "proofTags": [
+          "Traction Tracker",
+          "Channel Sniper",
+          "Momentum Master"
+        ]
+      },
+      "readiness": {
+        "score": 7,
+        "justification": "The pitch deck is comprehensive with detailed descriptions of service offerings, team expertise, frameworks, and roadmaps, indicating readiness for investor interaction. However, financials, detailed investor materials, and a data room are not clearly referenced as included (entire deck reference).",
+        "related_slides": [
+          "all"
+        ],
+        "recommendation": "Prepare and upload full investor package including 3-year financial projections, due diligence materials, and data room to elevate investor confidence and seamless funding discussions.",
+        "proofTags": [
+          "Vault Ready"
+        ]
+      },
+      "total_score": 68,
+      "tags": [
+        "Problem Hunter",
+        "Target Locked",
+        "Signal Chaser",
+        "Prototype Pilot",
+        "Solution Stamped",
+        "Builder’s Blueprint",
+        "Revenue Radar",
+        "Traction Tracker",
+        "Channel Sniper",
+        "Momentum Master",
+        "Vault Ready"
+      ],
+      "key_insights": [
+        {
+          "title": "Strong Foundation",
+          "description": "East Emblem addresses a crucial institutional investment gap in the MENA/GCC region with validated market demand and a robust solution ecosystem."
+        },
+        {
+          "title": "Needs Attention",
+          "description": "Key quantitative validations such as MVP testing feedback, pricing unit economics, and direct traction metrics from users are missing."
+        },
+        {
+          "title": "Next Steps",
+          "description": "Enhance investor materials by including operational metrics, pricing validation, customer testimonials, and complete financial packages to accelerate funding readiness."
+        }
+      ],
+      "missing_tags": [
+        {
+          "score": "+3",
+          "tag": "Price Proven"
+        },
+        {
+          "score": "+3",
+          "tag": "CAC Commander"
+        },
+        {
+          "score": "+10",
+          "tag": "MRR / Pilot Deals / Investor Interest quantitative metrics"
+        }
+      ],
+      "strategic_feedback": "*East Emblem* addresses a vital gap for institutional validation and de-risking in emerging markets with a strong domain-experienced team and proven methodology. To elevate to investor-ready status (score 90+), focus on:\n- Validated pricing experiments and customer acquisition cost data (+3)\n- Strong measurable traction signals: MRR, signed pilot deals, and investor commitments (+10)\n- MVP or client user test feedback loops demonstrating product efficacy (+3)\nCompleting these steps will unlock higher confidence among LPs and enable scalable capital raising."
+    }
+  }
+]
