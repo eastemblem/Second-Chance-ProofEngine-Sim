@@ -788,16 +788,15 @@ export default function Analysis({
             </div>
 
             {/* ProofTags Achievement Section */}
-            <div className="bg-gradient-to-br from-primary/5 to-primary-gold/5 rounded-xl p-8 mb-6 border border-primary/10">
-              <motion.div
-                initial={{ opacity: 0, y: 10 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ delay: 0.4 }}
-                className="text-center mb-6"
-              >
-                <h3 className="text-2xl font-bold mb-4 gradient-text">
-                  🏆 ProofTag Validation Progress
-                </h3>
+            <motion.div
+              initial={{ opacity: 0, y: 10 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: 0.4 }}
+              className="text-center mb-6"
+            >
+              <h3 className="text-2xl font-bold mb-4 gradient-text">
+                🏆 ProofTag Validation Progress
+              </h3>
 
                 {/* Milestones Text and Progress Bar - Side by Side */}
                 <div className="flex items-center justify-center gap-8 mx-6 mb-4">
@@ -1041,8 +1040,7 @@ export default function Analysis({
               )} */}
 
 
-            </div>
-          </Card>
+            </motion.div>
 
           {/* Two Column Layout: Stacked Validation Info on Left, Leaderboard on Right */}
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 mb-8">
