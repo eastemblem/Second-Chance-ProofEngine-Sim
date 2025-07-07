@@ -84,7 +84,7 @@ export function Leaderboard({ currentVentureName }: LeaderboardProps) {
   const remaining = entries.slice(3);
 
   return (
-    <Card className="w-full bg-gradient-to-br from-background to-background/80 border-border/50 shadow-xl">
+    <Card className="w-full bg-gradient-to-br from-violet-950/40 to-amber-950/20 backdrop-blur-sm shadow-xl border-violet-500/20">
       <CardHeader className="pb-6">
         <CardTitle className="flex items-center gap-3 text-foreground">
           <div className="p-2 rounded-lg bg-gradient-to-r from-violet-500 to-amber-500">

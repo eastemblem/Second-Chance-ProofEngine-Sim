@@ -1055,9 +1055,9 @@ export default function Analysis({
                 transition={{ delay: 0.8, duration: 0.6 }}
                 className="space-y-3"
               >
-                <h3 className="text-base font-semibold mb-4 bg-gradient-to-r from-violet-400 to-amber-400 bg-clip-text text-transparent flex items-center gap-2">
-                  <div className="p-1 rounded-lg bg-gradient-to-r from-violet-500 to-amber-500 shadow-lg">
-                    <BarChart3 className="w-3 h-3 text-white" />
+                <h3 className="text-lg font-semibold mb-4 bg-gradient-to-r from-violet-400 to-amber-400 bg-clip-text text-transparent flex items-center gap-2">
+                  <div className="p-1.5 rounded-lg bg-gradient-to-r from-violet-500 to-amber-500 shadow-lg">
+                    <BarChart3 className="w-4 h-4 text-white" />
                   </div>
                   Validation Dimensions
                 </h3>
@@ -1111,9 +1111,9 @@ export default function Analysis({
                 transition={{ delay: 1.2, duration: 0.6 }}
                 className="space-y-3"
               >
-                <h3 className="text-base font-semibold mb-4 bg-gradient-to-r from-violet-400 to-amber-400 bg-clip-text text-transparent flex items-center gap-2">
-                  <div className="p-1 rounded-lg bg-gradient-to-r from-violet-500 to-amber-500 shadow-lg">
-                    <Lightbulb className="w-3 h-3 text-white" />
+                <h3 className="text-lg font-semibold mb-4 bg-gradient-to-r from-violet-400 to-amber-400 bg-clip-text text-transparent flex items-center gap-2">
+                  <div className="p-1.5 rounded-lg bg-gradient-to-r from-violet-500 to-amber-500 shadow-lg">
+                    <Lightbulb className="w-4 h-4 text-white" />
                   </div>
                   Key Insights
                 </h3>
