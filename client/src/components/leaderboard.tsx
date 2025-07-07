@@ -29,53 +29,45 @@ export function Leaderboard({ currentVentureName }: LeaderboardProps) {
 
   if (isLoading) {
     return (
-      <Card className="w-full bg-gradient-to-br from-background to-background/80 border-border/50">
-        <CardHeader className="pb-4">
-          <CardTitle className="flex items-center gap-3 text-foreground">
-            <div className="p-2 rounded-lg bg-gradient-to-r from-violet-500 to-amber-500">
-              <Trophy className="w-5 h-5 text-white" />
-            </div>
-            Leaderboard
-          </CardTitle>
-          <p className="text-sm text-muted-foreground">
-            Top performing ventures by ProofScore
-          </p>
-        </CardHeader>
-        <CardContent>
-          <div className="space-y-3">
-            {[...Array(5)].map((_, i) => (
-              <div key={i} className="flex items-center gap-4 p-4 rounded-xl border animate-pulse">
-                <div className="w-8 h-8 bg-muted rounded-full" />
-                <div className="flex-1">
-                  <div className="h-4 bg-muted rounded w-48 mb-2" />
-                  <div className="h-3 bg-muted rounded w-24" />
-                </div>
-                <div className="w-12 h-12 bg-muted rounded-full" />
-              </div>
-            ))}
+      <div className="w-full space-y-3">
+        <h3 className="text-lg font-semibold mb-4 bg-gradient-to-r from-violet-400 to-amber-400 bg-clip-text text-transparent flex items-center gap-2">
+          <div className="p-1.5 rounded-lg bg-gradient-to-r from-violet-500 to-amber-500 shadow-lg">
+            <Trophy className="w-4 h-4 text-white" />
           </div>
-        </CardContent>
-      </Card>
+          Leaderboard
+        </h3>
+        <p className="text-sm text-muted-foreground mb-4">
+          Top performing ventures by ProofScore validation
+        </p>
+        <div className="space-y-3">
+          {[...Array(5)].map((_, i) => (
+            <div key={i} className="flex items-center gap-4 p-4 rounded-xl border animate-pulse">
+              <div className="w-8 h-8 bg-muted rounded-full" />
+              <div className="flex-1">
+                <div className="h-4 bg-muted rounded w-48 mb-2" />
+                <div className="h-3 bg-muted rounded w-24" />
+              </div>
+              <div className="w-12 h-12 bg-muted rounded-full" />
+            </div>
+          ))}
+        </div>
+      </div>
     );
   }
 
   if (error || !data?.success) {
     return (
-      <Card className="w-full bg-gradient-to-br from-background to-background/80 border-border/50">
-        <CardHeader>
-          <CardTitle className="flex items-center gap-3 text-foreground">
-            <div className="p-2 rounded-lg bg-gradient-to-r from-violet-500 to-amber-500">
-              <Trophy className="w-5 h-5 text-white" />
-            </div>
-            Leaderboard
-          </CardTitle>
-        </CardHeader>
-        <CardContent>
-          <div className="text-center py-8 text-muted-foreground">
-            <p>Unable to load leaderboard data</p>
+      <div className="w-full space-y-3">
+        <h3 className="text-lg font-semibold mb-4 bg-gradient-to-r from-violet-400 to-amber-400 bg-clip-text text-transparent flex items-center gap-2">
+          <div className="p-1.5 rounded-lg bg-gradient-to-r from-violet-500 to-amber-500 shadow-lg">
+            <Trophy className="w-4 h-4 text-white" />
           </div>
-        </CardContent>
-      </Card>
+          Leaderboard
+        </h3>
+        <div className="text-center py-8 text-muted-foreground">
+          <p>Unable to load leaderboard data</p>
+        </div>
+      </div>
     );
   }
 
