@@ -3,11 +3,6 @@ import { useQuery } from "@tanstack/react-query";
 import { motion } from "framer-motion";
 import { Crown, Trophy, Medal, Star } from "lucide-react";
 
-// Import rank medal assets
-import GoldMedal from "../assets/rank/gold-medal.svg";
-import SilverMedal from "../assets/rank/silver-medal.svg";
-import BronzeMedal from "../assets/rank/bronze-medal.svg";
-
 interface LeaderboardEntry {
   ventureName: string;
   totalScore: number;
@@ -26,11 +21,11 @@ interface LeaderboardProps {
   currentVentureName?: string;
 }
 
-// Get rank medal for podium positions
-function getRankMedal(rank: number): string | null {
-  if (rank === 1) return GoldMedal;
-  if (rank === 2) return SilverMedal;
-  if (rank === 3) return BronzeMedal;
+// Get rank medal icons for podium positions
+function getRankMedalIcon(rank: number) {
+  if (rank === 1) return <Trophy className="w-8 h-8 text-yellow-400" />;
+  if (rank === 2) return <Medal className="w-6 h-6 text-gray-300" />;
+  if (rank === 3) return <Medal className="w-6 h-6 text-amber-600" />;
   return null;
 }
 
@@ -153,7 +148,7 @@ export function Leaderboard({ currentVentureName }: LeaderboardProps) {
                   <div className={getRankStyling(2, topThree[1].ventureName === currentVentureName)}>
                     <div className="p-4 pb-6">
                       <div className="w-16 h-16 mx-auto mb-3 bg-gradient-to-br from-gray-400 to-slate-500 rounded-full flex items-center justify-center">
-                        <img src={SilverMedal} alt="Silver Medal" className="w-8 h-8" />
+                        <Medal className="w-8 h-8 text-gray-100" />
                       </div>
                       <h4 className="font-semibold text-sm text-foreground truncate max-w-[120px]">
                         {topThree[1].ventureName}
@@ -179,7 +174,7 @@ export function Leaderboard({ currentVentureName }: LeaderboardProps) {
                     <div className="p-4 pb-6">
                       <Crown className="w-6 h-6 text-yellow-500 mx-auto mb-2" />
                       <div className="w-20 h-20 mx-auto mb-3 bg-gradient-to-br from-yellow-400 to-amber-500 rounded-full flex items-center justify-center">
-                        <img src={GoldMedal} alt="Gold Medal" className="w-10 h-10" />
+                        <Trophy className="w-10 h-10 text-yellow-100" />
                       </div>
                       <h4 className="font-semibold text-foreground truncate max-w-[140px]">
                         {topThree[0].ventureName}
@@ -204,7 +199,7 @@ export function Leaderboard({ currentVentureName }: LeaderboardProps) {
                   <div className={getRankStyling(3, topThree[2].ventureName === currentVentureName)}>
                     <div className="p-4 pb-6">
                       <div className="w-16 h-16 mx-auto mb-3 bg-gradient-to-br from-amber-600 to-orange-500 rounded-full flex items-center justify-center">
-                        <img src={BronzeMedal} alt="Bronze Medal" className="w-8 h-8" />
+                        <Medal className="w-8 h-8 text-amber-100" />
                       </div>
                       <h4 className="font-semibold text-sm text-foreground truncate max-w-[120px]">
                         {topThree[2].ventureName}
