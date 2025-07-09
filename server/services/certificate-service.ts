@@ -437,12 +437,12 @@ export class CertificateService {
         const { width, height } = firstPage.getSize();
         
         // Draw the badge image horizontally centered between logo and signature
-        // Position at bottom in line with Second Chance logo and L.A. Ravenscroft signature
+        // Position exactly on the same baseline as Second Chance logo and L.A. Ravenscroft signature
         firstPage.drawImage(badgeImage, {
-          x: (width - 80) / 2, // Center horizontally between logo and signature
-          y: height * 0.12, // Lower position to align with logo/signature baseline (12% from bottom)
-          width: 80, // Slightly smaller size to fit better with bottom layout
-          height: 80, // Maintain aspect ratio
+          x: (width - 90) / 2, // Center horizontally between logo and signature
+          y: height * 0.08, // Much lower position to align exactly with logo/signature baseline (8% from bottom)
+          width: 90, // Appropriate size to match logo scale
+          height: 90, // Maintain aspect ratio
         });
         
         console.log(`Successfully replaced badge with Badge_${badgeNumber}.png`);
