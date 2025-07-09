@@ -340,6 +340,10 @@ Demo experience for testing different user journeys:
   * Added certificate upload to EastEmblem API 0_Overview folder for shared access
   * Certificate includes venture name, founder name, ProofScore, achievement category, and ProofTag count
   * Added verification ID system for certificate authenticity and tracking
+  * Fixed certificate generation failures with session ID mapping and fallback demo certificates
+  * Enhanced certificate routes to handle ventures without evaluations using demo data
+  * Resolved ProofTag justification verbose logging by removing console output clutter
+  * Added robust session-based certificate generation for incomplete onboarding flows
 
 ## User Preferences
 

@@ -116,7 +116,7 @@ export class CertificateService {
     }
   }
 
-  private async createPDFCertificate(data: CertificateData): Promise<Buffer> {
+  async createPDFCertificate(data: CertificateData): Promise<Buffer> {
     // Create a new PDF document
     const pdfDoc = await PDFDocument.create();
     const page = pdfDoc.addPage([595.28, 841.89]); // A4 size in points
