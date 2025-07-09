@@ -416,9 +416,10 @@ export class CertificateService {
       
       // Determine which badge to use based on score
       const badgeNumber = this.getScoreBadgeNumber(proofScore);
-      const badgePath = path.join(process.cwd(), 'server', 'templates', `Badge_${badgeNumber}.png`);
+      const badgePath = path.join(process.cwd(), 'server', 'templates', 'badges', `Badge_${badgeNumber}.png`);
       
       console.log(`Looking for badge image: Badge_${badgeNumber}.png`);
+      console.log(`Full badge path: ${badgePath}`);
       
       // Check if badge file exists
       try {

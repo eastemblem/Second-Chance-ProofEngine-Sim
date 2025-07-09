@@ -367,6 +367,8 @@ Demo experience for testing different user journeys:
   * Badge now positioned horizontally centered between Second Chance logo and L.A. Ravenscroft signature for optimal visual balance
   * **UPDATED: Certificate filename format** - Changed from timestamp-based naming to clean format using VentureName_Validation_Certificate.pdf
   * Updated all certificate generation paths (service and route handlers) to use consistent clean naming convention
+  * **UPDATED: Badge folder organization** - Moved badge assets from server/templates/ to server/templates/badges/ subfolder
+  * Updated certificate service to use new badge folder path structure for cleaner file organization
 
 ## User Preferences
 
