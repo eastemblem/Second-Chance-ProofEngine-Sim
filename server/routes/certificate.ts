@@ -14,6 +14,10 @@ export async function generateCertificate(req: Request, res: Response) {
     }
 
     console.log(`Certificate generation requested for venture: ${ventureId}`);
+    
+    // Check EastEmblem API availability first
+    const { eastEmblemAPI } = await import('../eastemblem-api');
+    console.log('EastEmblem API status at start:', eastEmblemAPI.getStatus());
 
     // Check if venture exists, or if this is a session ID, find the associated venture
     let venture = await storage.getVenture(ventureId);
@@ -98,19 +102,44 @@ export async function generateCertificate(req: Request, res: Response) {
                 
                 try {
                   const { certificateService } = await import('../services/certificate-service');
-                  const { eastEmblemAPI } = await import('../eastemblem-api');
+                  
+                  console.log('EastEmblem API status for upload:', eastEmblemAPI.getStatus());
                   
                   if (!eastEmblemAPI.isConfigured()) {
                     console.log('EastEmblem API not configured, skipping cloud upload');
                   } else {
-                    // Update storage temporarily for upload
-                    await storage.updateVenture(ventureId, {
-                      name: certificateData.ventureName,
-                      folderStructure: folderStructure
-                    });
+                    console.log('EastEmblem API is configured, proceeding with upload to 0_Overview folder');
                     
-                    shareableUrl = await certificateService.uploadCertificateAndGetUrl(ventureId, pdfBuffer);
-                    console.log('Session certificate upload result:', shareableUrl);
+                    // Extract 0_Overview folder ID from session
+                    const overviewFolderId = folderStructure.folders?.['0_Overview'];
+                    if (overviewFolderId) {
+                      console.log(`Uploading certificate to 0_Overview folder: ${overviewFolderId}`);
+                      
+                      const fileName = `${certificateData.ventureName.replace(/[^a-zA-Z0-9]/g, '_')}_ProofScore_Certificate_${Date.now()}.pdf`;
+                      
+                      // Direct upload to EastEmblem API with allowShare=true
+                      const uploadResult = await eastEmblemAPI.uploadFile(
+                        pdfBuffer,
+                        fileName,
+                        overviewFolderId,
+                        ventureId, // onboardingId
+                        true // allowShare for shareable download link
+                      );
+                      
+                      console.log('Checking upload result for URL...');
+                      console.log('uploadResult.url:', uploadResult?.url);
+                      console.log('uploadResult.download_url:', uploadResult?.download_url);
+                      
+                      if (uploadResult?.url || uploadResult?.download_url) {
+                        shareableUrl = uploadResult.url || uploadResult.download_url;
+                        console.log('Certificate uploaded successfully with shareable URL:', shareableUrl);
+                      } else {
+                        console.log('Upload succeeded but no shareable download URL received');
+                        console.log('Upload result:', uploadResult);
+                      }
+                    } else {
+                      console.log('0_Overview folder ID not found in folder structure');
+                    }
                   }
                 } catch (uploadError) {
                   console.log('Upload failed for session certificate:', uploadError);
