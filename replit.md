@@ -359,6 +359,8 @@ Demo experience for testing different user journeys:
   * **COMPLETED: Font and badge system** - Improved font to TimesRomanItalic script style for template matching
   * Badge replacement fully functional with all Badge_01.png through Badge_09.png files uploaded and working
   * Certificate generation produces clean results with proper [VENTURE_NAME] replacement and score-based badges
+  * **UPDATED: Template positioning** - Adjusted coordinates for updated template with empty placeholders
+  * Venture name positioned at 58% height, badge at 25% height with optimized sizing for new template layout
 
 ## User Preferences
 

@@ -382,12 +382,12 @@ export class CertificateService {
         const { width, height } = page.getSize();
         
         // Cover the [VENTURE_NAME] placeholder with background color rectangle
-        // Based on screenshot, [VENTURE_NAME] is in gold script font below "OF VALIDATION"
+        // Updated template positioning - adjust coordinates for new empty placeholder layout
         page.drawRectangle({
-          x: width * 0.15, // Start from 15% of width
-          y: height * 0.45, // Position at 45% of height from bottom  
-          width: width * 0.7, // Cover 70% of width
-          height: 60, // Height to cover the placeholder text
+          x: width * 0.1, // Start from 10% of width for wider coverage
+          y: height * 0.55, // Position higher up at 55% of height from bottom  
+          width: width * 0.8, // Cover 80% of width for full placeholder area
+          height: 80, // Taller height to cover placeholder area
           color: rgb(0.12, 0.12, 0.12), // Dark background color to match template
         });
         
@@ -402,7 +402,7 @@ export class CertificateService {
         
         page.drawText(replacement, {
           x: centerX, // Center the text
-          y: height * 0.465, // Fine-tune vertical position
+          y: height * 0.58, // Position higher at 58% from bottom to match new template
           size: fontSize, // Match template size
           font: scriptFont,
           color: rgb(1, 0.84, 0.0), // Gold color (#FFD700)
@@ -441,12 +441,12 @@ export class CertificateService {
         const { width, height } = firstPage.getSize();
         
         // Draw the badge image at the appropriate position
-        // Based on screenshot, badge is positioned in the lower center area
+        // Updated template positioning for new empty placeholder layout
         firstPage.drawImage(badgeImage, {
-          x: width * 0.42, // Position at 42% from left (center area)
-          y: height * 0.15, // Position at 15% from bottom
-          width: 120, // Appropriate size for badge
-          height: 120, // Maintain aspect ratio
+          x: width * 0.45, // Position at 45% from left (adjust for new template)
+          y: height * 0.25, // Position higher at 25% from bottom for new template
+          width: 100, // Slightly smaller size for updated template
+          height: 100, // Maintain aspect ratio
         });
         
         console.log(`Successfully replaced badge with Badge_${badgeNumber}.png`);
