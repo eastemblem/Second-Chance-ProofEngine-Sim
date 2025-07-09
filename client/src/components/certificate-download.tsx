@@ -27,23 +27,28 @@ export function CertificateDownload({
     
     try {
       console.log('Making API request to /api/certificate/generate');
-      const response = await apiRequest('/api/certificate/generate', {
+      const response = await fetch('/api/certificate/generate', {
         method: 'POST',
-        body: { ventureId }
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ ventureId })
       });
+
+      const result = await response.json();
 
       console.log('Certificate API response:', response);
 
-      if (response.success) {
-        setCertificateUrl(response.certificateUrl || 'certificate-generated');
+      if (result.success) {
+        setCertificateUrl(result.certificateUrl || 'certificate-generated');
         toast({
           title: "Certificate Generated!",
           description: "Your ProofScore certificate has been created successfully.",
         });
         console.log('Certificate generated successfully');
       } else {
-        console.error('Certificate generation failed:', response.error);
-        throw new Error(response.error || 'Failed to generate certificate');
+        console.error('Certificate generation failed:', result.error);
+        throw new Error(result.error || 'Failed to generate certificate');
       }
     } catch (error) {
       console.error('Certificate generation error:', error);
