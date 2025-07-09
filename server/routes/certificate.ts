@@ -24,27 +24,50 @@ export async function generateCertificate(req: Request, res: Response) {
       });
     }
 
-    // Generate and upload certificate
-    const downloadUrl = await certificateService.generateAndUploadCertificate(ventureId);
+    try {
+      // Generate certificate PDF
+      const pdfBuffer = await certificateService.generateCertificate(ventureId);
+      
+      if (!pdfBuffer) {
+        return res.status(500).json({
+          success: false,
+          error: 'Failed to generate certificate PDF'
+        });
+      }
 
-    if (downloadUrl) {
+      console.log('PDF generated successfully, attempting upload...');
+
+      // Try to upload and get URL, but don't fail if upload fails
+      const downloadUrl = await certificateService.uploadCertificateAndGetUrl(ventureId, pdfBuffer);
+      
+      console.log('Upload attempt completed, updating database...');
+      
+      // Always update the venture with certificate generation status
+      await storage.updateVenture(ventureId, {
+        certificateUrl: downloadUrl || null,
+        certificateGeneratedAt: new Date()
+      });
+      
+      console.log('Database updated successfully');
+      
       return res.json({
         success: true,
         certificateUrl: downloadUrl,
-        message: 'Certificate generated successfully'
+        message: 'Certificate generated successfully',
+        pdfGenerated: true,
+        uploadedToCloud: !!downloadUrl
       });
-    } else {
-      return res.status(500).json({
-        success: false,
-        error: 'Failed to generate certificate'
-      });
+      
+    } catch (innerError) {
+      console.error('Inner certificate generation error:', innerError);
+      throw innerError;
     }
 
   } catch (error) {
     console.error('Certificate generation error:', error);
     return res.status(500).json({
       success: false,
-      error: 'Internal server error during certificate generation'
+      error: 'Failed to generate certificate'
     });
   }
 }

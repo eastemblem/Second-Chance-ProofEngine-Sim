@@ -60,15 +60,11 @@ export class CertificateService {
         return null;
       }
 
-      // Extract ProofTags from evaluation data
+      // Extract ProofTags from evaluation data - using correct field names
       let unlockedTags: string[] = [];
       try {
-        const evaluationData = typeof latestEvaluation.analysisData === 'string' 
-          ? JSON.parse(latestEvaluation.analysisData) 
-          : latestEvaluation.analysisData;
-        
-        if (evaluationData?.tags && Array.isArray(evaluationData.tags)) {
-          unlockedTags = evaluationData.tags;
+        if (latestEvaluation.prooftags && Array.isArray(latestEvaluation.prooftags)) {
+          unlockedTags = latestEvaluation.prooftags;
         }
       } catch (error) {
         console.log('Could not extract ProofTags from evaluation data');
@@ -77,14 +73,14 @@ export class CertificateService {
       const certificateData: CertificateData = {
         ventureName: venture.name,
         founderName: founder.fullName,
-        proofScore: latestEvaluation.totalScore,
+        proofScore: latestEvaluation.proofscore, // Using correct field name
         date: new Date().toLocaleDateString('en-US', { 
           year: 'numeric', 
           month: 'long', 
           day: 'numeric' 
         }),
         unlockedTags,
-        scoreCategory: this.getScoreCategory(latestEvaluation.totalScore)
+        scoreCategory: this.getScoreCategory(latestEvaluation.proofscore) // Using correct field name
       };
 
       // Generate PDF
@@ -283,8 +279,8 @@ export class CertificateService {
       // Get venture folder structure
       const venture = await storage.getVenture(ventureId);
       if (!venture?.folderStructure) {
-        console.error('Venture folder structure not found');
-        return null;
+        console.log('Venture folder structure not found - skipping upload to EastEmblem');
+        return null; // Return null to indicate no upload URL available
       }
 
       const folderStructure = typeof venture.folderStructure === 'string' 
