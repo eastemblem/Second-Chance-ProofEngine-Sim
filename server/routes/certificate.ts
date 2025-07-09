@@ -142,7 +142,7 @@ export async function generateCertificate(req: Request, res: Response) {
                     if (overviewFolderId) {
                       console.log(`Uploading certificate to 0_Overview folder: ${overviewFolderId}`);
                       
-                      const fileName = `${certificateData.ventureName.replace(/[^a-zA-Z0-9]/g, '_')}_Validation_Certificate.pdf`;
+                      const fileName = `${certificateData.ventureName.replace(/[^a-zA-Z0-9]/g, '_')}_Validation_Certificate_${Date.now()}.pdf`;
                       
                       // Direct upload to EastEmblem API with allowShare=true
                       const uploadResult = await eastEmblemAPI.uploadFile(

@@ -75,7 +75,7 @@ export class CertificateService {
         
         try {
           const pdfBuffer = await this.createPDFCertificate(certificateData);
-          const filename = `${venture.name.replace(/[^a-zA-Z0-9]/g, '_')}_Validation_Certificate.pdf`;
+          const filename = `${venture.name.replace(/[^a-zA-Z0-9]/g, '_')}_Validation_Certificate_${Date.now()}.pdf`;
           console.log('Fallback certificate PDF generated successfully');
           return { buffer: pdfBuffer, filename };
         } catch (error) {
@@ -111,7 +111,7 @@ export class CertificateService {
       const pdfBuffer = await this.createPDFCertificate(certificateData);
       
       // Create filename
-      const filename = `${venture.name.replace(/[^a-zA-Z0-9]/g, '_')}_Validation_Certificate.pdf`;
+      const filename = `${venture.name.replace(/[^a-zA-Z0-9]/g, '_')}_Validation_Certificate_${Date.now()}.pdf`;
       
       console.log('Certificate PDF generated successfully');
       return { buffer: pdfBuffer, filename };
@@ -437,9 +437,13 @@ export class CertificateService {
         const { width, height } = firstPage.getSize();
         
         // Draw the badge image at bottom 12% of certificate
-        // Center horizontally between Second Chance logo and L.A. Ravenscroft signature
+        // Move 10cm to the right from center position
+        const cmToPoints = 28.35; // PDF conversion factor: 1cm = 28.35 points
+        const centerX = (width - 90) / 2; // Original center position
+        const rightShift = 10 * cmToPoints; // 10cm shift to the right
+        
         firstPage.drawImage(badgeImage, {
-          x: (width - 90) / 2, // Center horizontally
+          x: centerX + rightShift, // Center position + 10cm to the right
           y: height * 0.12, // Position at 12% from bottom
           width: 90, // Appropriate size to match logo scale
           height: 90, // Maintain aspect ratio
