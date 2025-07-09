@@ -604,17 +604,36 @@ export class OnboardingService {
           console.log(`✓ Created evaluation record for ${venture.name}`);
           
           // Generate certificate in background after successful evaluation
-          certificateService.generateAndUploadCertificate(venture.ventureId)
-            .then((certificateUrl) => {
-              if (certificateUrl) {
-                console.log(`✓ Certificate generated for ${venture.name}: ${certificateUrl}`);
-              } else {
-                console.log(`Failed to generate certificate for ${venture.name}`);
-              }
-            })
-            .catch((certificateError) => {
-              console.error("Certificate generation error:", certificateError);
-            });
+          console.log("Starting async certificate generation for venture:", venture.ventureId);
+          (async () => {
+            try {
+              const { generateCertificate } = await import('../routes/certificate');
+              
+              // Create mock request/response for certificate generation
+              const mockReq = {
+                body: { ventureId: sessionId } // Use sessionId for session-based certificate data
+              } as any;
+              
+              const mockRes = {
+                status: (code: number) => ({
+                  json: (data: any) => {
+                    console.log(`Certificate generation result for ${venture.name} (${code}):`, data);
+                    if (data.success && data.uploadedToCloud) {
+                      console.log("✓ Certificate successfully uploaded to 0_Overview folder:", data.certificateUrl);
+                    } else if (data.success) {
+                      console.log("✓ Certificate generated locally:", data.certificateUrl);
+                    } else {
+                      console.log("✗ Certificate generation failed:", data.error);
+                    }
+                  }
+                })
+              } as any;
+              
+              await generateCertificate(mockReq, mockRes);
+            } catch (error) {
+              console.log("Async certificate generation failed for venture:", venture.name, error);
+            }
+          })();
             
         } catch (evaluationError) {
           console.error("Failed to create evaluation record:", evaluationError);
