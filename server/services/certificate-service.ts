@@ -171,24 +171,7 @@ export class CertificateService {
       // Replace badge image with appropriate score-based badge
       await this.replaceBadgeImage(pdfDoc, data.proofScore);
 
-      // Date
-      firstPage.drawText(`Issued: ${data.date}`, {
-        x: 50,
-        y: 80,
-        size: 10,
-        font: helveticaFont,
-        color: lightGray,
-      });
-
-      // Generate unique verification ID
-      const verificationId = `PS-${Date.now()}-${Math.random().toString(36).substr(2, 9).toUpperCase()}`;
-      firstPage.drawText(`Verification ID: ${verificationId}`, {
-        x: width - 200,
-        y: 60,
-        size: 8,
-        font: helveticaFont,
-        color: lightGray,
-      });
+      // Only add minimal verification info, no other text overlays
 
       console.log('Text overlaid on template, generating final PDF...');
       const pdfBytes = await pdfDoc.save();
@@ -398,23 +381,29 @@ export class CertificateService {
         // We'll draw a white rectangle to cover it, then draw the new text
         const { width, height } = page.getSize();
         
-        // Cover the [VENTURE_NAME] placeholder with white rectangle
+        // Cover the [VENTURE_NAME] placeholder with background color rectangle
+        // Based on screenshot, [VENTURE_NAME] is in gold script font below "OF VALIDATION"
         page.drawRectangle({
-          x: 50, // Adjust based on template
-          y: height - 200, // Adjust based on template  
-          width: 300, // Adjust based on placeholder width
-          height: 30, // Adjust based on text height
-          color: rgb(1, 1, 1), // White background
+          x: width * 0.15, // Start from 15% of width
+          y: height * 0.45, // Position at 45% of height from bottom  
+          width: width * 0.7, // Cover 70% of width
+          height: 60, // Height to cover the placeholder text
+          color: rgb(0.12, 0.12, 0.12), // Dark background color to match template
         });
         
-        // Draw the replacement text
-        const timesRomanBoldFont = await pdfDoc.embedFont(StandardFonts.TimesRomanBold);
+        // Draw the replacement text in gold color to match template style
+        const timesRomanBoldFont = await pdfDoc.embedFont(StandardFonts.TimesRomanBoldItalic);
+        
+        // Calculate text width for centering
+        const textWidth = timesRomanBoldFont.widthOfTextAtSize(replacement, 48);
+        const centerX = (width - textWidth) / 2;
+        
         page.drawText(replacement, {
-          x: 60, // Adjust based on template
-          y: height - 190, // Adjust based on template
-          size: 24,
+          x: centerX, // Center the text
+          y: height * 0.47, // Position at 47% from bottom
+          size: 48, // Large size to match template
           font: timesRomanBoldFont,
-          color: rgb(0, 0, 0), // Black text
+          color: rgb(1, 0.84, 0.0), // Gold color (#FFD700)
         });
       }
       
@@ -450,12 +439,12 @@ export class CertificateService {
         const { width, height } = firstPage.getSize();
         
         // Draw the badge image at the appropriate position
-        // Adjust these coordinates based on where badge_09 appears in your template
+        // Based on screenshot, badge is positioned in the lower center area
         firstPage.drawImage(badgeImage, {
-          x: width - 150, // Adjust based on template
-          y: height - 150, // Adjust based on template
-          width: 100, // Adjust based on desired size
-          height: 100, // Adjust based on desired size
+          x: width * 0.42, // Position at 42% from left (center area)
+          y: height * 0.15, // Position at 15% from bottom
+          width: 120, // Appropriate size for badge
+          height: 120, // Maintain aspect ratio
         });
         
         console.log(`Successfully replaced badge with badge_${badgeNumber}.png`);
