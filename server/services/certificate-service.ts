@@ -448,26 +448,16 @@ export class CertificateService {
           height: 90, // Maintain aspect ratio
         });
 
-        // Add score and venture name below the badge
-        const scoreText = `${data.proofScore}/100`;
-        const ventureText = data.ventureName;
+        // Add score below the badge
+        const scoreText = `${data.proofScore} of 100`;
         
-        // Score text (larger font)
+        // Score text centered below badge
         firstPage.drawText(scoreText, {
-          x: centerX + 45 - (scoreText.length * 6), // Center the text horizontally
-          y: badgeY - 15, // Position just below the badge
-          size: 14,
+          x: centerX + 45 - (scoreText.length * 4), // Center the text horizontally
+          y: badgeY - 20, // Position just below the badge
+          size: 12,
           font: helveticaBoldFont,
           color: purple,
-        });
-        
-        // Venture name text (smaller font)
-        firstPage.drawText(ventureText, {
-          x: centerX + 45 - (ventureText.length * 4), // Center the text horizontally
-          y: badgeY - 35, // Position below the score
-          size: 10,
-          font: helveticaFont,
-          color: darkGray,
         });
         
         console.log(`Successfully replaced badge with Badge_${badgeNumber}.png`);
