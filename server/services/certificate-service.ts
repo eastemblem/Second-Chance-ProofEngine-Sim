@@ -435,11 +435,11 @@ export class CertificateService {
         const firstPage = pdfDoc.getPages()[0];
         const { width, height } = firstPage.getSize();
         
-        // Draw the badge image at the bottom center position
-        // Based on screenshot, badge should be in the center of bottom line
+        // Draw the badge image horizontally centered between logo and signature
+        // Based on screenshot feedback: position between Second Chance logo and signature
         firstPage.drawImage(badgeImage, {
-          x: (width - 100) / 2, // Center horizontally (width - badge width) / 2
-          y: height * 0.12, // Position at bottom line (12% from bottom)
+          x: (width - 100) / 2, // Center horizontally between logo and signature
+          y: height * 0.18, // Position slightly higher to align with logo/signature line
           width: 100, // Appropriate size for badge
           height: 100, // Maintain aspect ratio
         });
