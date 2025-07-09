@@ -299,13 +299,13 @@ export class CertificateService {
 
   async uploadCertificateAndGetUrl(ventureId: string, pdfBuffer: Buffer): Promise<string | null> {
     try {
-      console.log(`Uploading certificate for venture: ${ventureId}`);
+      console.log(`Uploading certificate for venture: ${ventureId} to 0_Overview folder`);
 
       // Get venture folder structure
       const venture = await storage.getVenture(ventureId);
       if (!venture?.folderStructure) {
         console.log('Venture folder structure not found - skipping upload to EastEmblem');
-        return null; // Return null to indicate no upload URL available
+        return null;
       }
 
       const folderStructure = typeof venture.folderStructure === 'string' 
@@ -314,35 +314,39 @@ export class CertificateService {
 
       const overviewFolderId = folderStructure.folders?.['0_Overview'];
       if (!overviewFolderId) {
-        console.error('Overview folder not found in venture structure');
+        console.error('0_Overview folder not found in venture structure');
         return null;
       }
 
-      // Upload certificate to EastEmblem API
+      // Upload certificate to EastEmblem API 0_Overview folder with allowShare=true
       const fileName = `${venture.name}_ProofScore_Certificate_${new Date().getTime()}.pdf`;
+      console.log(`Uploading certificate "${fileName}" to 0_Overview folder: ${overviewFolderId}`);
+      
       const uploadResult = await eastEmblemAPI.uploadFile(
         pdfBuffer,
         fileName,
         overviewFolderId,
-        true // allowShare for download link
+        ventureId, // onboardingId
+        true // allowShare for shareable download link
       );
 
       if (uploadResult?.download_url) {
+        console.log('Certificate uploaded successfully to 0_Overview folder with shareable URL:', uploadResult.download_url);
+        
         // Update venture with certificate URL
         await storage.updateVenture(ventureId, {
           certificateUrl: uploadResult.download_url,
           certificateGeneratedAt: new Date()
         });
 
-        console.log('Certificate uploaded and venture updated with URL');
         return uploadResult.download_url;
       }
 
-      console.error('Failed to get download URL from upload result');
+      console.error('Failed to get shareable download URL from upload result');
       return null;
 
     } catch (error) {
-      console.error('Error uploading certificate:', error);
+      console.error('Error uploading certificate to 0_Overview folder:', error);
       return null;
     }
   }

@@ -71,21 +71,73 @@ export async function generateCertificate(req: Request, res: Response) {
             const pdfBuffer = await certificateService.createPDFCertificate(certificateData);
             
             if (pdfBuffer) {
-              // Store the PDF temporarily for download
-              const filename = `${certificateData.ventureName.replace(/[^a-zA-Z0-9]/g, '_')}_ProofScore_Certificate.pdf`;
-              const tempPath = `./uploads/${filename}`;
+              // Try to upload to 0_Overview folder if folder structure exists
+              let shareableUrl = null;
               
-              const fs = await import('fs/promises');
-              await fs.writeFile(tempPath, pdfBuffer);
+              // Check multiple locations for folder structure
+              console.log('Checking session for folder structure...');
+              console.log('Session stepData keys:', Object.keys(session.stepData || {}));
+              
+              let folderStructure = null;
+              
+              // Try to find folder structure in different locations
+              if (session.stepData?.venture?.folderStructure) {
+                folderStructure = session.stepData.venture.folderStructure;
+                console.log('Found folder structure in venture');
+              } else if (session.stepData?.processing?.folderStructure) {
+                folderStructure = session.stepData.processing.folderStructure;
+                console.log('Found folder structure in processing');
+              } else if (session.stepData?.folderStructure) {
+                folderStructure = session.stepData.folderStructure;
+                console.log('Found folder structure in stepData root');
+              }
+              
+              if (folderStructure) {
+                console.log('Session has folder structure, attempting upload to 0_Overview folder...');
+                console.log('Folder structure found:', folderStructure);
+                
+                try {
+                  const { certificateService } = await import('../services/certificate-service');
+                  const { eastEmblemAPI } = await import('../eastemblem-api');
+                  
+                  if (!eastEmblemAPI.isConfigured()) {
+                    console.log('EastEmblem API not configured, skipping cloud upload');
+                  } else {
+                    // Update storage temporarily for upload
+                    await storage.updateVenture(ventureId, {
+                      name: certificateData.ventureName,
+                      folderStructure: folderStructure
+                    });
+                    
+                    shareableUrl = await certificateService.uploadCertificateAndGetUrl(ventureId, pdfBuffer);
+                    console.log('Session certificate upload result:', shareableUrl);
+                  }
+                } catch (uploadError) {
+                  console.log('Upload failed for session certificate:', uploadError);
+                }
+              } else {
+                console.log('No folder structure found in session stepData');
+                console.log('Available stepData:', JSON.stringify(session.stepData, null, 2));
+              }
+              
+              // Fallback: Store locally if no shareable URL
+              if (!shareableUrl) {
+                const filename = `${certificateData.ventureName.replace(/[^a-zA-Z0-9]/g, '_')}_ProofScore_Certificate.pdf`;
+                const tempPath = `./uploads/${filename}`;
+                
+                const fs = await import('fs/promises');
+                await fs.writeFile(tempPath, pdfBuffer);
+                shareableUrl = `/api/certificate/download/${encodeURIComponent(filename)}`;
+              }
               
               console.log('Session certificate PDF generated successfully');
               return res.status(200).json({
                 success: true,
-                certificateUrl: `/api/certificate/download/${encodeURIComponent(filename)}`,
-                message: 'Certificate generated successfully',
+                certificateUrl: shareableUrl,
+                message: shareableUrl.startsWith('/api/') ? 'Certificate generated locally' : 'Certificate generated and uploaded to 0_Overview folder',
                 pdfGenerated: true,
-                uploadedToCloud: false,
-                filename
+                uploadedToCloud: !shareableUrl.startsWith('/api/'),
+                useShareableUrl: !shareableUrl.startsWith('/api/')
               });
             }
           } else {
@@ -150,16 +202,16 @@ export async function generateCertificate(req: Request, res: Response) {
         });
       }
 
-      console.log('PDF generated successfully, attempting upload...');
+      console.log('PDF generated successfully, attempting upload to 0_Overview folder...');
 
-      // Try to upload and get URL, but don't fail if upload fails
-      const downloadUrl = await certificateService.uploadCertificateAndGetUrl(venture.ventureId, pdfResult.buffer);
+      // Try to upload to 0_Overview folder and get shareable URL
+      const shareableUrl = await certificateService.uploadCertificateAndGetUrl(venture.ventureId, pdfResult.buffer);
       
       console.log('Upload attempt completed, updating database...');
       
       // Always update the venture with certificate generation status
       await storage.updateVenture(venture.ventureId, {
-        certificateUrl: downloadUrl || 'certificate-generated',
+        certificateUrl: shareableUrl || 'certificate-generated',
         certificateGeneratedAt: new Date()
       });
       
@@ -167,10 +219,11 @@ export async function generateCertificate(req: Request, res: Response) {
       
       return res.json({
         success: true,
-        certificateUrl: downloadUrl,
-        message: 'Certificate generated successfully',
+        certificateUrl: shareableUrl,
+        message: shareableUrl ? 'Certificate generated and uploaded to 0_Overview folder' : 'Certificate generated locally',
         pdfGenerated: true,
-        uploadedToCloud: !!downloadUrl
+        uploadedToCloud: !!shareableUrl,
+        useShareableUrl: !!shareableUrl
       });
       
     } catch (innerError) {
