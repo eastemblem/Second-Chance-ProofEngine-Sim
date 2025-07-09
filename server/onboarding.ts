@@ -353,23 +353,35 @@ export class OnboardingManager {
             },
           ];
 
+          console.log(`Creating ${folderMappings.length} proof vault entries for venture ${venture.ventureId}`);
+          
           for (const folder of folderMappings) {
             const subFolderId = folderStructure.folders[folder.key];
             if (subFolderId) {
-              await storage.createProofVault({
-                ventureId: venture.ventureId,
-                artefactType: folder.type,
-                parentFolderId: folderStructure.id,
-                subFolderId: subFolderId,
-                sharedUrl: folderStructure.url,
-                folderName: folder.name,
-                description: folder.description,
-              });
+              try {
+                const proofVaultEntry = await storage.createProofVault({
+                  ventureId: venture.ventureId,
+                  artefactType: folder.type,
+                  parentFolderId: folderStructure.id,
+                  subFolderId: subFolderId,
+                  sharedUrl: folderStructure.url,
+                  folderName: folder.name,
+                  description: folder.description,
+                });
+                console.log(`✓ Created proof vault entry for ${folder.name}: ${proofVaultEntry.vaultId}`);
+              } catch (proofVaultError) {
+                console.error(`✗ Failed to create proof vault entry for ${folder.name}:`, proofVaultError);
+              }
+            } else {
+              console.warn(`⚠ Missing subFolderId for ${folder.key} in folder structure`);
             }
           }
+          
+          console.log('Completed proof vault entries creation');
         }
       } catch (error) {
-        console.error("Failed to create folder structure:", error);
+        console.error("Failed to create folder structure or proof vault entries:", error);
+        // Still continue with venture creation even if folder structure fails
       }
     }
 

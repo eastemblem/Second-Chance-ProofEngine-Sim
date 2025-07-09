@@ -377,6 +377,15 @@ Demo experience for testing different user journeys:
   * Badge now positioned at precise center + 10 points horizontally at bottom 12% of certificate height
   * Added unique timestamp filenames to prevent "File already exists!" errors during regeneration
   * Certificate system handles multiple regenerations with force regeneration capability
+  * **FIXED: Certificate score display removed** - Removed score text overlay per user feedback as template was updated
+  * Badge now positioned at perfect center horizontally with clean template design
+- July 9, 2025. **FIXED: ProofVault folder structure entries not being created**:
+  * Diagnosed issue where folder structure was created but proof_vault table entries were missing
+  * Manually created missing proof vault entries for existing venture using SQL INSERT
+  * Added comprehensive error handling and logging to proof vault creation process
+  * Enhanced onboarding.ts with individual try-catch blocks for each proof vault entry
+  * Added detailed console logging to track proof vault creation success/failure
+  * Fixed silent failures in folder structure creation that were preventing proof vault population
 
 ## User Preferences
 
