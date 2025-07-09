@@ -142,7 +142,7 @@ export async function generateCertificate(req: Request, res: Response) {
                     if (overviewFolderId) {
                       console.log(`Uploading certificate to 0_Overview folder: ${overviewFolderId}`);
                       
-                      const fileName = `${certificateData.ventureName.replace(/[^a-zA-Z0-9]/g, '_')}_ProofScore_Certificate_${Date.now()}.pdf`;
+                      const fileName = `${certificateData.ventureName.replace(/[^a-zA-Z0-9]/g, '_')}_Validation_Certificate.pdf`;
                       
                       // Direct upload to EastEmblem API with allowShare=true
                       const uploadResult = await eastEmblemAPI.uploadFile(
@@ -178,7 +178,7 @@ export async function generateCertificate(req: Request, res: Response) {
               
               // Fallback: Store locally if no shareable URL
               if (!shareableUrl) {
-                const filename = `${certificateData.ventureName.replace(/[^a-zA-Z0-9]/g, '_')}_ProofScore_Certificate.pdf`;
+                const filename = `${certificateData.ventureName.replace(/[^a-zA-Z0-9]/g, '_')}_Validation_Certificate.pdf`;
                 const tempPath = `./uploads/${filename}`;
                 
                 const fs = await import('fs/promises');
@@ -242,7 +242,7 @@ export async function generateCertificate(req: Request, res: Response) {
             
             if (pdfBuffer) {
               // Store the PDF temporarily for download
-              const filename = `${certificateData.ventureName.replace(/[^a-zA-Z0-9]/g, '_')}_ProofScore_Certificate.pdf`;
+              const filename = `${certificateData.ventureName.replace(/[^a-zA-Z0-9]/g, '_')}_Validation_Certificate.pdf`;
               const tempPath = `./uploads/${filename}`;
               
               const fs = await import('fs/promises');

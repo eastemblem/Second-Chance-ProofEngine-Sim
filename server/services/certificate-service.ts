@@ -75,7 +75,7 @@ export class CertificateService {
         
         try {
           const pdfBuffer = await this.createPDFCertificate(certificateData);
-          const filename = `${venture.name.replace(/[^a-zA-Z0-9]/g, '_')}_ProofScore_Certificate.pdf`;
+          const filename = `${venture.name.replace(/[^a-zA-Z0-9]/g, '_')}_Validation_Certificate.pdf`;
           console.log('Fallback certificate PDF generated successfully');
           return { buffer: pdfBuffer, filename };
         } catch (error) {
@@ -111,7 +111,7 @@ export class CertificateService {
       const pdfBuffer = await this.createPDFCertificate(certificateData);
       
       // Create filename
-      const filename = `${venture.name.replace(/[^a-zA-Z0-9]/g, '_')}_ProofScore_Certificate.pdf`;
+      const filename = `${venture.name.replace(/[^a-zA-Z0-9]/g, '_')}_Validation_Certificate.pdf`;
       
       console.log('Certificate PDF generated successfully');
       return { buffer: pdfBuffer, filename };
@@ -476,7 +476,7 @@ export class CertificateService {
       }
 
       // Upload certificate to EastEmblem API 0_Overview folder with allowShare=true
-      const fileName = `${venture.name}_ProofScore_Certificate_${new Date().getTime()}.pdf`;
+      const fileName = `${venture.name.replace(/[^a-zA-Z0-9]/g, '_')}_Validation_Certificate.pdf`;
       console.log(`Uploading certificate "${fileName}" to 0_Overview folder: ${overviewFolderId}`);
       
       const uploadResult = await eastEmblemAPI.uploadFile(
