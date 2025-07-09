@@ -44,7 +44,7 @@ export async function generateCertificate(req: Request, res: Response) {
       
       // Always update the venture with certificate generation status
       await storage.updateVenture(ventureId, {
-        certificateUrl: downloadUrl || null,
+        certificateUrl: downloadUrl || 'certificate-generated',
         certificateGeneratedAt: new Date()
       });
       
