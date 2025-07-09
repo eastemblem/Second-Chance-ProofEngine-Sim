@@ -25,10 +25,9 @@ export async function getLeaderboard(req: Request, res: Response) {
     
     // Get real leaderboard data
     const realData = await storage.getLeaderboard(limit);
-    
-    // If we have enough real data, use it
-    if (realData.length >= 5) {
-      const formattedData = realData.map((entry, index) => ({
+    // If we have 10 or more real entries, use only real data
+    if (realData.length >= 10) {
+      const formattedData = realData.slice(0, 10).map((entry, index) => ({
         ventureName: entry.ventureName,
         totalScore: entry.totalScore,
         rank: index + 1,
@@ -42,7 +41,7 @@ export async function getLeaderboard(req: Request, res: Response) {
       });
     }
     
-    // Otherwise, mix real data with mock data
+    // Otherwise, mix real data with mock data to reach exactly 10 entries
     const mockData = generateMockLeaderboard();
     const allEntries = [
       ...realData.map(entry => ({
