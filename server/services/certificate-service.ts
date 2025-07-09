@@ -436,11 +436,15 @@ export class CertificateService {
         const firstPage = pdfDoc.getPages()[0];
         const { width, height } = firstPage.getSize();
         
-        // Draw the badge image horizontally centered between logo and signature
-        // Position exactly on the same baseline as Second Chance logo and L.A. Ravenscroft signature
+        // Draw the badge image at exact coordinates specified by user
+        // x = 13.69cm, y = 14.77cm (converted to points: 1cm = 28.35 points)
+        const xPositionCm = 13.69; // cm
+        const yPositionCm = 14.77; // cm
+        const cmToPoints = 28.35; // conversion factor
+        
         firstPage.drawImage(badgeImage, {
-          x: (width - 90) / 2, // Center horizontally between logo and signature
-          y: height * 0.08, // Much lower position to align exactly with logo/signature baseline (8% from bottom)
+          x: xPositionCm * cmToPoints, // 13.69cm converted to points
+          y: yPositionCm * cmToPoints, // 14.77cm converted to points
           width: 90, // Appropriate size to match logo scale
           height: 90, // Maintain aspect ratio
         });
