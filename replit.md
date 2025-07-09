@@ -344,6 +344,11 @@ Demo experience for testing different user journeys:
   * Enhanced certificate routes to handle ventures without evaluations using demo data
   * Resolved ProofTag justification verbose logging by removing console output clutter
   * Added robust session-based certificate generation for incomplete onboarding flows
+  * **FIXED: Certificate download regeneration issue** - System now checks for existing certificates before generating new ones
+  * Added certificate URL storage in both database (venture table) and session data for persistence
+  * Prevents duplicate certificate generation by returning existing shareable URLs when available
+  * Certificate system correctly handles both venture-based and session-based certificate requests
+  * Users now download existing certificates instead of generating new ones each time
 
 ## User Preferences
 

@@ -22,6 +22,19 @@ export async function generateCertificate(req: Request, res: Response) {
     // Check if venture exists, or if this is a session ID, find the associated venture
     let venture = await storage.getVenture(ventureId);
     
+    // First check if this venture already has a certificate
+    if (venture && venture.certificateUrl) {
+      console.log(`Certificate already exists for venture ${venture.name}: ${venture.certificateUrl}`);
+      return res.json({
+        success: true,
+        certificateUrl: venture.certificateUrl,
+        message: "Certificate already exists",
+        pdfGenerated: false,
+        uploadedToCloud: true,
+        useExistingCertificate: true
+      });
+    }
+    
     if (!venture) {
       // Try to find venture by founder ID if this is a session/founder ID
       const ventures = await storage.getVenturesByFounderId(ventureId);
@@ -35,6 +48,20 @@ export async function generateCertificate(req: Request, res: Response) {
           const session = await onboardingManager.getSession(ventureId);
           console.log('Session data found:', !!session);
           if (session) {
+            // Check if session already has a certificate URL
+            const existingCertificateUrl = session.stepData?.certificate?.certificateUrl;
+            if (existingCertificateUrl) {
+              console.log(`Certificate already exists for session ${ventureId}: ${existingCertificateUrl}`);
+              return res.json({
+                success: true,
+                certificateUrl: existingCertificateUrl,
+                message: "Certificate already exists for this session",
+                pdfGenerated: false,
+                uploadedToCloud: true,
+                useExistingCertificate: true
+              });
+            }
+            
             console.log('Creating certificate from session data');
             console.log('Session structure keys:', Object.keys(session));
             
@@ -157,6 +184,31 @@ export async function generateCertificate(req: Request, res: Response) {
                 const fs = await import('fs/promises');
                 await fs.writeFile(tempPath, pdfBuffer);
                 shareableUrl = `/api/certificate/download/${encodeURIComponent(filename)}`;
+              }
+              
+              // Save certificate URL to session data for future requests
+              try {
+                await onboardingManager.updateSession(ventureId, "certificate", {
+                  certificateUrl: shareableUrl,
+                  certificateGeneratedAt: new Date().toISOString()
+                });
+                console.log('Certificate URL saved to session data');
+              } catch (sessionUpdateError) {
+                console.log('Could not update session with certificate URL:', sessionUpdateError);
+              }
+              
+              // Try to update venture with certificate URL if this is a session linked to a venture
+              try {
+                const ventureData = stepData.venture;
+                if (ventureData && ventureData.ventureId) {
+                  console.log(`Updating venture ${ventureData.ventureId} with certificate URL`);
+                  await storage.updateVenture(ventureData.ventureId, {
+                    certificateUrl: shareableUrl,
+                    certificateGeneratedAt: new Date()
+                  });
+                }
+              } catch (updateError) {
+                console.log('Could not update venture with certificate URL:', updateError);
               }
               
               console.log('Session certificate PDF generated successfully');
