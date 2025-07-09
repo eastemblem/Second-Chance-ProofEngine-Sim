@@ -33,7 +33,7 @@ export class CertificateService {
     return '01';
   }
 
-  async generateCertificate(ventureId: string): Promise<Buffer | null> {
+  async generateCertificate(ventureId: string): Promise<{ buffer: Buffer; filename: string } | null> {
     try {
       console.log(`Generating certificate for venture: ${ventureId}`);
 
@@ -73,8 +73,9 @@ export class CertificateService {
         
         try {
           const pdfBuffer = await this.createPDFCertificate(certificateData);
+          const filename = `${venture.name.replace(/[^a-zA-Z0-9]/g, '_')}_ProofScore_Certificate.pdf`;
           console.log('Fallback certificate PDF generated successfully');
-          return pdfBuffer;
+          return { buffer: pdfBuffer, filename };
         } catch (error) {
           console.error('Error creating fallback certificate PDF:', error);
           return null;
@@ -107,8 +108,11 @@ export class CertificateService {
       // Generate PDF
       const pdfBuffer = await this.createPDFCertificate(certificateData);
       
+      // Create filename
+      const filename = `${venture.name.replace(/[^a-zA-Z0-9]/g, '_')}_ProofScore_Certificate.pdf`;
+      
       console.log('Certificate PDF generated successfully');
-      return pdfBuffer;
+      return { buffer: pdfBuffer, filename };
 
     } catch (error) {
       console.error('Error generating certificate:', error);

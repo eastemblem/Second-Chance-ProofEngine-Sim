@@ -45,7 +45,7 @@ export function CertificateDownload({
           title: "Certificate Generated!",
           description: "Your ProofScore certificate has been created successfully.",
         });
-        console.log('Certificate generated successfully');
+        console.log('Certificate generated successfully:', result);
       } else {
         console.error('Certificate generation failed:', result.error);
         throw new Error(result.error || 'Failed to generate certificate');

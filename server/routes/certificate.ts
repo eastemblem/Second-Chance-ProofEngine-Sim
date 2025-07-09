@@ -71,13 +71,21 @@ export async function generateCertificate(req: Request, res: Response) {
             const pdfBuffer = await certificateService.createPDFCertificate(certificateData);
             
             if (pdfBuffer) {
+              // Store the PDF temporarily for download
+              const filename = `${certificateData.ventureName.replace(/[^a-zA-Z0-9]/g, '_')}_ProofScore_Certificate.pdf`;
+              const tempPath = `./uploads/${filename}`;
+              
+              const fs = await import('fs/promises');
+              await fs.writeFile(tempPath, pdfBuffer);
+              
               console.log('Session certificate PDF generated successfully');
               return res.status(200).json({
                 success: true,
-                certificateUrl: 'certificate-generated',
+                certificateUrl: `/api/certificate/download/${encodeURIComponent(filename)}`,
                 message: 'Certificate generated successfully',
                 pdfGenerated: true,
-                uploadedToCloud: false
+                uploadedToCloud: false,
+                filename
               });
             }
           } else {
@@ -100,13 +108,21 @@ export async function generateCertificate(req: Request, res: Response) {
             const pdfBuffer = await certificateService.createPDFCertificate(certificateData);
             
             if (pdfBuffer) {
+              // Store the PDF temporarily for download
+              const filename = `${certificateData.ventureName.replace(/[^a-zA-Z0-9]/g, '_')}_ProofScore_Certificate.pdf`;
+              const tempPath = `./uploads/${filename}`;
+              
+              const fs = await import('fs/promises');
+              await fs.writeFile(tempPath, pdfBuffer);
+              
               console.log('Demo certificate PDF generated successfully');
               return res.status(200).json({
                 success: true,
-                certificateUrl: 'certificate-generated',
+                certificateUrl: `/api/certificate/download/${encodeURIComponent(filename)}`,
                 message: 'Demo certificate generated successfully',
                 pdfGenerated: true,
-                uploadedToCloud: false
+                uploadedToCloud: false,
+                filename
               });
             }
           }
@@ -125,9 +141,9 @@ export async function generateCertificate(req: Request, res: Response) {
 
     try {
       // Generate certificate PDF using the actual venture ID
-      const pdfBuffer = await certificateService.generateCertificate(venture.ventureId);
+      const pdfResult = await certificateService.generateCertificate(venture.ventureId);
       
-      if (!pdfBuffer) {
+      if (!pdfResult) {
         return res.status(500).json({
           success: false,
           error: 'Failed to generate certificate PDF'
@@ -137,7 +153,7 @@ export async function generateCertificate(req: Request, res: Response) {
       console.log('PDF generated successfully, attempting upload...');
 
       // Try to upload and get URL, but don't fail if upload fails
-      const downloadUrl = await certificateService.uploadCertificateAndGetUrl(venture.ventureId, pdfBuffer);
+      const downloadUrl = await certificateService.uploadCertificateAndGetUrl(venture.ventureId, pdfResult.buffer);
       
       console.log('Upload attempt completed, updating database...');
       
@@ -167,6 +183,40 @@ export async function generateCertificate(req: Request, res: Response) {
     return res.status(500).json({
       success: false,
       error: 'Failed to generate certificate'
+    });
+  }
+}
+
+export async function downloadCertificate(req: Request, res: Response) {
+  try {
+    const { filename } = req.params;
+    const filePath = `./uploads/${filename}`;
+    
+    const fs = await import('fs/promises');
+    
+    // Check if file exists
+    try {
+      await fs.access(filePath);
+    } catch (error) {
+      return res.status(404).json({
+        success: false,
+        error: 'Certificate file not found'
+      });
+    }
+    
+    // Set headers for PDF download
+    res.setHeader('Content-Type', 'application/pdf');
+    res.setHeader('Content-Disposition', `attachment; filename="${filename}"`);
+    
+    // Stream the file
+    const fileBuffer = await fs.readFile(filePath);
+    res.send(fileBuffer);
+    
+  } catch (error) {
+    console.error('Error downloading certificate:', error);
+    res.status(500).json({
+      success: false,
+      error: 'Failed to download certificate'
     });
   }
 }
