@@ -447,18 +447,6 @@ export class CertificateService {
           width: 90, // Appropriate size to match logo scale
           height: 90, // Maintain aspect ratio
         });
-
-        // Add score below the badge
-        const scoreText = `${data.proofScore} of 100`;
-        
-        // Score text centered below badge
-        firstPage.drawText(scoreText, {
-          x: centerX + 45 - (scoreText.length * 4), // Center the text horizontally
-          y: badgeY - 20, // Position just below the badge
-          size: 12,
-          font: helveticaBoldFont,
-          color: purple,
-        });
         
         console.log(`Successfully replaced badge with Badge_${badgeNumber}.png`);
       } catch (error) {
