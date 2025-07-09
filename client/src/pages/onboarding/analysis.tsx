@@ -47,6 +47,7 @@ import Badge04 from "../../assets/badges/score/Badge_04.svg";
 import Badge05 from "../../assets/badges/score/Badge_05.svg";
 import Badge06 from "../../assets/badges/score/Badge_06.svg";
 import Badge07 from "../../assets/badges/score/Badge_07.svg";
+import Badge08 from "../../assets/badges/score/Badge_08.svg";
 import Badge09 from "../../assets/badges/score/Badge_09.svg";
 
 // Complete ProofTag system with all 21 tags
@@ -580,7 +581,7 @@ export default function Analysis({
 
   console.log("Extracted ProofTags result:", extractedProofTags);
 
-  // Score badge mapping function
+  // Score badge mapping function - matches certificate service logic
   function getScoreBadge(score: number): string | null {
     const badges = {
       1: Badge01,
@@ -590,26 +591,41 @@ export default function Analysis({
       5: Badge05,
       6: Badge06,
       7: Badge07,
-      8: Badge07, // Using Badge07 as fallback since Badge08 is missing
+      8: Badge08,
       9: Badge09,
     };
 
-    if (score < 10) return null; // No badge for scores below 10
-    if (score >= 91) return badges[9]; // Score 91-100 → Badge 9
+    // Match certificate service logic exactly
+    let badgeNumber: number;
+    if (score >= 90) badgeNumber = 9;
+    else if (score >= 80) badgeNumber = 8;
+    else if (score >= 70) badgeNumber = 7;
+    else if (score >= 60) badgeNumber = 6;
+    else if (score >= 50) badgeNumber = 5;
+    else if (score >= 40) badgeNumber = 4;
+    else if (score >= 30) badgeNumber = 3;
+    else if (score >= 20) badgeNumber = 2;
+    else badgeNumber = 1;
 
-    // Calculate badge number (10-90 maps to badges 1-8)
-    const badgeNumber = Math.ceil((score - 10) / 10) + 1;
-    const clampedBadgeNumber = Math.min(Math.max(badgeNumber, 1), 9);
-
-    return badges[clampedBadgeNumber as keyof typeof badges] || null;
+    return badges[badgeNumber as keyof typeof badges] || null;
   }
 
   // Get badge for current score
   const scoreBadge = getScoreBadge(analysisData.total_score);
-  const badgeNumber =
-    analysisData.total_score >= 91
-      ? 9
-      : Math.ceil((analysisData.total_score - 10) / 10) + 1;
+  // Calculate badge number using same logic as certificate service
+  const getBadgeNumber = (score: number): number => {
+    if (score >= 90) return 9;
+    else if (score >= 80) return 8;
+    else if (score >= 70) return 7;
+    else if (score >= 60) return 6;
+    else if (score >= 50) return 5;
+    else if (score >= 40) return 4;
+    else if (score >= 30) return 3;
+    else if (score >= 20) return 2;
+    else return 1;
+  };
+  
+  const badgeNumber = getBadgeNumber(analysisData.total_score);
 
   console.log("Score Badge Debug:", {
     totalScore: analysisData.total_score,
