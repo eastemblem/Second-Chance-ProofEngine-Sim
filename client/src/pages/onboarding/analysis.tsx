@@ -265,10 +265,7 @@ const getProofTagJustification = (
     }
   }
 
-  console.log(
-    "No API justification found, using fallback for category:",
-    category,
-  );
+  // Using fallback justification for category: ${category}
 
   // Final fallback with category description
   const categoryDescriptions: Record<string, string> = {

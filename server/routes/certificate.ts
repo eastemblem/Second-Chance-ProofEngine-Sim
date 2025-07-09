@@ -15,8 +15,18 @@ export async function generateCertificate(req: Request, res: Response) {
 
     console.log(`Certificate generation requested for venture: ${ventureId}`);
 
-    // Check if venture exists
-    const venture = await storage.getVenture(ventureId);
+    // Check if venture exists, or if this is a session ID, find the associated venture
+    let venture = await storage.getVenture(ventureId);
+    
+    if (!venture) {
+      // Try to find venture by founder ID if this is a session/founder ID
+      const ventures = await storage.getVenturesByFounderId(ventureId);
+      if (ventures && ventures.length > 0) {
+        venture = ventures[0]; // Use the most recent venture
+        console.log(`Found venture via founder ID: ${venture.ventureId}`);
+      }
+    }
+    
     if (!venture) {
       return res.status(404).json({ 
         success: false, 
@@ -25,8 +35,8 @@ export async function generateCertificate(req: Request, res: Response) {
     }
 
     try {
-      // Generate certificate PDF
-      const pdfBuffer = await certificateService.generateCertificate(ventureId);
+      // Generate certificate PDF using the actual venture ID
+      const pdfBuffer = await certificateService.generateCertificate(venture.ventureId);
       
       if (!pdfBuffer) {
         return res.status(500).json({
@@ -38,12 +48,12 @@ export async function generateCertificate(req: Request, res: Response) {
       console.log('PDF generated successfully, attempting upload...');
 
       // Try to upload and get URL, but don't fail if upload fails
-      const downloadUrl = await certificateService.uploadCertificateAndGetUrl(ventureId, pdfBuffer);
+      const downloadUrl = await certificateService.uploadCertificateAndGetUrl(venture.ventureId, pdfBuffer);
       
       console.log('Upload attempt completed, updating database...');
       
       // Always update the venture with certificate generation status
-      await storage.updateVenture(ventureId, {
+      await storage.updateVenture(venture.ventureId, {
         certificateUrl: downloadUrl || 'certificate-generated',
         certificateGeneratedAt: new Date()
       });

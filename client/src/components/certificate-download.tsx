@@ -19,6 +19,8 @@ export function CertificateDownload({
   const [certificateUrl, setCertificateUrl] = useState<string | null>(existingCertificateUrl || null);
   const { toast } = useToast();
 
+  // Debug certificate props
+
   const handleGenerateCertificate = async () => {
     setIsGenerating(true);
     
