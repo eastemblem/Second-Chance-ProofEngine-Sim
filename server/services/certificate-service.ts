@@ -439,12 +439,35 @@ export class CertificateService {
         // Draw the badge image at bottom 12% of certificate
         // Keep badge perfectly centered horizontally
         const centerX = (width - 90) / 2; // Perfect center position
+        const badgeY = height * 0.12; // Position at 12% from bottom
         
         firstPage.drawImage(badgeImage, {
           x: centerX, // Perfect center position
-          y: height * 0.12, // Position at 12% from bottom
+          y: badgeY, // Position at 12% from bottom
           width: 90, // Appropriate size to match logo scale
           height: 90, // Maintain aspect ratio
+        });
+
+        // Add score and venture name below the badge
+        const scoreText = `${data.proofScore}/100`;
+        const ventureText = data.ventureName;
+        
+        // Score text (larger font)
+        firstPage.drawText(scoreText, {
+          x: centerX + 45 - (scoreText.length * 6), // Center the text horizontally
+          y: badgeY - 15, // Position just below the badge
+          size: 14,
+          font: helveticaBoldFont,
+          color: purple,
+        });
+        
+        // Venture name text (smaller font)
+        firstPage.drawText(ventureText, {
+          x: centerX + 45 - (ventureText.length * 4), // Center the text horizontally
+          y: badgeY - 35, // Position below the score
+          size: 10,
+          font: helveticaFont,
+          color: darkGray,
         });
         
         console.log(`Successfully replaced badge with Badge_${badgeNumber}.png`);
