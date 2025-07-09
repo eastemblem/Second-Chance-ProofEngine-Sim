@@ -363,9 +363,9 @@ Demo experience for testing different user journeys:
   * Venture name positioned at 58% height, badge at 25% height with optimized sizing for new template layout
   * **FINAL: Clean design implementation** - Removed background rectangle for transparent venture name display
   * Badge repositioned to bottom center (12% from bottom) for perfect visual balance and professional appearance
-  * **FINAL: Precise badge positioning** - Set badge to exact coordinates x = 13.69cm, y = 14.77cm (converted to PDF points)
-  * Badge positioned using precise measurements for pixel-perfect alignment with template design
-  * Coordinates: x = 388.02 points, y = 418.74 points (1cm = 28.35 points conversion)
+  * **FINAL: Badge positioned at bottom 12%** - Moved badge from center to bottom 12% of certificate
+  * Badge now horizontally centered and positioned in bottom area with logos
+  * Y-coordinate: height * 0.12 for proper bottom section alignment
   * **UPDATED: Certificate filename format** - Changed from timestamp-based naming to clean format using VentureName_Validation_Certificate.pdf
   * Updated all certificate generation paths (service and route handlers) to use consistent clean naming convention
   * **UPDATED: Badge folder organization** - Moved badge assets from server/templates/ to server/templates/badges/ subfolder
