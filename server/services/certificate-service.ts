@@ -437,13 +437,12 @@ export class CertificateService {
         const { width, height } = firstPage.getSize();
         
         // Draw the badge image at bottom 12% of certificate
-        // Move 10cm to the right from center position
-        const cmToPoints = 28.35; // PDF conversion factor: 1cm = 28.35 points
+        // Move 10 points to the right from center position
         const centerX = (width - 90) / 2; // Original center position
-        const rightShift = 10 * cmToPoints; // 10cm shift to the right
+        const rightShift = 10; // 10 points shift to the right
         
         firstPage.drawImage(badgeImage, {
-          x: centerX + rightShift, // Center position + 10cm to the right
+          x: centerX + rightShift, // Center position + 10 points to the right
           y: height * 0.12, // Position at 12% from bottom
           width: 90, // Appropriate size to match logo scale
           height: 90, // Maintain aspect ratio

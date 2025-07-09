@@ -373,6 +373,10 @@ Demo experience for testing different user journeys:
   * **FIXED: Badge mapping inconsistency** - Synchronized frontend analysis page and backend certificate service badge logic
   * Analysis page now uses same threshold-based mapping as certificate service (score 80-89 → Badge 08) instead of mathematical formula
   * Added missing Badge08 import to frontend, ensuring consistent badge display across all components
+  * **FINAL: Badge positioning refinement** - Adjusted badge position from center to center + 10 PDF points (subtle right shift)
+  * Badge now positioned at precise center + 10 points horizontally at bottom 12% of certificate height
+  * Added unique timestamp filenames to prevent "File already exists!" errors during regeneration
+  * Certificate system handles multiple regenerations with force regeneration capability
 
 ## User Preferences
 
