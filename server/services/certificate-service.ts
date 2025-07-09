@@ -381,15 +381,8 @@ export class CertificateService {
         // We'll draw a white rectangle to cover it, then draw the new text
         const { width, height } = page.getSize();
         
-        // Cover the [VENTURE_NAME] placeholder with background color rectangle
-        // Updated template positioning - adjust coordinates for new empty placeholder layout
-        page.drawRectangle({
-          x: width * 0.1, // Start from 10% of width for wider coverage
-          y: height * 0.55, // Position higher up at 55% of height from bottom  
-          width: width * 0.8, // Cover 80% of width for full placeholder area
-          height: 80, // Taller height to cover placeholder area
-          color: rgb(0.12, 0.12, 0.12), // Dark background color to match template
-        });
+        // No background rectangle needed for transparent background
+        // Just position the text directly over the template
         
         // Draw the replacement text in gold color with script-style font to match template
         // Use italic font to better match the elegant script style in template
@@ -440,12 +433,12 @@ export class CertificateService {
         const firstPage = pdfDoc.getPages()[0];
         const { width, height } = firstPage.getSize();
         
-        // Draw the badge image at the appropriate position
-        // Updated template positioning for new empty placeholder layout
+        // Draw the badge image at the bottom center position
+        // Based on screenshot, badge should be in the center of bottom line
         firstPage.drawImage(badgeImage, {
-          x: width * 0.45, // Position at 45% from left (adjust for new template)
-          y: height * 0.25, // Position higher at 25% from bottom for new template
-          width: 100, // Slightly smaller size for updated template
+          x: (width - 100) / 2, // Center horizontally (width - badge width) / 2
+          y: height * 0.12, // Position at bottom line (12% from bottom)
+          width: 100, // Appropriate size for badge
           height: 100, // Maintain aspect ratio
         });
         
