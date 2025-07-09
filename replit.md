@@ -349,6 +349,10 @@ Demo experience for testing different user journeys:
   * Prevents duplicate certificate generation by returning existing shareable URLs when available
   * Certificate system correctly handles both venture-based and session-based certificate requests
   * Users now download existing certificates instead of generating new ones each time
+  * **UPDATED: Certificate template system** - Enhanced to use uploaded PDF template from server/templates/certificate-template.pdf
+  * Modified certificate service to load template and overlay dynamic content (names, scores, achievements)
+  * Added fallback to programmatic generation if template loading fails
+  * Template system supports placeholder replacement with venture-specific data
 
 ## User Preferences
 

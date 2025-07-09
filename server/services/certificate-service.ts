@@ -121,7 +121,136 @@ export class CertificateService {
   }
 
   async createPDFCertificate(data: CertificateData): Promise<Buffer> {
-    // Create a new PDF document
+    try {
+      // Load the certificate template
+      const templatePath = path.join(process.cwd(), 'server', 'templates', 'certificate-template.pdf');
+      const templateBytes = await fs.readFile(templatePath);
+      
+      // Load the template PDF
+      const pdfDoc = await PDFDocument.load(templateBytes);
+      const pages = pdfDoc.getPages();
+      const firstPage = pages[0];
+      
+      // Embed fonts for text replacement
+      const timesRomanFont = await pdfDoc.embedFont(StandardFonts.TimesRoman);
+      const timesRomanBoldFont = await pdfDoc.embedFont(StandardFonts.TimesRomanBold);
+      const helveticaFont = await pdfDoc.embedFont(StandardFonts.Helvetica);
+      const helveticaBoldFont = await pdfDoc.embedFont(StandardFonts.HelveticaBold);
+
+      const { width, height } = firstPage.getSize();
+
+      // Colors
+      const purple = rgb(0.45, 0.16, 0.68); // #7527AD
+      const gold = rgb(0.95, 0.76, 0.06); // #F3C610
+      const darkGray = rgb(0.2, 0.2, 0.2);
+      const lightGray = rgb(0.5, 0.5, 0.5);
+
+      // Replace placeholder text with actual data
+      // These positions may need adjustment based on your template layout
+      
+      // Founder Name
+      firstPage.drawText(data.founderName, {
+        x: width / 2 - (data.founderName.length * 6),
+        y: height - 240,
+        size: 24,
+        font: timesRomanBoldFont,
+        color: purple,
+      });
+
+      // Venture Name
+      firstPage.drawText(data.ventureName, {
+        x: width / 2 - (data.ventureName.length * 7),
+        y: height - 320,
+        size: 22,
+        font: timesRomanBoldFont,
+        color: purple,
+      });
+
+      // ProofScore
+      firstPage.drawText(`${data.proofScore}/100`, {
+        x: width / 2 - 30,
+        y: height - 410,
+        size: 32,
+        font: timesRomanBoldFont,
+        color: purple,
+      });
+
+      // Score Category
+      firstPage.drawText(data.scoreCategory, {
+        x: width / 2 - (data.scoreCategory.length * 4),
+        y: height - 440,
+        size: 14,
+        font: helveticaFont,
+        color: darkGray,
+      });
+
+      // ProofTags count
+      if (data.unlockedTags.length > 0) {
+        const tagsText = `${data.unlockedTags.length} ProofTag${data.unlockedTags.length !== 1 ? 's' : ''} Unlocked`;
+        firstPage.drawText(tagsText, {
+          x: width / 2 - (tagsText.length * 3),
+          y: height - 515,
+          size: 12,
+          font: helveticaFont,
+          color: darkGray,
+        });
+
+        // Display first few ProofTags
+        const displayTags = data.unlockedTags.slice(0, 5);
+        displayTags.forEach((tag, index) => {
+          const yPos = height - 540 - (index * 20);
+          firstPage.drawText(`• ${tag}`, {
+            x: width / 2 - 100,
+            y: yPos,
+            size: 10,
+            font: helveticaFont,
+            color: lightGray,
+          });
+        });
+
+        if (data.unlockedTags.length > 5) {
+          firstPage.drawText(`+ ${data.unlockedTags.length - 5} more achievements`, {
+            x: width / 2 - 80,
+            y: height - 640,
+            size: 10,
+            font: helveticaFont,
+            color: lightGray,
+          });
+        }
+      }
+
+      // Date
+      firstPage.drawText(`Issued on ${data.date}`, {
+        x: 50,
+        y: 80,
+        size: 10,
+        font: helveticaFont,
+        color: lightGray,
+      });
+
+      // Generate unique verification ID
+      const verificationId = `PS-${Date.now()}-${Math.random().toString(36).substr(2, 9).toUpperCase()}`;
+      firstPage.drawText(`Verification ID: ${verificationId}`, {
+        x: width - 200,
+        y: 60,
+        size: 8,
+        font: helveticaFont,
+        color: lightGray,
+      });
+
+      const pdfBytes = await pdfDoc.save();
+      return Buffer.from(pdfBytes);
+    } catch (error) {
+      console.error('Error creating PDF certificate from template:', error);
+      
+      // Fallback to programmatic generation if template fails
+      console.log('Falling back to programmatic certificate generation...');
+      return this.createProgrammaticCertificate(data);
+    }
+  }
+
+  private async createProgrammaticCertificate(data: CertificateData): Promise<Buffer> {
+    // Create a new PDF document as fallback
     const pdfDoc = await PDFDocument.create();
     const page = pdfDoc.addPage([595.28, 841.89]); // A4 size in points
 
