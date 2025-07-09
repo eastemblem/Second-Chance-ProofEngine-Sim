@@ -7,6 +7,7 @@ import { onboardingSession, documentUpload } from "@shared/schema";
 import { eq } from "drizzle-orm";
 import fs from "fs";
 import crypto from "crypto";
+import { certificateService } from "./certificate-service";
 
 export class OnboardingService {
   /**
@@ -601,6 +602,20 @@ export class OnboardingService {
             isCurrent: true,
           });
           console.log(`✓ Created evaluation record for ${venture.name}`);
+          
+          // Generate certificate in background after successful evaluation
+          certificateService.generateAndUploadCertificate(venture.ventureId)
+            .then((certificateUrl) => {
+              if (certificateUrl) {
+                console.log(`✓ Certificate generated for ${venture.name}: ${certificateUrl}`);
+              } else {
+                console.log(`Failed to generate certificate for ${venture.name}`);
+              }
+            })
+            .catch((certificateError) => {
+              console.error("Certificate generation error:", certificateError);
+            });
+            
         } catch (evaluationError) {
           console.error("Failed to create evaluation record:", evaluationError);
           // Don't fail the entire scoring process if evaluation creation fails

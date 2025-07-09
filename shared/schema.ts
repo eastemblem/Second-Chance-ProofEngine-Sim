@@ -49,6 +49,9 @@ export const venture = pgTable("venture", {
   linkedinUrl: varchar("linkedin_url", { length: 255 }),
   twitterUrl: varchar("twitter_url", { length: 255 }),
   instagramUrl: varchar("instagram_url", { length: 255 }),
+  certificateUrl: varchar("certificate_url", { length: 500 }),
+  certificateGeneratedAt: timestamp("certificate_generated_at"),
+  folderStructure: jsonb("folder_structure"),
   createdAt: timestamp("created_at").defaultNow().notNull(),
   updatedAt: timestamp("updated_at").defaultNow().notNull(),
 });

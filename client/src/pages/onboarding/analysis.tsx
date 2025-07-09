@@ -37,6 +37,7 @@ import ProgressBar from "@/components/progress-bar";
 import { useToast } from "@/hooks/use-toast";
 import { ProofScoreResult } from "@shared/schema";
 import { Leaderboard } from "@/components/leaderboard";
+import { CertificateDownload } from "@/components/certificate-download";
 
 // Import score badges
 import Badge01 from "../../assets/badges/score/Badge_01.svg";
@@ -1389,6 +1390,22 @@ export default function Analysis({
                 </Button>
               </div>
             </Card>
+
+            {/* Certificate Download */}
+            {ventureData?.ventureId && (
+              <motion.div
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ delay: 2.0, duration: 0.6 }}
+                className="mb-8"
+              >
+                <CertificateDownload
+                  ventureId={ventureData.ventureId}
+                  ventureName={ventureName || ventureData.name || "Your Venture"}
+                  existingCertificateUrl={ventureData.certificateUrl}
+                />
+              </motion.div>
+            )}
 
             {/* Continue Button */}
             <div className="text-center">

@@ -8,6 +8,7 @@ import { cleanupUploadedFile } from "./utils/file-cleanup";
 import { onboardingService } from "./services/onboarding-service";
 import apiRoutes from "./routes/index";
 import { getLeaderboard, createLeaderboardEntry } from "./routes/leaderboard";
+import { generateCertificate, getCertificateStatus } from "./routes/certificate";
 import multer from "multer";
 import path from "path";
 import fs from "fs";
@@ -124,6 +125,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Leaderboard routes
   app.get("/api/leaderboard", asyncHandler(getLeaderboard));
   app.post("/api/leaderboard", asyncHandler(createLeaderboardEntry));
+
+  // Certificate routes
+  app.post("/api/certificate/generate", asyncHandler(generateCertificate));
+  app.get("/api/certificate/status/:ventureId", asyncHandler(getCertificateStatus));
 
   // Legacy onboarding data storage (kept for compatibility)
   app.post("/api/onboarding/store", asyncHandler(async (req, res) => {

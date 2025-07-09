@@ -1,0 +1,346 @@
+import { PDFDocument, rgb, StandardFonts } from 'pdf-lib';
+import fs from 'fs/promises';
+import path from 'path';
+import { eastEmblemAPI } from '../eastemblem-api';
+import { storage } from '../storage';
+
+interface CertificateData {
+  ventureName: string;
+  founderName: string;
+  proofScore: number;
+  date: string;
+  unlockedTags: string[];
+  scoreCategory: string;
+}
+
+export class CertificateService {
+  private getScoreCategory(score: number): string {
+    if (score >= 90) return 'Leader in Validation';
+    if (score >= 80) return 'Investor Match Ready';
+    if (score >= 70) return 'ProofScaler Candidate';
+    return 'Validation Journey';
+  }
+
+  private getScoreBadgeNumber(score: number): string {
+    if (score >= 90) return '09';
+    if (score >= 80) return '08';
+    if (score >= 70) return '07';
+    if (score >= 60) return '06';
+    if (score >= 50) return '05';
+    if (score >= 40) return '04';
+    if (score >= 30) return '03';
+    if (score >= 20) return '02';
+    return '01';
+  }
+
+  async generateCertificate(ventureId: string): Promise<Buffer | null> {
+    try {
+      console.log(`Generating certificate for venture: ${ventureId}`);
+
+      // Get venture data
+      const venture = await storage.getVenture(ventureId);
+      if (!venture) {
+        console.error('Venture not found for certificate generation');
+        return null;
+      }
+
+      // Get founder data
+      const founder = await storage.getFounder(venture.founderId);
+      if (!founder) {
+        console.error('Founder not found for certificate generation');
+        return null;
+      }
+
+      // Get latest evaluation for ProofScore
+      const evaluations = await storage.getEvaluationsByVentureId(ventureId);
+      const latestEvaluation = evaluations[0]; // Assuming most recent first
+      
+      if (!latestEvaluation) {
+        console.error('No evaluation found for certificate generation');
+        return null;
+      }
+
+      // Extract ProofTags from evaluation data
+      let unlockedTags: string[] = [];
+      try {
+        const evaluationData = typeof latestEvaluation.analysisData === 'string' 
+          ? JSON.parse(latestEvaluation.analysisData) 
+          : latestEvaluation.analysisData;
+        
+        if (evaluationData?.tags && Array.isArray(evaluationData.tags)) {
+          unlockedTags = evaluationData.tags;
+        }
+      } catch (error) {
+        console.log('Could not extract ProofTags from evaluation data');
+      }
+
+      const certificateData: CertificateData = {
+        ventureName: venture.name,
+        founderName: founder.fullName,
+        proofScore: latestEvaluation.totalScore,
+        date: new Date().toLocaleDateString('en-US', { 
+          year: 'numeric', 
+          month: 'long', 
+          day: 'numeric' 
+        }),
+        unlockedTags,
+        scoreCategory: this.getScoreCategory(latestEvaluation.totalScore)
+      };
+
+      // Generate PDF
+      const pdfBuffer = await this.createPDFCertificate(certificateData);
+      
+      console.log('Certificate PDF generated successfully');
+      return pdfBuffer;
+
+    } catch (error) {
+      console.error('Error generating certificate:', error);
+      return null;
+    }
+  }
+
+  private async createPDFCertificate(data: CertificateData): Promise<Buffer> {
+    // Create a new PDF document
+    const pdfDoc = await PDFDocument.create();
+    const page = pdfDoc.addPage([595.28, 841.89]); // A4 size in points
+
+    // Embed fonts
+    const timesRomanFont = await pdfDoc.embedFont(StandardFonts.TimesRoman);
+    const timesRomanBoldFont = await pdfDoc.embedFont(StandardFonts.TimesRomanBold);
+    const helveticaFont = await pdfDoc.embedFont(StandardFonts.Helvetica);
+    const helveticaBoldFont = await pdfDoc.embedFont(StandardFonts.HelveticaBold);
+
+    const { width, height } = page.getSize();
+
+    // Colors
+    const purple = rgb(0.45, 0.16, 0.68); // #7527AD
+    const gold = rgb(0.95, 0.76, 0.06); // #F3C610
+    const darkGray = rgb(0.2, 0.2, 0.2);
+    const lightGray = rgb(0.5, 0.5, 0.5);
+
+    // Header
+    page.drawText('CERTIFICATE OF COMPLETION', {
+      x: width / 2 - 180,
+      y: height - 100,
+      size: 28,
+      font: timesRomanBoldFont,
+      color: purple,
+    });
+
+    page.drawText('ProofScaling Validation Platform', {
+      x: width / 2 - 120,
+      y: height - 130,
+      size: 16,
+      font: helveticaFont,
+      color: gold,
+    });
+
+    // Main content
+    page.drawText('This certifies that', {
+      x: width / 2 - 70,
+      y: height - 200,
+      size: 14,
+      font: timesRomanFont,
+      color: darkGray,
+    });
+
+    page.drawText(data.founderName, {
+      x: width / 2 - (data.founderName.length * 6),
+      y: height - 240,
+      size: 24,
+      font: timesRomanBoldFont,
+      color: purple,
+    });
+
+    page.drawText('has successfully completed the validation process for', {
+      x: width / 2 - 150,
+      y: height - 280,
+      size: 14,
+      font: timesRomanFont,
+      color: darkGray,
+    });
+
+    page.drawText(data.ventureName, {
+      x: width / 2 - (data.ventureName.length * 7),
+      y: height - 320,
+      size: 22,
+      font: timesRomanBoldFont,
+      color: purple,
+    });
+
+    // ProofScore section
+    page.drawText('ProofScore Achievement', {
+      x: width / 2 - 80,
+      y: height - 380,
+      size: 16,
+      font: helveticaBoldFont,
+      color: gold,
+    });
+
+    page.drawText(`${data.proofScore}/100`, {
+      x: width / 2 - 30,
+      y: height - 410,
+      size: 32,
+      font: timesRomanBoldFont,
+      color: purple,
+    });
+
+    page.drawText(data.scoreCategory, {
+      x: width / 2 - (data.scoreCategory.length * 4),
+      y: height - 440,
+      size: 14,
+      font: helveticaFont,
+      color: darkGray,
+    });
+
+    // ProofTags section
+    if (data.unlockedTags.length > 0) {
+      page.drawText('Unlocked ProofTags', {
+        x: width / 2 - 70,
+        y: height - 490,
+        size: 14,
+        font: helveticaBoldFont,
+        color: gold,
+      });
+
+      const tagsText = `${data.unlockedTags.length} achievement${data.unlockedTags.length !== 1 ? 's' : ''} unlocked`;
+      page.drawText(tagsText, {
+        x: width / 2 - (tagsText.length * 3),
+        y: height - 515,
+        size: 12,
+        font: helveticaFont,
+        color: darkGray,
+      });
+
+      // Display first few ProofTags
+      const displayTags = data.unlockedTags.slice(0, 5);
+      displayTags.forEach((tag, index) => {
+        const yPos = height - 540 - (index * 20);
+        page.drawText(`• ${tag}`, {
+          x: width / 2 - 100,
+          y: yPos,
+          size: 10,
+          font: helveticaFont,
+          color: lightGray,
+        });
+      });
+
+      if (data.unlockedTags.length > 5) {
+        page.drawText(`+ ${data.unlockedTags.length - 5} more achievements`, {
+          x: width / 2 - 80,
+          y: height - 640,
+          size: 10,
+          font: helveticaFont,
+          color: lightGray,
+        });
+      }
+    }
+
+    // Footer
+    page.drawText(`Issued on ${data.date}`, {
+      x: 50,
+      y: 80,
+      size: 10,
+      font: helveticaFont,
+      color: lightGray,
+    });
+
+    page.drawText('Second Chance - ProofScaling Platform', {
+      x: width - 200,
+      y: 80,
+      size: 10,
+      font: helveticaFont,
+      color: lightGray,
+    });
+
+    // Border decoration
+    page.drawRectangle({
+      x: 30,
+      y: 30,
+      width: width - 60,
+      height: height - 60,
+      borderColor: purple,
+      borderWidth: 2,
+    });
+
+    page.drawRectangle({
+      x: 40,
+      y: 40,
+      width: width - 80,
+      height: height - 80,
+      borderColor: gold,
+      borderWidth: 1,
+    });
+
+    const pdfBytes = await pdfDoc.save();
+    return Buffer.from(pdfBytes);
+  }
+
+  async uploadCertificateAndGetUrl(ventureId: string, pdfBuffer: Buffer): Promise<string | null> {
+    try {
+      console.log(`Uploading certificate for venture: ${ventureId}`);
+
+      // Get venture folder structure
+      const venture = await storage.getVenture(ventureId);
+      if (!venture?.folderStructure) {
+        console.error('Venture folder structure not found');
+        return null;
+      }
+
+      const folderStructure = typeof venture.folderStructure === 'string' 
+        ? JSON.parse(venture.folderStructure) 
+        : venture.folderStructure;
+
+      const overviewFolderId = folderStructure.folders?.['0_Overview'];
+      if (!overviewFolderId) {
+        console.error('Overview folder not found in venture structure');
+        return null;
+      }
+
+      // Upload certificate to EastEmblem API
+      const fileName = `${venture.name}_ProofScore_Certificate_${new Date().getTime()}.pdf`;
+      const uploadResult = await eastEmblemAPI.uploadFile(
+        pdfBuffer,
+        fileName,
+        overviewFolderId,
+        true // allowShare for download link
+      );
+
+      if (uploadResult?.download_url) {
+        // Update venture with certificate URL
+        await storage.updateVenture(ventureId, {
+          certificateUrl: uploadResult.download_url,
+          certificateGeneratedAt: new Date()
+        });
+
+        console.log('Certificate uploaded and venture updated with URL');
+        return uploadResult.download_url;
+      }
+
+      console.error('Failed to get download URL from upload result');
+      return null;
+
+    } catch (error) {
+      console.error('Error uploading certificate:', error);
+      return null;
+    }
+  }
+
+  async generateAndUploadCertificate(ventureId: string): Promise<string | null> {
+    try {
+      const pdfBuffer = await this.generateCertificate(ventureId);
+      if (!pdfBuffer) {
+        return null;
+      }
+
+      const downloadUrl = await this.uploadCertificateAndGetUrl(ventureId, pdfBuffer);
+      return downloadUrl;
+
+    } catch (error) {
+      console.error('Error in complete certificate generation process:', error);
+      return null;
+    }
+  }
+}
+
+export const certificateService = new CertificateService();
