@@ -391,18 +391,20 @@ export class CertificateService {
           color: rgb(0.12, 0.12, 0.12), // Dark background color to match template
         });
         
-        // Draw the replacement text in gold color to match template style
-        const timesRomanBoldFont = await pdfDoc.embedFont(StandardFonts.TimesRomanBoldItalic);
+        // Draw the replacement text in gold color with script-style font to match template
+        // Use italic font to better match the elegant script style in template
+        const scriptFont = await pdfDoc.embedFont(StandardFonts.TimesRomanItalic);
         
         // Calculate text width for centering
-        const textWidth = timesRomanBoldFont.widthOfTextAtSize(replacement, 48);
+        const fontSize = 52; // Slightly larger to match template prominence
+        const textWidth = scriptFont.widthOfTextAtSize(replacement, fontSize);
         const centerX = (width - textWidth) / 2;
         
         page.drawText(replacement, {
           x: centerX, // Center the text
-          y: height * 0.47, // Position at 47% from bottom
-          size: 48, // Large size to match template
-          font: timesRomanBoldFont,
+          y: height * 0.465, // Fine-tune vertical position
+          size: fontSize, // Match template size
+          font: scriptFont,
           color: rgb(1, 0.84, 0.0), // Gold color (#FFD700)
         });
       }
@@ -419,9 +421,9 @@ export class CertificateService {
       
       // Determine which badge to use based on score
       const badgeNumber = this.getScoreBadgeNumber(proofScore);
-      const badgePath = path.join(process.cwd(), 'server', 'templates', `badge_${badgeNumber}.png`);
+      const badgePath = path.join(process.cwd(), 'server', 'templates', `Badge_${badgeNumber}.png`);
       
-      console.log(`Looking for badge image: badge_${badgeNumber}.png`);
+      console.log(`Looking for badge image: Badge_${badgeNumber}.png`);
       
       // Check if badge file exists
       try {
@@ -447,9 +449,9 @@ export class CertificateService {
           height: 120, // Maintain aspect ratio
         });
         
-        console.log(`Successfully replaced badge with badge_${badgeNumber}.png`);
+        console.log(`Successfully replaced badge with Badge_${badgeNumber}.png`);
       } catch (error) {
-        console.log(`Badge image badge_${badgeNumber}.png not found, skipping badge replacement`);
+        console.log(`Badge image Badge_${badgeNumber}.png not found, skipping badge replacement`);
       }
       
     } catch (error) {
