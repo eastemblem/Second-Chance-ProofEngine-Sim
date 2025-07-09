@@ -4,7 +4,7 @@ import { storage } from '../storage';
 
 export async function generateCertificate(req: Request, res: Response) {
   try {
-    const { ventureId } = req.body;
+    const { ventureId, forceRegenerate = false } = req.body;
 
     if (!ventureId) {
       return res.status(400).json({ 
@@ -22,8 +22,8 @@ export async function generateCertificate(req: Request, res: Response) {
     // Check if venture exists, or if this is a session ID, find the associated venture
     let venture = await storage.getVenture(ventureId);
     
-    // First check if this venture already has a certificate
-    if (venture && venture.certificateUrl) {
+    // First check if this venture already has a certificate (unless forcing regeneration)
+    if (venture && venture.certificateUrl && !forceRegenerate) {
       console.log(`Certificate already exists for venture ${venture.name}: ${venture.certificateUrl}`);
       return res.json({
         success: true,
@@ -48,9 +48,9 @@ export async function generateCertificate(req: Request, res: Response) {
           const session = await onboardingManager.getSession(ventureId);
           console.log('Session data found:', !!session);
           if (session) {
-            // Check if session already has a certificate URL
+            // Check if session already has a certificate URL (unless forcing regeneration)
             const existingCertificateUrl = session.stepData?.certificate?.certificateUrl;
-            if (existingCertificateUrl) {
+            if (existingCertificateUrl && !forceRegenerate) {
               console.log(`Certificate already exists for session ${ventureId}: ${existingCertificateUrl}`);
               return res.json({
                 success: true,
