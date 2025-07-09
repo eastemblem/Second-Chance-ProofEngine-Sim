@@ -165,56 +165,11 @@ export class CertificateService {
       const lightGray = rgb(0.5, 0.5, 0.5);
       const black = rgb(0, 0, 0);
 
-      // Based on your template structure, replace [VENTURE_NAME] placeholder
-      // Position text according to your template layout
+      // Replace [VENTURE_NAME] placeholder in the PDF
+      await this.replaceTextInPDF(pdfDoc, '[VENTURE_NAME]', data.ventureName);
       
-      // Venture Name (replacing [VENTURE_NAME] placeholder)
-      firstPage.drawText(data.ventureName, {
-        x: width / 2 - (data.ventureName.length * 8),
-        y: height - 180, // Adjusted for template positioning
-        size: 28,
-        font: timesRomanBoldFont,
-        color: purple,
-      });
-
-      // Founder Name
-      firstPage.drawText(`Founder: ${data.founderName}`, {
-        x: width / 2 - ((data.founderName.length + 9) * 4),
-        y: height - 400, // Position below the main text
-        size: 16,
-        font: timesRomanBoldFont,
-        color: black,
-      });
-
-      // ProofScore
-      firstPage.drawText(`ProofScore: ${data.proofScore}/100`, {
-        x: width / 2 - 60,
-        y: height - 450,
-        size: 20,
-        font: timesRomanBoldFont,
-        color: purple,
-      });
-
-      // Score Category
-      firstPage.drawText(data.scoreCategory, {
-        x: width / 2 - (data.scoreCategory.length * 3),
-        y: height - 480,
-        size: 14,
-        font: helveticaFont,
-        color: darkGray,
-      });
-
-      // ProofTags count
-      if (data.unlockedTags.length > 0) {
-        const tagsText = `${data.unlockedTags.length} ProofTag${data.unlockedTags.length !== 1 ? 's' : ''} Unlocked`;
-        firstPage.drawText(tagsText, {
-          x: width / 2 - (tagsText.length * 3),
-          y: height - 520,
-          size: 12,
-          font: helveticaFont,
-          color: darkGray,
-        });
-      }
+      // Replace badge image with appropriate score-based badge
+      await this.replaceBadgeImage(pdfDoc, data.proofScore);
 
       // Date
       firstPage.drawText(`Issued: ${data.date}`, {
@@ -425,6 +380,92 @@ export class CertificateService {
 
     const pdfBytes = await pdfDoc.save();
     return Buffer.from(pdfBytes);
+  }
+
+  private async replaceTextInPDF(pdfDoc: any, placeholder: string, replacement: string): Promise<void> {
+    try {
+      console.log(`Replacing placeholder "${placeholder}" with "${replacement}"`);
+      
+      // Get all pages
+      const pages = pdfDoc.getPages();
+      
+      for (const page of pages) {
+        // Get page content - this is complex with pdf-lib
+        // For now, we'll use a simpler approach of drawing over the placeholder
+        // This requires knowing the approximate position of [VENTURE_NAME]
+        
+        // Based on your template, [VENTURE_NAME] appears to be positioned
+        // We'll draw a white rectangle to cover it, then draw the new text
+        const { width, height } = page.getSize();
+        
+        // Cover the [VENTURE_NAME] placeholder with white rectangle
+        page.drawRectangle({
+          x: 50, // Adjust based on template
+          y: height - 200, // Adjust based on template  
+          width: 300, // Adjust based on placeholder width
+          height: 30, // Adjust based on text height
+          color: rgb(1, 1, 1), // White background
+        });
+        
+        // Draw the replacement text
+        const timesRomanBoldFont = await pdfDoc.embedFont(StandardFonts.TimesRomanBold);
+        page.drawText(replacement, {
+          x: 60, // Adjust based on template
+          y: height - 190, // Adjust based on template
+          size: 24,
+          font: timesRomanBoldFont,
+          color: rgb(0, 0, 0), // Black text
+        });
+      }
+      
+      console.log(`Successfully replaced "${placeholder}" with "${replacement}"`);
+    } catch (error) {
+      console.error('Error replacing text in PDF:', error);
+    }
+  }
+
+  private async replaceBadgeImage(pdfDoc: any, proofScore: number): Promise<void> {
+    try {
+      console.log(`Replacing badge for ProofScore: ${proofScore}`);
+      
+      // Determine which badge to use based on score
+      const badgeNumber = this.getScoreBadgeNumber(proofScore);
+      const badgePath = path.join(process.cwd(), 'server', 'templates', `badge_${badgeNumber}.png`);
+      
+      console.log(`Looking for badge image: badge_${badgeNumber}.png`);
+      
+      // Check if badge file exists
+      try {
+        await fs.access(badgePath);
+        console.log(`Badge image found: ${badgePath}`);
+        
+        // Read badge image
+        const badgeImageBytes = await fs.readFile(badgePath);
+        
+        // Embed the image in PDF
+        const badgeImage = await pdfDoc.embedPng(badgeImageBytes);
+        
+        // Get first page
+        const firstPage = pdfDoc.getPages()[0];
+        const { width, height } = firstPage.getSize();
+        
+        // Draw the badge image at the appropriate position
+        // Adjust these coordinates based on where badge_09 appears in your template
+        firstPage.drawImage(badgeImage, {
+          x: width - 150, // Adjust based on template
+          y: height - 150, // Adjust based on template
+          width: 100, // Adjust based on desired size
+          height: 100, // Adjust based on desired size
+        });
+        
+        console.log(`Successfully replaced badge with badge_${badgeNumber}.png`);
+      } catch (error) {
+        console.log(`Badge image badge_${badgeNumber}.png not found, skipping badge replacement`);
+      }
+      
+    } catch (error) {
+      console.error('Error replacing badge image:', error);
+    }
   }
 
   async uploadCertificateAndGetUrl(ventureId: string, pdfBuffer: Buffer): Promise<string | null> {

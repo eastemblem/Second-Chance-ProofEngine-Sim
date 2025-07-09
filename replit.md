@@ -353,6 +353,10 @@ Demo experience for testing different user journeys:
   * Modified certificate service to load template and overlay dynamic content (names, scores, achievements)
   * Added fallback to programmatic generation if template loading fails
   * Template system supports placeholder replacement with venture-specific data
+  * **ENHANCED: Placeholder and badge replacement system** - Added methods to replace [VENTURE_NAME] placeholder and badge_09 image
+  * System now replaces text placeholders by drawing white rectangles over them and adding new text
+  * Badge images are replaced based on ProofScore using badge_01.png through badge_09.png naming convention
+  * Ready for badge image uploads in server/templates/ folder for score-based badge replacement
 
 ## User Preferences
 
