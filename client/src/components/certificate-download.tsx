@@ -22,13 +22,17 @@ export function CertificateDownload({
   // Debug certificate props
 
   const handleGenerateCertificate = async () => {
+    console.log('Certificate generation started for ventureId:', ventureId);
     setIsGenerating(true);
     
     try {
+      console.log('Making API request to /api/certificate/generate');
       const response = await apiRequest('/api/certificate/generate', {
         method: 'POST',
         body: { ventureId }
       });
+
+      console.log('Certificate API response:', response);
 
       if (response.success) {
         setCertificateUrl(response.certificateUrl || 'certificate-generated');
@@ -36,14 +40,16 @@ export function CertificateDownload({
           title: "Certificate Generated!",
           description: "Your ProofScore certificate has been created successfully.",
         });
+        console.log('Certificate generated successfully');
       } else {
+        console.error('Certificate generation failed:', response.error);
         throw new Error(response.error || 'Failed to generate certificate');
       }
     } catch (error) {
       console.error('Certificate generation error:', error);
       toast({
-        title: "Generation Failed",
-        description: "Unable to generate certificate. Please try again.",
+        title: "Generation Failed", 
+        description: `Unable to generate certificate: ${error.message || 'Please try again.'}`,
         variant: "destructive",
       });
     } finally {

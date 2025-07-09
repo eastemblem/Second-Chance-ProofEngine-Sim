@@ -30,22 +30,42 @@ export async function generateCertificate(req: Request, res: Response) {
           const { onboardingManager } = await import('../onboarding');
           const session = await onboardingManager.getSession(ventureId);
           console.log('Session data found:', !!session);
-          if (session && session.founderData) {
-            console.log('Creating direct certificate from session data');
+          if (session) {
+            console.log('Creating certificate from session data');
+            console.log('Session structure keys:', Object.keys(session));
+            
+            // Extract data from session (stepData contains the actual data)
+            const stepData = session.stepData || session;
+            const founderData = stepData.founder || {};
+            const ventureData = stepData.venture || {};
+            const processingData = stepData.processing || {};
+            const scoringResult = processingData.scoringResult || {};
+            
+            console.log('Extracted venture name:', ventureData.name);
+            console.log('Extracted founder name:', founderData.fullName);
+            console.log('Extracted score:', scoringResult.output?.total_score);
+            
+            // Use actual scoring data if available
+            const actualScore = scoringResult.output?.total_score || 75;
+            const actualTags = scoringResult.output?.tags || ['Problem Hunter', 'Solution Builder', 'Market Validator'];
             
             // Create certificate directly from session data
             const certificateData = {
-              ventureName: session.founderData.startupName || session.founderData.name || 'Your Venture',
-              founderName: session.founderData.fullName || 'Founder',
-              proofScore: 75, // Default demo score
+              ventureName: ventureData.name || 'Your Venture',
+              founderName: founderData.fullName || 'Founder',
+              proofScore: actualScore,
               date: new Date().toLocaleDateString('en-US', { 
                 year: 'numeric', 
                 month: 'long', 
                 day: 'numeric' 
               }),
-              unlockedTags: ['Problem Hunter', 'Solution Builder', 'Market Validator'],
-              scoreCategory: 'ProofScaler Candidate'
+              unlockedTags: actualTags.slice(0, 5), // Limit to first 5 tags
+              scoreCategory: actualScore >= 90 ? 'Leader in Validation' : 
+                           actualScore >= 80 ? 'Investor Match Ready' : 
+                           actualScore >= 70 ? 'ProofScaler Candidate' : 'Validation Journey'
             };
+            
+            console.log('Certificate data:', certificateData);
             
             const { certificateService } = await import('../services/certificate-service');
             const pdfBuffer = await certificateService.createPDFCertificate(certificateData);
