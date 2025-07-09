@@ -363,8 +363,9 @@ Demo experience for testing different user journeys:
   * Venture name positioned at 58% height, badge at 25% height with optimized sizing for new template layout
   * **FINAL: Clean design implementation** - Removed background rectangle for transparent venture name display
   * Badge repositioned to bottom center (12% from bottom) for perfect visual balance and professional appearance
-  * **UPDATED: Badge positioning refinement** - Adjusted badge position to 18% from bottom for horizontal alignment between logo and signature
-  * Badge now positioned horizontally centered between Second Chance logo and L.A. Ravenscroft signature for optimal visual balance
+  * **UPDATED: Badge positioning refinement** - Adjusted badge position to 12% from bottom for proper baseline alignment
+  * Badge now positioned horizontally centered between Second Chance logo and L.A. Ravenscroft signature at bottom of certificate
+  * Reduced badge size to 80x80 pixels for better integration with bottom layout design
   * **UPDATED: Certificate filename format** - Changed from timestamp-based naming to clean format using VentureName_Validation_Certificate.pdf
   * Updated all certificate generation paths (service and route handlers) to use consistent clean naming convention
   * **UPDATED: Badge folder organization** - Moved badge assets from server/templates/ to server/templates/badges/ subfolder
