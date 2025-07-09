@@ -122,14 +122,32 @@ export class CertificateService {
 
   async createPDFCertificate(data: CertificateData): Promise<Buffer> {
     try {
+      console.log('Attempting to load certificate template...');
+      
       // Load the certificate template
       const templatePath = path.join(process.cwd(), 'server', 'templates', 'certificate-template.pdf');
+      
+      // Check if template file exists
+      try {
+        await fs.access(templatePath);
+        console.log('Template file exists at:', templatePath);
+        const stats = await fs.stat(templatePath);
+        console.log('Template file stats:', { size: stats.size, isFile: stats.isFile() });
+      } catch (error) {
+        console.log('Template file not found, error:', error.message);
+        console.log('Using programmatic generation');
+        return this.createProgrammaticCertificate(data);
+      }
+      
       const templateBytes = await fs.readFile(templatePath);
+      console.log('Template loaded, file size:', templateBytes.length, 'bytes');
       
       // Load the template PDF
       const pdfDoc = await PDFDocument.load(templateBytes);
       const pages = pdfDoc.getPages();
       const firstPage = pages[0];
+      
+      console.log('PDF template loaded successfully, pages:', pages.length);
       
       // Embed fonts for text replacement
       const timesRomanFont = await pdfDoc.embedFont(StandardFonts.TimesRoman);
@@ -138,47 +156,49 @@ export class CertificateService {
       const helveticaBoldFont = await pdfDoc.embedFont(StandardFonts.HelveticaBold);
 
       const { width, height } = firstPage.getSize();
+      console.log('Template dimensions:', { width, height });
 
-      // Colors
+      // Colors matching your template
       const purple = rgb(0.45, 0.16, 0.68); // #7527AD
       const gold = rgb(0.95, 0.76, 0.06); // #F3C610
       const darkGray = rgb(0.2, 0.2, 0.2);
       const lightGray = rgb(0.5, 0.5, 0.5);
+      const black = rgb(0, 0, 0);
 
-      // Replace placeholder text with actual data
-      // These positions may need adjustment based on your template layout
+      // Based on your template structure, replace [VENTURE_NAME] placeholder
+      // Position text according to your template layout
       
-      // Founder Name
-      firstPage.drawText(data.founderName, {
-        x: width / 2 - (data.founderName.length * 6),
-        y: height - 240,
-        size: 24,
+      // Venture Name (replacing [VENTURE_NAME] placeholder)
+      firstPage.drawText(data.ventureName, {
+        x: width / 2 - (data.ventureName.length * 8),
+        y: height - 180, // Adjusted for template positioning
+        size: 28,
         font: timesRomanBoldFont,
         color: purple,
       });
 
-      // Venture Name
-      firstPage.drawText(data.ventureName, {
-        x: width / 2 - (data.ventureName.length * 7),
-        y: height - 320,
-        size: 22,
+      // Founder Name
+      firstPage.drawText(`Founder: ${data.founderName}`, {
+        x: width / 2 - ((data.founderName.length + 9) * 4),
+        y: height - 400, // Position below the main text
+        size: 16,
         font: timesRomanBoldFont,
-        color: purple,
+        color: black,
       });
 
       // ProofScore
-      firstPage.drawText(`${data.proofScore}/100`, {
-        x: width / 2 - 30,
-        y: height - 410,
-        size: 32,
+      firstPage.drawText(`ProofScore: ${data.proofScore}/100`, {
+        x: width / 2 - 60,
+        y: height - 450,
+        size: 20,
         font: timesRomanBoldFont,
         color: purple,
       });
 
       // Score Category
       firstPage.drawText(data.scoreCategory, {
-        x: width / 2 - (data.scoreCategory.length * 4),
-        y: height - 440,
+        x: width / 2 - (data.scoreCategory.length * 3),
+        y: height - 480,
         size: 14,
         font: helveticaFont,
         color: darkGray,
@@ -189,38 +209,15 @@ export class CertificateService {
         const tagsText = `${data.unlockedTags.length} ProofTag${data.unlockedTags.length !== 1 ? 's' : ''} Unlocked`;
         firstPage.drawText(tagsText, {
           x: width / 2 - (tagsText.length * 3),
-          y: height - 515,
+          y: height - 520,
           size: 12,
           font: helveticaFont,
           color: darkGray,
         });
-
-        // Display first few ProofTags
-        const displayTags = data.unlockedTags.slice(0, 5);
-        displayTags.forEach((tag, index) => {
-          const yPos = height - 540 - (index * 20);
-          firstPage.drawText(`• ${tag}`, {
-            x: width / 2 - 100,
-            y: yPos,
-            size: 10,
-            font: helveticaFont,
-            color: lightGray,
-          });
-        });
-
-        if (data.unlockedTags.length > 5) {
-          firstPage.drawText(`+ ${data.unlockedTags.length - 5} more achievements`, {
-            x: width / 2 - 80,
-            y: height - 640,
-            size: 10,
-            font: helveticaFont,
-            color: lightGray,
-          });
-        }
       }
 
       // Date
-      firstPage.drawText(`Issued on ${data.date}`, {
+      firstPage.drawText(`Issued: ${data.date}`, {
         x: 50,
         y: 80,
         size: 10,
@@ -238,10 +235,14 @@ export class CertificateService {
         color: lightGray,
       });
 
+      console.log('Text overlaid on template, generating final PDF...');
       const pdfBytes = await pdfDoc.save();
+      console.log('Certificate PDF generated successfully using template');
       return Buffer.from(pdfBytes);
+      
     } catch (error) {
       console.error('Error creating PDF certificate from template:', error);
+      console.error('Error details:', error.message);
       
       // Fallback to programmatic generation if template fails
       console.log('Falling back to programmatic certificate generation...');
