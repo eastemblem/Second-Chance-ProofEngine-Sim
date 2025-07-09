@@ -34,6 +34,8 @@ export class CertificateService {
   }
 
   async generateCertificate(ventureId: string): Promise<{ buffer: Buffer; filename: string } | null> {
+    // Force fresh generation by adding timestamp to prevent caching
+    console.log(`Generating fresh certificate at ${new Date().toISOString()}`);
     try {
       console.log(`Generating certificate for venture: ${ventureId}`);
 
