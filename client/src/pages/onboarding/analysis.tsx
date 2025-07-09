@@ -1392,7 +1392,7 @@ export default function Analysis({
             </Card>
 
             {/* Certificate Download */}
-            {ventureData?.ventureId && (
+            {(ventureData?.ventureId || sessionId) && (
               <motion.div
                 initial={{ opacity: 0, y: 20 }}
                 animate={{ opacity: 1, y: 0 }}
@@ -1400,9 +1400,9 @@ export default function Analysis({
                 className="mb-8"
               >
                 <CertificateDownload
-                  ventureId={ventureData.ventureId}
-                  ventureName={ventureName || ventureData.name || "Your Venture"}
-                  existingCertificateUrl={ventureData.certificateUrl}
+                  ventureId={ventureData?.ventureId || sessionId}
+                  ventureName={ventureName || ventureData?.name || "Your Venture"}
+                  existingCertificateUrl={ventureData?.certificateUrl}
                 />
               </motion.div>
             )}
