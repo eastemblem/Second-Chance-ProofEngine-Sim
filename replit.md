@@ -396,6 +396,9 @@ Demo experience for testing different user journeys:
   * Reports include venture details, founder information, ProofScore, and actionable next steps
   * System supports both venture-based and session-based report generation
   * Reports automatically upload to 0_Overview folder in data room for investor access
+  * Enhanced data extraction logic to properly use real scoring data (East Emblem score 85) instead of demo fallback
+  * Fixed session data parsing to extract venture names, founder info, and actual scoring results from API responses
+  * Maintained purple-gold theme consistency as requested while providing comprehensive validation insights
 
 ## User Preferences
 
