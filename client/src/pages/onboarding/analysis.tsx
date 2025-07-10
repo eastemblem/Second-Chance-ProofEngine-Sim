@@ -38,6 +38,7 @@ import { useToast } from "@/hooks/use-toast";
 import { ProofScoreResult } from "@shared/schema";
 import { Leaderboard } from "@/components/leaderboard";
 import { CertificateDownload } from "@/components/certificate-download";
+import { ReportDownload } from "@/components/report-download";
 
 // Import score badges
 import Badge01 from "../../assets/badges/score/Badge_01.svg";
@@ -1386,23 +1387,17 @@ export default function Analysis({
             </div>
 
             {/* Generated Report */}
-            <Card className="p-6 border-border bg-card mb-8">
-              <div className="flex items-center justify-between">
-                <div>
-                  <h3 className="text-xl font-semibold mb-2">
-                    Your Detailed Analysis Report
-                  </h3>
-                  <p className="text-muted-foreground">
-                    Comprehensive pitch deck analysis with actionable
-                    recommendations
-                  </p>
-                </div>
-                <Button className="gradient-button">
-                  <Download className="mr-2 w-4 h-4" />
-                  Download PDF
-                </Button>
-              </div>
-            </Card>
+            <motion.div
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: 1.8, duration: 0.6 }}
+              className="mb-8"
+            >
+              <ReportDownload 
+                ventureId={ventureData?.ventureId}
+                sessionId={sessionId}
+              />
+            </motion.div>
 
             {/* Certificate Download */}
             {(ventureData?.ventureId || sessionId) && (
