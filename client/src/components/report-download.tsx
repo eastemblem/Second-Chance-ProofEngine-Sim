@@ -82,12 +82,7 @@ export function ReportDownload({ sessionId, ventureId }: ReportDownloadProps) {
     }
   };
 
-  // Auto-generate report on component mount
-  React.useEffect(() => {
-    if (!reportUrl && (sessionId || ventureId)) {
-      handleDownloadReport();
-    }
-  }, [sessionId, ventureId]);
+
 
   return (
     <Card className="p-6 border-border bg-card">
