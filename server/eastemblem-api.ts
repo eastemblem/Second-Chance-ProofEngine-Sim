@@ -121,7 +121,7 @@ interface EmailNotificationData {
   type: string;
   name: string;
   email: string;
-  subject: string;
+  subject?: string;
   certificate: string;
   report: string;
 }
@@ -656,15 +656,17 @@ class EastEmblemAPI {
         console.log(`API endpoint: ${this.getEndpoint("/webhook/notification/email")}`);
         
         // Validate required fields
-        if (!emailData.type || !emailData.name || !emailData.email || !emailData.subject || !emailData.certificate || !emailData.report) {
-          throw new Error("Missing required email fields. All fields (type, name, email, subject, certificate, report) are required.");
+        if (!emailData.type || !emailData.name || !emailData.email || !emailData.certificate || !emailData.report) {
+          throw new Error("Missing required email fields. All fields (type, name, email, certificate, report) are required.");
         }
 
         const formData = new FormData();
         formData.append("type", emailData.type);
         formData.append("name", emailData.name);
         formData.append("email", emailData.email);
-        formData.append("subject", emailData.subject);
+        if (emailData.subject) {
+          formData.append("subject", emailData.subject);
+        }
         formData.append("certificate", emailData.certificate);
         formData.append("report", emailData.report);
 

@@ -706,7 +706,6 @@ export class OnboardingService {
         type: "onboarding",
         name: founderName,
         email: founder.email,
-        subject: founder.email,
         certificate: certificateUrl,
         report: reportUrl
       };
@@ -715,7 +714,6 @@ export class OnboardingService {
         type: emailData.type,
         name: emailData.name,
         email: emailData.email,
-        subject: emailData.subject,
         certificateUrl: emailData.certificate,
         reportUrl: emailData.report
       });
