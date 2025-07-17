@@ -438,6 +438,12 @@ Demo experience for testing different user journeys:
   * **UPDATED: Certificate course completion parameter** - Set is_course_complete to false for onboarding flow
   * Fixed API parameter structure to match EastEmblem API expectations (positional parameters)
   * Certificate will show course completion status as false until user completes actual course
+- July 17, 2025. **UI CONSISTENCY UPDATES**:
+  * Changed certificate title from "ProofScore Certificate" to "Your Validation Certificate" per user request
+  * Updated report download UI to match certificate download UI design and layout
+  * Both components now use consistent Card structure with title/description on left, button on right
+  * Applied same gradient-button styling and loading states across both components
+  * Improved user experience with consistent interface patterns
 
 ## User Preferences
 
