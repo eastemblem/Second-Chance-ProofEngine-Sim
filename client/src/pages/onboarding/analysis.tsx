@@ -1397,6 +1397,7 @@ export default function Analysis({
                 <ReportDownload 
                   ventureId={ventureData?.ventureId}
                   sessionId={sessionId}
+                  existingReportUrl={ventureData?.reportUrl}
                 />
               </motion.div>
             )}

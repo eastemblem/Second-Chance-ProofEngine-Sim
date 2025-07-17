@@ -18,9 +18,19 @@ export function CertificateDownload({
   existingCertificateUrl 
 }: CertificateDownloadProps) {
   const [isLoading, setIsLoading] = useState(false);
+  const [certificateUrl, setCertificateUrl] = useState<string | null>(existingCertificateUrl || null);
   const { toast } = useToast();
 
   const handleDownloadCertificate = async () => {
+    if (certificateUrl) {
+      window.open(certificateUrl, '_blank');
+      toast({
+        title: "Certificate Download",
+        description: "Certificate opened from cloud storage",
+      });
+      return;
+    }
+
     setIsLoading(true);
     
     try {
@@ -35,6 +45,8 @@ export function CertificateDownload({
       const result = await response.json();
 
       if (result.success && result.certificateUrl) {
+        setCertificateUrl(result.certificateUrl);
+        
         // Open the certificate URL in a new tab
         window.open(result.certificateUrl, '_blank');
         
@@ -78,7 +90,7 @@ export function CertificateDownload({
           ) : (
             <Download className="mr-2 w-4 h-4" />
           )}
-          Download Certificate
+          {certificateUrl ? 'Download Certificate' : 'Generate & Download Certificate'}
         </Button>
       </div>
     </Card>

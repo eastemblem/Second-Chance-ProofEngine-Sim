@@ -9,6 +9,7 @@ import { apiRequest } from '@/lib/queryClient';
 interface ReportDownloadProps {
   sessionId?: string;
   ventureId?: string;
+  existingReportUrl?: string;
 }
 
 interface ReportResponse {
@@ -19,9 +20,9 @@ interface ReportResponse {
   generatedAt?: string;
 }
 
-export function ReportDownload({ sessionId, ventureId }: ReportDownloadProps) {
+export function ReportDownload({ sessionId, ventureId, existingReportUrl }: ReportDownloadProps) {
   const { toast } = useToast();
-  const [reportUrl, setReportUrl] = useState<string | null>(null);
+  const [reportUrl, setReportUrl] = useState<string | null>(existingReportUrl || null);
   const [generatedAt, setGeneratedAt] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(false);
 
@@ -103,7 +104,7 @@ export function ReportDownload({ sessionId, ventureId }: ReportDownloadProps) {
           ) : (
             <Download className="mr-2 w-4 h-4" />
           )}
-          Download Report
+          {reportUrl ? 'Download Report' : 'Generate & Download Report'}
         </Button>
       </div>
     </Card>

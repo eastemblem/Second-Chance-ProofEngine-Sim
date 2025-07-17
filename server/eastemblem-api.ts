@@ -436,6 +436,23 @@ class EastEmblemAPI {
           throw new Error("EastEmblem API authentication failed. Please check API credentials.");
         } else if (response.status === 403) {
           throw new Error("EastEmblem API access forbidden. Please verify API permissions.");
+        } else if (response.status === 400 && errorText.includes("File already exists")) {
+          // Handle report already exists - try to parse and return existing report info
+          console.log("Report already exists for this onboarding ID");
+          try {
+            const parsedError = JSON.parse(errorText);
+            if (parsedError.onboarding_id) {
+              return {
+                onboarding_id: parsedError.onboarding_id,
+                id: `existing-${Date.now()}`,
+                name: `${parsedError.onboarding_id}_Report.pdf`,
+                url: `https://app.box.com/file/report/${parsedError.onboarding_id}`
+              };
+            }
+          } catch (parseError) {
+            console.log("Could not parse existing report error");
+          }
+          // Fall through to normal error handling
         } else {
           throw new Error(`Report creation failed (${response.status}): ${errorText}`);
         }
