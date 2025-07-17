@@ -117,6 +117,20 @@ interface ReportResponse {
   url: string;
 }
 
+interface EmailNotificationData {
+  type: string;
+  name: string;
+  email: string;
+  subject: string;
+  certificate: string;
+  report: string;
+}
+
+interface EmailResponse {
+  status: number;
+  message: string;
+}
+
 class EastEmblemAPI {
   private baseUrl: string;
 
@@ -634,6 +648,92 @@ class EastEmblemAPI {
     }
   }
 
+  async sendEmail(emailData: EmailNotificationData): Promise<EmailResponse> {
+    const maxRetries = 3;
+    let lastError: Error | null = null;
+
+    for (let attempt = 1; attempt <= maxRetries; attempt++) {
+      try {
+        console.log(`Sending email notification (attempt ${attempt}/${maxRetries}) for: ${emailData.email}`);
+        console.log(`API endpoint: ${this.getEndpoint("/webhook/notification/email")}`);
+        
+        // Validate required fields
+        if (!emailData.type || !emailData.name || !emailData.email || !emailData.subject || !emailData.certificate || !emailData.report) {
+          throw new Error("Missing required email fields. All fields (type, name, email, subject, certificate, report) are required.");
+        }
+
+        const formData = new FormData();
+        formData.append("type", emailData.type);
+        formData.append("name", emailData.name);
+        formData.append("email", emailData.email);
+        formData.append("subject", emailData.subject);
+        formData.append("certificate", emailData.certificate);
+        formData.append("report", emailData.report);
+
+        const controller = new AbortController();
+        const timeoutId = setTimeout(() => controller.abort(), 30000); // 30 second timeout
+
+        const response = await fetch(this.getEndpoint("/webhook/notification/email"), {
+          method: "POST",
+          body: formData,
+          signal: controller.signal,
+        });
+
+        clearTimeout(timeoutId);
+
+        if (!response.ok) {
+          const errorText = await response.text();
+          console.error(`Email notification failed with status ${response.status}:`, errorText);
+          
+          if (response.status >= 500) {
+            throw new Error(`EastEmblem API service unavailable (${response.status}). Please try again later.`);
+          } else if (response.status === 401) {
+            throw new Error("EastEmblem API authentication failed. Please check API credentials.");
+          } else if (response.status === 403) {
+            throw new Error("EastEmblem API access forbidden. Please verify API permissions.");
+          } else {
+            throw new Error(`Email notification failed (${response.status}): ${errorText}`);
+          }
+        }
+
+        const responseText = await response.text();
+        console.log("Raw email response:", responseText);
+        
+        try {
+          const result = JSON.parse(responseText) as EmailResponse;
+          console.log("Email notification sent successfully:", result);
+          return result;
+        } catch (parseError) {
+          console.error("Failed to parse email response JSON:", parseError);
+          console.log("Response was:", responseText);
+          throw new Error(`Email notification succeeded but response parsing failed: ${parseError instanceof Error ? parseError.message : 'Invalid JSON'}`);
+        }
+      } catch (error) {
+        console.error(`Email notification attempt ${attempt} failed:`, error);
+        lastError = error instanceof Error ? error : new Error('Unknown error');
+        
+        if (!this.isConfigured()) {
+          throw new Error("EastEmblem API is not configured. Please provide EASTEMBLEM_API_URL and EASTEMBLEM_API_KEY.");
+        }
+        
+        // Provide more specific error messaging for timeout issues
+        if (error instanceof Error && error.name === 'AbortError') {
+          lastError = new Error("Email notification is taking longer than expected. Please try again in a few minutes.");
+        }
+        
+        // If this is the last attempt, throw the error
+        if (attempt === maxRetries) {
+          break;
+        }
+        
+        // Wait before retrying (exponential backoff)
+        await new Promise(resolve => setTimeout(resolve, attempt * 1000));
+      }
+    }
+
+    throw new Error(`Email notification failed after ${maxRetries} attempts: ${lastError?.message || 'Unknown error'}`);
+  }
+
   getStatus(): { configured: boolean; baseUrl: string } {
     return {
       configured: this.isConfigured(),
@@ -647,4 +747,6 @@ export type {
   FolderStructureResponse,
   FileUploadResponse,
   PitchDeckScoreResponse,
+  EmailNotificationData,
+  EmailResponse,
 };

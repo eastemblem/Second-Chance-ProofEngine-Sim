@@ -1,6 +1,6 @@
 import { Request } from "express";
 import { storage } from "../storage";
-import { eastEmblemAPI } from "../eastemblem-api";
+import { eastEmblemAPI, type EmailNotificationData } from "../eastemblem-api";
 import { getSessionId, getSessionData, updateSessionData } from "../utils/session-manager";
 import { db } from "../db";
 import { onboardingSession, documentUpload } from "@shared/schema";
@@ -621,6 +621,11 @@ export class OnboardingService {
               } else {
                 console.log("✗ Report generation failed:", reportResult.error);
               }
+
+              // Send email notification if both certificate and report are successful
+              if (certificateResult.success && reportResult.success) {
+                await this.sendEmailNotification(sessionId, stepData, certificateResult.certificateUrl, reportResult.reportUrl);
+              }
             } catch (error) {
               console.log("Async certificate/report generation failed for venture:", venture.name, error);
             }
@@ -665,6 +670,72 @@ export class OnboardingService {
     
     console.log('Returning scoring result:', JSON.stringify(result, null, 2));
     return result;
+  }
+
+  /**
+   * Send email notification after successful certificate and report generation
+   */
+  private async sendEmailNotification(sessionId: string, stepData: any, certificateUrl: string, reportUrl: string) {
+    try {
+      console.log("Starting email notification process for session:", sessionId);
+      
+      if (!eastEmblemAPI.isConfigured()) {
+        console.log("EastEmblem API not configured, skipping email notification");
+        return;
+      }
+
+      // Extract founder and venture information
+      const founder = stepData.founder?.founder || stepData.founder;
+      const venture = stepData.venture?.venture || stepData.venture;
+
+      // Validate required fields
+      if (!founder?.firstName || !founder?.email || !venture?.name) {
+        console.error("Missing required email fields:", {
+          firstName: founder?.firstName,
+          email: founder?.email,
+          ventureName: venture?.name
+        });
+        return;
+      }
+
+      // Prepare email data
+      const emailData: EmailNotificationData = {
+        type: "onboarding",
+        name: founder.firstName,
+        email: founder.email,
+        subject: "🎉 Welcome to Second Chance - Your Documents Are Ready !",
+        certificate: certificateUrl,
+        report: reportUrl
+      };
+
+      console.log("Sending email notification with data:", {
+        type: emailData.type,
+        name: emailData.name,
+        email: emailData.email,
+        subject: emailData.subject,
+        certificateUrl: emailData.certificate,
+        reportUrl: emailData.report
+      });
+
+      // Send email notification
+      const emailResult = await eastEmblemAPI.sendEmail(emailData);
+      console.log("✓ Email notification sent successfully:", emailResult);
+
+      // Send Slack notification about email sent (async, no wait)
+      eastEmblemAPI
+        .sendSlackNotification(
+          `\`Onboarding Id : ${sessionId}\`\n📧 Welcome Email Sent to ${founder.firstName} (${founder.email}) - ${venture.name}`,
+          "#notifications",
+          sessionId,
+        )
+        .catch((error) => {
+          console.log("Failed to send email completion notification:", error);
+        });
+
+    } catch (error) {
+      console.error("Email notification failed:", error);
+      // Don't fail the entire process if email fails - it's a nice-to-have feature
+    }
   }
 }
 
