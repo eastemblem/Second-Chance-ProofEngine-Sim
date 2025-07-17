@@ -90,7 +90,7 @@ export function CertificateDownload({
           ) : (
             <Download className="mr-2 w-4 h-4" />
           )}
-          {certificateUrl ? 'Download Certificate' : 'Generate & Download Certificate'}
+          Download Certificate
         </Button>
       </div>
     </Card>

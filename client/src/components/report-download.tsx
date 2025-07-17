@@ -104,7 +104,7 @@ export function ReportDownload({ sessionId, ventureId, existingReportUrl }: Repo
           ) : (
             <Download className="mr-2 w-4 h-4" />
           )}
-          {reportUrl ? 'Download Report' : 'Generate & Download Report'}
+          Download Report
         </Button>
       </div>
     </Card>
