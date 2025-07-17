@@ -688,10 +688,13 @@ export class OnboardingService {
       const founder = stepData.founder?.founder || stepData.founder;
       const venture = stepData.venture?.venture || stepData.venture;
 
+      // Extract founder name (handle both firstName and fullName formats)
+      const founderName = founder?.firstName || founder?.fullName?.split(' ')[0] || 'Founder';
+
       // Validate required fields
-      if (!founder?.firstName || !founder?.email || !venture?.name) {
+      if (!founderName || !founder?.email || !venture?.name) {
         console.error("Missing required email fields:", {
-          firstName: founder?.firstName,
+          founderName,
           email: founder?.email,
           ventureName: venture?.name
         });
@@ -701,7 +704,7 @@ export class OnboardingService {
       // Prepare email data
       const emailData: EmailNotificationData = {
         type: "onboarding",
-        name: founder.firstName,
+        name: founderName,
         email: founder.email,
         subject: "🎉 Welcome to Second Chance - Your Documents Are Ready !",
         certificate: certificateUrl,
@@ -724,7 +727,7 @@ export class OnboardingService {
       // Send Slack notification about email sent (async, no wait)
       eastEmblemAPI
         .sendSlackNotification(
-          `\`Onboarding Id : ${sessionId}\`\n📧 Welcome Email Sent to ${founder.firstName} (${founder.email}) - ${venture.name}`,
+          `\`Onboarding Id : ${sessionId}\`\n📧 Welcome Email Sent to ${founderName} (${founder.email}) - ${venture.name}`,
           "#notifications",
           sessionId,
         )

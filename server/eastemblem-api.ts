@@ -362,9 +362,11 @@ class EastEmblemAPI {
 
       clearTimeout(timeoutId);
 
+      const responseText = await response.text();
+      console.log("Raw certificate response:", responseText);
+      
       if (!response.ok) {
-        const errorText = await response.text();
-        console.error(`Certificate creation failed with status ${response.status}:`, errorText);
+        console.error(`Certificate creation failed with status ${response.status}:`, responseText);
         
         if (response.status >= 500) {
           throw new Error(`EastEmblem API service unavailable (${response.status}). Please try again later.`);
@@ -372,11 +374,11 @@ class EastEmblemAPI {
           throw new Error("EastEmblem API authentication failed. Please check API credentials.");
         } else if (response.status === 403) {
           throw new Error("EastEmblem API access forbidden. Please verify API permissions.");
-        } else if (response.status === 400 && errorText.includes("File already exists")) {
+        } else if (response.status === 400 && responseText.includes("File already exists")) {
           // Handle certificate already exists - return the existing certificate info
           console.log("Certificate already exists for this onboarding ID");
           try {
-            const parsedError = JSON.parse(errorText);
+            const parsedError = JSON.parse(responseText);
             if (parsedError.onboarding_id) {
               return {
                 onboarding_id: parsedError.onboarding_id,
@@ -389,13 +391,9 @@ class EastEmblemAPI {
             console.log("Could not parse existing certificate error");
           }
           // Fall through to normal error handling
-        } else {
-          throw new Error(`Certificate creation failed (${response.status}): ${errorText}`);
         }
+        throw new Error(`Certificate creation failed (${response.status}): ${responseText}`);
       }
-
-      const responseText = await response.text();
-      console.log("Raw certificate response:", responseText);
       
       try {
         const result = JSON.parse(responseText) as CertificateResponse;
