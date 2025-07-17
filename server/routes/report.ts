@@ -75,8 +75,6 @@ function mapScoringToReportData(scoringResult: any, sessionId: string, folderStr
   };
 }
 
-
-
 // Standalone function for report generation (no HTTP context needed)
 export async function createReportForSession(sessionId: string) {
   try {
@@ -164,95 +162,22 @@ export async function generateReport(req: Request, res: Response) {
       });
     }
 
-    let venture = null;
-    let session = null;
-
-    // First try to find by venture ID
-    if (ventureId) {
-      venture = await storage.getVenture(ventureId);
-      
-      if (!venture) {
-        // Try to find venture by founder ID
-        const ventures = await storage.getVenturesByFounderId(ventureId);
-        if (ventures && ventures.length > 0) {
-          venture = ventures[0];
-        }
-      }
-    }
-
-    // If no venture found, try session-based lookup
-    if (!venture) {
-      const { db } = await import('../db');
-      const { onboardingSession } = await import('@shared/schema');
-      const { eq } = await import('drizzle-orm');
-
-      try {
-        const [sessionData] = await db
-          .select()
-          .from(onboardingSession)
-          .where(eq(onboardingSession.sessionId, identifier));
-
-        if (sessionData) {
-          session = sessionData;
-          
-          // Try to find venture by founder ID from session
-          if (session.founderId) {
-            const ventures = await storage.getVenturesByFounderId(session.founderId);
-            if (ventures && ventures.length > 0) {
-              venture = ventures[0];
-            }
-          }
-        }
-      } catch (error) {
-        console.error('Error fetching session:', error);
-      }
-    }
-
-    // Check if we have a venture with report
-    if (venture && venture.reportUrl) {
+    // Try to create report for this session
+    const result = await createReportForSession(identifier);
+    
+    if (result.success) {
       return res.json({
         success: true,
-        reportUrl: venture.reportUrl,
-        message: "Report already exists",
-        generatedAt: venture.reportGeneratedAt
+        reportUrl: result.reportUrl,
+        message: result.message,
+        generatedAt: new Date().toISOString()
+      });
+    } else {
+      return res.status(500).json({
+        success: false,
+        error: result.error
       });
     }
-
-    // Check if we have session with report
-    if (session && session.stepData?.processing?.reportUrl) {
-      return res.json({
-        success: true,
-        reportUrl: session.stepData.processing.reportUrl,
-        message: "Report found in session",
-        generatedAt: session.stepData.processing.reportGeneratedAt || null
-      });
-    }
-
-    // No report found in stored data, try to create one for this session
-    if (session && session.stepData && session.stepData.processing && session.stepData.processing.scoringResult) {
-      const result = await createReportForSession(identifier);
-      
-      if (result.success) {
-        return res.json({
-          success: true,
-          reportUrl: result.reportUrl,
-          message: result.message,
-          generatedAt: new Date().toISOString()
-        });
-      } else {
-        return res.status(500).json({
-          success: false,
-          error: result.error
-        });
-      }
-    }
-
-    // No scoring data found
-    return res.status(404).json({
-      success: false,
-      error: "Report not found. Please complete the pitch deck analysis first.",
-      message: "Reports are generated automatically after successful pitch deck scoring."
-    });
 
   } catch (error) {
     console.error('Report generation error:', error);

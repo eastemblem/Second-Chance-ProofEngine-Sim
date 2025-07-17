@@ -405,6 +405,9 @@ Demo experience for testing different user journeys:
   * Modified report system to use external API instead of local HTML generation
   * Added report download component with automatic generation after pitch deck scoring
   * Enhanced report generation to trigger alongside certificate creation in onboarding workflow
+  * **CLEANUP: Removed old HTML report generation logic** - Deleted server/services/report-service.ts containing local HTML generation
+  * Streamlined report.ts to only use EastEmblem API for report generation without fallback HTML generation
+  * Cleaned up all references to local report generation functions and HTML templates
 - July 17, 2025. **INTEGRATED: EastEmblem Certificate API System**:
   * Replaced local PDF certificate generation with EastEmblem API integration
   * Added createCertificate method to EastEmblem API client with proper error handling
