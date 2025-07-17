@@ -358,6 +358,23 @@ class EastEmblemAPI {
           throw new Error("EastEmblem API authentication failed. Please check API credentials.");
         } else if (response.status === 403) {
           throw new Error("EastEmblem API access forbidden. Please verify API permissions.");
+        } else if (response.status === 400 && errorText.includes("File already exists")) {
+          // Handle certificate already exists - return the existing certificate info
+          console.log("Certificate already exists for this onboarding ID");
+          try {
+            const parsedError = JSON.parse(errorText);
+            if (parsedError.onboarding_id) {
+              return {
+                onboarding_id: parsedError.onboarding_id,
+                id: `existing-${Date.now()}`,
+                name: `${parsedError.onboarding_id}_Certificate.pdf`,
+                url: `https://app.box.com/file/${folderId}/certificate`
+              };
+            }
+          } catch (parseError) {
+            console.log("Could not parse existing certificate error");
+          }
+          // Fall through to normal error handling
         } else {
           throw new Error(`Certificate creation failed (${response.status}): ${errorText}`);
         }
