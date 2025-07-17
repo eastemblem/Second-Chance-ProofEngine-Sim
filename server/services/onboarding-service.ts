@@ -706,7 +706,7 @@ export class OnboardingService {
         type: "onboarding",
         name: founderName,
         email: founder.email,
-        subject: "🎉 Welcome to Second Chance - Your Documents Are Ready !",
+        subject: founder.email,
         certificate: certificateUrl,
         report: reportUrl
       };
