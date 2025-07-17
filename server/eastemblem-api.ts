@@ -121,14 +121,14 @@ class EastEmblemAPI {
   private baseUrl: string;
 
   constructor() {
-    this.baseUrl = process.env.EASTEMBLEM_API_BASE_URL || "";
+    this.baseUrl = process.env.EASTEMBLEM_API_BASE_URL || "https://eastemblemsecondchance.app.n8n.cloud/webhook-test";
     if (!this.baseUrl) {
       console.warn("EASTEMBLEM_API_BASE_URL not configured");
     }
   }
 
   private getEndpoint(path: string): string {
-    return `${this.baseUrl}/webhook${path}`;
+    return `${this.baseUrl}${path}`;
   }
 
   async createFolderStructure(
