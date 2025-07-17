@@ -399,6 +399,19 @@ Demo experience for testing different user journeys:
   * Enhanced data extraction logic to properly use real scoring data (East Emblem score 85) instead of demo fallback
   * Fixed session data parsing to extract venture names, founder info, and actual scoring results from API responses
   * Maintained purple-gold theme consistency as requested while providing comprehensive validation insights
+- July 17, 2025. **INTEGRATED: EastEmblem Certificate API System**:
+  * Replaced local PDF certificate generation with EastEmblem API integration
+  * Added createCertificate method to EastEmblem API client with proper error handling
+  * Integrated certificate creation into onboarding scoring workflow (async background process)
+  * Certificates automatically generated after successful pitch deck scoring completion
+  * System stores certificate URLs in ventures table (certificateUrl and certificateGeneratedAt fields)
+  * Updated certificate routes to fetch existing certificates from database instead of regenerating
+  * Certificate creation uses 0_Overview folder ID from session folderStructure data
+  * Certificates include venture score, onboarding ID, and course completion status
+  * API endpoint: /webhook/certificate/create with folder_id, score, is_course_complete, onboarding_id
+  * Successfully tested certificate generation - API returns shareable Box.com URLs
+  * Simplified certificate download UI to use EastEmblem-generated URLs directly
+  * System gracefully handles certificate creation failures without blocking user experience
 
 ## User Preferences
 

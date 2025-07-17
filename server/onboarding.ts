@@ -766,6 +766,41 @@ export class OnboardingManager {
       })
       .where(eq(onboardingSession.sessionId, sessionId));
 
+    // Create certificate asynchronously after successful scoring
+    if (eastEmblemAPI.isConfigured() && scoringResult?.output?.total_score) {
+      const totalScore = scoringResult.output.total_score;
+      const overviewFolderId = finalFolderStructure?.folders?.["0_Overview"];
+      
+      if (overviewFolderId) {
+        // Create certificate in background (async, no wait)
+        eastEmblemAPI.createCertificate(
+          overviewFolderId,
+          totalScore,
+          sessionId,
+          false // is_course_complete = false for pitch deck validation
+        ).then(async (certificateResult) => {
+          console.log("Certificate created successfully:", certificateResult);
+          
+          // Update venture with certificate URL
+          if (venture?.ventureId) {
+            try {
+              await storage.updateVenture(venture.ventureId, {
+                certificateUrl: certificateResult.url,
+                certificateGeneratedAt: new Date()
+              });
+              console.log("Venture updated with certificate URL:", certificateResult.url);
+            } catch (error) {
+              console.error("Failed to update venture with certificate URL:", error);
+            }
+          }
+        }).catch((error) => {
+          console.error("Failed to create certificate:", error);
+        });
+      } else {
+        console.log("No overview folder found, skipping certificate creation");
+      }
+    }
+
     // Send Slack notification for analysis completion (async, no wait)
     if (eastEmblemAPI.isConfigured()) {
       const totalScore = scoringResult?.output?.total_score || 0;

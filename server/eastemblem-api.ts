@@ -103,6 +103,13 @@ interface PitchDeckScoreErrorResponse {
   };
 }
 
+interface CertificateResponse {
+  onboarding_id: string;
+  id: string;
+  name: string;
+  url: string;
+}
+
 class EastEmblemAPI {
   private baseUrl: string;
 
@@ -304,6 +311,75 @@ class EastEmblemAPI {
       }
       
       throw new Error(`File upload failed: ${error instanceof Error ? error.message : 'Unknown error'}`);
+    }
+  }
+
+  async createCertificate(
+    folderId: string,
+    score: number,
+    onboardingId: string,
+    isCourseComplete: boolean = false
+  ): Promise<CertificateResponse> {
+    try {
+      const formData = new FormData();
+      formData.append("folder_id", folderId);
+      formData.append("score", score.toString());
+      formData.append("is_course_complete", isCourseComplete.toString());
+      formData.append("onboarding_id", onboardingId);
+
+      console.log(`Creating certificate for onboarding_id: ${onboardingId}, score: ${score}, folder: ${folderId}`);
+      console.log(`API endpoint: ${this.getEndpoint("/certificate/create")}`);
+
+      const controller = new AbortController();
+      const timeoutId = setTimeout(() => controller.abort(), 30000); // 30 second timeout
+
+      const response = await fetch(this.getEndpoint("/certificate/create"), {
+        method: "POST",
+        body: formData,
+        signal: controller.signal,
+      });
+
+      clearTimeout(timeoutId);
+
+      if (!response.ok) {
+        const errorText = await response.text();
+        console.error(`Certificate creation failed with status ${response.status}:`, errorText);
+        
+        if (response.status >= 500) {
+          throw new Error(`EastEmblem API service unavailable (${response.status}). Please try again later.`);
+        } else if (response.status === 401) {
+          throw new Error("EastEmblem API authentication failed. Please check API credentials.");
+        } else if (response.status === 403) {
+          throw new Error("EastEmblem API access forbidden. Please verify API permissions.");
+        } else {
+          throw new Error(`Certificate creation failed (${response.status}): ${errorText}`);
+        }
+      }
+
+      const responseText = await response.text();
+      console.log("Raw certificate response:", responseText);
+      
+      try {
+        const result = JSON.parse(responseText) as CertificateResponse;
+        console.log("Certificate created successfully:", result);
+        return result;
+      } catch (parseError) {
+        console.error("Failed to parse certificate response JSON:", parseError);
+        console.log("Response was:", responseText);
+        throw new Error(`Certificate creation succeeded but response parsing failed: ${parseError instanceof Error ? parseError.message : 'Invalid JSON'}`);
+      }
+    } catch (error) {
+      console.error("Error creating certificate:", error);
+      if (!this.isConfigured()) {
+        throw new Error("EastEmblem API is not configured. Please provide EASTEMBLEM_API_URL and EASTEMBLEM_API_KEY.");
+      }
+      
+      // Provide more specific error messaging for timeout issues
+      if (error instanceof Error && error.name === 'AbortError') {
+        throw new Error("Certificate creation is taking longer than expected. Please try again in a few minutes.");
+      }
+      
+      throw new Error(`Certificate creation failed: ${error instanceof Error ? error.message : 'Unknown error'}`);
     }
   }
 
