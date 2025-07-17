@@ -121,7 +121,7 @@ class EastEmblemAPI {
   private baseUrl: string;
 
   constructor() {
-    this.baseUrl = process.env.EASTEMBLEM_API_BASE_URL || "https://eastemblemsecondchance.app.n8n.cloud/webhook";
+    this.baseUrl = process.env.EASTEMBLEM_API_BASE_URL || "https://eastemblemsecondchance.app.n8n.cloud";
     if (!this.baseUrl) {
       console.warn("EASTEMBLEM_API_BASE_URL not configured");
     }
@@ -144,14 +144,14 @@ class EastEmblemAPI {
 
       console.log(`Creating folder structure for: ${folderName}`);
       console.log(
-        `API endpoint: ${this.getEndpoint("/vault/folder/create-structure")}`,
+        `API endpoint: ${this.getEndpoint("/webhook/vault/folder/create-structure")}`,
       );
 
       const controller = new AbortController();
       const timeoutId = setTimeout(() => controller.abort(), 30000); // 30 second timeout
 
       const response = await fetch(
-        this.getEndpoint("/vault/folder/create-structure"),
+        this.getEndpoint("/webhook/vault/folder/create-structure"),
         {
           method: "POST",
           body: formData,
@@ -243,12 +243,12 @@ class EastEmblemAPI {
       }
 
       console.log(`Uploading file: ${fileName} to folder: ${folderId}`);
-      console.log(`API endpoint: ${this.getEndpoint("/vault/file/upload")}`);
+      console.log(`API endpoint: ${this.getEndpoint("/webhook/vault/file/upload")}`);
 
       const controller = new AbortController();
       const timeoutId = setTimeout(() => controller.abort(), 60000); // Increase to 1 minute for file upload
 
-      const response = await fetch(this.getEndpoint("/vault/file/upload"), {
+      const response = await fetch(this.getEndpoint("/webhook/vault/file/upload"), {
         method: "POST",
         body: formData,
         signal: controller.signal,
@@ -460,12 +460,12 @@ class EastEmblemAPI {
       }
 
       console.log(`Scoring pitch deck: ${fileName}`);
-      console.log(`API endpoint: ${this.getEndpoint("/score/pitch-deck")}`);
+      console.log(`API endpoint: ${this.getEndpoint("/webhook/score/pitch-deck")}`);
 
       const controller = new AbortController();
       const timeoutId = setTimeout(() => controller.abort(), 120000); // Increase to 2 minutes for scoring
 
-      const response = await fetch(this.getEndpoint("/score/pitch-deck"), {
+      const response = await fetch(this.getEndpoint("/webhook/score/pitch-deck"), {
         method: "POST",
         body: formData,
         signal: controller.signal,
@@ -552,9 +552,9 @@ class EastEmblemAPI {
   ): Promise<any> {
     try {
       console.log(`Sending Slack notification: ${message} to ${channel}`);
-      console.log(`API endpoint: ${this.getEndpoint("/notification/slack")}`);
+      console.log(`API endpoint: ${this.getEndpoint("/webhook/notification/slack")}`);
 
-      const response = await fetch(this.getEndpoint("/notification/slack"), {
+      const response = await fetch(this.getEndpoint("/webhook/notification/slack"), {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
