@@ -121,7 +121,7 @@ class EastEmblemAPI {
   private baseUrl: string;
 
   constructor() {
-    this.baseUrl = process.env.EASTEMBLEM_API_BASE_URL || "https://eastemblemsecondchance.app.n8n.cloud/webhook-test";
+    this.baseUrl = process.env.EASTEMBLEM_API_BASE_URL || "https://eastemblemsecondchance.app.n8n.cloud/webhook";
     if (!this.baseUrl) {
       console.warn("EASTEMBLEM_API_BASE_URL not configured");
     }

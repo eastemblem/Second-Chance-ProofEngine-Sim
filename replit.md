@@ -399,6 +399,12 @@ Demo experience for testing different user journeys:
   * Enhanced data extraction logic to properly use real scoring data (East Emblem score 85) instead of demo fallback
   * Fixed session data parsing to extract venture names, founder info, and actual scoring results from API responses
   * Maintained purple-gold theme consistency as requested while providing comprehensive validation insights
+- July 17, 2025. **INTEGRATED: EastEmblem Report API System**:
+  * Updated EastEmblem API configuration to use /webhook instead of /webhook-test for report generation
+  * Integrated report generation with https://eastemblemsecondchance.app.n8n.cloud/webhook/score/pitch-deck-report endpoint
+  * Modified report system to use external API instead of local HTML generation
+  * Added report download component with automatic generation after pitch deck scoring
+  * Enhanced report generation to trigger alongside certificate creation in onboarding workflow
 - July 17, 2025. **INTEGRATED: EastEmblem Certificate API System**:
   * Replaced local PDF certificate generation with EastEmblem API integration
   * Added createCertificate method to EastEmblem API client with proper error handling
