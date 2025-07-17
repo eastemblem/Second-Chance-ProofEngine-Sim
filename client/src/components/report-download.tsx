@@ -48,8 +48,8 @@ export function ReportDownload({ sessionId, ventureId }: ReportDownloadProps) {
         setReportUrl(data.reportUrl);
         setGeneratedAt(data.generatedAt || null);
         toast({
-          title: "Report Ready!",
-          description: "Your validation report has been generated successfully.",
+          title: "Report Generated!",
+          description: "Your validation report is ready. Note: The report may take a few moments to be fully processed.",
         });
       } else {
         toast({
@@ -72,6 +72,10 @@ export function ReportDownload({ sessionId, ventureId }: ReportDownloadProps) {
   const handleDownload = () => {
     if (reportUrl) {
       window.open(reportUrl, '_blank');
+      toast({
+        title: "Opening Report",
+        description: "If the report doesn't load immediately, please wait a moment and try again.",
+      });
     } else {
       generateReportMutation.mutate();
     }

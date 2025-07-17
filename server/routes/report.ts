@@ -136,7 +136,9 @@ export async function createReportForSession(sessionId: string) {
     return {
       success: true,
       reportUrl: reportResult.url,
-      message: "Report created successfully"
+      message: "Report created successfully",
+      generatedAt: new Date().toISOString(),
+      processingNote: "Report may take a few moments to be fully processed by the document service"
     };
 
   } catch (error) {

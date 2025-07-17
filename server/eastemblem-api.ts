@@ -413,7 +413,7 @@ class EastEmblemAPI {
       console.log(`API endpoint: ${this.getEndpoint("/webhook/score/pitch-deck-report")}`);
 
       const controller = new AbortController();
-      const timeoutId = setTimeout(() => controller.abort(), 60000); // 60 second timeout
+      const timeoutId = setTimeout(() => controller.abort(), 120000); // 2 minute timeout for report generation
 
       const response = await fetch(this.getEndpoint("/webhook/score/pitch-deck-report"), {
         method: "POST",
