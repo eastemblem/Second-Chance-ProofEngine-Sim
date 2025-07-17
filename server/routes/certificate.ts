@@ -1,6 +1,97 @@
 import { Request, Response } from 'express';
 import { storage } from '../storage';
 
+// Standalone function for certificate generation (no HTTP context needed)
+export async function createCertificateForSession(sessionId: string) {
+  try {
+    const { db } = await import('../db');
+    const { onboardingSession } = await import('@shared/schema');
+    const { eq } = await import('drizzle-orm');
+
+    // Get session data
+    const [sessionData] = await db
+      .select()
+      .from(onboardingSession)
+      .where(eq(onboardingSession.sessionId, sessionId));
+
+    if (!sessionData) {
+      throw new Error('Session not found');
+    }
+
+    const session = sessionData;
+
+    // Check if certificate already exists
+    if (session.stepData?.processing?.certificateUrl) {
+      return {
+        success: true,
+        certificateUrl: session.stepData.processing.certificateUrl,
+        message: "Certificate already exists"
+      };
+    }
+
+    // Check if we have scoring data
+    if (!session.stepData?.processing?.scoringResult) {
+      throw new Error('No scoring data available');
+    }
+
+    const scoringResult = session.stepData.processing.scoringResult;
+    const totalScore = scoringResult.output?.total_score || 0;
+    const folderStructure = session.stepData.folderStructure;
+    const overviewFolderId = folderStructure?.folders?.["0_Overview"];
+
+    if (!overviewFolderId || totalScore <= 0) {
+      throw new Error('Invalid scoring data or folder structure');
+    }
+
+    // Import EastEmblem API
+    const { eastEmblemAPI } = await import('../eastemblem-api');
+
+    if (!eastEmblemAPI.isConfigured()) {
+      throw new Error('EastEmblem API not configured');
+    }
+
+    // Create certificate
+    const certificateResult = await eastEmblemAPI.createCertificate({
+      folderId: overviewFolderId,
+      score: totalScore,
+      isCourseComplete: true,
+      onboardingId: sessionId
+    });
+
+    if (!certificateResult.success || !certificateResult.data?.url) {
+      throw new Error('Certificate creation failed');
+    }
+
+    // Store certificate URL in session
+    const updatedStepData = {
+      ...session.stepData,
+      processing: {
+        ...session.stepData.processing,
+        certificateUrl: certificateResult.data.url,
+        certificateGeneratedAt: new Date().toISOString()
+      }
+    };
+
+    await db
+      .update(onboardingSession)
+      .set({ stepData: updatedStepData })
+      .where(eq(onboardingSession.sessionId, sessionId));
+
+    return {
+      success: true,
+      certificateUrl: certificateResult.data.url,
+      message: "Certificate created successfully"
+    };
+
+  } catch (error) {
+    console.error('Certificate creation error:', error);
+    return {
+      success: false,
+      error: error instanceof Error ? error.message : 'Unknown error'
+    };
+  }
+}
+
 export async function generateCertificate(req: Request, res: Response) {
   try {
     const { ventureId, sessionId } = req.body;

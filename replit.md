@@ -412,6 +412,10 @@ Demo experience for testing different user journeys:
   * Successfully tested certificate generation - API returns shareable Box.com URLs
   * Simplified certificate download UI to use EastEmblem-generated URLs directly
   * System gracefully handles certificate creation failures without blocking user experience
+  * **FIXED: Certificate async generation error** - Resolved "res.json is not a function" error
+  * Created standalone createCertificateForSession function that doesn't require HTTP context
+  * Updated onboarding service to use new standalone certificate function
+  * Certificate system now works correctly in async background processing without HTTP response errors
 
 ## User Preferences
 
