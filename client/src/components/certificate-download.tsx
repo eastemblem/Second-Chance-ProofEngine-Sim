@@ -72,16 +72,16 @@ export function CertificateDownload({
   };
 
   return (
-    <Card className="p-6 border-border bg-card">
-      <div className="flex items-center justify-between">
-        <div>
-          <h3 className="text-xl font-semibold mb-2">Your Validation Certificate</h3>
-          <p className="text-muted-foreground">
+    <Card className="p-4 sm:p-6 border-border bg-card">
+      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+        <div className="flex-1">
+          <h3 className="text-lg sm:text-xl font-semibold mb-2">Your Validation Certificate</h3>
+          <p className="text-sm sm:text-base text-muted-foreground">
             Official validation certificate with your achievements
           </p>
         </div>
         <Button 
-          className="gradient-button" 
+          className="gradient-button w-full sm:w-auto min-h-[44px]" 
           onClick={handleDownloadCertificate}
           disabled={isLoading}
         >

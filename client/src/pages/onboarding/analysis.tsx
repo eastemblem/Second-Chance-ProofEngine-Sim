@@ -846,7 +846,7 @@ export default function Analysis({
           </div>
         )}
 
-        <div className="max-w-4xl mx-auto px-6">
+        <div className="max-w-4xl mx-auto px-4 sm:px-6">
           <motion.div
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
@@ -854,7 +854,7 @@ export default function Analysis({
           >
             {/* Score Header */}
             {/* <Card className="p-8 border-border mb-8 text-center"> */}
-            <div className="p-4 border-border mb-4 text-center">
+            <div className="p-3 sm:p-4 border-border mb-3 sm:mb-4 text-center">
               <motion.div
                 initial={{ opacity: 0, y: -20 }}
                 animate={{ opacity: 1, y: 0 }}
@@ -875,7 +875,7 @@ export default function Analysis({
                   >
                     🎯
                   </motion.span>
-                  <h2 className="text-3xl font-bold bg-gradient-to-r from-primary to-primary-gold bg-clip-text text-transparent">
+                  <h2 className="text-2xl sm:text-3xl font-bold bg-gradient-to-r from-primary to-primary-gold bg-clip-text text-transparent">
                     Congratulations Founder!
                   </h2>
                   <motion.span
@@ -914,7 +914,7 @@ export default function Analysis({
               </motion.div>
 
               {/* Badge and Score Side by Side */}
-              <div className="flex items-center justify-center gap-12 my-12 mx-8">
+              <div className="flex items-center justify-center gap-6 sm:gap-12 my-8 sm:my-12 mx-4 sm:mx-8">
                 {/* Score Badge on Left */}
                 {scoreBadge && (
                   <motion.div
@@ -945,41 +945,41 @@ export default function Analysis({
                 )}
 
                 {/* Score Display on Right */}
-                <div className="text-center ml-4">
+                <div className="text-center ml-2 sm:ml-4">
                   <motion.div
-                    className="text-4xl font-black gradient-text mb-2"
+                    className="text-3xl sm:text-4xl font-black gradient-text mb-1 sm:mb-2"
                     initial={{ scale: 0 }}
                     animate={{ scale: 1 }}
                     transition={{ duration: 0.5, delay: 0.2 }}
                   >
                     {proofScore.total}
                   </motion.div>
-                  <p className="text-lg text-muted-foreground">out of 100</p>
+                  <p className="text-sm sm:text-lg text-muted-foreground">out of 100</p>
                 </div>
               </div>
 
               {/* ProofTags Achievement Section */}
-              <div className="bg-gradient-to-br from-primary/5 to-primary-gold/5 rounded-xl p-8 mb-6 border border-primary/10">
+              <div className="bg-gradient-to-br from-primary/5 to-primary-gold/5 rounded-xl p-4 sm:p-8 mb-4 sm:mb-6 border border-primary/10">
                 <motion.div
                   initial={{ opacity: 0, y: 10 }}
                   animate={{ opacity: 1, y: 0 }}
                   transition={{ delay: 0.4 }}
                   className="text-center mb-6"
                 >
-                  <h3 className="text-2xl font-bold mb-4 gradient-text">
+                  <h3 className="text-xl sm:text-2xl font-bold mb-3 sm:mb-4 gradient-text">
                     🏆 ProofTag Validation Progress
                   </h3>
 
-                  {/* Milestones Text and Progress Bar - Side by Side */}
-                  <div className="flex items-center justify-center gap-8 mx-6 mb-4">
+                  {/* Milestones Text and Progress Bar - Mobile responsive layout */}
+                  <div className="flex flex-col sm:flex-row items-center justify-center gap-4 sm:gap-8 mx-2 sm:mx-6 mb-3 sm:mb-4">
                     {/* Milestones Text - Center Aligned */}
                     <div className="text-center flex-1">
-                      <p className="text-lg text-muted-foreground mb-2">
+                      <p className="text-sm sm:text-lg text-muted-foreground mb-2">
                         {extractedProofTags.unlocked} of{" "}
                         {extractedProofTags.total} validation milestones
                         unlocked
                       </p>
-                      <div className="inline-flex items-center gap-2 px-4 py-2 bg-primary/10 rounded-full border border-primary/20">
+                      <div className="inline-flex items-center gap-2 px-3 sm:px-4 py-2 bg-primary/10 rounded-full border border-primary/20">
                         <Target className="w-4 h-4 text-primary" />
                         <span className="text-sm font-semibold text-primary">
                           {extractedProofTags.unlocked}/
@@ -999,9 +999,9 @@ export default function Analysis({
 
                     {/* Progress Bar */}
                     <div className="flex-shrink-0">
-                      <div className="relative w-24 h-24">
+                      <div className="relative w-20 h-20 sm:w-24 sm:h-24">
                         <svg
-                          className="w-24 h-24 transform -rotate-90"
+                          className="w-20 h-20 sm:w-24 sm:h-24 transform -rotate-90"
                           viewBox="0 0 100 100"
                         >
                           {/* Background circle */}
@@ -1072,8 +1072,8 @@ export default function Analysis({
                   </div>
                 </motion.div>
 
-                {/* ProofTags Grid - Unlocked and Locked */}
-                <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3">
+                {/* ProofTags Grid - Mobile-responsive grid */}
+                <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-3 2xl:grid-cols-4 gap-2 sm:gap-3">
                   {/* Unlocked Tags */}
                   {extractedProofTags.unlockedTags.map((tag, index) => (
                     <motion.div
@@ -1090,13 +1090,13 @@ export default function Analysis({
                     >
                       <Tooltip>
                         <TooltipTrigger asChild>
-                          <div className="relative bg-card border border-primary/20 rounded-lg p-3 hover:border-primary/40 transition-all duration-300 hover:shadow-lg hover:shadow-primary/10 cursor-pointer">
+                          <div className="relative bg-card border border-primary/20 rounded-lg p-2 sm:p-3 hover:border-primary/40 transition-all duration-300 hover:shadow-lg hover:shadow-primary/10 cursor-pointer min-h-[80px] sm:min-h-[90px]">
                             {/* Achievement glow effect */}
                             <div className="absolute inset-0 bg-gradient-to-r from-primary/5 to-primary-gold/5 rounded-lg opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
 
                             {/* Achievement icon */}
-                            <div className="relative flex items-center justify-center mb-2">
-                              <div className="w-8 h-8 bg-gradient-to-r from-primary to-primary-gold rounded-full flex items-center justify-center">
+                            <div className="relative flex items-center justify-center mb-1 sm:mb-2">
+                              <div className="w-6 h-6 sm:w-8 sm:h-8 bg-gradient-to-r from-primary to-primary-gold rounded-full flex items-center justify-center">
                                 <motion.div
                                   initial={{ scale: 0 }}
                                   animate={{ scale: 1 }}
@@ -1104,7 +1104,7 @@ export default function Analysis({
                                     delay: 0.8 + index * 0.1,
                                     duration: 0.6,
                                   }}
-                                  className="text-lg"
+                                  className="text-sm sm:text-lg"
                                 >
                                   {getProofTagIcon(tag)}
                                 </motion.div>
@@ -1119,7 +1119,7 @@ export default function Analysis({
                             </div>
 
                             {/* Tag text */}
-                            <p className="relative text-center text-xs font-medium text-foreground leading-tight">
+                            <p className="relative text-center text-[10px] sm:text-xs font-medium text-foreground leading-tight px-1">
                               {tag}
                             </p>
                           </div>
@@ -1150,21 +1150,21 @@ export default function Analysis({
                       }}
                       className="group"
                     >
-                      <div className="relative bg-background border border-primary/10 rounded-lg p-3 hover:border-primary/20 transition-all duration-300 opacity-60">
+                      <div className="relative bg-background border border-primary/10 rounded-lg p-2 sm:p-3 hover:border-primary/20 transition-all duration-300 opacity-60 min-h-[80px] sm:min-h-[90px]">
                         {/* Locked overlay with theme colors */}
                         <div className="absolute inset-0 bg-background/80 rounded-lg" />
 
                         {/* Achievement icon */}
-                        <div className="relative flex items-center justify-center mb-2">
-                          <div className="w-8 h-8 bg-muted/50 rounded-full flex items-center justify-center">
-                            <div className="text-lg opacity-40">
+                        <div className="relative flex items-center justify-center mb-1 sm:mb-2">
+                          <div className="w-6 h-6 sm:w-8 sm:h-8 bg-muted/50 rounded-full flex items-center justify-center">
+                            <div className="text-sm sm:text-lg opacity-40">
                               {lockedTag.emoji}
                             </div>
                           </div>
                         </div>
 
                         {/* Tag text with theme colors */}
-                        <p className="relative text-center text-xs font-medium text-foreground/60 leading-tight mb-1">
+                        <p className="relative text-center text-[10px] sm:text-xs font-medium text-foreground/60 leading-tight mb-1 px-1">
                           {lockedTag.name}
                         </p>
 
@@ -1222,8 +1222,8 @@ export default function Analysis({
               {/* </Card> */}
             </div>
 
-            {/* Two Column Layout: Stacked Validation Info on Left, Leaderboard on Right */}
-            <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 mt-8 mb-8">
+            {/* Mobile-First Layout: Stack all content vertically, side-by-side on larger screens */}
+            <div className="grid grid-cols-1 xl:grid-cols-2 gap-6 lg:gap-8 mt-6 lg:mt-8 mb-6 lg:mb-8">
               {/* Left Column: Stacked Validation Dimensions and Key Insights */}
               <div className="space-y-6">
                 {/* Validation Dimensions */}
@@ -1423,11 +1423,11 @@ export default function Analysis({
             <div className="text-center">
               <Button
                 onClick={onComplete}
-                className="gradient-button px-8 py-6 text-lg"
+                className="gradient-button px-6 sm:px-8 py-4 sm:py-6 text-base sm:text-lg w-full sm:w-auto min-h-[48px]"
                 size="lg"
               >
                 See My Pathway
-                <ArrowRight className="ml-2 w-5 h-5" />
+                <ArrowRight className="ml-2 w-4 h-4 sm:w-5 sm:h-5" />
               </Button>
             </div>
           </motion.div>

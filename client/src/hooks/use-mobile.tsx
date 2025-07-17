@@ -1,19 +1,32 @@
-import * as React from "react"
+import { useState, useEffect } from 'react'
 
-const MOBILE_BREAKPOINT = 768
+/**
+ * Custom hook to detect mobile and tablet breakpoints
+ * Provides responsive state for consistent mobile experience
+ */
+export function useMobile() {
+  const [isMobile, setIsMobile] = useState(false)
+  const [isTablet, setIsTablet] = useState(false)
 
-export function useIsMobile() {
-  const [isMobile, setIsMobile] = React.useState<boolean | undefined>(undefined)
-
-  React.useEffect(() => {
-    const mql = window.matchMedia(`(max-width: ${MOBILE_BREAKPOINT - 1}px)`)
-    const onChange = () => {
-      setIsMobile(window.innerWidth < MOBILE_BREAKPOINT)
+  useEffect(() => {
+    const checkDevice = () => {
+      const width = window.innerWidth
+      setIsMobile(width < 640) // sm breakpoint
+      setIsTablet(width >= 640 && width < 1024) // sm to lg breakpoint
     }
-    mql.addEventListener("change", onChange)
-    setIsMobile(window.innerWidth < MOBILE_BREAKPOINT)
-    return () => mql.removeEventListener("change", onChange)
+
+    // Check on mount
+    checkDevice()
+
+    // Check on resize
+    window.addEventListener('resize', checkDevice)
+    return () => window.removeEventListener('resize', checkDevice)
   }, [])
 
-  return !!isMobile
+  return {
+    isMobile,
+    isTablet,
+    isDesktop: !isMobile && !isTablet,
+    isMobileOrTablet: isMobile || isTablet
+  }
 }
