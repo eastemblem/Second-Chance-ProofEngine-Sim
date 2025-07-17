@@ -335,12 +335,12 @@ class EastEmblemAPI {
       formData.append("onboarding_id", onboardingId);
 
       console.log(`Creating certificate for onboarding_id: ${onboardingId}, score: ${score}, folder: ${folderId}`);
-      console.log(`API endpoint: ${this.getEndpoint("/certificate/create")}`);
+      console.log(`API endpoint: ${this.getEndpoint("/webhook/certificate/create")}`);
 
       const controller = new AbortController();
       const timeoutId = setTimeout(() => controller.abort(), 30000); // 30 second timeout
 
-      const response = await fetch(this.getEndpoint("/certificate/create"), {
+      const response = await fetch(this.getEndpoint("/webhook/certificate/create"), {
         method: "POST",
         body: formData,
         signal: controller.signal,
@@ -393,12 +393,12 @@ class EastEmblemAPI {
   async createReport(reportData: any): Promise<ReportResponse> {
     try {
       console.log(`Creating report for onboarding_id: ${reportData.onboarding_id}`);
-      console.log(`API endpoint: ${this.getEndpoint("/score/pitch-deck-report")}`);
+      console.log(`API endpoint: ${this.getEndpoint("/webhook/score/pitch-deck-report")}`);
 
       const controller = new AbortController();
       const timeoutId = setTimeout(() => controller.abort(), 60000); // 60 second timeout
 
-      const response = await fetch(this.getEndpoint("/score/pitch-deck-report"), {
+      const response = await fetch(this.getEndpoint("/webhook/score/pitch-deck-report"), {
         method: "POST",
         headers: {
           "Content-Type": "application/json",

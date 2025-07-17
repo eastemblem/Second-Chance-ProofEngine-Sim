@@ -424,8 +424,21 @@ export class OnboardingService {
         if (fs.existsSync(upload.filePath)) {
           const fileBuffer = fs.readFileSync(upload.filePath);
           
-          // Skip Box.com upload and go directly to scoring
-          console.log("Skipping Box.com upload, proceeding directly to scoring");
+          // Try to upload file to EastEmblem Box.com folder (0_Overview)
+          console.log("Uploading file to Box.com folder:", folderStructure?.folders?.["0_Overview"]);
+          try {
+            const uploadResult = await eastEmblemAPI.uploadFile(
+              fileBuffer,
+              upload.fileName,
+              folderStructure?.folders?.["0_Overview"] || "overview",
+              sessionId,
+              true // allowShare
+            );
+            console.log("Box.com upload result:", uploadResult);
+          } catch (uploadError) {
+            // If upload fails, continue with scoring anyway
+            console.log("Box.com upload failed, proceeding with scoring:", uploadError.message);
+          }
 
           // Score the pitch deck (this is the main operation we need)
           scoringResult = await eastEmblemAPI.scorePitchDeck(
@@ -623,8 +636,8 @@ export class OnboardingService {
       }
     }
 
-    // Send Slack notification for scoring completion (async, no wait) - temporarily disabled
-    if (false && eastEmblemAPI.isConfigured()) {
+    // Send Slack notification for scoring completion (async, no wait)
+    if (eastEmblemAPI.isConfigured()) {
       const totalScore = scoringResult?.output?.total_score || scoringResult?.total_score || 0;
       eastEmblemAPI
         .sendSlackNotification(
