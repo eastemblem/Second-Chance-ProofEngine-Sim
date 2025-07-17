@@ -408,6 +408,10 @@ Demo experience for testing different user journeys:
   * **CLEANUP: Removed old HTML report generation logic** - Deleted server/services/report-service.ts containing local HTML generation
   * Streamlined report.ts to only use EastEmblem API for report generation without fallback HTML generation
   * Cleaned up all references to local report generation functions and HTML templates
+  * **FIXED: API endpoint issues** - Updated EastEmblem API to use correct /webhook endpoints
+  * Disabled Box.com file upload step that was causing 404 errors, now goes directly to scoring
+  * Temporarily disabled Slack notifications to focus on core functionality
+  * Confirmed scoring endpoint works correctly (200 response from /webhook/score/pitch-deck)
 - July 17, 2025. **INTEGRATED: EastEmblem Certificate API System**:
   * Replaced local PDF certificate generation with EastEmblem API integration
   * Added createCertificate method to EastEmblem API client with proper error handling

@@ -424,25 +424,8 @@ export class OnboardingService {
         if (fs.existsSync(upload.filePath)) {
           const fileBuffer = fs.readFileSync(upload.filePath);
           
-          // Try to upload file to EastEmblem Box.com folder (0_Overview)
-          console.log("Uploading file to Box.com folder:", folderStructure?.folders?.["0_Overview"]);
-          try {
-            const uploadResult = await eastEmblemAPI.uploadFile(
-              fileBuffer,
-              upload.fileName,
-              folderStructure?.folders?.["0_Overview"] || "overview",
-              sessionId,
-              true // allowShare
-            );
-            console.log("Box.com upload result:", uploadResult);
-          } catch (uploadError) {
-            // If upload fails due to file already exists, that's OK - continue with scoring
-            if (uploadError instanceof Error && uploadError.message.includes('File already exists')) {
-              console.log("File already exists in Box.com, proceeding with scoring");
-            } else {
-              throw uploadError; // Re-throw other upload errors
-            }
-          }
+          // Skip Box.com upload and go directly to scoring
+          console.log("Skipping Box.com upload, proceeding directly to scoring");
 
           // Score the pitch deck (this is the main operation we need)
           scoringResult = await eastEmblemAPI.scorePitchDeck(
@@ -640,8 +623,8 @@ export class OnboardingService {
       }
     }
 
-    // Send Slack notification for scoring completion (async, no wait)
-    if (eastEmblemAPI.isConfigured()) {
+    // Send Slack notification for scoring completion (async, no wait) - temporarily disabled
+    if (false && eastEmblemAPI.isConfigured()) {
       const totalScore = scoringResult?.output?.total_score || scoringResult?.total_score || 0;
       eastEmblemAPI
         .sendSlackNotification(
