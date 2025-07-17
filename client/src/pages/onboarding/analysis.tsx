@@ -959,19 +959,19 @@ export default function Analysis({
               </div>
 
               {/* ProofTags Achievement Section */}
-              <div className="bg-gradient-to-br from-primary/5 to-primary-gold/5 rounded-xl p-4 sm:p-8 mb-4 sm:mb-6 border border-primary/10">
+              <div className="bg-gradient-to-br from-primary/5 to-primary-gold/5 rounded-xl p-2 sm:p-8 mb-4 sm:mb-6 border border-primary/10">
                 <motion.div
                   initial={{ opacity: 0, y: 10 }}
                   animate={{ opacity: 1, y: 0 }}
                   transition={{ delay: 0.4 }}
-                  className="text-center mb-6"
+                  className="text-center mb-4 sm:mb-6"
                 >
                   <h3 className="text-xl sm:text-2xl font-bold mb-3 sm:mb-4 gradient-text">
                     🏆 ProofTag Validation Progress
                   </h3>
 
                   {/* Milestones Text and Progress Bar - Mobile responsive layout */}
-                  <div className="flex flex-col sm:flex-row items-center justify-center gap-4 sm:gap-8 mx-2 sm:mx-6 mb-3 sm:mb-4">
+                  <div className="flex flex-col sm:flex-row items-center justify-center gap-3 sm:gap-8 mx-1 sm:mx-6 mb-3 sm:mb-4">
                     {/* Milestones Text - Center Aligned */}
                     <div className="text-center flex-1">
                       <p className="text-sm sm:text-lg text-muted-foreground mb-2">
@@ -1072,8 +1072,8 @@ export default function Analysis({
                   </div>
                 </motion.div>
 
-                {/* ProofTags Grid - Mobile-responsive grid */}
-                <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-3 2xl:grid-cols-4 gap-2 sm:gap-3">
+                {/* ProofTags Grid - Full width mobile grid */}
+                <div className="grid grid-cols-3 sm:grid-cols-4 lg:grid-cols-5 xl:grid-cols-4 2xl:grid-cols-5 gap-2 sm:gap-3">
                   {/* Unlocked Tags */}
                   {extractedProofTags.unlockedTags.map((tag, index) => (
                     <motion.div
@@ -1090,7 +1090,7 @@ export default function Analysis({
                     >
                       <Tooltip>
                         <TooltipTrigger asChild>
-                          <div className="relative bg-card border border-primary/20 rounded-lg p-2 sm:p-3 hover:border-primary/40 transition-all duration-300 hover:shadow-lg hover:shadow-primary/10 cursor-pointer min-h-[80px] sm:min-h-[90px]">
+                          <div className="relative bg-card border border-primary/20 rounded-lg p-1.5 sm:p-3 hover:border-primary/40 transition-all duration-300 hover:shadow-lg hover:shadow-primary/10 cursor-pointer min-h-[75px] sm:min-h-[90px]">
                             {/* Achievement glow effect */}
                             <div className="absolute inset-0 bg-gradient-to-r from-primary/5 to-primary-gold/5 rounded-lg opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
 
@@ -1119,7 +1119,7 @@ export default function Analysis({
                             </div>
 
                             {/* Tag text */}
-                            <p className="relative text-center text-[10px] sm:text-xs font-medium text-foreground leading-tight px-1">
+                            <p className="relative text-center text-[9px] sm:text-xs font-medium text-foreground leading-tight px-0.5 sm:px-1">
                               {tag}
                             </p>
                           </div>
@@ -1150,7 +1150,7 @@ export default function Analysis({
                       }}
                       className="group"
                     >
-                      <div className="relative bg-background border border-primary/10 rounded-lg p-2 sm:p-3 hover:border-primary/20 transition-all duration-300 opacity-60 min-h-[80px] sm:min-h-[90px]">
+                      <div className="relative bg-background border border-primary/10 rounded-lg p-1.5 sm:p-3 hover:border-primary/20 transition-all duration-300 opacity-60 min-h-[75px] sm:min-h-[90px]">
                         {/* Locked overlay with theme colors */}
                         <div className="absolute inset-0 bg-background/80 rounded-lg" />
 
@@ -1164,7 +1164,7 @@ export default function Analysis({
                         </div>
 
                         {/* Tag text with theme colors */}
-                        <p className="relative text-center text-[10px] sm:text-xs font-medium text-foreground/60 leading-tight mb-1 px-1">
+                        <p className="relative text-center text-[9px] sm:text-xs font-medium text-foreground/60 leading-tight mb-1 px-0.5 sm:px-1">
                           {lockedTag.name}
                         </p>
 
