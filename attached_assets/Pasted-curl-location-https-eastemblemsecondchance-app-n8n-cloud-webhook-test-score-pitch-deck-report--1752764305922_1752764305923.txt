@@ -1,0 +1,187 @@
+curl --location 'https://eastemblemsecondchance.app.n8n.cloud/webhook-test/score/pitch-deck-report' \
+--header 'Content-Type: application/json' \
+--data '{
+    "onboarding_id": "Test",
+    "folder_id": "330142775401",
+    "venture_name": "SocialSensei.ai",
+    "founder_stage": "Pre-Seed",
+    "business_model_type": "B2B SaaS - Influencer Marketing Analytics and Simulation",
+    "milestone": "Investor Ready",
+    "desirability": {
+        "score": 17,
+        "summary": "The venture clearly articulates core problems such as poor campaign prediction, low influencer visibility, and low funnel conversion supported by survey data (e.g., 35% brands frustrated with agencies, 72% reliance on influencer platforms). Target customers are well defined including agencies, brands, and influencers with interviews and 100+ brand surveys conducted.",
+        "justification": "Survey data with 100 brands and agencies and 10 interviews demonstrates strong demand signals and defined personas (Slides 3-6).",
+        "related_slides": [
+            "3",
+            "4",
+            "5",
+            "6"
+        ],
+        "recommendation": "Expand customer validation with case studies or additional user testimonials to strengthen demand validation.",
+        "proofTags": [
+            "Problem Hunter",
+            "Target Locked",
+            "Signal Chaser"
+        ]
+    },
+    "feasibility": {
+        "score": 13,
+        "summary": "A functional prototype (v0.1) has been completed and pilot agreements initiated. Product roadmap is clear with V1.0 rollout in progress and development milestones detailed. CTO is onboarded with strong technical expertise.",
+        "justification": "Evidence of prototype launch, live pilot agreements and clear product timelines demonstrate technical viability and ongoing development (Slides 17-22).",
+        "related_slides": [
+            "17",
+            "18",
+            "19",
+            "20",
+            "21",
+            "22"
+        ],
+        "recommendation": "Accelerate user testing and gather usage metrics from pilots to increase validation.",
+        "proofTags": [
+            "Prototype Pilot",
+            "Solution Stamped",
+            "Builder’s Blueprint"
+        ]
+    },
+    "viability": {
+        "score": 12,
+        "summary": "Clear monetization with tiered pricing ($599 - $1,999 p/m) and business-to-business SaaS model targeting agencies and brands. 3 LOIs and active pilot agreements totaling $82k annual recurring revenue demonstrate initial validation of revenue model. Go-to-market strategy is well-defined.",
+        "justification": "Clear pricing structure and LOIs plus pilot agreements prove revenue approach; however, CAC and LTV not yet demonstrated (Slides 13, 24, 28).",
+        "related_slides": [
+            "13",
+            "24",
+            "28"
+        ],
+        "recommendation": "Collect data on customer acquisition cost and refine unit economics to validate profitability.",
+        "proofTags": [
+            "Revenue Radar",
+            "Price Proven"
+        ]
+    },
+    "traction": {
+        "score": 29,
+        "summary": "Current traction includes 3 LOIs worth $82k ARR, 1 pilot agreement, and recognized participation in WebSummit Qatar 2024. Usage metrics and broader client signups are pending. Traction is good for Pre-Seed stage with clear proof of demand and customer interest.",
+        "justification": "3 LOIs, 1 pilot deal, and partnerships meet Pre-Seed must-have traction signals. However, MRR and active subscribers are still developing (Slides 27, 28, 29).",
+        "related_slides": [
+            "27",
+            "28",
+            "29"
+        ],
+        "recommendation": "Focus on increasing MRR, adding active subscribers, and expanding pilot engagements to gain broader traction.",
+        "proofTags": [
+            "Traction Tracker",
+            "Channel Sniper",
+            "Momentum Master"
+        ],
+        "bonus_applied": {
+            "description": "Bonus +10 applied for achieving '\''bonus'\'' scores on 3 traction signals (LOIs, Pilot Deals, Community Engagement).",
+            "score": "10"
+        },
+        "signals": [
+            {
+                "MRR": {
+                    "description": "Current MRR not reported explicitly, estimated low as early pilot stage.",
+                    "score": "1"
+                },
+                "LOIs": {
+                    "description": "3 LOIs totaling $82k ARR, qualifies as Must Have (score 2).",
+                    "score": "2"
+                },
+                "Waitlist": {
+                    "description": "No explicit waitlist data provided.",
+                    "score": "0"
+                },
+                "Sales": {
+                    "description": "1 pilot agreement recorded.",
+                    "score": "2"
+                },
+                "Pilot Deals": {
+                    "description": "1 pilot agreement with digital marketing agency, must-have level.",
+                    "score": "2"
+                },
+                "Strategic Partnerships": {
+                    "description": "3 data partnerships reported, qualifies as must-have (score 2).",
+                    "score": "2"
+                },
+                "Media Mentions": {
+                    "description": "Accepted to WebSummit Qatar 2024 (alpha stage), minor media recognition.",
+                    "score": "2"
+                },
+                "Investor Interest": {
+                    "description": "3+ conversations indicated, but no term sheets yet.",
+                    "score": "2"
+                },
+                "Advisors": {
+                    "description": "Experienced advisory team mentioned but no formal advisor numbers.",
+                    "score": "1"
+                },
+                "Community Engagement": {
+                    "description": "No specific user engagement metrics provided.",
+                    "score": "1"
+                }
+            }
+        ]
+    },
+    "readiness": {
+        "score": 7,
+        "summary": "Pitch deck is comprehensive with financial projections, use of funds clearly outlined, and sales milestones detailed. Data room presence not confirmed.",
+        "justification": "Detailed financial targets, use of funds, team experience, and product roadmap form a solid investor-ready package (Slides 30-34).",
+        "related_slides": [
+            "30",
+            "31",
+            "32",
+            "33",
+            "34"
+        ],
+        "recommendation": "Prepare full data room with contracts, customer agreements and detailed financial model to reach full readiness.",
+        "proofTags": [
+            "Vault Ready"
+        ]
+    },
+    "total_score": 78,
+    "tags": [
+        "Problem Hunter",
+        "Target Locked",
+        "Signal Chaser",
+        "Prototype Pilot",
+        "Solution Stamped",
+        "Builder’s Blueprint",
+        "Revenue Radar",
+        "Price Proven",
+        "Traction Tracker",
+        "Channel Sniper",
+        "Momentum Master",
+        "Vault Ready"
+    ],
+    "key_insights": [
+        {
+            "title": "Strong Foundation",
+            "description": "Strong problem validation with surveys and interviews; clear business model supported by early LOIs and pilot deals."
+        },
+        {
+            "title": "Needs Attention",
+            "description": "Lack of explicit CAC/LTV data and limited live user metrics from pilots; missing broader customer engagement data."
+        },
+        {
+            "title": "Next Steps",
+            "description": "Focus on collecting customer acquisition and usage data, preparing full investor data room, and scaling pilot projects."
+        }
+    ],
+    "missing_tags": [
+        {
+            "score": "13",
+            "tag": "CAC Commander"
+        },
+        {
+            "score": "16",
+            "tag": "Momentum Master"
+        },
+        {
+            "score": "9",
+            "tag": "Score Surged"
+        }
+    ],
+    "action_plan": "<table><thead><tr><th>Action</th><th>Gain</th><th>Tag</th></tr></thead><tbody><tr><td>Collect and analyze CAC and LTV unit economic data</td><td>+2</td><td>CAC Commander</td></tr><tr><td>Gather live usage and retention metrics from pilot users</td><td>+2</td><td>Momentum Master</td></tr><tr><td>Update pitch deck and data room with new validation data and detailed financials</td><td>+1</td><td>Score Surged</td></tr></tbody></table>",
+    "strategic_feedback": "*SocialSensei.ai* demonstrates strong market insight and a validated solution addressing influencer marketing pain points in the MENA region, supported by an experienced team and initial customer commitments. To reach an elite ProofScore of 90+, focus on:\n- Demonstrating customer acquisition efficiency with CAC and LTV metrics\n- Providing robust pilot usage data showcasing traction and retention\n- Strengthening investor readiness with a full data room including contracts and financial models\n\n**Improvement Plan:**\n| Action                                   | Gain | Tag            |\n|------------------------------------------|------|----------------|\n| Collect and analyze CAC and LTV data     | +2   | CAC Commander  |\n| Gather pilot usage and retention metrics | +2   | Momentum Master|\n| Enhance investor package with updates    | +1   | Score Surged   |",
+    "overall_summary": "<bold>SocialSensei.ai</bold> is a tech-savvy B2B SaaS startup addressing significant inefficiencies in influencer marketing campaign planning through AI-powered simulation and scoring. The venture has validated its desirability and feasibility with early customer interest, a functional prototype, and pilot agreements. With clear go-to-market and pricing strategies plus experienced founders, it is investor-ready but could strengthen viability with CAC/LTV data and broaden pilot traction metrics. Final readiness depends on completing full investor materials to maximize confidence."
+}'
