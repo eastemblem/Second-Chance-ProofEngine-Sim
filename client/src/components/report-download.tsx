@@ -88,7 +88,7 @@ export function ReportDownload({ sessionId, ventureId }: ReportDownloadProps) {
     <Card className="p-6 border-border bg-card">
       <div className="flex items-center justify-between">
         <div>
-          <h3 className="text-xl font-semibold mb-2">Validation Report</h3>
+          <h3 className="text-xl font-semibold mb-2">Your Validation Report</h3>
           <p className="text-muted-foreground">
             Comprehensive analysis with insights and recommendations
           </p>
@@ -103,7 +103,7 @@ export function ReportDownload({ sessionId, ventureId }: ReportDownloadProps) {
           ) : (
             <Download className="mr-2 w-4 h-4" />
           )}
-          {reportUrl ? 'Download Report' : 'Generate Report'}
+          Download Report
         </Button>
       </div>
     </Card>
