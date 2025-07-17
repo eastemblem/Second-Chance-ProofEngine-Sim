@@ -793,6 +793,26 @@ export class OnboardingManager {
               console.error("Failed to update venture with certificate URL:", error);
             }
           }
+          
+          // Also update session with certificate URL for immediate access
+          try {
+            const currentSession = await onboardingService.getSession(sessionId);
+            await onboardingService.updateSession(sessionId, {
+              currentStep: "complete",
+              stepData: {
+                ...currentSession.stepData,
+                processing: {
+                  ...currentSession.stepData.processing,
+                  certificateUrl: certificateResult.url,
+                  certificateGeneratedAt: new Date()
+                }
+              },
+              isComplete: true,
+            });
+            console.log("Session updated with certificate URL:", certificateResult.url);
+          } catch (error) {
+            console.error("Failed to update session with certificate URL:", error);
+          }
         }).catch((error) => {
           console.error("Failed to create certificate:", error);
         });
@@ -818,37 +838,7 @@ export class OnboardingManager {
         });
     }
 
-    // Generate certificate automatically in async mode (no wait)
-    console.log("Starting async certificate generation for session:", sessionId);
-    (async () => {
-      try {
-        const { generateCertificate } = await import('./routes/certificate');
-        
-        // Create mock request/response for certificate generation
-        const mockReq = {
-          body: { ventureId: sessionId }
-        } as any;
-        
-        const mockRes = {
-          status: (code: number) => ({
-            json: (data: any) => {
-              console.log(`Certificate generation result (${code}):`, data);
-              if (data.success && data.uploadedToCloud) {
-                console.log("✓ Certificate successfully uploaded to 0_Overview folder:", data.certificateUrl);
-              } else if (data.success) {
-                console.log("✓ Certificate generated locally:", data.certificateUrl);
-              } else {
-                console.log("✗ Certificate generation failed:", data.error);
-              }
-            }
-          })
-        } as any;
-        
-        await generateCertificate(mockReq, mockRes);
-      } catch (error) {
-        console.log("Async certificate generation failed:", error);
-      }
-    })();
+    console.log("Certificate generation via EastEmblem API is handled above");
 
     return {
       session: {

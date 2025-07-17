@@ -5,13 +5,15 @@ import { Download, Loader2 } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 
 interface CertificateDownloadProps {
-  ventureId: string;
+  ventureId?: string;
+  sessionId?: string;
   ventureName: string;
   existingCertificateUrl?: string;
 }
 
 export function CertificateDownload({ 
   ventureId, 
+  sessionId,
   ventureName, 
   existingCertificateUrl 
 }: CertificateDownloadProps) {
@@ -27,7 +29,7 @@ export function CertificateDownload({
         headers: {
           'Content-Type': 'application/json',
         },
-        body: JSON.stringify({ ventureId })
+        body: JSON.stringify({ ventureId, sessionId })
       });
 
       const result = await response.json();

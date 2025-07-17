@@ -1408,7 +1408,8 @@ export default function Analysis({
                 className="mb-8"
               >
                 <CertificateDownload
-                  ventureId={ventureData?.ventureId || sessionId}
+                  ventureId={ventureData?.ventureId}
+                  sessionId={sessionId}
                   ventureName={ventureName || ventureData?.name || "Your Venture"}
                   existingCertificateUrl={ventureData?.certificateUrl}
                 />

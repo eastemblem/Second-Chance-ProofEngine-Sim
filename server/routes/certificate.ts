@@ -3,38 +3,69 @@ import { storage } from '../storage';
 
 export async function generateCertificate(req: Request, res: Response) {
   try {
-    const { ventureId } = req.body;
+    const { ventureId, sessionId } = req.body;
 
-    if (!ventureId) {
+    // Support both ventureId and sessionId
+    const identifier = ventureId || sessionId;
+
+    if (!identifier) {
       return res.status(400).json({ 
         success: false, 
-        error: 'Venture ID is required' 
+        error: 'Venture ID or Session ID is required' 
       });
     }
 
-    console.log(`Certificate request for venture: ${ventureId}`);
+    console.log(`Certificate request for identifier: ${identifier}`);
     
-    // Check if venture exists
-    let venture = await storage.getVenture(ventureId);
-    
-    if (!venture) {
-      // Try to find venture by founder ID
-      const ventures = await storage.getVenturesByFounderId(ventureId);
-      if (ventures && ventures.length > 0) {
-        venture = ventures[0];
-        console.log(`Found venture via founder ID: ${venture.ventureId}`);
+    let venture = null;
+    let session = null;
+
+    // First try to find by venture ID
+    if (ventureId) {
+      venture = await storage.getVenture(ventureId);
+      
+      if (!venture) {
+        // Try to find venture by founder ID
+        const ventures = await storage.getVenturesByFounderId(ventureId);
+        if (ventures && ventures.length > 0) {
+          venture = ventures[0];
+          console.log(`Found venture via founder ID: ${venture.ventureId}`);
+        }
       }
     }
-    
+
+    // If no venture found, try session-based lookup
     if (!venture) {
-      return res.status(404).json({ 
-        success: false, 
-        error: 'Venture not found' 
-      });
+      const { db } = await import('../db');
+      const { onboardingSession } = await import('@shared/schema');
+      const { eq } = await import('drizzle-orm');
+
+      try {
+        const [sessionData] = await db
+          .select()
+          .from(onboardingSession)
+          .where(eq(onboardingSession.sessionId, identifier));
+
+        if (sessionData) {
+          session = sessionData;
+          console.log(`Found session: ${session.sessionId}`);
+          
+          // Try to find venture by founder ID from session
+          if (session.founderId) {
+            const ventures = await storage.getVenturesByFounderId(session.founderId);
+            if (ventures && ventures.length > 0) {
+              venture = ventures[0];
+              console.log(`Found venture via session founder ID: ${venture.ventureId}`);
+            }
+          }
+        }
+      } catch (error) {
+        console.error('Error fetching session:', error);
+      }
     }
 
-    // Check if certificate already exists
-    if (venture.certificateUrl) {
+    // Check if we have a venture with certificate
+    if (venture && venture.certificateUrl) {
       console.log(`Certificate exists for venture ${venture.name}: ${venture.certificateUrl}`);
       return res.json({
         success: true,
@@ -44,7 +75,75 @@ export async function generateCertificate(req: Request, res: Response) {
       });
     }
 
-    // No certificate found - it should be generated automatically after scoring
+    // Check if session has certificate URL in stepData
+    if (session && session.stepData && session.stepData.processing && session.stepData.processing.certificateUrl) {
+      const certificateUrl = session.stepData.processing.certificateUrl;
+      console.log(`Certificate found in session data: ${certificateUrl}`);
+      return res.json({
+        success: true,
+        certificateUrl: certificateUrl,
+        message: "Certificate found in session",
+        generatedAt: session.stepData.processing.certificateGeneratedAt || null
+      });
+    }
+
+    // No certificate found in stored data, but let's try to create one for this session
+    // since it might already exist in EastEmblem API
+    if (session && session.stepData && session.stepData.processing && session.stepData.processing.scoringResult) {
+      const scoringResult = session.stepData.processing.scoringResult;
+      const totalScore = scoringResult.output?.total_score || 0;
+      const folderStructure = session.stepData.folderStructure;
+      const overviewFolderId = folderStructure?.folders?.["0_Overview"];
+      
+      if (overviewFolderId && totalScore > 0) {
+        try {
+          const { eastEmblemAPI } = await import('../eastemblem-api');
+          
+          if (eastEmblemAPI.isConfigured()) {
+            console.log(`Attempting to create certificate for session ${session.sessionId} with score ${totalScore}`);
+            
+            const certificateResult = await eastEmblemAPI.createCertificate(
+              overviewFolderId,
+              totalScore,
+              session.sessionId,
+              false // is_course_complete = false for pitch deck validation
+            );
+            
+            console.log("Certificate created/retrieved successfully:", certificateResult);
+            
+            // Update session with certificate URL
+            const { db } = await import('../db');
+            const { onboardingSession } = await import('@shared/schema');
+            const { eq } = await import('drizzle-orm');
+            
+            await db
+              .update(onboardingSession)
+              .set({
+                stepData: {
+                  ...session.stepData,
+                  processing: {
+                    ...session.stepData.processing,
+                    certificateUrl: certificateResult.url,
+                    certificateGeneratedAt: new Date()
+                  }
+                }
+              })
+              .where(eq(onboardingSession.sessionId, session.sessionId));
+            
+            return res.json({
+              success: true,
+              certificateUrl: certificateResult.url,
+              message: "Certificate retrieved successfully",
+              generatedAt: new Date()
+            });
+          }
+        } catch (error) {
+          console.error("Error creating/retrieving certificate:", error);
+        }
+      }
+    }
+
+    // No certificate found
     return res.status(404).json({
       success: false,
       error: 'Certificate not found. Please complete the pitch deck analysis first.',
