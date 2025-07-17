@@ -1387,17 +1387,19 @@ export default function Analysis({
             </div>
 
             {/* Generated Report */}
-            <motion.div
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: 1.8, duration: 0.6 }}
-              className="mb-8"
-            >
-              <ReportDownload 
-                ventureId={ventureData?.ventureId}
-                sessionId={sessionId}
-              />
-            </motion.div>
+            {(ventureData?.ventureId || sessionId) && (
+              <motion.div
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ delay: 1.8, duration: 0.6 }}
+                className="mb-8"
+              >
+                <ReportDownload 
+                  ventureId={ventureData?.ventureId}
+                  sessionId={sessionId}
+                />
+              </motion.div>
+            )}
 
             {/* Certificate Download */}
             {(ventureData?.ventureId || sessionId) && (

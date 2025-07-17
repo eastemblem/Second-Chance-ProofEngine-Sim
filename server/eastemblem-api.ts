@@ -110,6 +110,13 @@ interface CertificateResponse {
   url: string;
 }
 
+interface ReportResponse {
+  onboarding_id: string;
+  id: string;
+  name: string;
+  url: string;
+}
+
 class EastEmblemAPI {
   private baseUrl: string;
 
@@ -380,6 +387,67 @@ class EastEmblemAPI {
       }
       
       throw new Error(`Certificate creation failed: ${error instanceof Error ? error.message : 'Unknown error'}`);
+    }
+  }
+
+  async createReport(reportData: any): Promise<ReportResponse> {
+    try {
+      console.log(`Creating report for onboarding_id: ${reportData.onboarding_id}`);
+      console.log(`API endpoint: ${this.getEndpoint("/score/pitch-deck-report")}`);
+
+      const controller = new AbortController();
+      const timeoutId = setTimeout(() => controller.abort(), 60000); // 60 second timeout
+
+      const response = await fetch(this.getEndpoint("/score/pitch-deck-report"), {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify(reportData),
+        signal: controller.signal,
+      });
+
+      clearTimeout(timeoutId);
+
+      if (!response.ok) {
+        const errorText = await response.text();
+        console.error(`Report creation failed with status ${response.status}:`, errorText);
+        
+        if (response.status >= 500) {
+          throw new Error(`EastEmblem API service unavailable (${response.status}). Please try again later.`);
+        } else if (response.status === 401) {
+          throw new Error("EastEmblem API authentication failed. Please check API credentials.");
+        } else if (response.status === 403) {
+          throw new Error("EastEmblem API access forbidden. Please verify API permissions.");
+        } else {
+          throw new Error(`Report creation failed (${response.status}): ${errorText}`);
+        }
+      }
+
+      const responseText = await response.text();
+      console.log("Raw report response:", responseText);
+      
+      try {
+        const result = JSON.parse(responseText) as ReportResponse;
+        console.log("Report created successfully:", result);
+        return result;
+      } catch (parseError) {
+        console.error("Failed to parse report response JSON:", parseError);
+        console.log("Response was:", responseText);
+        throw new Error(`Report creation succeeded but response parsing failed: ${parseError instanceof Error ? parseError.message : 'Invalid JSON'}`);
+      }
+    } catch (error) {
+      console.error("Error creating report:", error);
+      if (!this.isConfigured()) {
+        throw new Error("EastEmblem API is not configured. Please provide EASTEMBLEM_API_URL and EASTEMBLEM_API_KEY.");
+      }
+      
+      // Provide more specific error messaging for timeout issues
+      if (error instanceof Error && error.name === 'AbortError') {
+        throw new Error("Report creation is taking longer than expected. Please try again in a few minutes.");
+      }
+      
+      throw new Error(`Report creation failed: ${error instanceof Error ? error.message : 'Unknown error'}`);
     }
   }
 

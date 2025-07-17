@@ -603,21 +603,30 @@ export class OnboardingService {
           });
           console.log(`✓ Created evaluation record for ${venture.name}`);
           
-          // Generate certificate in background after successful evaluation
-          console.log("Starting async certificate generation for venture:", venture.ventureId);
+          // Generate certificate and report in background after successful evaluation
+          console.log("Starting async certificate and report generation for venture:", venture.ventureId);
           (async () => {
             try {
               const { createCertificateForSession } = await import('../routes/certificate');
+              const { createReportForSession } = await import('../routes/report');
               
-              const result = await createCertificateForSession(sessionId);
-              
-              if (result.success) {
-                console.log("✓ Certificate generated successfully:", result.certificateUrl);
+              // Generate certificate
+              const certificateResult = await createCertificateForSession(sessionId);
+              if (certificateResult.success) {
+                console.log("✓ Certificate generated successfully:", certificateResult.certificateUrl);
               } else {
-                console.log("✗ Certificate generation failed:", result.error);
+                console.log("✗ Certificate generation failed:", certificateResult.error);
+              }
+
+              // Generate report
+              const reportResult = await createReportForSession(sessionId);
+              if (reportResult.success) {
+                console.log("✓ Report generated successfully:", reportResult.reportUrl);
+              } else {
+                console.log("✗ Report generation failed:", reportResult.error);
               }
             } catch (error) {
-              console.log("Async certificate generation failed for venture:", venture.name, error);
+              console.log("Async certificate/report generation failed for venture:", venture.name, error);
             }
           })();
             
