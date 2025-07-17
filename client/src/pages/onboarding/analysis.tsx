@@ -959,19 +959,19 @@ export default function Analysis({
               </div>
 
               {/* ProofTags Achievement Section - Full width, no box */}
-              <div className="mb-4 sm:mb-6">
+              <div className="mb-3 sm:mb-4">
                 <motion.div
                   initial={{ opacity: 0, y: 10 }}
                   animate={{ opacity: 1, y: 0 }}
                   transition={{ delay: 0.4 }}
-                  className="text-center mb-4 sm:mb-6"
+                  className="text-center mb-3 sm:mb-4"
                 >
-                  <h3 className="text-xl sm:text-2xl font-bold mb-3 sm:mb-4 gradient-text">
+                  <h3 className="text-xl sm:text-2xl font-bold mb-2 sm:mb-3 gradient-text">
                     🏆 ProofTag Validation Progress
                   </h3>
 
                   {/* Milestones Text and Progress Bar - Mobile responsive layout */}
-                  <div className="flex flex-col sm:flex-row items-center justify-center gap-3 sm:gap-8 mb-4 sm:mb-6">
+                  <div className="flex flex-col sm:flex-row items-center justify-center gap-2 sm:gap-6 mb-3 sm:mb-4">
                     {/* Milestones Text - Center Aligned */}
                     <div className="text-center flex-1">
                       <p className="text-sm sm:text-lg text-muted-foreground mb-2">
@@ -1073,7 +1073,7 @@ export default function Analysis({
                 </motion.div>
 
                 {/* ProofTags Grid - Mobile optimized for readability */}
-                <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-4 2xl:grid-cols-5 gap-3 sm:gap-4">
+                <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-4 2xl:grid-cols-5 gap-2 sm:gap-3">
                   {/* Unlocked Tags */}
                   {extractedProofTags.unlockedTags.map((tag, index) => (
                     <motion.div
@@ -1090,13 +1090,13 @@ export default function Analysis({
                     >
                       <Tooltip>
                         <TooltipTrigger asChild>
-                          <div className="relative bg-card border border-primary/20 rounded-lg p-3 sm:p-4 hover:border-primary/40 transition-all duration-300 hover:shadow-lg hover:shadow-primary/10 cursor-pointer min-h-[100px] sm:min-h-[110px]">
+                          <div className="relative bg-card border border-primary/20 rounded-lg p-2 sm:p-3 hover:border-primary/40 transition-all duration-300 hover:shadow-lg hover:shadow-primary/10 cursor-pointer min-h-[90px] sm:min-h-[100px]">
                             {/* Achievement glow effect */}
                             <div className="absolute inset-0 bg-gradient-to-r from-primary/5 to-primary-gold/5 rounded-lg opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
 
                             {/* Achievement icon */}
-                            <div className="relative flex items-center justify-center mb-2 sm:mb-3">
-                              <div className="w-8 h-8 sm:w-10 sm:h-10 bg-gradient-to-r from-primary to-primary-gold rounded-full flex items-center justify-center">
+                            <div className="relative flex items-center justify-center mb-1 sm:mb-2">
+                              <div className="w-7 h-7 sm:w-8 sm:h-8 bg-gradient-to-r from-primary to-primary-gold rounded-full flex items-center justify-center">
                                 <motion.div
                                   initial={{ scale: 0 }}
                                   animate={{ scale: 1 }}
@@ -1104,7 +1104,7 @@ export default function Analysis({
                                     delay: 0.8 + index * 0.1,
                                     duration: 0.6,
                                   }}
-                                  className="text-lg sm:text-xl"
+                                  className="text-sm sm:text-lg"
                                 >
                                   {getProofTagIcon(tag)}
                                 </motion.div>
@@ -1150,14 +1150,14 @@ export default function Analysis({
                       }}
                       className="group"
                     >
-                      <div className="relative bg-background border border-primary/10 rounded-lg p-3 sm:p-4 hover:border-primary/20 transition-all duration-300 opacity-60 min-h-[100px] sm:min-h-[110px]">
+                      <div className="relative bg-background border border-primary/10 rounded-lg p-2 sm:p-3 hover:border-primary/20 transition-all duration-300 opacity-60 min-h-[90px] sm:min-h-[100px]">
                         {/* Locked overlay with theme colors */}
                         <div className="absolute inset-0 bg-background/80 rounded-lg" />
 
                         {/* Achievement icon */}
-                        <div className="relative flex items-center justify-center mb-2 sm:mb-3">
-                          <div className="w-8 h-8 sm:w-10 sm:h-10 bg-muted/50 rounded-full flex items-center justify-center">
-                            <div className="text-lg sm:text-xl opacity-40">
+                        <div className="relative flex items-center justify-center mb-1 sm:mb-2">
+                          <div className="w-7 h-7 sm:w-8 sm:h-8 bg-muted/50 rounded-full flex items-center justify-center">
+                            <div className="text-sm sm:text-lg opacity-40">
                               {lockedTag.emoji}
                             </div>
                           </div>
