@@ -51,14 +51,14 @@ export async function createCertificateForSession(sessionId: string) {
     }
 
     // Create certificate
-    const certificateResult = await eastEmblemAPI.createCertificate({
-      folderId: overviewFolderId,
-      score: totalScore,
-      isCourseComplete: true,
-      onboardingId: sessionId
-    });
+    const certificateResult = await eastEmblemAPI.createCertificate(
+      overviewFolderId,
+      totalScore,
+      sessionId,
+      false // Set to false for onboarding flow - true only when user completes course
+    );
 
-    if (!certificateResult.success || !certificateResult.data?.url) {
+    if (!certificateResult.url) {
       throw new Error('Certificate creation failed');
     }
 
@@ -67,7 +67,7 @@ export async function createCertificateForSession(sessionId: string) {
       ...session.stepData,
       processing: {
         ...session.stepData.processing,
-        certificateUrl: certificateResult.data.url,
+        certificateUrl: certificateResult.url,
         certificateGeneratedAt: new Date().toISOString()
       }
     };
@@ -79,7 +79,7 @@ export async function createCertificateForSession(sessionId: string) {
 
     return {
       success: true,
-      certificateUrl: certificateResult.data.url,
+      certificateUrl: certificateResult.url,
       message: "Certificate created successfully"
     };
 

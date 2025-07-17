@@ -416,6 +416,9 @@ Demo experience for testing different user journeys:
   * Created standalone createCertificateForSession function that doesn't require HTTP context
   * Updated onboarding service to use new standalone certificate function
   * Certificate system now works correctly in async background processing without HTTP response errors
+  * **UPDATED: Certificate course completion parameter** - Set is_course_complete to false for onboarding flow
+  * Fixed API parameter structure to match EastEmblem API expectations (positional parameters)
+  * Certificate will show course completion status as false until user completes actual course
 
 ## User Preferences
 
