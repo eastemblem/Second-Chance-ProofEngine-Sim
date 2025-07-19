@@ -876,7 +876,7 @@ export default function Analysis({
                     🎯
                   </motion.span>
                   <h2 className="text-2xl sm:text-3xl font-bold bg-gradient-to-r from-primary to-primary-gold bg-clip-text text-transparent">
-                    Congratulations Founder!
+                    Congratulations Venture!
                   </h2>
                   <motion.span
                     animate={{
