@@ -110,6 +110,59 @@ interface CertificateResponse {
   url: string;
 }
 
+interface TractionSignals {
+  MRR: { description: string; score: string; };
+  LOIs: { description: string; score: string; };
+  Waitlist: { description: string; score: string; };
+  Sales: { description: string; score: string; };
+  "Pilot Deals": { description: string; score: string; };
+  "Strategic Partnerships": { description: string; score: string; };
+  "Media Mentions": { description: string; score: string; };
+  "Investor Interest": { description: string; score: string; };
+  Advisors: { description: string; score: string; };
+  "Community Engagement": { description: string; score: string; };
+}
+
+interface ScoreDimension {
+  score: number;
+  summary: string;
+  justification: string;
+  related_slides: string[];
+  recommendation: string;
+  proofTags: string[];
+}
+
+interface TractionDimension extends ScoreDimension {
+  bonus_applied: {
+    description: string;
+    score: string;
+  };
+  signals: TractionSignals[];
+}
+
+interface ReportData {
+  onboarding_id: string;
+  folder_id: string;
+  venture_name: string;
+  founder_stage: string;
+  business_model_type: string;
+  milestone: string;
+  desirability: ScoreDimension;
+  feasibility: ScoreDimension;
+  viability: ScoreDimension;
+  traction: TractionDimension;
+  readiness: ScoreDimension;
+  total_score: number;
+  tags: string[];
+  highlights: {
+    intro: string;
+    key_highlights: string;
+    summary: string;
+  };
+  conclusion: string;
+  recommendations: string;
+}
+
 interface ReportResponse {
   onboarding_id: string;
   id: string;
@@ -419,7 +472,7 @@ class EastEmblemAPI {
     }
   }
 
-  async createReport(reportData: any): Promise<ReportResponse> {
+  async createReport(reportData: ReportData): Promise<ReportResponse> {
     try {
       console.log(`Creating report for onboarding_id: ${reportData.onboarding_id}`);
       console.log(`API endpoint: ${this.getEndpoint("/webhook/score/pitch-deck-report")}`);

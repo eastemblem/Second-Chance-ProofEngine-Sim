@@ -9,6 +9,50 @@ function mapScoringToReportData(scoringResult: any, sessionId: string, folderStr
   const ventureInfo = scoringResult.venture_info || {};
   const founderInfo = scoringResult.founder_info || {};
   
+  // Initialize default signal structure
+  const defaultSignals = [{
+    "MRR": {
+      "description": "",
+      "score": ""
+    },
+    "LOIs": {
+      "description": "",
+      "score": ""
+    },
+    "Waitlist": {
+      "description": "",
+      "score": ""
+    },
+    "Sales": {
+      "description": "",
+      "score": ""
+    },
+    "Pilot Deals": {
+      "description": "",
+      "score": ""
+    },
+    "Strategic Partnerships": {
+      "description": "",
+      "score": ""
+    },
+    "Media Mentions": {
+      "description": "",
+      "score": ""
+    },
+    "Investor Interest": {
+      "description": "",
+      "score": ""
+    },
+    "Advisors": {
+      "description": "",
+      "score": ""
+    },
+    "Community Engagement": {
+      "description": "",
+      "score": ""
+    }
+  }];
+
   return {
     onboarding_id: sessionId,
     folder_id: folderStructure?.folders?.["0_Overview"] || "",
@@ -22,56 +66,61 @@ function mapScoringToReportData(scoringResult: any, sessionId: string, folderStr
       score: output.desirability?.score || 0,
       summary: output.desirability?.summary || "",
       justification: output.desirability?.justification || "",
-      related_slides: output.desirability?.related_slides || [],
+      related_slides: output.desirability?.related_slides || ["", ""],
       recommendation: output.desirability?.recommendation || "",
-      proofTags: output.desirability?.proofTags || []
+      proofTags: output.desirability?.proofTags || ["", ""]
     },
     
     feasibility: {
       score: output.feasibility?.score || 0,
       summary: output.feasibility?.summary || "",
       justification: output.feasibility?.justification || "",
-      related_slides: output.feasibility?.related_slides || [],
+      related_slides: output.feasibility?.related_slides || ["", ""],
       recommendation: output.feasibility?.recommendation || "",
-      proofTags: output.feasibility?.proofTags || []
+      proofTags: output.feasibility?.proofTags || ["", ""]
     },
     
     viability: {
       score: output.viability?.score || 0,
       summary: output.viability?.summary || "",
       justification: output.viability?.justification || "",
-      related_slides: output.viability?.related_slides || [],
+      related_slides: output.viability?.related_slides || ["", ""],
       recommendation: output.viability?.recommendation || "",
-      proofTags: output.viability?.proofTags || []
+      proofTags: output.viability?.proofTags || ["", ""]
     },
     
     traction: {
       score: output.traction?.score || 0,
       summary: output.traction?.summary || "",
       justification: output.traction?.justification || "",
-      related_slides: output.traction?.related_slides || [],
+      related_slides: output.traction?.related_slides || ["", ""],
       recommendation: output.traction?.recommendation || "",
-      proofTags: output.traction?.proofTags || [],
-      bonus_applied: output.traction?.bonus_applied || {},
-      signals: output.traction?.signals || []
+      proofTags: output.traction?.proofTags || ["", ""],
+      bonus_applied: {
+        description: output.traction?.bonus_applied?.description || "",
+        score: output.traction?.bonus_applied?.score || ""
+      },
+      signals: output.traction?.signals?.length > 0 ? output.traction.signals : defaultSignals
     },
     
     readiness: {
       score: output.readiness?.score || 0,
       summary: output.readiness?.summary || "",
       justification: output.readiness?.justification || "",
-      related_slides: output.readiness?.related_slides || [],
+      related_slides: output.readiness?.related_slides || ["", ""],
       recommendation: output.readiness?.recommendation || "",
-      proofTags: output.readiness?.proofTags || []
+      proofTags: output.readiness?.proofTags || ["", ""]
     },
     
     total_score: output.total_score || 0,
-    tags: output.tags || [],
-    key_insights: output.key_insights || [],
-    missing_tags: output.missing_tags || [],
-    action_plan: output.action_plan || "",
-    strategic_feedback: output.strategic_feedback || "",
-    overall_summary: output.overall_summary || ""
+    tags: output.tags || ["", ""],
+    highlights: {
+      intro: output.highlights?.intro || "",
+      key_highlights: output.highlights?.key_highlights || "",
+      summary: output.highlights?.summary || ""
+    },
+    conclusion: output.conclusion || "",
+    recommendations: output.recommendations || ""
   };
 }
 
@@ -113,6 +162,8 @@ export async function createReportForSession(sessionId: string) {
 
     // Map scoring response to report format
     const reportData = mapScoringToReportData(scoringResult, sessionId, folderStructure);
+
+    console.log('Mapped report data structure:', JSON.stringify(reportData, null, 2));
 
     // Generate report using EastEmblem API
     const { eastEmblemAPI } = await import('../eastemblem-api');
