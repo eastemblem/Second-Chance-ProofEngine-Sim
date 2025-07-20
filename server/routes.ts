@@ -134,6 +134,46 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
   // Report routes
   app.post("/api/report/generate", asyncHandler(generateReport));
+  
+  // Manual email trigger route
+  app.post('/api/email/send-manual', async (req, res) => {
+    try {
+      const { sessionId, certificateUrl, reportUrl } = req.body;
+      
+      if (!sessionId || !certificateUrl || !reportUrl) {
+        return res.status(400).json({
+          success: false,
+          error: 'sessionId, certificateUrl, and reportUrl are required'
+        });
+      }
+      
+      // Get session data
+      const session = await onboardingService.getSession(sessionId);
+      
+      if (!session) {
+        return res.status(404).json({
+          success: false,
+          error: 'Session not found'
+        });
+      }
+      
+      // Call the private email notification method via reflection
+      const stepData = session.stepData || {};
+      await (onboardingService as any).sendEmailNotification(sessionId, stepData, certificateUrl, reportUrl);
+      
+      res.json({
+        success: true,
+        message: 'Email sent successfully'
+      });
+      
+    } catch (error) {
+      console.error('Manual email send error:', error);
+      res.status(500).json({
+        success: false,
+        error: error instanceof Error ? error.message : 'Unknown error'
+      });
+    }
+  });
 
   // Legacy onboarding data storage (kept for compatibility)
   app.post("/api/onboarding/store", asyncHandler(async (req, res) => {

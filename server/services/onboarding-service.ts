@@ -678,7 +678,7 @@ export class OnboardingService {
   /**
    * Send email notification after successful certificate and report generation
    */
-  private async sendEmailNotification(sessionId: string, stepData: any, certificateUrl: string, reportUrl: string) {
+  async sendEmailNotification(sessionId: string, stepData: any, certificateUrl: string, reportUrl: string) {
     try {
       console.log("Starting email notification process for session:", sessionId);
       

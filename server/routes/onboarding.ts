@@ -268,4 +268,28 @@ router.post("/submit-for-scoring", requireFields(['sessionId']), asyncHandler(as
   }
 }));
 
+// Manual email trigger
+router.post("/send-email-manual", asyncHandler(async (req, res) => {
+  const { sessionId, certificateUrl, reportUrl } = req.body;
+  
+  if (!sessionId || !certificateUrl || !reportUrl) {
+    throw new Error('sessionId, certificateUrl, and reportUrl are required');
+  }
+  
+  // Get session data
+  const session = await onboardingService.getSession(sessionId);
+  
+  if (!session) {
+    throw new Error('Session not found');
+  }
+  
+  // Call the email notification method
+  const stepData = session.stepData || {};
+  await onboardingService.sendEmailNotification(sessionId, stepData, certificateUrl, reportUrl);
+  
+  res.json(createSuccessResponse({
+    emailSent: true
+  }, 'Email sent successfully'));
+}));
+
 export default router;
