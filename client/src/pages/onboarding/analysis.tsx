@@ -291,24 +291,33 @@ const getProofTagJustification = (
 
 // Function to get icon for a ProofTag
 const getProofTagIcon = (tagName: string): string => {
-  // Try exact match first
-  if (PROOF_TAG_ICONS[tagName]) {
-    return PROOF_TAG_ICONS[tagName];
-  }
-
-  // Try partial matching for similar names
-  const lowerTagName = tagName.toLowerCase();
-  for (const [key, icon] of Object.entries(PROOF_TAG_ICONS)) {
-    if (
-      key.toLowerCase().includes(lowerTagName) ||
-      lowerTagName.includes(key.toLowerCase())
-    ) {
-      return icon;
+  try {
+    if (!tagName || typeof tagName !== 'string') {
+      return "✨";
     }
-  }
 
-  // Default fallback
-  return "✨";
+    // Try exact match first
+    if (PROOF_TAG_ICONS && PROOF_TAG_ICONS[tagName]) {
+      return PROOF_TAG_ICONS[tagName];
+    }
+
+    // Try partial matching for similar names
+    const lowerTagName = tagName.toLowerCase();
+    for (const [key, icon] of Object.entries(PROOF_TAG_ICONS || {})) {
+      if (
+        key.toLowerCase().includes(lowerTagName) ||
+        lowerTagName.includes(key.toLowerCase())
+      ) {
+        return icon;
+      }
+    }
+
+    // Default fallback
+    return "✨";
+  } catch (error) {
+    console.error('Error in getProofTagIcon:', error);
+    return "✨";
+  }
 };
 
 interface AnalysisProps {
@@ -561,8 +570,41 @@ export default function Analysis({
     };
   }
 
-  // Extract ProofTags data
-  const extractedProofTags = extractProofTags(scoringResult);
+  // Extract ProofTags data with error handling
+  const extractedProofTags = (() => {
+    try {
+      const result = extractProofTags(scoringResult);
+      if (!result || result.total <= 0) {
+        return {
+          unlocked: 0,
+          total: ALL_PROOF_TAGS.length || 1,
+          unlockedTags: [],
+          lockedTags: ALL_PROOF_TAGS.map(tag => ({
+            name: tag.name,
+            emoji: tag.emoji,
+            currentScore: 0,
+            neededScore: tag.scoreThreshold,
+            pointsNeeded: tag.scoreThreshold
+          }))
+        };
+      }
+      return result;
+    } catch (error) {
+      console.error('Error extracting ProofTags:', error);
+      return {
+        unlocked: 0,
+        total: ALL_PROOF_TAGS.length || 1,
+        unlockedTags: [],
+        lockedTags: ALL_PROOF_TAGS.map(tag => ({
+          name: tag.name,
+          emoji: tag.emoji,
+          currentScore: 0,
+          neededScore: tag.scoreThreshold,
+          pointsNeeded: tag.scoreThreshold
+        }))
+      };
+    }
+  })();
 
   const dimensionColors = {
     desirability: "bg-green-500",
@@ -1031,8 +1073,9 @@ export default function Analysis({
                                 Math.PI *
                                 40 *
                                 (1 -
-                                  extractedProofTags.unlocked /
-                                    extractedProofTags.total),
+                                  (extractedProofTags.total > 0 ? 
+                                    extractedProofTags.unlocked / extractedProofTags.total 
+                                    : 0)),
                             }}
                             transition={{ duration: 1.5, delay: 0.5 }}
                           />
@@ -1060,9 +1103,9 @@ export default function Analysis({
                         <div className="absolute inset-0 flex items-center justify-center">
                           <span className="text-lg font-bold text-primary">
                             {Math.round(
-                              (extractedProofTags.unlocked /
-                                extractedProofTags.total) *
-                                100,
+                              extractedProofTags.total > 0 ? 
+                                (extractedProofTags.unlocked / extractedProofTags.total) * 100 
+                                : 0,
                             )}
                             %
                           </span>
@@ -1075,7 +1118,7 @@ export default function Analysis({
                 {/* ProofTags Grid - Mobile optimized for readability */}
                 <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-4 2xl:grid-cols-5 gap-2 sm:gap-3">
                   {/* Unlocked Tags */}
-                  {extractedProofTags.unlockedTags.map((tag, index) => (
+                  {(extractedProofTags.unlockedTags || []).map((tag, index) => (
                     <motion.div
                       key={`unlocked-${index}`}
                       initial={{ opacity: 0, scale: 0.8, y: 20 }}
@@ -1134,7 +1177,7 @@ export default function Analysis({
                   ))}
 
                   {/* Locked Tags */}
-                  {extractedProofTags.lockedTags.map((lockedTag, index) => (
+                  {(extractedProofTags.lockedTags || []).map((lockedTag, index) => (
                     <motion.div
                       key={`locked-${index}`}
                       initial={{ opacity: 0, scale: 0.8, y: 20 }}
