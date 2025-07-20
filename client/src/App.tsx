@@ -20,6 +20,7 @@ const PathwayPage = lazy(() => import("@/pages/pathway"));
 const DealRoomPage = lazy(() => import("@/pages/deal-room"));
 const ProofScalingDashboard = lazy(() => import("@/pages/proofscaling-dashboard"));
 const FinalPage = lazy(() => import("@/pages/final"));
+const Privacy = lazy(() => import("@/pages/Privacy"));
 
 // Preload likely next components
 const preloadComponents = () => {
@@ -157,6 +158,11 @@ function Router() {
       <Route path="/onboarding-flow" component={() => (
         <Suspense fallback={<div className="h-screen flex items-center justify-center"><div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div></div>}>
           <OnboardingFlow onComplete={() => window.location.href = '/'} />
+        </Suspense>
+      )} />
+      <Route path="/privacy" component={() => (
+        <Suspense fallback={<div className="h-screen flex items-center justify-center"><div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div></div>}>
+          <Privacy />
         </Suspense>
       )} />
       <Route component={NotFound} />
