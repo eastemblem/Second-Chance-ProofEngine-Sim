@@ -624,7 +624,10 @@ export class OnboardingService {
 
               // Send email notification if both certificate and report are successful
               if (certificateResult.success && reportResult.success) {
-                await this.sendEmailNotification(sessionId, stepData, certificateResult.certificateUrl, reportResult.reportUrl);
+                // Get fresh session data for email notification
+                const freshSession = await this.getSession(sessionId);
+                const freshStepData = freshSession?.stepData || {};
+                await this.sendEmailNotification(sessionId, freshStepData, certificateResult.certificateUrl, reportResult.reportUrl);
               }
             } catch (error) {
               console.log("Async certificate/report generation failed for venture:", venture.name, error);
@@ -684,12 +687,22 @@ export class OnboardingService {
         return;
       }
 
-      // Extract founder and venture information
+      // Extract founder and venture information  
       const founder = stepData.founder?.founder || stepData.founder;
       const venture = stepData.venture?.venture || stepData.venture;
 
       // Extract founder name (handle both firstName and fullName formats)
-      const founderName = founder?.firstName || founder?.fullName?.split(' ')[0] || 'Founder';
+      let founderName = 'Founder';
+      
+      if (founder?.firstName) {
+        founderName = founder.firstName;
+      } else if (founder?.fullName) {
+        founderName = founder.fullName.split(' ')[0];
+      } else if (founder?.name) {
+        founderName = founder.name.split(' ')[0];
+      }
+      
+      console.log("Email notification for founder:", founderName);
 
       // Validate required fields
       if (!founderName || !founder?.email || !venture?.name) {
