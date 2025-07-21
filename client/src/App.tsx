@@ -8,7 +8,8 @@ import { lazy, Suspense } from "react";
 import { PerformanceMonitor } from "@/components/performance-monitor";
 import { MemoryOptimizer } from "@/components/memory-optimizer";
 import { PerformanceBoundary } from "@/components/performance-boundary";
-// CriticalLoader removed - optimizations moved to main.tsx
+import { SimpleLoader, InlineLoader } from "@/components/simple-loader";
+import { CriticalStyles } from "@/components/critical-styles";
 
 // Lazy load page components with preload hints
 const LandingPage = lazy(() => import("@/pages/landing"));
@@ -23,20 +24,26 @@ const FinalPage = lazy(() => import("@/pages/final"));
 const Privacy = lazy(() => import("@/pages/Privacy"));
 const Terms = lazy(() => import("@/pages/Terms"));
 
-// Preload likely next components
+// Simplified preloading to prevent blocking
 const preloadComponents = () => {
-  if ('requestIdleCallback' in window) {
-    requestIdleCallback(() => {
-      import("@/pages/onboarding");
-      import("@/pages/scoring");
-    });
-  }
+  setTimeout(() => {
+    if ('requestIdleCallback' in window) {
+      requestIdleCallback(() => {
+        try {
+          import("@/pages/onboarding").catch(() => {});
+          import("@/pages/scoring").catch(() => {});
+        } catch (e) {
+          // Silently handle preload errors
+        }
+      });
+    }
+  }, 3000); // Delayed to prevent blocking initial render
 };
-
-// Initialize preloading
-setTimeout(preloadComponents, 2000);
 import { useSimulation } from "@/hooks/use-simulation";
 import NotFound from "@/pages/not-found";
+
+// Initialize preloading after component definition
+preloadComponents();
 
 function SimulationFlow() {
   const { 
@@ -63,7 +70,7 @@ function SimulationFlow() {
     switch (state.currentPage) {
       case 1:
         return (
-          <Suspense fallback={<div className="h-screen flex items-center justify-center"><div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div></div>}>
+          <Suspense fallback={<SimpleLoader />}>
             <LandingPage 
               onNext={() => setCurrentPage(2)} 
             />
@@ -71,7 +78,7 @@ function SimulationFlow() {
         );
       case 2:
         return (
-          <Suspense fallback={<div className="h-screen flex items-center justify-center"><div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div></div>}>
+          <Suspense fallback={<SimpleLoader />}>
             <OnboardingPage 
               onNext={() => setCurrentPage(3)}
               onDataUpdate={updateFounderData}
@@ -127,9 +134,11 @@ function SimulationFlow() {
         );
       default:
         return (
-          <LandingPage 
-            onNext={() => setCurrentPage(2)} 
-          />
+          <Suspense fallback={<SimpleLoader />}>
+            <LandingPage 
+              onNext={() => setCurrentPage(2)} 
+            />
+          </Suspense>
         );
     }
   };
@@ -157,17 +166,17 @@ function Router() {
     <Switch>
       <Route path="/" component={SimulationFlow} />
       <Route path="/onboarding-flow" component={() => (
-        <Suspense fallback={<div className="h-screen flex items-center justify-center"><div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div></div>}>
+        <Suspense fallback={<SimpleLoader />}>
           <OnboardingFlow onComplete={() => window.location.href = '/'} />
         </Suspense>
       )} />
       <Route path="/privacy" component={() => (
-        <Suspense fallback={<div className="h-screen flex items-center justify-center"><div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div></div>}>
+        <Suspense fallback={<SimpleLoader />}>
           <Privacy />
         </Suspense>
       )} />
       <Route path="/terms" component={() => (
-        <Suspense fallback={<div className="h-screen flex items-center justify-center"><div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div></div>}>
+        <Suspense fallback={<SimpleLoader />}>
           <Terms />
         </Suspense>
       )} />
@@ -179,6 +188,7 @@ function Router() {
 function App() {
   return (
     <PerformanceBoundary>
+      <CriticalStyles />
       <QueryClientProvider client={queryClient}>
         <TooltipProvider>
           <PerformanceMonitor />

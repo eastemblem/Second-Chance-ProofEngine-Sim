@@ -34,10 +34,11 @@ export class PerformanceBoundary extends Component<Props, State> {
   render() {
     if (this.state.hasError) {
       return this.props.fallback || (
-        <div className="flex items-center justify-center min-h-screen">
+        <div className="flex items-center justify-center min-h-screen bg-background">
           <div className="text-center">
-            <p className="text-muted-foreground">Loading optimized experience...</p>
-            <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-primary mx-auto mt-2"></div>
+            <div className="w-8 h-8 border-2 border-primary border-t-transparent rounded-full animate-spin mx-auto mb-4"></div>
+            <p className="text-muted-foreground">Loading application...</p>
+            <p className="text-xs text-muted-foreground mt-2">Performance optimization in progress</p>
           </div>
         </div>
       );

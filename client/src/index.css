@@ -1,5 +1,7 @@
+/* Load fonts first to prevent CSS import order issues */
 @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap');
 
+/* Critical CSS framework imports */
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
@@ -35,7 +37,10 @@
   
   body {
     @apply bg-background text-foreground font-sans antialiased;
-    font-family: 'Inter', sans-serif;
+    font-family: 'Inter', system-ui, -apple-system, sans-serif;
+    /* Ensure immediate background to prevent white screen */
+    background-color: hsl(240 10% 6%);
+    color: hsl(0 0% 98%);
   }
 }
 

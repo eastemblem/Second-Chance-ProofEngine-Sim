@@ -1,36 +1,25 @@
 import { useEffect } from 'react';
 
-// Memory optimization utilities
+// Simplified memory optimization to prevent interference
 export function MemoryOptimizer() {
   useEffect(() => {
-    // Cleanup intervals and timeouts on unmount
-    const intervals: NodeJS.Timeout[] = [];
-    const timeouts: NodeJS.Timeout[] = [];
+    // Basic cleanup without aggressive overrides
+    const cleanup = () => {
+      try {
+        // Basic garbage collection if available
+        if ('gc' in window && typeof (window as any).gc === 'function') {
+          (window as any).gc();
+        }
+      } catch (error) {
+        // Silently handle cleanup errors
+      }
+    };
 
-    // Override setInterval and setTimeout to track them
-    const originalSetInterval = window.setInterval;
-    const originalSetTimeout = window.setTimeout;
+    // Minimal cleanup interval to prevent performance issues
+    const interval = setInterval(cleanup, 120000); // Every 2 minutes
 
-    window.setInterval = ((fn: any, delay: number) => {
-      const id = originalSetInterval(fn, delay);
-      intervals.push(id);
-      return id;
-    }) as typeof setInterval;
-
-    window.setTimeout = ((fn: any, delay: number) => {
-      const id = originalSetTimeout(fn, delay);
-      timeouts.push(id);
-      return id;
-    }) as typeof setTimeout;
-
-    // Cleanup on unmount
     return () => {
-      intervals.forEach(clearInterval);
-      timeouts.forEach(clearTimeout);
-      
-      // Restore original functions
-      window.setInterval = originalSetInterval;
-      window.setTimeout = originalSetTimeout;
+      clearInterval(interval);
     };
   }, []);
 
