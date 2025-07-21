@@ -68,9 +68,9 @@ const Footer = () => {
                 </a>
               </li>
               <li>
-                <span className="text-muted-foreground/60 cursor-not-allowed">
-                  Terms of Service (Coming Soon)
-                </span>
+                <Link to="/terms" className="text-muted-foreground hover:text-primary transition-colors">
+                  Terms and Conditions
+                </Link>
               </li>
             </ul>
           </div>

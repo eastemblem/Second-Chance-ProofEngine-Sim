@@ -117,6 +117,15 @@ Demo experience for testing different user journeys:
 
 ## Recent Key Updates
 
+### July 21, 2025 - Legal Documentation Complete
+- **Privacy Policy**: Comprehensive privacy policy page with complete PDF content integration (15 sections) - 100% content parity achieved
+- **Terms and Conditions**: Complete terms and conditions page with 19 comprehensive sections covering all aspects of platform usage
+- **Legal Framework**: UAE PDPL compliance, Masdar City Free Zone regulations, comprehensive user agreements
+- **Platform Coverage**: ProofScore system disclaimers, investor matching terms, AI-generated content policies, IP rights
+- **User Protection**: Liability limitations, dispute resolution, termination procedures, fee structures
+- **Technical Integration**: Both legal pages with responsive design, sticky navigation, purple-gold theme consistency
+- **Footer Integration**: Updated footer with active links to both privacy policy and terms and conditions
+
 ### July 21, 2025 - Privacy Policy Implementation
 - **COMPLETED**: Comprehensive privacy policy page with complete PDF content integration (15 sections) - 100% content parity achieved
 - **Effective Date Added**: Added effective date (15th July 2025) and last updated date to header

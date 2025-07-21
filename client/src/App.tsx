@@ -21,6 +21,7 @@ const DealRoomPage = lazy(() => import("@/pages/deal-room"));
 const ProofScalingDashboard = lazy(() => import("@/pages/proofscaling-dashboard"));
 const FinalPage = lazy(() => import("@/pages/final"));
 const Privacy = lazy(() => import("@/pages/Privacy"));
+const Terms = lazy(() => import("@/pages/Terms"));
 
 // Preload likely next components
 const preloadComponents = () => {
@@ -163,6 +164,11 @@ function Router() {
       <Route path="/privacy" component={() => (
         <Suspense fallback={<div className="h-screen flex items-center justify-center"><div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div></div>}>
           <Privacy />
+        </Suspense>
+      )} />
+      <Route path="/terms" component={() => (
+        <Suspense fallback={<div className="h-screen flex items-center justify-center"><div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div></div>}>
+          <Terms />
         </Suspense>
       )} />
       <Route component={NotFound} />
