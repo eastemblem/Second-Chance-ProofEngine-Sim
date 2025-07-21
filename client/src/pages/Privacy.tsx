@@ -90,6 +90,16 @@ const Privacy = () => {
             >
               Privacy Policy
             </motion.h1>
+            
+            <motion.div 
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: 0.1 }}
+              className="text-center mb-6"
+            >
+              <p className="text-sm text-muted-foreground mb-1">Effective Date: 15th July 2025</p>
+              <p className="text-sm text-muted-foreground">Last Updated: 15th July 2025</p>
+            </motion.div>
 
             <motion.div 
               initial={{ opacity: 0, y: 20 }}
@@ -352,14 +362,70 @@ const Privacy = () => {
                     We collect and process Personal Data to operate and improve the Second Chance platform,
                     provide services to our users, fulfill our legal and contractual obligations, and pursue
                     legitimate business interests. Our use of your data is guided by principles of necessity,
-                    transparency, and proportionality.
+                    transparency, and proportionality. All processing activities are based on a clear legal basis
+                    and are aligned with the expectations of users, partners, and regulators.
                   </p>
                   
                   <p>
                     One of the primary reasons we process Personal Data is to deliver the core functionality
                     of the Second Chance platform. This includes onboarding you as a founder, investor, or
                     partner; managing user accounts and permissions; and enabling the matching, evaluation,
-                    and feedback mechanisms that power the platform.
+                    and feedback mechanisms that power the platform. For founders, this means processing
+                    information such as your pitch deck, business details, and ProofScore inputs to generate
+                    automated validation assessments. For investors, this involves handling mandate
+                    preferences, stage and sector interests, and custom feedback fields to allow targeted
+                    introductions and curated startup updates. Without processing this information, we would
+                    be unable to provide the services you expect from Second Chance.
+                  </p>
+
+                  <p>
+                    We also use Personal Data to analyze platform performance, understand usage patterns,
+                    and improve our technology. This includes collecting and reviewing behavioral and
+                    technical data such as page navigation, login frequency, and engagement with evaluation
+                    dashboards in order to identify bottlenecks, test new features, and measure the
+                    effectiveness of our AI-assisted tools. These insights allow us to make data-informed
+                    decisions to enhance the user experience, improve matching accuracy, and refine our
+                    validation scoring methodologies. While this data is often anonymized or aggregated for
+                    product research purposes, some processing involves identifiable information to support
+                    personalized features or troubleshooting.
+                  </p>
+
+                  <p>
+                    In addition to operational use, we process contact details and engagement history to
+                    maintain communication with our users. We may send you emails or notifications about
+                    platform updates, upcoming pitch events, product improvements, or cohort
+                    announcements. These communications are designed to keep you informed and connected
+                    to relevant opportunities. We will always offer you the ability to opt out of non-essential
+                    marketing communications. However, messages directly related to your use of the
+                    platform such as onboarding reminders, matched introductions, or mandatory updates will
+                    continue as necessary for the provision of our services.
+                  </p>
+
+                  <p>
+                    For investors and strategic partners, we may use profile and preference data to facilitate
+                    curated introductions to selected founders. This includes notifying you of new founder
+                    cohorts, sharing summary validation outputs, and enabling warm intros where a mutual
+                    interest is identified. Such activities are designed to ensure relevance and efficiency in the
+                    investor-founder matching process, and are carried out in accordance with our legitimate
+                    interests and those of our users.
+                  </p>
+
+                  <p>
+                    We also process Personal Data for compliance and legal purposes. This may include
+                    responding to lawful requests from regulatory authorities, maintaining audit trails,
+                    retaining access logs, and meeting any know-your-client (KYC) or anti-money laundering
+                    (AML) obligations relevant to our operations or those of our institutional partners. These
+                    actions are taken in accordance with applicable UAE regulations, including the PDPL, and
+                    international best practices.
+                  </p>
+
+                  <p>
+                    To safeguard the platform and our community, we monitor technical and usage data for
+                    signs of unauthorized access, fraudulent activity, or violations of our terms of service. Our
+                    systems are designed to detect anomalous behavior such as bot traffic, scraping, or brute-
+                    force login attempts. We process this data to protect user accounts, maintain the integrity
+                    of our systems, and ensure that our services are used in accordance with their intended
+                    purpose.
                   </p>
                   
                   <div className="bg-primary/5 border border-primary/20 rounded-lg p-4">
@@ -520,34 +586,62 @@ const Privacy = () => {
                     Chance platform, new features, founder or investor opportunities, partner events, or
                     content that we believe may be relevant or beneficial to you.
                   </p>
-                  
-                  <div className="grid md:grid-cols-2 gap-4">
-                    <div className="border border-primary/20 rounded-lg p-4">
-                      <h4 className="font-semibold text-foreground mb-2">If you are a founder, we may contact you with:</h4>
-                      <ul className="list-disc list-inside space-y-1 text-sm">
-                        <li>Updates about your application or evaluation</li>
-                        <li>Opportunities for additional support or visibility</li>
-                        <li>Announcements about platform changes or partner initiatives</li>
-                      </ul>
+
+                  <div className="space-y-4">
+                    <div>
+                      <h4 className="font-semibold text-foreground mb-3">8.1 Consent for Marketing Communications</h4>
+                      <p className="mb-3">
+                        We will always seek your explicit consent before sending marketing communications.
+                        This consent is obtained separately from other terms and is clearly presented during
+                        registration or account setup. You may withdraw your consent at any time without
+                        affecting the lawfulness of processing based on consent before its withdrawal.
+                      </p>
                     </div>
-                    
-                    <div className="border border-primary/20 rounded-lg p-4">
-                      <h4 className="font-semibold text-foreground mb-2">If you are an investor or partner, we may share:</h4>
-                      <ul className="list-disc list-inside space-y-1 text-sm">
-                        <li>Introductions to relevant founders</li>
-                        <li>Cohort summaries or spotlight profiles</li>
-                        <li>Invitations to participate in demo days or discovery sessions</li>
-                      </ul>
+
+                    <div>
+                      <h4 className="font-semibold text-foreground mb-3">8.2 Types of Communications</h4>
+                      <div className="grid md:grid-cols-2 gap-4">
+                        <div className="border border-primary/20 rounded-lg p-4">
+                          <h5 className="font-semibold text-foreground mb-2">Founders may receive:</h5>
+                          <ul className="list-disc list-inside space-y-1 text-sm">
+                            <li>Updates about your application or evaluation</li>
+                            <li>Opportunities for additional support or visibility</li>
+                            <li>Announcements about platform changes or partner initiatives</li>
+                            <li>Invitations to networking events or workshops</li>
+                          </ul>
+                        </div>
+                        
+                        <div className="border border-primary/20 rounded-lg p-4">
+                          <h5 className="font-semibold text-foreground mb-2">Investors may receive:</h5>
+                          <ul className="list-disc list-inside space-y-1 text-sm">
+                            <li>Introductions to relevant founders</li>
+                            <li>Cohort summaries or spotlight profiles</li>
+                            <li>Invitations to participate in demo days or discovery sessions</li>
+                            <li>Market insights and trend reports</li>
+                          </ul>
+                        </div>
+                      </div>
                     </div>
-                  </div>
-                  
-                  <div className="bg-primary/5 border border-primary/20 rounded-lg p-4">
-                    <p className="font-medium text-foreground mb-2">You may opt out of non-essential communications at any time by:</p>
-                    <ul className="list-disc list-inside space-y-1 text-sm">
-                      <li>Clicking the unsubscribe link at the bottom of our emails</li>
-                      <li>Adjusting your communication preferences via your platform account</li>
-                      <li>Contacting us directly at <a href="mailto:info@eastemblem.com" className="text-primary hover:underline">info@eastemblem.com</a></li>
-                    </ul>
+
+                    <div>
+                      <h4 className="font-semibold text-foreground mb-3">8.3 Communication Preferences and Opt-Out</h4>
+                      <p className="mb-3">
+                        Our policy is to communicate in a non-intrusive manner and to respect your time
+                        and preferences. All marketing emails include clear opt-out mechanisms.
+                      </p>
+                      <div className="bg-primary/5 border border-primary/20 rounded-lg p-4">
+                        <p className="font-medium text-foreground mb-2">You may opt out of marketing communications at any time by:</p>
+                        <ul className="list-disc list-inside space-y-1 text-sm">
+                          <li>Clicking the unsubscribe link at the bottom of our emails</li>
+                          <li>Adjusting your communication preferences via your platform account</li>
+                          <li>Contacting us directly at <a href="mailto:info@eastemblem.com" className="text-primary hover:underline">info@eastemblem.com</a></li>
+                        </ul>
+                        <p className="text-sm mt-2 text-muted-foreground">
+                          Note: Essential communications related to your platform usage (such as security alerts,
+                          account notifications, or service updates) will continue regardless of marketing preferences.
+                        </p>
+                      </div>
+                    </div>
                   </div>
                 </div>
               </SectionCard>
@@ -724,30 +818,104 @@ const Privacy = () => {
             {/* Data Breach */}
             <div id="breach">
               <SectionCard id="breach" title="Data Breach Notification and Incident Response" number="14">
-                <div className="space-y-4">
+                <div className="space-y-6">
                   <p>
                     East Emblem Ltd maintains a proactive and structured incident response protocol designed
                     to detect, contain, assess, and mitigate any actual or suspected breach of Personal Data.
                   </p>
-                  
+
                   <div className="space-y-4">
                     <div>
-                      <h4 className="font-semibold text-foreground mb-3">Our Response Process</h4>
-                      <ol className="list-decimal list-inside space-y-2 ml-4">
-                        <li><strong>Detection & Containment:</strong> We isolate affected systems to prevent further exposure</li>
-                        <li><strong>Assessment & Classification:</strong> We evaluate the type of data involved and potential consequences</li>
-                        <li><strong>Notification of Authorities:</strong> We notify the UAE Data Office within the legally mandated timeframe</li>
-                        <li><strong>Notification of Affected Individuals:</strong> We notify affected individuals promptly when required</li>
-                        <li><strong>Remediation & Prevention:</strong> We take corrective actions and conduct post-incident reviews</li>
-                      </ol>
-                    </div>
-                    
-                    <div className="bg-red-50 border border-red-200 rounded-lg p-4">
-                      <p className="font-medium text-red-800">Your Role in Security</p>
-                      <p className="text-red-700 mt-1 text-sm">
-                        If you suspect that your data may have been compromised, please immediately contact us at 
-                        <a href="mailto:info@eastemblem.com" className="underline ml-1">info@eastemblem.com</a>.
+                      <h4 className="font-semibold text-foreground mb-3">14.1 What Constitutes a Data Breach</h4>
+                      <p className="mb-3">
+                        A personal data breach means a breach of security leading to the accidental or unlawful
+                        destruction, loss, alteration, unauthorized disclosure of, or access to, Personal Data.
+                        This includes but is not limited to:
                       </p>
+                      <ul className="list-disc list-inside space-y-1 ml-4">
+                        <li>Unauthorized access to user accounts or databases</li>
+                        <li>Accidental disclosure of Personal Data to unauthorized parties</li>
+                        <li>Loss or theft of devices containing Personal Data</li>
+                        <li>Ransomware or malware attacks affecting data systems</li>
+                        <li>System failures leading to data corruption or loss</li>
+                      </ul>
+                    </div>
+
+                    <div>
+                      <h4 className="font-semibold text-foreground mb-3">14.2 Five-Step Incident Response Process</h4>
+                      <div className="space-y-3">
+                        <div className="flex items-start space-x-3 border border-red-200 bg-red-50 rounded-lg p-3">
+                          <div className="w-6 h-6 rounded-full bg-red-500 flex items-center justify-center text-white text-sm font-bold flex-shrink-0">1</div>
+                          <div>
+                            <h5 className="font-semibold text-red-800">Detection & Containment</h5>
+                            <p className="text-sm text-red-700">Immediate isolation of affected systems to prevent further exposure and preserve evidence</p>
+                          </div>
+                        </div>
+                        
+                        <div className="flex items-start space-x-3 border border-orange-200 bg-orange-50 rounded-lg p-3">
+                          <div className="w-6 h-6 rounded-full bg-orange-500 flex items-center justify-center text-white text-sm font-bold flex-shrink-0">2</div>
+                          <div>
+                            <h5 className="font-semibold text-orange-800">Assessment & Classification</h5>
+                            <p className="text-sm text-orange-700">Evaluation of the type of data involved, number of affected individuals, and potential consequences</p>
+                          </div>
+                        </div>
+                        
+                        <div className="flex items-start space-x-3 border border-yellow-200 bg-yellow-50 rounded-lg p-3">
+                          <div className="w-6 h-6 rounded-full bg-yellow-500 flex items-center justify-center text-white text-sm font-bold flex-shrink-0">3</div>
+                          <div>
+                            <h5 className="font-semibold text-yellow-800">Notification of Authorities</h5>
+                            <p className="text-sm text-yellow-700">Notification to the UAE Data Office within 72 hours when required by law</p>
+                          </div>
+                        </div>
+                        
+                        <div className="flex items-start space-x-3 border border-blue-200 bg-blue-50 rounded-lg p-3">
+                          <div className="w-6 h-6 rounded-full bg-blue-500 flex items-center justify-center text-white text-sm font-bold flex-shrink-0">4</div>
+                          <div>
+                            <h5 className="font-semibold text-blue-800">Notification of Affected Individuals</h5>
+                            <p className="text-sm text-blue-700">Prompt notification to affected individuals when the breach poses a high risk to their rights and freedoms</p>
+                          </div>
+                        </div>
+                        
+                        <div className="flex items-start space-x-3 border border-green-200 bg-green-50 rounded-lg p-3">
+                          <div className="w-6 h-6 rounded-full bg-green-500 flex items-center justify-center text-white text-sm font-bold flex-shrink-0">5</div>
+                          <div>
+                            <h5 className="font-semibold text-green-800">Remediation & Prevention</h5>
+                            <p className="text-sm text-green-700">Corrective actions, system improvements, and comprehensive post-incident reviews</p>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+
+                    <div>
+                      <h4 className="font-semibold text-foreground mb-3">14.3 Individual Notification Process</h4>
+                      <p className="mb-3">
+                        When we are required to notify affected individuals, our communication will include:
+                      </p>
+                      <ul className="list-disc list-inside space-y-1 ml-4 mb-3">
+                        <li>Nature and scope of the Personal Data breach</li>
+                        <li>Likely consequences of the breach</li>
+                        <li>Measures we have taken or propose to take to address the breach</li>
+                        <li>Contact details for further information and assistance</li>
+                        <li>Practical steps you can take to protect yourself</li>
+                      </ul>
+                    </div>
+
+                    <div className="bg-red-50 border border-red-200 rounded-lg p-4">
+                      <p className="font-medium text-red-800 mb-2">Your Role in Maintaining Security</p>
+                      <div className="space-y-2 text-sm text-red-700">
+                        <p>You play an important role in protecting your Personal Data. Please:</p>
+                        <ul className="list-disc list-inside space-y-1 ml-4">
+                          <li>Use strong, unique passwords for your account</li>
+                          <li>Report suspicious activity or unauthorized access immediately</li>
+                          <li>Keep your contact information updated for security notifications</li>
+                          <li>Review your account activity regularly</li>
+                        </ul>
+                        <p className="mt-2">
+                          If you suspect that your data may have been compromised, please immediately contact us at 
+                          <a href="mailto:info@eastemblem.com" className="underline font-medium">info@eastemblem.com</a>
+                          with the subject line "Security Incident Report".
+                        </p>
+                      </div>
                     </div>
                   </div>
                 </div>
@@ -814,6 +982,33 @@ const Privacy = () => {
                           automated means, you may request to receive your Personal Data in a
                           structured, commonly used, machine-readable format, and to have it
                           transmitted to another controller, where technically feasible.
+                        </p>
+                      </div>
+                      
+                      <div className="border border-primary/20 rounded-lg p-4">
+                        <h5 className="font-semibold text-foreground">6. Right to Restrict Processing</h5>
+                        <p className="mt-2">
+                          You have the right to request that we restrict the processing of your Personal Data
+                          in certain circumstances, such as when you contest the accuracy of the data or
+                          when processing is unlawful but you do not want it to be deleted.
+                        </p>
+                      </div>
+                      
+                      <div className="border border-primary/20 rounded-lg p-4">
+                        <h5 className="font-semibold text-foreground">7. Right to Withdraw Consent</h5>
+                        <p className="mt-2">
+                          Where processing is based on your consent, you have the right to withdraw that
+                          consent at any time. Withdrawal of consent will not affect the lawfulness of
+                          processing based on consent before its withdrawal.
+                        </p>
+                      </div>
+                      
+                      <div className="border border-primary/20 rounded-lg p-4">
+                        <h5 className="font-semibold text-foreground">8. Right to Lodge a Complaint</h5>
+                        <p className="mt-2">
+                          You have the right to lodge a complaint with the UAE Data Office or other
+                          relevant supervisory authority if you believe that our processing of your
+                          Personal Data violates applicable data protection laws.
                         </p>
                       </div>
                     </div>
