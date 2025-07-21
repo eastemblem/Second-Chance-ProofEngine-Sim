@@ -29,25 +29,17 @@ const Terms = () => {
   });
 
   const sections = [
-    { id: "introduction", title: "Introduction", number: "1" },
-    { id: "definitions", title: "Definitions", number: "2" },
-    { id: "acceptance", title: "Acceptance of Terms", number: "3" },
-    { id: "platform-description", title: "Platform Description", number: "4" },
-    { id: "user-accounts", title: "User Accounts and Registration", number: "5" },
-    { id: "permitted-use", title: "Permitted Use of the Platform", number: "6" },
-    { id: "prohibited-activities", title: "Prohibited Activities", number: "7" },
-    { id: "content-submissions", title: "Content Submissions and Intellectual Property", number: "8" },
-    { id: "proofscore-system", title: "ProofScore System and AI-Generated Content", number: "9" },
-    { id: "investor-matching", title: "Investor Matching and Introductions", number: "10" },
-    { id: "fees-payment", title: "Fees and Payment Terms", number: "11" },
-    { id: "data-privacy", title: "Data Privacy and Protection", number: "12" },
-    { id: "disclaimers", title: "Disclaimers and Limitations", number: "13" },
-    { id: "liability", title: "Limitation of Liability", number: "14" },
-    { id: "indemnification", title: "Indemnification", number: "15" },
-    { id: "termination", title: "Termination", number: "16" },
-    { id: "governing-law", title: "Governing Law and Dispute Resolution", number: "17" },
-    { id: "modifications", title: "Modifications to Terms", number: "18" },
-    { id: "contact", title: "Contact Information", number: "19" },
+    { id: "terms-of-service", title: "Terms of Service", number: "1" },
+    { id: "eligibility", title: "Eligibility and Account Responsibilities", number: "2" },
+    { id: "platform-services", title: "Platform Services and Purpose", number: "3" },
+    { id: "user-conduct", title: "User Conduct and Platform Use Restrictions", number: "4" },
+    { id: "intellectual-property", title: "Intellectual Property and Content Rights", number: "5" },
+    { id: "fees-revenue", title: "Fees, Revenue Sharing, and Partner Terms", number: "6" },
+    { id: "data-protection", title: "Data Protection and Privacy", number: "7" },
+    { id: "disclaimers", title: "Disclaimers and Limitation of Liability", number: "8" },
+    { id: "termination", title: "Termination and Suspension of Access", number: "9" },
+    { id: "governing-law", title: "Governing Law and Dispute Resolution", number: "10" },
+    { id: "general-provisions", title: "General Provisions", number: "11" },
   ];
 
   const SectionCard = ({
@@ -101,8 +93,7 @@ const Terms = () => {
               transition={{ delay: 0.1 }}
               className="text-center mb-6"
             >
-              <p className="text-sm text-muted-foreground mb-1">Effective Date: 15th July 2025</p>
-              <p className="text-sm text-muted-foreground">Last Updated: 15th July 2025</p>
+              <p className="text-sm text-muted-foreground">Effective Date: July 17, 2025</p>
             </motion.div>
 
             <motion.div 
@@ -145,30 +136,33 @@ const Terms = () => {
 
           {/* Main Content */}
           <div className="flex-1 min-w-0">
-            {/* Introduction */}
-            <div id="introduction">
-              <SectionCard id="introduction" title="Introduction" number="1">
+            {/* Terms of Service */}
+            <div id="terms-of-service">
+              <SectionCard id="terms-of-service" title="Terms of Service" number="1">
                 <div className="space-y-4">
                   <p>
-                    Welcome to the Second Chance platform ("Platform"), operated by East Emblem Ltd 
-                    ("East Emblem", "we", "us", or "our"), a company incorporated in the United Arab Emirates 
-                    and licensed under MC 13353 in Masdar City Free Zone, Abu Dhabi.
+                    These Terms of Service ("Terms") govern your access to and use of the Second Chance platform 
+                    (the "Platform"), which is owned and operated by East Emblem Ltd ("East Emblem", "we", "us", or 
+                    "our"). East Emblem Ltd is a private company registered in Masdar City Free Zone, Abu Dhabi, United 
+                    Arab Emirates, under license number MC 13353, with its registered office located at Smart Station, 
+                    First Floor, Incubator Building, Masdar City, Abu Dhabi, UAE.
                   </p>
                   
                   <p>
-                    These Terms and Conditions ("Terms") constitute a legally binding agreement between you 
-                    ("User", "you", or "your") and East Emblem Ltd regarding your access to and use of the 
-                    Second Chance platform, including all associated services, features, and content.
+                    By accessing or using the Platform, you agree to be bound by these Terms, along with our [Privacy 
+                    Policy] and any other applicable policies or guidelines that may be published from time to time. If 
+                    you do not agree to these Terms, you may not access or use the Platform.
                   </p>
                   
                   <div className="bg-primary/5 border border-primary/20 rounded-lg p-4">
                     <div className="flex items-start space-x-3">
                       <Gavel className="w-5 h-5 text-primary flex-shrink-0 mt-0.5" />
                       <div>
-                        <p className="font-medium text-primary mb-1">Legal Agreement</p>
+                        <p className="font-medium text-primary mb-1">Legally Binding Agreement</p>
                         <p className="text-sm">
-                          By accessing or using our Platform, you acknowledge that you have read, understood, 
-                          and agree to be bound by these Terms, as well as our Privacy Policy.
+                          These Terms form a legally binding agreement between you and East Emblem Ltd. You represent 
+                          and warrant that you are legally eligible to enter into these Terms and, where acting on behalf of an 
+                          entity, that you are duly authorized to bind such entity.
                         </p>
                       </div>
                     </div>
@@ -177,52 +171,76 @@ const Terms = () => {
               </SectionCard>
             </div>
 
-            {/* Definitions */}
-            <div id="definitions">
-              <SectionCard id="definitions" title="Definitions" number="2">
-                <div className="space-y-4">
-                  <p>
-                    For the purposes of these Terms, the following definitions apply:
-                  </p>
-                  
-                  <div className="grid gap-4">
-                    <div className="border border-primary/20 rounded-lg p-4">
-                      <h4 className="font-semibold text-foreground mb-2">"Platform" or "Second Chance"</h4>
-                      <p className="text-sm">
-                        The comprehensive startup validation platform operated by East Emblem Ltd, including 
-                        the website, mobile applications, APIs, and all associated services and features.
+            {/* Eligibility and Account Responsibilities */}
+            <div id="eligibility">
+              <SectionCard id="eligibility" title="Eligibility and Account Responsibilities" number="2">
+                <div className="space-y-6">
+                  <div>
+                    <h4 className="font-semibold text-foreground mb-3">2.1 Eligibility</h4>
+                    <p className="mb-3">
+                      Use of the Platform is limited to individuals and legal entities who can form legally binding contracts 
+                      under the laws of their respective jurisdictions. By registering an account or otherwise using the 
+                      Platform, you represent and warrant that:
+                    </p>
+                    <ul className="list-disc list-inside space-y-1 ml-4 text-sm">
+                      <li>You are at least 18 years of age;</li>
+                      <li>You are not barred from using the Platform under any applicable laws or regulations, including sanctions or export control restrictions;</li>
+                      <li>You are using the Platform for legitimate business or professional purposes, and not as a consumer under UAE or other applicable laws.</li>
+                    </ul>
+                    <p className="mt-3 text-sm">
+                      We may, at our sole discretion, refuse to offer the Platform to any person or entity and may change 
+                      our eligibility criteria at any time without notice.
+                    </p>
+                  </div>
+
+                  <div>
+                    <h4 className="font-semibold text-foreground mb-3">2.2 User Registration</h4>
+                    <p className="mb-3">
+                      To access certain features of the Platform, you may be required to create an account. When creating 
+                      or updating your account, you agree to provide accurate, current, and complete information, and to 
+                      keep such information up to date at all times.
+                    </p>
+                    <p className="mb-3">
+                      You are responsible for maintaining the confidentiality of your account credentials, including your 
+                      username and password, and for all activities that occur under your account. You agree not to share 
+                      your login credentials with any unauthorized parties.
+                    </p>
+                    <div className="bg-amber-50 border border-amber-200 rounded-lg p-4">
+                      <p className="font-medium text-amber-800 mb-2">Security Notice</p>
+                      <p className="text-sm text-amber-700">
+                        You must notify us immediately at info@eastemblem.com of any unauthorized use or suspected 
+                        breach of your account. East Emblem is not responsible for any losses, damages, or unauthorized 
+                        activity arising from your failure to safeguard your login credentials.
                       </p>
                     </div>
-                    
-                    <div className="border border-primary/20 rounded-lg p-4">
-                      <h4 className="font-semibold text-foreground mb-2">"Founder"</h4>
-                      <p className="text-sm">
-                        An individual or entity that uses the Platform to submit their startup or business 
-                        for evaluation, validation, and potential investor matching.
-                      </p>
-                    </div>
-                    
-                    <div className="border border-primary/20 rounded-lg p-4">
-                      <h4 className="font-semibold text-foreground mb-2">"Investor"</h4>
-                      <p className="text-sm">
-                        An individual or entity that uses the Platform to discover, evaluate, and potentially 
-                        invest in startups and businesses presented through our services.
-                      </p>
-                    </div>
-                    
-                    <div className="border border-primary/20 rounded-lg p-4">
-                      <h4 className="font-semibold text-foreground mb-2">"ProofScore"</h4>
-                      <p className="text-sm">
-                        Our proprietary AI-powered evaluation system that assesses startup readiness across 
-                        five dimensions: Desirability, Feasibility, Viability, Traction, and Readiness.
-                      </p>
-                    </div>
-                    
-                    <div className="border border-primary/20 rounded-lg p-4">
-                      <h4 className="font-semibold text-foreground mb-2">"Content"</h4>
-                      <p className="text-sm">
-                        All information, data, text, documents, images, videos, pitch decks, business plans, 
-                        and other materials submitted to or generated by the Platform.
+                  </div>
+
+                  <div>
+                    <h4 className="font-semibold text-foreground mb-3">2.3 Platform Access for Entities</h4>
+                    <p className="mb-3">
+                      If you are accessing or using the Platform on behalf of a company, organization, investment firm, or 
+                      other legal entity, you:
+                    </p>
+                    <ul className="list-disc list-inside space-y-1 ml-4 text-sm">
+                      <li>Represent and warrant that you are authorized to bind such entity to these Terms;</li>
+                      <li>Agree that both you and the entity will be jointly and severally bound by these Terms.</li>
+                    </ul>
+                  </div>
+
+                  <div>
+                    <h4 className="font-semibold text-foreground mb-3">2.4 Restrictions on Use</h4>
+                    <p className="mb-3">You agree that you will not:</p>
+                    <ul className="list-disc list-inside space-y-1 ml-4 text-sm">
+                      <li>Impersonate any person or entity;</li>
+                      <li>Use the Platform for any fraudulent, unlawful, or misleading purpose;</li>
+                      <li>Circumvent or attempt to circumvent any security or access controls on the Platform;</li>
+                      <li>Permit any third party to use your account or credentials without authorization.</li>
+                    </ul>
+                    <div className="bg-red-50 border border-red-200 rounded-lg p-4 mt-3">
+                      <p className="text-sm text-red-700">
+                        We reserve the right to suspend or terminate your access to the Platform at any time if we reasonably 
+                        believe that you have violated these Terms or engaged in conduct that may harm East Emblem, 
+                        other users, or the integrity of the Platform.
                       </p>
                     </div>
                   </div>
@@ -230,73 +248,136 @@ const Terms = () => {
               </SectionCard>
             </div>
 
-            {/* Acceptance */}
-            <div id="acceptance">
-              <SectionCard id="acceptance" title="Acceptance of Terms" number="3">
-                <div className="space-y-4">
-                  <p>
-                    By creating an account, accessing, or using any part of the Second Chance platform, 
-                    you expressly acknowledge and agree that:
-                  </p>
-                  
-                  <ul className="list-disc list-inside space-y-2 ml-4">
-                    <li>You have read and understood these Terms in their entirety</li>
-                    <li>You accept and agree to be legally bound by these Terms</li>
-                    <li>You have the legal authority to enter into this agreement</li>
-                    <li>You will comply with all applicable laws and regulations</li>
-                    <li>You understand the nature and risks of startup evaluation and investment activities</li>
-                  </ul>
-                  
-                  <div className="bg-amber-50 border border-amber-200 rounded-lg p-4">
-                    <p className="font-medium text-amber-800 mb-2">Important Notice</p>
-                    <p className="text-sm text-amber-700">
-                      If you do not agree with any part of these Terms, you must not access or use the Platform. 
-                      Continued use of the Platform constitutes acceptance of any modifications to these Terms.
+            {/* Platform Services and Purpose */}
+            <div id="platform-services">
+              <SectionCard id="platform-services" title="Platform Services and Purpose" number="3">
+                <div className="space-y-6">
+                  <div>
+                    <h4 className="font-semibold text-foreground mb-3">3.1 Overview of the Platform</h4>
+                    <p className="mb-3">
+                      Second Chance is a digital platform operated by East Emblem Ltd that facilitates connections 
+                      between early-stage startup founders and potential investors, partners, and advisors. It is designed 
+                      to help founders who may have previously struggled to access funding gain a second opportunity to 
+                      be discovered, validated, and supported by members of the venture ecosystem.
+                    </p>
+                    <p className="mb-3">The Platform may provide, among other features:</p>
+                    <ul className="list-disc list-inside space-y-1 ml-4 text-sm">
+                      <li>Founder onboarding and application tools;</li>
+                      <li>Scoring and validation frameworks (e.g., "ProofScore" or similar diagnostics);</li>
+                      <li>Curated introductions between founders and investors;</li>
+                      <li>Event-based visibility opportunities (e.g., demo days or pitch reviews);</li>
+                      <li>Secure data room or information-sharing features;</li>
+                      <li>Partnership opportunities for institutional stakeholders.</li>
+                    </ul>
+                    <div className="bg-green-50 border border-green-200 rounded-lg p-4 mt-3">
+                      <p className="text-sm text-green-700">
+                        East Emblem does not charge founders to submit applications or profiles. Participation as an investor, 
+                        reviewer, or partner may be subject to additional agreements or sponsorship terms, which will be 
+                        separately disclosed.
+                      </p>
+                    </div>
+                  </div>
+
+                  <div>
+                    <h4 className="font-semibold text-foreground mb-3">3.2 Role of East Emblem</h4>
+                    <p className="mb-3">
+                      East Emblem Ltd acts as a facilitator of introductions and curator of opportunity—not as a broker, 
+                      fund manager, or investment advisor. We do not:
+                    </p>
+                    <ul className="list-disc list-inside space-y-1 ml-4 text-sm">
+                      <li>Guarantee funding or outcomes for founders;</li>
+                      <li>Endorse or vouch for the financial viability of any user, startup, or investor;</li>
+                      <li>Conduct regulated financial services under the laws of the UAE or any other jurisdiction.</li>
+                    </ul>
+                    <div className="bg-blue-50 border border-blue-200 rounded-lg p-4 mt-3">
+                      <p className="text-sm text-blue-700">
+                        While we apply a structured evaluation process and seek to maintain a high-quality ecosystem, the 
+                        decision to engage, invest, or enter into further dialogue lies solely with the participating users. 
+                        Users are encouraged to conduct their own due diligence before entering into any commercial or 
+                        financial relationship.
+                      </p>
+                    </div>
+                    <p className="mt-3 text-sm">
+                      East Emblem may choose, at its discretion, to prioritize or promote certain users or opportunities 
+                      based on internal criteria, partnerships, or editorial relevance. Such prioritization does not constitute 
+                      a recommendation or assurance of merit.
+                    </p>
+                  </div>
+
+                  <div>
+                    <h4 className="font-semibold text-foreground mb-3">3.3 Platform Access and Availability</h4>
+                    <p className="mb-3">
+                      We will use reasonable efforts to make the Platform available on a continuous basis, but access may 
+                      be interrupted due to maintenance, upgrades, system failures, or events beyond our control. We do 
+                      not guarantee uptime or availability and disclaim all liability for any disruption, delay, or loss of 
+                      access unless caused by gross negligence or willful misconduct on our part.
+                    </p>
+                    <p className="text-sm">
+                      We may, from time to time, modify or discontinue parts of the Platform, introduce new features, or 
+                      impose limits on usage. Where such changes materially affect your use of the Platform, we will 
+                      endeavor to provide reasonable notice.
                     </p>
                   </div>
                 </div>
               </SectionCard>
             </div>
 
-            {/* Platform Description */}
-            <div id="platform-description">
-              <SectionCard id="platform-description" title="Platform Description" number="4">
-                <div className="space-y-4">
-                  <p>
-                    The Second Chance platform is a comprehensive startup validation and investor-matching 
-                    service that leverages artificial intelligence and expert analysis to:
-                  </p>
-                  
-                  <div className="grid md:grid-cols-2 gap-4">
-                    <div className="border border-blue-200 bg-blue-50 rounded-lg p-4">
-                      <h4 className="font-semibold text-blue-800 mb-2">For Founders</h4>
-                      <ul className="list-disc list-inside space-y-1 text-sm text-blue-700">
-                        <li>Comprehensive startup evaluation and scoring</li>
-                        <li>AI-powered business analysis and feedback</li>
-                        <li>Investment readiness assessment</li>
-                        <li>Investor matching and introduction services</li>
-                        <li>ProofTags achievement system and gamification</li>
-                      </ul>
-                    </div>
-                    
-                    <div className="border border-green-200 bg-green-50 rounded-lg p-4">
-                      <h4 className="font-semibold text-green-800 mb-2">For Investors</h4>
-                      <ul className="list-disc list-inside space-y-1 text-sm text-green-700">
-                        <li>Curated startup discovery and evaluation</li>
-                        <li>Advanced filtering and matching algorithms</li>
-                        <li>Due diligence support and documentation</li>
-                        <li>Deal flow management and tracking</li>
-                        <li>Portfolio and investment analytics</li>
-                      </ul>
+            {/* User Conduct and Platform Use Restrictions */}
+            <div id="user-conduct">
+              <SectionCard id="user-conduct" title="User Conduct and Platform Use Restrictions" number="4">
+                <div className="space-y-6">
+                  <div>
+                    <h4 className="font-semibold text-foreground mb-3">4.1 User Responsibilities</h4>
+                    <p className="mb-3">
+                      By using the Second Chance platform, you agree to engage in a professional, respectful, and lawful 
+                      manner consistent with the purpose of the Platform and the rights of others. You are solely 
+                      responsible for:
+                    </p>
+                    <ul className="list-disc list-inside space-y-1 ml-4 text-sm">
+                      <li>Ensuring that any information, content, or documents you upload or share through the Platform are accurate, lawful, and not misleading;</li>
+                      <li>Using the Platform in good faith, with the intention of participating meaningfully in the founder-investor ecosystem;</li>
+                      <li>Respecting the confidentiality of information received through private introductions or pitch reviews, unless explicitly made public by the disclosing party;</li>
+                      <li>Complying with all applicable laws, regulations, and contractual obligations when using the Platform.</li>
+                    </ul>
+                    <p className="mt-3 text-sm">
+                      You must not misuse the Platform to harass, defame, mislead, infringe on the rights of others, or 
+                      circumvent fair usage.
+                    </p>
+                  </div>
+
+                  <div>
+                    <h4 className="font-semibold text-foreground mb-3">4.2 Prohibited Activities</h4>
+                    <p className="mb-3">You agree that you will not, directly or indirectly:</p>
+                    <ul className="list-disc list-inside space-y-1 ml-4 text-sm">
+                      <li>Post or transmit any false, fraudulent, misleading, or deceptive information;</li>
+                      <li>Access or use the Platform for any purpose that is unlawful, unethical, or harmful to others;</li>
+                      <li>Reverse-engineer, decompile, disassemble, or otherwise attempt to derive the source code or underlying systems of the Platform;</li>
+                      <li>Scrape, extract, harvest, or otherwise collect user information or platform data without express written consent from East Emblem;</li>
+                      <li>Use the Platform to advertise or solicit products, services, or opportunities that are unrelated to its stated purpose;</li>
+                      <li>Impersonate any person or entity, or misrepresent your affiliation with any individual, company, or organization;</li>
+                      <li>Circumvent security measures or platform access restrictions, including attempting to gain unauthorized access to private data, accounts, or systems;</li>
+                      <li>Upload viruses, malware, or other malicious code that may damage, interfere with, or exfiltrate data from the Platform or its users.</li>
+                    </ul>
+                    <div className="bg-red-50 border border-red-200 rounded-lg p-4 mt-3">
+                      <p className="text-sm text-red-700">
+                        Any violation of these restrictions may result in immediate suspension or termination of your access 
+                        and, where appropriate, legal action.
+                      </p>
                     </div>
                   </div>
-                  
-                  <div className="bg-primary/5 border border-primary/20 rounded-lg p-4">
-                    <p className="font-medium text-primary mb-2">Service Availability</p>
+
+                  <div>
+                    <h4 className="font-semibold text-foreground mb-3">4.3 Platform Integrity and Cooperation</h4>
+                    <p className="mb-3">
+                      East Emblem reserves the right to investigate any suspected misuse, fraud, or abuse of the Platform 
+                      and may cooperate with law enforcement, regulatory authorities, or affected third parties in doing 
+                      so. We may suspend or terminate access to users who are found, in our sole discretion, to have 
+                      breached these Terms or acted in a manner that compromises the integrity, safety, or purpose of 
+                      the Platform.
+                    </p>
                     <p className="text-sm">
-                      We strive to maintain high availability of our Platform, but we do not guarantee 
-                      uninterrupted access. Services may be temporarily unavailable due to maintenance, 
-                      updates, or circumstances beyond our control.
+                      You agree to cooperate with any inquiries or investigations relating to your use of the Platform and 
+                      to provide truthful, timely responses to our requests for information where relevant.
                     </p>
                   </div>
                 </div>
@@ -453,47 +534,75 @@ const Terms = () => {
               </SectionCard>
             </div>
 
-            {/* Content Submissions */}
-            <div id="content-submissions">
-              <SectionCard id="content-submissions" title="Content Submissions and Intellectual Property" number="8">
+            {/* Intellectual Property and Content Rights */}
+            <div id="intellectual-property">
+              <SectionCard id="intellectual-property" title="Intellectual Property and Content Rights" number="5">
                 <div className="space-y-6">
                   <div>
-                    <h4 className="font-semibold text-foreground mb-3">8.1 Content Ownership</h4>
+                    <h4 className="font-semibold text-foreground mb-3">5.1 Ownership of the Platform</h4>
                     <p className="mb-3">
-                      You retain ownership of all intellectual property rights in the content you submit 
-                      to the Platform, including pitch decks, business plans, financial information, 
-                      and other proprietary materials ("User Content").
+                      The Second Chance platform, including all associated software, user interfaces, designs, algorithms, 
+                      analytics models (including but not limited to the "ProofScore"), databases, trademarks, logos, and 
+                      all other elements comprising the platform (collectively, the "Platform Materials"), are and shall 
+                      remain the exclusive property of East Emblem Ltd or its licensors.
                     </p>
+                    <p className="mb-3">
+                      You acknowledge and agree that, except as expressly stated in these Terms, nothing grants you a 
+                      right, title, or interest in or to any Platform Materials. All rights not expressly granted are reserved.
+                    </p>
+                    <div className="bg-amber-50 border border-amber-200 rounded-lg p-4">
+                      <p className="text-sm text-amber-700">
+                        You may not reproduce, distribute, modify, display, create derivative works of, or otherwise exploit 
+                        the Platform or any part thereof except as permitted by these Terms or with East Emblem's express 
+                        written consent.
+                      </p>
+                    </div>
                   </div>
 
                   <div>
-                    <h4 className="font-semibold text-foreground mb-3">8.2 License Grant</h4>
+                    <h4 className="font-semibold text-foreground mb-3">5.2 Your Content</h4>
                     <p className="mb-3">
-                      By submitting User Content, you grant East Emblem a limited, non-exclusive, 
-                      royalty-free license to:
+                      You retain full ownership of the content, data, and materials you upload or submit to the Platform 
+                      (collectively, "User Content"), including but not limited to pitch decks, company profiles, financials, 
+                      or biographical information. By uploading or submitting such materials, you grant East Emblem a 
+                      non-exclusive, royalty-free, worldwide license to:
                     </p>
                     <ul className="list-disc list-inside space-y-1 ml-4 text-sm">
-                      <li>Process and analyze your content using our AI systems</li>
-                      <li>Generate ProofScores and evaluation reports</li>
-                      <li>Share approved content with matched investors</li>
-                      <li>Create aggregated, anonymized insights for platform improvement</li>
-                      <li>Store and backup content for service delivery</li>
+                      <li>Use, store, host, copy, display, and share the content for the purpose of delivering the services of the Platform;</li>
+                      <li>Make such content available to investors, partners, and other users as part of curated introductions or event programming;</li>
+                      <li>Use de-identified or aggregated elements of such content to improve scoring models, research outcomes, or platform intelligence features, provided that no personally identifiable or confidential information is disclosed without your express consent.</li>
                     </ul>
+                    <p className="mt-3 text-sm">
+                      You represent and warrant that you have all necessary rights, licenses, and permissions to grant the 
+                      above license and that your User Content does not infringe on the rights of any third party.
+                    </p>
                   </div>
 
                   <div>
-                    <h4 className="font-semibold text-foreground mb-3">8.3 Content Standards</h4>
+                    <h4 className="font-semibold text-foreground mb-3">5.3 Confidentiality of Submissions</h4>
+                    <p className="mb-3">
+                      East Emblem applies reasonable efforts to safeguard sensitive User Content shared through private 
+                      or curated workflows (e.g., cohort selection, investor review). However, we cannot guarantee the 
+                      confidentiality of any materials voluntarily shared through public channels or third-party interactions 
+                      facilitated via the Platform.
+                    </p>
                     <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
-                      <p className="font-medium text-blue-800 mb-2">Quality Requirements</p>
-                      <p className="text-sm text-blue-700 mb-2">All submitted content must be:</p>
-                      <ul className="list-disc list-inside space-y-1 text-sm text-blue-700 ml-4">
-                        <li>Accurate, complete, and truthful</li>
-                        <li>Legally compliant and properly authorized</li>
-                        <li>Professional and appropriate for business purposes</li>
-                        <li>Free from confidential third-party information (unless authorized)</li>
-                        <li>Properly formatted and technically accessible</li>
-                      </ul>
+                      <p className="text-sm text-blue-700">
+                        You are solely responsible for determining whether and when to share information with other users. 
+                        If you have specific confidentiality requirements, we encourage you to seek separate agreements 
+                        (e.g., NDAs) directly with the relevant counterparty before disclosing sensitive information.
+                      </p>
                     </div>
+                  </div>
+
+                  <div>
+                    <h4 className="font-semibold text-foreground mb-3">5.4 Feedback and Platform Suggestions</h4>
+                    <p>
+                      If you provide feedback, ideas, or suggestions regarding the Platform or its services (collectively, 
+                      "Feedback"), East Emblem may use such Feedback without restriction or obligation. You agree that 
+                      any such Feedback will be deemed non-confidential and non-proprietary and that we may 
+                      incorporate it into the Platform without attribution or compensation.
+                    </p>
                   </div>
                 </div>
               </SectionCard>
@@ -590,83 +699,198 @@ const Terms = () => {
               </SectionCard>
             </div>
 
-            {/* Fees and Payment */}
-            <div id="fees-payment">
-              <SectionCard id="fees-payment" title="Fees and Payment Terms" number="11">
+            {/* Fees, Revenue Sharing, and Partner Terms */}
+            <div id="fees-revenue">
+              <SectionCard id="fees-revenue" title="Fees, Revenue Sharing, and Partner Terms" number="6">
                 <div className="space-y-6">
                   <div>
-                    <h4 className="font-semibold text-foreground mb-3">11.1 Service Fees</h4>
+                    <h4 className="font-semibold text-foreground mb-3">6.1 Use of the Platform</h4>
                     <p className="mb-3">
-                      Second Chance operates on a freemium model with both free and premium services:
+                      At present, East Emblem offers core platform services to founders and early-stage companies free 
+                      of charge. This includes submitting a company profile, participating in ProofScore assessments, and 
+                      being considered for introductions to investors or advisors.
                     </p>
-                    <div className="grid md:grid-cols-2 gap-4">
-                      <div className="border border-green-200 bg-green-50 rounded-lg p-4">
-                        <h5 className="font-semibold text-green-800 mb-2">Free Services</h5>
-                        <ul className="list-disc list-inside space-y-1 text-sm text-green-700">
-                          <li>Basic ProofScore evaluation</li>
-                          <li>Platform registration and onboarding</li>
-                          <li>Educational resources and content</li>
-                          <li>Limited investor visibility</li>
-                        </ul>
-                      </div>
-                      
-                      <div className="border border-blue-200 bg-blue-50 rounded-lg p-4">
-                        <h5 className="font-semibold text-blue-800 mb-2">Premium Services</h5>
-                        <ul className="list-disc list-inside space-y-1 text-sm text-blue-700">
-                          <li>Enhanced evaluation and reporting</li>
-                          <li>Priority investor matching</li>
-                          <li>Advanced analytics and insights</li>
-                          <li>Direct investor introductions</li>
-                          <li>Dedicated support and consultation</li>
-                        </ul>
-                      </div>
+                    <p className="mb-3">However, certain features or services may be subject to:</p>
+                    <ul className="list-disc list-inside space-y-1 ml-4 text-sm">
+                      <li>Fees, payable by investors, strategic partners, or enterprise users (e.g., for cohort sponsorship, enhanced visibility, or priority access);</li>
+                      <li>Revenue-sharing agreements, whereby East Emblem may receive a success fee, referral commission, or retrocession based on downstream commercial activity (e.g., if an investment is made or a contract is signed following a platform-introduced connection);</li>
+                      <li>Partnership or sponsorship contracts, which may include recurring fees, performance-based terms, or branding exposure rights.</li>
+                    </ul>
+                    <p className="mt-3 text-sm">
+                      All such arrangements will be governed by a separate written agreement between East Emblem and 
+                      the relevant party.
+                    </p>
+                  </div>
+
+                  <div>
+                    <h4 className="font-semibold text-foreground mb-3">6.2 Revenue Sharing with Referring Parties</h4>
+                    <p className="mb-3">
+                      If you have been referred to East Emblem or are participating in the Platform as part of a partner 
+                      accelerator, advisor network, or investor syndicate, a portion of any commercial revenues generated 
+                      through your participation may be shared with that referring party.
+                    </p>
+                    <p className="mb-3">This may include:</p>
+                    <ul className="list-disc list-inside space-y-1 ml-4 text-sm">
+                      <li>Sponsorship payments;</li>
+                      <li>Success-based referral fees;</li>
+                      <li>Commission on advisory, consulting, or investment facilitation agreements.</li>
+                    </ul>
+                    <div className="bg-blue-50 border border-blue-200 rounded-lg p-4 mt-3">
+                      <p className="text-sm text-blue-700">
+                        Such payments are handled transparently, subject to commercial contracts and applicable law. East 
+                        Emblem does not share your personal information or commercial data with third parties unless 
+                        required to do so for the administration of a revenue-sharing arrangement, and only where privacy 
+                        obligations are respected.
+                      </p>
                     </div>
                   </div>
 
                   <div>
-                    <h4 className="font-semibold text-foreground mb-3">11.2 Payment Terms</h4>
+                    <h4 className="font-semibold text-foreground mb-3">6.3 Partner Participation and Platform Access</h4>
+                    <p className="mb-3">
+                      Institutional partners, including accelerators, VCs, DFIs, LPs, or other ecosystem stakeholders, may 
+                      be invited to participate in Second Chance by:
+                    </p>
                     <ul className="list-disc list-inside space-y-1 ml-4 text-sm">
-                      <li>Fees are clearly disclosed before payment</li>
-                      <li>All payments are processed securely through approved payment providers</li>
-                      <li>Refunds are subject to our refund policy (available upon request)</li>
-                      <li>Subscription services may be cancelled with appropriate notice</li>
+                      <li>Sponsoring events, content, or scoring features;</li>
+                      <li>Accessing curated founder cohorts;</li>
+                      <li>Contributing resources, expertise, or referrals.</li>
                     </ul>
+                    <p className="mb-3 text-sm">
+                      Any such participation is subject to a separate Partner Agreement, which may include:
+                    </p>
+                    <ul className="list-disc list-inside space-y-1 ml-4 text-sm">
+                      <li>Term and scope of engagement;</li>
+                      <li>Fee structures and sponsorship value;</li>
+                      <li>Rights and responsibilities in relation to founder data and introductions.</li>
+                    </ul>
+                    <p className="mt-3 text-sm">
+                      Participation in the Platform does not grant any exclusive rights unless expressly stated in a written 
+                      agreement. East Emblem reserves the right to enter into similar arrangements with other parties, 
+                      including competitors of existing partners.
+                    </p>
+                  </div>
+
+                  <div>
+                    <h4 className="font-semibold text-foreground mb-3">6.4 Taxes and Reporting</h4>
+                    <p className="mb-3">
+                      Unless otherwise specified, all fees quoted or charged are exclusive of any applicable taxes, including 
+                      VAT or similar levies under UAE or foreign law. Users are responsible for reporting and paying any 
+                      taxes arising from payments received through or in connection with the Platform, as required by 
+                      their local laws.
+                    </p>
+                    <p className="text-sm">
+                      East Emblem will provide receipts or commercial invoices upon request and will cooperate in 
+                      providing reasonable documentation to support compliance with tax or financial reporting 
+                      obligations.
+                    </p>
                   </div>
                 </div>
               </SectionCard>
             </div>
 
-            {/* Disclaimers */}
+            {/* Data Protection and Privacy */}
+            <div id="data-protection">
+              <SectionCard id="data-protection" title="Data Protection and Privacy" number="7">
+                <div className="space-y-4">
+                  <p>
+                    Your privacy is important to us. East Emblem Ltd handles all Personal Data in accordance with the 
+                    applicable laws of the United Arab Emirates, including Federal Decree-Law No. 45 of 2021 on the 
+                    Protection of Personal Data (PDPL), and any other relevant data protection legislation.
+                  </p>
+                  
+                  <p>By using the Second Chance platform, you acknowledge and agree that:</p>
+                  
+                  <ul className="list-disc list-inside space-y-1 ml-4 text-sm">
+                    <li>East Emblem may collect, use, process, and share your Personal Data as described in our [Privacy Policy];</li>
+                    <li>Personal Data is collected only for legitimate, proportionate purposes, such as enabling platform functionality, curating introductions, improving scoring frameworks, and complying with applicable legal obligations;</li>
+                    <li>You have certain rights over your Personal Data, including the rights to access, correct, delete, or object to its processing—subject to legal and contractual limitations;</li>
+                    <li>Your data may be stored or processed on secure servers inside or outside the UAE, including via trusted third-party service providers who support the operation of the Platform.</li>
+                  </ul>
+                  
+                  <div className="bg-blue-50 border border-blue-200 rounded-lg p-4 mt-4">
+                    <p className="font-medium text-blue-800 mb-2">Data Security</p>
+                    <p className="text-sm text-blue-700">
+                      East Emblem maintains physical, technical, and organizational safeguards to protect your data from 
+                      unauthorized access, disclosure, alteration, or destruction. However, no digital platform can 
+                      guarantee absolute security, and you agree to use the Platform with reasonable caution, particularly 
+                      when sharing sensitive or proprietary information.
+                    </p>
+                  </div>
+                  
+                  <p className="text-sm mt-4">
+                    If you wish to review our full data practices or exercise your rights as a data subject, please refer to 
+                    our Privacy Policy or contact us at info@eastemblem.com.
+                  </p>
+                </div>
+              </SectionCard>
+            </div>
+
+            {/* Disclaimers and Limitation of Liability */}
             <div id="disclaimers">
-              <SectionCard id="disclaimers" title="Disclaimers and Limitations" number="13">
+              <SectionCard id="disclaimers" title="Disclaimers and Limitation of Liability" number="8">
                 <div className="space-y-6">
                   <div>
-                    <h4 className="font-semibold text-foreground mb-3">13.1 Service Disclaimers</h4>
-                    <div className="bg-orange-50 border border-orange-200 rounded-lg p-4">
-                      <p className="font-medium text-orange-800 mb-2">No Warranties</p>
-                      <p className="text-sm text-orange-700 mb-2">
-                        The Platform is provided "as is" and "as available" without warranties of any kind. 
-                        We disclaim all warranties, including but not limited to:
+                    <h4 className="font-semibold text-foreground mb-3">8.1 No Warranties</h4>
+                    <p className="mb-3">
+                      The Second Chance platform is provided on an "as is" and "as available" basis without warranties of 
+                      any kind, express or implied. To the maximum extent permitted by law, East Emblem Ltd disclaims 
+                      all warranties, including but not limited to:
+                    </p>
+                    <ul className="list-disc list-inside space-y-1 ml-4 text-sm">
+                      <li>Warranties of merchantability, fitness for a particular purpose, or non-infringement;</li>
+                      <li>Warranties that the Platform will be uninterrupted, timely, secure, or error-free;</li>
+                      <li>Warranties that the content or outcomes provided via the Platform—including scores, introductions, or opportunities—will meet your expectations or result in any commercial, investment, or professional success.</li>
+                    </ul>
+                    <div className="bg-orange-50 border border-orange-200 rounded-lg p-4 mt-3">
+                      <p className="text-sm text-orange-700">
+                        We do not endorse or take responsibility for any statements, representations, commitments, or 
+                        offerings made by users of the Platform, including founders, investors, advisors, or partners. All 
+                        decisions made based on information obtained through the Platform are made at your own risk.
                       </p>
-                      <ul className="list-disc list-inside space-y-1 text-sm text-orange-700 ml-4">
-                        <li>Merchantability, fitness for a particular purpose</li>
-                        <li>Non-infringement, accuracy, or completeness</li>
-                        <li>Uninterrupted or error-free operation</li>
-                        <li>Security or freedom from harmful components</li>
-                      </ul>
                     </div>
                   </div>
 
                   <div>
-                    <h4 className="font-semibold text-foreground mb-3">13.2 Investment Disclaimer</h4>
-                    <div className="bg-red-50 border border-red-200 rounded-lg p-4">
-                      <p className="font-medium text-red-800 mb-2">Not Investment Advice</p>
+                    <h4 className="font-semibold text-foreground mb-3">8.2 Risk of Use</h4>
+                    <p className="mb-3">By using the Platform, you acknowledge and agree that:</p>
+                    <ul className="list-disc list-inside space-y-1 ml-4 text-sm">
+                      <li>The Platform is intended to facilitate discovery and engagement between early-stage actors in the startup and investment ecosystem;</li>
+                      <li>Any commercial, financial, or strategic decisions you make based on information received through the Platform are your sole responsibility;</li>
+                      <li>East Emblem does not guarantee the accuracy, completeness, or reliability of information submitted by third-party users;</li>
+                      <li>Founders, GPs, LPs, and others using the Platform do so on a non-exclusive basis, and East Emblem does not serve as an agent or fiduciary to any party.</li>
+                    </ul>
+                  </div>
+
+                  <div>
+                    <h4 className="font-semibold text-foreground mb-3">8.3 Limitation of Liability</h4>
+                    <p className="mb-3">
+                      To the fullest extent permitted by law, East Emblem Ltd, its affiliates, directors, employees, advisors, 
+                      or contractors shall not be liable for any:
+                    </p>
+                    <ul className="list-disc list-inside space-y-1 ml-4 text-sm">
+                      <li>Indirect, incidental, special, punitive, or consequential damages;</li>
+                      <li>Loss of profits, revenue, data, or goodwill;</li>
+                      <li>Business interruption, opportunity loss, or reputational damage;</li>
+                      <li>Errors, omissions, or delays in the performance or delivery of the Platform;</li>
+                      <li>Damages arising from third-party content or interactions on or off the Platform.</li>
+                    </ul>
+                    <div className="bg-red-50 border border-red-200 rounded-lg p-4 mt-3">
+                      <p className="font-medium text-red-800 mb-2">Liability Cap</p>
                       <p className="text-sm text-red-700">
-                        Nothing on the Platform constitutes investment, financial, legal, or business advice. 
-                        All users must conduct their own independent research and consult with qualified 
-                        professionals before making any business or investment decisions.
+                        Our total aggregate liability to you for all claims arising out of or relating to the Platform or these 
+                        Terms shall not exceed the greater of: (a) the amount you paid us in the twelve (12) months 
+                        preceding the claim; or (b) one thousand dirhams (AED 1,000).
                       </p>
                     </div>
+                  </div>
+
+                  <div>
+                    <h4 className="font-semibold text-foreground mb-3">8.4 Exceptions</h4>
+                    <p className="text-sm">
+                      Nothing in these Terms excludes or limits liability where such exclusion would violate applicable 
+                      law—such as liability for gross negligence, fraud, or willful misconduct under UAE law.
+                    </p>
                   </div>
                 </div>
               </SectionCard>
@@ -702,41 +926,64 @@ const Terms = () => {
               </SectionCard>
             </div>
 
-            {/* Termination */}
+            {/* Termination and Suspension of Access */}
             <div id="termination">
-              <SectionCard id="termination" title="Termination" number="16">
+              <SectionCard id="termination" title="Termination and Suspension of Access" number="9">
                 <div className="space-y-6">
                   <div>
-                    <h4 className="font-semibold text-foreground mb-3">16.1 Termination by User</h4>
-                    <p>
-                      You may terminate your account at any time by contacting us or using account 
-                      deletion features where available. Upon termination, you will lose access to 
-                      Platform services and your account data may be deleted.
-                    </p>
-                  </div>
-
-                  <div>
-                    <h4 className="font-semibold text-foreground mb-3">16.2 Termination by East Emblem</h4>
+                    <h4 className="font-semibold text-foreground mb-3">9.1 Termination by You</h4>
                     <p className="mb-3">
-                      We may suspend or terminate your account immediately for:
+                      You may terminate your account and discontinue use of the Second Chance platform at any time by 
+                      notifying us at info@eastemblem.com. Upon termination, you must cease all access to and use of 
+                      the Platform. We will deactivate your account and remove or anonymize your personal information 
+                      in accordance with our Privacy Policy and applicable laws.
                     </p>
+                    <p className="mb-3">Please note that termination will not affect:</p>
                     <ul className="list-disc list-inside space-y-1 ml-4 text-sm">
-                      <li>Violation of these Terms or our policies</li>
-                      <li>Fraudulent, illegal, or harmful activities</li>
-                      <li>Extended periods of inactivity</li>
-                      <li>Non-payment of fees</li>
-                      <li>Risk to platform security or integrity</li>
+                      <li>Any obligations or rights that accrued before the date of termination;</li>
+                      <li>Our continued right to use anonymized or aggregated data you previously submitted;</li>
+                      <li>Any rights or licenses you have already granted under these Terms.</li>
                     </ul>
                   </div>
 
                   <div>
-                    <h4 className="font-semibold text-foreground mb-3">16.3 Effect of Termination</h4>
-                    <div className="bg-gray-50 border border-gray-200 rounded-lg p-4">
+                    <h4 className="font-semibold text-foreground mb-3">9.2 Termination or Suspension by East Emblem</h4>
+                    <p className="mb-3">
+                      We reserve the right, at our sole discretion and without liability, to suspend or terminate your access 
+                      to the Platform (in whole or in part) if we determine that:
+                    </p>
+                    <ul className="list-disc list-inside space-y-1 ml-4 text-sm">
+                      <li>You have breached these Terms or any applicable law or regulation;</li>
+                      <li>Your activity poses a risk to the safety, integrity, or reputation of the Platform or other users;</li>
+                      <li>You are engaging in behavior that is fraudulent, abusive, or disruptive;</li>
+                      <li>We are required to do so by law, regulation, or regulatory instruction.</li>
+                    </ul>
+                    <div className="bg-amber-50 border border-amber-200 rounded-lg p-4 mt-3">
+                      <p className="text-sm text-amber-700">
+                        In urgent situations (such as suspected fraud, unauthorized access, or data misuse), we may 
+                        suspend access immediately and notify you afterward. For less urgent issues, we may attempt to 
+                        resolve the matter informally before suspension.
+                      </p>
+                    </div>
+                    <p className="mt-3 text-sm">
+                      We may also terminate your access to specific features or services if they are discontinued or 
+                      materially modified, with reasonable notice where feasible.
+                    </p>
+                  </div>
+
+                  <div>
+                    <h4 className="font-semibold text-foreground mb-3">9.3 Effects of Termination</h4>
+                    <p className="mb-3">Upon termination of access:</p>
+                    <ul className="list-disc list-inside space-y-1 ml-4 text-sm">
+                      <li>All licenses granted to you under these Terms shall immediately cease;</li>
+                      <li>You must stop using and destroy any confidential or proprietary information obtained through the Platform, unless otherwise permitted;</li>
+                      <li>East Emblem may retain certain data as necessary to comply with legal obligations, enforce our rights, or operate in accordance with our Privacy Policy.</li>
+                    </ul>
+                    <div className="bg-gray-50 border border-gray-200 rounded-lg p-4 mt-3">
                       <p className="text-sm">
-                        Upon termination, your right to use the Platform ceases immediately. 
-                        We may retain certain information as required by law or for legitimate 
-                        business purposes. Provisions relating to liability, disclaimers, and 
-                        dispute resolution shall survive termination.
+                        Termination of access shall not relieve either party of any obligation intended to survive termination, 
+                        including (but not limited to) confidentiality, indemnification, limitations of liability, or rights to 
+                        payment.
                       </p>
                     </div>
                   </div>
@@ -744,107 +991,117 @@ const Terms = () => {
               </SectionCard>
             </div>
 
-            {/* Governing Law */}
+            {/* Governing Law and Dispute Resolution */}
             <div id="governing-law">
-              <SectionCard id="governing-law" title="Governing Law and Dispute Resolution" number="17">
+              <SectionCard id="governing-law" title="Governing Law and Dispute Resolution" number="10">
                 <div className="space-y-6">
                   <div>
-                    <h4 className="font-semibold text-foreground mb-3">17.1 Governing Law</h4>
-                    <p>
-                      These Terms are governed by and construed in accordance with the laws of the 
-                      United Arab Emirates and the regulations of Masdar City Free Zone. Any disputes 
-                      shall be subject to the exclusive jurisdiction of the UAE courts.
+                    <h4 className="font-semibold text-foreground mb-3">10.1 Governing Law</h4>
+                    <p className="mb-3">
+                      These Terms, and any dispute, controversy, or claim arising out of or in connection with your use of 
+                      the Platform, shall be governed by and construed in accordance with the laws of the United Arab 
+                      Emirates, excluding its conflict of law principles.
+                    </p>
+                    <p className="text-sm">
+                      Unless otherwise agreed in writing, the courts of the onshore Abu Dhabi Judicial Department (ADJD) 
+                      shall have exclusive jurisdiction to hear and determine any such disputes.
                     </p>
                   </div>
 
                   <div>
-                    <h4 className="font-semibold text-foreground mb-3">17.2 Dispute Resolution</h4>
+                    <h4 className="font-semibold text-foreground mb-3">10.2 Informal Dispute Resolution</h4>
                     <p className="mb-3">
-                      We encourage resolution of disputes through direct communication. For formal 
-                      disputes, the following process applies:
+                      Before initiating formal legal proceedings, both you and East Emblem Ltd agree to make reasonable 
+                      efforts to resolve any disagreement amicably and in good faith. This includes:
                     </p>
-                    <ol className="list-decimal list-inside space-y-2 ml-4 text-sm">
-                      <li><strong>Direct Negotiation:</strong> Contact us within 30 days of the dispute arising</li>
-                      <li><strong>Mediation:</strong> If direct negotiation fails, binding mediation in Abu Dhabi</li>
-                      <li><strong>Arbitration:</strong> Final disputes subject to arbitration under UAE law</li>
-                    </ol>
+                    <ul className="list-disc list-inside space-y-1 ml-4 text-sm">
+                      <li>Engaging in direct dialogue to clarify concerns;</li>
+                      <li>Allowing up to 30 calendar days for informal resolution following written notice of a dispute.</li>
+                    </ul>
+                    <p className="mt-3 text-sm">
+                      If we are unable to resolve the dispute within this timeframe, either party may proceed to initiate 
+                      legal action as provided under applicable UAE law.
+                    </p>
                   </div>
-                </div>
-              </SectionCard>
-            </div>
 
-            {/* Modifications */}
-            <div id="modifications">
-              <SectionCard id="modifications" title="Modifications to Terms" number="18">
-                <div className="space-y-4">
-                  <p>
-                    We reserve the right to modify these Terms at any time. When we make material 
-                    changes, we will:
-                  </p>
-                  
-                  <ul className="list-disc list-inside space-y-1 ml-4 text-sm">
-                    <li>Provide notice through the Platform or via email</li>
-                    <li>Update the "Last Updated" date at the top of these Terms</li>
-                    <li>Give you the opportunity to review changes before they take effect</li>
-                    <li>Allow you to terminate your account if you disagree with changes</li>
-                  </ul>
-                  
-                  <div className="bg-primary/5 border border-primary/20 rounded-lg p-4">
-                    <p className="font-medium text-primary mb-2">Continued Use</p>
+                  <div>
+                    <h4 className="font-semibold text-foreground mb-3">10.3 Language</h4>
                     <p className="text-sm">
-                      Your continued use of the Platform after changes become effective constitutes 
-                      acceptance of the revised Terms.
+                      All notices, legal proceedings, and documentation related to disputes shall be conducted in English. 
+                      Where Arabic translations are required for court filing or compliance, the English version shall prevail 
+                      for interpretation purposes unless otherwise mandated by law.
                     </p>
                   </div>
                 </div>
               </SectionCard>
             </div>
 
-            {/* Contact Information */}
-            <div id="contact">
-              <SectionCard id="contact" title="Contact Information" number="19">
-                <div className="space-y-4">
-                  <p>
-                    For questions about these Terms and Conditions or any aspect of the Second Chance platform, 
-                    please contact us:
-                  </p>
-                  
-                  <div className="grid md:grid-cols-2 gap-6">
-                    <div className="border border-primary/20 rounded-lg p-4">
-                      <h4 className="font-semibold text-foreground mb-3 flex items-center">
-                        <Mail className="w-4 h-4 mr-2" />
-                        East Emblem Ltd
-                      </h4>
-                      <div className="space-y-2 text-sm">
-                        <p><strong>Email:</strong> <a href="mailto:info@eastemblem.com" className="text-primary hover:underline">info@eastemblem.com</a></p>
-                        <p><strong>Address:</strong> Masdar City Free Zone<br />Abu Dhabi, United Arab Emirates</p>
-                        <p><strong>License:</strong> MC 13353</p>
-                      </div>
-                    </div>
-                    
-                    <div className="border border-primary/20 rounded-lg p-4">
-                      <h4 className="font-semibold text-foreground mb-3 flex items-center">
-                        <Users className="w-4 h-4 mr-2" />
-                        Support & Legal
-                      </h4>
-                      <div className="space-y-2 text-sm">
-                        <p><strong>General Support:</strong> <a href="mailto:support@eastemblem.com" className="text-primary hover:underline">support@eastemblem.com</a></p>
-                        <p><strong>Legal Inquiries:</strong> <a href="mailto:legal@eastemblem.com" className="text-primary hover:underline">legal@eastemblem.com</a></p>
-                        <p><strong>Privacy Matters:</strong> <a href="mailto:privacy@eastemblem.com" className="text-primary hover:underline">privacy@eastemblem.com</a></p>
-                      </div>
-                    </div>
+            {/* General Provisions */}
+            <div id="general-provisions">
+              <SectionCard id="general-provisions" title="General Provisions" number="11">
+                <div className="space-y-6">
+                  <div>
+                    <h4 className="font-semibold text-foreground mb-3">11.1 Entire Agreement</h4>
+                    <p>
+                      These Terms, together with our Privacy Policy and any supplemental agreements you enter into with 
+                      East Emblem Ltd (e.g., partner, referral, or sponsorship agreements), constitute the entire 
+                      agreement between you and East Emblem with respect to your access to and use of the Second 
+                      Chance platform. They supersede any prior understandings or agreements, whether oral or written, 
+                      relating to the subject matter herein.
+                    </p>
                   </div>
-                  
-                  <div className="bg-primary/5 border border-primary/20 rounded-lg p-4">
-                    <p className="font-medium text-primary mb-2">Response Times</p>
-                    <p className="text-sm">
-                      We aim to respond to all inquiries within 2 business days. For urgent matters, 
-                      please clearly mark your communication as "URGENT" in the subject line.
+
+                  <div>
+                    <h4 className="font-semibold text-foreground mb-3">11.2 No Waiver</h4>
+                    <p>
+                      Our failure to exercise or enforce any right or provision under these Terms shall not constitute a 
+                      waiver of that right or provision. Any waiver must be in writing and signed by an authorized 
+                      representative of East Emblem Ltd.
+                    </p>
+                  </div>
+
+                  <div>
+                    <h4 className="font-semibold text-foreground mb-3">11.3 Severability</h4>
+                    <p>
+                      If any provision of these Terms is held to be invalid, illegal, or unenforceable by a court of competent 
+                      jurisdiction, the remaining provisions shall remain in full force and effect. The invalid provision shall 
+                      be replaced with a lawful one that most closely reflects the original intent.
+                    </p>
+                  </div>
+
+                  <div>
+                    <h4 className="font-semibold text-foreground mb-3">11.4 Assignment</h4>
+                    <p>
+                      You may not assign or transfer these Terms, or any rights or obligations under them, without our 
+                      prior written consent. We may assign our rights or obligations under these Terms to any affiliate, 
+                      successor, or acquirer without notice or consent, provided your rights are not adversely affected.
+                    </p>
+                  </div>
+
+                  <div>
+                    <h4 className="font-semibold text-foreground mb-3">11.5 Force Majeure</h4>
+                    <p>
+                      East Emblem shall not be liable for any delay or failure to perform its obligations under these Terms 
+                      due to events beyond its reasonable control, including but not limited to acts of God, war, terrorism, 
+                      cyberattacks, pandemic-related restrictions, natural disasters, labor disputes, or governmental 
+                      orders.
+                    </p>
+                  </div>
+
+                  <div>
+                    <h4 className="font-semibold text-foreground mb-3">11.6 Contact Information</h4>
+                    <p>
+                      If you have any questions or concerns about these Terms, you may contact us at: 
+                      <a href="mailto:info@eastemblem.com" className="text-primary hover:underline ml-1">
+                        info@eastemblem.com
+                      </a>
                     </p>
                   </div>
                 </div>
               </SectionCard>
             </div>
+
+
           </div>
         </div>
       </div>
