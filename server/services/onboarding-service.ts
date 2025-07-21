@@ -219,11 +219,12 @@ export class OnboardingService {
     }
 
     // Look for venture data in session or get most recent venture for the founder
-    let venture = session.stepData?.venture;
+    const sessionData = getSessionData(session.stepData);
+    let venture = sessionData?.venture;
     
     if (!venture || !venture.ventureId) {
       // Fallback: get venture by founder ID from session
-      const founderData = session.stepData?.founder;
+      const founderData = sessionData?.founder;
       if (founderData?.founderId) {
         const ventures = await storage.getVenturesByFounderId(founderData.founderId);
         if (ventures && ventures.length > 0) {
@@ -266,11 +267,12 @@ export class OnboardingService {
     }
 
     // Look for venture data in session or get most recent venture for the founder
-    let venture = session.stepData?.venture;
+    const sessionData = getSessionData(session.stepData);
+    let venture = sessionData?.venture;
     
     if (!venture || !venture.ventureId) {
       // Fallback: get venture by founder ID from session
-      const founderData = session.stepData?.founder;
+      const founderData = sessionData?.founder;
       if (founderData?.founderId) {
         const ventures = await storage.getVenturesByFounderId(founderData.founderId);
         if (ventures && ventures.length > 0) {
@@ -345,8 +347,8 @@ export class OnboardingService {
       }
     }
 
-    const stepData = session.stepData || {};
-    const venture = stepData.venture;
+    const sessionData = getSessionData(session.stepData);
+    const venture = sessionData?.venture;
     if (!venture) {
       throw new Error("Venture step not completed");
     }
@@ -374,10 +376,10 @@ export class OnboardingService {
     await this.updateSession(sessionId, {
       currentStep: "processing",
       stepData: {
-        ...session.stepData,
+        ...getSessionData(session.stepData),
         upload: upload[0],
       },
-      completedSteps: [...session.completedSteps, "upload"],
+      completedSteps: [...((session.completedSteps as string[]) || []), "upload"],
     });
 
     // Send Slack notification for document upload (async, no wait)
@@ -405,10 +407,10 @@ export class OnboardingService {
       throw new Error("Session not found");
     }
 
-    const stepData = session.stepData || {};
-    const upload = stepData.upload;
-    const venture = stepData.venture;
-    const folderStructure = stepData.folderStructure;
+    const sessionData = getSessionData(session.stepData);
+    const upload = sessionData?.upload;
+    const venture = sessionData?.venture;
+    const folderStructure = sessionData?.folderStructure;
     
     if (!upload) {
       throw new Error("Document upload step not completed");
@@ -421,9 +423,9 @@ export class OnboardingService {
     let scoringResult = null;
 
     // Check if we already have scoring results in session
-    if (stepData.processing?.scoringResult) {
+    if (sessionData?.processing?.scoringResult) {
       console.log("Using existing scoring result from session");
-      scoringResult = stepData.processing.scoringResult;
+      scoringResult = sessionData.processing.scoringResult;
     } else if (eastEmblemAPI.isConfigured() && upload.filePath) {
       try {
         // Check if file still exists before trying to read it
@@ -484,7 +486,7 @@ export class OnboardingService {
 
     // Extract team members from scoring result and add to venture
     if (scoringResult?.output?.team && Array.isArray(scoringResult.output.team)) {
-      const venture = stepData.venture?.venture || stepData.venture;
+      const venture = sessionData?.venture?.venture || sessionData?.venture;
       if (venture?.ventureId) {
         console.log("Adding team members from analysis to venture:", venture.ventureId);
         
@@ -541,14 +543,14 @@ export class OnboardingService {
     await this.updateSession(sessionId, {
       currentStep: "complete",
       stepData: {
-        ...session.stepData,
+        ...getSessionData(session.stepData),
         scoringResult,
         processing: {
           scoringResult,
           isComplete: true
         }
       },
-      completedSteps: [...session.completedSteps, "scoring"],
+      completedSteps: [...((session.completedSteps as string[]) || []), "scoring"],
       isComplete: true,
     });
 
@@ -632,7 +634,7 @@ export class OnboardingService {
               if (certificateResult.success && reportResult.success) {
                 // Get fresh session data for email notification
                 const freshSession = await this.getSession(sessionId);
-                const freshStepData = freshSession?.stepData || {};
+                const freshStepData = getSessionData(freshSession?.stepData);
                 await this.sendEmailNotification(sessionId, freshStepData, certificateResult.certificateUrl, reportResult.reportUrl);
               }
             } catch (error) {

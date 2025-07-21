@@ -94,8 +94,8 @@ router.post("/founder", asyncHandler(async (req, res) => {
 
 // Venture onboarding step
 router.post("/venture", asyncHandler(async (req, res) => {
-  // Use session from middleware, ignore any provided sessionId
-  const sessionId = getSessionId(req);
+  // Use sessionId from request body if provided, otherwise use session middleware
+  const sessionId = req.body.sessionId || getSessionId(req);
   const { sessionId: _, ...ventureData } = req.body; // Remove sessionId from body
   
   const validation = safeValidate(ventureOnboardingSchema, ventureData);
