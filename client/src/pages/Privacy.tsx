@@ -4,6 +4,7 @@ import { ArrowUp, Mail, ExternalLink } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { motion } from "framer-motion";
+import Footer from "@/components/footer";
 
 const Privacy = () => {
   const [showBackToTop, setShowBackToTop] = useState(false);
@@ -2410,6 +2411,8 @@ const Privacy = () => {
           <ArrowUp className="w-5 h-5" />
         </motion.button>
       )}
+      
+      <Footer />
     </div>
   );
 };

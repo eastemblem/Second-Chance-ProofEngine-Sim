@@ -4,6 +4,7 @@ import { ArrowUp, Mail, ExternalLink, Shield, Users, Gavel } from "lucide-react"
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { motion } from "framer-motion";
+import Footer from "@/components/footer";
 
 const Terms = () => {
   const [showBackToTop, setShowBackToTop] = useState(false);
@@ -1122,6 +1123,8 @@ const Terms = () => {
           </Button>
         </motion.div>
       )}
+      
+      <Footer />
     </div>
   );
 };

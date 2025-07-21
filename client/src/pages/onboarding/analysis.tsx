@@ -39,6 +39,7 @@ import { ProofScoreResult } from "@shared/schema";
 import { Leaderboard } from "@/components/leaderboard";
 import { CertificateDownload } from "@/components/certificate-download";
 import { ReportDownload } from "@/components/report-download";
+import Footer from "@/components/footer";
 
 // Import score badges
 import Badge01 from "../../assets/badges/score/Badge_01.svg";
@@ -1476,6 +1477,8 @@ export default function Analysis({
           </motion.div>
         </div>
       </div>
+      
+      <Footer />
     </TooltipProvider>
   );
 }

@@ -2,6 +2,7 @@ import { motion } from "framer-motion";
 import { Rocket, GraduationCap, Users, Download, Calendar } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
+import Footer from "@/components/footer";
 
 interface FinalPageProps {
   onReset: () => void;
@@ -95,6 +96,8 @@ export default function FinalPage({ onReset }: FinalPageProps) {
           </Button>
         </motion.div>
       </div>
+      
+      <Footer />
     </div>
   );
 }
