@@ -13,47 +13,77 @@ export default function Logo({ size = "md", showTagline = true }: LogoProps) {
     xl: "h-80"
   };
 
-  // For large sizes on landing, render SVG inline first, then replace with PNG
+  // For large sizes, create an inline SVG version for instant rendering
   if (size === 'lg' || size === 'xl') {
     return (
-      <div className="flex items-center justify-center">
-        <div 
-          className="relative max-w-72"
-          style={{ maxWidth: '18rem', height: '200px' }}
+      <div className="flex items-center justify-center mb-6">
+        {/* Inline SVG for instant rendering - LCP optimization */}
+        <svg 
+          width="288" 
+          height="144" 
+          viewBox="0 0 288 144" 
+          className="max-w-72 w-auto h-auto"
+          style={{ maxWidth: '18rem' }}
         >
-          {/* Inline SVG for instant rendering */}
-          <svg 
-            viewBox="0 0 400 200" 
-            className="w-full h-full absolute inset-0"
-            style={{ maxWidth: '18rem' }}
-          >
-            {/* Purple circle with gold checkmark */}
-            <circle cx="50" cy="100" r="40" fill="none" stroke="#8B5CF6" strokeWidth="6" strokeDasharray="10,5"/>
-            <path d="M30 100 L45 115 L70 85" fill="none" stroke="#D97706" strokeWidth="6" strokeLinecap="round" strokeLinejoin="round"/>
-            
-            {/* Text */}
-            <text x="120" y="85" fill="white" fontSize="32" fontWeight="bold" fontFamily="system-ui">SECOND</text>
-            <text x="120" y="120" fill="white" fontSize="32" fontWeight="bold" fontFamily="system-ui">CHANCE</text>
-            <text x="120" y="145" fill="#D97706" fontSize="14" fontFamily="system-ui">Powered by ProofScaling</text>
-          </svg>
+          {/* Background */}
+          <rect width="288" height="144" fill="hsl(240 10% 6%)" />
           
-          {/* Load actual PNG after initial render */}
-          <img 
-            src={logoMain} 
-            alt="Second Chance - Powered by ProofScaling"
-            className="absolute inset-0 w-full h-auto opacity-0 transition-opacity duration-300"
-            style={{ maxWidth: '18rem' }}
-            onLoad={(e) => {
-              const img = e.target as HTMLImageElement;
-              const svg = img.previousElementSibling as SVGElement;
-              img.style.opacity = '1';
-              if (svg) svg.style.display = 'none';
-            }}
-            fetchpriority="low"
-            loading="lazy"
-            decoding="async"
+          {/* Purple dashed circle */}
+          <circle 
+            cx="40" 
+            cy="72" 
+            r="28" 
+            fill="none" 
+            stroke="#8B5CF6" 
+            strokeWidth="4" 
+            strokeDasharray="8,4"
           />
-        </div>
+          
+          {/* Gold checkmark */}
+          <path 
+            d="M25 72 L35 82 L55 58" 
+            fill="none" 
+            stroke="#D97706" 
+            strokeWidth="4" 
+            strokeLinecap="round" 
+            strokeLinejoin="round"
+          />
+          
+          {/* SECOND text */}
+          <text 
+            x="90" 
+            y="65" 
+            fill="white" 
+            fontSize="24" 
+            fontWeight="bold" 
+            fontFamily="system-ui, -apple-system, sans-serif"
+          >
+            SECOND
+          </text>
+          
+          {/* CHANCE text */}
+          <text 
+            x="90" 
+            y="92" 
+            fill="white" 
+            fontSize="24" 
+            fontWeight="bold" 
+            fontFamily="system-ui, -apple-system, sans-serif"
+          >
+            CHANCE
+          </text>
+          
+          {/* Powered by ProofScaling */}
+          <text 
+            x="90" 
+            y="110" 
+            fill="#D97706" 
+            fontSize="10" 
+            fontFamily="system-ui, -apple-system, sans-serif"
+          >
+            Powered by ProofScaling
+          </text>
+        </svg>
       </div>
     );
   }

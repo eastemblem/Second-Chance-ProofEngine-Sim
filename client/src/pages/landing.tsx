@@ -26,7 +26,12 @@ export default function LandingPage({ onNext }: LandingPageProps) {
     <div className="min-h-screen flex flex-col">
       <div className="flex-1 flex items-center justify-center bg-gradient-to-br from-background via-card to-background">
         <div className="max-w-4xl mx-auto px-6 text-center">
-          {/* Hero Message - Move above logo for better LCP */}
+          {/* Logo Section */}
+          <div className="logo-container">
+            <Logo size="lg" />
+          </div>
+
+          {/* Hero Message */}
           <h2 className="hero-text">
             <span className="gradient-text">
               Rejection isn't failure.
@@ -34,11 +39,6 @@ export default function LandingPage({ onNext }: LandingPageProps) {
             <br />
             <span className="text-foreground">It's missing proof.</span>
           </h2>
-
-          {/* Logo Section - Optimized and moved below hero */}
-          <div className="mb-8 logo-container">
-            <Logo size="lg" />
-          </div>
 
           <p className="text-xl text-muted-foreground mb-8 max-w-2xl mx-auto leading-relaxed">
             Turn investor rejection into validation and funding through our data-backed ProofSync™ framework. 
