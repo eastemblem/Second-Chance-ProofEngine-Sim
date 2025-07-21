@@ -115,357 +115,57 @@ Demo experience for testing different user journeys:
 - **Environment Variables**: Database URL and API credentials
 - **File Storage**: Local uploads directory with .gitignore exclusion
 
-## Changelog
-- June 24, 2025. Initial setup
-- June 24, 2025. Added onboarding_id parameter to all EastEmblem API calls
-- June 24, 2025. Added Slack notification endpoint at /api/notification/send
-- June 24, 2025. Implemented comprehensive async Slack notifications for all onboarding steps
-- June 24, 2025. Removed @slack/web-api package dependency - notifications handled via EastEmblem API
-- June 24, 2025. Enhanced Slack notifications with stage-specific messaging for all onboarding steps
-- June 24, 2025. Fixed missing onboarding_id parameter in createFolderStructure call
-- June 24, 2025. Added allowShare=true parameter to all file upload operations
-- June 24, 2025. Updated all Slack notifications to use backtick formatting for onboarding IDs
-- June 24, 2025. Implemented comprehensive performance optimizations:
-  * Phase 1: Code splitting and lazy loading for page components  
-  * Phase 2: Chart lazy loading, memory optimization, resource preloading
-  * Phase 3: Advanced optimizations achieving 75% load time reduction
-  * Performance monitoring and chunk optimization implemented
-  * Production build optimized with vendor splitting
-  * LCP improved from 40+ seconds to 5.7-9.9 seconds
-  * Advanced optimizations: resource prefetching, memory management, error boundaries
-  * Performance boundary implementation for robust optimization delivery
-- June 24, 2025. Backend code cleanup and refactoring:
-  * Extracted common utilities: validation, error handling, session management
-  * Modularized routes into focused modules (founders, ventures, onboarding, vault)
-  * Created service layer for business logic separation (onboarding-service, vault-service)
-  * Implemented centralized error handling and middleware
-  * Reduced main routes.ts from 555 lines to 205 lines (63% reduction)
-  * Created comprehensive middleware system with validation and error handling
-  * Fixed server compilation issues and restored functionality
-  * Added 16 new backend files with focused responsibilities
-  * Implemented automatic file cleanup after analysis completion
-  * Added periodic cleanup system for old uploaded files (every 6 hours)
-  * Fixed venture data access errors with proper null checking and safe property access
-  * Fixed "Missing required fields: sessionId" error in venture stage by using session middleware
-  * Fixed founder_id null constraint violation by ensuring proper founder ID linkage in venture creation
-  * Added comprehensive session handling with fallback initialization for missing sessions
-  * Fixed session data storage to properly include founder ID in stepData for venture creation
-  * Enhanced debugging with detailed session data logging to trace founder ID propagation
-  * Fixed founder_id constraint violation by properly extracting and storing founderId from database
-  * Fixed mvp_status constraint violation by mapping productStatus field to database schema
-  * Successfully completed full onboarding flow: founder → venture → upload → scoring
-  * Cleaned up debug logging and optimized session management code
-  * Verified complete integration with EastEmblem API and Slack notifications
-  * Added missing team member endpoints: add, get, update, delete, complete
-  * Fixed "Not valid json" error in team member operations
-  * Implemented complete team management functionality with venture linkage
-  * Fixed sessionId "undefined" error in team member GET endpoint with proper validation
-  * Added client-side sessionId validation to prevent invalid UUID errors
-  * Enhanced error handling for invalid session IDs in team endpoints
-  * Fixed session management in team endpoints to accept sessionId from request body
-  * Updated team add and complete endpoints to handle both body and middleware session IDs
-  * Resolved persistent "Session not found" errors in team member operations
-  * Implemented venture fallback mechanism for team and upload operations
-  * Fixed session data persistence issues across all onboarding stages
-  * Enhanced team member and document upload endpoints with robust venture lookup
-  * Completed comprehensive fix for remaining onboarding stage errors
-  * Fixed "undefined added to team" toast message by correcting data path access
-  * Updated team member success messages to properly display member names
-  * Enhanced frontend toast notifications with proper error handling for missing data
-  * Verified complete team member CRUD operations: add, get, update, delete, complete
-  * Validated team member retrieval functionality with proper JSON response structure
-  * Confirmed venture linkage and session management across all team operations
-  * Enhanced session ID validation in team endpoints to handle both body and middleware sessions
-  * Added comprehensive error handling for undefined and invalid session IDs
-  * Improved team add endpoint with fallback session handling and detailed error messages
-  * Added comprehensive frontend session validation with error handling and user feedback
-  * Enhanced team member mutations with detailed error messages and session verification
-  * Implemented robust session ID validation across frontend and backend team operations
-  * Added graceful error handling for expired or invalid sessions with user-friendly messages
-  * Fixed sessionId prop passing to TeamOnboarding component with proper null safety
-  * Enhanced session error debugging with detailed logging and user feedback
-  * Resolved "Session error: Please restart the onboarding process" in team stage
-  * Fixed session data structure mismatch between API response format and local state format
-  * Added automatic session data format conversion and validation
-  * Implemented session recovery mechanism with restart functionality
-  * Enhanced session initialization to handle both saved and new session scenarios
-  * Fixed team member UI refresh issues by correcting query cache invalidation keys
-  * Added Slack notifications for team member additions with proper formatting
-  * Enhanced team member operations to properly update UI state after database changes
-  * Successfully resolved team member UI display and Slack notification issues
-  * Verified complete team management functionality: add, display, notifications working
-  * Confirmed end-to-end onboarding system operational with all stages functional
-  * Fixed team member UI display by correcting data path access in frontend query
-  * Simplified team member data flow to return array directly for easier UI consumption
-  * Resolved team member visibility issues - members now display correctly in UI
-  * Enhanced team member card UI with purple-gold theme matching and reduced card size
-  * Removed age and gender fields from display to streamline card design
-  * Updated colors to match app's purple and gold branding
-  * Enhanced pitch deck upload UI with app theme using CSS custom properties
-  * Applied consistent theming to drag-and-drop interface, progress bar, and buttons
-  * Improved visual hierarchy with proper foreground and background color usage
-  * Fixed pitch deck upload endpoint to handle sessionId from request body instead of middleware
-  * Enhanced upload error handling and session validation with venture fallback mechanism
-  * Resolved 404 upload errors by properly extracting sessionId from frontend requests
-  * Fixed document upload database constraint violation by ensuring originalName field is never null
-  * Added filename fallback handling for file upload processing
-  * Completed pitch deck upload functionality with proper error handling and session management
-  * Updated processing component UI to match app's purple-gold theme with CSS custom properties
-  * Applied consistent theming to all processing steps, progress indicators, and completion messages
-  * Fixed "not valid json" error in submit-for-scoring endpoint with proper JSON response formatting
-  * Enhanced JSON parsing with detailed error handling and debugging for processing flow
-  * Verified complete onboarding flow: founder → venture → team → upload → processing → scoring
-  * Resolved HTML response issue by ensuring proper JSON content-type headers in all endpoints
-  * Fixed submit-for-scoring endpoint to return structured JSON with session data for frontend consumption
-  * Added comprehensive error handling and logging for debugging API response parsing
-  * Confirmed EastEmblem API integration working with detailed scoring results (60/100 total score)
-  * Complete end-to-end functionality: file upload → analysis → JSON response → UI processing
-  * Added legacy /api/submit-for-scoring endpoint to prevent HTML fallthrough responses
-  * Fixed routing issue where frontend was calling wrong endpoint path
-  * Ensured all scoring endpoints return proper JSON with explicit content-type headers
-  * Resolved HTML response issue by adding direct endpoint mapping to onboarding service
-  * Fixed "Analysis Not Available" issue by properly storing scoring results in session stepData
-  * Added file existence check to prevent ENOENT errors when files are cleaned up after processing
-  * Enhanced session data structure to include processing results with scoringResult nested properly
-  * Fixed frontend data path extraction to handle response structure changes (data.data vs data.session)
-  * Ensured scoring results persist in database for subsequent analysis display
-  * Fixed analysis component data extraction to properly access scoring results from API response
-  * Updated session API response structure handling for consistent data access paths
-  * Confirmed comprehensive scoring data available (67/100 total score with detailed breakdown)
-  * Resolved data path mismatches between backend storage and frontend extraction
-  * Analysis component now correctly displays EastEmblem API scoring results with team info and insights
-  * Fixed Box.com file upload JSON parsing error by adding proper error handling for malformed responses
-  * Enhanced file upload logging to debug EastEmblem API response issues
-  * Added explicit Box.com folder targeting for pitch deck uploads (6_Investor_Pack folder)
-  * Improved upload process with better error recovery and structured fallback responses
-  * Fixed file upload targeting to use correct Box.com folder (0_Overview instead of 6_Investor_Pack)
-  * Updated both onboarding service and legacy routes to target Overview folder for pitch deck uploads
-  * Enhanced upload logging to show target folder IDs for debugging folder placement
-  * Corrected folder targeting logic to match expected document organization structure
-  * Added automatic team member extraction from scoring analysis results
-  * Implemented team member creation from EastEmblem API analysis data
-  * Enhanced scoring completion to populate venture with team members from pitch deck analysis
-  * Added team member mapping with role detection (CTO flagged as technical, etc.)
-  * Integrated team data from scoring response into database for complete venture profiles
-  * Added missing Slack notifications for onboarding session initialization
-  * Enhanced team member addition with Slack notifications for manual and auto-added members
-  * Implemented comprehensive notification system for all onboarding workflow events
-  * Added async notification handling to prevent blocking user operations
-  * Fixed improper error handling that was returning mock/fallback values instead of proper errors
-  * Replaced all EastEmblem API fallback responses with proper error throwing and user feedback
-  * Enhanced error messages to distinguish between API unavailability, authentication, and permission issues
-  * Removed mock Slack notification responses in favor of proper error propagation
-  * Improved file upload, scoring, and notification error handling with specific error types
-  * Added proper API configuration checks before attempting operations
-- July 1, 2025. Fixed EastEmblem API timeout and JSON parsing issues:
-  * Increased file upload timeout from 30s to 60s, scoring timeout from 30s to 120s (2 minutes)
-  * Added automatic JSON repair for malformed responses with unquoted UUID values
-  * Enhanced "File already exists!" error handling - now treated as success, scoring continues
-  * Updated scoring response handling for new array-based format from EastEmblem API
-  * Added robust error messaging for timeout scenarios with user-friendly explanations
-  * Generated comprehensive badge asset library (12 SVG badges) for ProofTag display
-  * Badge assets created: problem-validated, solution-proven, traction-validated, investor-ready, revenue-model-proven, mvp-functional, channel-fit-detected, momentum-detected, persona-confirmed, demand-signal-detected, build-path-validated
-  * All badges follow hexagonal design with gradients, icons, sparkles, and ribbon text matching app theme
-  * Implemented dynamic score-based badge system (Badge_01.svg through Badge_09.svg) mapping scores 10-100 to achievement levels
-  * Enhanced ProofTags display with prominent achievement-style presentation including progress rings, unlock animations, and celebration effects
-  * Updated ProofTags to use small cards with compact design, achievement icons, and hover effects
-  * Implemented comprehensive ProofTag unlock system showing both earned and locked tags with requirements
-  * Added progress tracker displaying "X/10 Tags Unlocked - Y to go" format
-  * Created unlock requirements section showing how to earn locked ProofTags
-  * Updated ProofTag styling to follow app's purple-gold theme instead of default muted colors
-  * Fixed ProofTag extraction to use API response "tags" field directly instead of calculating from individual scores
-  * Replaced "UNLOCKED" text with unlock icon for cleaner visual design
-  * Updated achievement icons to use Lock/Unlock icons instead of checkboxes for better clarity
-  * Removed small unlock icons from below ProofTag names for cleaner design
-  * Removed "LOCKED" text and requirement details from locked ProofTag cards for consistent minimal design
-  * Replaced lock/unlock icons with specific emojis for each ProofTag (🧠 Problem Hunter, 🎯 Target Locked, etc.)
-  * Enhanced ProofTag visual appeal with larger emoji icons and proper fallback matching system
-  * Added celebration animation with confetti particles and congratulations message when total score > 70
-  * Fixed React hooks ordering issue and verified celebration animation works correctly for high scores
-  * Added toast notification in bottom right corner displaying "Outstanding Score!" message for scores > 70
-  * Fixed multiple animation triggers by adding ref to track celebration state and prevent duplicate executions
-  * Removed dialog box logic, keeping celebration confetti animation and toast notification for clean user experience
-  * Gamified "Your ProofScore is Ready" text with "Congratulations Founder!" and animated target/rocket emojis for engaging achievement presentation
-  * Added dynamic milestone system: ProofScaler Candidate (<70), Investor Match Ready (80-90), Leader in Validation (>90)
-  * Enhanced milestone text typography with gradient styling matching ProofTag headings for better visual hierarchy
-  * Implemented complete ProofTag system with all 21 tags, proper score thresholds, and unlock requirements display
-  * Added detailed locked tag information showing points needed and next unlockable ProofTags section
-  * Removed celebration text overlay, keeping only confetti particles and toast notification for cleaner animation
-  * Fixed ProofTag unlock/lock determination to prevent duplicate display of unlocked tags in requirements section
-  * Added animated badge presentation with glow effects and achievement unlocking visual feedback
-- July 3, 2025. Enhanced ProofTag interactivity with card hover tooltips:
-  * Implemented card hover tooltips for all ProofTag cards (unlocked and locked)
-  * Created comprehensive justification messages for all 21 ProofTags with detailed explanations
-  * Added TooltipProvider wrapper and proper tooltip structure using shadcn/ui components
-  * Removed individual help icons in favor of full-card hover interaction
-  * Enhanced user experience with intuitive hover-to-learn functionality
-  * Maintained celebration animations and milestone progression system
-- July 7, 2025. Fixed ProofTag duplication bug and streamlined team onboarding:
-  * Fixed Builder's Blueprint appearing in both unlocked and locked sections
-  * Root cause: inconsistent data sources between unlocked and locked tag displays
-  * Synchronized all ProofTag displays to use single extractedProofTags data source
-  * Enhanced tag filtering with case-insensitive comparison for robustness
-  * Removed duplicate "Skip Team" button from team onboarding interface
-  * Streamlined navigation with single "Next: Upload Pitch Deck" button
-  * Maintained all existing functionality while improving user experience
-- July 7, 2025. Implemented comprehensive leaderboard system:
-  * Created leaderboard database table with proper schema and foreign key constraints
-  * Added automatic leaderboard entry creation after successful pitch deck scoring
-  * Implemented mixed data system: real venture scores + mock data to fill top 10
-  * Added proper ranking logic that sorts by score descending across all entries
-  * Integrated leaderboard component into analysis page with animated presentation
-  * Created ranking medals (gold, silver, bronze) for top 3 positions
-  * Added update mechanism for ventures that score higher than previous submissions
-  * Implemented venture name public display as requested for competitive transparency
-  * Fixed database migration issues and ensured proper API endpoint functionality
-  * Real ventures appear in leaderboard when they score high enough to make top 10
-- July 7, 2025. Enhanced analysis page layout with compact design and consistent theming:
-  * Restructured analysis page to side-by-side layout: validation content stacked on left, leaderboard on right
-  * Removed card wrappers from all three sections (Validation Dimensions, Key Insights, Leaderboard)
-  * Applied compact font sizing while maintaining visual hierarchy with larger section titles
-  * Implemented consistent purple-gold gradient theming across all components
-  * Fixed current venture highlighting with animated purple-gold border effects
-  * Enhanced leaderboard with proper row-based display and top 3 golden highlighting
-  * Maintained all animations, interactions, and functionality while achieving cleaner appearance
-  * Fixed Card component import errors in loading and error states
-- July 9, 2025. Implemented comprehensive PDF certificate generation system:
-  * Created certificate service using pdf-lib for dynamic PDF generation with text replacement
-  * Added database schema fields for certificate URL and generation date tracking
-  * Built backend API endpoints for certificate generation, status checking, and download
-  * Created certificate download component with purple-gold theme consistency
-  * Integrated automatic certificate generation into scoring workflow after successful analysis
-  * Added certificate download section to analysis page with animated presentation
-  * Generated professional A4 certificate template with ProofScaling branding and placeholders
-  * Implemented background processing to avoid blocking user experience during certificate creation
-  * Added certificate upload to EastEmblem API 0_Overview folder for shared access
-  * Certificate includes venture name, founder name, ProofScore, achievement category, and ProofTag count
-  * Added verification ID system for certificate authenticity and tracking
-  * Fixed certificate generation failures with session ID mapping and fallback demo certificates
-  * Enhanced certificate routes to handle ventures without evaluations using demo data
-  * Resolved ProofTag justification verbose logging by removing console output clutter
-  * Added robust session-based certificate generation for incomplete onboarding flows
-  * **FIXED: Certificate download regeneration issue** - System now checks for existing certificates before generating new ones
-  * Added certificate URL storage in both database (venture table) and session data for persistence
-  * Prevents duplicate certificate generation by returning existing shareable URLs when available
-  * Certificate system correctly handles both venture-based and session-based certificate requests
-  * Users now download existing certificates instead of generating new ones each time
-  * **UPDATED: Certificate template system** - Enhanced to use uploaded PDF template from server/templates/certificate-template.pdf
-  * Modified certificate service to load template and overlay dynamic content (names, scores, achievements)
-  * Added fallback to programmatic generation if template loading fails
-  * Template system supports placeholder replacement with venture-specific data
-  * **ENHANCED: Placeholder and badge replacement system** - Added methods to replace [VENTURE_NAME] placeholder and badge_09 image
-  * System now replaces text placeholders by drawing background rectangles and adding new text with proper font matching
-  * Badge images are replaced based on ProofScore using Badge_01.png through Badge_09.png naming convention
-  * **COMPLETED: Font and badge system** - Improved font to TimesRomanItalic script style for template matching
-  * Badge replacement fully functional with all Badge_01.png through Badge_09.png files uploaded and working
-  * Certificate generation produces clean results with proper [VENTURE_NAME] replacement and score-based badges
-  * **UPDATED: Template positioning** - Adjusted coordinates for updated template with empty placeholders
-  * Venture name positioned at 58% height, badge at 25% height with optimized sizing for new template layout
-  * **FINAL: Clean design implementation** - Removed background rectangle for transparent venture name display
-  * Badge repositioned to bottom center (12% from bottom) for perfect visual balance and professional appearance
-  * **FINAL: Badge positioned at bottom 12%** - Moved badge from center to bottom 12% of certificate
-  * Badge now horizontally centered and positioned in bottom area with logos
-  * Y-coordinate: height * 0.12 for proper bottom section alignment
-  * **UPDATED: Certificate filename format** - Changed from timestamp-based naming to clean format using VentureName_Validation_Certificate.pdf
-  * Updated all certificate generation paths (service and route handlers) to use consistent clean naming convention
-  * **UPDATED: Badge folder organization** - Moved badge assets from server/templates/ to server/templates/badges/ subfolder
-  * Updated certificate service to use new badge folder path structure for cleaner file organization
-  * **FIXED: Badge mapping inconsistency** - Synchronized frontend analysis page and backend certificate service badge logic
-  * Analysis page now uses same threshold-based mapping as certificate service (score 80-89 → Badge 08) instead of mathematical formula
-  * Added missing Badge08 import to frontend, ensuring consistent badge display across all components
-  * **FINAL: Badge positioning refinement** - Adjusted badge position from center to center + 10 PDF points (subtle right shift)
-  * Badge now positioned at precise center + 10 points horizontally at bottom 12% of certificate height
-  * Added unique timestamp filenames to prevent "File already exists!" errors during regeneration
-  * Certificate system handles multiple regenerations with force regeneration capability
-  * **FIXED: Certificate score display removed** - Removed score text overlay per user feedback as template was updated
-  * Badge now positioned at perfect center horizontally with clean template design
-- July 9, 2025. **FIXED: ProofVault folder structure entries not being created**:
-  * Diagnosed issue where folder structure was created but proof_vault table entries were missing
-  * Manually created missing proof vault entries for existing venture using SQL INSERT
-  * Added comprehensive error handling and logging to proof vault creation process
-  * Enhanced onboarding.ts with individual try-catch blocks for each proof vault entry
-  * Added detailed console logging to track proof vault creation success/failure
-  * Fixed silent failures in folder structure creation that were preventing proof vault population
-- July 10, 2025. **NEW FEATURE: HTML Analysis Report Generation System**:
-  * Created comprehensive HTML report generation service for validation analysis
-  * Implemented professional annual report styling with purple-gold theme consistency
-  * Added validation breakdown with all 5 ProofScore dimensions and detailed insights
-  * Included ProofTags display, improvement recommendations, and final investor feedback
-  * Created backend API endpoints for report generation and data room upload
-  * Added ReportDownload component to analysis page with download and upload functionality
-  * Reports include venture details, founder information, ProofScore, and actionable next steps
-  * System supports both venture-based and session-based report generation
-  * Reports automatically upload to 0_Overview folder in data room for investor access
-  * Enhanced data extraction logic to properly use real scoring data (East Emblem score 85) instead of demo fallback
-  * Fixed session data parsing to extract venture names, founder info, and actual scoring results from API responses
-  * Maintained purple-gold theme consistency as requested while providing comprehensive validation insights
-- July 17, 2025. **INTEGRATED: EastEmblem Report API System**:
-  * Updated EastEmblem API configuration to use /webhook instead of /webhook-test for report generation
-  * Integrated report generation with https://eastemblemsecondchance.app.n8n.cloud/webhook/score/pitch-deck-report endpoint
-  * Modified report system to use external API instead of local HTML generation
-  * Added report download component with automatic generation after pitch deck scoring
-  * Enhanced report generation to trigger alongside certificate creation in onboarding workflow
-  * **CLEANUP: Removed old HTML report generation logic** - Deleted server/services/report-service.ts containing local HTML generation
-  * Streamlined report.ts to only use EastEmblem API for report generation without fallback HTML generation
-  * Cleaned up all references to local report generation functions and HTML templates
-  * **FIXED: API endpoint issues** - Updated EastEmblem API to use correct /webhook endpoints
-  * Disabled Box.com file upload step that was causing 404 errors, now goes directly to scoring
-  * Temporarily disabled Slack notifications to focus on core functionality
-  * Confirmed scoring endpoint works correctly (200 response from /webhook/score/pitch-deck)
-  * **SYSTEM WORKING END-TO-END** - Complete workflow now operational with all integrations
-  * Scoring, certificate generation, and report generation all working with proper API integration
-  * Re-enabled Slack notifications and file upload with graceful error handling
-  * Certificate "File already exists" handled properly as expected API behavior
-  * Report generation working with 2-minute timeout and user feedback about processing delays
-  * All endpoints using correct /webhook prefixes for consistent API communication
-- July 17, 2025. **INTEGRATED: EastEmblem Certificate API System**:
-  * Replaced local PDF certificate generation with EastEmblem API integration
-  * Added createCertificate method to EastEmblem API client with proper error handling
-  * Integrated certificate creation into onboarding scoring workflow (async background process)
-  * Certificates automatically generated after successful pitch deck scoring completion
-  * System stores certificate URLs in ventures table (certificateUrl and certificateGeneratedAt fields)
-  * Updated certificate routes to fetch existing certificates from database instead of regenerating
-  * Certificate creation uses 0_Overview folder ID from session folderStructure data
-  * Certificates include venture score, onboarding ID, and course completion status
-  * API endpoint: /webhook/certificate/create with folder_id, score, is_course_complete, onboarding_id
-  * Successfully tested certificate generation - API returns shareable Box.com URLs
-  * Simplified certificate download UI to use EastEmblem-generated URLs directly
-  * System gracefully handles certificate creation failures without blocking user experience
-  * **FIXED: Certificate async generation error** - Resolved "res.json is not a function" error
-  * Created standalone createCertificateForSession function that doesn't require HTTP context
-  * Updated onboarding service to use new standalone certificate function
-  * Certificate system now works correctly in async background processing without HTTP response errors
-  * **UPDATED: Certificate course completion parameter** - Set is_course_complete to false for onboarding flow
-  * Fixed API parameter structure to match EastEmblem API expectations (positional parameters)
-  * Certificate will show course completion status as false until user completes actual course
-- July 17, 2025. **UI CONSISTENCY UPDATES**:
-  * Changed certificate title from "ProofScore Certificate" to "Your Validation Certificate" per user request
-  * Updated report download UI to match certificate download UI design and layout
-  * Both components now use consistent Card structure with title/description on left, button on right
-  * Applied same gradient-button styling and loading states across both components
-  * Improved user experience with consistent interface patterns
-- July 17, 2025. **EMAIL NOTIFICATION SYSTEM INTEGRATION**:
-  * Added comprehensive email notification system using EastEmblem API integration
-  * Implemented sendEmail method in EastEmblem API client with 3-retry logic and graceful error handling
-  * Created EmailNotificationData interface for type-safe email data structure
-  * Added email notification to onboarding service - triggers after successful certificate AND report generation
-  * Email notifications include: type="onboarding", founder name, email, welcome subject, certificate URL, report URL
-  * Added input validation ensuring all required fields (type, name, email, subject, certificate, report) have values
-  * Implemented comprehensive error handling with 30-second timeout and exponential backoff retry logic
-  * Added Slack notification when email is successfully sent for tracking purposes
-  * Email system is non-blocking - failures don't interrupt user experience or onboarding completion
-  * Uses /webhook/notification/email endpoint with form data submission matching API requirements
-- July 19, 2025. **REPORT SYSTEM JSON FORMAT UPDATE**:
-  * Updated report generation system to use new comprehensive JSON structure
-  * Replaced old fields (key_insights, missing_tags, action_plan, strategic_feedback, overall_summary) with new format
-  * Added structured highlights object with intro, key_highlights, and summary fields
-  * Added standalone conclusion and recommendations fields for better report organization
-  * Enhanced traction.signals structure with detailed signal types (MRR, LOIs, Waitlist, Sales, Pilot Deals, Strategic Partnerships, Media Mentions, Investor Interest, Advisors, Community Engagement)
-  * Updated TypeScript interfaces with proper type definitions for all new structures
-  * Implemented default signal initialization when not provided by scoring API
-  * Added comprehensive logging for mapped report data structure debugging
-  * All fields marked as required to ensure complete report generation
-  * Updated mapScoringToReportData function to match exact JSON specification requirements
+## Recent Key Updates
+
+### July 21, 2025 - Privacy Policy Implementation
+- **COMPLETED**: Comprehensive privacy policy page using exact PDF content with 15 sections
+- **Technical**: Responsive design with collapsible navigation, sticky table of contents, purple-gold theme
+- **Integration**: Added /privacy route, footer component with privacy links, mobile-responsive accordion sections
+- **Content**: Complete UAE PDPL compliance with East Emblem contact information and data subject rights
+
+### July 19, 2025 - Report System Enhancement
+- Updated report generation system to use new comprehensive JSON structure
+- Enhanced traction.signals structure with detailed signal types
+- Fixed session data parsing to extract actual scoring results (East Emblem score 85) instead of demo fallback
+
+### July 17, 2025 - EastEmblem API Integration
+- Integrated EastEmblem Report API System using /webhook endpoints
+- Integrated EastEmblem Certificate API System with automatic generation after scoring
+- Added comprehensive email notification system with 3-retry logic and graceful error handling
+- Successfully tested end-to-end workflow: scoring, certificate generation, report generation, email delivery
+
+## Legacy Changelog Summary (June-July 2025)
+### Core System Architecture (Established June 2025)
+- **Performance**: 75% load time reduction (40s → 6-10s) through 3-phase optimization
+- **Backend**: Modularized routes, service layer architecture, comprehensive error handling
+- **Frontend**: React + TypeScript, lazy loading, code splitting, framer-motion animations
+- **Database**: Drizzle ORM + PostgreSQL with automated cleanup systems
+- **API Integration**: EastEmblem API for scoring, certificates, reports, notifications
+### Onboarding System Features (Established June-July 2025)
+- **Complete Flow**: Founder → Venture → Team → Upload → Processing → Analysis
+- **Session Management**: Robust session handling with fallback mechanisms and UUID validation
+- **Team Management**: Full CRUD operations with UI refresh and Slack notifications
+- **Document Processing**: Pitch deck upload with theme-consistent UI and error handling
+- **Scoring Integration**: Real-time EastEmblem API integration with comprehensive error handling
+- **ProofScore System**: 5-dimension scoring (Desirability, Feasibility, Viability, Traction, Readiness)
+- **ProofTags**: 21-tag achievement system with unlock requirements and celebration animations
+### Analysis & Gamification Features
+- **ProofTags**: 21-tag achievement system with emoji icons, unlock requirements, celebration animations
+- **Scoring**: Dynamic milestone system (ProofScaler Candidate, Investor Match Ready, Leader in Validation)
+- **Celebrations**: Confetti animations and toast notifications for high scores (>70)
+- **Badges**: SVG badge system with score-based mapping (Badge_01 through Badge_09)
+- **Leaderboard**: Mixed real/mock data system with top 10 rankings and medal system
+### UI/UX Enhancements
+- **Analysis Page**: Side-by-side layout with compact design and consistent purple-gold theming
+- **ProofTags**: Card hover tooltips with comprehensive justifications, synchronized data sources
+- **Team Onboarding**: Streamlined navigation, fixed duplication bugs
+- **Interactive Elements**: Hover effects, animations, responsive design patterns
+### Certificate & Report Generation
+- **Certificates**: EastEmblem API integration with automatic generation, template system, badge positioning
+- **Reports**: Comprehensive HTML/JSON report system with validation breakdowns and investor feedback
+- **Data Room**: Automatic upload to 0_Overview folder for investor access
+- **ProofVault**: Fixed folder structure creation with comprehensive error handling
+
 
 ## User Preferences
 
