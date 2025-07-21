@@ -9,8 +9,8 @@ export default function Logo({ size = "md", showTagline = true }: LogoProps) {
   const imageSize = {
     sm: "h-6",
     md: "h-8", 
-    lg: "h-60",
-    xl: "h-60"
+    lg: "h-72",
+    xl: "h-80"
   };
 
   return (
@@ -18,8 +18,8 @@ export default function Logo({ size = "md", showTagline = true }: LogoProps) {
       <img 
         src={logoMain} 
         alt="Second Chance - Powered by ProofScaling"
-        className={`${size === 'lg' || size === 'xl' ? 'max-w-60' : imageSize[size]} w-auto`}
-        style={size === 'lg' || size === 'xl' ? { maxWidth: '15rem', height: 'auto' } : {}}
+        className={`${size === 'lg' || size === 'xl' ? 'max-w-72' : imageSize[size]} w-auto`}
+        style={size === 'lg' || size === 'xl' ? { maxWidth: '18rem', height: 'auto' } : {}}
       />
     </div>
   );
