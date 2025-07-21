@@ -27,7 +27,7 @@ export default function LandingPage({ onNext }: LandingPageProps) {
       <div className="flex-1 flex items-center justify-center bg-gradient-to-br from-background via-card to-background">
         <div className="max-w-4xl mx-auto px-6 text-center">
           {/* Logo Section */}
-          <div className="logo-container">
+          <div className="logo-container mb-2">
             <Logo size="lg" />
           </div>
 

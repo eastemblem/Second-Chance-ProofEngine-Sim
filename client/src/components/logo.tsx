@@ -16,12 +16,12 @@ export default function Logo({ size = "md", showTagline = true }: LogoProps) {
   // For large sizes on landing, use optimized rendering
   if (size === 'lg' || size === 'xl') {
     return (
-      <div className="flex items-center space-x-3 mb-6">
+      <div className="flex justify-center mb-2">
         <img 
           src={logoMain} 
           alt="Second Chance - Powered by ProofScaling"
-          className={`${size === 'lg' || size === 'xl' ? 'max-w-72' : imageSize[size]} w-auto`}
-          style={size === 'lg' || size === 'xl' ? { maxWidth: '18rem', height: 'auto' } : {}}
+          className="max-w-72 w-auto h-auto"
+          style={{ maxWidth: '18rem', height: 'auto' }}
           width="288"
           height="144"
           fetchpriority="high"
