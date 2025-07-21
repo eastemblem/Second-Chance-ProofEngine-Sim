@@ -354,12 +354,15 @@ export class OnboardingManager {
           ];
 
           console.log(`Creating ${folderMappings.length} proof vault entries for venture ${venture.ventureId}`);
+          console.log('Folder structure received:', JSON.stringify(folderStructure, null, 2));
           
           for (const folder of folderMappings) {
             const subFolderId = folderStructure.folders[folder.key];
+            console.log(`Processing folder ${folder.key}: subFolderId = ${subFolderId}`);
+            
             if (subFolderId) {
               try {
-                const proofVaultEntry = await storage.createProofVault({
+                const proofVaultData = {
                   ventureId: venture.ventureId,
                   artefactType: folder.type,
                   parentFolderId: folderStructure.id,
@@ -367,10 +370,18 @@ export class OnboardingManager {
                   sharedUrl: folderStructure.url,
                   folderName: folder.name,
                   description: folder.description,
-                });
+                };
+                console.log(`Attempting to create ProofVault entry with data:`, JSON.stringify(proofVaultData, null, 2));
+                
+                const proofVaultEntry = await storage.createProofVault(proofVaultData);
                 console.log(`✓ Created proof vault entry for ${folder.name}: ${proofVaultEntry.vaultId}`);
               } catch (proofVaultError) {
                 console.error(`✗ Failed to create proof vault entry for ${folder.name}:`, proofVaultError);
+                console.error(`Error details:`, {
+                  message: proofVaultError.message,
+                  stack: proofVaultError.stack,
+                  code: proofVaultError.code
+                });
               }
             } else {
               console.warn(`⚠ Missing subFolderId for ${folder.key} in folder structure`);

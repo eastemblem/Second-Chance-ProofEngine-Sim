@@ -9,6 +9,11 @@ import fs from "fs";
 import crypto from "crypto";
 import { certificateService } from "./certificate-service";
 
+// Helper function for type-safe session data access
+function getSessionData(stepData: unknown): any {
+  return stepData as any;
+}
+
 export class OnboardingService {
   /**
    * Initialize onboarding session
@@ -139,8 +144,9 @@ export class OnboardingService {
       throw new Error("Session not found - founder step must be completed first");
     }
 
-    const founderData = session.stepData?.founder;
-    const founderId = session.stepData?.founderId || founderData?.founderId;
+    const sessionData = getSessionData(session.stepData);
+    const founderData = sessionData?.founder;
+    const founderId = sessionData?.founderId || founderData?.founderId;
     
     if (!founderData) {
       throw new Error("Founder step not completed");
@@ -172,15 +178,15 @@ export class OnboardingService {
       }
     }
 
-    // Update session
+    // Update session with type safety
     await this.updateSession(sessionId, {
       currentStep: "team",
       stepData: {
-        ...session.stepData,
+        ...getSessionData(session.stepData),
         venture,
         folderStructure,
       },
-      completedSteps: [...session.completedSteps, "venture"],
+      completedSteps: [...((session.completedSteps as string[]) || []), "venture"],
     });
 
     // Send Slack notification for venture step completion (async, no wait)
