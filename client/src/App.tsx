@@ -1,6 +1,6 @@
 import { Switch, Route } from "wouter";
 import { QueryClientProvider } from "@tanstack/react-query";
-import { motion, AnimatePresence } from "framer-motion";
+// Removed framer-motion to reduce bundle size
 import { queryClient } from "./lib/queryClient";
 import { Toaster } from "@/components/ui/toaster";
 import { TooltipProvider } from "@/components/ui/tooltip";
@@ -39,17 +39,7 @@ function SimulationFlow() {
     resetSimulation 
   } = useSimulation();
 
-  const pageVariants = {
-    initial: { opacity: 0, x: 50 },
-    in: { opacity: 1, x: 0 },
-    out: { opacity: 0, x: -50 }
-  };
-
-  const pageTransition = {
-    type: "tween",
-    ease: "anticipate",
-    duration: 0.5
-  };
+  // Removed animations to reduce bundle size and improve performance
 
   const renderCurrentPage = () => {
     switch (state.currentPage) {
@@ -130,18 +120,7 @@ function SimulationFlow() {
 
   return (
     <div className="min-h-screen bg-background text-foreground">
-      <AnimatePresence mode="wait">
-        <motion.div
-          key={state.currentPage}
-          initial="initial"
-          animate="in"
-          exit="out"
-          variants={pageVariants}
-          transition={pageTransition}
-        >
-          {renderCurrentPage()}
-        </motion.div>
-      </AnimatePresence>
+      {renderCurrentPage()}
     </div>
   );
 }

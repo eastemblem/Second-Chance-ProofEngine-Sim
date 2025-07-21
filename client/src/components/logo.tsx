@@ -26,7 +26,7 @@ export default function Logo({ size = "md", showTagline = true }: LogoProps) {
           height="144"
           fetchpriority="high"
           loading="eager"
-          decoding="async"
+          decoding="sync"
         />
       </div>
     );
