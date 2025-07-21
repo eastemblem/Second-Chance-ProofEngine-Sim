@@ -5,11 +5,7 @@ import { queryClient } from "./lib/queryClient";
 import { Toaster } from "@/components/ui/toaster";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { lazy, Suspense } from "react";
-import { PerformanceMonitor } from "@/components/performance-monitor";
-import { MemoryOptimizer } from "@/components/memory-optimizer";
-import { PerformanceBoundary } from "@/components/performance-boundary";
 import { SimpleLoader, InlineLoader } from "@/components/simple-loader";
-import { CriticalStyles } from "@/components/critical-styles";
 
 // Lazy load page components with preload hints
 const LandingPage = lazy(() => import("@/pages/landing"));
@@ -24,20 +20,9 @@ const FinalPage = lazy(() => import("@/pages/final"));
 const Privacy = lazy(() => import("@/pages/Privacy"));
 const Terms = lazy(() => import("@/pages/Terms"));
 
-// Simplified preloading to prevent blocking
+// Disable preloading to reduce initial bundle size and blocking
 const preloadComponents = () => {
-  setTimeout(() => {
-    if ('requestIdleCallback' in window) {
-      requestIdleCallback(() => {
-        try {
-          import("@/pages/onboarding").catch(() => {});
-          import("@/pages/scoring").catch(() => {});
-        } catch (e) {
-          // Silently handle preload errors
-        }
-      });
-    }
-  }, 3000); // Delayed to prevent blocking initial render
+  // Disabled to improve LCP performance
 };
 import { useSimulation } from "@/hooks/use-simulation";
 import NotFound from "@/pages/not-found";
@@ -187,17 +172,12 @@ function Router() {
 
 function App() {
   return (
-    <PerformanceBoundary>
-      <CriticalStyles />
-      <QueryClientProvider client={queryClient}>
-        <TooltipProvider>
-          <PerformanceMonitor />
-          <MemoryOptimizer />
-          <Toaster />
-          <Router />
-        </TooltipProvider>
-      </QueryClientProvider>
-    </PerformanceBoundary>
+    <QueryClientProvider client={queryClient}>
+      <TooltipProvider>
+        <Toaster />
+        <Router />
+      </TooltipProvider>
+    </QueryClientProvider>
   );
 }
 

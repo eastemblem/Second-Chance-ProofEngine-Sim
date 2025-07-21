@@ -7,6 +7,8 @@
     <link rel="preload" href="/src/assets/second_chance_logo_1750269371846.png" as="image" fetchpriority="high">
     <link rel="dns-prefetch" href="//api.eastemblem.com">
     
+    <!-- Use system fonts only for faster rendering -->
+    
     <!-- Essential favicon only -->
     <link rel="icon" type="image/x-icon" href="/favicon.ico">
     <link rel="apple-touch-icon" sizes="180x180" href="/apple-icon-180x180.png">
@@ -24,7 +26,8 @@
         background-color: hsl(240 10% 6%) !important;
         color: hsl(0 0% 98%) !important;
         min-height: 100vh;
-        font-family: system-ui, -apple-system, sans-serif;
+        font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+        font-display: swap;
       }
       
       /* Critical hero text styles for immediate rendering */
