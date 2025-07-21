@@ -1,0 +1,151 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ProofScaling Newsletter - Second Chance</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; line-height: 1.6; background-color: #0A0A0B; color: #FFFFFF; }
+        .container { max-width: 600px; margin: 0 auto; background-color: #0A0A0B; }
+        .header { background: linear-gradient(135deg, #8B5CF6 0%, #D97706 100%); padding: 30px 40px; text-align: center; }
+        .logo { font-size: 28px; font-weight: bold; color: #FFFFFF; text-decoration: none; }
+        .newsletter-date { color: #FFFFFF; font-size: 14px; margin-top: 10px; opacity: 0.9; }
+        .content { padding: 40px; background-color: #1A1A1B; }
+        .title { font-size: 24px; font-weight: bold; margin-bottom: 20px; color: #FFFFFF; }
+        .text { font-size: 16px; color: #D1D5DB; margin-bottom: 20px; }
+        .section { background-color: #2A2A2B; padding: 25px; border-radius: 8px; margin: 25px 0; }
+        .section-title { color: #8B5CF6; font-size: 18px; font-weight: bold; margin-bottom: 15px; }
+        .news-item { margin-bottom: 20px; padding-bottom: 15px; border-bottom: 1px solid #3A3A3B; }
+        .news-item:last-child { border-bottom: none; margin-bottom: 0; }
+        .news-title { color: #FFFFFF; font-weight: bold; margin-bottom: 8px; }
+        .news-summary { color: #D1D5DB; font-size: 14px; margin-bottom: 8px; }
+        .news-link { color: #8B5CF6; text-decoration: none; font-size: 14px; }
+        .stats-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 15px; }
+        .stat-card { background-color: #1A1A1B; padding: 20px; border-radius: 8px; text-align: center; }
+        .stat-number { font-size: 24px; font-weight: bold; color: #8B5CF6; }
+        .stat-label { color: #D1D5DB; font-size: 12px; }
+        .cta-button { display: inline-block; background: linear-gradient(135deg, #8B5CF6 0%, #D97706 100%); color: #FFFFFF; text-decoration: none; padding: 15px 30px; border-radius: 8px; font-weight: bold; font-size: 16px; margin: 20px 10px 20px 0; }
+        .footer { background-color: #111111; padding: 30px 40px; text-align: center; border-top: 1px solid #333; }
+        .footer-links { margin-bottom: 15px; }
+        .footer-link { color: #8B5CF6; text-decoration: none; margin: 0 15px; font-size: 14px; }
+        .footer-text { color: #9CA3AF; font-size: 12px; }
+        .unsubscribe { color: #6B7280; font-size: 12px; text-decoration: none; }
+        @media (max-width: 600px) {
+            .header, .content, .footer { padding: 20px; }
+            .stats-grid { grid-template-columns: 1fr; }
+            .cta-button { display: block; margin: 10px 0; text-align: center; }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <!-- Header -->
+        <div class="header">
+            <a href="{{HOST_URL}}" class="logo">Second Chance</a>
+            <div class="newsletter-date">ProofScaling Newsletter - {{NEWSLETTER_DATE}}</div>
+        </div>
+
+        <!-- Content -->
+        <div class="content">
+            <h1 class="title">{{NEWSLETTER_TITLE}}</h1>
+            <p class="text">Hello {{USER_NAME}},</p>
+            <p class="text">Welcome to this month's ProofScaling newsletter! Here's what's been happening in the startup validation world and updates from the Second Chance community.</p>
+            
+            <div class="section">
+                <h3 class="section-title">📈 Platform Highlights</h3>
+                <div class="stats-grid">
+                    <div class="stat-card">
+                        <div class="stat-number">{{ACTIVE_FOUNDERS}}</div>
+                        <div class="stat-label">Active Founders</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-number">{{COMPLETED_ASSESSMENTS}}</div>
+                        <div class="stat-label">Completed Assessments</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-number">{{INVESTOR_CONNECTIONS}}</div>
+                        <div class="stat-label">Investor Connections</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-number">{{AVERAGE_SCORE}}</div>
+                        <div class="stat-label">Average ProofScore</div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="section">
+                <h3 class="section-title">🚀 Featured Success Stories</h3>
+                {{#SUCCESS_STORIES}}
+                <div class="news-item">
+                    <div class="news-title">{{STORY_TITLE}}</div>
+                    <div class="news-summary">{{STORY_SUMMARY}}</div>
+                    <a href="{{STORY_LINK}}" class="news-link">Read full story →</a>
+                </div>
+                {{/SUCCESS_STORIES}}
+            </div>
+
+            <div class="section">
+                <h3 class="section-title">💡 Industry Insights</h3>
+                {{#INDUSTRY_INSIGHTS}}
+                <div class="news-item">
+                    <div class="news-title">{{INSIGHT_TITLE}}</div>
+                    <div class="news-summary">{{INSIGHT_SUMMARY}}</div>
+                    <a href="{{INSIGHT_LINK}}" class="news-link">Learn more →</a>
+                </div>
+                {{/INDUSTRY_INSIGHTS}}
+            </div>
+
+            <div class="section">
+                <h3 class="section-title">🛠️ Platform Updates</h3>
+                {{#PLATFORM_UPDATES}}
+                <div class="news-item">
+                    <div class="news-title">{{UPDATE_TITLE}}</div>
+                    <div class="news-summary">{{UPDATE_DESCRIPTION}}</div>
+                </div>
+                {{/PLATFORM_UPDATES}}
+            </div>
+
+            <div class="section">
+                <h3 class="section-title">📚 Recommended Resources</h3>
+                {{#RESOURCES}}
+                <div class="news-item">
+                    <div class="news-title">{{RESOURCE_TITLE}}</div>
+                    <div class="news-summary">{{RESOURCE_DESCRIPTION}}</div>
+                    <a href="{{RESOURCE_LINK}}" class="news-link">Access resource →</a>
+                </div>
+                {{/RESOURCES}}
+            </div>
+
+            <div class="section">
+                <h3 class="section-title">📅 Upcoming Events</h3>
+                {{#UPCOMING_EVENTS}}
+                <div class="news-item">
+                    <div class="news-title">{{EVENT_TITLE}}</div>
+                    <div class="news-summary">{{EVENT_DESCRIPTION}} - {{EVENT_DATE}}</div>
+                    <a href="{{EVENT_LINK}}" class="news-link">Register now →</a>
+                </div>
+                {{/UPCOMING_EVENTS}}
+            </div>
+            
+            <a href="{{HOST_URL}}/dashboard" class="cta-button">Check Your Progress</a>
+            <a href="{{HOST_URL}}/community" class="cta-button">Join Community</a>
+            
+            <p class="text">Thank you for being part of the Second Chance community. Together, we're building the next generation of successful startups!</p>
+        </div>
+
+        <!-- Footer -->
+        <div class="footer">
+            <div class="footer-links">
+                <a href="{{HOST_URL}}/privacy-policy" class="footer-link">Privacy Policy</a>
+                <a href="{{HOST_URL}}/terms-and-conditions" class="footer-link">Terms & Conditions</a>
+            </div>
+            <p class="footer-text">© 2025 Second Chance - ProofScaling Platform. All rights reserved.</p>
+            <p class="footer-text">East Emblem Technologies, Masdar City Free Zone, UAE</p>
+            <p style="margin-top: 15px;">
+                <a href="{{UNSUBSCRIBE_URL}}" class="unsubscribe">Unsubscribe from newsletter</a>
+            </p>
+        </div>
+    </div>
+</body>
+</html>

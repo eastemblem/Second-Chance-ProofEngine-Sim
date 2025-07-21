@@ -1,0 +1,74 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Welcome to Second Chance</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; line-height: 1.6; background-color: #0A0A0B; color: #FFFFFF; }
+        .container { max-width: 600px; margin: 0 auto; background-color: #0A0A0B; }
+        .header { background: linear-gradient(135deg, #8B5CF6 0%, #D97706 100%); padding: 30px 40px; text-align: center; }
+        .logo { font-size: 28px; font-weight: bold; color: #FFFFFF; text-decoration: none; }
+        .content { padding: 40px; background-color: #1A1A1B; }
+        .title { font-size: 24px; font-weight: bold; margin-bottom: 20px; color: #FFFFFF; }
+        .text { font-size: 16px; color: #D1D5DB; margin-bottom: 20px; }
+        .highlight { color: #8B5CF6; font-weight: bold; }
+        .cta-button { display: inline-block; background: linear-gradient(135deg, #8B5CF6 0%, #D97706 100%); color: #FFFFFF; text-decoration: none; padding: 15px 30px; border-radius: 8px; font-weight: bold; font-size: 16px; margin: 20px 10px 20px 0; }
+        .feature-list { background-color: #2A2A2B; padding: 20px; border-radius: 8px; margin: 20px 0; }
+        .feature-item { margin-bottom: 10px; color: #D1D5DB; }
+        .footer { background-color: #111111; padding: 30px 40px; text-align: center; border-top: 1px solid #333; }
+        .footer-links { margin-bottom: 15px; }
+        .footer-link { color: #8B5CF6; text-decoration: none; margin: 0 15px; font-size: 14px; }
+        .footer-text { color: #9CA3AF; font-size: 12px; }
+        @media (max-width: 600px) {
+            .header, .content, .footer { padding: 20px; }
+            .title { font-size: 20px; }
+            .text { font-size: 14px; }
+            .cta-button { display: block; margin: 10px 0; text-align: center; }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <!-- Header -->
+        <div class="header">
+            <a href="{{HOST_URL}}" class="logo">Second Chance</a>
+        </div>
+
+        <!-- Content -->
+        <div class="content">
+            <h1 class="title">Welcome to Second Chance!</h1>
+            <p class="text">Hello {{USER_NAME}},</p>
+            <p class="text">Congratulations on joining the <span class="highlight">ProofScaling platform</span>! You're now part of a community of entrepreneurs who are serious about validating and scaling their ventures.</p>
+            
+            <div class="feature-list">
+                <h3 style="color: #FFFFFF; margin-bottom: 15px;">What you can do with Second Chance:</h3>
+                <div class="feature-item">🎯 Get your ProofScore across 5 key dimensions</div>
+                <div class="feature-item">📊 Receive comprehensive analysis and insights</div>
+                <div class="feature-item">🏆 Unlock ProofTags as you achieve milestones</div>
+                <div class="feature-item">📈 Track your progress on the leaderboard</div>
+                <div class="feature-item">📁 Build your ProofVault with validated evidence</div>
+                <div class="feature-item">🤝 Connect with investors and mentors</div>
+            </div>
+
+            <p class="text">Ready to start your validation journey? Begin by completing your founder profile and uploading your pitch deck.</p>
+            
+            <a href="{{HOST_URL}}/onboarding" class="cta-button">Start Your Journey</a>
+            <a href="{{HOST_URL}}/dashboard" class="cta-button">View Dashboard</a>
+            
+            <p class="text">Need help getting started? Our support team is here to guide you every step of the way.</p>
+        </div>
+
+        <!-- Footer -->
+        <div class="footer">
+            <div class="footer-links">
+                <a href="{{HOST_URL}}/privacy-policy" class="footer-link">Privacy Policy</a>
+                <a href="{{HOST_URL}}/terms-and-conditions" class="footer-link">Terms & Conditions</a>
+            </div>
+            <p class="footer-text">© 2025 Second Chance - ProofScaling Platform. All rights reserved.</p>
+            <p class="footer-text">East Emblem Technologies, Masdar City Free Zone, UAE</p>
+        </div>
+    </div>
+</body>
+</html>

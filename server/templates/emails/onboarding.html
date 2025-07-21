@@ -1,0 +1,148 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Your ProofScaling Results - Second Chance</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; line-height: 1.6; background-color: #0A0A0B; color: #FFFFFF; }
+        .container { max-width: 600px; margin: 0 auto; background-color: #0A0A0B; }
+        .header { background: linear-gradient(135deg, #8B5CF6 0%, #D97706 100%); padding: 30px 40px; text-align: center; }
+        .logo { font-size: 28px; font-weight: bold; color: #FFFFFF; text-decoration: none; }
+        .content { padding: 40px; background-color: #1A1A1B; }
+        .title { font-size: 24px; font-weight: bold; margin-bottom: 20px; color: #FFFFFF; }
+        .text { font-size: 16px; color: #D1D5DB; margin-bottom: 20px; }
+        .score-highlight { background: linear-gradient(135deg, #8B5CF6 0%, #D97706 100%); padding: 30px; border-radius: 12px; text-align: center; margin: 30px 0; }
+        .score-number { font-size: 48px; font-weight: bold; color: #FFFFFF; }
+        .score-label { color: #FFFFFF; font-size: 18px; margin-top: 10px; }
+        .milestone-badge { background-color: #2A2A2B; padding: 15px; border-radius: 8px; margin-top: 15px; border: 2px solid #8B5CF6; }
+        .milestone-text { color: #8B5CF6; font-weight: bold; font-size: 16px; }
+        .dimensions-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 15px; margin: 25px 0; }
+        .dimension-card { background-color: #2A2A2B; padding: 20px; border-radius: 8px; }
+        .dimension-name { color: #8B5CF6; font-weight: bold; margin-bottom: 8px; }
+        .dimension-score { color: #FFFFFF; font-size: 20px; font-weight: bold; }
+        .progress-bar { background-color: #1A1A1B; height: 6px; border-radius: 3px; margin-top: 8px; }
+        .progress-fill { background: linear-gradient(90deg, #8B5CF6, #D97706); height: 100%; border-radius: 3px; }
+        .proof-tags { background-color: #2A2A2B; padding: 25px; border-radius: 8px; margin: 25px 0; }
+        .tag-badge { background: linear-gradient(135deg, #8B5CF6 0%, #D97706 100%); color: #FFFFFF; padding: 8px 16px; border-radius: 20px; font-size: 14px; font-weight: bold; margin: 5px; display: inline-block; }
+        .download-section { background-color: #1A1A1B; padding: 25px; border-radius: 8px; margin: 25px 0; border: 2px solid #8B5CF6; }
+        .cta-button { display: inline-block; background: linear-gradient(135deg, #8B5CF6 0%, #D97706 100%); color: #FFFFFF; text-decoration: none; padding: 15px 30px; border-radius: 8px; font-weight: bold; font-size: 16px; margin: 20px 10px 20px 0; }
+        .cta-secondary { background: transparent; border: 2px solid #8B5CF6; color: #8B5CF6; }
+        .footer { background-color: #111111; padding: 30px 40px; text-align: center; border-top: 1px solid #333; }
+        .footer-links { margin-bottom: 15px; }
+        .footer-link { color: #8B5CF6; text-decoration: none; margin: 0 15px; font-size: 14px; }
+        .footer-text { color: #9CA3AF; font-size: 12px; }
+        @media (max-width: 600px) {
+            .header, .content, .footer { padding: 20px; }
+            .dimensions-grid { grid-template-columns: 1fr; }
+            .cta-button { display: block; margin: 10px 0; text-align: center; }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <!-- Header -->
+        <div class="header">
+            <a href="{{HOST_URL}}" class="logo">Second Chance</a>
+        </div>
+
+        <!-- Content -->
+        <div class="content">
+            <h1 class="title">Your ProofScaling Results Are Ready!</h1>
+            <p class="text">Hello {{USER_NAME}},</p>
+            <p class="text">Congratulations on completing your ProofScaling assessment! Your comprehensive analysis is now available, providing valuable insights into your venture's investment readiness.</p>
+            
+            <div class="score-highlight">
+                <div class="score-number">{{PROOF_SCORE}}</div>
+                <div class="score-label">ProofScore out of 100</div>
+                <div class="milestone-badge">
+                    <div class="milestone-text">{{MILESTONE_LEVEL}}</div>
+                </div>
+            </div>
+
+            <p class="text">Your assessment evaluated five critical dimensions of startup success:</p>
+
+            <div class="dimensions-grid">
+                <div class="dimension-card">
+                    <div class="dimension-name">Desirability</div>
+                    <div class="dimension-score">{{DESIRABILITY_SCORE}}/20</div>
+                    <div class="progress-bar">
+                        <div class="progress-fill" style="width: {{DESIRABILITY_PERCENTAGE}}%;"></div>
+                    </div>
+                </div>
+                <div class="dimension-card">
+                    <div class="dimension-name">Feasibility</div>
+                    <div class="dimension-score">{{FEASIBILITY_SCORE}}/20</div>
+                    <div class="progress-bar">
+                        <div class="progress-fill" style="width: {{FEASIBILITY_PERCENTAGE}}%;"></div>
+                    </div>
+                </div>
+                <div class="dimension-card">
+                    <div class="dimension-name">Viability</div>
+                    <div class="dimension-score">{{VIABILITY_SCORE}}/20</div>
+                    <div class="progress-bar">
+                        <div class="progress-fill" style="width: {{VIABILITY_PERCENTAGE}}%;"></div>
+                    </div>
+                </div>
+                <div class="dimension-card">
+                    <div class="dimension-name">Traction</div>
+                    <div class="dimension-score">{{TRACTION_SCORE}}/20</div>
+                    <div class="progress-bar">
+                        <div class="progress-fill" style="width: {{TRACTION_PERCENTAGE}}%;"></div>
+                    </div>
+                </div>
+                <div class="dimension-card">
+                    <div class="dimension-name">Readiness</div>
+                    <div class="dimension-score">{{READINESS_SCORE}}/20</div>
+                    <div class="progress-bar">
+                        <div class="progress-fill" style="width: {{READINESS_PERCENTAGE}}%;"></div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="proof-tags">
+                <h3 style="color: #FFFFFF; margin-bottom: 15px;">🏆 Unlocked ProofTags</h3>
+                {{#PROOF_TAGS}}
+                <span class="tag-badge">{{TAG_NAME}}</span>
+                {{/PROOF_TAGS}}
+                {{^PROOF_TAGS}}
+                <p style="color: #9CA3AF;">Complete more validations to unlock ProofTags and build credibility!</p>
+                {{/PROOF_TAGS}}
+            </div>
+
+            <div class="download-section">
+                <h3 style="color: #FFFFFF; margin-bottom: 15px;">📄 Your ProofScaling Documents</h3>
+                <p style="color: #D1D5DB; margin-bottom: 20px;">Download your comprehensive analysis report and official ProofScaling certificate. These documents validate your startup's assessment and can be shared with potential investors.</p>
+                
+                <a href="{{REPORT_DOWNLOAD_URL}}" class="cta-button">Download Full Report</a>
+                <a href="{{CERTIFICATE_DOWNLOAD_URL}}" class="cta-button cta-secondary">Download Certificate</a>
+            </div>
+
+            <h3 style="color: #FFFFFF; margin-bottom: 15px;">🎯 Next Steps</h3>
+            <ul style="color: #D1D5DB; margin-left: 20px; margin-bottom: 20px;">
+                <li>Review your detailed analysis report for specific improvement recommendations</li>
+                <li>Use your certificate to establish credibility with investors and partners</li>
+                <li>Continue building your ProofVault with additional validation evidence</li>
+                <li>Track your progress and compete on our leaderboard</li>
+                <li>Connect with investors who match your startup's profile</li>
+            </ul>
+            
+            <a href="{{HOST_URL}}/analysis" class="cta-button">View Full Analysis</a>
+            <a href="{{HOST_URL}}/dashboard" class="cta-button">Access Dashboard</a>
+            
+            <p class="text">Your ProofScaling journey is just beginning. Use these insights to strengthen your venture and move closer to investment readiness!</p>
+        </div>
+
+        <!-- Footer -->
+        <div class="footer">
+            <div class="footer-links">
+                <a href="{{HOST_URL}}/privacy-policy" class="footer-link">Privacy Policy</a>
+                <a href="{{HOST_URL}}/terms-and-conditions" class="footer-link">Terms & Conditions</a>
+            </div>
+            <p class="footer-text">© 2025 Second Chance - ProofScaling Platform. All rights reserved.</p>
+            <p class="footer-text">East Emblem Technologies, Masdar City Free Zone, UAE</p>
+        </div>
+    </div>
+</body>
+</html>

@@ -347,6 +347,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
     res.json(createSuccessResponse(result, "Notification sent successfully"));
   }));
 
+  // Email routes
+  app.use("/api/email", (await import("./routes/emailRoutes")).default);
+
   const httpServer = createServer(app);
   return httpServer;
 }

@@ -1,0 +1,117 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Program Completion - Second Chance</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; line-height: 1.6; background-color: #0A0A0B; color: #FFFFFF; }
+        .container { max-width: 600px; margin: 0 auto; background-color: #0A0A0B; }
+        .header { background: linear-gradient(135deg, #8B5CF6 0%, #D97706 100%); padding: 30px 40px; text-align: center; }
+        .logo { font-size: 28px; font-weight: bold; color: #FFFFFF; text-decoration: none; }
+        .content { padding: 40px; background-color: #1A1A1B; }
+        .title { font-size: 24px; font-weight: bold; margin-bottom: 20px; color: #FFFFFF; }
+        .text { font-size: 16px; color: #D1D5DB; margin-bottom: 20px; }
+        .celebration { text-align: center; padding: 30px; background: linear-gradient(135deg, #8B5CF6 0%, #D97706 100%); border-radius: 12px; margin: 30px 0; }
+        .celebration-emoji { font-size: 48px; margin-bottom: 15px; }
+        .celebration-text { font-size: 20px; font-weight: bold; color: #FFFFFF; }
+        .achievements { background-color: #2A2A2B; padding: 25px; border-radius: 8px; margin: 25px 0; }
+        .achievement-item { display: flex; align-items: center; margin-bottom: 15px; }
+        .achievement-icon { font-size: 24px; margin-right: 15px; }
+        .achievement-text { color: #D1D5DB; flex: 1; }
+        .final-score { background-color: #1A1A1B; padding: 25px; border-radius: 8px; margin: 25px 0; text-align: center; border: 2px solid #8B5CF6; }
+        .score-number { font-size: 48px; font-weight: bold; color: #8B5CF6; }
+        .score-label { color: #D1D5DB; font-size: 18px; }
+        .cta-button { display: inline-block; background: linear-gradient(135deg, #8B5CF6 0%, #D97706 100%); color: #FFFFFF; text-decoration: none; padding: 15px 30px; border-radius: 8px; font-weight: bold; font-size: 16px; margin: 20px 10px 20px 0; }
+        .footer { background-color: #111111; padding: 30px 40px; text-align: center; border-top: 1px solid #333; }
+        .footer-links { margin-bottom: 15px; }
+        .footer-link { color: #8B5CF6; text-decoration: none; margin: 0 15px; font-size: 14px; }
+        .footer-text { color: #9CA3AF; font-size: 12px; }
+        @media (max-width: 600px) {
+            .header, .content, .footer { padding: 20px; }
+            .achievements, .final-score { padding: 15px; }
+            .cta-button { display: block; margin: 10px 0; text-align: center; }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <!-- Header -->
+        <div class="header">
+            <a href="{{HOST_URL}}" class="logo">Second Chance</a>
+        </div>
+
+        <!-- Content -->
+        <div class="content">
+            <div class="celebration">
+                <div class="celebration-emoji">🎉🏆🎉</div>
+                <div class="celebration-text">Congratulations, {{USER_NAME}}!</div>
+                <div style="color: #FFFFFF; margin-top: 10px;">You've completed the ProofScaling program!</div>
+            </div>
+
+            <p class="text">What an incredible journey! You've successfully completed the Second Chance ProofScaling program and demonstrated exceptional commitment to validating and scaling your venture.</p>
+            
+            <div class="final-score">
+                <div class="score-number">{{FINAL_SCORE}}</div>
+                <div class="score-label">Final ProofScore</div>
+                <div style="color: #8B5CF6; margin-top: 10px; font-weight: bold;">{{MILESTONE_LEVEL}}</div>
+            </div>
+
+            <div class="achievements">
+                <h3 style="color: #FFFFFF; margin-bottom: 20px;">🏅 Your Achievements</h3>
+                <div class="achievement-item">
+                    <span class="achievement-icon">✅</span>
+                    <span class="achievement-text">Completed comprehensive founder assessment</span>
+                </div>
+                <div class="achievement-item">
+                    <span class="achievement-icon">📊</span>
+                    <span class="achievement-text">Achieved ProofScore of {{FINAL_SCORE}}/100</span>
+                </div>
+                <div class="achievement-item">
+                    <span class="achievement-icon">🏆</span>
+                    <span class="achievement-text">Unlocked {{TOTAL_PROOF_TAGS}} ProofTags</span>
+                </div>
+                <div class="achievement-item">
+                    <span class="achievement-icon">📈</span>
+                    <span class="achievement-text">Ranked #{{LEADERBOARD_POSITION}} on the leaderboard</span>
+                </div>
+                <div class="achievement-item">
+                    <span class="achievement-icon">📁</span>
+                    <span class="achievement-text">Built comprehensive ProofVault with validated evidence</span>
+                </div>
+                <div class="achievement-item">
+                    <span class="achievement-icon">🤝</span>
+                    <span class="achievement-text">Gained investor-ready status</span>
+                </div>
+            </div>
+
+            <h3 style="color: #FFFFFF; margin-bottom: 15px;">🚀 What's Next?</h3>
+            <ul style="color: #D1D5DB; margin-left: 20px; margin-bottom: 20px;">
+                <li>Access your certified ProofScaling report and credentials</li>
+                <li>Connect with our investor network for funding opportunities</li>
+                <li>Join our alumni community for ongoing support and networking</li>
+                <li>Continue tracking your progress as you scale your venture</li>
+                <li>Access advanced resources for growth and expansion</li>
+            </ul>
+            
+            <a href="{{CERTIFICATE_URL}}" class="cta-button">Download Certificate</a>
+            <a href="{{REPORT_URL}}" class="cta-button">Download Full Report</a>
+            <a href="{{INVESTOR_NETWORK_URL}}" class="cta-button">Connect with Investors</a>
+            
+            <p class="text">You've proven that your venture has what it takes to succeed. We're excited to see where your entrepreneurial journey takes you next!</p>
+            <p class="text">Stay connected with the Second Chance community and continue making an impact in your industry.</p>
+        </div>
+
+        <!-- Footer -->
+        <div class="footer">
+            <div class="footer-links">
+                <a href="{{HOST_URL}}/privacy-policy" class="footer-link">Privacy Policy</a>
+                <a href="{{HOST_URL}}/terms-and-conditions" class="footer-link">Terms & Conditions</a>
+            </div>
+            <p class="footer-text">© 2025 Second Chance - ProofScaling Platform. All rights reserved.</p>
+            <p class="footer-text">East Emblem Technologies, Masdar City Free Zone, UAE</p>
+        </div>
+    </div>
+</body>
+</html>
