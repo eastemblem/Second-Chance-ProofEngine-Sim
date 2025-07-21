@@ -38,7 +38,7 @@ const Privacy = () => {
     { id: "ai-insights", title: "AI-Generated Insights and Responsibility Disclaimer", number: "7" },
     { id: "marketing", title: "Marketing, Communications & Preferences", number: "8" },
     { id: "cookies", title: "Cookies and Tracking Technologies", number: "9" },
-    { id: "data-transfers", title: "Data Transfers Outside the UAE", number: "10" },
+    { id: "transfers", title: "International Data Transfers", number: "10" },
     { id: "security", title: "Data Security Measures", number: "11" },
     { id: "retention", title: "Data Retention", number: "12" },
     { id: "rights", title: "Data Subject Rights", number: "13" },
@@ -216,6 +216,21 @@ const Privacy = () => {
                     </div>
                     
                     <div>
+                      <p className="font-semibold text-foreground">Data Subject</p>
+                      <p>An individual whose Personal Data is collected, stored, or processed by East Emblem. This includes founders, investors, partners, employees, contractors, and users of the Second Chance platform.</p>
+                    </div>
+                    
+                    <div>
+                      <p className="font-semibold text-foreground">Standard Contractual Clauses (SCCs)</p>
+                      <p>Legally recognized data protection safeguards used in international data transfers to jurisdictions that do not offer adequate protection under applicable law.</p>
+                    </div>
+                    
+                    <div>
+                      <p className="font-semibold text-foreground">Consent</p>
+                      <p>Any clear and affirmative action that indicates the Data Subject's agreement to the Processing of their Personal Data for specified purposes. Consent may be withdrawn at any time.</p>
+                    </div>
+                    
+                    <div>
                       <p className="font-semibold text-foreground">AI System or Automated Processing</p>
                       <p>Any system or functionality that uses algorithmic or artificial intelligence techniques to analyze or process Personal Data, including startup scoring, proof assessment, and investor-match routing on the Second Chance platform.</p>
                     </div>
@@ -301,6 +316,29 @@ const Privacy = () => {
                       <li>Event registration platforms (e.g. if you attended one of our affiliated demo days)</li>
                       <li>Partner accelerators, fund managers, or institutional sponsors who refer you to the platform</li>
                     </ul>
+                    <p className="mt-3 text-sm text-muted-foreground">
+                      Where applicable, we will ensure such third parties have a lawful basis to share your data with us.
+                    </p>
+                  </div>
+
+                  <div>
+                    <h4 className="font-semibold text-foreground mb-3">3.4 Special Category Data</h4>
+                    <p>
+                      We do not actively request or process Special Category Data (such as health status,
+                      biometric data, religion, or political affiliation). If you voluntarily submit such data (e.g.,
+                      in a video pitch or deck), it is done at your discretion and will not be used as part of
+                      automated scoring unless required by law or necessary for specific services (e.g.,
+                      demographic data for impact funders).
+                    </p>
+                  </div>
+
+                  <div>
+                    <h4 className="font-semibold text-foreground mb-3">3.5 Aggregated and Anonymized Data</h4>
+                    <p>
+                      We may aggregate and anonymize Personal Data for analytical, benchmarking, or research
+                      purposes. Such data will no longer be identifiable and is therefore not considered Personal
+                      Data under this Policy.
+                    </p>
                   </div>
                 </div>
               </SectionCard>
@@ -624,6 +662,58 @@ const Privacy = () => {
                       <h4 className="font-semibold text-foreground">Security logs and system access records</h4>
                       <p className="text-sm mt-1">
                         Retained for 12 to 24 months, depending on risk classification and jurisdictional obligations.
+                      </p>
+                    </div>
+                  </div>
+                </div>
+              </SectionCard>
+            </div>
+
+            {/* International Data Transfers */}
+            <div id="transfers">
+              <SectionCard id="transfers" title="International Data Transfers" number="10">
+                <div className="space-y-4">
+                  <p>
+                    East Emblem Ltd operates globally and may transfer Personal Data to jurisdictions outside
+                    the United Arab Emirates where our service providers, partners, or institutional clients
+                    are located. We ensure that all international transfers comply with applicable data
+                    protection laws and are subject to appropriate safeguards.
+                  </p>
+                  
+                  <div className="space-y-4">
+                    <div>
+                      <h4 className="font-semibold text-foreground mb-3">10.1 Transfer Mechanisms</h4>
+                      <p>
+                        When transferring Personal Data internationally, we rely on legally recognized
+                        transfer mechanisms such as Standard Contractual Clauses (SCCs), adequacy decisions,
+                        or other approved frameworks that provide equivalent protection to UAE PDPL standards.
+                        These mechanisms ensure that your Personal Data receives the same level of protection
+                        regardless of where it is processed.
+                      </p>
+                    </div>
+                    
+                    <div>
+                      <h4 className="font-semibold text-foreground mb-3">10.2 Data Processing Locations</h4>
+                      <p className="mb-3">
+                        Your Personal Data may be processed in various locations including but not limited to:
+                      </p>
+                      <ul className="list-disc list-inside space-y-1 ml-4">
+                        <li>The United Arab Emirates (our primary jurisdiction)</li>
+                        <li>European Union member states</li>
+                        <li>The United States</li>
+                        <li>Other jurisdictions where our cloud service providers maintain data centers</li>
+                      </ul>
+                      <p className="mt-3 text-sm text-muted-foreground">
+                        We will always ensure adequate protection measures are in place before any transfer occurs.
+                      </p>
+                    </div>
+                    
+                    <div>
+                      <h4 className="font-semibold text-foreground mb-3">10.3 Safeguards and Protections</h4>
+                      <p>
+                        We implement technical and organizational measures to protect Personal Data during
+                        international transfers, including encryption in transit, access controls, and
+                        contractual protections with all recipients of your data.
                       </p>
                     </div>
                   </div>
