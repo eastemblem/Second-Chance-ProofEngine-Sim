@@ -681,7 +681,7 @@ export class OnboardingService {
 
         // Store complete evaluation data in evaluation table
         try {
-          await storage.createEvaluation({
+          const evaluation = await storage.createEvaluation({
             ventureId: venture.ventureId,
             evaluationDate: new Date().toISOString().split('T')[0], // YYYY-MM-DD format
             proofscore: totalScore,
@@ -691,6 +691,14 @@ export class OnboardingService {
             isCurrent: true,
           });
           console.log(`✓ Created evaluation record for ${venture.name}`);
+
+          // Update ProofVault entries to link them to this evaluation
+          try {
+            await storage.linkProofVaultToEvaluation(venture.ventureId, evaluation.evaluationId);
+            console.log(`✓ Linked ProofVault entries to evaluation ${evaluation.evaluationId}`);
+          } catch (linkError) {
+            console.error(`Failed to link ProofVault entries to evaluation:`, linkError);
+          }
           
           // Generate certificate and report in background after successful evaluation
           console.log("Starting async certificate and report generation for venture:", venture.ventureId);
