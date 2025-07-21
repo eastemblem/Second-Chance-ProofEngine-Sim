@@ -1,23 +1,12 @@
 import { useState } from "react";
 import { Link } from "wouter";
-import { ChevronDown, ChevronUp, ArrowUp, Mail, ExternalLink } from "lucide-react";
+import { ArrowUp, Mail, ExternalLink } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { motion } from "framer-motion";
 
 const Privacy = () => {
-  const [expandedSections, setExpandedSections] = useState<Set<string>>(new Set());
   const [showBackToTop, setShowBackToTop] = useState(false);
-
-  const toggleSection = (sectionId: string) => {
-    const newExpanded = new Set(expandedSections);
-    if (newExpanded.has(sectionId)) {
-      newExpanded.delete(sectionId);
-    } else {
-      newExpanded.add(sectionId);
-    }
-    setExpandedSections(newExpanded);
-  };
 
   const scrollToTop = () => {
     window.scrollTo({ top: 0, behavior: 'smooth' });
@@ -61,50 +50,28 @@ const Privacy = () => {
     id, 
     title, 
     number, 
-    children, 
-    defaultExpanded = false 
+    children
   }: { 
     id: string; 
     title: string; 
     number: string; 
-    children: React.ReactNode; 
-    defaultExpanded?: boolean;
+    children: React.ReactNode;
   }) => {
-    const isExpanded = expandedSections.has(id) || defaultExpanded;
-    
     return (
-      <Card className="mb-6 overflow-hidden">
+      <Card className="mb-6">
         <div className="p-6">
-          <button
-            onClick={() => toggleSection(id)}
-            className="w-full flex items-center justify-between text-left group hover:opacity-80 transition-opacity"
-          >
-            <div className="flex items-center space-x-3">
-              <div className="w-8 h-8 rounded-full bg-gradient-to-r from-primary to-primary-gold flex items-center justify-center text-white text-sm font-bold">
-                {number}
-              </div>
-              <h2 className="text-xl font-semibold text-foreground group-hover:text-primary transition-colors">
-                {title}
-              </h2>
+          <div className="flex items-center space-x-3 mb-6">
+            <div className="w-8 h-8 rounded-full bg-gradient-to-r from-primary to-primary-gold flex items-center justify-center text-white text-sm font-bold">
+              {number}
             </div>
-            {isExpanded ? (
-              <ChevronUp className="w-5 h-5 text-primary" />
-            ) : (
-              <ChevronDown className="w-5 h-5 text-muted-foreground" />
-            )}
-          </button>
+            <h2 className="text-xl font-semibold text-foreground">
+              {title}
+            </h2>
+          </div>
           
-          {isExpanded && (
-            <motion.div
-              initial={{ opacity: 0, height: 0 }}
-              animate={{ opacity: 1, height: "auto" }}
-              exit={{ opacity: 0, height: 0 }}
-              transition={{ duration: 0.3 }}
-              className="mt-6 text-muted-foreground leading-relaxed"
-            >
-              {children}
-            </motion.div>
-          )}
+          <div className="text-muted-foreground leading-relaxed">
+            {children}
+          </div>
         </div>
       </Card>
     );
@@ -123,19 +90,11 @@ const Privacy = () => {
             >
               Privacy Policy
             </motion.h1>
+
             <motion.div 
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ delay: 0.1 }}
-              className="text-muted-foreground space-y-1"
-            >
-              <p>Effective Date: July 15, 2025</p>
-              <p>Last Updated: July 15, 2025</p>
-            </motion.div>
-            <motion.div 
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: 0.2 }}
               className="mt-6"
             >
               <Link to="/">
@@ -172,13 +131,12 @@ const Privacy = () => {
 
           {/* Main Content */}
           <div className="flex-1">
-            {/* Introduction Section - Always Expanded */}
+            {/* Introduction Section */}
             <div id="introduction">
               <SectionCard
                 id="introduction"
                 title="Introduction"
                 number="1"
-                defaultExpanded={true}
               >
                 <div className="space-y-4">
                   <p>
@@ -228,37 +186,37 @@ const Privacy = () => {
                   
                   <div className="space-y-4">
                     <div>
-                      <p className="font-semibold text-foreground">"Personal Data"</p>
-                      <p>Any data relating to an identified or identifiable natural person ("Data Subject"), whether directly or indirectly. This includes, but is not limited to: names, email addresses, phone numbers, job titles, device identifiers, IP addresses, startup-related submissions, investor profiles, and online behavioral data.</p>
+                      <p className="font-semibold text-foreground">Personal Data</p>
+                      <p>Any data relating to an identified or identifiable natural person (Data Subject), whether directly or indirectly. This includes, but is not limited to: names, email addresses, phone numbers, job titles, device identifiers, IP addresses, startup-related submissions, investor profiles, and online behavioral data.</p>
                     </div>
                     
                     <div>
-                      <p className="font-semibold text-foreground">"Processing"</p>
+                      <p className="font-semibold text-foreground">Processing</p>
                       <p>Any operation or set of operations performed on Personal Data, whether by automated means or not. This includes collection, recording, storage, use, analysis, modification, transfer, disclosure, publication, restriction, erasure, or destruction of Personal Data.</p>
                     </div>
                     
                     <div>
-                      <p className="font-semibold text-foreground">"Special Category Data"</p>
+                      <p className="font-semibold text-foreground">Special Category Data</p>
                       <p>Personal Data that is sensitive in nature and requires enhanced protection, including data relating to racial or ethnic origin, health status, biometric or genetic data, religious beliefs, political opinions, or criminal records. East Emblem does not knowingly collect Special Category Data unless explicitly required and permitted by applicable law.</p>
                     </div>
                     
                     <div>
-                      <p className="font-semibold text-foreground">"Data Controller"</p>
+                      <p className="font-semibold text-foreground">Data Controller</p>
                       <p>The person or entity that determines the purposes and means of Processing Personal Data. For most Processing activities described in this Policy, East Emblem Ltd acts as the Data Controller.</p>
                     </div>
                     
                     <div>
-                      <p className="font-semibold text-foreground">"Data Processor"</p>
+                      <p className="font-semibold text-foreground">Data Processor</p>
                       <p>Any third party who processes Personal Data on behalf of the Data Controller and under its instructions, such as IT vendors, cloud service providers, analytics platforms, and subcontracted consultants.</p>
                     </div>
                     
                     <div>
-                      <p className="font-semibold text-foreground">"UAE PDPL"</p>
+                      <p className="font-semibold text-foreground">UAE PDPL</p>
                       <p>The Federal Decree Law No. 45 of 2021 on the Protection of Personal Data, applicable throughout the United Arab Emirates, which governs the lawful Processing of Personal Data and defines the rights of Data Subjects and obligations of Controllers and Processors.</p>
                     </div>
                     
                     <div>
-                      <p className="font-semibold text-foreground">"AI System" or "Automated Processing"</p>
+                      <p className="font-semibold text-foreground">AI System or Automated Processing</p>
                       <p>Any system or functionality that uses algorithmic or artificial intelligence techniques to analyze or process Personal Data, including startup scoring, proof assessment, and investor-match routing on the Second Chance platform.</p>
                     </div>
                   </div>
