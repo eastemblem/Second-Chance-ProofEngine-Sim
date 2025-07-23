@@ -5,9 +5,9 @@ const Footer = () => {
   return (
     <footer className="bg-muted/30 border-t border-border/40">
       <div className="max-w-6xl mx-auto px-4 py-4">
-        <div className="flex flex-col sm:flex-row justify-between items-start gap-4">
+        <div className="flex flex-col sm:flex-row justify-between items-center sm:items-start gap-4">
           {/* Company Info - Compact */}
-          <div className="flex items-center space-x-3">
+          <div className="flex items-center justify-center sm:justify-start space-x-3">
             <div className="w-6 h-6 rounded bg-gradient-to-r from-primary to-primary-gold flex items-center justify-center">
               <span className="text-white font-bold text-xs">SC</span>
             </div>
@@ -20,7 +20,7 @@ const Footer = () => {
           </div>
 
           {/* Quick Links */}
-          <div className="flex flex-wrap items-center gap-x-6 gap-y-2 text-xs">
+          <div className="flex flex-wrap items-center justify-center sm:justify-start gap-x-6 gap-y-2 text-xs">
             <Link to="/" className="text-muted-foreground hover:text-primary transition-colors">
               Get Started
             </Link>
@@ -39,7 +39,7 @@ const Footer = () => {
           </div>
 
           {/* Copyright - Compact */}
-          <div className="text-xs text-muted-foreground text-right">
+          <div className="text-xs text-muted-foreground text-center sm:text-right">
             <p>© {new Date().getFullYear()} East Emblem Ltd</p>
             <p className="text-xs opacity-75">UAE License: MC 13353</p>
           </div>
