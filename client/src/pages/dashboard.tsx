@@ -175,7 +175,7 @@ export default function DashboardPage() {
 
   const handleDownloadCertificate = async () => {
     try {
-      if (!validationData?.ventureId) {
+      if (!user?.venture?.ventureId) {
         toast({
           title: "Download Error",
           description: "Venture information not available.",
@@ -184,11 +184,11 @@ export default function DashboardPage() {
         return;
       }
 
-      if (user?.venture?.certificateUrl) {
+      if (user.venture.certificateUrl) {
         window.open(user.venture.certificateUrl, '_blank');
         toast({
           title: "Certificate Downloaded",
-          description: `Your ${validationData.ventureName} certificate has been opened.`,
+          description: `Your ${user.venture.name} certificate has been opened.`,
         });
       } else {
         toast({
@@ -209,7 +209,7 @@ export default function DashboardPage() {
 
   const handleDownloadReport = async () => {
     try {
-      if (!validationData?.ventureId) {
+      if (!user?.venture?.ventureId) {
         toast({
           title: "Download Error", 
           description: "Venture information not available.",
@@ -218,11 +218,11 @@ export default function DashboardPage() {
         return;
       }
 
-      if (user?.venture?.reportUrl) {
+      if (user.venture.reportUrl) {
         window.open(user.venture.reportUrl, '_blank');
         toast({
           title: "Report Downloaded",
-          description: `Your ${validationData.ventureName} analysis report has been opened.`,
+          description: `Your ${user.venture.name} analysis report has been opened.`,
         });
       } else {
         toast({
