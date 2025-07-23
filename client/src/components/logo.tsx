@@ -13,10 +13,10 @@ export default function Logo({ size = "md", showTagline = true }: LogoProps) {
     xl: "h-80"
   };
 
-  // For large sizes on landing, use optimized rendering
+  // For large sizes on landing, use optimized rendering with mobile top margin
   if (size === 'lg' || size === 'xl') {
     return (
-      <div className="flex justify-center mb-2">
+      <div className="flex justify-center mb-2 mt-8 sm:mt-0">
         <img 
           src={logoMain} 
           alt="Second Chance - Powered by ProofScaling"

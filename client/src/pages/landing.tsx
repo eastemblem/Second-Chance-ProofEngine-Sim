@@ -76,7 +76,9 @@ export default function LandingPage({ onNext }: LandingPageProps) {
           </div>
         </div>
       </div>
-      <Footer />
+      <div className="mt-8 sm:mt-0">
+        <Footer />
+      </div>
     </div>
   );
 }
