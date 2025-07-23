@@ -19,6 +19,9 @@ const ProofScalingDashboard = lazy(() => import("@/pages/proofscaling-dashboard"
 const FinalPage = lazy(() => import("@/pages/final"));
 const Privacy = lazy(() => import("@/pages/Privacy"));
 const Terms = lazy(() => import("@/pages/Terms"));
+const SetPasswordPage = lazy(() => import("@/pages/set-password"));
+const LoginPage = lazy(() => import("@/pages/login"));
+const Dashboard = lazy(() => import("@/pages/dashboard"));
 
 // Disable preloading to reduce initial bundle size and blocking
 const preloadComponents = () => {
@@ -142,6 +145,21 @@ function Router() {
       <Route path="/terms" component={() => (
         <Suspense fallback={<SimpleLoader />}>
           <Terms />
+        </Suspense>
+      )} />
+      <Route path="/set-password" component={() => (
+        <Suspense fallback={<SimpleLoader />}>
+          <SetPasswordPage />
+        </Suspense>
+      )} />
+      <Route path="/login" component={() => (
+        <Suspense fallback={<SimpleLoader />}>
+          <LoginPage />
+        </Suspense>
+      )} />
+      <Route path="/dashboard" component={() => (
+        <Suspense fallback={<SimpleLoader />}>
+          <Dashboard />
         </Suspense>
       )} />
       <Route component={NotFound} />

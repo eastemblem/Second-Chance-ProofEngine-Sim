@@ -177,6 +177,7 @@ interface EmailNotificationData {
   subject?: string;
   certificate: string;
   report: string;
+  verificationUrl?: string;
 }
 
 interface EmailResponse {
@@ -722,6 +723,9 @@ class EastEmblemAPI {
         }
         formData.append("certificate", emailData.certificate);
         formData.append("report", emailData.report);
+        if (emailData.verificationUrl) {
+          formData.append("verificationUrl", emailData.verificationUrl);
+        }
 
         const controller = new AbortController();
         const timeoutId = setTimeout(() => controller.abort(), 30000); // 30 second timeout

@@ -1,12 +1,14 @@
 import type { Express } from "express";
 import express, { Request, Response, NextFunction } from "express";
 import { createServer, type Server } from "http";
+import session from "express-session";
 import { eastEmblemAPI, type FolderStructureResponse, type FileUploadResponse } from "./eastemblem-api";
 import { getSessionId, getSessionData, updateSessionData } from "./utils/session-manager";
 import { asyncHandler, createSuccessResponse } from "./utils/error-handler";
 import { cleanupUploadedFile } from "./utils/file-cleanup";
 import { onboardingService } from "./services/onboarding-service";
 import apiRoutes from "./routes/index";
+import authRoutes from "./routes/auth";
 import { getLeaderboard, createLeaderboardEntry } from "./routes/leaderboard";
 import { generateCertificate, downloadCertificate, getCertificateStatus } from "./routes/certificate";
 import { generateReport } from "./routes/report";
@@ -72,6 +74,21 @@ interface SessionData {
 }
 
 export async function registerRoutes(app: Express): Promise<Server> {
+  // Configure session middleware
+  app.use(session({
+    secret: process.env.SESSION_SECRET || 'dev-secret-change-in-production',
+    resave: false,
+    saveUninitialized: false,
+    cookie: {
+      secure: process.env.NODE_ENV === 'production',
+      httpOnly: true,
+      maxAge: 24 * 60 * 60 * 1000 // 24 hours
+    }
+  }));
+
+  // Authentication routes
+  app.use('/api/auth', authRoutes);
+
   // Direct submit for scoring endpoint (must be before general API routes)
   app.post("/api/submit-for-scoring", asyncHandler(async (req, res) => {
     console.log('Direct submit-for-scoring endpoint called');

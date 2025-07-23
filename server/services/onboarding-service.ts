@@ -714,13 +714,34 @@ export class OnboardingService {
         return;
       }
 
+      // Generate verification token and update founder record
+      const { generateVerificationToken, generateTokenExpiry } = await import('../utils/auth');
+      const verificationToken = generateVerificationToken();
+      const tokenExpiry = generateTokenExpiry();
+      
+      // Update founder with verification token
+      if (founder.founderId) {
+        await storage.updateFounder(founder.founderId, {
+          verificationToken,
+          tokenExpiresAt: tokenExpiry,
+          updatedAt: new Date()
+        });
+      }
+
+      // Generate verification URL (use environment host or default)
+      const baseUrl = process.env.REPLIT_DEPLOYMENT_DOMAIN 
+        ? `https://${process.env.REPLIT_DEPLOYMENT_DOMAIN}`
+        : 'http://localhost:5000';
+      const verificationUrl = `${baseUrl}/api/auth/verify-email/${verificationToken}`;
+
       // Prepare email data
       const emailData: EmailNotificationData = {
         type: "onboarding",
         name: founderName,
         email: founder.email,
         certificate: certificateUrl,
-        report: reportUrl
+        report: reportUrl,
+        verificationUrl: verificationUrl
       };
 
       console.log("Sending email notification with data:", {
@@ -728,7 +749,8 @@ export class OnboardingService {
         name: emailData.name,
         email: emailData.email,
         certificateUrl: emailData.certificate,
-        reportUrl: emailData.report
+        reportUrl: emailData.report,
+        verificationUrl: emailData.verificationUrl
       });
 
       // Send email notification

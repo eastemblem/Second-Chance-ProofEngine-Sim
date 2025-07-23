@@ -29,6 +29,12 @@ export const founder = pgTable("founder", {
   positionRole: varchar("position_role", { length: 100 }).notNull(),
   residence: varchar("residence", { length: 100 }),
   isTechnical: boolean("is_technical").notNull().default(false),
+  // Authentication fields
+  passwordHash: varchar("password_hash", { length: 255 }),
+  emailVerified: boolean("email_verified").notNull().default(false),
+  verificationToken: varchar("verification_token", { length: 255 }),
+  tokenExpiresAt: timestamp("token_expires_at"),
+  lastLoginAt: timestamp("last_login_at"),
   createdAt: timestamp("created_at").defaultNow().notNull(),
   updatedAt: timestamp("updated_at").defaultNow().notNull(),
 });
