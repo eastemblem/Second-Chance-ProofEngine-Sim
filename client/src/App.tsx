@@ -22,6 +22,7 @@ const Terms = lazy(() => import("@/pages/Terms"));
 const SetPasswordPage = lazy(() => import("@/pages/set-password"));
 const LoginPage = lazy(() => import("@/pages/login"));
 const Dashboard = lazy(() => import("@/pages/dashboard"));
+const TokenExpiredPage = lazy(() => import("@/pages/token-expired"));
 
 // Disable preloading to reduce initial bundle size and blocking
 const preloadComponents = () => {
@@ -160,6 +161,11 @@ function Router() {
       <Route path="/dashboard" component={() => (
         <Suspense fallback={<SimpleLoader />}>
           <Dashboard />
+        </Suspense>
+      )} />
+      <Route path="/token-expired" component={() => (
+        <Suspense fallback={<SimpleLoader />}>
+          <TokenExpiredPage />
         </Suspense>
       )} />
       <Route component={NotFound} />

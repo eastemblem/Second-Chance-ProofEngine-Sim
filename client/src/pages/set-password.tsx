@@ -5,7 +5,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { useToast } from "@/hooks/use-toast";
-import { CheckCircle, Eye, EyeOff, Lock } from "lucide-react";
+import { CheckCircle, Eye, EyeOff, Lock, AlertCircle, XCircle } from "lucide-react";
 import Logo from "@/components/logo";
 import Footer from "@/components/footer";
 
@@ -17,6 +17,7 @@ export default function SetPasswordPage() {
   const [isLoading, setIsLoading] = useState(false);
   const [email, setEmail] = useState("");
   const [isVerified, setIsVerified] = useState(false);
+  const [tokenError, setTokenError] = useState<string>("");
   const [, setLocation] = useLocation();
   const { toast } = useToast();
 
@@ -25,8 +26,28 @@ export default function SetPasswordPage() {
     const urlParams = new URLSearchParams(window.location.search);
     const verifiedParam = urlParams.get('verified');
     const emailParam = urlParams.get('email');
+    const errorParam = urlParams.get('error');
     
-    if (verifiedParam === 'true' && emailParam) {
+    if (errorParam) {
+      // Handle token errors
+      switch (errorParam) {
+        case 'expired':
+          setTokenError('Your verification link has expired. Please start a new validation to receive a fresh verification email.');
+          break;
+        case 'already_verified':
+          setTokenError('Your email is already verified. You can proceed to set your password.');
+          setIsVerified(true);
+          if (emailParam) {
+            setEmail(decodeURIComponent(emailParam));
+          }
+          break;
+        case 'invalid':
+          setTokenError('The verification link is invalid. Please check the link or start a new validation.');
+          break;
+        default:
+          setTokenError('There was an issue with your verification link. Please try again.');
+      }
+    } else if (verifiedParam === 'true' && emailParam) {
       setIsVerified(true);
       setEmail(decodeURIComponent(emailParam));
       toast({
@@ -122,6 +143,72 @@ export default function SetPasswordPage() {
       setIsLoading(false);
     }
   };
+
+  // Show error state for token issues
+  if (tokenError) {
+    return (
+      <div className="min-h-screen flex flex-col">
+        <div className="flex-1 flex items-center justify-center bg-gradient-to-br from-background via-card to-background px-4">
+          <div className="w-full max-w-md">
+            {/* Logo */}
+            <div className="text-center mb-8">
+              <Logo size="md" />
+            </div>
+
+            {/* Error Card */}
+            <Card className="shadow-lg border-border/50">
+              <CardHeader className="text-center pb-4">
+                <div className="mx-auto mb-4 w-16 h-16 rounded-full bg-red-50 dark:bg-red-900/20 flex items-center justify-center">
+                  {tokenError.includes('already verified') ? (
+                    <CheckCircle className="w-8 h-8 text-green-500" />
+                  ) : (
+                    <XCircle className="w-8 h-8 text-red-500" />
+                  )}
+                </div>
+                <CardTitle className="text-xl gradient-text">
+                  {tokenError.includes('already verified') ? 'Email Already Verified' : 'Verification Issue'}
+                </CardTitle>
+                <CardDescription className="text-base">
+                  {tokenError}
+                </CardDescription>
+              </CardHeader>
+              
+              <CardContent className="space-y-4">
+                {tokenError.includes('already verified') && isVerified && email ? (
+                  <Button 
+                    className="w-full gradient-button"
+                    onClick={() => {
+                      // Continue to password setup for already verified users
+                      setTokenError("");
+                    }}
+                  >
+                    Continue to Set Password
+                  </Button>
+                ) : (
+                  <div className="space-y-3">
+                    <Button 
+                      className="w-full gradient-button"
+                      onClick={() => setLocation('/')}
+                    >
+                      Start New Validation
+                    </Button>
+                    <Button 
+                      variant="outline" 
+                      className="w-full"
+                      onClick={() => setLocation('/login')}
+                    >
+                      Try Login Instead
+                    </Button>
+                  </div>
+                )}
+              </CardContent>
+            </Card>
+          </div>
+        </div>
+        <Footer />
+      </div>
+    );
+  }
 
   if (!isVerified || !email) {
     return (

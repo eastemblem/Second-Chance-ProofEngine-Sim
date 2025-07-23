@@ -40,12 +40,17 @@ router.get('/verify-email/:token', async (req: Request, res: Response) => {
       .where(eq(founder.verificationToken, token));
 
     if (!founderRecord) {
-      return res.status(400).json({ error: 'Invalid verification token' });
+      return res.redirect('/set-password?error=invalid');
+    }
+
+    // Check if already verified
+    if (founderRecord.emailVerified) {
+      return res.redirect(`/set-password?error=already_verified&email=${encodeURIComponent(founderRecord.email)}`);
     }
 
     // Check if token is expired
     if (founderRecord.tokenExpiresAt && isTokenExpired(founderRecord.tokenExpiresAt)) {
-      return res.status(400).json({ error: 'Verification token has expired' });
+      return res.redirect(`/set-password?error=expired&email=${encodeURIComponent(founderRecord.email)}`);
     }
 
     // Update founder record - mark email as verified
