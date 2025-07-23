@@ -88,7 +88,7 @@ export default function DashboardPage() {
         <div className="max-w-4xl mx-auto">
           {/* Header */}
           <div className="text-center mb-8">
-            <Logo size="md" />
+            <Logo size="md" showTagline={false} />
             <h1 className="text-3xl font-bold gradient-text mt-4 mb-2">Welcome to Your Dashboard</h1>
             <p className="text-muted-foreground">
               Hello {user?.email}! Manage your Second Chance journey from here.

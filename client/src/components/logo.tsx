@@ -24,7 +24,7 @@ export default function Logo({ size = "md", showTagline = true }: LogoProps) {
           style={{ maxWidth: '18rem', height: 'auto' }}
           width="288"
           height="144"
-          fetchpriority="high"
+          fetchPriority="high"
           loading="eager"
           decoding="sync"
         />
@@ -33,11 +33,11 @@ export default function Logo({ size = "md", showTagline = true }: LogoProps) {
   }
 
   return (
-    <div className="flex items-center space-x-3">
+    <div className="flex items-center justify-center">
       <img 
         src={logoMain} 
         alt="Second Chance - Powered by ProofScaling"
-        className={imageSize[size]}
+        className={`${imageSize[size]} w-auto`}
         loading="lazy"
         decoding="async"
       />

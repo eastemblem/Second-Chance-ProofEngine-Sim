@@ -59,8 +59,8 @@ export default function LandingPage({ onNext }: LandingPageProps) {
             ))}
           </div>
 
-          {/* CTA Button */}
-          <div>
+          {/* CTA Buttons */}
+          <div className="space-y-4">
             <Button
               onClick={handleStartValidation}
               className="gradient-button px-8 py-6 text-lg"
@@ -69,6 +69,16 @@ export default function LandingPage({ onNext }: LandingPageProps) {
               Start My Validation
               <ArrowRight className="ml-2 w-5 h-5" />
             </Button>
+
+            <div className="flex justify-center">
+              <Button
+                variant="ghost"
+                onClick={() => setLocation('/login')}
+                className="text-muted-foreground hover:text-foreground"
+              >
+                Already have an account? Log in
+              </Button>
+            </div>
 
             <p className="text-sm text-muted-foreground mt-4">
               Free ProofScore assessment • No credit card required

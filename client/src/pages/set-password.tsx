@@ -152,7 +152,7 @@ export default function SetPasswordPage() {
           <div className="w-full max-w-md">
             {/* Logo */}
             <div className="text-center mb-8">
-              <Logo size="md" />
+              <Logo size="md" showTagline={false} />
             </div>
 
             {/* Error Card */}
@@ -231,7 +231,7 @@ export default function SetPasswordPage() {
         <div className="w-full max-w-md">
           {/* Logo */}
           <div className="text-center mb-8">
-            <Logo size="md" />
+            <Logo size="md" showTagline={false} />
           </div>
 
           {/* Verification Success */}

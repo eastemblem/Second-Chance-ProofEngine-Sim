@@ -77,7 +77,7 @@ export default function LoginPage() {
         <div className="w-full max-w-md">
           {/* Logo */}
           <div className="text-center mb-8">
-            <Logo size="md" />
+            <Logo size="md" showTagline={false} />
           </div>
 
           {/* Login Form */}
