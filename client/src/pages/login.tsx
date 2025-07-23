@@ -73,7 +73,7 @@ export default function LoginPage() {
 
   return (
     <div className="min-h-screen flex flex-col">
-      <div className="flex-1 flex items-center justify-center bg-gradient-to-br from-background via-card to-background px-4">
+      <div className="flex-1 flex items-center justify-center bg-gradient-to-br from-background via-card to-background px-4 py-8">
         <div className="w-full max-w-md">
           {/* Logo */}
           <div className="text-center mb-8">
@@ -86,8 +86,8 @@ export default function LoginPage() {
               <div className="w-12 h-12 mx-auto mb-4 rounded-full bg-gradient-to-r from-primary to-primary-gold flex items-center justify-center">
                 <LogIn className="w-6 h-6 text-white" />
               </div>
-              <CardTitle className="text-2xl gradient-text">Welcome Back</CardTitle>
-              <CardDescription>
+              <CardTitle className="text-xl sm:text-2xl gradient-text">Welcome Back</CardTitle>
+              <CardDescription className="text-sm sm:text-base">
                 Sign in to your Second Chance account
               </CardDescription>
             </CardHeader>
@@ -129,7 +129,7 @@ export default function LoginPage() {
 
                 <Button
                   type="submit"
-                  className="w-full gradient-button"
+                  className="w-full gradient-button py-3 text-base"
                   disabled={isLoading}
                 >
                   {isLoading ? "Signing In..." : "Sign In"}

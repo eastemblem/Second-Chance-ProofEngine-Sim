@@ -86,11 +86,11 @@ export default function DashboardPage() {
   return (
     <div className="min-h-screen flex flex-col">
       <Navbar showSignOut />
-      <div className="flex-1 bg-gradient-to-br from-background via-card to-background px-4 py-8">
+      <div className="flex-1 bg-gradient-to-br from-background via-card to-background px-4 py-6 sm:py-8">
         <div className="max-w-4xl mx-auto">
           {/* Header */}
-          <div className="text-center mb-8">
-            <h1 className="text-3xl font-bold gradient-text mb-2">Welcome to Your Dashboard</h1>
+          <div className="text-center mb-6 sm:mb-8">
+            <h1 className="text-2xl sm:text-3xl font-bold gradient-text mb-2">Welcome to Your Dashboard</h1>
             <p className="text-muted-foreground">
               Hello {user?.email}! Manage your Second Chance journey from here.
             </p>
