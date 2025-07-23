@@ -3,7 +3,6 @@ import { useLocation } from "wouter";
 import Logo from "@/components/logo";
 import { Button } from "@/components/ui/button";
 import Footer from "@/components/footer";
-import Navbar from "@/components/navbar";
 
 interface LandingPageProps {
   onNext: () => void;
@@ -25,7 +24,6 @@ export default function LandingPage({ onNext }: LandingPageProps) {
 
   return (
     <div className="min-h-screen flex flex-col">
-      <Navbar showSignIn />
       <div className="flex-1 flex items-center justify-center bg-gradient-to-br from-background via-card to-background">
         <div className="max-w-4xl mx-auto px-6 text-center">
           {/* Logo Section */}
@@ -73,9 +71,13 @@ export default function LandingPage({ onNext }: LandingPageProps) {
             </Button>
 
             <div className="flex justify-center">
-              <p className="text-sm text-muted-foreground">
-                Already have an account? Use the Sign In button above.
-              </p>
+              <Button
+                variant="ghost"
+                onClick={() => setLocation('/login')}
+                className="text-muted-foreground hover:text-foreground"
+              >
+                Already have an account? Log in
+              </Button>
             </div>
 
             <p className="text-sm text-muted-foreground mt-4">
