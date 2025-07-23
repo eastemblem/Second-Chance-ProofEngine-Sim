@@ -134,7 +134,12 @@ Demo experience for testing different user journeys:
   * ProofTags progress bar showing unlocked count (11/21) 
   * Files uploaded counter with real-time updates
   * Achievement status messages with award icons
-  * Certificate and report download buttons integration
+- **Certificate & Report Downloads Section**:
+  * Dedicated downloads section with purple-gold gradient theme
+  * Certificate download with purple gradient styling and Award icon
+  * Analysis report download with yellow/amber gradient styling and FileText icon
+  * Hover effects with glow animations and border transitions
+  * Informational panel explaining document contents and availability
 - **ProofVault Management System**:
   * Tabbed interface (Overview, Files, Upload)
   * Overview tab: File counts per proof category (Overview, Problem Proof, Solution Proof, Demand Proof)
