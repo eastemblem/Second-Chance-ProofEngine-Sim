@@ -9,11 +9,6 @@ import fs from "fs";
 import crypto from "crypto";
 import { certificateService } from "./certificate-service";
 
-// Helper function for type-safe session data access
-function getSessionData(stepData: unknown): any {
-  return stepData as any;
-}
-
 export class OnboardingService {
   /**
    * Initialize onboarding session
@@ -144,9 +139,8 @@ export class OnboardingService {
       throw new Error("Session not found - founder step must be completed first");
     }
 
-    const sessionData = getSessionData(session.stepData);
-    const founderData = sessionData?.founder;
-    const founderId = sessionData?.founderId || founderData?.founderId;
+    const founderData = session.stepData?.founder;
+    const founderId = session.stepData?.founderId || founderData?.founderId;
     
     if (!founderData) {
       throw new Error("Founder step not completed");
@@ -173,105 +167,20 @@ export class OnboardingService {
           venture.name, 
           sessionId
         );
-
-        // Create proof vault entries for each folder
-        if (folderStructure && folderStructure.folders) {
-          const folderMappings = [
-            {
-              key: "0_Overview",
-              type: "Pitch Deck",
-              name: "Overview",
-              description: "Company overview and general information",
-            },
-            {
-              key: "1_Problem_Proof",
-              type: "Technical Documentation",
-              name: "Problem Proof",
-              description: "Evidence of problem validation",
-            },
-            {
-              key: "2_Solution_Proof",
-              type: "Demo Video",
-              name: "Solution Proof",
-              description: "Solution validation and proof of concept",
-            },
-            {
-              key: "3_Demand_Proof",
-              type: "Metrics Dashboard",
-              name: "Demand Proof",
-              description: "Market demand validation",
-            },
-            {
-              key: "4_Credibility_Proof",
-              type: "Customer Testimonial",
-              name: "Credibility Proof",
-              description: "Team and company credibility evidence",
-            },
-            {
-              key: "5_Commercial_Proof",
-              type: "Financial Model",
-              name: "Commercial Proof",
-              description: "Commercial viability and business model proof",
-            },
-            {
-              key: "6_Investor_Pack",
-              type: "Product Screenshot",
-              name: "Investor Pack",
-              description: "Investor presentation materials",
-            },
-          ];
-
-          console.log(`Creating ${folderMappings.length} proof vault entries for venture ${venture.ventureId}`);
-          console.log('Folder structure received:', JSON.stringify(folderStructure, null, 2));
-          
-          for (const folder of folderMappings) {
-            const subFolderId = folderStructure.folders[folder.key];
-            console.log(`Processing folder ${folder.key}: subFolderId = ${subFolderId}`);
-            
-            if (subFolderId) {
-              try {
-                const proofVaultData = {
-                  ventureId: venture.ventureId,
-                  artefactType: folder.type,
-                  parentFolderId: folderStructure.id,
-                  subFolderId: subFolderId,
-                  sharedUrl: folderStructure.url,
-                  folderName: folder.name,
-                  description: folder.description,
-                };
-                console.log(`Attempting to create ProofVault entry with data:`, JSON.stringify(proofVaultData, null, 2));
-                
-                const proofVaultEntry = await storage.createProofVault(proofVaultData);
-                console.log(`✓ Created proof vault entry for ${folder.name}: ${proofVaultEntry.vaultId}`);
-              } catch (proofVaultError) {
-                console.error(`✗ Failed to create proof vault entry for ${folder.name}:`, proofVaultError);
-                console.error(`Error details:`, {
-                  message: proofVaultError.message,
-                  stack: proofVaultError.stack,
-                  code: proofVaultError.code
-                });
-              }
-            } else {
-              console.warn(`⚠ Missing subFolderId for ${folder.key} in folder structure`);
-            }
-          }
-          
-          console.log('Completed proof vault entries creation');
-        }
       } catch (error) {
         console.warn("Failed to create folder structure:", error);
       }
     }
 
-    // Update session with type safety
+    // Update session
     await this.updateSession(sessionId, {
       currentStep: "team",
       stepData: {
-        ...getSessionData(session.stepData),
+        ...session.stepData,
         venture,
         folderStructure,
       },
-      completedSteps: [...((session.completedSteps as string[]) || []), "venture"],
+      completedSteps: [...session.completedSteps, "venture"],
     });
 
     // Send Slack notification for venture step completion (async, no wait)
@@ -304,12 +213,11 @@ export class OnboardingService {
     }
 
     // Look for venture data in session or get most recent venture for the founder
-    const sessionData = getSessionData(session.stepData);
-    let venture = sessionData?.venture;
+    let venture = session.stepData?.venture;
     
     if (!venture || !venture.ventureId) {
       // Fallback: get venture by founder ID from session
-      const founderData = sessionData?.founder;
+      const founderData = session.stepData?.founder;
       if (founderData?.founderId) {
         const ventures = await storage.getVenturesByFounderId(founderData.founderId);
         if (ventures && ventures.length > 0) {
@@ -352,12 +260,11 @@ export class OnboardingService {
     }
 
     // Look for venture data in session or get most recent venture for the founder
-    const sessionData = getSessionData(session.stepData);
-    let venture = sessionData?.venture;
+    let venture = session.stepData?.venture;
     
     if (!venture || !venture.ventureId) {
       // Fallback: get venture by founder ID from session
-      const founderData = sessionData?.founder;
+      const founderData = session.stepData?.founder;
       if (founderData?.founderId) {
         const ventures = await storage.getVenturesByFounderId(founderData.founderId);
         if (ventures && ventures.length > 0) {
@@ -432,8 +339,8 @@ export class OnboardingService {
       }
     }
 
-    const sessionData = getSessionData(session.stepData);
-    const venture = sessionData?.venture;
+    const stepData = session.stepData || {};
+    const venture = stepData.venture;
     if (!venture) {
       throw new Error("Venture step not completed");
     }
@@ -461,10 +368,10 @@ export class OnboardingService {
     await this.updateSession(sessionId, {
       currentStep: "processing",
       stepData: {
-        ...getSessionData(session.stepData),
+        ...session.stepData,
         upload: upload[0],
       },
-      completedSteps: [...((session.completedSteps as string[]) || []), "upload"],
+      completedSteps: [...session.completedSteps, "upload"],
     });
 
     // Send Slack notification for document upload (async, no wait)
@@ -492,10 +399,10 @@ export class OnboardingService {
       throw new Error("Session not found");
     }
 
-    const sessionData = getSessionData(session.stepData);
-    const upload = sessionData?.upload;
-    const venture = sessionData?.venture;
-    const folderStructure = sessionData?.folderStructure;
+    const stepData = session.stepData || {};
+    const upload = stepData.upload;
+    const venture = stepData.venture;
+    const folderStructure = stepData.folderStructure;
     
     if (!upload) {
       throw new Error("Document upload step not completed");
@@ -508,9 +415,9 @@ export class OnboardingService {
     let scoringResult = null;
 
     // Check if we already have scoring results in session
-    if (sessionData?.processing?.scoringResult) {
+    if (stepData.processing?.scoringResult) {
       console.log("Using existing scoring result from session");
-      scoringResult = sessionData.processing.scoringResult;
+      scoringResult = stepData.processing.scoringResult;
     } else if (eastEmblemAPI.isConfigured() && upload.filePath) {
       try {
         // Check if file still exists before trying to read it
@@ -571,7 +478,7 @@ export class OnboardingService {
 
     // Extract team members from scoring result and add to venture
     if (scoringResult?.output?.team && Array.isArray(scoringResult.output.team)) {
-      const venture = sessionData?.venture?.venture || sessionData?.venture;
+      const venture = stepData.venture?.venture || stepData.venture;
       if (venture?.ventureId) {
         console.log("Adding team members from analysis to venture:", venture.ventureId);
         
@@ -628,14 +535,14 @@ export class OnboardingService {
     await this.updateSession(sessionId, {
       currentStep: "complete",
       stepData: {
-        ...getSessionData(session.stepData),
+        ...session.stepData,
         scoringResult,
         processing: {
           scoringResult,
           isComplete: true
         }
       },
-      completedSteps: [...((session.completedSteps as string[]) || []), "scoring"],
+      completedSteps: [...session.completedSteps, "scoring"],
       isComplete: true,
     });
 
@@ -681,7 +588,7 @@ export class OnboardingService {
 
         // Store complete evaluation data in evaluation table
         try {
-          const evaluation = await storage.createEvaluation({
+          await storage.createEvaluation({
             ventureId: venture.ventureId,
             evaluationDate: new Date().toISOString().split('T')[0], // YYYY-MM-DD format
             proofscore: totalScore,
@@ -691,14 +598,6 @@ export class OnboardingService {
             isCurrent: true,
           });
           console.log(`✓ Created evaluation record for ${venture.name}`);
-
-          // Update ProofVault entries to link them to this evaluation
-          try {
-            await storage.linkProofVaultToEvaluation(venture.ventureId, evaluation.evaluationId);
-            console.log(`✓ Linked ProofVault entries to evaluation ${evaluation.evaluationId}`);
-          } catch (linkError) {
-            console.error(`Failed to link ProofVault entries to evaluation:`, linkError);
-          }
           
           // Generate certificate and report in background after successful evaluation
           console.log("Starting async certificate and report generation for venture:", venture.ventureId);
@@ -727,7 +626,7 @@ export class OnboardingService {
               if (certificateResult.success && reportResult.success) {
                 // Get fresh session data for email notification
                 const freshSession = await this.getSession(sessionId);
-                const freshStepData = getSessionData(freshSession?.stepData);
+                const freshStepData = freshSession?.stepData || {};
                 await this.sendEmailNotification(sessionId, freshStepData, certificateResult.certificateUrl, reportResult.reportUrl);
               }
             } catch (error) {

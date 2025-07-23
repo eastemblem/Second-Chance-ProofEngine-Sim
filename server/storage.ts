@@ -1,6 +1,6 @@
 import { founder, venture, teamMember, proofVault, leaderboard, evaluation, type Founder, type InsertFounder, type Venture, type InsertVenture, type TeamMember, type InsertTeamMember, type ProofVault, type InsertProofVault, type Leaderboard, type InsertLeaderboard, type Evaluation, type InsertEvaluation } from "@shared/schema";
 import { db } from "./db";
-import { eq, desc, and, isNull } from "drizzle-orm";
+import { eq, desc } from "drizzle-orm";
 
 export interface IStorage {
   getFounder(id: string): Promise<Founder | undefined>;
@@ -37,9 +37,6 @@ export interface IStorage {
   createLeaderboardEntry(entry: InsertLeaderboard): Promise<Leaderboard>;
   getLeaderboardByVentureId(ventureId: string): Promise<Leaderboard | undefined>;
   updateLeaderboard(id: string, entry: Partial<InsertLeaderboard>): Promise<Leaderboard>;
-  
-  // ProofVault-Evaluation linking
-  linkProofVaultToEvaluation(ventureId: string, evaluationId: string): Promise<void>;
 }
 
 export class DatabaseStorage implements IStorage {
@@ -203,16 +200,6 @@ export class DatabaseStorage implements IStorage {
   async updateLeaderboard(id: string, updateEntry: Partial<InsertLeaderboard>): Promise<Leaderboard> {
     const [leaderboardRecord] = await db.update(leaderboard).set(updateEntry).where(eq(leaderboard.leaderboardId, id)).returning();
     return leaderboardRecord;
-  }
-
-  // ProofVault-Evaluation linking
-  async linkProofVaultToEvaluation(ventureId: string, evaluationId: string): Promise<void> {
-    await db.update(proofVault)
-      .set({ evaluationId })
-      .where(and(
-        eq(proofVault.ventureId, ventureId),
-        isNull(proofVault.evaluationId)
-      ));
   }
 }
 
