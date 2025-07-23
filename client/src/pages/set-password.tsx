@@ -28,6 +28,7 @@ export default function SetPasswordPage() {
     const verifiedParam = urlParams.get('verified');
     const emailParam = urlParams.get('email');
     const errorParam = urlParams.get('error');
+    const resetParam = urlParams.get('reset');
     
     if (errorParam) {
       // Handle token errors
@@ -48,7 +49,17 @@ export default function SetPasswordPage() {
         default:
           setTokenError('There was an issue with your verification link. Please try again.');
       }
+    } else if (resetParam === 'true' && emailParam) {
+      // Password reset flow
+      setIsVerified(true);
+      setEmail(decodeURIComponent(emailParam));
+      toast({
+        title: "Password Reset Authorized",
+        description: "You can now set a new password for your account.",
+        duration: 5000,
+      });
     } else if (verifiedParam === 'true' && emailParam) {
+      // Email verification flow
       setIsVerified(true);
       setEmail(decodeURIComponent(emailParam));
       toast({
@@ -57,7 +68,7 @@ export default function SetPasswordPage() {
         duration: 5000,
       });
     } else {
-      // Redirect to home if not coming from email verification
+      // Redirect to home if not coming from email verification or password reset
       setLocation('/');
     }
   }, [setLocation, toast]);

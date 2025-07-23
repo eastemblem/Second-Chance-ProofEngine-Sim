@@ -146,6 +146,24 @@ export class EmailService {
   }
 
   /**
+   * Send password reset email
+   */
+  async sendPasswordResetEmail(to: string, founderName: string, resetToken: string): Promise<boolean> {
+    const resetUrl = `${process.env.HOST_URL || 'https://secondchance.replit.app'}/api/auth/reset-password/${resetToken}`;
+    
+    return this.sendEmail(
+      to,
+      'Reset Your Password - Second Chance',
+      'password-reset',
+      {
+        founder_name: founderName,
+        reset_url: resetUrl,
+        host_url: process.env.HOST_URL || 'https://secondchance.replit.app'
+      }
+    );
+  }
+
+  /**
    * Send welcome email
    */
   async sendWelcomeEmail(to: string, userName: string): Promise<boolean> {

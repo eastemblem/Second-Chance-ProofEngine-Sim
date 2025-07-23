@@ -239,6 +239,111 @@ router.get('/me', async (req: Request, res: Response) => {
   }
 });
 
+// Forgot password endpoint - generates reset token and sends email
+router.post('/forgot-password', async (req: Request, res: Response) => {
+  try {
+    const forgotPasswordSchema = z.object({
+      email: z.string().email()
+    });
+
+    const { email } = forgotPasswordSchema.parse(req.body);
+
+    // Find founder by email
+    const [founderRecord] = await db
+      .select()
+      .from(founder)
+      .where(eq(founder.email, email));
+
+    // Don't reveal if email exists or not for security
+    if (!founderRecord) {
+      return res.json({ 
+        success: true, 
+        message: 'If an account with this email exists, you will receive a password reset link shortly.' 
+      });
+    }
+
+    // Generate reset token and expiry
+    const resetToken = generateVerificationToken();
+    const tokenExpiry = generateTokenExpiry();
+
+    // Update founder with reset token
+    await db
+      .update(founder)
+      .set({
+        verificationToken: resetToken,
+        tokenExpiresAt: tokenExpiry,
+        updatedAt: new Date()
+      })
+      .where(eq(founder.founderId, founderRecord.founderId));
+
+    // Send password reset email
+    try {
+      await emailService.sendPasswordResetEmail(
+        founderRecord.email,
+        founderRecord.fullName,
+        resetToken
+      );
+      console.log(`Password reset email sent to ${founderRecord.email}`);
+    } catch (emailError) {
+      console.error('Failed to send password reset email:', emailError);
+      // Continue without failing the request - user won't know email failed
+    }
+
+    res.json({ 
+      success: true, 
+      message: 'If an account with this email exists, you will receive a password reset link shortly.' 
+    });
+  } catch (error) {
+    console.error('Forgot password error:', error);
+    if (error instanceof z.ZodError) {
+      return res.status(400).json({ error: 'Invalid email format', details: error.errors });
+    }
+    res.status(500).json({ error: 'Failed to process password reset request' });
+  }
+});
+
+// Reset password endpoint - validates token and updates password
+router.get('/reset-password/:token', async (req: Request, res: Response) => {
+  try {
+    const { token } = req.params;
+    
+    if (!token) {
+      return res.redirect('/forgot-password?error=invalid');
+    }
+
+    // Find founder with matching reset token
+    const [founderRecord] = await db
+      .select()
+      .from(founder)
+      .where(eq(founder.verificationToken, token));
+
+    if (!founderRecord) {
+      return res.redirect('/forgot-password?error=invalid');
+    }
+
+    // Check if token is expired
+    if (founderRecord.tokenExpiresAt && isTokenExpired(founderRecord.tokenExpiresAt)) {
+      return res.redirect(`/forgot-password?error=expired&email=${encodeURIComponent(founderRecord.email)}`);
+    }
+
+    // Clear the reset token (one-time use)
+    await db
+      .update(founder)
+      .set({
+        verificationToken: null,
+        tokenExpiresAt: null,
+        updatedAt: new Date()
+      })
+      .where(eq(founder.founderId, founderRecord.founderId));
+
+    // Redirect to set password page with reset flag
+    res.redirect(`/set-password?reset=true&email=${encodeURIComponent(founderRecord.email)}`);
+  } catch (error) {
+    console.error('Reset password error:', error);
+    res.redirect('/forgot-password?error=invalid');
+  }
+});
+
 // Middleware to check authentication
 export function requireAuth(req: Request, res: Response, next: any) {
   if (!req.session.isAuthenticated || !req.session.founderId) {

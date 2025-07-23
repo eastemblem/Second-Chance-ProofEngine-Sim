@@ -21,6 +21,7 @@ const Privacy = lazy(() => import("@/pages/Privacy"));
 const Terms = lazy(() => import("@/pages/Terms"));
 const SetPasswordPage = lazy(() => import("@/pages/set-password"));
 const LoginPage = lazy(() => import("@/pages/login"));
+const ForgotPasswordPage = lazy(() => import("@/pages/forgot-password"));
 const Dashboard = lazy(() => import("@/pages/dashboard"));
 const TokenExpiredPage = lazy(() => import("@/pages/token-expired"));
 
@@ -156,6 +157,11 @@ function Router() {
       <Route path="/login" component={() => (
         <Suspense fallback={<SimpleLoader />}>
           <LoginPage />
+        </Suspense>
+      )} />
+      <Route path="/forgot-password" component={() => (
+        <Suspense fallback={<SimpleLoader />}>
+          <ForgotPasswordPage />
         </Suspense>
       )} />
       <Route path="/dashboard" component={() => (
