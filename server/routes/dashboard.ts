@@ -12,20 +12,30 @@ router.get("/validation", async (req, res) => {
       return res.status(401).json({ error: "Not authenticated" });
     }
 
-    // Get founder's venture and scoring data
+    // Get founder's latest venture and scoring data
     const founder = await storage.getFounder(founderId);
     if (!founder) {
       return res.status(404).json({ error: "Founder not found" });
     }
 
-    // Mock data based on existing ProofScore system
-    // In production, this would fetch from actual scoring results
+    // Get founder's ventures and use the latest one
+    const ventures = await storage.getFounderVentures(founderId);
+    const latestVenture = ventures.length > 0 ? ventures[ventures.length - 1] : null;
+
+    if (!latestVenture) {
+      return res.status(404).json({ error: "No venture found for founder" });
+    }
+
+    // Get venture-specific validation data
+    // In production, this would fetch from actual scoring results for the specific venture
     const validationData = {
-      proofScore: 85,
+      proofScore: latestVenture.proofScore || 85,
       proofTagsUnlocked: 11,
       totalProofTags: 21,
       filesUploaded: 0,
-      status: "Excellent! You're investor-ready. Your data room is now visible to our verified investor network."
+      status: "Excellent! You're investor-ready. Your data room is now visible to our verified investor network.",
+      ventureId: latestVenture.id,
+      ventureName: latestVenture.name
     };
 
     res.json(validationData);
@@ -44,23 +54,34 @@ router.get("/vault", async (req, res) => {
       return res.status(401).json({ error: "Not authenticated" });
     }
 
-    // Mock data for ProofVault
-    // In production, this would query actual file storage
+    // Get founder's latest venture
+    const ventures = await storage.getFounderVentures(founderId);
+    const latestVenture = ventures.length > 0 ? ventures[ventures.length - 1] : null;
+
+    if (!latestVenture) {
+      return res.status(404).json({ error: "No venture found for founder" });
+    }
+
+    // Get venture-specific ProofVault data
+    // In production, this would query actual file storage for the specific venture
     const vaultData = {
       overviewCount: 0,
       problemProofCount: 0,
       solutionProofCount: 0,
       demandProofCount: 0,
       totalFiles: 0,
+      ventureId: latestVenture.id,
+      ventureName: latestVenture.name,
       files: [
-        // Example file structure
+        // Example file structure for this venture
         // {
         //   id: "file-1",
         //   name: "Pitch Deck.pdf",
         //   category: "Overview",
         //   uploadDate: "2025-01-15",
         //   size: "2.4 MB",
-        //   downloadUrl: "/api/vault/download/file-1"
+        //   downloadUrl: `/api/vault/download/${latestVenture.id}/file-1`,
+        //   ventureId: latestVenture.id
         // }
       ]
     };

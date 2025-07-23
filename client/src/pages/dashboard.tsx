@@ -175,8 +175,21 @@ export default function DashboardPage() {
 
   const handleDownloadCertificate = async () => {
     try {
+      if (!validationData?.ventureId) {
+        toast({
+          title: "Download Error",
+          description: "Venture information not available.",
+          variant: "destructive",
+        });
+        return;
+      }
+
       if (user?.venture?.certificateUrl) {
         window.open(user.venture.certificateUrl, '_blank');
+        toast({
+          title: "Certificate Downloaded",
+          description: `Your ${validationData.ventureName} certificate has been opened.`,
+        });
       } else {
         toast({
           title: "Certificate Not Available",
@@ -196,8 +209,21 @@ export default function DashboardPage() {
 
   const handleDownloadReport = async () => {
     try {
+      if (!validationData?.ventureId) {
+        toast({
+          title: "Download Error", 
+          description: "Venture information not available.",
+          variant: "destructive",
+        });
+        return;
+      }
+
       if (user?.venture?.reportUrl) {
         window.open(user.venture.reportUrl, '_blank');
+        toast({
+          title: "Report Downloaded",
+          description: `Your ${validationData.ventureName} analysis report has been opened.`,
+        });
       } else {
         toast({
           title: "Report Not Available",
@@ -334,8 +360,8 @@ export default function DashboardPage() {
               {user?.fullName ? user.fullName.charAt(0).toUpperCase() : user?.email?.charAt(0).toUpperCase()}
             </div>
             <div>
-              <h1 className="text-2xl font-bold text-white">Founder Portal</h1>
-              <p className="text-gray-400">{user?.venture?.name || 'Your Venture'} • {user?.fullName || user?.email}</p>
+              <h1 className="text-2xl font-bold text-white">Welcome {user?.fullName || user?.email?.split('@')[0] || 'Founder'}</h1>
+              <p className="text-gray-400">{user?.venture?.name || 'Your Venture'} Dashboard</p>
             </div>
           </div>
         </div>
@@ -629,37 +655,37 @@ export default function DashboardPage() {
                         </>
                       )}
                       
-                      <div className="relative z-10 flex items-center gap-4 p-4">
-                        <div className={`flex items-center justify-center w-10 h-10 rounded-full ${
+                      <div className="relative z-10 flex items-center gap-3 p-3">
+                        <div className={`flex items-center justify-center w-8 h-8 rounded-full ${
                           isTopThree ? 'bg-gradient-to-r from-yellow-400 to-amber-500' : 'bg-gray-600/50'
                         } shadow-lg`}>
                           {entry.rank <= 3 ? (
                             entry.rank === 1 ? (
-                              <Trophy className="w-5 h-5 text-yellow-900" />
+                              <Trophy className="w-4 h-4 text-yellow-900" />
                             ) : entry.rank === 2 ? (
-                              <Medal className="w-5 h-5 text-gray-700" />
+                              <Medal className="w-4 h-4 text-gray-700" />
                             ) : (
-                              <Award className="w-5 h-5 text-amber-700" />
+                              <Award className="w-4 h-4 text-amber-700" />
                             )
                           ) : (
-                            <span className="text-sm font-bold text-white">{entry.rank}</span>
+                            <span className="text-xs font-bold text-white">{entry.rank}</span>
                           )}
                         </div>
                         
                         <div className="flex-1 min-w-0">
                           <div className="flex items-center gap-2">
-                            <h4 className={`font-semibold truncate ${
+                            <h4 className={`text-sm font-medium truncate ${
                               entry.isCurrentUser ? 'text-violet-300' : 'text-white'
                             }`}>
                               {entry.name}
                             </h4>
                             {entry.isCurrentUser && (
-                              <span className="px-2 py-1 text-xs bg-gradient-to-r from-violet-500 to-amber-500 text-white rounded-full">
+                              <span className="px-1.5 py-0.5 text-xs bg-gradient-to-r from-violet-500 to-amber-500 text-white rounded-full">
                                 You
                               </span>
                             )}
                           </div>
-                          <p className="text-sm text-gray-400 truncate">{entry.venture}</p>
+                          <p className="text-xs text-gray-400 truncate">{entry.venture}</p>
                         </div>
                         
                         <div className="text-right">

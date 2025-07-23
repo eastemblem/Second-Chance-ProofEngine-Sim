@@ -10,6 +10,7 @@ export interface IStorage {
   
   getVenture(id: string): Promise<Venture | undefined>;
   getVenturesByFounderId(founderId: string): Promise<Venture[]>;
+  getFounderVentures(founderId: string): Promise<Venture[]>;
   createVenture(venture: InsertVenture): Promise<Venture>;
   updateVenture(id: string, venture: Partial<InsertVenture>): Promise<Venture>;
   
@@ -71,6 +72,12 @@ export class DatabaseStorage implements IStorage {
 
   async getVenturesByFounderId(founderId: string): Promise<Venture[]> {
     return await db.select().from(venture).where(eq(venture.founderId, founderId));
+  }
+
+  async getFounderVentures(founderId: string): Promise<Venture[]> {
+    return await db.select().from(venture)
+      .where(eq(venture.founderId, founderId))
+      .orderBy(desc(venture.createdAt));
   }
 
   async createVenture(insertVenture: InsertVenture): Promise<Venture> {

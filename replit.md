@@ -126,11 +126,17 @@ Demo experience for testing different user journeys:
 
 ## Recent Key Updates
 
-### July 23, 2025 - Enhanced Dashboard Implementation
+### July 23, 2025 - Enhanced Dashboard Implementation & Venture-Specific Data
 - **Comprehensive Dashboard Redesign**: Transformed simple dashboard into feature-rich founder portal matching provided design mockup
 - **Professional Dark Theme**: Black/gray theme with purple-gold accents, responsive two-column layout
+- **Personalized Welcome**: Changed "Founder Portal" to personalized "Welcome [Founder Name]" using founder's full name or email prefix
+- **Venture-Specific Data Architecture**: 
+  * Dashboard now uses latest venture per founder (1 email per founder/venture in production)
+  * All certificate, report, and ProofVault data are venture-specific
+  * Backend updated with `getFounderVentures()` method to retrieve latest venture
+  * Download handlers include venture context in filenames and messaging
 - **Validation Overview Section**: 
-  * Circular ProofScore indicator with gradient styling (displays 85 score)
+  * Circular ProofScore indicator with gradient styling (displays venture-specific score)
   * ProofTags progress bar showing unlocked count (11/21) 
   * Files uploaded counter with real-time updates
   * Achievement status messages with award icons
@@ -139,17 +145,20 @@ Demo experience for testing different user journeys:
   * Certificate download with purple gradient styling and Award icon
   * Analysis report download with yellow/amber gradient styling and FileText icon
   * Hover effects with glow animations and border transitions
+  * Venture-specific download URLs and filenames
   * Informational panel explaining document contents and availability
 - **ProofVault Management System**:
   * Tabbed interface (Overview, Files, Upload)
   * Overview tab: File counts per proof category (Overview, Problem Proof, Solution Proof, Demand Proof)
   * Files tab: Complete file listing with view, download, and remove actions
   * Upload tab: Drag-and-drop interface with folder selection capability
+  * All file operations are venture-specific
 - **Right Sidebar Widgets**:
-  * Leaderboard positioned at top-right with analysis page design integration (gradient styling, animated borders, trophy/medal icons)
+  * Compact leaderboard positioned at top-right with reduced card sizes
+  * Analysis page design integration (gradient styling, animated borders, trophy/medal icons)
   * Deal Room Access panel with conditional access based on score ≥90 and clear upload requirements messaging  
   * Recent Activity feed with dynamic founder journey tracking (email verification, password setup, platform joining, score establishment)
-- **Backend API Integration**: Created `/api/dashboard/*` endpoints for validation data, vault management, and leaderboard
+- **Backend API Integration**: Enhanced `/api/dashboard/*` endpoints for venture-specific validation data, vault management, and leaderboard
 - **File Management Features**: Upload, download, remove functionality with toast notifications and data refresh
 - **Mobile Responsive**: Proper mobile optimization with responsive grid layouts and touch-friendly interactions
 
