@@ -126,13 +126,18 @@ Demo experience for testing different user journeys:
 
 ## Recent Key Updates
 
-### July 23, 2025 - Certificate & Report Download Fix + Venture Data Integration
+### July 23, 2025 - Certificate & Report Download Fix + Venture Data Integration + Onboarding Field Population
 - **FIXED: Certificate and Report Downloads**: Resolved critical download functionality issues with proper venture-specific data integration
 - **Authentication System**: Fixed password authentication system with proper bcrypt hashing and database verification
 - **Venture Data Flow**: Enhanced `/api/auth/me` endpoint to return founder's latest venture details with certificate/report URLs
 - **Download Handler Updates**: Modified download functions to use authentic venture data from user context instead of validation endpoint
 - **Database Integration**: Added proper venture-specific URL population and testing infrastructure
-- **Error Resolution**: Fixed all authentication errors and download failures with comprehensive error handling
+- **CRITICAL FIX: Onboarding Field Population**: Fixed onboarding process to properly populate certificate_url, report_url, folder_structure, and generation timestamps during venture creation
+  * Added folder_structure persistence to venture table during venture step completion
+  * Enhanced scoring process to generate both certificate AND report asynchronously
+  * Updated venture records with both URLs and timestamps after generation
+  * Resolved issue where fields remained null after onboarding completion
+- **Error Resolution**: Fixed all authentication errors, download failures, and onboarding data persistence issues with comprehensive error handling
 
 ### July 23, 2025 - Enhanced Dashboard Implementation & Venture-Specific Data
 - **Comprehensive Dashboard Redesign**: Transformed simple dashboard into feature-rich founder portal matching provided design mockup

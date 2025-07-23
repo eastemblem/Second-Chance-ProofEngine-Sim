@@ -378,6 +378,16 @@ export class OnboardingManager {
           }
           
           console.log('Completed proof vault entries creation');
+          
+          // Update venture with folder structure
+          try {
+            await storage.updateVenture(venture.ventureId, {
+              folderStructure: folderStructure
+            });
+            console.log('Venture updated with folder structure:', folderStructure.id);
+          } catch (error) {
+            console.error('Failed to update venture with folder structure:', error);
+          }
         }
       } catch (error) {
         console.error("Failed to create folder structure or proof vault entries:", error);
@@ -400,17 +410,18 @@ export class OnboardingManager {
 
     // Store folderStructure at session root level for easy access
     const currentSession = await this.getSession(sessionId);
-    const [updatedSession] = await db
-      .update(onboardingSession)
-      .set({
-        stepData: currentSession.stepData,
-        folderStructure: folderStructure,
-        ventureId: venture.ventureId,
-        currentStep: "team",
-        updatedAt: new Date(),
-      })
-      .where(eq(onboardingSession.sessionId, sessionId))
-      .returning();
+    if (currentSession) {
+      const [updatedSession] = await db
+        .update(onboardingSession)
+        .set({
+          stepData: currentSession.stepData,
+          ventureId: venture.ventureId,
+          currentStep: "team",
+          updatedAt: new Date(),
+        })
+        .where(eq(onboardingSession.sessionId, sessionId))
+        .returning();
+    }
 
     // Send Slack notification for venture step completion (async, no wait)
     if (eastEmblemAPI.isConfigured()) {
@@ -794,30 +805,37 @@ export class OnboardingManager {
             }
           }
           
-          // Also update session with certificate URL for immediate access
-          try {
-            const currentSession = await onboardingService.getSession(sessionId);
-            await onboardingService.updateSession(sessionId, {
-              currentStep: "complete",
-              stepData: {
-                ...currentSession.stepData,
-                processing: {
-                  ...currentSession.stepData.processing,
-                  certificateUrl: certificateResult.url,
-                  certificateGeneratedAt: new Date()
-                }
-              },
-              isComplete: true,
-            });
-            console.log("Session updated with certificate URL:", certificateResult.url);
-          } catch (error) {
-            console.error("Failed to update session with certificate URL:", error);
-          }
+          // Session update for certificate is handled by certificate service
         }).catch((error) => {
           console.error("Failed to create certificate:", error);
         });
+
+        // Create report asynchronously after certificate  
+        import('./routes/report.js').then(async (reportModule) => {
+          try {
+            const reportResult = await reportModule.createReportForSession(sessionId);
+            console.log("Report created successfully:", reportResult);
+            
+            // Update venture with report URL
+            if (venture?.ventureId && reportResult.reportUrl) {
+              try {
+                await storage.updateVenture(venture.ventureId, {
+                  reportUrl: reportResult.reportUrl,
+                  reportGeneratedAt: new Date()
+                });
+                console.log("Venture updated with report URL:", reportResult.reportUrl);
+              } catch (error) {
+                console.error("Failed to update venture with report URL:", error);
+              }
+            }
+          } catch (error) {
+            console.error("Failed to create report:", error);
+          }
+        }).catch((error) => {
+          console.error("Failed to import report module:", error);
+        });
       } else {
-        console.log("No overview folder found, skipping certificate creation");
+        console.log("No overview folder found, skipping certificate and report creation");
       }
     }
 
