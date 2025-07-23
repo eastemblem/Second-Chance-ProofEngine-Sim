@@ -361,7 +361,14 @@ export default function DashboardPage() {
             </div>
             <div>
               <h1 className="text-2xl font-bold text-white">Welcome {user?.fullName || user?.email?.split('@')[0] || 'Founder'}</h1>
-              <p className="text-gray-400">{user?.venture?.name || 'Your Venture'} Dashboard</p>
+              <p className="text-gray-400">
+                {user?.venture?.name || 'Your Venture'} Dashboard
+                {user?.totalVentures && user.totalVentures > 1 && (
+                  <span className="ml-2 text-xs bg-purple-500/20 text-purple-300 px-2 py-1 rounded-full">
+                    Latest of {user.totalVentures} ventures
+                  </span>
+                )}
+              </p>
             </div>
           </div>
         </div>

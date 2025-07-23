@@ -3,6 +3,7 @@ import { z } from 'zod';
 import { eq, and } from 'drizzle-orm';
 import { db } from '../db';
 import { founder } from '@shared/schema';
+import { storage } from '../storage';
 import { 
   validatePassword, 
   hashPassword, 
@@ -204,17 +205,38 @@ router.post('/logout', (req: Request, res: Response) => {
   });
 });
 
-// Get current user endpoint
-router.get('/me', (req: Request, res: Response) => {
-  if (!req.session.isAuthenticated || !req.session.founderId) {
-    return res.status(401).json({ error: 'Not authenticated' });
-  }
+// Get current user endpoint with latest venture
+router.get('/me', async (req: Request, res: Response) => {
+  try {
+    if (!req.session.isAuthenticated || !req.session.founderId) {
+      return res.status(401).json({ error: 'Not authenticated' });
+    }
 
-  res.json({
-    founderId: req.session.founderId,
-    email: req.session.email,
-    isAuthenticated: true
-  });
+    const founderId = req.session.founderId;
+
+    // Get founder details
+    const founderRecord = await storage.getFounder(founderId);
+    if (!founderRecord) {
+      return res.status(404).json({ error: 'Founder not found' });
+    }
+
+    // Get founder's latest venture
+    const ventures = await storage.getFounderVentures(founderId);
+    const latestVenture = ventures.length > 0 ? ventures[ventures.length - 1] : null;
+
+    // Return founder data with latest venture
+    const { passwordHash, verificationToken, tokenExpiresAt, ...safeFounder } = founderRecord;
+    
+    res.json({
+      ...safeFounder,
+      isAuthenticated: true,
+      venture: latestVenture,
+      totalVentures: ventures.length
+    });
+  } catch (error) {
+    console.error('Get user data error:', error);
+    res.status(500).json({ error: 'Failed to retrieve user data' });
+  }
 });
 
 // Middleware to check authentication
