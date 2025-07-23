@@ -128,6 +128,7 @@ Demo experience for testing different user journeys:
 
 ### July 23, 2025 - Email Verification & Authentication System Complete
 - **Database Schema**: Extended founders table with authentication fields (email_verified, password_hash, verification_token, token_expires_at, last_login_at)
+- **Database Cleanup**: Removed company_website and personal_linkedin columns from founder table as requested
 - **Password Security**: Implemented bcrypt encryption with strict validation (8+ chars, alphanumeric + safe special chars, no SQL injection risk)
 - **Email Verification Flow**: Integrated verification URLs into onboarding emails via EastEmblem API with 24-hour token expiry
 - **Authentication Pages**: Created set-password.tsx, login.tsx, and dashboard.tsx with consistent purple-gold theme and mobile optimization
