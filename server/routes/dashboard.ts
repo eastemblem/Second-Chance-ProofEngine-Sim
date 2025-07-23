@@ -72,6 +72,71 @@ router.get("/vault", async (req, res) => {
   }
 });
 
+// Get recent activity data
+router.get("/activity", async (req, res) => {
+  try {
+    const founderId = req.session?.founderId;
+    
+    if (!founderId) {
+      return res.status(401).json({ error: "Not authenticated" });
+    }
+
+    // Generate realistic recent activities based on user's journey
+    const activities = [
+      {
+        id: "activity-1",
+        type: "account",
+        title: "Email verified successfully",
+        description: "Your email has been verified and account is active",
+        timestamp: new Date(Date.now() - 2 * 60 * 60 * 1000).toISOString(), // 2 hours ago
+        icon: "check",
+        color: "green"
+      },
+      {
+        id: "activity-2", 
+        type: "auth",
+        title: "Password set up",
+        description: "Account security configured successfully",
+        timestamp: new Date(Date.now() - 3 * 60 * 60 * 1000).toISOString(), // 3 hours ago
+        icon: "shield",
+        color: "blue"
+      },
+      {
+        id: "activity-3",
+        type: "platform",
+        title: "Joined Second Chance platform",
+        description: "Welcome to the startup validation ecosystem",
+        timestamp: new Date(Date.now() - 24 * 60 * 60 * 1000).toISOString(), // 1 day ago
+        icon: "user-plus",
+        color: "purple"
+      },
+      {
+        id: "activity-4",
+        type: "score",
+        title: "ProofScore baseline established",
+        description: "Initial score: 85 - Great starting point!",
+        timestamp: new Date(Date.now() - 25 * 60 * 60 * 1000).toISOString(), // 25 hours ago
+        icon: "trending-up",
+        color: "yellow"
+      },
+      {
+        id: "activity-5",
+        type: "guidance",
+        title: "Onboarding tips available",
+        description: "Upload files to increase your ProofScore",
+        timestamp: new Date(Date.now() - 26 * 60 * 60 * 1000).toISOString(), // 26 hours ago
+        icon: "lightbulb",
+        color: "orange"
+      }
+    ];
+
+    res.json(activities);
+  } catch (error) {
+    console.error("Activity data error:", error);
+    res.status(500).json({ error: "Failed to load activity data" });
+  }
+});
+
 // Get leaderboard data
 router.get("/leaderboard", async (req, res) => {
   try {

@@ -21,7 +21,8 @@ import {
   Award,
   User,
   Settings,
-  LogOut
+  LogOut,
+  Medal
 } from "lucide-react";
 import Navbar from "@/components/navbar";
 import Footer from "@/components/footer";
@@ -64,11 +65,22 @@ interface ValidationData {
   status: string;
 }
 
+interface ActivityItem {
+  id: string;
+  type: string;
+  title: string;
+  description: string;
+  timestamp: string;
+  icon: string;
+  color: string;
+}
+
 export default function DashboardPage() {
   const [user, setUser] = useState<User | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [validationData, setValidationData] = useState<ValidationData | null>(null);
   const [proofVaultData, setProofVaultData] = useState<ProofVaultData | null>(null);
+  const [recentActivity, setRecentActivity] = useState<ActivityItem[]>([]);
   const [activeTab, setActiveTab] = useState("overview");
   const [, setLocation] = useLocation();
   const { toast } = useToast();
@@ -111,6 +123,13 @@ export default function DashboardPage() {
         const vault = await vaultResponse.json();
         setProofVaultData(vault);
       }
+
+      // Load recent activity data
+      const activityResponse = await fetch('/api/dashboard/activity');
+      if (activityResponse.ok) {
+        const activity = await activityResponse.json();
+        setRecentActivity(activity);
+      }
     } catch (error) {
       console.error('Dashboard data load error:', error);
       // Set fallback data for demo purposes
@@ -130,6 +149,27 @@ export default function DashboardPage() {
         totalFiles: 0,
         files: []
       });
+      
+      setRecentActivity([
+        {
+          id: "activity-1",
+          type: "account",
+          title: "Email verified successfully",
+          description: "Your email has been verified and account is active",
+          timestamp: new Date(Date.now() - 2 * 60 * 60 * 1000).toISOString(),
+          icon: "check",
+          color: "green"
+        },
+        {
+          id: "activity-2",
+          type: "platform",
+          title: "Joined Second Chance platform",
+          description: "Welcome to the startup validation ecosystem",
+          timestamp: new Date(Date.now() - 24 * 60 * 60 * 1000).toISOString(),
+          icon: "user-plus",
+          color: "purple"
+        }
+      ]);
     }
   };
 
@@ -257,6 +297,18 @@ export default function DashboardPage() {
         variant: "destructive",
       });
     }
+  };
+
+  const formatTimeAgo = (timestamp: string) => {
+    const now = new Date();
+    const activityTime = new Date(timestamp);
+    const diffInSeconds = Math.floor((now.getTime() - activityTime.getTime()) / 1000);
+    
+    if (diffInSeconds < 60) return 'Just now';
+    if (diffInSeconds < 3600) return `${Math.floor(diffInSeconds / 60)}m ago`;
+    if (diffInSeconds < 86400) return `${Math.floor(diffInSeconds / 3600)}h ago`;
+    if (diffInSeconds < 604800) return `${Math.floor(diffInSeconds / 86400)}d ago`;
+    return activityTime.toLocaleDateString();
   };
 
   if (isLoading) {
@@ -458,6 +510,97 @@ export default function DashboardPage() {
           {/* Right Column - Sidebar */}
           <div className="space-y-6">
             
+            {/* Leaderboard - Top Right */}
+            <div className="bg-gray-900 border border-gray-700 rounded-lg p-4">
+              <h3 className="text-lg font-semibold mb-4 bg-gradient-to-r from-violet-400 to-amber-400 bg-clip-text text-transparent flex items-center gap-2">
+                <div className="p-1.5 rounded-lg bg-gradient-to-r from-violet-500 to-amber-500 shadow-lg">
+                  <Trophy className="w-4 h-4 text-white" />
+                </div>
+                Leaderboard
+              </h3>
+              <p className="text-sm text-gray-400 mb-4">
+                Top performing ventures by ProofScore validation
+              </p>
+              
+              <div className="space-y-2">
+                {[
+                  { rank: 1, name: "Alex Chen", venture: "TechFlow", score: 92, isCurrentUser: false },
+                  { rank: 2, name: "Sarah Kim", venture: "EcoSmart", score: 89, isCurrentUser: false },
+                  { rank: 3, name: "You", venture: user?.venture?.name || 'Your Venture', score: 85, isCurrentUser: true },
+                  { rank: 4, name: "Michael Park", venture: "DataViz", score: 82, isCurrentUser: false },
+                  { rank: 5, name: "Lisa Wang", venture: "HealthTech", score: 78, isCurrentUser: false }
+                ].map((entry) => {
+                  const isTopThree = entry.rank <= 3;
+                  
+                  return (
+                    <div
+                      key={entry.rank}
+                      className={`relative transition-all duration-300 rounded-xl overflow-hidden ${
+                        entry.isCurrentUser 
+                          ? 'bg-gradient-to-r from-violet-500/20 to-amber-500/20 border-2 border-transparent shadow-lg shadow-violet-500/25' 
+                          : isTopThree
+                          ? 'bg-gradient-to-r from-yellow-500/10 to-amber-500/10 border border-yellow-400/30 shadow-md'
+                          : 'bg-gray-800/50 border border-gray-700/50 hover:border-purple-500/20'
+                      }`}
+                    >
+                      {entry.isCurrentUser && (
+                        <>
+                          {/* Animated border */}
+                          <div className="absolute inset-0 pointer-events-none rounded-xl">
+                            <div className="absolute inset-[2px] bg-gray-900/95 rounded-xl" />
+                          </div>
+                          <div className="absolute -top-1 -right-1 w-3 h-3 bg-gradient-to-r from-violet-400 to-amber-400 rounded-full animate-pulse z-10"></div>
+                        </>
+                      )}
+                      
+                      <div className="relative z-10 flex items-center gap-4 p-4">
+                        <div className={`flex items-center justify-center w-10 h-10 rounded-full ${
+                          isTopThree ? 'bg-gradient-to-r from-yellow-400 to-amber-500' : 'bg-gray-600/50'
+                        } shadow-lg`}>
+                          {entry.rank <= 3 ? (
+                            entry.rank === 1 ? (
+                              <Trophy className="w-5 h-5 text-yellow-900" />
+                            ) : entry.rank === 2 ? (
+                              <Medal className="w-5 h-5 text-gray-700" />
+                            ) : (
+                              <Award className="w-5 h-5 text-amber-700" />
+                            )
+                          ) : (
+                            <span className="text-sm font-bold text-white">{entry.rank}</span>
+                          )}
+                        </div>
+                        
+                        <div className="flex-1 min-w-0">
+                          <div className="flex items-center gap-2">
+                            <h4 className={`font-semibold truncate ${
+                              entry.isCurrentUser ? 'text-violet-300' : 'text-white'
+                            }`}>
+                              {entry.name}
+                            </h4>
+                            {entry.isCurrentUser && (
+                              <span className="px-2 py-1 text-xs bg-gradient-to-r from-violet-500 to-amber-500 text-white rounded-full">
+                                You
+                              </span>
+                            )}
+                          </div>
+                          <p className="text-sm text-gray-400 truncate">{entry.venture}</p>
+                        </div>
+                        
+                        <div className="text-right">
+                          <div className={`text-2xl font-bold ${
+                            entry.isCurrentUser ? 'text-violet-400' : isTopThree ? 'text-amber-400' : 'text-gray-300'
+                          }`}>
+                            {entry.score}
+                          </div>
+                          <div className="text-xs text-gray-500">ProofScore</div>
+                        </div>
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
+            </div>
+
             {/* Deal Room Access */}
             <Card className="bg-gray-900 border-gray-700">
               <CardHeader>
@@ -468,14 +611,35 @@ export default function DashboardPage() {
               </CardHeader>
               <CardContent>
                 <div className="space-y-4">
-                  <div className="flex items-center gap-2">
-                    <CheckCircle className="w-5 h-5 text-green-400" />
-                    <span className="text-green-400 text-sm">Access Granted</span>
-                  </div>
-                  <p className="text-gray-400 text-sm">Your venture is now visible to our verified investor network.</p>
-                  <Button className="w-full bg-gradient-to-r from-purple-500 to-yellow-500 text-white">
-                    Enter Deal Room →
-                  </Button>
+                  {(validationData?.proofScore || 85) >= 90 ? (
+                    <>
+                      <div className="flex items-center gap-2">
+                        <CheckCircle className="w-5 h-5 text-green-400" />
+                        <span className="text-green-400 text-sm">Access Granted</span>
+                      </div>
+                      <p className="text-gray-400 text-sm">Your venture is now visible to our verified investor network.</p>
+                      <Button className="w-full bg-gradient-to-r from-purple-500 to-yellow-500 text-white">
+                        Enter Deal Room →
+                      </Button>
+                    </>
+                  ) : (
+                    <>
+                      <div className="flex items-center gap-2">
+                        <Clock className="w-5 h-5 text-yellow-400" />
+                        <span className="text-yellow-400 text-sm">Upload Required</span>
+                      </div>
+                      <p className="text-gray-400 text-sm">Upload more files to your data room to achieve a score above 90 and access the deal room.</p>
+                      <div className="bg-yellow-900/20 border border-yellow-700 rounded-lg p-3">
+                        <p className="text-yellow-300 text-xs">
+                          Current Score: {validationData?.proofScore || 85}/100<br/>
+                          Required: 90+ for Deal Room Access
+                        </p>
+                      </div>
+                      <Button disabled className="w-full bg-gray-600 text-gray-400 cursor-not-allowed">
+                        Deal Room Locked
+                      </Button>
+                    </>
+                  )}
                 </div>
               </CardContent>
             </Card>
@@ -489,37 +653,38 @@ export default function DashboardPage() {
                 </CardTitle>
               </CardHeader>
               <CardContent>
-                <div className="flex items-center justify-center py-8">
-                  <div className="text-center text-gray-400">
-                    <Clock className="w-8 h-8 mx-auto mb-2 opacity-50" />
-                    <p className="text-sm">No recent activity</p>
-                  </div>
-                </div>
-              </CardContent>
-            </Card>
-
-            {/* Leaderboard */}
-            <Card className="bg-gray-900 border-gray-700">
-              <CardHeader>
-                <CardTitle className="flex items-center gap-2 text-white">
-                  <Trophy className="w-5 h-5" />
-                  Leaderboard
-                </CardTitle>
-              </CardHeader>
-              <CardContent>
-                <div className="space-y-3">
-                  <div className="flex items-center gap-3">
-                    <div className="w-6 h-6 rounded-full bg-yellow-500 flex items-center justify-center text-xs font-bold text-black">1</div>
-                    <span className="text-white text-sm">Alex Chen - 92</span>
-                  </div>
-                  <div className="flex items-center gap-3">
-                    <div className="w-6 h-6 rounded-full bg-gray-400 flex items-center justify-center text-xs font-bold text-black">2</div>
-                    <span className="text-white text-sm">Sarah Kim - 89</span>
-                  </div>
-                  <div className="flex items-center gap-3">
-                    <div className="w-6 h-6 rounded-full bg-yellow-600 flex items-center justify-center text-xs font-bold text-white">3</div>
-                    <span className="text-white text-sm">You - 85</span>
-                  </div>
+                <div className="space-y-3 max-h-80 overflow-y-auto">
+                  {recentActivity.length > 0 ? (
+                    recentActivity.map((activity) => {
+                      const timeAgo = formatTimeAgo(activity.timestamp);
+                      const colorClasses = {
+                        green: "bg-green-400",
+                        blue: "bg-blue-400", 
+                        purple: "bg-purple-400",
+                        yellow: "bg-yellow-400",
+                        orange: "bg-orange-400",
+                        red: "bg-red-400"
+                      };
+                      
+                      return (
+                        <div key={activity.id} className="flex items-start gap-3 p-3 bg-gray-800 rounded-lg hover:bg-gray-750 transition-colors">
+                          <div className={`w-2 h-2 rounded-full ${colorClasses[activity.color as keyof typeof colorClasses] || 'bg-gray-400'} mt-2 flex-shrink-0`}></div>
+                          <div className="flex-1 min-w-0">
+                            <p className="text-white text-sm font-medium">{activity.title}</p>
+                            <p className="text-gray-400 text-xs truncate">{activity.description}</p>
+                            <p className="text-gray-500 text-xs mt-1">{timeAgo}</p>
+                          </div>
+                        </div>
+                      );
+                    })
+                  ) : (
+                    <div className="flex items-center justify-center py-8">
+                      <div className="text-center text-gray-400">
+                        <Clock className="w-8 h-8 mx-auto mb-2 opacity-50" />
+                        <p className="text-sm">No recent activity</p>
+                      </div>
+                    </div>
+                  )}
                 </div>
               </CardContent>
             </Card>

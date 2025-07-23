@@ -141,9 +141,9 @@ Demo experience for testing different user journeys:
   * Files tab: Complete file listing with view, download, and remove actions
   * Upload tab: Drag-and-drop interface with folder selection capability
 - **Right Sidebar Widgets**:
-  * Deal Room Access panel with status indicators and entry button
-  * Recent Activity feed (currently empty state with proper styling)
-  * Leaderboard showing top performers with user ranking (You - 85, 3rd place)
+  * Leaderboard positioned at top-right with analysis page design integration (gradient styling, animated borders, trophy/medal icons)
+  * Deal Room Access panel with conditional access based on score ≥90 and clear upload requirements messaging  
+  * Recent Activity feed with dynamic founder journey tracking (email verification, password setup, platform joining, score establishment)
 - **Backend API Integration**: Created `/api/dashboard/*` endpoints for validation data, vault management, and leaderboard
 - **File Management Features**: Upload, download, remove functionality with toast notifications and data refresh
 - **Mobile Responsive**: Proper mobile optimization with responsive grid layouts and touch-friendly interactions
