@@ -6,6 +6,7 @@ import { useToast } from "@/hooks/use-toast";
 import { LogOut, User, Settings } from "lucide-react";
 import Logo from "@/components/logo";
 import Footer from "@/components/footer";
+import Navbar from "@/components/navbar";
 
 interface User {
   founderId: string;
@@ -84,12 +85,12 @@ export default function DashboardPage() {
 
   return (
     <div className="min-h-screen flex flex-col">
+      <Navbar showSignOut />
       <div className="flex-1 bg-gradient-to-br from-background via-card to-background px-4 py-8">
         <div className="max-w-4xl mx-auto">
           {/* Header */}
           <div className="text-center mb-8">
-            <Logo size="md" showTagline={false} />
-            <h1 className="text-3xl font-bold gradient-text mt-4 mb-2">Welcome to Your Dashboard</h1>
+            <h1 className="text-3xl font-bold gradient-text mb-2">Welcome to Your Dashboard</h1>
             <p className="text-muted-foreground">
               Hello {user?.email}! Manage your Second Chance journey from here.
             </p>
