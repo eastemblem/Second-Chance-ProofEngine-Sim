@@ -7,8 +7,8 @@ interface LogoProps {
 
 export default function Logo({ size = "md", showTagline = true }: LogoProps) {
   const imageSize = {
-    sm: "h-6",
-    md: "h-8", 
+    sm: "h-8",
+    md: "h-12", 
     lg: "h-72",
     xl: "h-80"
   };

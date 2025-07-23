@@ -63,7 +63,7 @@ export default function Navbar({ showSignOut = false, showSignIn = false, logoOn
               onClick={() => setLocation('/')}
               className="flex items-center hover:opacity-80 transition-opacity"
             >
-              <Logo size="sm" showTagline={false} />
+              <Logo size="md" showTagline={false} />
             </button>
           </div>
 
