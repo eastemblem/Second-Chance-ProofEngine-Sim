@@ -154,6 +154,11 @@ export default function SetPasswordPage() {
           <div className="w-full max-w-md">
 
 
+            {/* Logo */}
+            <div className="text-center mb-8">
+              <Logo size="lg" showTagline={false} />
+            </div>
+
             {/* Error Card */}
             <Card className="shadow-lg border-border/50">
               <CardHeader className="text-center pb-4">
@@ -230,6 +235,11 @@ export default function SetPasswordPage() {
       <div className="flex-1 flex items-center justify-center bg-gradient-to-br from-background via-card to-background px-4">
         <div className="w-full max-w-md">
 
+
+          {/* Logo */}
+          <div className="text-center mb-8">
+            <Logo size="lg" showTagline={false} />
+          </div>
 
           {/* Verification Success */}
           <div className="text-center mb-6">
