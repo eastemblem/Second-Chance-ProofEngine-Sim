@@ -869,6 +869,43 @@ export class OnboardingService {
       // Don't fail the entire process if email fails - it's a nice-to-have feature
     }
   }
+
+  /**
+   * Retry scoring for a completed session
+   */
+  async retryScoring(sessionId: string, uploadData: any) {
+    console.log(`🔄 Retrying scoring for session: ${sessionId}`);
+    
+    // Check if file still exists
+    if (!fs.existsSync(uploadData.filePath)) {
+      throw new Error("Original uploaded file no longer exists");
+    }
+
+    // Read the file
+    const fileBuffer = fs.readFileSync(uploadData.filePath);
+    
+    // Get the scoring result by calling East Emblem API again
+    const scoringResult = await eastEmblemAPI.scorePitchDeck(
+      fileBuffer,
+      uploadData.fileName,
+      sessionId
+    );
+
+    // Update the session with new scoring result
+    const session = await this.getSession(sessionId);
+    await this.updateSession(sessionId, {
+      stepData: {
+        ...session.stepData,
+        scoringResult,
+        processing: {
+          scoringResult
+        }
+      }
+    });
+
+    console.log(`✅ Scoring retry completed for session: ${sessionId}`);
+    return scoringResult;
+  }
 }
 
 export const onboardingService = new OnboardingService();

@@ -292,4 +292,39 @@ router.post("/send-email-manual", asyncHandler(async (req, res) => {
   }, 'Email sent successfully'));
 }));
 
+// Retry analysis for a completed session
+router.post("/retry-analysis", asyncHandler(async (req, res) => {
+  const { sessionId } = req.body;
+  
+  if (!sessionId) {
+    throw new Error("Session ID is required");
+  }
+
+  const session = await onboardingService.getSession(sessionId);
+  if (!session) {
+    throw new Error("Session not found");
+  }
+
+  if (!session.isComplete) {
+    throw new Error("Session is not complete yet");
+  }
+
+  console.log(`🔄 Retrying analysis for session: ${sessionId}`);
+  
+  // Get the uploaded file data
+  const uploadData = session.stepData?.upload;
+  if (!uploadData) {
+    throw new Error("No upload data found in session");
+  }
+
+  // Retry the scoring process
+  const result = await onboardingService.retryScoring(sessionId, uploadData);
+  
+  res.json(createSuccessResponse({
+    sessionId,
+    scoringResult: result,
+    message: "Analysis retried successfully"
+  }));
+}));
+
 export default router;
