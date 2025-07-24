@@ -23,9 +23,51 @@ export async function createCertificateForSession(sessionId: string) {
 
     // Check if certificate already exists
     if (session.stepData?.processing?.certificateUrl) {
+      const existingUrl = session.stepData.processing.certificateUrl;
+      
+      // Still update database even if certificate exists in session
+      try {
+        const { documentUpload, venture } = await import('@shared/schema');
+        const ventureId = session.stepData?.venture?.ventureId;
+        
+        if (ventureId) {
+          // Update venture table with certificate URL
+          await db
+            .update(venture)
+            .set({
+              certificateUrl: existingUrl,
+              certificateGeneratedAt: new Date(),
+              updatedAt: new Date()
+            })
+            .where(eq(venture.ventureId, ventureId));
+          console.log("✓ Venture table updated with existing certificate URL");
+          
+          // Try to create document_upload record (ignore if already exists)
+          try {
+            await db.insert(documentUpload).values({
+              ventureId: ventureId,
+              fileName: 'validation_certificate.pdf',
+              originalName: 'validation_certificate.pdf',
+              filePath: '/generated/certificate.pdf',
+              fileSize: 0,
+              mimeType: 'application/pdf',
+              uploadStatus: 'completed',
+              processingStatus: 'completed',
+              sharedUrl: existingUrl
+            });
+            console.log("✓ Certificate document_upload record created");
+          } catch (docError) {
+            // Document record might already exist, that's ok
+            console.log("Certificate document record might already exist");
+          }
+        }
+      } catch (error) {
+        console.error("Failed to update database with existing certificate:", error);
+      }
+      
       return {
         success: true,
-        certificateUrl: session.stepData.processing.certificateUrl,
+        certificateUrl: existingUrl,
         message: "Certificate already exists"
       };
     }
@@ -90,14 +132,16 @@ export async function createCertificateForSession(sessionId: string) {
       const ventureId = session.stepData?.venture?.ventureId;
       if (ventureId) {
         await db.insert(documentUpload).values({
-          uploadId: randomUUID(),
           ventureId: ventureId,
-          fileName: certificateResult.name || 'certificate.pdf',
-          fileType: 'pdf',
+          fileName: certificateResult.name || 'validation_certificate.pdf',
+          originalName: certificateResult.name || 'validation_certificate.pdf',
+          filePath: '/generated/certificate.pdf',
           fileSize: 0, // Size not available from EastEmblem API
+          mimeType: 'application/pdf',
+          uploadStatus: 'completed',
+          processingStatus: 'completed',
           sharedUrl: certificateResult.url,
-          boxFileId: certificateResult.id,
-          uploadedBy: 'system'
+          eastemblemFileId: certificateResult.id
         });
         console.log("✓ Certificate document_upload record created");
         

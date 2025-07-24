@@ -146,9 +146,51 @@ export async function createReportForSession(sessionId: string) {
 
     // Check if report already exists
     if (session.stepData?.processing?.reportUrl) {
+      const existingUrl = session.stepData.processing.reportUrl;
+      
+      // Still update database even if report exists in session
+      try {
+        const { documentUpload, venture } = await import('@shared/schema');
+        const ventureId = session.stepData?.venture?.ventureId;
+        
+        if (ventureId) {
+          // Update venture table with report URL
+          await db
+            .update(venture)
+            .set({
+              reportUrl: existingUrl,
+              reportGeneratedAt: new Date(),
+              updatedAt: new Date()
+            })
+            .where(eq(venture.ventureId, ventureId));
+          console.log("✓ Venture table updated with existing report URL");
+          
+          // Try to create document_upload record (ignore if already exists)
+          try {
+            await db.insert(documentUpload).values({
+              ventureId: ventureId,
+              fileName: 'analysis_report.pdf',
+              originalName: 'analysis_report.pdf',
+              filePath: '/generated/report.pdf',
+              fileSize: 0,
+              mimeType: 'application/pdf',
+              uploadStatus: 'completed',
+              processingStatus: 'completed',
+              sharedUrl: existingUrl
+            });
+            console.log("✓ Report document_upload record created");
+          } catch (docError) {
+            // Document record might already exist, that's ok
+            console.log("Report document record might already exist");
+          }
+        }
+      } catch (error) {
+        console.error("Failed to update database with existing report:", error);
+      }
+      
       return {
         success: true,
-        reportUrl: session.stepData.processing.reportUrl,
+        reportUrl: existingUrl,
         message: "Report already exists"
       };
     }
