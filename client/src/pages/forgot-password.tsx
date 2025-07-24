@@ -6,7 +6,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { ArrowLeft, Mail, AlertCircle, CheckCircle2 } from 'lucide-react';
 import { Link } from 'wouter';
-
+import Logo from '@/components/logo';
 import Footer from '@/components/footer';
 import { useToast } from '@/hooks/use-toast';
 
@@ -79,12 +79,18 @@ export default function ForgotPasswordPage() {
   return (
     <div className="min-h-screen flex flex-col">
       <div className="flex-1 flex items-center justify-center bg-gradient-to-br from-background via-card to-background px-4 py-8">
-        <div className="w-full max-w-md space-y-6">
-          {/* Back to Login Link */}
-          <Link href="/login" className="inline-flex items-center text-muted-foreground hover:text-foreground transition-colors">
-            <ArrowLeft className="w-4 h-4 mr-2" />
-            Back to Login
-          </Link>
+        <div className="w-full max-w-md">
+          {/* Logo */}
+          <div className="text-center mb-8">
+            <Logo size="lg" showTagline={false} />
+          </div>
+
+          <div className="space-y-6">
+            {/* Back to Login Link */}
+            <Link href="/login" className="inline-flex items-center text-muted-foreground hover:text-foreground transition-colors">
+              <ArrowLeft className="w-4 h-4 mr-2" />
+              Back to Login
+            </Link>
 
           <Card className="shadow-lg border-border/50">
             <CardHeader className="space-y-1 text-center">
@@ -197,6 +203,7 @@ export default function ForgotPasswordPage() {
               </div>
             </CardContent>
           </Card>
+          </div>
         </div>
       </div>
       
