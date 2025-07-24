@@ -34,6 +34,7 @@ interface User {
   fullName?: string;
   venture?: {
     name: string;
+    ventureId?: string;
     certificateUrl?: string;
     reportUrl?: string;
   };
@@ -44,6 +45,9 @@ interface ProofVaultData {
   problemProofCount: number;
   solutionProofCount: number;
   demandProofCount: number;
+  credibilityProofCount: number;
+  commercialProofCount: number;
+  investorPackCount: number;
   totalFiles: number;
   files: FileItem[];
 }
@@ -146,6 +150,9 @@ export default function DashboardPage() {
         problemProofCount: 0,
         solutionProofCount: 0,
         demandProofCount: 0,
+        credibilityProofCount: 0,
+        commercialProofCount: 0,
+        investorPackCount: 0,
         totalFiles: 0,
         files: []
       });
@@ -363,11 +370,6 @@ export default function DashboardPage() {
               <h1 className="text-2xl font-bold text-white">Welcome {user?.fullName || user?.email?.split('@')[0] || 'Founder'}</h1>
               <p className="text-gray-400">
                 {user?.venture?.name || 'Your Venture'} Dashboard
-                {user?.totalVentures && user.totalVentures > 1 && (
-                  <span className="ml-2 text-xs bg-purple-500/20 text-purple-300 px-2 py-1 rounded-full">
-                    Latest of {user.totalVentures} ventures
-                  </span>
-                )}
               </p>
             </div>
           </div>
@@ -430,98 +432,14 @@ export default function DashboardPage() {
               </CardContent>
             </Card>
 
-            {/* Certificate & Report Downloads */}
-            <Card className="bg-gray-900 border-gray-700">
-              <CardHeader>
-                <CardTitle className="flex items-center gap-2 text-white">
-                  <div className="p-1.5 rounded-lg bg-gradient-to-r from-purple-500 to-yellow-500 shadow-lg">
-                    <Download className="w-4 h-4 text-white" />
-                  </div>
-                  Downloads
-                </CardTitle>
-                <CardDescription className="text-gray-400">
-                  Access your validation certificate and detailed analysis report
-                </CardDescription>
-              </CardHeader>
-              <CardContent>
-                <div className="grid grid-cols-2 gap-4">
-                  {/* Certificate Download */}
-                  <div className="relative group">
-                    <div className="absolute inset-0 bg-gradient-to-r from-purple-500/20 to-purple-600/20 rounded-xl blur-xl group-hover:blur-sm transition-all duration-300"></div>
-                    <div className="relative p-6 bg-gradient-to-br from-purple-900/30 to-purple-800/20 border border-purple-500/30 rounded-xl hover:border-purple-400/50 transition-all duration-300">
-                      <div className="flex items-center gap-3 mb-4">
-                        <div className="p-2 rounded-lg bg-purple-500/20">
-                          <Award className="w-6 h-6 text-purple-400" />
-                        </div>
-                        <div>
-                          <h3 className="text-lg font-semibold text-white">Certificate</h3>
-                          <p className="text-purple-300 text-sm">ProofScore Validation</p>
-                        </div>
-                      </div>
-                      <p className="text-gray-300 text-sm mb-4">
-                        Official certificate confirming your venture's validation score and achievements.
-                      </p>
-                      <Button 
-                        onClick={handleDownloadCertificate} 
-                        className="w-full bg-gradient-to-r from-purple-500 to-purple-600 hover:from-purple-600 hover:to-purple-700 text-white border-0"
-                      >
-                        <Download className="w-4 h-4 mr-2" />
-                        Download Certificate
-                      </Button>
-                    </div>
-                  </div>
 
-                  {/* Report Download */}
-                  <div className="relative group">
-                    <div className="absolute inset-0 bg-gradient-to-r from-yellow-500/20 to-amber-600/20 rounded-xl blur-xl group-hover:blur-sm transition-all duration-300"></div>
-                    <div className="relative p-6 bg-gradient-to-br from-yellow-900/30 to-amber-800/20 border border-yellow-500/30 rounded-xl hover:border-yellow-400/50 transition-all duration-300">
-                      <div className="flex items-center gap-3 mb-4">
-                        <div className="p-2 rounded-lg bg-yellow-500/20">
-                          <FileText className="w-6 h-6 text-yellow-400" />
-                        </div>
-                        <div>
-                          <h3 className="text-lg font-semibold text-white">Analysis Report</h3>
-                          <p className="text-yellow-300 text-sm">Detailed Insights</p>
-                        </div>
-                      </div>
-                      <p className="text-gray-300 text-sm mb-4">
-                        Comprehensive analysis with actionable insights and recommendations for improvement.
-                      </p>
-                      <Button 
-                        onClick={handleDownloadReport} 
-                        className="w-full bg-gradient-to-r from-yellow-500 to-amber-600 hover:from-yellow-600 hover:to-amber-700 text-white border-0"
-                      >
-                        <FileText className="w-4 h-4 mr-2" />
-                        Download Report
-                      </Button>
-                    </div>
-                  </div>
-                </div>
 
-                {/* Additional Download Info */}
-                <div className="mt-6 p-4 bg-gray-800/50 border border-gray-700/50 rounded-lg">
-                  <div className="flex items-start gap-3">
-                    <div className="p-1 rounded-full bg-green-500/20">
-                      <CheckCircle className="w-4 h-4 text-green-400" />
-                    </div>
-                    <div className="flex-1">
-                      <h4 className="text-white font-medium text-sm mb-1">Ready for Download</h4>
-                      <p className="text-gray-400 text-xs">
-                        Your validation documents are automatically generated after completing the analysis. 
-                        Certificate includes ProofScore and ProofTags achievements. Report contains detailed breakdown and investor feedback.
-                      </p>
-                    </div>
-                  </div>
-                </div>
-              </CardContent>
-            </Card>
-
-            {/* ProofVault Management */}
+            {/* Your Proof Vault */}
             <Card className="bg-gray-900 border-gray-700">
               <CardHeader>
                 <CardTitle className="flex items-center gap-2 text-white">
                   <FolderOpen className="w-5 h-5" />
-                  ProofVault Management
+                  Your Proof Vault
                 </CardTitle>
               </CardHeader>
               <CardContent>
@@ -536,33 +454,33 @@ export default function DashboardPage() {
                     <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-4">
                       <div className="text-center p-4 bg-gray-800 rounded-lg">
                         <div className="text-2xl font-bold text-white mb-1">{proofVaultData?.overviewCount || 0}</div>
-                        <p className="text-gray-400 text-sm">0_Overview</p>
+                        <p className="text-gray-400 text-sm">Overview</p>
                       </div>
                       <div className="text-center p-4 bg-gray-800 rounded-lg">
                         <div className="text-2xl font-bold text-white mb-1">{proofVaultData?.problemProofCount || 0}</div>
-                        <p className="text-gray-400 text-sm">1_Problem_Proof</p>
+                        <p className="text-gray-400 text-sm">Problem Proofs</p>
                       </div>
                       <div className="text-center p-4 bg-gray-800 rounded-lg">
                         <div className="text-2xl font-bold text-white mb-1">{proofVaultData?.solutionProofCount || 0}</div>
-                        <p className="text-gray-400 text-sm">2_Solution_Proof</p>
+                        <p className="text-gray-400 text-sm">Solution Proofs</p>
                       </div>
                       <div className="text-center p-4 bg-gray-800 rounded-lg">
                         <div className="text-2xl font-bold text-white mb-1">{proofVaultData?.demandProofCount || 0}</div>
-                        <p className="text-gray-400 text-sm">3_Demand_Proof</p>
+                        <p className="text-gray-400 text-sm">Demand Proofs</p>
                       </div>
                     </div>
                     <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                       <div className="text-center p-4 bg-gray-800 rounded-lg">
                         <div className="text-2xl font-bold text-white mb-1">{proofVaultData?.credibilityProofCount || 0}</div>
-                        <p className="text-gray-400 text-sm">4_Credibility_Proof</p>
+                        <p className="text-gray-400 text-sm">Credibility Proofs</p>
                       </div>
                       <div className="text-center p-4 bg-gray-800 rounded-lg">
                         <div className="text-2xl font-bold text-white mb-1">{proofVaultData?.commercialProofCount || 0}</div>
-                        <p className="text-gray-400 text-sm">5_Commercial_Proof</p>
+                        <p className="text-gray-400 text-sm">Commercial Proofs</p>
                       </div>
                       <div className="text-center p-4 bg-gray-800 rounded-lg">
                         <div className="text-2xl font-bold text-white mb-1">{proofVaultData?.investorPackCount || 0}</div>
-                        <p className="text-gray-400 text-sm">6_Investor_Pack</p>
+                        <p className="text-gray-400 text-sm">Investor Pack</p>
                       </div>
                     </div>
                   </TabsContent>
