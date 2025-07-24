@@ -188,56 +188,118 @@ router.get("/activity", async (req, res) => {
       return res.status(401).json({ error: "Not authenticated" });
     }
 
-    // Generate realistic recent activities based on user's journey
-    const activities = [
-      {
-        id: "activity-1",
+    // Get real activity data from database
+    const activities = [];
+    
+    // Get founder data
+    const founder = await storage.getFounder(founderId);
+    if (!founder) {
+      return res.status(404).json({ error: 'Founder not found' });
+    }
+
+    // Get latest venture
+    const ventures = await storage.getVenturesByFounderId(founderId);
+    const latestVenture = ventures?.[0];
+
+    // 1. Account creation activity (oldest)
+    activities.push({
+      id: "activity-account-created",
+      type: "platform",
+      title: "Joined Second Chance platform",
+      description: "Welcome to the startup validation ecosystem",
+      timestamp: founder.createdAt.toISOString(),
+      icon: "user-plus",
+      color: "purple"
+    });
+
+    // 2. Email verification activity
+    if (founder.emailVerified) {
+      activities.push({
+        id: "activity-email-verified",
         type: "account",
         title: "Email verified successfully",
         description: "Your email has been verified and account is active",
-        timestamp: new Date(Date.now() - 2 * 60 * 60 * 1000).toISOString(), // 2 hours ago
+        timestamp: founder.lastLoginAt?.toISOString() || founder.createdAt.toISOString(),
         icon: "check",
         color: "green"
-      },
-      {
-        id: "activity-2", 
-        type: "auth",
-        title: "Password set up",
-        description: "Account security configured successfully",
-        timestamp: new Date(Date.now() - 3 * 60 * 60 * 1000).toISOString(), // 3 hours ago
-        icon: "shield",
-        color: "blue"
-      },
-      {
-        id: "activity-3",
-        type: "platform",
-        title: "Joined Second Chance platform",
-        description: "Welcome to the startup validation ecosystem",
-        timestamp: new Date(Date.now() - 24 * 60 * 60 * 1000).toISOString(), // 1 day ago
-        icon: "user-plus",
-        color: "purple"
-      },
-      {
-        id: "activity-4",
-        type: "score",
-        title: "ProofScore baseline established",
-        description: "Initial score: 85 - Great starting point!",
-        timestamp: new Date(Date.now() - 25 * 60 * 60 * 1000).toISOString(), // 25 hours ago
-        icon: "trending-up",
-        color: "yellow"
-      },
-      {
-        id: "activity-5",
-        type: "guidance",
-        title: "Onboarding tips available",
-        description: "Upload files to increase your ProofScore",
-        timestamp: new Date(Date.now() - 26 * 60 * 60 * 1000).toISOString(), // 26 hours ago
-        icon: "lightbulb",
-        color: "orange"
-      }
-    ];
+      });
+    }
 
-    res.json(activities);
+    // 3. Venture creation activity
+    if (latestVenture) {
+      activities.push({
+        id: "activity-venture-created",
+        type: "venture",
+        title: `Venture "${latestVenture.name}" created`,
+        description: `${latestVenture.industry} startup in ${latestVenture.geography}`,
+        timestamp: latestVenture.createdAt.toISOString(),
+        icon: "building",
+        color: "blue"
+      });
+
+      // 4. ProofScore establishment
+      const evaluations = await storage.getEvaluationsByVentureId(latestVenture.ventureId);
+      if (evaluations && evaluations.length > 0) {
+        const latestEvaluation = evaluations[0];
+        let scoreDescription = `Initial score: ${latestEvaluation.proofscore}/100`;
+        if (latestEvaluation.proofscore >= 90) scoreDescription += " - Investor Ready!";
+        else if (latestEvaluation.proofscore >= 70) scoreDescription += " - Great starting point!";
+        
+        activities.push({
+          id: "activity-proofscore",
+          type: "score",
+          title: "ProofScore established",
+          description: scoreDescription,
+          timestamp: latestEvaluation.createdAt.toISOString(),
+          icon: "trending-up",
+          color: "yellow"
+        });
+      }
+
+      // 5. Document upload activities (most recent)
+      const documentUploads = await storage.getDocumentUploadsByVentureId(latestVenture.ventureId);
+      documentUploads.slice(0, 3).forEach((doc, index) => {
+        let title = `Uploaded ${doc.originalName}`;
+        let description = `Document uploaded successfully`;
+        let icon = "file-text";
+        let color = "gray";
+        
+        // Customize based on document type
+        if (doc.originalName.includes('Certificate')) {
+          title = 'Validation certificate generated';
+          description = 'Your achievement certificate is ready for download';
+          icon = "award";
+          color = "green";
+        } else if (doc.originalName.includes('Report')) {
+          title = 'Analysis report generated';
+          description = 'Comprehensive validation report available';
+          icon = "bar-chart";
+          color = "blue";
+        } else if (doc.originalName.toLowerCase().includes('deck')) {
+          title = 'Pitch deck uploaded';
+          description = 'Pitch deck uploaded and analyzed';
+          icon = "upload";
+          color = "purple";
+        }
+
+        activities.push({
+          id: `activity-document-${doc.uploadId}`,
+          type: "document",
+          title: title,
+          description: description,
+          timestamp: doc.createdAt.toISOString(),
+          icon: icon,
+          color: color
+        });
+      });
+    }
+
+    // Sort by timestamp (most recent first) and limit to 5
+    const sortedActivities = activities
+      .sort((a, b) => new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime())
+      .slice(0, 5);
+
+    res.json(sortedActivities);
   } catch (error) {
     console.error("Activity data error:", error);
     res.status(500).json({ error: "Failed to load activity data" });
