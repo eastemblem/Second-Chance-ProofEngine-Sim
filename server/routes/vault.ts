@@ -28,14 +28,49 @@ const upload = multer({
   limits: { fileSize: 10 * 1024 * 1024 },
   fileFilter: (req, file, cb) => {
     const allowedTypes = [
+      // Documents
       "application/pdf",
+      "application/msword",
+      "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
+      "text/plain",
+      "text/csv",
+      "application/vnd.ms-excel",
+      "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+      
+      // Presentations
       "application/vnd.ms-powerpoint", 
       "application/vnd.openxmlformats-officedocument.presentationml.presentation",
+      
+      // Images
+      "image/jpeg",
+      "image/jpg", 
+      "image/png",
+      "image/gif",
+      "image/webp",
+      "image/svg+xml",
+      
+      // Videos
+      "video/mp4",
+      "video/webm",
+      "video/quicktime",
+      "video/x-msvideo",
+      
+      // Audio
+      "audio/mpeg",
+      "audio/wav",
+      "audio/ogg",
+      
+      // Archives
+      "application/zip",
+      "application/x-rar-compressed",
+      "application/x-7z-compressed",
     ];
+    
     if (allowedTypes.includes(file.mimetype)) {
       cb(null, true);
     } else {
-      cb(new Error("Invalid file type. Only PDF, PPT, and PPTX files are allowed."));
+      console.log(`Rejected file type: ${file.mimetype} for file: ${file.originalname}`);
+      cb(new Error(`File type ${file.mimetype} is not supported. Please upload documents, images, videos, or archives.`));
     }
   },
 });
