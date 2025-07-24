@@ -24,9 +24,7 @@ export default function Logo({ size = "md", showTagline = true }: LogoProps) {
           style={{ maxWidth: '18rem', height: 'auto' }}
           width="288"
           height="144"
-          fetchPriority="high"
           loading="eager"
-          decoding="sync"
         />
       </div>
     );

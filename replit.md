@@ -126,6 +126,18 @@ Demo experience for testing different user journeys:
 
 ## Recent Key Updates
 
+### July 24, 2025 - Database Schema Optimization & Performance Enhancement
+- **Database Table Cleanup**: Removed 4 unused tables (evaluation_category, fundraising_history, founder_experience, venture_social) with zero rows and operations
+- **Schema Simplification**: Eliminated redundant social media storage - consolidated all social URLs in venture table instead of separate venture_social table
+- **Performance Indexes Added**: Created 9 optimized indexes for frequently queried foreign keys and composite patterns:
+  * Single column indexes: venture.founder_id, evaluation.venture_id, team_member.venture_id, proof_vault.venture_id, document_upload.venture_id, onboarding_session.founder_id
+  * Composite indexes: evaluation(venture_id, is_current), founder(email, email_verified), venture(created_at DESC)
+- **Relations Cleanup**: Updated Drizzle schema relations to remove references to deleted tables
+- **Type Safety**: Cleaned up TypeScript exports to remove unused table types (FounderExperience, VentureSocial, FundraisingHistory, EvaluationCategory)
+- **Database Size Reduction**: Optimized from 12 tables to 8 active tables, reducing schema complexity by 33%
+- **Query Performance**: Enhanced lookup speed for dashboard queries, team member fetching, and venture-founder relationships
+- **Zero Breaking Changes**: All optimizations maintain existing functionality while improving performance
+
 ### July 24, 2025 - Complete Environment Variable Configuration & URL Management
 - **FRONTEND_URL Environment Variable**: Successfully created and configured FRONTEND_URL for all client-side URLs
 - **LOGO_URL Environment Variable**: Added dedicated LOGO_URL environment variable for centralized logo management

@@ -62,24 +62,7 @@ export const venture = pgTable("venture", {
   updatedAt: timestamp("updated_at").defaultNow().notNull(),
 });
 
-// Founder Experience table
-export const founderExperience = pgTable("founder_experience", {
-  experienceId: uuid("experience_id").primaryKey().defaultRandom(),
-  founderId: uuid("founder_id").references(() => founder.founderId).notNull(),
-  experienceType: varchar("experience_type", { length: 20 }).notNull(),
-  description: text("description").notNull(),
-  timeframe: varchar("timeframe", { length: 50 }),
-  createdAt: timestamp("created_at").defaultNow().notNull(),
-});
-
-// Venture Social Media table
-export const ventureSocial = pgTable("venture_social", {
-  socialId: uuid("social_id").primaryKey().defaultRandom(),
-  ventureId: uuid("venture_id").references(() => venture.ventureId).notNull(),
-  platform: varchar("platform", { length: 20 }).notNull(),
-  url: varchar("url", { length: 200 }).notNull(),
-  createdAt: timestamp("created_at").defaultNow().notNull(),
-});
+// Removed unused tables: founderExperience, ventureSocial
 
 // Team Member table (replaces team_members)
 export const teamMember = pgTable("team_member", {
@@ -100,16 +83,7 @@ export const teamMember = pgTable("team_member", {
   createdAt: timestamp("created_at").defaultNow().notNull(),
 });
 
-// Fundraising History table (replaces investor_interactions)
-export const fundraisingHistory = pgTable("fundraising_history", {
-  fundraisingId: uuid("fundraising_id").primaryKey().defaultRandom(),
-  ventureId: uuid("venture_id").references(() => venture.ventureId).notNull(),
-  amount: decimal("amount").notNull(),
-  stage: varchar("stage", { length: 50 }).notNull(),
-  investors: text("investors").notNull(),
-  date: date("date").notNull(),
-  createdAt: timestamp("created_at").defaultNow().notNull(),
-});
+// Removed unused table: fundraisingHistory
 
 // Evaluation table (replaces proof_scores)
 export const evaluation = pgTable("evaluation", {
@@ -124,17 +98,7 @@ export const evaluation = pgTable("evaluation", {
   createdAt: timestamp("created_at").defaultNow().notNull(),
 });
 
-// Evaluation Category table
-export const evaluationCategory = pgTable("evaluation_category", {
-  categoryId: uuid("category_id").primaryKey().defaultRandom(),
-  evaluationId: uuid("evaluation_id").references(() => evaluation.evaluationId).notNull(),
-  name: varchar("name", { length: 20 }).notNull(),
-  score: integer("score").notNull(),
-  justification: text("justification").notNull(),
-  recommendation: text("recommendation"),
-  proofTags: json("proof_tags").$type<string[]>().notNull().default([]),
-  relatedSlides: json("related_slides").$type<string[]>().notNull().default([]),
-});
+// Removed unused table: evaluationCategory
 
 // ProofVault table (replaces proof_vault_documents)
 export const proofVault = pgTable("proof_vault", {
@@ -201,14 +165,6 @@ export const leaderboard = pgTable("leaderboard", {
 // Relations
 export const founderRelations = relations(founder, ({ many }) => ({
   ventures: many(venture),
-  experiences: many(founderExperience),
-}));
-
-export const founderExperienceRelations = relations(founderExperience, ({ one }) => ({
-  founder: one(founder, {
-    fields: [founderExperience.founderId],
-    references: [founder.founderId],
-  }),
 }));
 
 export const ventureRelations = relations(venture, ({ one, many }) => ({
@@ -219,15 +175,6 @@ export const ventureRelations = relations(venture, ({ one, many }) => ({
   evaluations: many(evaluation),
   documents: many(proofVault),
   teamMembers: many(teamMember),
-  socialMedia: many(ventureSocial),
-  fundraisingHistory: many(fundraisingHistory),
-}));
-
-export const ventureSocialRelations = relations(ventureSocial, ({ one }) => ({
-  venture: one(venture, {
-    fields: [ventureSocial.ventureId],
-    references: [venture.ventureId],
-  }),
 }));
 
 export const teamMemberRelations = relations(teamMember, ({ one }) => ({
@@ -237,27 +184,14 @@ export const teamMemberRelations = relations(teamMember, ({ one }) => ({
   }),
 }));
 
-export const fundraisingHistoryRelations = relations(fundraisingHistory, ({ one }) => ({
-  venture: one(venture, {
-    fields: [fundraisingHistory.ventureId],
-    references: [venture.ventureId],
-  }),
-}));
+// Removed unused relation: fundraisingHistoryRelations
 
 export const evaluationRelations = relations(evaluation, ({ one, many }) => ({
   venture: one(venture, {
     fields: [evaluation.ventureId],
     references: [venture.ventureId],
   }),
-  categories: many(evaluationCategory),
   documents: many(proofVault),
-}));
-
-export const evaluationCategoryRelations = relations(evaluationCategory, ({ one }) => ({
-  evaluation: one(evaluation, {
-    fields: [evaluationCategory.evaluationId],
-    references: [evaluation.evaluationId],
-  }),
 }));
 
 export const proofVaultRelations = relations(proofVault, ({ one }) => ({
@@ -300,20 +234,12 @@ export const leaderboardRelations = relations(leaderboard, ({ one }) => ({
 // Export types
 export type Founder = typeof founder.$inferSelect;
 export type InsertFounder = typeof founder.$inferInsert;
-export type FounderExperience = typeof founderExperience.$inferSelect;
-export type InsertFounderExperience = typeof founderExperience.$inferInsert;
 export type Venture = typeof venture.$inferSelect;
 export type InsertVenture = typeof venture.$inferInsert;
-export type VentureSocial = typeof ventureSocial.$inferSelect;
-export type InsertVentureSocial = typeof ventureSocial.$inferInsert;
 export type TeamMember = typeof teamMember.$inferSelect;
 export type InsertTeamMember = typeof teamMember.$inferInsert;
-export type FundraisingHistory = typeof fundraisingHistory.$inferSelect;
-export type InsertFundraisingHistory = typeof fundraisingHistory.$inferInsert;
 export type Evaluation = typeof evaluation.$inferSelect;
 export type InsertEvaluation = typeof evaluation.$inferInsert;
-export type EvaluationCategory = typeof evaluationCategory.$inferSelect;
-export type InsertEvaluationCategory = typeof evaluationCategory.$inferInsert;
 export type ProofVault = typeof proofVault.$inferSelect;
 export type InsertProofVault = typeof proofVault.$inferInsert;
 export type OnboardingSession = typeof onboardingSession.$inferSelect;
