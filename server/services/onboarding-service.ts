@@ -774,6 +774,12 @@ export class OnboardingService {
       const verificationUrl = `${baseUrl}/api/auth/verify-email/${verificationToken}`;
 
       // Send email notification using new N8N webhook endpoint  
+      console.log("🔗 Sending email with URLs:", {
+        reportUrl: latestReportUrl,
+        certificateUrl: latestCertificateUrl,
+        verificationUrl: verificationUrl
+      });
+      
       const { emailService } = await import('./emailService');
       const emailResult = await emailService.sendOnboardingEmail(
         founder.email,

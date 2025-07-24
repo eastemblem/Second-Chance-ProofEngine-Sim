@@ -39,6 +39,14 @@ export class EmailService {
   private processTemplate(template: string, data: EmailTemplateData): string {
     let processedTemplate = template;
 
+    // Debug: Log URL data before processing
+    if (data.CERTIFICATE_DOWNLOAD_URL || data.REPORT_DOWNLOAD_URL) {
+      console.log("🔧 Processing template with URLs:", {
+        CERTIFICATE_DOWNLOAD_URL: data.CERTIFICATE_DOWNLOAD_URL,
+        REPORT_DOWNLOAD_URL: data.REPORT_DOWNLOAD_URL
+      });
+    }
+
     // Replace simple variables {{VARIABLE_NAME}}
     Object.keys(data).forEach(key => {
       const placeholder = new RegExp(`\\{\\{${key}\\}\\}`, 'g');
@@ -46,6 +54,11 @@ export class EmailService {
       
       if (value !== undefined && value !== null) {
         processedTemplate = processedTemplate.replace(placeholder, String(value));
+        
+        // Debug: Log URL replacements specifically
+        if (key === 'CERTIFICATE_DOWNLOAD_URL' || key === 'REPORT_DOWNLOAD_URL') {
+          console.log(`🔄 Replaced {{${key}}} with: ${value}`);
+        }
       }
     });
 
@@ -113,6 +126,20 @@ export class EmailService {
 
       const htmlContent = await this.loadTemplate(templateName, enrichedData);
       
+      // CRITICAL DEBUG: Check what URLs are actually in the final HTML
+      if (templateName === 'onboarding') {
+        const certMatch = htmlContent.match(/href="([^"]*)" class="download-btn btn-certificate"/);
+        const reportMatch = htmlContent.match(/href="([^"]*)" class="download-btn btn-report"/);
+        console.log("🚨 FINAL HTML CONTAINS THESE URLS:");
+        console.log("Certificate URL:", certMatch ? certMatch[1] : 'NOT FOUND');
+        console.log("Report URL:", reportMatch ? reportMatch[1] : 'NOT FOUND');
+        
+        // Also check the template data one more time
+        console.log("🚨 TEMPLATE DATA BEING USED:");
+        console.log("CERTIFICATE_DOWNLOAD_URL:", enrichedData.CERTIFICATE_DOWNLOAD_URL);
+        console.log("REPORT_DOWNLOAD_URL:", enrichedData.REPORT_DOWNLOAD_URL);
+      }
+      
       // Call N8N webhook email API using environment variable
       const baseUrl = process.env.EASTEMBLEM_API_BASE_URL;
       if (!baseUrl) {
@@ -120,16 +147,27 @@ export class EmailService {
       }
       const webhookUrl = `${baseUrl}/webhook/notification/email/send`;
       
+      // Log the exact data being sent to N8N
+      const emailData = {
+        to,
+        subject,
+        html: htmlContent
+      };
+      
+      console.log("🚨 SENDING TO N8N WEBHOOK:", {
+        to: emailData.to,
+        subject: emailData.subject,
+        htmlContainsCertificateUrl: emailData.html.includes('https://app.box.com/s/dr8mbtnqbtvgtisbv1x7604t2qn4ay2c'),
+        htmlContainsReportUrl: emailData.html.includes('https://app.box.com/s/sbsfbif11llqhkzjniihmy80t21ujce8'),
+        webhookUrl
+      });
+
       const response = await fetch(webhookUrl, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json'
         },
-        body: JSON.stringify({
-          to,
-          subject,
-          html: htmlContent
-        })
+        body: JSON.stringify(emailData)
       });
 
       if (!response.ok) {
@@ -210,30 +248,43 @@ export class EmailService {
     certificateUrl: string,
     verificationUrl?: string
   ): Promise<boolean> {
+    console.log("📧 EmailService.sendOnboardingEmail called with URLs:", {
+      reportUrl,
+      certificateUrl,
+      verificationUrl
+    });
+    
+    const templateData = {
+      USER_NAME: userName,
+      PROOF_SCORE: proofScore,
+      MILESTONE_LEVEL: this.getMilestoneLevel(proofScore),
+      DESIRABILITY_SCORE: scoreBreakdown.desirability || 0,
+      FEASIBILITY_SCORE: scoreBreakdown.feasibility || 0,
+      VIABILITY_SCORE: scoreBreakdown.viability || 0,
+      TRACTION_SCORE: scoreBreakdown.traction || 0,
+      READINESS_SCORE: scoreBreakdown.readiness || 0,
+      DESIRABILITY_PERCENTAGE: ((scoreBreakdown.desirability || 0) / 20) * 100,
+      FEASIBILITY_PERCENTAGE: ((scoreBreakdown.feasibility || 0) / 20) * 100,
+      VIABILITY_PERCENTAGE: ((scoreBreakdown.viability || 0) / 20) * 100,
+      TRACTION_PERCENTAGE: ((scoreBreakdown.traction || 0) / 20) * 100,
+      READINESS_PERCENTAGE: ((scoreBreakdown.readiness || 0) / 20) * 100,
+      PROOF_TAGS: proofTags.map(tag => ({ TAG_NAME: tag })),
+      REPORT_DOWNLOAD_URL: reportUrl,
+      CERTIFICATE_DOWNLOAD_URL: certificateUrl,
+      VERIFICATION_URL: verificationUrl || `${process.env.FRONTEND_URL}/set-password`,
+      HOST_URL: process.env.FRONTEND_URL || 'https://secondchance.replit.app'
+    };
+    
+    console.log("📧 Template data URLs being sent:", {
+      REPORT_DOWNLOAD_URL: templateData.REPORT_DOWNLOAD_URL,
+      CERTIFICATE_DOWNLOAD_URL: templateData.CERTIFICATE_DOWNLOAD_URL
+    });
+    
     return this.sendEmail(
       to,
       `🎉 Welcome to Second Chance - Your Documents Are Ready !`,
       'onboarding',
-      {
-        USER_NAME: userName,
-        PROOF_SCORE: proofScore,
-        MILESTONE_LEVEL: this.getMilestoneLevel(proofScore),
-        DESIRABILITY_SCORE: scoreBreakdown.desirability || 0,
-        FEASIBILITY_SCORE: scoreBreakdown.feasibility || 0,
-        VIABILITY_SCORE: scoreBreakdown.viability || 0,
-        TRACTION_SCORE: scoreBreakdown.traction || 0,
-        READINESS_SCORE: scoreBreakdown.readiness || 0,
-        DESIRABILITY_PERCENTAGE: ((scoreBreakdown.desirability || 0) / 20) * 100,
-        FEASIBILITY_PERCENTAGE: ((scoreBreakdown.feasibility || 0) / 20) * 100,
-        VIABILITY_PERCENTAGE: ((scoreBreakdown.viability || 0) / 20) * 100,
-        TRACTION_PERCENTAGE: ((scoreBreakdown.traction || 0) / 20) * 100,
-        READINESS_PERCENTAGE: ((scoreBreakdown.readiness || 0) / 20) * 100,
-        PROOF_TAGS: proofTags.map(tag => ({ TAG_NAME: tag })),
-        REPORT_DOWNLOAD_URL: reportUrl,
-        CERTIFICATE_DOWNLOAD_URL: certificateUrl,
-        VERIFICATION_URL: verificationUrl || `${process.env.FRONTEND_URL}/set-password`,
-        HOST_URL: process.env.FRONTEND_URL || 'https://secondchance.replit.app'
-      }
+      templateData
     );
   }
 

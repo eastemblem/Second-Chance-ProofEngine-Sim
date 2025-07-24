@@ -165,6 +165,18 @@ Demo experience for testing different user journeys:
 - **Complete Dark Header Design**: Changed all email template headers from gradient backgrounds to solid dark (#1A1A1B) for maximum logo visibility and professional appearance
 - **Increased Logo Size**: Enhanced logo prominence by increasing size from 120px to 180px across all email templates for stronger brand presence
 
+### July 24, 2025 - Email URL Issue Investigation & N8N Webhook Analysis
+- **EMAIL URL ISSUE IDENTIFIED**: Comprehensive investigation reveals N8N webhook receives correct Box.com URLs but emails contain server fallback URLs
+- **COMPLETE URL TRACING**: Verified URL flow through entire system:
+  * ✅ Session state correctly contains Box.com URLs from onboarding process
+  * ✅ EmailService receives correct Box.com URLs as parameters  
+  * ✅ Template processing correctly replaces {{CERTIFICATE_DOWNLOAD_URL}} and {{REPORT_DOWNLOAD_URL}} with Box.com URLs
+  * ✅ Final HTML sent to N8N webhook contains correct Box.com URLs (verified via debug logging)
+  * ❌ Delivered email contains server fallback URLs (https://secondchance.replit.app/api/download/*)
+- **ROOT CAUSE**: Issue occurs on N8N/EastEmblem side after receiving correct HTML - their system appears to replace Box.com URLs with server endpoints
+- **EVIDENCE**: Debug logs confirm HTML sent to webhook contains Box.com URLs, but received email has different URLs
+- **TECHNICAL SOLUTION NEEDED**: Contact EastEmblem team about N8N webhook URL replacement behavior or investigate special parameters needed
+
 ### July 24, 2025 - N8N Email Webhook Integration & Template Enhancement  
 - **NEW EMAIL ENDPOINT**: Integrated new N8N webhook endpoint for reliable email delivery using EASTEMBLEM_API_BASE_URL environment variable
 - **ONBOARDING EMAIL FIX**: Updated onboarding system to use latest N8N webhook endpoint (/webhook/notification/email/send) instead of old eastEmblemAPI.sendEmail() method
