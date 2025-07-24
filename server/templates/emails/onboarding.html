@@ -3,40 +3,51 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Your ProofScaling Results - Second Chance</title>
+    <title>Welcome to Second Chance - Complete Your Registration</title>
     <style>
         * { margin: 0; padding: 0; box-sizing: border-box; }
-        body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; line-height: 1.6; background-color: #0A0A0B; color: #FFFFFF; }
-        .container { max-width: 600px; margin: 0 auto; background-color: #0A0A0B; }
-        .header { background: #1A1A1B; padding: 30px 40px; text-align: center; }
-        .logo { font-size: 28px; font-weight: bold; color: #FFFFFF; text-decoration: none; }
-        .content { padding: 40px; background-color: #1A1A1B; }
-        .title { font-size: 24px; font-weight: bold; margin-bottom: 20px; color: #FFFFFF; }
-        .text { font-size: 16px; color: #D1D5DB; margin-bottom: 20px; }
-        .score-highlight { background: linear-gradient(135deg, #8B5CF6 0%, #D97706 100%); padding: 30px; border-radius: 12px; text-align: center; margin: 30px 0; }
-        .score-number { font-size: 48px; font-weight: bold; color: #FFFFFF; }
-        .score-label { color: #FFFFFF; font-size: 18px; margin-top: 10px; }
-        .milestone-badge { background-color: #2A2A2B; padding: 15px; border-radius: 8px; margin-top: 15px; border: 2px solid #8B5CF6; }
-        .milestone-text { color: #8B5CF6; font-weight: bold; font-size: 16px; }
-        .dimensions-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 15px; margin: 25px 0; }
-        .dimension-card { background-color: #2A2A2B; padding: 20px; border-radius: 8px; }
-        .dimension-name { color: #8B5CF6; font-weight: bold; margin-bottom: 8px; }
-        .dimension-score { color: #FFFFFF; font-size: 20px; font-weight: bold; }
-        .progress-bar { background-color: #1A1A1B; height: 6px; border-radius: 3px; margin-top: 8px; }
-        .progress-fill { background: linear-gradient(90deg, #8B5CF6, #D97706); height: 100%; border-radius: 3px; }
-        .proof-tags { background-color: #2A2A2B; padding: 25px; border-radius: 8px; margin: 25px 0; }
-        .tag-badge { background: linear-gradient(135deg, #8B5CF6 0%, #D97706 100%); color: #FFFFFF; padding: 8px 16px; border-radius: 20px; font-size: 14px; font-weight: bold; margin: 5px; display: inline-block; }
-        .download-section { background-color: #1A1A1B; padding: 25px; border-radius: 8px; margin: 25px 0; border: 2px solid #8B5CF6; }
-        .cta-button { display: inline-block; background: linear-gradient(135deg, #8B5CF6 0%, #D97706 100%); color: #FFFFFF; text-decoration: none; padding: 15px 30px; border-radius: 8px; font-weight: bold; font-size: 16px; margin: 20px 10px 20px 0; }
-        .cta-secondary { background: transparent; border: 2px solid #8B5CF6; color: #8B5CF6; }
-        .footer { background-color: #111111; padding: 30px 40px; text-align: center; border-top: 1px solid #333; }
+        body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; line-height: 1.6; background-color: #f5f5f5; color: #333333; }
+        .container { max-width: 600px; margin: 0 auto; background-color: #ffffff; box-shadow: 0 0 20px rgba(0,0,0,0.1); }
+        .header { background: #1A1A1B; padding: 30px; text-align: center; }
+        .logo-img { max-width: 180px; height: auto; margin-bottom: 15px; }
+        .header-title { font-size: 28px; font-weight: bold; color: #FFFFFF; margin: 0; }
+        .header-subtitle { color: #D97706; font-size: 16px; margin-top: 8px; }
+        .content { padding: 40px; background-color: #ffffff; }
+        .welcome-text { font-size: 18px; color: #333; margin-bottom: 25px; text-align: center; }
+        .greeting { font-size: 16px; color: #666; margin-bottom: 20px; }
+        .score-card { background: linear-gradient(135deg, #8B5CF6 0%, #D97706 100%); padding: 30px; border-radius: 15px; text-align: center; margin: 30px 0; color: white; }
+        .score-number { font-size: 56px; font-weight: bold; margin-bottom: 5px; text-shadow: 0 2px 4px rgba(0,0,0,0.3); }
+        .score-label { font-size: 18px; opacity: 0.9; }
+        .milestone { background: rgba(255,255,255,0.2); padding: 12px 20px; border-radius: 25px; margin-top: 15px; font-weight: bold; }
+        .action-needed { background: #fff3cd; border: 2px solid #D97706; border-radius: 12px; padding: 25px; margin: 30px 0; text-align: center; }
+        .action-title { color: #D97706; font-size: 20px; font-weight: bold; margin-bottom: 15px; }
+        .action-text { color: #856404; margin-bottom: 20px; font-size: 16px; }
+        .verify-button { display: inline-block; background: linear-gradient(135deg, #D97706 0%, #8B5CF6 100%); color: white; text-decoration: none; padding: 18px 35px; border-radius: 50px; font-weight: bold; font-size: 18px; box-shadow: 0 4px 15px rgba(139, 92, 246, 0.3); transition: transform 0.2s; }
+        .verify-button:hover { transform: translateY(-2px); }
+        .documents { background: #f8f9fa; border-radius: 12px; padding: 25px; margin: 30px 0; }
+        .documents-title { font-size: 20px; color: #333; margin-bottom: 15px; text-align: center; }
+        .documents-text { color: #666; margin-bottom: 20px; text-align: center; }
+        .download-buttons { text-align: center; }
+        .download-btn { display: inline-block; padding: 12px 25px; border-radius: 8px; text-decoration: none; font-weight: 600; margin: 8px; transition: transform 0.2s; }
+        .download-btn:hover { transform: translateY(-1px); }
+        .btn-certificate { background: linear-gradient(135deg, #8B5CF6 0%, #D97706 100%); color: white; }
+        .btn-report { background: linear-gradient(135deg, #D97706 0%, #8B5CF6 100%); color: white; }
+        .next-steps { margin: 30px 0; }
+        .next-steps-title { font-size: 20px; color: #333; margin-bottom: 15px; }
+        .steps-list { list-style: none; padding: 0; }
+        .steps-list li { padding: 8px 0; color: #666; position: relative; padding-left: 25px; }
+        .steps-list li:before { content: "✓"; color: #8B5CF6; font-weight: bold; position: absolute; left: 0; }
+        .support { background: #f8f9fa; padding: 20px; border-radius: 8px; margin: 25px 0; text-align: center; }
+        .support-text { color: #666; margin-bottom: 10px; }
+        .support-email { color: #8B5CF6; text-decoration: none; font-weight: 600; }
+        .footer { background: #1A1A1B; padding: 25px; text-align: center; }
         .footer-links { margin-bottom: 15px; }
-        .footer-link { color: #8B5CF6; text-decoration: none; margin: 0 15px; font-size: 14px; }
-        .footer-text { color: #9CA3AF; font-size: 12px; }
+        .footer-link { color: #8B5CF6; text-decoration: none; margin: 0 15px; }
+        .footer-text { color: #999; font-size: 12px; line-height: 1.4; }
         @media (max-width: 600px) {
-            .header, .content, .footer { padding: 20px; }
-            .dimensions-grid { grid-template-columns: 1fr; }
-            .cta-button { display: block; margin: 10px 0; text-align: center; }
+            .header, .content { padding: 20px; }
+            .score-number { font-size: 48px; }
+            .download-btn { display: block; margin: 10px 0; }
         }
     </style>
 </head>
@@ -44,73 +55,68 @@
     <div class="container">
         <!-- Header -->
         <div class="header">
-            <div style="margin-bottom: 20px;">
-                <img src="{{LOGO_URL}}" alt="Second Chance Logo" style="max-width: 180px; height: auto;">
-            </div>
-            <a href="{{HOST_URL}}" class="logo">Second Chance</a>
+            <img src="{{LOGO_URL}}" alt="Second Chance Logo" class="logo-img">
+            <h1 class="header-title">Welcome to Second Chance!</h1>
+            <p class="header-subtitle">You're almost there - just one more step!</p>
         </div>
 
         <!-- Content -->
         <div class="content">
-            <h1 class="title">🎉 Welcome to Second Chance!</h1>
-            <p class="text" style="font-size: 18px; color: #D97706; font-weight: bold;">You're almost there - just one more step!</p>
+            <p class="greeting">Hello {{USER_NAME}},</p>
             
-            <p class="text">Hello {{USER_NAME}},</p>
-            <p class="text">Thank you for starting your journey with <strong>Second Chance!</strong> We're excited to have you join our community of individuals committed to personal growth and positive change.</p>
-            
-            <p class="text">Your initial validation has been processed, and we're ready to complete your onboarding process. Below you'll find your validation documents and the final step to activate your account.</p>
+            <p class="welcome-text">Thank you for starting your journey with <strong>Second Chance!</strong> We're excited to have you join our community of individuals committed to personal growth and positive change.</p>
 
-            <!-- Email Verification Alert -->
-            <div style="background-color: #2A2A2B; border: 2px solid #D97706; border-radius: 12px; padding: 25px; margin: 25px 0; text-align: center;">
-                <div style="background-color: #D97706; color: #000; padding: 8px 16px; border-radius: 20px; display: inline-block; font-weight: bold; margin-bottom: 15px;">
-                    ⚠️ Important - Action Required
-                </div>
-                <p style="color: #FFFFFF; margin-bottom: 20px; font-size: 16px;">To complete your registration and gain full access to Second Chance services, please verify your email address by clicking the button below. This will redirect you to our secure signup completion page.</p>
-                
-                <!-- Verify Email Button -->
-                <a href="{{VERIFICATION_URL}}" style="display: inline-block; background: linear-gradient(135deg, #D97706 0%, #8B5CF6 100%); color: #FFFFFF; text-decoration: none; padding: 16px 32px; border-radius: 8px; font-weight: bold; font-size: 18px; margin: 10px 0;">
-                    ✅ Verify Email & Complete Signup
-                </a>
-            </div>
-            
             <!-- ProofScore Display -->
-            <div class="score-highlight">
+            <div class="score-card">
                 <div class="score-number">{{PROOF_SCORE}}</div>
                 <div class="score-label">Your ProofScore out of 100</div>
-                <div class="milestone-badge">
-                    <div class="milestone-text">{{MILESTONE_LEVEL}}</div>
-                </div>
+                <div class="milestone">{{MILESTONE_LEVEL}}</div>
+            </div>
+
+            <!-- Action Required -->
+            <div class="action-needed">
+                <div class="action-title">🎯 Complete Your Registration</div>
+                <p class="action-text">To access your full results and start using the platform, please verify your email address by clicking the button below.</p>
+                <a href="{{VERIFICATION_URL}}" class="verify-button">
+                    ✅ Verify Email & Get Started
+                </a>
             </div>
 
             <!-- Documents Section -->
-            <div class="download-section">
-                <h3 style="color: #FFFFFF; margin-bottom: 15px;">📄 Your Validation Documents</h3>
-                <p style="color: #D1D5DB; margin-bottom: 20px;">Your comprehensive analysis report and official validation certificate are ready. These documents validate your startup's assessment and can be shared with potential investors.</p>
+            <div class="documents">
+                <h3 class="documents-title">📄 Your Validation Documents</h3>
+                <p class="documents-text">Your comprehensive analysis report and official validation certificate are ready for download.</p>
                 
-                <a href="{{CERTIFICATE_DOWNLOAD_URL}}" style="display: inline-block; background: linear-gradient(135deg, #8B5CF6 0%, #D97706 100%); color: #FFFFFF; text-decoration: none; padding: 15px 30px; border-radius: 8px; font-weight: bold; font-size: 16px; margin: 10px 10px 10px 0;">
-                    🏆 Download Certificate
-                </a>
-                <a href="{{REPORT_DOWNLOAD_URL}}" style="display: inline-block; background: linear-gradient(135deg, #D97706 0%, #8B5CF6 100%); color: #FFFFFF; text-decoration: none; padding: 15px 30px; border-radius: 8px; font-weight: bold; font-size: 16px; margin: 10px 10px 10px 0;">
-                    📊 Download Report
-                </a>
+                <div class="download-buttons">
+                    <a href="{{CERTIFICATE_DOWNLOAD_URL}}" class="download-btn btn-certificate">
+                        🏆 Download Certificate
+                    </a>
+                    <a href="{{REPORT_DOWNLOAD_URL}}" class="download-btn btn-report">
+                        📊 Download Report
+                    </a>
+                </div>
             </div>
 
-            <!-- What Happens Next -->
-            <h3 style="color: #FFFFFF; margin-bottom: 15px;">What happens next?</h3>
-            <p style="color: #D1D5DB; margin-bottom: 15px;">After verifying your email, you'll be guided through the final steps of your onboarding process, including:</p>
-            
-            <ul style="color: #D1D5DB; margin-left: 20px; margin-bottom: 25px; line-height: 1.8;">
-                <li>Setting up your personal profile</li>
-                <li>Choosing your program preferences</li>
-                <li>Scheduling your welcome consultation</li>
-                <li>Accessing your personalized dashboard</li>
-            </ul>
+            <!-- Next Steps -->
+            <div class="next-steps">
+                <h3 class="next-steps-title">What happens next?</h3>
+                <ul class="steps-list">
+                    <li>Set up your personal profile</li>
+                    <li>Access your personalized dashboard</li>
+                    <li>Explore improvement recommendations</li>
+                    <li>Connect with our community</li>
+                </ul>
+            </div>
 
-            <p style="color: #D1D5DB; margin-bottom: 15px;">If you have any questions or need assistance, our support team is here to help. Simply reply to this email or contact us at <a href="mailto:support@secondchance.com" style="color: #8B5CF6; text-decoration: none;">support@secondchance.com</a>.</p>
-            
-            <p style="color: #D1D5DB; margin-bottom: 15px;">We believe in the power of second chances, and we're honored to be part of your journey.</p>
-            
-            <p style="color: #FFFFFF; font-weight: bold;">Best regards,<br>The Second Chance Team</p>
+            <!-- Support -->
+            <div class="support">
+                <p class="support-text">Need help? Our support team is here for you.</p>
+                <a href="mailto:support@secondchance.com" class="support-email">support@secondchance.com</a>
+            </div>
+
+            <p style="text-align: center; margin-top: 30px; color: #666;">
+                <strong>Best regards,<br>The Second Chance Team</strong>
+            </p>
         </div>
 
         <!-- Footer -->
