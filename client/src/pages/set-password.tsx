@@ -6,7 +6,7 @@ import { Label } from "@/components/ui/label";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { useToast } from "@/hooks/use-toast";
 import { CheckCircle, Eye, EyeOff, Lock, AlertCircle, XCircle } from "lucide-react";
-import Logo from "@/components/logo";
+
 import Footer from "@/components/footer";
 
 
@@ -245,10 +245,7 @@ export default function SetPasswordPage() {
         <div className="w-full max-w-md">
 
 
-          {/* Logo */}
-          <div className="text-center mb-8">
-            <Logo size="lg" showTagline={false} />
-          </div>
+
 
           {/* Verification Success */}
           <div className="text-center mb-6">
