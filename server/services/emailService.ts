@@ -206,7 +206,7 @@ export class EmailService {
    */
   async sendPasswordResetEmail(to: string, founderName: string, resetToken: string): Promise<boolean> {
     const frontendUrl = process.env.FRONTEND_URL || process.env.HOST_URL || 'https://secondchance.replit.app';
-    const resetUrl = `${frontendUrl}/reset-password/${resetToken}`;
+    const resetUrl = `${frontendUrl}/reset-password?token=${resetToken}`;
     
     return this.sendEmail(
       to,

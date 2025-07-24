@@ -770,8 +770,8 @@ export class OnboardingService {
         }
       }
 
-      // Generate verification URL (reuse baseUrl from above)
-      const verificationUrl = `${baseUrl}/api/auth/verify-email/${verificationToken}`;
+      // Generate verification URL - try different format to bypass N8N URL replacement
+      const verificationUrl = `${baseUrl}/api/auth/verify-email?token=${verificationToken}`;
 
       // Send email notification using new N8N webhook endpoint  
       console.log("🔗 Sending email with URLs:", {

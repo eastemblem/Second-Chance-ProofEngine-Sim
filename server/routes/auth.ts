@@ -25,10 +25,11 @@ declare module 'express-session' {
   }
 }
 
-// Email verification endpoint
-router.get('/verify-email/:token', async (req: Request, res: Response) => {
+// Email verification endpoint - support both path and query parameter formats
+router.get('/verify-email/:token?', async (req: Request, res: Response) => {
   try {
-    const { token } = req.params;
+    // Support both /verify-email/token and /verify-email?token=token formats
+    const token = req.params.token || req.query.token as string;
     
     if (!token) {
       return res.status(400).json({ error: 'Verification token is required' });
