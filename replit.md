@@ -126,17 +126,16 @@ Demo experience for testing different user journeys:
 
 ## Recent Key Updates
 
-### July 24, 2025 - ProofVault File Tracking System Complete
+### July 24, 2025 - ProofVault & Certificate/Report System Complete
+- **ProofVault File Tracking System**: Complete implementation with all 7 proof categories properly tracking file uploads
 - **Database Schema Optimization**: Removed 4 unused tables and added 9 performance indexes for 33% schema reduction
-- **Complete ProofVault Implementation**: Fixed and enhanced the file tracking system for all 7 proof categories
 - **Folder Structure Mapping**: Corrected mapping for 0_Overview, 1_Problem_Proof, 2_Solution_Proof, 3_Demand_Proof, 4_Credibility_Proof, 5_Commercial_Proof, 6_Investor_Pack
-- **File Upload Tracking**: Enhanced vault upload endpoint to properly track files in database with venture association
-- **Dashboard File Counters**: Fixed ProofVault overview to show real file counts instead of placeholder data
-- **File Management**: Added complete file remove functionality with proper authentication and database cleanup
-- **Database Integration**: Files uploaded through dashboard are now tracked in document_upload table with folder-specific categorization
-- **Real-time Updates**: Dashboard refreshes file counts automatically after uploads/removals
-- **Authentication Context**: File operations properly validate user ownership through venture association
-- **Logging Enhancement**: Added detailed logging for tracking file operations and debugging
+- **File Counter Logic**: Dashboard accurately counts files per category by matching Box.com folder IDs in document_upload.shared_url
+- **Certificate & Report Generation Fix**: Resolved critical issue where certificate and report URLs weren't being saved to venture table
+- **Document Generation**: Both certificate and report generation working with proper Box.com integration and database persistence
+- **Real-time File Tracking**: Files uploaded through dashboard are tracked in document_upload table with folder-specific categorization
+- **Dashboard Integration**: ProofVault overview displays real file counts, authentication validation, and proper file management
+- **Authentication Context**: All file operations validate user ownership through venture association
 - **Performance Optimization**: Enhanced lookup speed for dashboard queries, team member fetching, and venture-founder relationships
 
 ### July 24, 2025 - Complete Environment Variable Configuration & URL Management
