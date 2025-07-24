@@ -128,16 +128,20 @@ Demo experience for testing different user journeys:
 
 ### July 24, 2025 - Complete Environment Variable Configuration & URL Management
 - **FRONTEND_URL Environment Variable**: Successfully created and configured FRONTEND_URL for all client-side URLs
+- **LOGO_URL Environment Variable**: Added dedicated LOGO_URL environment variable for centralized logo management
 - **Dynamic URL Generation**: All email templates now use environment variables for privacy, terms, reset password, and logo URLs
 - **Reset Password Page**: Created complete reset password component with purple-gold theme and proper token handling
-- **Environment Variable Architecture**: System now uses EASTEMBLEM_API_BASE_URL for webhook endpoints and FRONTEND_URL for client URLs
+- **Environment Variable Architecture**: System now uses EASTEMBLEM_API_BASE_URL for webhook endpoints, FRONTEND_URL for client URLs, and LOGO_URL for logo assets
 - **Theme Consistency**: Password reset email template updated with dark purple-gold theme matching the application
-- **URL Structure Fixes**: 
+- **URL Structure Implementation**: 
   * Privacy URL: `${FRONTEND_URL}/privacy`
   * Terms URL: `${FRONTEND_URL}/terms`  
   * Reset Password URL: `${FRONTEND_URL}/reset-password/${token}`
-  * Logo URL: `${FRONTEND_URL}/src/assets/second_chance_logo_1750269371846.png`
-- **Deployment Ready**: All hardcoded URLs removed, system now fully configurable for any deployment environment
+  * Logo URL: `${LOGO_URL}` (independent environment variable)
+- **Email Template Updates**: All email templates (password-reset.html, onboarding.html, email-verification.html) now use `{{LOGO_URL}}` variable
+- **EmailService Enhancement**: Updated EmailService class to inject LOGO_URL into all email template data
+- **Complete URL Management**: All hardcoded URLs removed, system fully configurable with four environment variables for deployment flexibility
+- **Testing Verified**: Password reset flow tested successfully with new environment variable configuration
 
 ### July 24, 2025 - N8N Email Webhook Integration & Template Enhancement
 - **NEW EMAIL ENDPOINT**: Integrated new N8N webhook endpoint for reliable email delivery using EASTEMBLEM_API_BASE_URL environment variable

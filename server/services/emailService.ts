@@ -100,10 +100,12 @@ export class EmailService {
     try {
       // Ensure dynamic values are properly set
       const frontendUrl = process.env.FRONTEND_URL || process.env.HOST_URL || 'https://secondchance.replit.app';
+      const logoUrl = process.env.LOGO_URL || `${frontendUrl}/src/assets/second_chance_logo_1750269371846.png`;
       const enrichedData = {
         ...templateData,
         HOST_URL: frontendUrl,
         FRONTEND_URL: frontendUrl,
+        LOGO_URL: logoUrl,
         PRIVACY_URL: `${frontendUrl}/privacy`,
         TERMS_URL: `${frontendUrl}/terms`,
         CURRENT_YEAR: new Date().getFullYear().toString()
