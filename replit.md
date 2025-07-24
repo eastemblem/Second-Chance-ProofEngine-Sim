@@ -126,6 +126,18 @@ Demo experience for testing different user journeys:
 
 ## Recent Key Updates
 
+### July 24, 2025 - EastEmblem Upload Response Integration & MIME Type Processing
+- **Upload API Response Mapping**: Updated system to handle EastEmblem's upload response format properly
+- **Field Mapping Implementation**: 
+  * `url` → `shared_url` (Box.com sharing URL)
+  * `folderId` → `folder_id` (target folder for ProofVault integration)
+  * `id` → `eastemblem_file_id` (Box.com internal file ID)
+  * `size` → `file_size` (file size in bytes)
+- **MIME Type Extraction**: Added utility function to extract MIME type from file extension supporting 12+ file formats
+- **Database Update Integration**: Upload process now updates document_upload record with complete EastEmblem response data
+- **Real-Time Status Tracking**: Upload status progression from 'pending' → 'completed' → 'processing' with proper database persistence
+- **Complete Data Flow**: Local upload → EastEmblem Box.com → database update → dashboard integration all operational
+
 ### July 24, 2025 - COMPLETE SYSTEM INTEGRATION SUCCESS - Database Persistence & Mock Data Removal
 - **MAJOR BREAKTHROUGH**: Fixed critical database persistence issue preventing certificate/report URL storage
 - **Database Constraint Resolution**: Resolved constraint violations in document_upload table with proper required field population

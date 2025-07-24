@@ -5,6 +5,29 @@ import { getSessionId, getSessionData, updateSessionData } from "../utils/sessio
 import { db } from "../db";
 import { onboardingSession, documentUpload } from "@shared/schema";
 import { eq } from "drizzle-orm";
+
+// Utility function to extract MIME type from file extension
+function getMimeTypeFromExtension(fileName: string): string {
+  const extension = fileName.toLowerCase().split('.').pop();
+  const mimeTypes: Record<string, string> = {
+    'pdf': 'application/pdf',
+    'doc': 'application/msword',
+    'docx': 'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
+    'ppt': 'application/vnd.ms-powerpoint',
+    'pptx': 'application/vnd.openxmlformats-officedocument.presentationml.presentation',
+    'xls': 'application/vnd.ms-excel',
+    'xlsx': 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+    'jpg': 'image/jpeg',
+    'jpeg': 'image/jpeg',
+    'png': 'image/png',
+    'gif': 'image/gif',
+    'mp4': 'video/mp4',
+    'avi': 'video/x-msvideo',
+    'txt': 'text/plain',
+    'csv': 'text/csv'
+  };
+  return mimeTypes[extension || ''] || 'application/octet-stream';
+}
 import fs from "fs";
 import crypto from "crypto";
 import { certificateService } from "./certificate-service";
@@ -531,6 +554,26 @@ export class OnboardingService {
               true // allowShare
             );
             console.log("Box.com upload result:", uploadResult);
+            
+            // Update document_upload record with EastEmblem response
+            if (uploadResult) {
+              const mimeType = getMimeTypeFromExtension(uploadResult.name || upload.fileName);
+              
+              await db
+                .update(documentUpload)
+                .set({
+                  sharedUrl: uploadResult.url,           // Map url -> shared_url
+                  folderId: uploadResult.folderId,       // Map folderId -> folder_id  
+                  eastemblemFileId: uploadResult.id,     // Store Box.com file ID
+                  fileSize: uploadResult.size || upload.fileSize, // Use Box.com size if available
+                  mimeType: mimeType,                    // Extract from file extension
+                  uploadStatus: 'completed',
+                  processingStatus: 'processing'
+                })
+                .where(eq(documentUpload.uploadId, upload.uploadId));
+              
+              console.log("✓ Updated document record with EastEmblem upload data");
+            }
           } catch (uploadError) {
             // If upload fails, continue with scoring anyway
             console.log("Box.com upload failed, proceeding with scoring:", uploadError.message);
