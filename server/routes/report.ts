@@ -200,6 +200,7 @@ export async function createReportForSession(sessionId: string) {
           uploadId: randomUUID(),
           ventureId: ventureId,
           fileName: reportResult.name || 'analysis_report.pdf',
+          originalName: reportResult.name || 'analysis_report.pdf', // Fix constraint violation
           fileType: 'pdf',
           fileSize: 0, // Size not available from EastEmblem API
           sharedUrl: reportResult.url,

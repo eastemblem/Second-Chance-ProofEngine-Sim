@@ -247,7 +247,7 @@ export async function generateCertificate(req: Request, res: Response) {
             
             // Update session with certificate URL
             const { db } = await import('../db');
-            const { onboardingSession } = await import('@shared/schema');
+            const { onboardingSession, venture, documentUpload } = await import('@shared/schema');
             const { eq } = await import('drizzle-orm');
             
             await db
@@ -263,6 +263,34 @@ export async function generateCertificate(req: Request, res: Response) {
                 }
               })
               .where(eq(onboardingSession.sessionId, session.sessionId));
+
+            // Update venture table with certificate URL
+            if (venture) {
+              const { venture: ventureTable } = await import('@shared/schema');
+              await db
+                .update(ventureTable)
+                .set({
+                  certificateUrl: certificateResult.url,
+                  certificateGeneratedAt: new Date(),
+                  updatedAt: new Date()
+                })
+                .where(eq(ventureTable.ventureId, venture.ventureId));
+              console.log("✓ Venture table updated with certificate URL");
+
+              // Create document_upload record for certificate
+              await db.insert(documentUpload).values({
+                uploadId: randomUUID(),
+                ventureId: venture.ventureId,
+                fileName: certificateResult.name || 'validation_certificate.pdf',
+                originalName: certificateResult.name || 'validation_certificate.pdf',
+                fileType: 'pdf',
+                fileSize: 0,
+                sharedUrl: certificateResult.url,
+                boxFileId: certificateResult.id,
+                uploadedBy: 'system'
+              });
+              console.log("✓ Certificate document_upload record created");
+            }
             
             return res.json({
               success: true,

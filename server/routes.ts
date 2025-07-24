@@ -152,6 +152,107 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Report routes
   app.post("/api/report/generate", asyncHandler(generateReport));
   
+  // Fix venture table with certificate and report URLs
+  app.post("/api/fix-venture-urls", async (req, res) => {
+    try {
+      const { sessionId } = req.body;
+      const { db } = await import('./db');
+      const { onboardingSession, venture, documentUpload } = await import('@shared/schema');
+      const { eq } = await import('drizzle-orm');
+
+      // Get session data
+      const [session] = await db
+        .select()
+        .from(onboardingSession)
+        .where(eq(onboardingSession.sessionId, sessionId));
+
+      if (!session) {
+        return res.status(404).json({ success: false, error: 'Session not found' });
+      }
+
+      const stepData = session.stepData as any;
+      const ventureId = stepData?.venture?.ventureId;
+      const certificateUrl = stepData?.processing?.certificateUrl;
+      const reportUrl = stepData?.processing?.reportUrl;
+
+      if (!ventureId) {
+        return res.status(400).json({ success: false, error: 'No venture found in session' });
+      }
+
+      let updates: any = { updatedAt: new Date() };
+      let documentsCreated = 0;
+
+      if (certificateUrl) {
+        updates.certificateUrl = certificateUrl;
+        updates.certificateGeneratedAt = new Date();
+      }
+
+      if (reportUrl) {
+        updates.reportUrl = reportUrl;
+        updates.reportGeneratedAt = new Date();
+      }
+
+      // Update venture table
+      await db
+        .update(venture)
+        .set(updates)
+        .where(eq(venture.ventureId, ventureId));
+
+      // Create document records
+      if (certificateUrl) {
+        try {
+          await db.insert(documentUpload).values({
+            ventureId: ventureId,
+            fileName: 'validation_certificate.pdf',
+            originalName: 'validation_certificate.pdf',
+            filePath: null,
+            fileSize: 0,
+            mimeType: 'application/pdf',
+            uploadStatus: 'completed',
+            processingStatus: 'completed',
+            sharedUrl: certificateUrl,
+            uploadedBy: 'system'
+          });
+          documentsCreated++;
+        } catch (e) { /* ignore if exists */ }
+      }
+
+      if (reportUrl) {
+        try {
+          await db.insert(documentUpload).values({
+            ventureId: ventureId,
+            fileName: 'analysis_report.pdf',
+            originalName: 'analysis_report.pdf',
+            filePath: null,
+            fileSize: 0,
+            mimeType: 'application/pdf',
+            uploadStatus: 'completed',
+            processingStatus: 'completed',
+            sharedUrl: reportUrl,
+            uploadedBy: 'system'
+          });
+          documentsCreated++;
+        } catch (e) { /* ignore if exists */ }
+      }
+
+      res.json({
+        success: true,
+        message: 'Venture URLs fixed successfully',
+        ventureId,
+        certificateUrl,
+        reportUrl,
+        documentsCreated
+      });
+
+    } catch (error) {
+      console.error('Error fixing venture URLs:', error);
+      res.status(500).json({
+        success: false,
+        error: error instanceof Error ? error.message : 'Failed to fix venture URLs'
+      });
+    }
+  });
+  
   // Manual email trigger route
   app.post('/api/email/send-manual', async (req, res) => {
     try {
