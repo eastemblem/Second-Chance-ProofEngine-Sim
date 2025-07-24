@@ -279,21 +279,25 @@ export async function generateCertificate(req: Request, res: Response) {
           
           // Try to create document_upload record (ignore if already exists)
           try {
+            const { randomUUID } = await import('crypto');
             await db.insert(documentUpload).values({
+              uploadId: randomUUID(),
               ventureId: ventureId,
               fileName: 'validation_certificate.pdf',
               originalName: 'validation_certificate.pdf',
               filePath: '/generated/certificate.pdf',
+              fileType: 'pdf',
               fileSize: 0,
               mimeType: 'application/pdf',
               uploadStatus: 'completed',
               processingStatus: 'completed',
-              sharedUrl: certificateUrl
+              sharedUrl: certificateUrl,
+              uploadedBy: 'system'
             });
             console.log("✓ Certificate document_upload record created");
           } catch (docError) {
             // Document record might already exist, that's ok
-            console.log("Certificate document record might already exist");
+            console.log("Certificate document record might already exist:", docError);
           }
         }
       } catch (error) {
@@ -352,7 +356,8 @@ export async function generateCertificate(req: Request, res: Response) {
               .where(eq(onboardingSession.sessionId, session.sessionId));
 
             // Update venture table with certificate URL
-            if (venture) {
+            const ventureId = session.stepData?.venture?.ventureId;
+            if (ventureId) {
               const { venture: ventureTable } = await import('@shared/schema');
               await db
                 .update(ventureTable)
@@ -361,17 +366,22 @@ export async function generateCertificate(req: Request, res: Response) {
                   certificateGeneratedAt: new Date(),
                   updatedAt: new Date()
                 })
-                .where(eq(ventureTable.ventureId, venture.ventureId));
+                .where(eq(ventureTable.ventureId, ventureId));
               console.log("✓ Venture table updated with certificate URL");
 
               // Create document_upload record for certificate
+              const { randomUUID } = await import('crypto');
               await db.insert(documentUpload).values({
                 uploadId: randomUUID(),
-                ventureId: venture.ventureId,
+                ventureId: ventureId,
                 fileName: certificateResult.name || 'validation_certificate.pdf',
                 originalName: certificateResult.name || 'validation_certificate.pdf',
+                filePath: '/generated/certificate.pdf',
                 fileType: 'pdf',
                 fileSize: 0,
+                mimeType: 'application/pdf',
+                uploadStatus: 'completed',
+                processingStatus: 'completed',
                 sharedUrl: certificateResult.url,
                 boxFileId: certificateResult.id,
                 uploadedBy: 'system'

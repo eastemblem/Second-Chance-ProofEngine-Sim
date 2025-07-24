@@ -167,21 +167,25 @@ export async function createReportForSession(sessionId: string) {
           
           // Try to create document_upload record (ignore if already exists)
           try {
+            const { randomUUID } = await import('crypto');
             await db.insert(documentUpload).values({
+              uploadId: randomUUID(),
               ventureId: ventureId,
               fileName: 'analysis_report.pdf',
               originalName: 'analysis_report.pdf',
               filePath: '/generated/report.pdf',
+              fileType: 'pdf',
               fileSize: 0,
               mimeType: 'application/pdf',
               uploadStatus: 'completed',
               processingStatus: 'completed',
-              sharedUrl: existingUrl
+              sharedUrl: existingUrl,
+              uploadedBy: 'system'
             });
             console.log("✓ Report document_upload record created");
           } catch (docError) {
             // Document record might already exist, that's ok
-            console.log("Report document record might already exist");
+            console.log("Report document record might already exist:", docError);
           }
         }
       } catch (error) {
@@ -242,9 +246,13 @@ export async function createReportForSession(sessionId: string) {
           uploadId: randomUUID(),
           ventureId: ventureId,
           fileName: reportResult.name || 'analysis_report.pdf',
-          originalName: reportResult.name || 'analysis_report.pdf', // Fix constraint violation
+          originalName: reportResult.name || 'analysis_report.pdf',
+          filePath: '/generated/report.pdf',
           fileType: 'pdf',
-          fileSize: 0, // Size not available from EastEmblem API
+          fileSize: 0,
+          mimeType: 'application/pdf',
+          uploadStatus: 'completed',
+          processingStatus: 'completed',
           sharedUrl: reportResult.url,
           boxFileId: reportResult.id,
           uploadedBy: 'system'
