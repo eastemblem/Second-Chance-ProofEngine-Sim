@@ -1,5 +1,6 @@
 import { Request, Response } from 'express';
 import { storage } from '../storage';
+import { randomUUID } from 'crypto';
 
 // Standalone function for certificate generation (no HTTP context needed)
 export async function createCertificateForSession(sessionId: string) {
@@ -72,10 +73,52 @@ export async function createCertificateForSession(sessionId: string) {
       }
     };
 
+    // Update session with certificate URL
     await db
       .update(onboardingSession)
-      .set({ stepData: updatedStepData })
+      .set({
+        stepData: updatedStepData,
+        updatedAt: new Date()
+      })
       .where(eq(onboardingSession.sessionId, sessionId));
+
+    // Create document_upload record for certificate
+    try {
+      const { documentUpload } = await import('@shared/schema');
+      
+      // Get venture ID from session
+      const ventureId = session.stepData?.venture?.ventureId;
+      if (ventureId) {
+        await db.insert(documentUpload).values({
+          uploadId: randomUUID(),
+          ventureId: ventureId,
+          fileName: certificateResult.name || 'certificate.pdf',
+          fileType: 'pdf',
+          fileSize: 0, // Size not available from EastEmblem API
+          sharedUrl: certificateResult.url,
+          boxFileId: certificateResult.id,
+          uploadedBy: 'system'
+        });
+        console.log("✓ Certificate document_upload record created");
+        
+        // Update venture table with certificate URL
+        const { venture } = await import('@shared/schema');
+        await db
+          .update(venture)
+          .set({
+            certificateUrl: certificateResult.url,
+            certificateGeneratedAt: new Date(),
+            updatedAt: new Date()
+          })
+          .where(eq(venture.ventureId, ventureId));
+        console.log("✓ Venture table updated with certificate URL");
+      }
+    } catch (error) {
+      console.error("Failed to create certificate document record:", error);
+      // Don't fail the entire process
+    }
+
+
 
     return {
       success: true,

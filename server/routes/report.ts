@@ -1,5 +1,6 @@
 import { Request, Response } from 'express';
 import { storage } from '../storage';
+import { randomUUID } from 'crypto';
 
 // Function to map scoring response to report format
 function mapScoringToReportData(scoringResult: any, sessionId: string, folderStructure: any): any {
@@ -179,46 +180,49 @@ export async function createReportForSession(sessionId: string) {
       }
     };
 
+    // Update session with report URL
     await db
       .update(onboardingSession)
-      .set({ stepData: updatedStepData })
+      .set({
+        stepData: updatedStepData,
+        updatedAt: new Date()
+      })
       .where(eq(onboardingSession.sessionId, sessionId));
 
-    // Find venture ID for tracking in document_upload
-    let ventureId = null;
-    if (session.founderId) {
-      const ventures = await storage.getVenturesByFounderId(session.founderId);
-      if (ventures && ventures.length > 0) {
-        ventureId = ventures[0].ventureId;
-      }
-    }
-
-    // Track report in document_upload table if we have ventureId
-    if (ventureId && reportResult.url) {
-      try {
-        // Get the Overview folder ID for this venture
-        const proofVaultRecords = await storage.getProofVaultsByVentureId(ventureId);
-        const overviewFolder = proofVaultRecords.find(pv => pv.folderName === '0_Overview');
-        const overviewFolderId = overviewFolder?.subFolderId || null;
-        
-        const reportFileName = `${reportData.venture_name || 'Venture'}_Analysis_Report.pdf`;
-        await storage.createDocumentUpload({
+    // Create document_upload record for report
+    try {
+      const { documentUpload } = await import('@shared/schema');
+      
+      // Get venture ID from session
+      const ventureId = session.stepData?.venture?.ventureId;
+      if (ventureId) {
+        await db.insert(documentUpload).values({
+          uploadId: randomUUID(),
           ventureId: ventureId,
-          fileName: reportFileName,
-          originalName: reportFileName,
-          filePath: `/reports/${reportFileName}`,
-          fileSize: 0, // Report size not available from API
-          mimeType: 'application/pdf',
-          uploadStatus: 'completed',
-          processingStatus: 'completed',
-          eastemblemFileId: reportResult.id || 'generated-report',
+          fileName: reportResult.name || 'analysis_report.pdf',
+          fileType: 'pdf',
+          fileSize: 0, // Size not available from EastEmblem API
           sharedUrl: reportResult.url,
-          folderId: overviewFolderId, // Map report to Overview folder
+          boxFileId: reportResult.id,
+          uploadedBy: 'system'
         });
-        console.log('✓ Report tracked in document_upload table with folder mapping:', overviewFolderId);
-      } catch (error) {
-        console.error('Failed to track report in document_upload:', error);
+        console.log("✓ Report document_upload record created");
+        
+        // Update venture table with report URL
+        const { venture } = await import('@shared/schema');
+        await db
+          .update(venture)
+          .set({
+            reportUrl: reportResult.url,
+            reportGeneratedAt: new Date(),
+            updatedAt: new Date()
+          })
+          .where(eq(venture.ventureId, ventureId));
+        console.log("✓ Venture table updated with report URL");
       }
+    } catch (error) {
+      console.error("Failed to create report document record:", error);
+      // Don't fail the entire process
     }
 
     return {

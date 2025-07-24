@@ -64,6 +64,22 @@ export class OnboardingService {
   }
 
   /**
+   * Ensure session exists in database  
+   */
+  async ensureSession(sessionId: string) {
+    const existingSession = await this.getSession(sessionId);
+    if (!existingSession) {
+      await db.insert(onboardingSession).values({
+        sessionId,
+        currentStep: "founder",
+        stepData: {},
+        completedSteps: [],
+        isComplete: false,
+      });
+    }
+  }
+
+  /**
    * Update session data
    */
   async updateSession(sessionId: string, updates: Partial<any>) {
@@ -84,12 +100,22 @@ export class OnboardingService {
       sessionId = crypto.randomUUID();
     }
 
+    // Ensure session exists in database
+    await this.ensureSession(sessionId);
+
     // Check if founder exists by email
     let founder = await storage.getFounderByEmail(founderData.email);
     
     if (!founder) {
       // Create new founder
-      founder = await storage.createFounder(founderData);
+      try {
+        console.log("Creating founder with data:", JSON.stringify(founderData, null, 2));
+        founder = await storage.createFounder(founderData);
+        console.log("✓ Founder created successfully:", founder.founderId);
+      } catch (error) {
+        console.error("❌ Failed to create founder:", error);
+        throw new Error(`Failed to create founder: ${error instanceof Error ? error.message : 'Unknown error'}`);
+      }
     }
 
     // Update session with founder data and ID
@@ -133,9 +159,13 @@ export class OnboardingService {
    * Complete venture onboarding step
    */
   async completeVentureStep(sessionId: string, ventureData: any) {
+    console.log(`Getting session for venture step: ${sessionId}`);
     const session = await this.getSession(sessionId);
+    console.log(`Session found:`, session ? 'YES' : 'NO', session?.currentStep);
+    console.log(`Session data:`, JSON.stringify(session, null, 2));
     
     if (!session) {
+      console.error(`❌ Session null/undefined for ID: ${sessionId}`);
       throw new Error("Session not found - founder step must be completed first");
     }
 
@@ -157,7 +187,15 @@ export class OnboardingService {
       mvpStatus: ventureData.productStatus || ventureData.mvpStatus,
     };
     
-    const venture = await storage.createVenture(ventureForDb);
+    let venture;
+    try {
+      console.log("Creating venture with data:", JSON.stringify(ventureForDb, null, 2));
+      venture = await storage.createVenture(ventureForDb);
+      console.log("✓ Venture created successfully:", venture.ventureId);
+    } catch (error) {
+      console.error("❌ Failed to create venture:", error);
+      throw new Error(`Failed to create venture: ${error instanceof Error ? error.message : 'Unknown error'}`);
+    }
 
     // Create folder structure with EastEmblem API
     let folderStructure = null;
