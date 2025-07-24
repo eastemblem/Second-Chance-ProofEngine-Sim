@@ -139,6 +139,7 @@ export const documentUpload = pgTable("document_upload", {
   processingStatus: varchar("processing_status", { length: 50 }).default("pending"),
   eastemblemFileId: varchar("eastemblem_file_id", { length: 100 }),
   sharedUrl: varchar("shared_url", { length: 500 }),
+  folderId: varchar("folder_id", { length: 255 }), // Maps to proof_vault.sub_folder_id
   createdAt: timestamp("created_at").defaultNow().notNull(),
 });
 
