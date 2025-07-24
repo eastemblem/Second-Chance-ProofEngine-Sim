@@ -1,6 +1,6 @@
-import { founder, venture, teamMember, proofVault, leaderboard, evaluation, documentUpload, type Founder, type InsertFounder, type Venture, type InsertVenture, type TeamMember, type InsertTeamMember, type ProofVault, type InsertProofVault, type Leaderboard, type InsertLeaderboard, type Evaluation, type InsertEvaluation, type DocumentUpload, type InsertDocumentUpload } from "@shared/schema";
+import { founder, venture, teamMember, proofVault, leaderboard, evaluation, documentUpload, userActivity, type Founder, type InsertFounder, type Venture, type InsertVenture, type TeamMember, type InsertTeamMember, type ProofVault, type InsertProofVault, type Leaderboard, type InsertLeaderboard, type Evaluation, type InsertEvaluation, type DocumentUpload, type InsertDocumentUpload, type UserActivity, type InsertUserActivity } from "@shared/schema";
 import { db } from "./db";
-import { eq, desc } from "drizzle-orm";
+import { eq, desc, and } from "drizzle-orm";
 
 export interface IStorage {
   getFounder(id: string): Promise<Founder | undefined>;
@@ -45,6 +45,12 @@ export interface IStorage {
   createDocumentUpload(document: InsertDocumentUpload): Promise<DocumentUpload>;
   updateDocumentUpload(id: string, document: Partial<InsertDocumentUpload>): Promise<DocumentUpload>;
   deleteDocumentUpload(id: string): Promise<void>;
+  
+  // User Activity methods
+  getUserActivity(id: string): Promise<UserActivity | undefined>;
+  getUserActivities(founderId: string, limit?: number, activityType?: string): Promise<UserActivity[]>;
+  createUserActivity(activity: InsertUserActivity): Promise<UserActivity>;
+  deleteUserActivity(id: string): Promise<void>;
 }
 
 export class DatabaseStorage implements IStorage {
@@ -252,6 +258,40 @@ export class DatabaseStorage implements IStorage {
   async updateLeaderboard(id: string, updateEntry: Partial<InsertLeaderboard>): Promise<Leaderboard> {
     const [leaderboardRecord] = await db.update(leaderboard).set(updateEntry).where(eq(leaderboard.leaderboardId, id)).returning();
     return leaderboardRecord;
+  }
+
+  // User Activity methods
+  async getUserActivity(id: string): Promise<UserActivity | undefined> {
+    const [activityRecord] = await db.select().from(userActivity).where(eq(userActivity.activityId, id));
+    return activityRecord;
+  }
+
+  async getUserActivities(founderId: string, limit: number = 10, activityType?: string): Promise<UserActivity[]> {
+    if (activityType) {
+      return db.select()
+        .from(userActivity)
+        .where(and(
+          eq(userActivity.founderId, founderId),
+          eq(userActivity.activityType, activityType as any)
+        ))
+        .orderBy(desc(userActivity.createdAt))
+        .limit(limit);
+    }
+    
+    return db.select()
+      .from(userActivity)
+      .where(eq(userActivity.founderId, founderId))
+      .orderBy(desc(userActivity.createdAt))
+      .limit(limit);
+  }
+
+  async createUserActivity(insertActivity: InsertUserActivity): Promise<UserActivity> {
+    const [activityRecord] = await db.insert(userActivity).values(insertActivity).returning();
+    return activityRecord;
+  }
+
+  async deleteUserActivity(id: string): Promise<void> {
+    await db.delete(userActivity).where(eq(userActivity.activityId, id));
   }
 }
 

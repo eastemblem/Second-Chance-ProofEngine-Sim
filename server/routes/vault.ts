@@ -5,11 +5,26 @@ import { getSessionId, getSessionData, updateSessionData } from "../utils/sessio
 import { asyncHandler, createSuccessResponse } from "../utils/error-handler";
 import { cleanupUploadedFile } from "../utils/file-cleanup";
 import { requireFields } from "../middleware/auth";
+import { ActivityService } from "../services/activity-service";
 import multer from "multer";
 import path from "path";
 import fs from "fs";
 
 const router = Router();
+
+// Helper function to get folder display name
+const getFolderDisplayName = (folderName: string) => {
+  const folderMap: Record<string, string> = {
+    '0_Overview': 'Overview',
+    '1_Problem_Proof': 'Problem Proofs',
+    '2_Solution_Proof': 'Solution Proofs', 
+    '3_Demand_Proof': 'Demand Proofs',
+    '4_Credibility_Proof': 'Credibility Proofs',
+    '5_Commercial_Proof': 'Commercial Proofs',
+    '6_Investor_Pack': 'Investor Pack'
+  };
+  return folderMap[folderName] || folderName;
+};
 
 // Configure multer for file uploads
 const upload = multer({
@@ -247,6 +262,33 @@ router.post("/upload-file", upload.single("file"), requireFields(['folder_id']),
           folderId: actualFolderId, // Use the mapped folder ID
         });
         console.log(`✅ File tracked in database: ${file.originalname} → ${folder_id} folder (${actualFolderId})`);
+
+        // Track activity for file upload
+        const folderDisplayName = getFolderDisplayName(folder_id);
+        const context = { 
+          founderId: req.session.founderId, 
+          ventureId: latestVenture.ventureId,
+          sessionId: req.sessionID,
+          ipAddress: req.ip || req.connection.remoteAddress,
+          userAgent: req.get('User-Agent')
+        };
+        
+        await ActivityService.logActivity(context, {
+          activityType: 'document',
+          action: 'upload',
+          title: file.originalname,
+          description: `Uploaded to ${folderDisplayName}`,
+          metadata: {
+            fileName: file.originalname,
+            fileSize: file.size,
+            fileType: file.mimetype,
+            folderId: actualFolderId,
+            folderName: folder_id,
+            folderDisplayName: folderDisplayName,
+            ventureId: latestVenture.ventureId
+          }
+        });
+        console.log(`✅ Activity tracking complete for file upload: ${file.originalname}`);
       }
     } catch (error) {
       console.error("Failed to track file upload in database:", error);

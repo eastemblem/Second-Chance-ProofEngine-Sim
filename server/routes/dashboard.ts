@@ -1,5 +1,6 @@
 import { Router } from "express";
 import { storage } from "../storage";
+import { ActivityService } from "../services/activity-service";
 
 const router = Router();
 
@@ -179,7 +180,7 @@ function formatFileSize(bytes: number): string {
   return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + " " + sizes[i];
 }
 
-// Get recent activity data
+// Get recent activity data - NEW ACTIVITY SYSTEM
 router.get("/activity", async (req, res) => {
   try {
     const founderId = req.session?.founderId;
@@ -188,162 +189,82 @@ router.get("/activity", async (req, res) => {
       return res.status(401).json({ error: "Not authenticated" });
     }
 
-    // Get real activity data from database
-    const activities = [];
+    // Get activities from the new activity tracking system
+    let activities = await storage.getUserActivities(founderId, 10);
     
-    // Get founder data
-    const founder = await storage.getFounder(founderId);
-    if (!founder) {
-      return res.status(404).json({ error: 'Founder not found' });
+    // If no activities exist, try migration from old data
+    if (activities.length === 0) {
+      console.log(`🔄 No activities found for founder ${founderId}, attempting migration...`);
+      await ActivityService.migrateExistingData(founderId);
+      activities = await storage.getUserActivities(founderId, 10);
     }
 
-    // Get latest venture
-    const ventures = await storage.getVenturesByFounderId(founderId);
-    const latestVenture = ventures?.[0];
-
-    // 1. Account creation activity (oldest)
-    activities.push({
-      id: "activity-account-created",
-      type: "platform",
-      title: "Joined Second Chance platform",
-      description: "Welcome to the startup validation ecosystem",
-      timestamp: founder.createdAt.toISOString(),
-      icon: "user-plus",
-      color: "purple"
-    });
-
-    // 2. Email verification activity
-    if (founder.emailVerified) {
-      activities.push({
-        id: "activity-email-verified",
-        type: "account",
-        title: "Email verified successfully",
-        description: "Your email has been verified and account is active",
-        timestamp: founder.lastLoginAt?.toISOString() || founder.createdAt.toISOString(),
-        icon: "check",
-        color: "green"
-      });
-    }
-
-    // 3. Venture creation activity
-    if (latestVenture) {
-      activities.push({
-        id: "activity-venture-created",
-        type: "venture",
-        title: `Venture "${latestVenture.name}" created`,
-        description: `${latestVenture.industry} startup in ${latestVenture.geography}`,
-        timestamp: latestVenture.createdAt.toISOString(),
-        icon: "building",
-        color: "blue"
-      });
-
-      // 4. ProofScore establishment
-      const evaluations = await storage.getEvaluationsByVentureId(latestVenture.ventureId);
-      if (evaluations && evaluations.length > 0) {
-        const latestEvaluation = evaluations[0];
-        let scoreDescription = `Initial score: ${latestEvaluation.proofscore}/100`;
-        if (latestEvaluation.proofscore >= 90) scoreDescription += " - Investor Ready!";
-        else if (latestEvaluation.proofscore >= 70) scoreDescription += " - Great starting point!";
-        
-        activities.push({
-          id: "activity-proofscore",
-          type: "score",
-          title: "ProofScore established",
-          description: scoreDescription,
-          timestamp: latestEvaluation.createdAt.toISOString(),
-          icon: "trending-up",
-          color: "yellow"
-        });
+    // Transform activities to frontend format
+    const transformedActivities = activities.map(activity => {
+      // Determine icon and color based on activity type and action
+      let icon = "circle";
+      let color = "gray";
+      
+      switch (activity.activityType) {
+        case 'account':
+          icon = activity.action === 'signup' ? 'user-plus' : 'check';
+          color = activity.action === 'signup' ? 'purple' : 'green';
+          break;
+        case 'authentication':
+          icon = activity.action === 'login' ? 'log-in' : 'log-out';
+          color = 'blue';
+          break;
+        case 'venture':
+          icon = 'building';
+          color = 'blue';
+          break;
+        case 'document':
+          if (activity.action === 'generate') {
+            icon = activity.title.includes('Certificate') ? 'award' : 'bar-chart';
+            color = activity.title.includes('Certificate') ? 'green' : 'blue';
+          } else {
+            // Determine icon by file extension from metadata
+            const metadata = activity.metadata as any;
+            const fileExt = metadata?.fileName?.split('.').pop()?.toLowerCase();
+            if (fileExt === 'pdf') {
+              icon = 'file-text';
+              color = 'red';
+            } else if (['ppt', 'pptx'].includes(fileExt || '')) {
+              icon = 'presentation';
+              color = 'orange';
+            } else {
+              icon = 'upload';
+              color = 'purple';
+            }
+          }
+          break;
+        case 'evaluation':
+          icon = 'trending-up';
+          color = 'yellow';
+          break;
+        case 'navigation':
+          icon = 'eye';
+          color = 'gray';
+          break;
+        default:
+          icon = 'circle';
+          color = 'gray';
       }
 
-      // 5. Document upload activities (most recent)
-      const documentUploads = await storage.getDocumentUploadsByVentureId(latestVenture.ventureId);
-      const proofVaultRecords = await storage.getProofVaultsByVentureId(latestVenture.ventureId);
-      
-      // Create folder ID to name mapping
-      const folderIdToName: Record<string, string> = {};
-      proofVaultRecords.forEach(pv => {
-        if (pv.subFolderId) {
-          folderIdToName[pv.subFolderId.toString()] = pv.folderName;
-        }
-      });
-      
-      // Helper function to get folder display name
-      const getFolderDisplayName = (folderName: string) => {
-        const folderMap: Record<string, string> = {
-          '0_Overview': 'Overview',
-          '1_Problem_Proof': 'Problem Proofs',
-          '2_Solution_Proof': 'Solution Proofs', 
-          '3_Demand_Proof': 'Demand Proofs',
-          '4_Credibility_Proof': 'Credibility Proofs',
-          '5_Commercial_Proof': 'Commercial Proofs',
-          '6_Investor_Pack': 'Investor Pack'
-        };
-        return folderMap[folderName] || folderName;
+      return {
+        id: activity.activityId,
+        type: activity.activityType,
+        title: activity.title,
+        description: activity.description || '',
+        timestamp: activity.createdAt.toISOString(),
+        icon: icon,
+        color: color,
+        metadata: activity.metadata
       };
-      
-      documentUploads.slice(0, 3).forEach((doc, index) => {
-        // Get folder information
-        const folderName = doc.folderId ? folderIdToName[doc.folderId] : null;
-        const folderDisplayName = folderName ? getFolderDisplayName(folderName) : 'Unknown folder';
-        
-        let title = doc.originalName;
-        let description = `Uploaded to ${folderDisplayName}`;
-        let icon = "file-text";
-        let color = "gray";
-        
-        // Customize based on document type
-        if (doc.originalName.includes('Certificate')) {
-          title = doc.originalName;
-          description = 'Validation certificate generated';
-          icon = "award";
-          color = "green";
-        } else if (doc.originalName.includes('Report')) {
-          title = doc.originalName;
-          description = 'Analysis report generated';
-          icon = "bar-chart";
-          color = "blue";
-        } else {
-          // For regular file uploads, determine file type icon
-          const fileExt = doc.originalName.split('.').pop()?.toLowerCase();
-          if (fileExt === 'pdf') {
-            icon = "file-text";
-            color = "red";
-          } else if (['ppt', 'pptx'].includes(fileExt || '')) {
-            icon = "presentation";
-            color = "orange";
-          } else if (['doc', 'docx'].includes(fileExt || '')) {
-            icon = "file-text";
-            color = "blue";
-          } else if (['xls', 'xlsx'].includes(fileExt || '')) {
-            icon = "table";
-            color = "green";
-          } else if (['jpg', 'jpeg', 'png', 'gif'].includes(fileExt || '')) {
-            icon = "image";
-            color = "purple";
-          } else if (['mp4', 'avi', 'mov'].includes(fileExt || '')) {
-            icon = "video";
-            color = "indigo";
-          } else {
-            icon = "file";
-            color = "gray";
-          }
-        }
-
-        activities.push({
-          id: `activity-document-${doc.uploadId}`,
-          type: "document",
-          title: title,
-          description: description,
-          timestamp: doc.createdAt.toISOString(),
-          icon: icon,
-          color: color
-        });
-      });
-    }
+    });
 
     // Sort by timestamp (most recent first) and limit to 5
-    const sortedActivities = activities
+    const sortedActivities = transformedActivities
       .sort((a, b) => new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime())
       .slice(0, 5);
 

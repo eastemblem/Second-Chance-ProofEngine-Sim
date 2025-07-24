@@ -143,6 +143,35 @@ export const documentUpload = pgTable("document_upload", {
   createdAt: timestamp("created_at").defaultNow().notNull(),
 });
 
+// Activity types enum for better type safety
+export const activityTypeEnum = pgEnum('activity_type', [
+  'account',        // Account creation, verification, login
+  'venture',        // Venture creation, updates
+  'document',       // File uploads, downloads
+  'evaluation',     // ProofScore activities
+  'authentication', // Login, logout, password changes
+  'navigation',     // Page visits, feature usage
+  'system'         // System events, notifications
+]);
+
+// User Activity tracking table
+export const userActivity = pgTable("user_activity", {
+  activityId: uuid("activity_id").primaryKey().defaultRandom(),
+  founderId: uuid("founder_id").references(() => founder.founderId),
+  ventureId: uuid("venture_id").references(() => venture.ventureId),
+  sessionId: varchar("session_id", { length: 255 }), // Browser session ID
+  activityType: activityTypeEnum("activity_type").notNull(),
+  action: varchar("action", { length: 100 }).notNull(), // e.g., 'file_upload', 'login', 'venture_create'
+  title: varchar("title", { length: 255 }).notNull(), // Display title for the activity
+  description: text("description"), // Detailed description
+  metadata: jsonb("metadata"), // Additional structured data
+  entityId: varchar("entity_id", { length: 255 }), // Reference to related entity (fileId, ventureId, etc.)
+  entityType: varchar("entity_type", { length: 50 }), // Type of entity ('file', 'venture', 'evaluation')
+  ipAddress: varchar("ip_address", { length: 45 }), // IPv4/IPv6 address
+  userAgent: text("user_agent"), // Browser/device information
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+});
+
 // Leaderboard table for tracking venture scores
 export const leaderboard = pgTable("leaderboard", {
   leaderboardId: uuid("leaderboard_id").primaryKey().defaultRandom(),
@@ -239,6 +268,26 @@ export type OnboardingSession = typeof onboardingSession.$inferSelect;
 export type InsertOnboardingSession = typeof onboardingSession.$inferInsert;
 export type DocumentUpload = typeof documentUpload.$inferSelect;
 export type InsertDocumentUpload = typeof documentUpload.$inferInsert;
+
+// User Activity types
+export type UserActivity = typeof userActivity.$inferSelect;
+export type InsertUserActivity = typeof userActivity.$inferInsert;
+
+// Activity insert schema for validation
+export const insertUserActivitySchema = createInsertSchema(userActivity, {
+  activityType: z.enum(['account', 'venture', 'document', 'evaluation', 'authentication', 'navigation', 'system']),
+  action: z.string().min(1).max(100),
+  title: z.string().min(1).max(255),
+  description: z.string().optional(),
+  metadata: z.any().optional(),
+  entityId: z.string().optional(),
+  entityType: z.string().optional(),
+  ipAddress: z.string().optional(),
+  userAgent: z.string().optional(),
+}).omit({
+  activityId: true,
+  createdAt: true,
+});
 export type Leaderboard = typeof leaderboard.$inferSelect;
 export type InsertLeaderboard = typeof leaderboard.$inferInsert;
 
