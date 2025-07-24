@@ -100,18 +100,15 @@ export const evaluation = pgTable("evaluation", {
 
 // Removed unused table: evaluationCategory
 
-// ProofVault table (replaces proof_vault_documents)
+// ProofVault table (folder structure tracking only - individual files tracked in document_upload)
 export const proofVault = pgTable("proof_vault", {
   vaultId: uuid("vault_id").primaryKey().defaultRandom(),
   ventureId: uuid("venture_id").references(() => venture.ventureId).notNull(),
-  evaluationId: uuid("evaluation_id").references(() => evaluation.evaluationId),
   artefactType: artefactTypeEnum("artefact_type").notNull(),
   parentFolderId: varchar("parent_folder_id", { length: 255 }).notNull(),
   subFolderId: varchar("sub_folder_id", { length: 255 }).notNull(),
   sharedUrl: varchar("shared_url", { length: 500 }).notNull(),
   folderName: varchar("folder_name", { length: 100 }).notNull(),
-  fileId: varchar("file_id", { length: 255 }),
-  fileUrl: varchar("file_url", { length: 500 }),
   description: text("description"),
   createdAt: timestamp("created_at").defaultNow().notNull(),
 });
@@ -186,22 +183,17 @@ export const teamMemberRelations = relations(teamMember, ({ one }) => ({
 
 // Removed unused relation: fundraisingHistoryRelations
 
-export const evaluationRelations = relations(evaluation, ({ one, many }) => ({
+export const evaluationRelations = relations(evaluation, ({ one }) => ({
   venture: one(venture, {
     fields: [evaluation.ventureId],
     references: [venture.ventureId],
   }),
-  documents: many(proofVault),
 }));
 
 export const proofVaultRelations = relations(proofVault, ({ one }) => ({
   venture: one(venture, {
     fields: [proofVault.ventureId],
     references: [venture.ventureId],
-  }),
-  evaluation: one(evaluation, {
-    fields: [proofVault.evaluationId],
-    references: [evaluation.evaluationId],
   }),
 }));
 

@@ -136,6 +136,8 @@ Demo experience for testing different user journeys:
 - **Complete Document Tracking**: ALL documents (pitch decks, certificates, reports) now properly tracked in document_upload table with venture_id
 - **Venture ID Population**: Fixed missing venture_id in document_upload records - now properly populated for all document types
 - **Certificate/Report Tracking**: Enhanced certificate and report generation services to automatically track generated documents
+- **ProofVault Schema Cleanup**: Removed unused fields (evaluation_id, file_id, file_url) - proof_vault now handles folder structure only, document_upload handles individual files
+- **Clean Architecture**: Clear separation of concerns - proof_vault for Box.com folder structure, document_upload for file tracking with venture association
 - **Dashboard Integration**: ProofVault overview displays real file counts, authentication validation, and proper file management
 - **Authentication Context**: All file operations validate user ownership through venture association
 - **Performance Optimization**: Enhanced lookup speed for dashboard queries, team member fetching, and venture-founder relationships
