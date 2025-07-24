@@ -109,8 +109,14 @@ export class EmailService {
 
       const htmlContent = await this.loadTemplate(templateName, enrichedData);
       
-      // Call N8N webhook email API
-      const response = await fetch('https://eastemblemsecondchance.app.n8n.cloud/webhook/notification/email/send', {
+      // Call N8N webhook email API using environment variable
+      const baseUrl = process.env.EASTEMBLEM_API_BASE_URL;
+      if (!baseUrl) {
+        throw new Error('EASTEMBLEM_API_BASE_URL environment variable is required');
+      }
+      const webhookUrl = `${baseUrl}/webhook/notification/email/send`;
+      
+      const response = await fetch(webhookUrl, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json'

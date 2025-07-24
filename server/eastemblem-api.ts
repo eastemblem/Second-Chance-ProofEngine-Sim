@@ -189,9 +189,9 @@ class EastEmblemAPI {
   private baseUrl: string;
 
   constructor() {
-    this.baseUrl = process.env.EASTEMBLEM_API_BASE_URL || "https://eastemblemsecondchance.app.n8n.cloud";
+    this.baseUrl = process.env.EASTEMBLEM_API_BASE_URL;
     if (!this.baseUrl) {
-      console.warn("EASTEMBLEM_API_BASE_URL not configured");
+      throw new Error("EASTEMBLEM_API_BASE_URL environment variable is required");
     }
   }
 

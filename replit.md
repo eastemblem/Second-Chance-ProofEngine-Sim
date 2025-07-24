@@ -127,7 +127,7 @@ Demo experience for testing different user journeys:
 ## Recent Key Updates
 
 ### July 24, 2025 - N8N Email Webhook Integration & Template Enhancement
-- **NEW EMAIL ENDPOINT**: Integrated new N8N webhook endpoint for reliable email delivery: `https://eastemblemsecondchance.app.n8n.cloud/webhook/notification/email/send`
+- **NEW EMAIL ENDPOINT**: Integrated new N8N webhook endpoint for reliable email delivery using EASTEMBLEM_API_BASE_URL environment variable
 - **Enhanced Email Templates**: All email templates now include:
   * Second Chance logo at the top of each email for brand consistency
   * Dynamic privacy and terms URLs ({{PRIVACY_URL}}, {{TERMS_URL}})
