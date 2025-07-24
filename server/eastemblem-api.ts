@@ -189,7 +189,7 @@ class EastEmblemAPI {
   private baseUrl: string;
 
   constructor() {
-    this.baseUrl = process.env.EASTEMBLEM_API_BASE_URL;
+    this.baseUrl = process.env.EASTEMBLEM_API_BASE_URL || '';
     if (!this.baseUrl) {
       throw new Error("EASTEMBLEM_API_BASE_URL environment variable is required");
     }
@@ -336,12 +336,22 @@ class EastEmblemAPI {
           throw new Error("EastEmblem API access forbidden. Please verify API permissions.");
         } else if (response.status === 400 && errorText.includes("File already exists")) {
           // Handle file already exists - this is actually OK, we can proceed
-          console.log("File already exists in Box.com, continuing with existing file");
+          console.log("✅ File already exists in Box.com - using existing file reference");
+          
+          // Parse the error response to get the onboarding_id if available
+          let onboardingId = undefined;
+          try {
+            const errorJson = JSON.parse(errorText);
+            onboardingId = errorJson.onboarding_id;
+          } catch (e) {
+            // Ignore parse errors
+          }
+          
           return {
             id: `existing-${Date.now()}`,
             name: fileName,
             url: `https://app.box.com/file/${folderId}/${fileName}`,
-            onboarding_id: onboardingId,
+            download_url: `https://app.box.com/file/${folderId}/${fileName}`,
           };
         } else {
           throw new Error(`File upload failed (${response.status}): ${errorText}`);
