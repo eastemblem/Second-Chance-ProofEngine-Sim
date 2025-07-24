@@ -126,6 +126,23 @@ Demo experience for testing different user journeys:
 
 ## Recent Key Updates
 
+### July 24, 2025 - N8N Email Webhook Integration & Template Enhancement
+- **NEW EMAIL ENDPOINT**: Integrated new N8N webhook endpoint for reliable email delivery: `https://eastemblemsecondchance.app.n8n.cloud/webhook/notification/email/send`
+- **Enhanced Email Templates**: All email templates now include:
+  * Second Chance logo at the top of each email for brand consistency
+  * Dynamic privacy and terms URLs ({{PRIVACY_URL}}, {{TERMS_URL}})
+  * Current year variable ({{CURRENT_YEAR}}) for footer copyright
+  * Proper founder name personalization ({{USER_NAME}}) across all templates
+  * Responsive HTML formatting with purple-gold Second Chance branding
+- **Improved Email Subjects**: Enhanced email subjects with emojis and compelling copy:
+  * Verification: "🔐 Verify Your Email - Complete Your Second Chance Registration"
+  * Password Reset: "🔑 Reset Your Password - Second Chance Platform"
+  * Welcome: "🎉 Welcome to Second Chance - Your Startup Journey Begins Now!"
+  * Onboarding Results: "🎯 Your ProofScore is {score}/100 - Analysis Complete!"
+- **Dynamic Email Data**: All emails properly populate founder's email from database and include contextual information
+- **Template Consistency**: Updated password-reset.html, onboarding.html, and email-verification.html with consistent branding
+- **Email Service Update**: Modified EmailService class to use N8N webhook with proper error handling and dynamic data enrichment
+
 ### July 23, 2025 - Certificate & Report Download Fix + Venture Data Integration + Onboarding Field Population
 - **FIXED: Certificate and Report Downloads**: Resolved critical download functionality issues with proper venture-specific data integration
 - **Authentication System**: Fixed password authentication system with proper bcrypt hashing and database verification

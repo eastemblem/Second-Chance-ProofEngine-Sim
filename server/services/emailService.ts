@@ -89,7 +89,7 @@ export class EmailService {
   }
 
   /**
-   * Send email via EastEmblem API
+   * Send email via N8N webhook endpoint
    */
   async sendEmail(
     to: string,
@@ -98,29 +98,37 @@ export class EmailService {
     templateData: EmailTemplateData
   ): Promise<boolean> {
     try {
-      const htmlContent = await this.loadTemplate(templateName, templateData);
+      // Ensure dynamic values are properly set
+      const enrichedData = {
+        ...templateData,
+        HOST_URL: templateData.HOST_URL || process.env.HOST_URL || 'https://secondchance.replit.app',
+        PRIVACY_URL: `${templateData.HOST_URL || process.env.HOST_URL || 'https://secondchance.replit.app'}/privacy`,
+        TERMS_URL: `${templateData.HOST_URL || process.env.HOST_URL || 'https://secondchance.replit.app'}/terms`,
+        CURRENT_YEAR: new Date().getFullYear().toString()
+      };
+
+      const htmlContent = await this.loadTemplate(templateName, enrichedData);
       
-      // Call EastEmblem email API
-      const response = await fetch('https://api.eastemblem.com/email/send', {
+      // Call N8N webhook email API
+      const response = await fetch('https://eastemblemsecondchance.app.n8n.cloud/webhook/notification/email/send', {
         method: 'POST',
         headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${process.env.EASTEMBLEM_API_KEY}`
+          'Content-Type': 'application/json'
         },
         body: JSON.stringify({
           to,
           subject,
-          html: htmlContent,
-          from: 'Second Chance <noreply@secondchance.com>'
+          html: htmlContent
         })
       });
 
       if (!response.ok) {
-        throw new Error(`Email API error: ${response.status} ${response.statusText}`);
+        const errorText = await response.text();
+        throw new Error(`Email API error: ${response.status} ${response.statusText} - ${errorText}`);
       }
 
       const result = await response.json();
-      console.log(`Email sent successfully to ${to}: ${result.messageId || 'OK'}`);
+      console.log(`Email sent successfully to ${to} via N8N webhook`);
       return true;
 
     } catch (error) {
@@ -135,7 +143,7 @@ export class EmailService {
   async sendVerificationEmail(to: string, userName: string, verificationUrl: string): Promise<boolean> {
     return this.sendEmail(
       to,
-      'Verify Your Email Address - Second Chance',
+      '🔐 Verify Your Email - Complete Your Second Chance Registration',
       'email-verification',
       {
         USER_NAME: userName,
@@ -153,12 +161,12 @@ export class EmailService {
     
     return this.sendEmail(
       to,
-      'Reset Your Password - Second Chance',
+      '🔑 Reset Your Password - Second Chance Platform',
       'password-reset',
       {
-        founder_name: founderName,
-        reset_url: resetUrl,
-        host_url: process.env.HOST_URL || 'https://secondchance.replit.app'
+        USER_NAME: founderName,
+        RESET_URL: resetUrl,
+        HOST_URL: process.env.HOST_URL || 'https://secondchance.replit.app'
       }
     );
   }
@@ -169,7 +177,7 @@ export class EmailService {
   async sendWelcomeEmail(to: string, userName: string): Promise<boolean> {
     return this.sendEmail(
       to,
-      'Welcome to Second Chance ProofScaling Platform!',
+      '🎉 Welcome to Second Chance - Your Startup Journey Begins Now!',
       'welcome-email',
       {
         USER_NAME: userName,
@@ -192,7 +200,7 @@ export class EmailService {
   ): Promise<boolean> {
     return this.sendEmail(
       to,
-      `Your ProofScore is ${proofScore}/100 - Results Ready!`,
+      `🎯 Your ProofScore is ${proofScore}/100 - Analysis Complete!`,
       'onboarding',
       {
         USER_NAME: userName,
