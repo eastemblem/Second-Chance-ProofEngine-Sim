@@ -4,6 +4,7 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Progress } from "@/components/ui/progress";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { useToast } from "@/hooks/use-toast";
 import { 
   Download, 
@@ -22,7 +23,8 @@ import {
   User,
   Settings,
   LogOut,
-  Medal
+  Medal,
+  Folder
 } from "lucide-react";
 import Navbar from "@/components/navbar";
 import Footer from "@/components/footer";
@@ -40,6 +42,13 @@ interface User {
   };
 }
 
+interface ProofVaultFolder {
+  id: string;
+  name: string;
+  displayName: string;
+  count: number;
+}
+
 interface ProofVaultData {
   overviewCount: number;
   problemProofCount: number;
@@ -50,6 +59,7 @@ interface ProofVaultData {
   investorPackCount: number;
   totalFiles: number;
   files: FileItem[];
+  folders?: ProofVaultFolder[];
 }
 
 interface FileItem {
@@ -86,6 +96,9 @@ export default function DashboardPage() {
   const [proofVaultData, setProofVaultData] = useState<ProofVaultData | null>(null);
   const [recentActivity, setRecentActivity] = useState<ActivityItem[]>([]);
   const [activeTab, setActiveTab] = useState("overview");
+  const [selectedFolder, setSelectedFolder] = useState<string>("0_Overview");
+  const [uploadProgress, setUploadProgress] = useState<number>(0);
+  const [isUploading, setIsUploading] = useState(false);
   const [, setLocation] = useLocation();
   const { toast } = useToast();
 
@@ -264,21 +277,42 @@ export default function DashboardPage() {
 
   const handleFileUpload = async (file: File, folderId: string) => {
     try {
+      setIsUploading(true);
+      setUploadProgress(0);
+
       const formData = new FormData();
       formData.append('file', file);
       formData.append('folder_id', folderId);
+
+      // Simulate upload progress
+      const progressInterval = setInterval(() => {
+        setUploadProgress(prev => Math.min(prev + 10, 80));
+      }, 200);
 
       const response = await fetch('/api/vault/upload-file', {
         method: 'POST',
         body: formData,
       });
 
+      clearInterval(progressInterval);
+      setUploadProgress(100);
+
       if (response.ok) {
+        const result = await response.json();
+        
         toast({
-          title: "File Uploaded",
-          description: `${file.name} has been uploaded successfully.`,
+          title: "File Uploaded Successfully",
+          description: `${file.name} has been uploaded to ${getFolderDisplayName(folderId)}.`,
         });
-        loadDashboardData(); // Refresh data
+        
+        // Reload data to reflect the upload
+        await loadDashboardData();
+        
+        // Reset upload state
+        setTimeout(() => {
+          setIsUploading(false);
+          setUploadProgress(0);
+        }, 1000);
       } else {
         throw new Error('Upload failed');
       }
@@ -286,11 +320,38 @@ export default function DashboardPage() {
       console.error('File upload error:', error);
       toast({
         title: "Upload Error",
-        description: "Failed to upload file. Please try again.",
+        description: `Failed to upload ${file.name}. Please try again.`,
         variant: "destructive",
       });
+      setIsUploading(false);
+      setUploadProgress(0);
     }
   };
+
+  // Helper function to get folder display names
+  const getFolderDisplayName = (folderId: string) => {
+    const folderMap: Record<string, string> = {
+      '0_Overview': 'Overview',
+      '1_Problem_Proof': 'Problem Proofs',
+      '2_Solution_Proof': 'Solution Proofs', 
+      '3_Demand_Proof': 'Demand Proofs',
+      '4_Credibility_Proof': 'Credibility Proofs',
+      '5_Commercial_Proof': 'Commercial Proofs',
+      '6_Investor_Pack': 'Investor Pack'
+    };
+    return folderMap[folderId] || folderId;
+  };
+
+  // Get available folders for dropdown
+  const getAvailableFolders = () => [
+    { id: '0_Overview', name: 'Overview', count: proofVaultData?.overviewCount || 0 },
+    { id: '1_Problem_Proof', name: 'Problem Proofs', count: proofVaultData?.problemProofCount || 0 },
+    { id: '2_Solution_Proof', name: 'Solution Proofs', count: proofVaultData?.solutionProofCount || 0 },
+    { id: '3_Demand_Proof', name: 'Demand Proofs', count: proofVaultData?.demandProofCount || 0 },
+    { id: '4_Credibility_Proof', name: 'Credibility Proofs', count: proofVaultData?.credibilityProofCount || 0 },
+    { id: '5_Commercial_Proof', name: 'Commercial Proofs', count: proofVaultData?.commercialProofCount || 0 },
+    { id: '6_Investor_Pack', name: 'Investor Pack', count: proofVaultData?.investorPackCount || 0 }
+  ];
 
   const handleFileRemove = async (fileId: string) => {
     try {
@@ -548,27 +609,95 @@ export default function DashboardPage() {
                   </TabsContent>
 
                   <TabsContent value="upload" className="mt-6">
-                    <div className="border-2 border-dashed border-gray-600 rounded-lg p-8 text-center">
-                      <Upload className="w-12 h-12 mx-auto mb-4 text-gray-400" />
-                      <p className="text-gray-300 mb-4">Drag and drop files here or click to browse</p>
-                      <input
-                        type="file"
-                        multiple
-                        className="hidden"
-                        id="file-upload"
-                        onChange={(e) => {
-                          const files = e.target.files;
-                          if (files) {
-                            Array.from(files).forEach(file => {
-                              handleFileUpload(file, '0_Overview'); // Default to overview folder
-                            });
-                          }
-                        }}
-                      />
-                      <Button onClick={() => document.getElementById('file-upload')?.click()} className="bg-gradient-to-r from-purple-500 to-yellow-500 text-white">
-                        <Plus className="w-4 h-4 mr-2" />
-                        Choose Files
-                      </Button>
+                    <div className="space-y-6">
+                      {/* Folder Selection */}
+                      <div className="space-y-2">
+                        <label className="text-sm font-medium text-gray-300">Select Folder</label>
+                        <Select value={selectedFolder} onValueChange={setSelectedFolder}>
+                          <SelectTrigger className="bg-gray-800 border-gray-600 text-white">
+                            <SelectValue placeholder="Choose a folder...">
+                              <div className="flex items-center gap-2">
+                                <Folder className="w-4 h-4" />
+                                {getFolderDisplayName(selectedFolder)} ({getAvailableFolders().find(f => f.id === selectedFolder)?.count || 0} files)
+                              </div>
+                            </SelectValue>
+                          </SelectTrigger>
+                          <SelectContent className="bg-gray-800 border-gray-600">
+                            {getAvailableFolders().map((folder) => (
+                              <SelectItem key={folder.id} value={folder.id} className="text-white hover:bg-gray-700">
+                                <div className="flex items-center justify-between w-full">
+                                  <span className="flex items-center gap-2">
+                                    <Folder className="w-4 h-4" />
+                                    {folder.name}
+                                  </span>
+                                  <span className="text-gray-400 text-sm">({folder.count} files)</span>
+                                </div>
+                              </SelectItem>
+                            ))}
+                          </SelectContent>
+                        </Select>
+                      </div>
+
+                      {/* Upload Area */}
+                      <div className={`border-2 border-dashed rounded-lg p-8 text-center transition-all ${
+                        isUploading 
+                          ? 'border-purple-500 bg-purple-500/5' 
+                          : 'border-gray-600 hover:border-gray-500'
+                      }`}>
+                        {isUploading ? (
+                          <div className="space-y-4">
+                            <div className="w-16 h-16 mx-auto rounded-full bg-gradient-to-r from-purple-500 to-yellow-500 flex items-center justify-center">
+                              <Upload className="w-8 h-8 text-white animate-pulse" />
+                            </div>
+                            <div className="space-y-2">
+                              <p className="text-purple-400 font-medium">Uploading...</p>
+                              <Progress value={uploadProgress} className="h-2 bg-gray-700" />
+                              <p className="text-gray-400 text-sm">{uploadProgress}% complete</p>
+                            </div>
+                          </div>
+                        ) : (
+                          <>
+                            <Upload className="w-12 h-12 mx-auto mb-4 text-gray-400" />
+                            <p className="text-gray-300 mb-2">Drag and drop files here or click to browse</p>
+                            <p className="text-gray-500 text-sm mb-4">
+                              Files will be uploaded to: <span className="text-purple-400 font-medium">{getFolderDisplayName(selectedFolder)}</span>
+                            </p>
+                            <input
+                              type="file"
+                              multiple
+                              accept=".pdf,.ppt,.pptx,.doc,.docx,.jpg,.jpeg,.png,.mp4,.mov"
+                              className="hidden"
+                              id="file-upload"
+                              onChange={(e) => {
+                                const files = e.target.files;
+                                if (files) {
+                                  Array.from(files).forEach(file => {
+                                    handleFileUpload(file, selectedFolder);
+                                  });
+                                }
+                              }}
+                            />
+                            <Button 
+                              onClick={() => document.getElementById('file-upload')?.click()} 
+                              className="bg-gradient-to-r from-purple-500 to-yellow-500 text-white hover:from-purple-600 hover:to-yellow-600"
+                            >
+                              <Plus className="w-4 h-4 mr-2" />
+                              Choose Files
+                            </Button>
+                          </>
+                        )}
+                      </div>
+
+                      {/* Upload Guidelines */}
+                      <div className="bg-gray-800/50 rounded-lg p-4 space-y-2">
+                        <h4 className="text-sm font-medium text-gray-300">Upload Guidelines</h4>
+                        <ul className="text-xs text-gray-400 space-y-1">
+                          <li>• Supported formats: PDF, PPT, PPTX, DOC, DOCX, JPG, PNG, MP4, MOV</li>
+                          <li>• Maximum file size: 10 MB per file</li>
+                          <li>• Files will be automatically categorized in your selected folder</li>
+                          <li>• Upload high-quality documents to maximize your ProofScore</li>
+                        </ul>
+                      </div>
                     </div>
                   </TabsContent>
                 </Tabs>

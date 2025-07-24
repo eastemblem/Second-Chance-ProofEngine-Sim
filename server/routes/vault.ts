@@ -140,22 +140,29 @@ router.post("/upload-file", upload.single("file"), requireFields(['folder_id']),
   if (req.session?.founderId) {
     try {
       const { storage } = await import("../storage");
-      const ventures = await storage.getFounderVentures(req.session.founderId);
-      const latestVenture = ventures.length > 0 ? ventures[ventures.length - 1] : null;
+      const ventures = await storage.getVenturesByFounderId(req.session.founderId);
+      const latestVenture = ventures.length > 0 ? ventures[0] : null;
       
       if (latestVenture) {
+        // Get the correct folder ID for the selected folder
+        const proofVaultRecords = await storage.getProofVaultsByVentureId(latestVenture.ventureId);
+        const targetFolder = proofVaultRecords.find(pv => pv.folderName === folder_id);
+        const folderId = targetFolder?.subFolderId || null;
+        
         await storage.createDocumentUpload({
           ventureId: latestVenture.ventureId,
           fileName: uploadResult.name || file.originalname,
           originalName: file.originalname,
+          filePath: `/uploads/${folder_id}/${file.originalname}`,
           fileSize: file.size,
           mimeType: file.mimetype,
           uploadStatus: "completed",
-          processingStatus: "pending",
+          processingStatus: "completed",
           eastemblemFileId: uploadResult.id,
           sharedUrl: uploadResult.url || uploadResult.download_url,
+          folderId: folderId, // Map to correct folder
         });
-        console.log(`✓ Tracked file upload in database for venture ${latestVenture.ventureId}`);
+        console.log(`✅ File tracked in database: ${file.originalname} → ${folder_id} folder (${folderId})`);
       }
     } catch (error) {
       console.error("Failed to track file upload in database:", error);
