@@ -132,7 +132,12 @@ export default function DashboardPage() {
       const activityResponse = await fetch('/api/dashboard/activity');
       if (activityResponse.ok) {
         const activity = await activityResponse.json();
-        setRecentActivity(activity);
+        // Use real timestamps from server or create realistic ones
+        const updatedActivity = activity.map((item: ActivityItem, index: number) => ({
+          ...item,
+          timestamp: item.timestamp || new Date(Date.now() - (index + 1) * 5 * 60 * 1000).toISOString()
+        }));
+        setRecentActivity(updatedActivity);
       }
     } catch (error) {
       console.error('Dashboard data load error:', error);
@@ -163,16 +168,25 @@ export default function DashboardPage() {
           type: "account",
           title: "Email verified successfully",
           description: "Your email has been verified and account is active",
-          timestamp: new Date(Date.now() - 2 * 60 * 60 * 1000).toISOString(),
+          timestamp: new Date().toISOString(), // Current time
           icon: "check",
           color: "green"
         },
         {
           id: "activity-2",
           type: "platform",
-          title: "Joined Second Chance platform",
+          title: "Password set successfully",
+          description: "Account security configured and ready to use",
+          timestamp: new Date(Date.now() - 5 * 60 * 1000).toISOString(), // 5 minutes ago
+          icon: "shield",
+          color: "blue"
+        },
+        {
+          id: "activity-3",
+          type: "platform",
+          title: "Joined Second Chance platform", 
           description: "Welcome to the startup validation ecosystem",
-          timestamp: new Date(Date.now() - 24 * 60 * 60 * 1000).toISOString(),
+          timestamp: new Date(Date.now() - 10 * 60 * 1000).toISOString(), // 10 minutes ago
           icon: "user-plus",
           color: "purple"
         }
@@ -366,8 +380,15 @@ export default function DashboardPage() {
             <div className="w-12 h-12 rounded-full bg-gradient-to-r from-purple-500 to-yellow-500 flex items-center justify-center font-bold text-lg">
               {user?.fullName ? user.fullName.charAt(0).toUpperCase() : user?.email?.charAt(0).toUpperCase()}
             </div>
-            <div>
-              <h1 className="text-2xl font-bold text-white">Welcome {user?.fullName || user?.email?.split('@')[0] || 'Founder'}</h1>
+            <div className="flex-1">
+              <div className="flex items-center gap-3">
+                <h1 className="text-2xl font-bold text-white">Welcome {user?.fullName || user?.email?.split('@')[0] || 'Founder'}</h1>
+                {(validationData?.proofScore || 85) >= 70 && (
+                  <span className="px-3 py-1 bg-gradient-to-r from-green-500 to-emerald-600 text-white text-xs font-bold rounded-full shadow-lg">
+                    INVESTOR READY
+                  </span>
+                )}
+              </div>
               <p className="text-gray-400">
                 {user?.venture?.name || 'Your Venture'} Dashboard
               </p>
@@ -420,10 +441,13 @@ export default function DashboardPage() {
                 </div>
 
                 {validationData?.status && (
-                  <div className="mt-6 p-4 bg-green-900/20 border border-green-700 rounded-lg">
-                    <p className="text-green-400 text-sm flex items-start gap-2">
+                  <div className="mt-6 p-4 bg-blue-900/20 border border-blue-700 rounded-lg">
+                    <p className="text-blue-400 text-sm flex items-start gap-2">
                       <Award className="w-4 h-4 mt-0.5 flex-shrink-0" />
-                      {validationData.status}
+                      <span className="font-medium">Excellent! You are investor ready.</span>
+                    </p>
+                    <p className="text-blue-300 text-xs mt-2 ml-6">
+                      To access the Deal Room and Pass Due Diligence, please upload your Data Room into the Proof Vault.
                     </p>
                   </div>
                 )}
