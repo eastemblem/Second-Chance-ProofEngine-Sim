@@ -745,6 +745,10 @@ export class OnboardingService {
         }
       }
 
+      // Generate verification URL (use environment host or default)
+      const baseUrl = process.env.FRONTEND_URL || 'https://secondchance.replit.app';
+      const verificationUrl = `${baseUrl}/api/auth/verify-email/${verificationToken}`;
+
       // Send email notification using new N8N webhook endpoint  
       const { emailService } = await import('./emailService');
       const emailResult = await emailService.sendOnboardingEmail(
@@ -754,7 +758,8 @@ export class OnboardingService {
         scoreBreakdown,
         [], // ProofTags will be populated from database by EmailService
         reportUrl,
-        certificateUrl
+        certificateUrl,
+        verificationUrl
       );
       console.log("✓ Email notification sent successfully via N8N webhook:", emailResult);
 

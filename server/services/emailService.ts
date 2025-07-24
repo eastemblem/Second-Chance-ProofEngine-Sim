@@ -207,7 +207,8 @@ export class EmailService {
     scoreBreakdown: any,
     proofTags: string[],
     reportUrl: string,
-    certificateUrl: string
+    certificateUrl: string,
+    verificationUrl?: string
   ): Promise<boolean> {
     return this.sendEmail(
       to,
@@ -230,7 +231,8 @@ export class EmailService {
         PROOF_TAGS: proofTags.map(tag => ({ TAG_NAME: tag })),
         REPORT_DOWNLOAD_URL: reportUrl,
         CERTIFICATE_DOWNLOAD_URL: certificateUrl,
-        HOST_URL: process.env.HOST_URL || 'https://secondchance.replit.app'
+        VERIFICATION_URL: verificationUrl || `${process.env.FRONTEND_URL}/set-password`,
+        HOST_URL: process.env.FRONTEND_URL || 'https://secondchance.replit.app'
       }
     );
   }
