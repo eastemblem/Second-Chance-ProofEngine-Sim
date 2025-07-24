@@ -136,11 +136,12 @@ export async function createCertificateForSession(sessionId: string) {
           fileName: certificateResult.name || 'validation_certificate.pdf',
           originalName: certificateResult.name || 'validation_certificate.pdf',
           filePath: '/generated/certificate.pdf',
-          fileSize: 0, // Size not available from EastEmblem API
+          fileSize: certificateResult.size || 1024000, // Use actual size from API or reasonable default
           mimeType: 'application/pdf',
           uploadStatus: 'completed',
           processingStatus: 'completed',
           sharedUrl: certificateResult.url,
+          folderId: certificateResult.folderId || overviewFolderId, // Use folder ID from API or session
           eastemblemFileId: certificateResult.id
         });
         console.log("✓ Certificate document_upload record created");

@@ -180,7 +180,7 @@ export async function createReportForSession(sessionId: string) {
               uploadStatus: 'completed',
               processingStatus: 'completed',
               sharedUrl: existingUrl,
-              folderId: null, // No folder ID for existing reports
+              folderId: session.stepData?.folderStructure?.folders?.["0_Overview"] || null, // Use Overview folder ID
               eastemblemFileId: null, // Will be populated when we have the actual ID
               uploadedBy: 'system'
             });
@@ -256,7 +256,7 @@ export async function createReportForSession(sessionId: string) {
           uploadStatus: 'completed',
           processingStatus: 'completed',
           sharedUrl: reportResult.url,
-          folderId: reportResult.folderId || null, // Use actual folder ID from API if available
+          folderId: reportResult.folderId || session.stepData?.folderStructure?.folders?.["0_Overview"] || null, // Use folder ID from API or Overview folder
           eastemblemFileId: reportResult.id,
           uploadedBy: 'system'
         });

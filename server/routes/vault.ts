@@ -253,7 +253,7 @@ router.post("/upload-file", upload.single("file"), requireFields(['folder_id']),
           fileName: uploadResult.name || file.originalname,
           originalName: file.originalname,
           filePath: `/uploads/${folder_id}/${file.originalname}`,
-          fileSize: file.size,
+          fileSize: uploadResult.size || file.size, // Use EastEmblem API size if available, fallback to local file size
           mimeType: file.mimetype,
           uploadStatus: "completed",
           processingStatus: "completed",

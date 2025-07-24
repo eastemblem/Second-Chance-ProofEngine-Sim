@@ -1,0 +1,40 @@
+GOAL
+Ensure the file size associated with the given folder_id under the document_upload directory is correctly computed and displayed in the application.
+
+CURRENT PROBLEM
+What’s not working: File size is not getting populated for the folder_id.
+Expected behavior: Application should show the accurate size of files (or cumulative folder size) linked to the folder_id.
+USER EXPERIENCE
+Who uses it: Users or admins managing document uploads.
+When: When accessing documents under document_upload or viewing folder details.
+They should be able to: See the correct file size and proceed confidently.
+TECHNICAL CONTEXT
+Priority level: High (since you’ve spent significant time troubleshooting).
+Platform: Please confirm if this is desktop, mobile, or both.
+Performance: File size calculation should be efficient.
+To move forward, I need to clarify:
+What kind of object is folder_id?
+
+Is it a folder containing many files or a single document?
+How do you currently calculate or retrieve the file size?
+
+Directly reading from the filesystem?
+Fetching size stored in a database?
+Returned from an API?
+Are you encountering any error messages or warnings in logs or console?
+
+What technology stack is your app built on?
+
+Is there any caching mechanism involved that might prevent updated file sizes from showing?
+
+Common pitfalls to verify immediately:
+Folder path correctness: Double-check if folder_id combines correctly with the document_upload base path.
+Filesystem permissions: Ensure read permissions are granted for that directory.
+File size property existence: Confirm file size attribute exists and is updated (in database or metadata).
+Async or timing issue: If fetching file size asynchronously, confirm UI waits for data.
+Database update flow: Verify that after upload or changes, file size is re-calculated and saved.
+Next steps for you:
+Share how your code currently obtains or assigns the file size for folder_id.
+Provide any relevant error logs or diagnostic messages.
+Specify your application’s language/framework for context.
+Once I have these details, I can help you troubleshoot more precisely and suggest targeted fixes. Looking forward to your response!

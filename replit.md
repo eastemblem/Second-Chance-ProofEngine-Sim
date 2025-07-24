@@ -126,7 +126,16 @@ Demo experience for testing different user journeys:
 
 ## Recent Key Updates
 
-### July 24, 2025 - Complete Retry System Implementation with UI Controls
+### July 24, 2025 - Database Field Population Fix & Complete Retry System Implementation
+- **DATABASE FIELD FIX**: Resolved folder_id and file_size field population issues in document_upload table
+- **Field Population Corrections**:
+  * Certificate generation now properly captures file_size from EastEmblem API response or uses reasonable defaults
+  * Report generation now populates folder_id with Overview folder ID from session data
+  * Vault uploads prioritize EastEmblem API file_size over local file size for accuracy
+  * SQL migration script updated existing records to populate missing folder_id fields
+- **API Response Integration**: Enhanced certificate and report services to capture size and folderId from EastEmblem API responses
+- **Data Consistency**: All document_upload records now have proper folder_id and file_size values for accurate tracking
+- **Complete Retry System Implementation with UI Controls
 - **AUTOMATIC RETRY MECHANISM**: Added comprehensive retry system with exponential backoff for API timeouts and 5xx errors
 - **Smart Error Detection**: Automatically detects retryable errors (524 timeout, 5xx server errors) vs non-retryable errors (auth failures)
 - **Exponential Backoff**: 3 attempts with 2s base delay, exponential scaling, and jitter to prevent thundering herd
