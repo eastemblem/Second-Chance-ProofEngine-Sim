@@ -686,36 +686,24 @@ export class OnboardingService {
       const founder = stepData.founder?.founder || stepData.founder;
       const venture = stepData.venture?.venture || stepData.venture;
 
-      // Fetch certificate and report URLs from venture table
-      let latestCertificateUrl = '';
-      let latestReportUrl = '';
+      // Define base URL for fallback usage
+      const baseUrl = 'https://secondchance.replit.app';
       
-      if (venture?.ventureId) {
-        try {
-          const ventureData = await storage.getVenture(venture.ventureId);
-          if (ventureData?.certificateUrl && ventureData?.reportUrl) {
-            latestCertificateUrl = ventureData.certificateUrl;
-            latestReportUrl = ventureData.reportUrl;
-            console.log("Using URLs from venture table:", {
-              certificate: latestCertificateUrl,
-              report: latestReportUrl
-            });
-          } else {
-            console.log("No URLs found in venture table, using fallback server endpoints");
-            const baseUrl = 'https://secondchance.replit.app';
-            latestCertificateUrl = `${baseUrl}/api/download/certificate?sessionId=${sessionId}`;
-            latestReportUrl = `${baseUrl}/api/download/report?sessionId=${sessionId}`;
-          }
-        } catch (error) {
-          console.error("Failed to fetch venture URLs:", error);
-          const baseUrl = 'https://secondchance.replit.app';
-          latestCertificateUrl = `${baseUrl}/api/download/certificate?sessionId=${sessionId}`;
-          latestReportUrl = `${baseUrl}/api/download/report?sessionId=${sessionId}`;
-        }
-      } else {
-        const baseUrl = 'https://secondchance.replit.app';
-        latestCertificateUrl = `${baseUrl}/api/download/certificate?sessionId=${sessionId}`;
-        latestReportUrl = `${baseUrl}/api/download/report?sessionId=${sessionId}`;
+      // Fetch certificate and report URLs from session state (generated during onboarding)
+      let latestCertificateUrl = certificateUrl || stepData.processing?.certificateUrl;
+      let latestReportUrl = reportUrl || stepData.processing?.reportUrl;
+      
+      console.log("URLs from session state:", {
+        certificate: latestCertificateUrl,
+        report: latestReportUrl,
+        processing: stepData.processing
+      });
+      
+      // If URLs not in session state, use server endpoints as fallback
+      if (!latestCertificateUrl || !latestReportUrl) {
+        latestCertificateUrl = latestCertificateUrl || `${baseUrl}/api/download/certificate?sessionId=${sessionId}`;
+        latestReportUrl = latestReportUrl || `${baseUrl}/api/download/report?sessionId=${sessionId}`;
+        console.log("Using fallback server endpoints for missing URLs");
       }
       
       console.log("Final URLs for email:", {
