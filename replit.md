@@ -136,7 +136,7 @@ Demo experience for testing different user journeys:
 - **MIME Type Extraction**: Added utility function to extract MIME type from file extension supporting 12+ file formats
 - **Database Update Integration**: Upload process now updates document_upload record with complete EastEmblem response data
 - **Real-Time Status Tracking**: Upload status progression from 'pending' → 'completed' → 'processing' with proper database persistence
-- **Automated Flow Fix**: Corrected certificate and report generation to automatically capture `eastemblemFileId`, `file_size`, and `folder_id` from API response without manual intervention
+- **Automated Flow Fix**: Corrected certificate and report generation to automatically capture `eastemblemFileId` from API response. Note: EastEmblem generation APIs only provide `id`, `name`, and `url` - actual file sizes and folder IDs are only available for uploaded files, not generated documents
 - **Complete Data Flow**: Local upload → EastEmblem Box.com → database update → dashboard integration all operational with full automation
 
 ### July 24, 2025 - COMPLETE SYSTEM INTEGRATION SUCCESS - Database Persistence & Mock Data Removal

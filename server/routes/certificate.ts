@@ -378,12 +378,12 @@ export async function generateCertificate(req: Request, res: Response) {
                 originalName: certificateResult.name || 'validation_certificate.pdf',
                 filePath: '/generated/certificate.pdf',
                 fileType: 'pdf',
-                fileSize: certificateResult.size || 512000, // Use size from API response or default 512KB
+                fileSize: 512000, // Default 512KB - EastEmblem API doesn't return file size for generated certificates
                 mimeType: 'application/pdf',
                 uploadStatus: 'completed',
                 processingStatus: 'completed',
                 sharedUrl: certificateResult.url,
-                folderId: certificateResult.folderId || null, // Add folder ID from API response
+                folderId: null, // EastEmblem API doesn't return folder ID for generated certificates
                 eastemblemFileId: certificateResult.id,
                 uploadedBy: 'system'
               });

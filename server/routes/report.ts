@@ -251,12 +251,12 @@ export async function createReportForSession(sessionId: string) {
           originalName: reportResult.name || 'analysis_report.pdf',
           filePath: '/generated/report.pdf',
           fileType: 'pdf',
-          fileSize: reportResult.size || 1024000, // Use size from API response or default 1MB
+          fileSize: 1024000, // Default 1MB - EastEmblem API doesn't return file size for generated reports
           mimeType: 'application/pdf',
           uploadStatus: 'completed',
           processingStatus: 'completed',
           sharedUrl: reportResult.url,
-          folderId: reportResult.folderId || null, // Add folder ID from API response
+          folderId: null, // EastEmblem API doesn't return folder ID for generated reports
           eastemblemFileId: reportResult.id,
           uploadedBy: 'system'
         });
