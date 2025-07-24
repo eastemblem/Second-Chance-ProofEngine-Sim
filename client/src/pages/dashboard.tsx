@@ -441,15 +441,15 @@ export default function DashboardPage() {
                 </div>
 
                 {validationData?.status && (
-                  <div className="mt-6 p-4 border-2 border-blue-500 bg-blue-900/10 rounded-lg">
+                  <div className="mt-6 p-4 bg-yellow-900/20 border border-yellow-600 rounded-lg">
                     <div className="flex items-start gap-3">
-                      <div className="p-1 rounded-full bg-blue-500/20 mt-0.5">
-                        <Award className="w-4 h-4 text-blue-400" />
+                      <div className="mt-0.5">
+                        <AlertTriangle className="w-5 h-5 text-yellow-500" />
                       </div>
                       <div className="flex-1">
-                        <h4 className="text-blue-300 font-semibold text-sm mb-2">Excellent! You are investor ready.</h4>
-                        <p className="text-blue-200 text-sm">
-                          To access the Deal Room and Pass Due Diligence, please upload your Data Room into the Proof Vault.
+                        <h4 className="text-yellow-400 font-semibold text-sm mb-2">Important - Action Required</h4>
+                        <p className="text-yellow-200 text-sm">
+                          To complete your registration and gain full access to Second Chance services, please verify your email address by clicking the button below. This will redirect you to our secure signup completion page.
                         </p>
                       </div>
                     </div>
