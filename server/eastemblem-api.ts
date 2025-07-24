@@ -108,6 +108,8 @@ interface CertificateResponse {
   id: string;
   name: string;
   url: string;
+  size?: number;
+  folderId?: string;
 }
 
 interface TractionSignals {
@@ -168,6 +170,8 @@ interface ReportResponse {
   id: string;
   name: string;
   url: string;
+  size?: number;
+  folderId?: string;
 }
 
 interface EmailNotificationData {
