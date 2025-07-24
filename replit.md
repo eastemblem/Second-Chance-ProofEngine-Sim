@@ -216,16 +216,15 @@ Demo experience for testing different user journeys:
 - **Removed Downloads Section**: Eliminated "Ready for Download" section per user request for cleaner interface
 - **Enhanced User Guidance**: Clear visual confirmation of investor readiness and actionable next steps for deal room access
 
-### July 24, 2025 - Navigation Bar Removal for Authentication Pages
-- **Clean Authentication Flow**: Removed navigation bars from all password and email verification related pages for focused user experience
-- **Pages Updated**:
-  * **Set Password Page**: Removed navbar for cleaner password setup flow (handles both email verification and password reset scenarios)
-  * **Reset Password Page**: Removed navbar from password reset interface for distraction-free experience  
-  * **Forgot Password Page**: Removed navbar from password request form for consistent authentication flow
-  * **Token Expired Page**: Confirmed no navbar (already optimized for clean error handling)
-- **UI Consistency**: All authentication pages now maintain consistent clean design without navigation distractions
-- **User Experience Enhancement**: Password-related flows now have focused, single-purpose interfaces without navigation elements
-- **Code Quality**: All LSP diagnostics resolved, no compilation errors, proper import cleanup across all affected files
+### July 24, 2025 - Leaderboard Enhancement & Logo Removal from Verify-Email
+- **Leaderboard 10-Entry Guarantee**: Enhanced analysis page leaderboard to always show 10 entries using smart mock data when needed
+- **Mock Data Integration**: System adds reference entries only when real data is insufficient (< 10 entries)
+- **Intelligent Scoring**: Mock entries automatically adjusted to scores lower than real entries (prevents inflated rankings)
+- **Visual Indicators**: Reference entries marked with "ref" badge and "Reference entry" description for transparency
+- **Data Source Tracking**: API response includes realEntries/mockEntries counts with "mixed" source indicator
+- **Name Conflict Prevention**: Mock data filtered to avoid conflicts with existing venture names
+- **Logo Removal**: Removed Second Chance logo from email verification page (set-password.tsx) for cleaner authentication flow
+- **Code Quality**: Fixed LSP diagnostics and cleaned up unused imports across authentication components
 
 ### July 24, 2025 - Complete Environment Variable Configuration & URL Management
 - **FRONTEND_URL Environment Variable**: Successfully created and configured FRONTEND_URL for all client-side URLs

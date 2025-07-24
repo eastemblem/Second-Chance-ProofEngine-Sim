@@ -15,6 +15,9 @@ interface LeaderboardResponse {
   success: boolean;
   data: LeaderboardEntry[];
   source: 'real' | 'mixed';
+  totalEntries: number;
+  realEntries: number;
+  mockEntries: number;
 }
 
 interface LeaderboardProps {
@@ -85,6 +88,11 @@ export function Leaderboard({ currentVentureName }: LeaderboardProps) {
       </h3>
       <p className="text-sm text-muted-foreground mb-4">
         Top performing ventures by ProofScore validation
+        {data.source === 'mixed' && (
+          <span className="block text-xs mt-1 opacity-75">
+            Showing {data.realEntries} real ventures and {data.mockEntries} reference entries
+          </span>
+        )}
       </p>
       
       {/* All Rankings in Rows */}
