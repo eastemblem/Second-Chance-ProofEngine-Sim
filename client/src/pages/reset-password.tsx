@@ -6,7 +6,7 @@ import { Label } from "@/components/ui/label";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { useToast } from "@/hooks/use-toast";
 import { CheckCircle, Eye, EyeOff, Lock, AlertCircle, XCircle } from "lucide-react";
-import Logo from "@/components/logo";
+
 import Footer from "@/components/footer";
 import Navbar from "@/components/navbar";
 
@@ -126,11 +126,6 @@ export default function ResetPasswordPage() {
         <Navbar logoOnly />
         <div className="flex-1 flex items-center justify-center bg-gradient-to-br from-background via-card to-background px-4 py-8">
           <div className="w-full max-w-md">
-            {/* Logo */}
-            <div className="text-center mb-8">
-              <Logo size="lg" showTagline={false} />
-            </div>
-
             {/* Error State */}
             <Card>
               <CardContent className="p-8 text-center">
@@ -161,11 +156,6 @@ export default function ResetPasswordPage() {
       <Navbar logoOnly />
       <div className="flex-1 flex items-center justify-center bg-gradient-to-br from-background via-card to-background px-4 py-8">
         <div className="w-full max-w-md">
-          {/* Logo */}
-          <div className="text-center mb-8">
-            <Logo size="lg" showTagline={false} />
-          </div>
-
           {/* Reset Password Form */}
           <Card>
             <CardHeader>
