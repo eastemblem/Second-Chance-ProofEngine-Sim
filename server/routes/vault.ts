@@ -173,12 +173,11 @@ router.post("/upload-file", upload.single("file"), requireFields(['folder_id']),
   // Clean up uploaded file after processing
   cleanupUploadedFile(file.path, file.originalname, "Upload complete");
 
-  console.log(`✅ File upload complete: ${file.originalname}, tracked in database: ${!!latestVenture}`);
+  console.log(`✅ File upload complete: ${file.originalname}`);
   
   res.json(createSuccessResponse({
     upload: uploadResult,
     filesCount: updatedFiles.length,
-    tracked: !!latestVenture,
   }, "File uploaded successfully"));
 }));
 
