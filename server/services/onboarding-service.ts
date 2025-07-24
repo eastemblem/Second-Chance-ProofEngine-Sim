@@ -678,13 +678,33 @@ export class OnboardingService {
   /**
    * Send email notification after successful certificate and report generation
    */
-  async sendEmailNotification(sessionId: string, stepData: any, certificateUrl: string, reportUrl: string) {
+  async sendEmailNotification(sessionId: string, stepData: any, certificateUrl?: string, reportUrl?: string) {
     try {
       console.log("Starting email notification process for session:", sessionId);
       
       // Extract founder and venture information  
       const founder = stepData.founder?.founder || stepData.founder;
       const venture = stepData.venture?.venture || stepData.venture;
+
+      // Fetch latest certificate and report URLs from database if not provided
+      let latestCertificateUrl = certificateUrl;
+      let latestReportUrl = reportUrl;
+      
+      if (venture?.ventureId && (!certificateUrl || !reportUrl)) {
+        try {
+          const latestVenture = await storage.getVenture(venture.ventureId);
+          if (latestVenture) {
+            latestCertificateUrl = latestCertificateUrl || latestVenture.certificateUrl;
+            latestReportUrl = latestReportUrl || latestVenture.reportUrl;
+            console.log("Fetched latest URLs from database:", {
+              certificate: latestCertificateUrl,
+              report: latestReportUrl
+            });
+          }
+        } catch (dbError) {
+          console.log("Failed to fetch latest URLs from database:", dbError);
+        }
+      }
 
       // Extract founder name (handle both firstName and fullName formats)
       let founderName = 'Founder';
@@ -757,8 +777,8 @@ export class OnboardingService {
         proofScore,
         scoreBreakdown,
         [], // ProofTags will be populated from database by EmailService
-        reportUrl,
-        certificateUrl,
+        latestReportUrl,
+        latestCertificateUrl,
         verificationUrl
       );
       console.log("✓ Email notification sent successfully via N8N webhook:", emailResult);

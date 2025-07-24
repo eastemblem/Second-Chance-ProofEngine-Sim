@@ -170,7 +170,8 @@ Demo experience for testing different user journeys:
 - **ONBOARDING EMAIL FIX**: Updated onboarding system to use latest N8N webhook endpoint (/webhook/notification/email/send) instead of old eastEmblemAPI.sendEmail() method
 - **ONBOARDING EMAIL TEMPLATE REDESIGN**: Complete UI/UX overhaul addressing visual issues and functionality:
   * **Modern Clean Design**: Switched from dark theme to clean, modern light design with professional styling
-  * **Fixed URL Population**: All links now use production domain (https://secondchance.replit.app) instead of development URLs
+  * **Fixed URL Population**: All links now use FRONTEND_URL environment variable for proper production domain usage
+  * **Database URL Integration**: Email service now fetches latest certificate and report URLs directly from venture table instead of using stale parameters
   * **Intuitive Single Action**: Streamlined to one prominent "Verify Email & Get Started" button with gradient styling
   * **Enhanced Visual Hierarchy**: Clear sections with proper spacing, typography, and color contrast for better readability
   * **Improved Score Display**: Large, prominent score card with gradient background and milestone achievement

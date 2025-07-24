@@ -98,8 +98,8 @@ export class EmailService {
     templateData: EmailTemplateData
   ): Promise<boolean> {
     try {
-      // Ensure dynamic values are properly set with production URLs
-      const frontendUrl = 'https://secondchance.replit.app'; // Use production URL
+      // Ensure dynamic values are properly set using environment variables
+      const frontendUrl = process.env.FRONTEND_URL || 'https://secondchance.replit.app';
       const logoUrl = process.env.LOGO_URL || 'https://files.replit.com/assets/second_chance_logo_1750269371846.png';
       const enrichedData = {
         ...templateData,
