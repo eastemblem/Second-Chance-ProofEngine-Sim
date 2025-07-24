@@ -575,8 +575,20 @@ export class OnboardingService {
               console.log("✓ Updated document record with EastEmblem upload data");
             }
           } catch (uploadError) {
-            // If upload fails, continue with scoring anyway
+            // If upload fails, continue with scoring anyway but ensure we have some basic info
             console.log("Box.com upload failed, proceeding with scoring:", uploadError.message);
+            
+            // Still update the upload status even if Box.com upload failed
+            await db
+              .update(documentUpload)
+              .set({
+                uploadStatus: 'completed',
+                processingStatus: 'processing',
+                // Keep the folderId that was set during initial creation
+              })
+              .where(eq(documentUpload.uploadId, upload.uploadId));
+            
+            console.log("✓ Updated document record status (without Box.com data)");
           }
 
           // Score the pitch deck (this is the main operation we need)

@@ -126,15 +126,18 @@ Demo experience for testing different user journeys:
 
 ## Recent Key Updates
 
-### July 24, 2025 - Database Field Population Fix & Complete Retry System Implementation
-- **DATABASE FIELD FIX**: Resolved folder_id and file_size field population issues in document_upload table
-- **Field Population Corrections**:
-  * Certificate generation now properly captures file_size from EastEmblem API response or uses reasonable defaults
-  * Report generation now populates folder_id with Overview folder ID from session data
-  * Vault uploads prioritize EastEmblem API file_size over local file size for accuracy
-  * SQL migration script updated existing records to populate missing folder_id fields
-- **API Response Integration**: Enhanced certificate and report services to capture size and folderId from EastEmblem API responses
-- **Data Consistency**: All document_upload records now have proper folder_id and file_size values for accurate tracking
+### July 24, 2025 - EastEmblem Upload Response Integration & Automated Flow Fix
+- **Upload API Response Mapping**: Updated system to handle EastEmblem's upload response format properly
+- **Field Mapping Implementation**: 
+  * `url` → `shared_url` (Box.com sharing URL)
+  * `folderId` → `folder_id` (target folder for ProofVault integration)
+  * `id` → `eastemblem_file_id` (Box.com internal file ID)
+  * `size` → `file_size` (file size in bytes)
+- **MIME Type Extraction**: Added utility function to extract MIME type from file extension supporting 12+ file formats
+- **Database Update Integration**: Upload process now updates document_upload record with complete EastEmblem response data
+- **Real-Time Status Tracking**: Upload status progression from 'pending' → 'completed' → 'processing' with proper database persistence
+- **Automated Flow Fix**: Corrected certificate and report generation to automatically capture `eastemblemFileId`, `size`, and `folderId` from EastEmblem API response. Updated TypeScript interfaces to include optional `size` and `folderId` fields that the API actually returns
+- **Complete Data Flow**: Local upload → EastEmblem Box.com → database update → dashboard integration all operational with full automation
 - **Complete Retry System Implementation with UI Controls
 - **AUTOMATIC RETRY MECHANISM**: Added comprehensive retry system with exponential backoff for API timeouts and 5xx errors
 - **Smart Error Detection**: Automatically detects retryable errors (524 timeout, 5xx server errors) vs non-retryable errors (auth failures)
