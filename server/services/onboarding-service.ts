@@ -167,6 +167,35 @@ export class OnboardingService {
           venture.name, 
           sessionId
         );
+        
+        // Save folder structure to venture table
+        if (folderStructure) {
+          await storage.updateVenture(venture.ventureId, {
+            folderStructure: folderStructure
+          });
+          console.log('✓ Folder structure saved to venture table');
+          
+          // Populate proof_vault table with folder structure
+          if (folderStructure.folders) {
+            const folderEntries = Object.entries(folderStructure.folders);
+            for (const [folderName, subFolderId] of folderEntries) {
+              try {
+                await storage.createProofVault({
+                  ventureId: venture.ventureId,
+                  artefactType: 'Pitch Deck', // Default artifact type
+                  parentFolderId: folderStructure.id,
+                  subFolderId: subFolderId as string,
+                  sharedUrl: folderStructure.url,
+                  folderName: folderName,
+                  description: `ProofVault folder for ${folderName.replace(/_/g, ' ')}`
+                });
+                console.log(`✓ Created proof_vault entry for ${folderName}: ${subFolderId}`);
+              } catch (error) {
+                console.error(`Failed to create proof_vault entry for ${folderName}:`, error);
+              }
+            }
+          }
+        }
       } catch (error) {
         console.warn("Failed to create folder structure:", error);
       }
