@@ -378,12 +378,13 @@ export async function generateCertificate(req: Request, res: Response) {
                 originalName: certificateResult.name || 'validation_certificate.pdf',
                 filePath: '/generated/certificate.pdf',
                 fileType: 'pdf',
-                fileSize: 0,
+                fileSize: certificateResult.size || 512000, // Use size from API response or default 512KB
                 mimeType: 'application/pdf',
                 uploadStatus: 'completed',
                 processingStatus: 'completed',
                 sharedUrl: certificateResult.url,
-                eastemblemFileId: certificateResult.id,  // Fix: use eastemblemFileId instead of boxFileId
+                folderId: certificateResult.folderId || null, // Add folder ID from API response
+                eastemblemFileId: certificateResult.id,
                 uploadedBy: 'system'
               });
               console.log("✓ Certificate document_upload record created");

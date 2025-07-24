@@ -175,11 +175,12 @@ export async function createReportForSession(sessionId: string) {
               originalName: 'analysis_report.pdf',
               filePath: '/generated/report.pdf',
               fileType: 'pdf',
-              fileSize: 0,
+              fileSize: 1024000, // Default 1MB for existing reports
               mimeType: 'application/pdf',
               uploadStatus: 'completed',
               processingStatus: 'completed',
               sharedUrl: existingUrl,
+              folderId: null, // No folder ID for existing reports
               eastemblemFileId: null, // Will be populated when we have the actual ID
               uploadedBy: 'system'
             });
@@ -250,12 +251,13 @@ export async function createReportForSession(sessionId: string) {
           originalName: reportResult.name || 'analysis_report.pdf',
           filePath: '/generated/report.pdf',
           fileType: 'pdf',
-          fileSize: 0,
+          fileSize: reportResult.size || 1024000, // Use size from API response or default 1MB
           mimeType: 'application/pdf',
           uploadStatus: 'completed',
           processingStatus: 'completed',
           sharedUrl: reportResult.url,
-          eastemblemFileId: reportResult.id,  // Fix: use eastemblemFileId instead of boxFileId
+          folderId: reportResult.folderId || null, // Add folder ID from API response
+          eastemblemFileId: reportResult.id,
           uploadedBy: 'system'
         });
         console.log("✓ Report document_upload record created");
