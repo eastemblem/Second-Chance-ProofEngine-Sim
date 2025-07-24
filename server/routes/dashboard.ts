@@ -32,7 +32,7 @@ router.get("/validation", async (req, res) => {
     const latestEvaluation = evaluations.length > 0 ? evaluations[0] : null;
     
     const validationData = {
-      proofScore: latestEvaluation?.proofscore || 85,
+      proofScore: latestEvaluation?.proofscore || 0, // Use actual score, no fallback
       proofTagsUnlocked: 11,
       totalProofTags: 21,
       filesUploaded: 0,

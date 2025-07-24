@@ -28,6 +28,7 @@ import {
 } from "lucide-react";
 import Navbar from "@/components/navbar";
 import Footer from "@/components/footer";
+import { Leaderboard } from "@/components/leaderboard";
 
 interface User {
   founderId: string;
@@ -444,7 +445,7 @@ export default function DashboardPage() {
             <div className="flex-1">
               <div className="flex items-center gap-3">
                 <h1 className="text-2xl font-bold text-white">Welcome {user?.fullName || user?.email?.split('@')[0] || 'Founder'}</h1>
-                {(validationData?.proofScore || 85) >= 70 && (
+                {(validationData?.proofScore || 0) >= 70 && (
                   <span className="px-3 py-1 bg-gradient-to-r from-green-500 to-emerald-600 text-white text-xs font-bold rounded-full shadow-lg">
                     INVESTOR READY
                   </span>
@@ -724,7 +725,7 @@ export default function DashboardPage() {
                 {[
                   { rank: 1, name: "Alex Chen", venture: "TechFlow", score: 92, isCurrentUser: false },
                   { rank: 2, name: "Sarah Kim", venture: "EcoSmart", score: 89, isCurrentUser: false },
-                  { rank: 3, name: "You", venture: user?.venture?.name || 'Your Venture', score: 85, isCurrentUser: true },
+                  { rank: 3, name: "You", venture: user?.venture?.name || 'Your Venture', score: validationData?.proofScore || 0, isCurrentUser: true },
                   { rank: 4, name: "Michael Park", venture: "DataViz", score: 82, isCurrentUser: false },
                   { rank: 5, name: "Lisa Wang", venture: "HealthTech", score: 78, isCurrentUser: false }
                 ].map((entry) => {
@@ -809,7 +810,7 @@ export default function DashboardPage() {
               </CardHeader>
               <CardContent>
                 <div className="space-y-4">
-                  {(validationData?.proofScore || 85) >= 90 ? (
+                  {(validationData?.proofScore || 0) >= 90 ? (
                     <>
                       <div className="flex items-center gap-2">
                         <CheckCircle className="w-5 h-5 text-green-400" />

@@ -216,17 +216,19 @@ Demo experience for testing different user journeys:
 - **Removed Downloads Section**: Eliminated "Ready for Download" section per user request for cleaner interface
 - **Enhanced User Guidance**: Clear visual confirmation of investor readiness and actionable next steps for deal room access
 
-### July 24, 2025 - Performance Fix & UI Improvements
+### July 24, 2025 - Performance Fix & Dashboard Score Consistency Fix
 - **CRITICAL PAINT ISSUE RESOLVED**: Fixed severe performance issue causing 34+ second LCP times by disabling problematic PerformanceObserver
 - **Performance Monitoring Disabled**: Temporarily disabled chunk-optimizer and performance monitoring that were interfering with paint operations
 - **Root Cause**: PerformanceObserver continuously logging LCP events was causing paint interference and blocking rendering
+- **DASHBOARD SCORE INCONSISTENCY FIXED**: Resolved critical bug where dashboard leaderboard showed hardcoded score (85) instead of actual evaluation score (79)
+- **Score Consistency**: Updated dashboard validation endpoint to remove hardcoded fallback scores and use actual evaluation data
+- **Leaderboard Data Fix**: Fixed hardcoded dashboard leaderboard entry to display real ProofScore instead of fallback values
+- **Badge Logic Fix**: Updated INVESTOR READY badge and Deal Room Access logic to use actual scores (removed 85 fallback)
+- **Data Integrity**: All dashboard components now consistently show authentic evaluation scores without mock fallbacks
 - **Forgot Password UI Enhancement**: Added Second Chance logo to forgot password page matching login page design
 - **Navigation Cleanup**: Removed "Back to Login" link from forgot password page for cleaner, focused user experience
-- **Leaderboard 10-Entry Guarantee**: Enhanced analysis page leaderboard to always show 10 entries using smart mock data when needed
-- **Mock Data Integration**: System adds reference entries only when real data is insufficient (< 10 entries)
-- **Intelligent Scoring**: Mock entries automatically scored lower than real entries (prevents inflated rankings)
-- **Logo Removal**: Removed Second Chance logo from email verification page (set-password.tsx) for cleaner authentication flow
-- **Code Quality**: Fixed TypeScript errors and LSP diagnostics across performance components
+- **Leaderboard 10-Entry Guarantee**: Enhanced analysis page leaderboard to always show 10 entries using smart mock data when needed only when real data insufficient
+- **Code Quality**: Fixed TypeScript errors and LSP diagnostics across performance and dashboard components
 
 ### July 24, 2025 - Complete Environment Variable Configuration & URL Management
 - **FRONTEND_URL Environment Variable**: Successfully created and configured FRONTEND_URL for all client-side URLs
