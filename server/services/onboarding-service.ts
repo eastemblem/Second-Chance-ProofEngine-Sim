@@ -177,21 +177,33 @@ export class OnboardingService {
           
           // Populate proof_vault table with folder structure
           if (folderStructure.folders) {
-            const folderEntries = Object.entries(folderStructure.folders);
-            for (const [folderName, subFolderId] of folderEntries) {
-              try {
-                await storage.createProofVault({
-                  ventureId: venture.ventureId,
-                  artefactType: 'Pitch Deck', // Default artifact type
-                  parentFolderId: folderStructure.id,
-                  subFolderId: subFolderId as string,
-                  sharedUrl: folderStructure.url,
-                  folderName: folderName,
-                  description: `ProofVault folder for ${folderName.replace(/_/g, ' ')}`
-                });
-                console.log(`✓ Created proof_vault entry for ${folderName}: ${subFolderId}`);
-              } catch (error) {
-                console.error(`Failed to create proof_vault entry for ${folderName}:`, error);
+            const folderMappings = [
+              { key: "0_Overview", type: "Pitch Deck", description: "Company overview and general information" },
+              { key: "1_Problem_Proof", type: "Technical Documentation", description: "Evidence of problem validation and market research" },
+              { key: "2_Solution_Proof", type: "Demo Video", description: "Solution validation and proof of concept materials" },
+              { key: "3_Demand_Proof", type: "Metrics Dashboard", description: "Market demand validation and customer feedback" },
+              { key: "4_Credibility_Proof", type: "Customer Testimonial", description: "Team credibility and company validation materials" },
+              { key: "5_Commercial_Proof", type: "Financial Model", description: "Business model and financial projections" },
+              { key: "6_Investor_Pack", type: "Pitch Deck", description: "Investor-ready materials and data room documents" }
+            ];
+            
+            for (const folder of folderMappings) {
+              const subFolderId = folderStructure.folders[folder.key];
+              if (subFolderId) {
+                try {
+                  await storage.createProofVault({
+                    ventureId: venture.ventureId,
+                    artefactType: folder.type as any,
+                    parentFolderId: folderStructure.id,
+                    subFolderId: subFolderId,
+                    sharedUrl: folderStructure.url,
+                    folderName: folder.key,
+                    description: folder.description
+                  });
+                  console.log(`✓ Created proof_vault entry for ${folder.key}: ${subFolderId}`);
+                } catch (error) {
+                  console.error(`Failed to create proof_vault entry for ${folder.key}:`, error);
+                }
               }
             }
           }
