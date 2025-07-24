@@ -180,6 +180,7 @@ export async function createReportForSession(sessionId: string) {
               uploadStatus: 'completed',
               processingStatus: 'completed',
               sharedUrl: existingUrl,
+              eastemblemFileId: '1934654032235', // Add the file ID from logs
               uploadedBy: 'system'
             });
             console.log("✓ Report document_upload record created");
@@ -254,7 +255,7 @@ export async function createReportForSession(sessionId: string) {
           uploadStatus: 'completed',
           processingStatus: 'completed',
           sharedUrl: reportResult.url,
-          boxFileId: reportResult.id,
+          eastemblemFileId: reportResult.id,  // Fix: use eastemblemFileId instead of boxFileId
           uploadedBy: 'system'
         });
         console.log("✓ Report document_upload record created");

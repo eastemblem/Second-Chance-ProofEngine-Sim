@@ -383,7 +383,7 @@ export async function generateCertificate(req: Request, res: Response) {
                 uploadStatus: 'completed',
                 processingStatus: 'completed',
                 sharedUrl: certificateResult.url,
-                boxFileId: certificateResult.id,
+                eastemblemFileId: certificateResult.id,  // Fix: use eastemblemFileId instead of boxFileId
                 uploadedBy: 'system'
               });
               console.log("✓ Certificate document_upload record created");
