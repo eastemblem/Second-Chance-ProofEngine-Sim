@@ -126,6 +126,19 @@ Demo experience for testing different user journeys:
 
 ## Recent Key Updates
 
+### July 24, 2025 - Complete Environment Variable Configuration & URL Management
+- **FRONTEND_URL Environment Variable**: Successfully created and configured FRONTEND_URL for all client-side URLs
+- **Dynamic URL Generation**: All email templates now use environment variables for privacy, terms, reset password, and logo URLs
+- **Reset Password Page**: Created complete reset password component with purple-gold theme and proper token handling
+- **Environment Variable Architecture**: System now uses EASTEMBLEM_API_BASE_URL for webhook endpoints and FRONTEND_URL for client URLs
+- **Theme Consistency**: Password reset email template updated with dark purple-gold theme matching the application
+- **URL Structure Fixes**: 
+  * Privacy URL: `${FRONTEND_URL}/privacy`
+  * Terms URL: `${FRONTEND_URL}/terms`  
+  * Reset Password URL: `${FRONTEND_URL}/reset-password/${token}`
+  * Logo URL: `${FRONTEND_URL}/src/assets/second_chance_logo_1750269371846.png`
+- **Deployment Ready**: All hardcoded URLs removed, system now fully configurable for any deployment environment
+
 ### July 24, 2025 - N8N Email Webhook Integration & Template Enhancement
 - **NEW EMAIL ENDPOINT**: Integrated new N8N webhook endpoint for reliable email delivery using EASTEMBLEM_API_BASE_URL environment variable
 - **Enhanced Email Templates**: All email templates now include:
