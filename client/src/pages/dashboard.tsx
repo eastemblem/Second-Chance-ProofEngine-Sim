@@ -441,14 +441,14 @@ export default function DashboardPage() {
                 </div>
 
                 {validationData?.status && (
-                  <div className="mt-6 p-4 border-2 border-blue-500 bg-blue-900/10 rounded-lg">
+                  <div className="mt-6 p-4 bg-amber-50 border border-amber-200 rounded-lg">
                     <div className="flex items-start gap-3">
-                      <div className="p-1 rounded-full bg-blue-500/20 mt-0.5">
-                        <Award className="w-4 h-4 text-blue-400" />
+                      <div className="p-1 rounded-full bg-amber-100 mt-0.5">
+                        <Award className="w-4 h-4 text-amber-600" />
                       </div>
                       <div className="flex-1">
-                        <h4 className="text-blue-300 font-semibold text-sm mb-2">Excellent! You are investor ready.</h4>
-                        <p className="text-blue-200 text-sm">
+                        <h4 className="text-amber-800 font-semibold text-sm mb-2">Excellent! You are investor ready.</h4>
+                        <p className="text-amber-700 text-sm">
                           To access the Deal Room and Pass Due Diligence, please upload your Data Room into the Proof Vault.
                         </p>
                       </div>
