@@ -302,7 +302,7 @@ router.post('/forgot-password', async (req: Request, res: Response) => {
   }
 });
 
-// Reset password endpoint - validates token and updates password
+// Reset password endpoint - validates token and redirects to frontend (GET)
 router.get('/reset-password/:token', async (req: Request, res: Response) => {
   try {
     const { token } = req.params;
@@ -326,21 +326,69 @@ router.get('/reset-password/:token', async (req: Request, res: Response) => {
       return res.redirect(`/forgot-password?error=expired&email=${encodeURIComponent(founderRecord.email)}`);
     }
 
-    // Clear the reset token (one-time use)
+    // Don't clear token here - save it for the POST request
+    // Redirect to reset password page
+    res.redirect(`/reset-password/${token}`);
+  } catch (error) {
+    console.error('Reset password GET error:', error);
+    res.redirect('/forgot-password?error=invalid');
+  }
+});
+
+// Reset password endpoint - handles password update form submission (POST)
+router.post('/reset-password/:token', async (req: Request, res: Response) => {
+  try {
+    const { token } = req.params;
+    
+    const resetPasswordSchema = z.object({
+      password: z.string().min(8)
+    });
+
+    const { password } = resetPasswordSchema.parse(req.body);
+    
+    if (!token) {
+      return res.status(400).json({ error: 'Invalid reset token' });
+    }
+
+    // Find founder with matching reset token
+    const [founderRecord] = await db
+      .select()
+      .from(founder)
+      .where(eq(founder.verificationToken, token));
+
+    if (!founderRecord) {
+      return res.status(400).json({ error: 'Invalid or expired reset token' });
+    }
+
+    // Check if token is expired
+    if (founderRecord.tokenExpiresAt && isTokenExpired(founderRecord.tokenExpiresAt)) {
+      return res.status(400).json({ error: 'Reset token has expired' });
+    }
+
+    // Hash the new password
+    const passwordHash = await hashPassword(password);
+
+    // Update founder with new password and clear reset token
     await db
       .update(founder)
       .set({
+        passwordHash,
         verificationToken: null,
         tokenExpiresAt: null,
         updatedAt: new Date()
       })
       .where(eq(founder.founderId, founderRecord.founderId));
 
-    // Redirect to set password page with reset flag
-    res.redirect(`/set-password?reset=true&email=${encodeURIComponent(founderRecord.email)}`);
+    res.json({ 
+      success: true, 
+      message: 'Password reset successfully' 
+    });
   } catch (error) {
-    console.error('Reset password error:', error);
-    res.redirect('/forgot-password?error=invalid');
+    console.error('Reset password POST error:', error);
+    if (error instanceof z.ZodError) {
+      return res.status(400).json({ error: 'Invalid input', details: error.errors });
+    }
+    res.status(500).json({ error: 'Failed to reset password' });
   }
 });
 
