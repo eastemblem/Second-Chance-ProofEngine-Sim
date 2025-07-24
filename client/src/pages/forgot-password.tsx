@@ -4,7 +4,7 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Alert, AlertDescription } from '@/components/ui/alert';
-import { ArrowLeft, Mail, AlertCircle, CheckCircle2 } from 'lucide-react';
+import { Mail, AlertCircle, CheckCircle2 } from 'lucide-react';
 import { Link } from 'wouter';
 import Logo from '@/components/logo';
 import Footer from '@/components/footer';
@@ -84,15 +84,6 @@ export default function ForgotPasswordPage() {
           <div className="text-center mb-8">
             <Logo size="lg" showTagline={false} />
           </div>
-
-          <div className="space-y-6">
-            {/* Back to Login Link */}
-            <div className="text-center">
-              <Link href="/login" className="inline-flex items-center text-muted-foreground hover:text-foreground transition-colors">
-                <ArrowLeft className="w-4 h-4 mr-2" />
-                Back to Login
-              </Link>
-            </div>
 
           <Card className="shadow-lg border-border/50">
             <CardHeader className="space-y-1 text-center">
@@ -205,7 +196,6 @@ export default function ForgotPasswordPage() {
               </div>
             </CardContent>
           </Card>
-          </div>
         </div>
       </div>
       
