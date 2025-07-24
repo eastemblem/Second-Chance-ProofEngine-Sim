@@ -8,7 +8,7 @@ import { useToast } from "@/hooks/use-toast";
 import { CheckCircle, Eye, EyeOff, Lock, AlertCircle, XCircle } from "lucide-react";
 import Logo from "@/components/logo";
 import Footer from "@/components/footer";
-import Navbar from "@/components/navbar";
+
 
 export default function SetPasswordPage() {
   const [password, setPassword] = useState("");
@@ -160,7 +160,6 @@ export default function SetPasswordPage() {
   if (tokenError) {
     return (
       <div className="min-h-screen flex flex-col">
-        <Navbar logoOnly />
         <div className="flex-1 flex items-center justify-center bg-gradient-to-br from-background via-card to-background px-4 py-8">
           <div className="w-full max-w-md">
 
@@ -242,7 +241,6 @@ export default function SetPasswordPage() {
 
   return (
     <div className="min-h-screen flex flex-col">
-      <Navbar logoOnly />
       <div className="flex-1 flex items-center justify-center bg-gradient-to-br from-background via-card to-background px-4 py-8">
         <div className="w-full max-w-md">
 

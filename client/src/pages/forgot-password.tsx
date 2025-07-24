@@ -6,7 +6,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { ArrowLeft, Mail, AlertCircle, CheckCircle2 } from 'lucide-react';
 import { Link } from 'wouter';
-import Navbar from '@/components/navbar';
+
 import Footer from '@/components/footer';
 import { useToast } from '@/hooks/use-toast';
 
@@ -78,8 +78,6 @@ export default function ForgotPasswordPage() {
 
   return (
     <div className="min-h-screen flex flex-col">
-      <Navbar logoOnly />
-      
       <div className="flex-1 flex items-center justify-center bg-gradient-to-br from-background via-card to-background px-4 py-8">
         <div className="w-full max-w-md space-y-6">
           {/* Back to Login Link */}
