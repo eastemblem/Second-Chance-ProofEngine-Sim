@@ -50,37 +50,15 @@ export function initializeOptimizations() {
 // Add resource hints for faster loading
 function optimizeResourceHints() {
   if (typeof document !== 'undefined') {
-    // Simple bundle analysis for development
-    if (process.env.NODE_ENV === 'development') {
-      setTimeout(() => {
-        const scripts = document.querySelectorAll('script[src]');
-        console.log('Performance Analysis:', {
-          'Script Tags': scripts.length,
-          'DOM Ready': performance.now() + 'ms'
-        });
-      }, 2000);
-    }
+    // Performance analysis disabled to prevent paint interference
+    // Previous logging was causing high LCP times
+    return;
   }
 }
 
-// Enable performance observer for monitoring
+// Disable performance observer to prevent paint interference
 function enablePerformanceObserver() {
-  if ('PerformanceObserver' in window && process.env.NODE_ENV === 'development') {
-    try {
-      const observer = new PerformanceObserver((list) => {
-        list.getEntries().forEach((entry) => {
-          if (entry.entryType === 'largest-contentful-paint') {
-            console.log('LCP:', Math.round(entry.startTime) + 'ms');
-          }
-          if (entry.entryType === 'first-input') {
-            console.log('FID:', Math.round(entry.processingStart - entry.startTime) + 'ms');
-          }
-        });
-      });
-      
-      observer.observe({ entryTypes: ['largest-contentful-paint', 'first-input'] });
-    } catch (error) {
-      // Silently handle observer errors
-    }
-  }
+  // Performance observer disabled to prevent paint issues
+  // High LCP times were caused by continuous monitoring interference
+  return;
 }

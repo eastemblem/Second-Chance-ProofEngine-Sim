@@ -15,12 +15,6 @@ createRoot(root).render(<App />);
 // Mark as loaded and initialize optimizations
 document.body.classList.add('loaded');
 
-// Delayed optimization loading to prevent blocking
-setTimeout(async () => {
-  try {
-    const { initializeOptimizations } = await import("./utils/chunk-optimizer");
-    initializeOptimizations();
-  } catch (error) {
-    // Silently handle optimization errors
-  }
-}, 500);
+// Optimization loading disabled to prevent paint interference
+// Performance monitoring was causing high LCP times (34+ seconds)
+// Re-enable after investigating paint issue resolution
