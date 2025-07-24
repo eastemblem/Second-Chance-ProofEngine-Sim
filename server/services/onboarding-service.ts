@@ -686,25 +686,15 @@ export class OnboardingService {
       const founder = stepData.founder?.founder || stepData.founder;
       const venture = stepData.venture?.venture || stepData.venture;
 
-      // Fetch latest certificate and report URLs from database if not provided
-      let latestCertificateUrl = certificateUrl;
-      let latestReportUrl = reportUrl;
+      // Use our server's download endpoints instead of Box.com URLs
+      const baseUrl = 'https://secondchance.replit.app';
+      let latestCertificateUrl = `${baseUrl}/api/download/certificate?sessionId=${sessionId}`;
+      let latestReportUrl = `${baseUrl}/api/download/report?sessionId=${sessionId}`;
       
-      if (venture?.ventureId && (!certificateUrl || !reportUrl)) {
-        try {
-          const latestVenture = await storage.getVenture(venture.ventureId);
-          if (latestVenture) {
-            latestCertificateUrl = latestCertificateUrl || latestVenture.certificateUrl;
-            latestReportUrl = latestReportUrl || latestVenture.reportUrl;
-            console.log("Fetched latest URLs from database:", {
-              certificate: latestCertificateUrl,
-              report: latestReportUrl
-            });
-          }
-        } catch (dbError) {
-          console.log("Failed to fetch latest URLs from database:", dbError);
-        }
-      }
+      console.log("Using server download URLs:", {
+        certificate: latestCertificateUrl,
+        report: latestReportUrl
+      });
 
       // Extract founder name (handle both firstName and fullName formats)
       let founderName = 'Founder';
