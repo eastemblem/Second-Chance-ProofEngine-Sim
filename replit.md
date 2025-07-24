@@ -126,6 +126,16 @@ Demo experience for testing different user journeys:
 
 ## Recent Key Updates
 
+### July 24, 2025 - Recent Activity Display Enhancement & File Upload System Complete
+- **Recent Activity Fix**: Fixed activity display to show actual file names instead of generic "pitch deck uploaded" message
+- **File-Specific Activity**: Recent activity now displays exact uploaded file names (e.g., "Gen-I Pitch Deck vf (2).pdf", "Heing_VA_pitch_deck.pdf.pdf")
+- **Folder Information**: Activity descriptions show specific target folders ("Uploaded to Solution Proofs", "Uploaded to Demand Proofs", etc.)
+- **File Type Icons**: Enhanced activity display with appropriate icons based on file extensions (PDF, PowerPoint, Word, Excel, images, videos)
+- **Complete Folder Mapping**: Successfully implemented folder name to Box.com folder ID conversion system
+- **Real Box.com Integration**: Files now upload to actual Box.com folders using numeric folder IDs instead of folder names
+- **Database File Tracking**: All uploads properly tracked with venture association and folder mapping
+- **Enhanced User Experience**: Dashboard recent activity provides meaningful file upload information with proper timestamps
+
 ### July 24, 2025 - ProofVault & Certificate/Report System Complete
 - **ProofVault File Tracking System**: Complete implementation with all 7 proof categories properly tracking file uploads
 - **Database Schema Optimization**: Removed 4 unused tables and added 9 performance indexes for 33% schema reduction

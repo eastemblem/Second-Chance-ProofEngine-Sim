@@ -258,28 +258,76 @@ router.get("/activity", async (req, res) => {
 
       // 5. Document upload activities (most recent)
       const documentUploads = await storage.getDocumentUploadsByVentureId(latestVenture.ventureId);
+      const proofVaultRecords = await storage.getProofVaultsByVentureId(latestVenture.ventureId);
+      
+      // Create folder ID to name mapping
+      const folderIdToName: Record<string, string> = {};
+      proofVaultRecords.forEach(pv => {
+        if (pv.subFolderId) {
+          folderIdToName[pv.subFolderId.toString()] = pv.folderName;
+        }
+      });
+      
+      // Helper function to get folder display name
+      const getFolderDisplayName = (folderName: string) => {
+        const folderMap: Record<string, string> = {
+          '0_Overview': 'Overview',
+          '1_Problem_Proof': 'Problem Proofs',
+          '2_Solution_Proof': 'Solution Proofs', 
+          '3_Demand_Proof': 'Demand Proofs',
+          '4_Credibility_Proof': 'Credibility Proofs',
+          '5_Commercial_Proof': 'Commercial Proofs',
+          '6_Investor_Pack': 'Investor Pack'
+        };
+        return folderMap[folderName] || folderName;
+      };
+      
       documentUploads.slice(0, 3).forEach((doc, index) => {
-        let title = `Uploaded ${doc.originalName}`;
-        let description = `Document uploaded successfully`;
+        // Get folder information
+        const folderName = doc.folderId ? folderIdToName[doc.folderId] : null;
+        const folderDisplayName = folderName ? getFolderDisplayName(folderName) : 'Unknown folder';
+        
+        let title = doc.originalName;
+        let description = `Uploaded to ${folderDisplayName}`;
         let icon = "file-text";
         let color = "gray";
         
         // Customize based on document type
         if (doc.originalName.includes('Certificate')) {
-          title = 'Validation certificate generated';
-          description = 'Your achievement certificate is ready for download';
+          title = doc.originalName;
+          description = 'Validation certificate generated';
           icon = "award";
           color = "green";
         } else if (doc.originalName.includes('Report')) {
-          title = 'Analysis report generated';
-          description = 'Comprehensive validation report available';
+          title = doc.originalName;
+          description = 'Analysis report generated';
           icon = "bar-chart";
           color = "blue";
-        } else if (doc.originalName.toLowerCase().includes('deck')) {
-          title = 'Pitch deck uploaded';
-          description = 'Pitch deck uploaded and analyzed';
-          icon = "upload";
-          color = "purple";
+        } else {
+          // For regular file uploads, determine file type icon
+          const fileExt = doc.originalName.split('.').pop()?.toLowerCase();
+          if (fileExt === 'pdf') {
+            icon = "file-text";
+            color = "red";
+          } else if (['ppt', 'pptx'].includes(fileExt || '')) {
+            icon = "presentation";
+            color = "orange";
+          } else if (['doc', 'docx'].includes(fileExt || '')) {
+            icon = "file-text";
+            color = "blue";
+          } else if (['xls', 'xlsx'].includes(fileExt || '')) {
+            icon = "table";
+            color = "green";
+          } else if (['jpg', 'jpeg', 'png', 'gif'].includes(fileExt || '')) {
+            icon = "image";
+            color = "purple";
+          } else if (['mp4', 'avi', 'mov'].includes(fileExt || '')) {
+            icon = "video";
+            color = "indigo";
+          } else {
+            icon = "file";
+            color = "gray";
+          }
         }
 
         activities.push({
