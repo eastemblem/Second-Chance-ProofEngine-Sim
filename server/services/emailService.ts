@@ -212,7 +212,7 @@ export class EmailService {
   ): Promise<boolean> {
     return this.sendEmail(
       to,
-      `🎯 Your ProofScore is ${proofScore}/100 - Analysis Complete!`,
+      `🎉 Welcome to Second Chance - Your Documents Are Ready !`,
       'onboarding',
       {
         USER_NAME: userName,
