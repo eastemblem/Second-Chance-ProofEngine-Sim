@@ -133,7 +133,9 @@ Demo experience for testing different user journeys:
 - **File Counter Logic**: Dashboard accurately counts files per category by matching Box.com folder IDs in document_upload.shared_url
 - **Certificate & Report Generation Fix**: Resolved critical issue where certificate and report URLs weren't being saved to venture table
 - **Document Generation**: Both certificate and report generation working with proper Box.com integration and database persistence
-- **Real-time File Tracking**: Files uploaded through dashboard are tracked in document_upload table with folder-specific categorization
+- **Complete Document Tracking**: ALL documents (pitch decks, certificates, reports) now properly tracked in document_upload table with venture_id
+- **Venture ID Population**: Fixed missing venture_id in document_upload records - now properly populated for all document types
+- **Certificate/Report Tracking**: Enhanced certificate and report generation services to automatically track generated documents
 - **Dashboard Integration**: ProofVault overview displays real file counts, authentication validation, and proper file management
 - **Authentication Context**: All file operations validate user ownership through venture association
 - **Performance Optimization**: Enhanced lookup speed for dashboard queries, team member fetching, and venture-founder relationships

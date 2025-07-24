@@ -500,6 +500,25 @@ export class CertificateService {
           certificateGeneratedAt: new Date()
         });
 
+        // Track certificate in document_upload table
+        try {
+          await storage.createDocumentUpload({
+            ventureId: ventureId,
+            fileName: fileName,
+            originalName: fileName,
+            filePath: `/certificates/${fileName}`,
+            fileSize: pdfBuffer.length,
+            mimeType: 'application/pdf',
+            uploadStatus: 'completed',
+            processingStatus: 'completed',
+            eastemblemFileId: uploadResult.id,
+            sharedUrl: uploadResult.download_url,
+          });
+          console.log('✓ Certificate tracked in document_upload table');
+        } catch (error) {
+          console.error('Failed to track certificate in document_upload:', error);
+        }
+
         return uploadResult.download_url;
       }
 

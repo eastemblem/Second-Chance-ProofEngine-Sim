@@ -184,6 +184,37 @@ export async function createReportForSession(sessionId: string) {
       .set({ stepData: updatedStepData })
       .where(eq(onboardingSession.sessionId, sessionId));
 
+    // Find venture ID for tracking in document_upload
+    let ventureId = null;
+    if (session.founderId) {
+      const ventures = await storage.getVenturesByFounderId(session.founderId);
+      if (ventures && ventures.length > 0) {
+        ventureId = ventures[0].ventureId;
+      }
+    }
+
+    // Track report in document_upload table if we have ventureId
+    if (ventureId && reportResult.url) {
+      try {
+        const reportFileName = `${reportData.venture_name || 'Venture'}_Analysis_Report.pdf`;
+        await storage.createDocumentUpload({
+          ventureId: ventureId,
+          fileName: reportFileName,
+          originalName: reportFileName,
+          filePath: `/reports/${reportFileName}`,
+          fileSize: 0, // Report size not available from API
+          mimeType: 'application/pdf',
+          uploadStatus: 'completed',
+          processingStatus: 'completed',
+          eastemblemFileId: reportResult.id || 'generated-report',
+          sharedUrl: reportResult.url,
+        });
+        console.log('✓ Report tracked in document_upload table');
+      } catch (error) {
+        console.error('Failed to track report in document_upload:', error);
+      }
+    }
+
     return {
       success: true,
       reportUrl: reportResult.url,

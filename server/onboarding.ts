@@ -610,7 +610,7 @@ export class OnboardingManager {
       }
     }
 
-    // Save upload record with EastEmblem data
+    // Save upload record with EastEmblem data including ventureId
     const [upload] = await db
       .insert(documentUpload)
       .values({
