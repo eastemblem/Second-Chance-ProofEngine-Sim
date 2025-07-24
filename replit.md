@@ -126,6 +126,14 @@ Demo experience for testing different user journeys:
 
 ## Recent Key Updates
 
+### July 24, 2025 - API Retry System & EastEmblem Upload Response Integration
+- **RETRY MECHANISM IMPLEMENTED**: Added comprehensive retry system with exponential backoff for API timeouts and 5xx errors
+- **Smart Error Detection**: Automatically detects retryable errors (524 timeout, 5xx server errors) vs non-retryable errors (auth failures)
+- **Exponential Backoff**: 3 attempts with 2s base delay, exponential scaling, and jitter to prevent thundering herd
+- **Enhanced User Messages**: Clear, user-friendly error messages for different failure scenarios
+- **Extended Timeouts**: Increased scoring timeout to 3 minutes to accommodate retry logic
+- **Comprehensive Logging**: Detailed attempt logging and retry status tracking for debugging
+
 ### July 24, 2025 - EastEmblem Upload Response Integration & Automated Flow Fix
 - **Upload API Response Mapping**: Updated system to handle EastEmblem's upload response format properly
 - **Field Mapping Implementation**: 

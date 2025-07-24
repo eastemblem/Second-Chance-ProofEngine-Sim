@@ -203,6 +203,71 @@ class EastEmblemAPI {
     return `${this.baseUrl}${path}`;
   }
 
+  private async sleep(ms: number): Promise<void> {
+    return new Promise(resolve => setTimeout(resolve, ms));
+  }
+
+  private async retryWithBackoff<T>(
+    operation: () => Promise<T>,
+    maxRetries: number = 3,
+    baseDelay: number = 1000,
+    operationName: string = 'API operation'
+  ): Promise<T> {
+    for (let attempt = 1; attempt <= maxRetries; attempt++) {
+      try {
+        console.log(`${operationName} - Attempt ${attempt}/${maxRetries}`);
+        const result = await operation();
+        if (attempt > 1) {
+          console.log(`${operationName} succeeded on attempt ${attempt}`);
+        }
+        return result;
+      } catch (error) {
+        const isLastAttempt = attempt === maxRetries;
+        const isRetryableError = this.isRetryableError(error);
+        
+        console.log(`${operationName} failed on attempt ${attempt}:`, error instanceof Error ? error.message : 'Unknown error');
+        
+        if (isLastAttempt || !isRetryableError) {
+          if (!isRetryableError) {
+            console.log(`Non-retryable error encountered, failing immediately`);
+          }
+          throw error;
+        }
+        
+        const delay = baseDelay * Math.pow(2, attempt - 1); // Exponential backoff
+        const jitter = Math.random() * 1000; // Add jitter to prevent thundering herd
+        const totalDelay = delay + jitter;
+        
+        console.log(`Retrying ${operationName} in ${Math.round(totalDelay)}ms...`);
+        await this.sleep(totalDelay);
+      }
+    }
+    
+    throw new Error(`${operationName} failed after ${maxRetries} attempts`);
+  }
+
+  private isRetryableError(error: any): boolean {
+    if (error instanceof Error) {
+      // Retry on timeout errors
+      if (error.name === 'AbortError') {
+        return true;
+      }
+      
+      // Retry on 5xx server errors and 524 specifically
+      if (error.message.includes('524') || 
+          error.message.includes('503') || 
+          error.message.includes('502') || 
+          error.message.includes('500') ||
+          error.message.includes('service unavailable') ||
+          error.message.includes('timeout')) {
+        return true;
+      }
+    }
+    
+    // Don't retry on authentication errors (401, 403) or client errors (4xx except timeouts)
+    return false;
+  }
+
   async createFolderStructure(
     folderName: string,
     onboardingId?: string,
@@ -566,93 +631,107 @@ class EastEmblemAPI {
   }
 
   async scorePitchDeck(fileBuffer: Buffer, fileName: string, onboardingId?: string): Promise<any> {
-    try {
-      const formData = new FormData();
-      formData.append("data", fileBuffer, fileName);
-      if (onboardingId) {
-        formData.append("onboarding_id", onboardingId);
-      }
-
-      console.log(`Scoring pitch deck: ${fileName}`);
-      console.log(`API endpoint: ${this.getEndpoint("/webhook/score/pitch-deck")}`);
-
-      const controller = new AbortController();
-      const timeoutId = setTimeout(() => controller.abort(), 120000); // Increase to 2 minutes for scoring
-
-      const response = await fetch(this.getEndpoint("/webhook/score/pitch-deck"), {
-        method: "POST",
-        body: formData,
-        signal: controller.signal,
-      });
-
-      clearTimeout(timeoutId);
-
-      if (!response.ok) {
-        const errorText = await response.text();
-        console.error(`Pitch deck scoring failed with status ${response.status}:`, errorText);
-        
-        if (response.status >= 500) {
-          throw new Error(`EastEmblem scoring service unavailable (${response.status}). Please try again later.`);
-        } else if (response.status === 401) {
-          throw new Error("EastEmblem API authentication failed. Please check API credentials.");
-        } else if (response.status === 403) {
-          throw new Error("EastEmblem API access forbidden. Please verify API permissions.");
-        } else {
-          throw new Error(`Pitch deck scoring failed (${response.status}): ${errorText}`);
+    return this.retryWithBackoff(
+      async () => {
+        const formData = new FormData();
+        formData.append("data", fileBuffer, fileName);
+        if (onboardingId) {
+          formData.append("onboarding_id", onboardingId);
         }
-      }
 
-      const responseText = await response.text();
-      console.log("Raw scoring response:", responseText);
-      
-      try {
-        const result = JSON.parse(responseText) as any;
-        console.log("Pitch deck scored successfully:", result);
-        
-        // Handle the new response format - extract the first item from array if needed
-        if (Array.isArray(result) && result.length > 0) {
-          console.log("Extracting first result from array response");
-          return result[0];
-        }
-        
-        return result;
-      } catch (parseError) {
-        console.error("Failed to parse scoring response JSON:", parseError);
-        console.log("Response was:", responseText);
-        
-        // Try to fix common JSON issues
+        console.log(`Scoring pitch deck: ${fileName}`);
+        console.log(`API endpoint: ${this.getEndpoint("/webhook/score/pitch-deck")}`);
+
+        const controller = new AbortController();
+        const timeoutId = setTimeout(() => controller.abort(), 180000); // Increase to 3 minutes for scoring with retries
+
         try {
-          const fixedJson = responseText.replace(
-            /"onboarding_id":\s*([a-f0-9\-]{36})/g, 
-            '"onboarding_id": "$1"'
-          );
-          const result = JSON.parse(fixedJson);
-          console.log("Successfully parsed fixed scoring JSON:", result);
-          
-          // Handle array format
-          if (Array.isArray(result) && result.length > 0) {
-            return result[0];
+          const response = await fetch(this.getEndpoint("/webhook/score/pitch-deck"), {
+            method: "POST",
+            body: formData,
+            signal: controller.signal,
+          });
+
+          clearTimeout(timeoutId);
+
+          if (!response.ok) {
+            const errorText = await response.text();
+            console.error(`Pitch deck scoring failed with status ${response.status}:`, errorText);
+            
+            if (response.status >= 500 || response.status === 524) {
+              throw new Error(`EastEmblem scoring service unavailable (${response.status}). Service may be overloaded.`);
+            } else if (response.status === 401) {
+              throw new Error("EastEmblem API authentication failed. Please check API credentials.");
+            } else if (response.status === 403) {
+              throw new Error("EastEmblem API access forbidden. Please verify API permissions.");
+            } else {
+              throw new Error(`Pitch deck scoring failed (${response.status}): ${errorText}`);
+            }
           }
+
+          const responseText = await response.text();
+          console.log("Raw scoring response:", responseText);
           
-          return result;
-        } catch (fixError) {
-          console.error("Even fixed scoring JSON parsing failed:", fixError);
-          throw new Error(`Pitch deck scoring succeeded but response parsing failed: ${parseError instanceof Error ? parseError.message : 'Invalid JSON'}`);
+          try {
+            const result = JSON.parse(responseText) as any;
+            console.log("Pitch deck scored successfully:", result);
+            
+            // Handle the new response format - extract the first item from array if needed
+            if (Array.isArray(result) && result.length > 0) {
+              console.log("Extracting first result from array response");
+              return result[0];
+            }
+            
+            return result;
+          } catch (parseError) {
+            console.error("Failed to parse scoring response JSON:", parseError);
+            console.log("Response was:", responseText);
+            
+            // Try to fix common JSON issues
+            try {
+              const fixedJson = responseText.replace(
+                /"onboarding_id":\s*([a-f0-9\-]{36})/g, 
+                '"onboarding_id": "$1"'
+              );
+              const result = JSON.parse(fixedJson);
+              console.log("Successfully parsed fixed scoring JSON:", result);
+              
+              // Handle array format
+              if (Array.isArray(result) && result.length > 0) {
+                return result[0];
+              }
+              
+              return result;
+            } catch (fixError) {
+              console.error("Even fixed scoring JSON parsing failed:", fixError);
+              throw new Error(`Pitch deck scoring succeeded but response parsing failed: ${parseError instanceof Error ? parseError.message : 'Invalid JSON'}`);
+            }
+          }
+        } catch (error) {
+          clearTimeout(timeoutId);
+          throw error;
         }
-      }
-    } catch (error) {
-      console.error("Error scoring pitch deck:", error);
+      },
+      3, // Max 3 attempts
+      2000, // Start with 2 second delay
+      'Pitch deck scoring'
+    ).catch(error => {
+      console.error("Error scoring pitch deck after retries:", error);
       if (!this.isConfigured()) {
         throw new Error("EastEmblem API is not configured. Please provide EASTEMBLEM_API_URL and EASTEMBLEM_API_KEY.");
       }
       
-      // Provide more specific error messaging for timeout issues
+      // Provide user-friendly error messages
       if (error instanceof Error && error.name === 'AbortError') {
-        throw new Error("Pitch deck analysis is taking longer than expected. The scoring service may be processing a large file or experiencing high load. Please try again in a few minutes.");
+        throw new Error("Pitch deck analysis is taking longer than expected. This may be due to file size or high server load. Please try again in a few minutes.");
+      }
+      
+      if (error instanceof Error && (error.message.includes('524') || error.message.includes('service unavailable'))) {
+        throw new Error("EastEmblem analysis service is temporarily unavailable. Please try again in a few minutes.");
       }
       
       throw new Error(`Pitch deck scoring failed: ${error instanceof Error ? error.message : 'Unknown error'}`);
-    }
+    });
   }
 
   isConfigured(): boolean {
