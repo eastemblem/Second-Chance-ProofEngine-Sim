@@ -72,41 +72,50 @@ export default function LoginPage() {
   };
 
   return (
-    <div className="min-h-screen flex flex-col">
-      <div className="flex-1 flex items-center justify-center bg-gradient-to-br from-background via-card to-background px-4 py-8">
+    <div className="min-h-screen flex flex-col bg-gradient-to-br from-[#0f0f0f] via-[#1a1a1a] to-[#0f0f0f]">
+      <div className="flex-1 flex items-center justify-center px-4 py-8">
         <div className="w-full max-w-md">
           {/* Logo */}
           <div className="text-center mb-8">
             <Logo size="lg" showTagline={false} />
           </div>
 
+          {/* Header Icon and Title */}
+          <div className="text-center mb-6">
+            <div className="w-20 h-20 mx-auto mb-6 rounded-full bg-gradient-to-r from-primary to-primary-gold flex items-center justify-center">
+              <LogIn className="w-12 h-12 text-white" />
+            </div>
+            <h1 className="text-3xl font-bold gradient-text mb-3">Welcome Back</h1>
+            <p className="text-gray-400 text-lg">
+              Sign in to your Second Chance account
+            </p>
+          </div>
+
           {/* Login Form */}
-          <Card>
+          <Card className="bg-[#1a1a1a] border-[#2a2a2a] shadow-2xl">
             <CardHeader className="text-center">
-              <div className="w-12 h-12 mx-auto mb-4 rounded-full bg-gradient-to-r from-primary to-primary-gold flex items-center justify-center">
-                <LogIn className="w-6 h-6 text-white" />
-              </div>
-              <CardTitle className="text-xl sm:text-2xl gradient-text">Welcome Back</CardTitle>
-              <CardDescription className="text-sm sm:text-base">
-                Sign in to your Second Chance account
+              <CardTitle className="text-xl text-white">Sign In to Continue</CardTitle>
+              <CardDescription className="text-gray-400">
+                Access your founder dashboard and continue your journey
               </CardDescription>
             </CardHeader>
             <CardContent>
-              <form onSubmit={handleSubmit} className="space-y-4">
-                <div className="space-y-2">
-                  <Label htmlFor="email">Email</Label>
+              <form onSubmit={handleSubmit} className="space-y-6">
+                <div className="space-y-3">
+                  <Label htmlFor="email" className="text-white font-medium">Email</Label>
                   <Input
                     id="email"
                     type="email"
                     value={email}
                     onChange={(e) => setEmail(e.target.value)}
                     placeholder="Enter your email"
+                    className="bg-[#2a2a2a] border-[#3a3a3a] text-white placeholder-gray-500 focus:border-primary focus:ring-primary"
                     required
                   />
                 </div>
 
-                <div className="space-y-2">
-                  <Label htmlFor="password">Password</Label>
+                <div className="space-y-3">
+                  <Label htmlFor="password" className="text-white font-medium">Password</Label>
                   <div className="relative">
                     <Input
                       id="password"
@@ -114,13 +123,13 @@ export default function LoginPage() {
                       value={password}
                       onChange={(e) => setPassword(e.target.value)}
                       placeholder="Enter your password"
-                      className="pr-10"
+                      className="pr-10 bg-[#2a2a2a] border-[#3a3a3a] text-white placeholder-gray-500 focus:border-primary focus:ring-primary"
                       required
                     />
                     <button
                       type="button"
                       onClick={() => setShowPassword(!showPassword)}
-                      className="absolute right-3 top-1/2 transform -translate-y-1/2 text-muted-foreground hover:text-foreground"
+                      className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-primary transition-colors"
                     >
                       {showPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
                     </button>
@@ -129,27 +138,27 @@ export default function LoginPage() {
 
                 <Button
                   type="submit"
-                  className="w-full gradient-button py-3 text-base"
+                  className="w-full gradient-button py-3 text-lg font-semibold"
                   disabled={isLoading}
                 >
-                  {isLoading ? "Signing In..." : "Sign In"}
+                  {isLoading ? "Signing In..." : "Sign In & Continue"}
                 </Button>
               </form>
 
-              <div className="mt-6 text-center space-y-3">
-                <p className="text-sm text-muted-foreground">
+              <div className="mt-6 text-center space-y-4 pt-6 border-t border-[#3a3a3a]">
+                <p className="text-sm text-gray-400">
                   <a 
                     href="/forgot-password" 
-                    className="text-purple-400 hover:text-purple-300 transition-colors"
+                    className="text-primary hover:text-primary-gold font-medium transition-colors"
                   >
                     Forgot your password?
                   </a>
                 </p>
-                <p className="text-sm text-muted-foreground">
+                <p className="text-sm text-gray-400">
                   Don't have an account?{" "}
                   <button
                     onClick={() => setLocation('/')}
-                    className="text-primary hover:text-primary-gold font-medium"
+                    className="text-primary hover:text-primary-gold font-medium transition-colors"
                   >
                     Start Your Validation
                   </button>

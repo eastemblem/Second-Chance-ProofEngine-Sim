@@ -152,21 +152,32 @@ export default function ResetPasswordPage() {
   const passwordErrors = validatePassword(password);
 
   return (
-    <div className="min-h-screen flex flex-col">
-      <div className="flex-1 flex items-center justify-center bg-gradient-to-br from-background via-card to-background px-4 py-8">
+    <div className="min-h-screen flex flex-col bg-gradient-to-br from-[#0f0f0f] via-[#1a1a1a] to-[#0f0f0f]">
+      <div className="flex-1 flex items-center justify-center px-4 py-8">
         <div className="w-full max-w-md">
+          {/* Logo */}
+          <div className="text-center mb-8">
+            <div className="w-20 h-20 mx-auto mb-6 rounded-full bg-gradient-to-r from-primary to-primary-gold flex items-center justify-center">
+              <Lock className="w-12 h-12 text-white" />
+            </div>
+            <h1 className="text-3xl font-bold gradient-text mb-3">Reset Password</h1>
+            <p className="text-gray-400 text-lg">
+              Enter a new secure password for your account
+            </p>
+          </div>
+
           {/* Reset Password Form */}
-          <Card>
-            <CardHeader>
-              <CardTitle className="gradient-text">Reset Your Password</CardTitle>
-              <CardDescription>
-                Enter a new secure password for your account
+          <Card className="bg-[#1a1a1a] border-[#2a2a2a] shadow-2xl">
+            <CardHeader className="text-center">
+              <CardTitle className="text-xl text-white">Create New Password</CardTitle>
+              <CardDescription className="text-gray-400">
+                Choose a strong password to secure your account
               </CardDescription>
             </CardHeader>
             <CardContent>
-              <form onSubmit={handleSubmit} className="space-y-4">
-                <div className="space-y-2">
-                  <Label htmlFor="password">New Password</Label>
+              <form onSubmit={handleSubmit} className="space-y-6">
+                <div className="space-y-3">
+                  <Label htmlFor="password" className="text-white font-medium">New Password</Label>
                   <div className="relative">
                     <Input
                       id="password"
@@ -174,37 +185,40 @@ export default function ResetPasswordPage() {
                       value={password}
                       onChange={(e) => setPassword(e.target.value)}
                       placeholder="Enter your new password"
-                      className="pr-10"
+                      className="pr-10 bg-[#2a2a2a] border-[#3a3a3a] text-white placeholder-gray-500 focus:border-primary focus:ring-primary"
                       required
                     />
                     <button
                       type="button"
                       onClick={() => setShowPassword(!showPassword)}
-                      className="absolute right-3 top-1/2 transform -translate-y-1/2 text-muted-foreground hover:text-foreground"
+                      className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-primary transition-colors"
                     >
                       {showPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
                     </button>
                   </div>
                   
                   {/* Password Requirements */}
-                  <div className="text-xs space-y-1">
-                    {validatePassword(password).map((error, index) => (
-                      <div key={index} className="flex items-center gap-1 text-destructive">
-                        <XCircle className="w-3 h-3" />
-                        {error}
-                      </div>
-                    ))}
-                    {password && passwordErrors.length === 0 && (
-                      <div className="flex items-center gap-1 text-green-600">
-                        <CheckCircle className="w-3 h-3" />
-                        Password meets all requirements
-                      </div>
-                    )}
+                  <div className="text-xs space-y-2">
+                    <p className="text-gray-400 font-medium">Password requirements:</p>
+                    <div className="grid grid-cols-1 gap-1">
+                      {validatePassword(password).map((error, index) => (
+                        <div key={index} className="flex items-center gap-2 text-red-400">
+                          <XCircle className="w-3 h-3" />
+                          <span>{error}</span>
+                        </div>
+                      ))}
+                      {password && passwordErrors.length === 0 && (
+                        <div className="flex items-center gap-2 text-primary-gold">
+                          <CheckCircle className="w-3 h-3" />
+                          <span>Password meets all requirements</span>
+                        </div>
+                      )}
+                    </div>
                   </div>
                 </div>
 
-                <div className="space-y-2">
-                  <Label htmlFor="confirmPassword">Confirm Password</Label>
+                <div className="space-y-3">
+                  <Label htmlFor="confirmPassword" className="text-white font-medium">Confirm Password</Label>
                   <div className="relative">
                     <Input
                       id="confirmPassword"
@@ -212,48 +226,45 @@ export default function ResetPasswordPage() {
                       value={confirmPassword}
                       onChange={(e) => setConfirmPassword(e.target.value)}
                       placeholder="Confirm your new password"
-                      className="pr-10"
+                      className="pr-10 bg-[#2a2a2a] border-[#3a3a3a] text-white placeholder-gray-500 focus:border-primary focus:ring-primary"
                       required
                     />
                     <button
                       type="button"
                       onClick={() => setShowConfirmPassword(!showConfirmPassword)}
-                      className="absolute right-3 top-1/2 transform -translate-y-1/2 text-muted-foreground hover:text-foreground"
+                      className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-primary transition-colors"
                     >
                       {showConfirmPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
                     </button>
                   </div>
                   
-                  {confirmPassword && password !== confirmPassword && (
-                    <div className="flex items-center gap-1 text-destructive text-xs">
-                      <XCircle className="w-3 h-3" />
-                      Passwords do not match
-                    </div>
-                  )}
-                  
-                  {confirmPassword && password === confirmPassword && (
-                    <div className="flex items-center gap-1 text-green-600 text-xs">
-                      <CheckCircle className="w-3 h-3" />
-                      Passwords match
+                  {confirmPassword && (
+                    <div className={`text-xs flex items-center space-x-2 ${password === confirmPassword ? 'text-primary-gold' : 'text-red-400'}`}>
+                      {password === confirmPassword ? (
+                        <CheckCircle className="w-3 h-3" />
+                      ) : (
+                        <XCircle className="w-3 h-3" />
+                      )}
+                      <span>{password === confirmPassword ? 'Passwords match' : 'Passwords do not match'}</span>
                     </div>
                   )}
                 </div>
 
                 <Button
                   type="submit"
-                  className="w-full gradient-button"
+                  className="w-full gradient-button py-3 text-lg font-semibold"
                   disabled={isLoading || passwordErrors.length > 0 || password !== confirmPassword}
                 >
-                  {isLoading ? "Resetting Password..." : "Reset Password"}
+                  {isLoading ? "Resetting Password..." : "Reset Password & Continue"}
                 </Button>
               </form>
               
               <div className="mt-6 text-center">
-                <p className="text-sm text-muted-foreground">
+                <p className="text-sm text-gray-400">
                   Remember your password?{" "}
                   <button
                     onClick={() => setLocation('/login')}
-                    className="text-primary hover:text-primary-gold font-medium"
+                    className="text-primary hover:text-primary-gold font-medium transition-colors"
                   >
                     Sign In
                   </button>

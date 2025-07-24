@@ -240,11 +240,9 @@ export default function SetPasswordPage() {
   const passwordErrors = validatePassword(password);
 
   return (
-    <div className="min-h-screen flex flex-col">
-      <div className="flex-1 flex items-center justify-center bg-gradient-to-br from-background via-card to-background px-4 py-8">
+    <div className="min-h-screen flex flex-col bg-gradient-to-br from-[#0f0f0f] via-[#1a1a1a] to-[#0f0f0f]">
+      <div className="flex-1 flex items-center justify-center px-4 py-8">
         <div className="w-full max-w-md">
-
-
           {/* Logo */}
           <div className="text-center mb-8">
             <Logo size="lg" showTagline={false} />
@@ -252,25 +250,27 @@ export default function SetPasswordPage() {
 
           {/* Verification Success */}
           <div className="text-center mb-6">
-            <CheckCircle className="w-16 h-16 mx-auto mb-4 text-green-500" />
-            <h1 className="text-2xl font-bold gradient-text mb-2">Email Verified!</h1>
-            <p className="text-muted-foreground">
+            <div className="w-20 h-20 mx-auto mb-6 rounded-full bg-gradient-to-r from-primary to-primary-gold flex items-center justify-center">
+              <CheckCircle className="w-12 h-12 text-white" />
+            </div>
+            <h1 className="text-3xl font-bold gradient-text mb-3">Email Verified!</h1>
+            <p className="text-gray-400 text-lg">
               Welcome! Please set your password to complete your account setup.
             </p>
           </div>
 
           {/* Set Password Form */}
-          <Card>
-            <CardHeader>
-              <CardTitle>Set Your Password</CardTitle>
-              <CardDescription>
-                Create a secure password for your account: {email}
+          <Card className="bg-[#1a1a1a] border-[#2a2a2a] shadow-2xl">
+            <CardHeader className="text-center">
+              <CardTitle className="text-xl text-white">Set Your Password</CardTitle>
+              <CardDescription className="text-gray-400">
+                Create a secure password for: <span className="text-primary-gold font-medium">{email}</span>
               </CardDescription>
             </CardHeader>
             <CardContent>
-              <form onSubmit={handleSubmit} className="space-y-4">
-                <div className="space-y-2">
-                  <Label htmlFor="password">Password</Label>
+              <form onSubmit={handleSubmit} className="space-y-6">
+                <div className="space-y-3">
+                  <Label htmlFor="password" className="text-white font-medium">Password</Label>
                   <div className="relative">
                     <Input
                       id="password"
@@ -278,22 +278,22 @@ export default function SetPasswordPage() {
                       value={password}
                       onChange={(e) => setPassword(e.target.value)}
                       placeholder="Enter your password"
-                      className="pr-10"
+                      className="pr-10 bg-[#2a2a2a] border-[#3a3a3a] text-white placeholder-gray-500 focus:border-primary focus:ring-primary"
                       required
                     />
                     <button
                       type="button"
                       onClick={() => setShowPassword(!showPassword)}
-                      className="absolute right-3 top-1/2 transform -translate-y-1/2 text-muted-foreground hover:text-foreground"
+                      className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-primary transition-colors"
                     >
                       {showPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
                     </button>
                   </div>
                   
                   {/* Password Requirements */}
-                  <div className="text-xs space-y-1">
-                    <p className="text-muted-foreground">Password must include:</p>
-                    <div className="grid grid-cols-2 gap-1">
+                  <div className="text-xs space-y-2">
+                    <p className="text-gray-400 font-medium">Password must include:</p>
+                    <div className="grid grid-cols-2 gap-2">
                       {[
                         { check: password.length >= 8, text: "8+ characters" },
                         { check: /[A-Z]/.test(password), text: "Uppercase" },
@@ -301,8 +301,8 @@ export default function SetPasswordPage() {
                         { check: /[0-9]/.test(password), text: "Number" },
                         { check: /[!@#$%^&*()_+\-=\[\]{}|;:,.<>?~`]/.test(password), text: "Special char" },
                       ].map((req, idx) => (
-                        <div key={idx} className={`flex items-center space-x-1 ${req.check ? 'text-green-600' : 'text-muted-foreground'}`}>
-                          <div className={`w-1.5 h-1.5 rounded-full ${req.check ? 'bg-green-600' : 'bg-muted-foreground/30'}`} />
+                        <div key={idx} className={`flex items-center space-x-2 ${req.check ? 'text-primary-gold' : 'text-gray-500'}`}>
+                          <div className={`w-2 h-2 rounded-full ${req.check ? 'bg-primary-gold' : 'bg-gray-600'}`} />
                           <span>{req.text}</span>
                         </div>
                       ))}
@@ -310,8 +310,8 @@ export default function SetPasswordPage() {
                   </div>
                 </div>
 
-                <div className="space-y-2">
-                  <Label htmlFor="confirmPassword">Confirm Password</Label>
+                <div className="space-y-3">
+                  <Label htmlFor="confirmPassword" className="text-white font-medium">Confirm Password</Label>
                   <div className="relative">
                     <Input
                       id="confirmPassword"
@@ -319,26 +319,34 @@ export default function SetPasswordPage() {
                       value={confirmPassword}
                       onChange={(e) => setConfirmPassword(e.target.value)}
                       placeholder="Confirm your password"
-                      className="pr-10"
+                      className="pr-10 bg-[#2a2a2a] border-[#3a3a3a] text-white placeholder-gray-500 focus:border-primary focus:ring-primary"
                       required
                     />
                     <button
                       type="button"
                       onClick={() => setShowConfirmPassword(!showConfirmPassword)}
-                      className="absolute right-3 top-1/2 transform -translate-y-1/2 text-muted-foreground hover:text-foreground"
+                      className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-primary transition-colors"
                     >
                       {showConfirmPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
                     </button>
                   </div>
                   
-                  {confirmPassword && password !== confirmPassword && (
-                    <p className="text-xs text-red-500">Passwords don't match</p>
+                  {/* Confirm Password Match Indicator */}
+                  {confirmPassword && (
+                    <div className={`text-xs flex items-center space-x-2 ${password === confirmPassword ? 'text-primary-gold' : 'text-red-400'}`}>
+                      {password === confirmPassword ? (
+                        <CheckCircle className="w-3 h-3" />
+                      ) : (
+                        <XCircle className="w-3 h-3" />
+                      )}
+                      <span>{password === confirmPassword ? 'Passwords match' : 'Passwords do not match'}</span>
+                    </div>
                   )}
                 </div>
 
                 <Button
                   type="submit"
-                  className="w-full gradient-button"
+                  className="w-full gradient-button py-3 text-lg font-semibold"
                   disabled={isLoading || passwordErrors.length > 0 || password !== confirmPassword}
                 >
                   {isLoading ? "Setting Password..." : "Set Password & Continue"}
