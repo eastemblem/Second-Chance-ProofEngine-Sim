@@ -2,19 +2,7 @@ import { Request, Response } from "express";
 import { storage } from "../storage";
 import { z } from "zod";
 
-// Mock data for leaderboard (when no real data exists)
-const generateMockLeaderboard = () => [
-  { ventureName: "TechFlow Solutions", totalScore: 92, rank: 1 },
-  { ventureName: "GreenTech Innovations", totalScore: 88, rank: 2 },
-  { ventureName: "DataDrive Analytics", totalScore: 85, rank: 3 },
-  { ventureName: "CloudSync Systems", totalScore: 82, rank: 4 },
-  { ventureName: "FinanceFirst Platform", totalScore: 79, rank: 5 },
-  { ventureName: "HealthTech Connect", totalScore: 76, rank: 6 },
-  { ventureName: "EduLearn Solutions", totalScore: 73, rank: 7 },
-  { ventureName: "RetailBoost App", totalScore: 70, rank: 8 },
-  { ventureName: "LogisticsPro Hub", totalScore: 67, rank: 9 },
-  { ventureName: "StartupLaunch Kit", totalScore: 64, rank: 10 },
-];
+// Remove mock data - only use real leaderboard data
 
 /**
  * Get leaderboard data
@@ -23,56 +11,21 @@ export async function getLeaderboard(req: Request, res: Response) {
   try {
     const limit = parseInt(req.query.limit as string) || 10;
     
-    // Get real leaderboard data
+    // Get real leaderboard data only
     const realData = await storage.getLeaderboard(limit);
-    // If we have 10 or more real entries, use only real data
-    if (realData.length >= 10) {
-      const formattedData = realData.slice(0, 10).map((entry, index) => ({
-        ventureName: entry.ventureName,
-        totalScore: entry.totalScore,
-        rank: index + 1,
-        analysisDate: entry.analysisDate
-      }));
-      
-      return res.json({
-        success: true,
-        data: formattedData,
-        source: 'real'
-      });
-    }
     
-    // Otherwise, mix real data with mock data to reach exactly 10 entries
-    const mockData = generateMockLeaderboard();
-    const allEntries = [
-      ...realData.map(entry => ({
-        ventureName: entry.ventureName,
-        totalScore: entry.totalScore,
-        analysisDate: entry.analysisDate,
-        isReal: true
-      })),
-      ...mockData.map(entry => ({
-        ventureName: entry.ventureName,
-        totalScore: entry.totalScore,
-        isReal: false
-      }))
-    ];
-    
-    // Sort all entries by score descending and assign proper ranks
-    const combinedData = allEntries
-      .sort((a, b) => b.totalScore - a.totalScore)
-      .slice(0, limit)
-      .map((entry, index) => ({
-        ventureName: entry.ventureName,
-        totalScore: entry.totalScore,
-        rank: index + 1,
-        analysisDate: entry.analysisDate,
-        isReal: entry.isReal
-      }));
+    const formattedData = realData.map((entry, index) => ({
+      ventureName: entry.ventureName,
+      totalScore: entry.totalScore,
+      rank: index + 1,
+      analysisDate: entry.analysisDate
+    }));
     
     res.json({
       success: true,
-      data: combinedData,
-      source: 'mixed'
+      data: formattedData,
+      source: 'real',
+      totalEntries: formattedData.length
     });
   } catch (error) {
     console.error("Error fetching leaderboard:", error);

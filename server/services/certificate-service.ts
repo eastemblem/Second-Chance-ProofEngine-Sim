@@ -58,30 +58,8 @@ export class CertificateService {
       const latestEvaluation = evaluations[0]; // Assuming most recent first
       
       if (!latestEvaluation) {
-        console.log('No evaluation found for venture, creating fallback certificate with demo data');
-        // Create a fallback certificate for ventures without evaluations
-        const certificateData: CertificateData = {
-          ventureName: venture.name,
-          founderName: founder.fullName,
-          proofScore: 75, // Default score for demo
-          date: new Date().toLocaleDateString('en-US', { 
-            year: 'numeric', 
-            month: 'long', 
-            day: 'numeric' 
-          }),
-          unlockedTags: ['Problem Hunter', 'Solution Builder', 'Market Validator'],
-          scoreCategory: this.getScoreCategory(75)
-        };
-        
-        try {
-          const pdfBuffer = await this.createPDFCertificate(certificateData);
-          const filename = `${venture.name.replace(/[^a-zA-Z0-9]/g, '_')}_Validation_Certificate_${Date.now()}.pdf`;
-          console.log('Fallback certificate PDF generated successfully');
-          return { buffer: pdfBuffer, filename };
-        } catch (error) {
-          console.error('Error creating fallback certificate PDF:', error);
-          return null;
-        }
+        console.log('No evaluation found for venture - certificate requires completed analysis');
+        throw new Error('Certificate cannot be generated without completed pitch deck analysis. Please complete your analysis first.');
       }
 
       // Extract ProofTags from evaluation data - using correct field names
