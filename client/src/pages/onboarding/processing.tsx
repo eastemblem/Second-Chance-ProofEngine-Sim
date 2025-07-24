@@ -3,7 +3,8 @@ import { motion } from "framer-motion";
 import { useMutation } from "@tanstack/react-query";
 import { apiRequest } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
-import { Loader2, FileText, Brain, BarChart3, CheckCircle } from "lucide-react";
+import { Button } from "@/components/ui/button";
+import { Loader2, FileText, Brain, BarChart3, CheckCircle, RefreshCw, AlertCircle } from "lucide-react";
 
 interface ProcessingScreenProps {
   sessionId: string;
@@ -46,6 +47,9 @@ export default function ProcessingScreen({
   const { toast } = useToast();
   const [currentStep, setCurrentStep] = useState(0);
   const [processingComplete, setProcessingComplete] = useState(false);
+  const [hasError, setHasError] = useState(false);
+  const [errorMessage, setErrorMessage] = useState("");
+  const [retryCount, setRetryCount] = useState(0);
 
   const submitForScoringMutation = useMutation({
     mutationFn: async () => {
@@ -85,32 +89,49 @@ export default function ProcessingScreen({
       }
     },
     onError: (error: any) => {
+      const errorMsg = error.message || "Failed to process your submission";
+      setHasError(true);
+      setErrorMessage(errorMsg);
+      setCurrentStep(processingSteps.length - 2); // Set to scoring step to show where it failed
+      
       toast({
-        title: "Error",
-        description: error.message || "Failed to process your submission",
+        title: "Processing Failed",
+        description: errorMsg,
         variant: "destructive",
       });
     }
   });
 
-  useEffect(() => {
-    // Simulate processing steps
-    const stepInterval = setInterval(() => {
-      setCurrentStep(prev => {
-        if (prev < processingSteps.length - 2) {
-          return prev + 1;
-        } else if (prev === processingSteps.length - 2) {
-          // Start actual processing when we reach the last step
-          clearInterval(stepInterval);
-          submitForScoringMutation.mutate();
-          return prev + 1;
-        }
-        return prev;
-      });
-    }, 2000);
+  const handleRetry = () => {
+    setHasError(false);
+    setErrorMessage("");
+    setRetryCount(prev => prev + 1);
+    setProcessingComplete(false);
+    setCurrentStep(processingSteps.length - 2); // Go to scoring step
+    submitForScoringMutation.mutate();
+  };
 
-    return () => clearInterval(stepInterval);
-  }, []);
+  useEffect(() => {
+    // Only start automatic processing on first load, not on retries
+    if (retryCount === 0) {
+      // Simulate processing steps
+      const stepInterval = setInterval(() => {
+        setCurrentStep(prev => {
+          if (prev < processingSteps.length - 2) {
+            return prev + 1;
+          } else if (prev === processingSteps.length - 2) {
+            // Start actual processing when we reach the last step
+            clearInterval(stepInterval);
+            submitForScoringMutation.mutate();
+            return prev + 1;
+          }
+          return prev;
+        });
+      }, 2000);
+
+      return () => clearInterval(stepInterval);
+    }
+  }, [retryCount]);
 
   return (
     <motion.div
@@ -187,7 +208,55 @@ export default function ProcessingScreen({
         })}
       </div>
 
-      {processingComplete && (
+      {hasError && (
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          className="mt-8 p-6 bg-gradient-to-r from-destructive/10 to-destructive/20 border-2 border-destructive/50 rounded-lg"
+        >
+          <AlertCircle className="w-12 h-12 text-destructive mx-auto mb-4" />
+          <h3 className="text-lg font-medium text-card-foreground mb-2">
+            Processing Failed
+          </h3>
+          <p className="text-muted-foreground mb-4">
+            {errorMessage.includes('timeout') || errorMessage.includes('taking longer than expected') 
+              ? "The analysis is taking longer than expected. This may be due to high server load or a large file size."
+              : errorMessage.includes('service unavailable') || errorMessage.includes('524')
+                ? "The analysis service is temporarily unavailable. This is usually resolved within a few minutes."  
+                : errorMessage
+            }
+          </p>
+          <div className="flex flex-col sm:flex-row gap-3 justify-center">
+            <Button 
+              onClick={handleRetry}
+              disabled={submitForScoringMutation.isPending}
+              className="bg-primary hover:bg-primary/90 text-primary-foreground"
+            >
+              {submitForScoringMutation.isPending ? (
+                <>
+                  <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                  Retrying...
+                </>
+              ) : (
+                <>
+                  <RefreshCw className="w-4 h-4 mr-2" />
+                  Try Again {retryCount > 0 && `(Attempt ${retryCount + 1})`}
+                </>
+              )}
+            </Button>
+            <Button variant="outline" onClick={() => window.location.reload()}>
+              Start Over
+            </Button>
+          </div>
+          {retryCount > 0 && (
+            <p className="text-xs text-muted-foreground mt-3">
+              Previous attempts: {retryCount}
+            </p>
+          )}
+        </motion.div>
+      )}
+
+      {processingComplete && !hasError && (
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
@@ -203,12 +272,20 @@ export default function ProcessingScreen({
         </motion.div>
       )}
 
-      <div className="mt-8 text-sm text-muted-foreground">
-        <p>
-          This process typically takes 2-3 minutes. We're analyzing your pitch deck against 
-          10+ key investment criteria used by top-tier VCs.
-        </p>
-      </div>
+      {!hasError && (
+        <div className="mt-8 text-sm text-muted-foreground">
+          <p>
+            This process typically takes 2-3 minutes. We're analyzing your pitch deck against 
+            10+ key investment criteria used by top-tier VCs.
+          </p>
+          {submitForScoringMutation.isPending && (
+            <div className="mt-4 flex items-center justify-center space-x-2">
+              <Loader2 className="w-4 h-4 animate-spin" />
+              <span>Processing... This may take a few minutes</span>
+            </div>
+          )}
+        </div>
+      )}
     </motion.div>
   );
 }
