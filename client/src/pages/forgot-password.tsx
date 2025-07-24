@@ -87,10 +87,12 @@ export default function ForgotPasswordPage() {
 
           <div className="space-y-6">
             {/* Back to Login Link */}
-            <Link href="/login" className="inline-flex items-center text-muted-foreground hover:text-foreground transition-colors">
-              <ArrowLeft className="w-4 h-4 mr-2" />
-              Back to Login
-            </Link>
+            <div className="text-center">
+              <Link href="/login" className="inline-flex items-center text-muted-foreground hover:text-foreground transition-colors">
+                <ArrowLeft className="w-4 h-4 mr-2" />
+                Back to Login
+              </Link>
+            </div>
 
           <Card className="shadow-lg border-border/50">
             <CardHeader className="space-y-1 text-center">
