@@ -99,11 +99,13 @@ export class EmailService {
   ): Promise<boolean> {
     try {
       // Ensure dynamic values are properly set
+      const frontendUrl = process.env.FRONTEND_URL || process.env.HOST_URL || 'https://secondchance.replit.app';
       const enrichedData = {
         ...templateData,
-        HOST_URL: templateData.HOST_URL || process.env.HOST_URL || 'https://secondchance.replit.app',
-        PRIVACY_URL: `${templateData.HOST_URL || process.env.HOST_URL || 'https://secondchance.replit.app'}/privacy`,
-        TERMS_URL: `${templateData.HOST_URL || process.env.HOST_URL || 'https://secondchance.replit.app'}/terms`,
+        HOST_URL: frontendUrl,
+        FRONTEND_URL: frontendUrl,
+        PRIVACY_URL: `${frontendUrl}/privacy`,
+        TERMS_URL: `${frontendUrl}/terms`,
         CURRENT_YEAR: new Date().getFullYear().toString()
       };
 
@@ -154,7 +156,7 @@ export class EmailService {
       {
         USER_NAME: userName,
         VERIFICATION_URL: verificationUrl,
-        HOST_URL: process.env.HOST_URL || 'https://secondchance.replit.app'
+        HOST_URL: process.env.FRONTEND_URL || process.env.HOST_URL || 'https://secondchance.replit.app'
       }
     );
   }
@@ -163,7 +165,8 @@ export class EmailService {
    * Send password reset email
    */
   async sendPasswordResetEmail(to: string, founderName: string, resetToken: string): Promise<boolean> {
-    const resetUrl = `${process.env.HOST_URL || 'https://secondchance.replit.app'}/api/auth/reset-password/${resetToken}`;
+    const frontendUrl = process.env.FRONTEND_URL || process.env.HOST_URL || 'https://secondchance.replit.app';
+    const resetUrl = `${frontendUrl}/reset-password/${resetToken}`;
     
     return this.sendEmail(
       to,
@@ -172,7 +175,7 @@ export class EmailService {
       {
         USER_NAME: founderName,
         RESET_URL: resetUrl,
-        HOST_URL: process.env.HOST_URL || 'https://secondchance.replit.app'
+        HOST_URL: frontendUrl
       }
     );
   }
@@ -187,7 +190,7 @@ export class EmailService {
       'welcome-email',
       {
         USER_NAME: userName,
-        HOST_URL: process.env.HOST_URL || 'https://secondchance.replit.app'
+        HOST_URL: process.env.FRONTEND_URL || process.env.HOST_URL || 'https://secondchance.replit.app'
       }
     );
   }
