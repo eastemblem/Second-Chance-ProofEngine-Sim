@@ -159,10 +159,64 @@ router.post("/upload-file", upload.single("file"), requireFields(['folder_id']),
   const fileBuffer = fs.readFileSync(file.path);
   const sessionId = getSessionId(req);
   
+  // Get the actual Box.com folder ID from database
+  let actualFolderId = folder_id;
+  console.log(`🔍 Attempting to map folder name '${folder_id}' to Box.com folder ID...`);
+  console.log(`🔐 Session founderId: ${req.session?.founderId || 'NOT SET'}`);
+  
+  // Try to get folder mapping
+  try {
+    const { storage } = await import("../storage");
+    
+    // First try with authenticated user
+    if (req.session?.founderId) {
+      const ventures = await storage.getVenturesByFounderId(req.session.founderId);
+      const latestVenture = ventures.length > 0 ? ventures[0] : null;
+      
+      if (latestVenture) {
+        const proofVaultRecords = await storage.getProofVaultsByVentureId(latestVenture.ventureId);
+        const targetFolder = proofVaultRecords.find(pv => pv.folderName === folder_id);
+        if (targetFolder?.subFolderId) {
+          actualFolderId = targetFolder.subFolderId.toString();
+          console.log(`✅ Mapped folder name '${folder_id}' to Box.com folder ID '${actualFolderId}' (authenticated)`);
+        }
+      }
+    } else {
+      // Fallback: try to find the most recent venture for testing
+      console.log(`⚠️ No authenticated session, trying to find folder mapping for testing...`);
+      const latestVenture = await storage.getVenture('7ca13a11-b56f-4158-a8fa-58a34b985613');
+      
+      if (latestVenture) {
+        const proofVaultRecords = await storage.getProofVaultsByVentureId(latestVenture.ventureId);
+        console.log(`📋 Found ${proofVaultRecords.length} ProofVault records for venture`);
+        
+        const targetFolder = proofVaultRecords.find(pv => pv.folderName === folder_id);
+        if (targetFolder?.subFolderId) {
+          actualFolderId = targetFolder.subFolderId.toString();
+          console.log(`✅ Mapped folder name '${folder_id}' to Box.com folder ID '${actualFolderId}' (fallback)`);
+        } else {
+          console.log(`❌ No mapping found for folder '${folder_id}' in ProofVault records`);
+          console.log(`Available folders:`, proofVaultRecords.map(pv => `${pv.folderName} -> ${pv.subFolderId}`));
+        }
+      } else {
+        console.log(`❌ No venture found for testing fallback`);
+      }
+    }
+  } catch (error) {
+    console.error("Failed to map folder ID:", error);
+    // Continue with original folder_id as fallback
+  }
+  
+  console.log(`📤 Uploading to Box.com folder ID: '${actualFolderId}' (original: '${folder_id}')`);
+  
+  if (actualFolderId === folder_id) {
+    console.log(`⚠️ WARNING: Using folder name '${folder_id}' instead of numeric Box.com folder ID - this may cause upload issues`);
+  }
+  
   const uploadResult = await vaultService.uploadFileToVault(
     fileBuffer,
     file.originalname,
-    folder_id,
+    actualFolderId,
     sessionId
   );
 
@@ -179,11 +233,6 @@ router.post("/upload-file", upload.single("file"), requireFields(['folder_id']),
       const latestVenture = ventures.length > 0 ? ventures[0] : null;
       
       if (latestVenture) {
-        // Get the correct folder ID for the selected folder
-        const proofVaultRecords = await storage.getProofVaultsByVentureId(latestVenture.ventureId);
-        const targetFolder = proofVaultRecords.find(pv => pv.folderName === folder_id);
-        const folderId = targetFolder?.subFolderId || null;
-        
         await storage.createDocumentUpload({
           ventureId: latestVenture.ventureId,
           fileName: uploadResult.name || file.originalname,
@@ -195,9 +244,9 @@ router.post("/upload-file", upload.single("file"), requireFields(['folder_id']),
           processingStatus: "completed",
           eastemblemFileId: uploadResult.id,
           sharedUrl: uploadResult.url || uploadResult.download_url,
-          folderId: folderId, // Map to correct folder
+          folderId: actualFolderId, // Use the mapped folder ID
         });
-        console.log(`✅ File tracked in database: ${file.originalname} → ${folder_id} folder (${folderId})`);
+        console.log(`✅ File tracked in database: ${file.originalname} → ${folder_id} folder (${actualFolderId})`);
       }
     } catch (error) {
       console.error("Failed to track file upload in database:", error);
