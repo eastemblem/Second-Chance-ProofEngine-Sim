@@ -31,7 +31,7 @@ router.get("/validation", async (req, res) => {
     const latestEvaluation = evaluations.length > 0 ? evaluations[0] : null;
     
     const validationData = {
-      proofScore: latestEvaluation?.totalScore || 85,
+      proofScore: latestEvaluation?.proofscore || 85,
       proofTagsUnlocked: 11,
       totalProofTags: 21,
       filesUploaded: 0,
@@ -79,15 +79,26 @@ router.get("/vault", async (req, res) => {
       "6_Investor_Pack": 0
     };
 
-    // Count documents by folder structure
+    // Count documents by folder structure and document type
     documentUploads.forEach(doc => {
-      if (doc.sharedUrl && doc.sharedUrl.includes("0_Overview")) folderCounts["0_Overview"]++;
-      else if (doc.sharedUrl && doc.sharedUrl.includes("1_Problem_Proof")) folderCounts["1_Problem_Proof"]++;
-      else if (doc.sharedUrl && doc.sharedUrl.includes("2_Solution_Proof")) folderCounts["2_Solution_Proof"]++;
-      else if (doc.sharedUrl && doc.sharedUrl.includes("3_Demand_Proof")) folderCounts["3_Demand_Proof"]++;
-      else if (doc.sharedUrl && doc.sharedUrl.includes("4_Credibility_Proof")) folderCounts["4_Credibility_Proof"]++;
-      else if (doc.sharedUrl && doc.sharedUrl.includes("5_Commercial_Proof")) folderCounts["5_Commercial_Proof"]++;
-      else if (doc.sharedUrl && doc.sharedUrl.includes("6_Investor_Pack")) folderCounts["6_Investor_Pack"]++;
+      // Check by shared URL if available
+      if (doc.sharedUrl) {
+        if (doc.sharedUrl.includes("0_Overview")) folderCounts["0_Overview"]++;
+        else if (doc.sharedUrl.includes("1_Problem_Proof")) folderCounts["1_Problem_Proof"]++;
+        else if (doc.sharedUrl.includes("2_Solution_Proof")) folderCounts["2_Solution_Proof"]++;
+        else if (doc.sharedUrl.includes("3_Demand_Proof")) folderCounts["3_Demand_Proof"]++;
+        else if (doc.sharedUrl.includes("4_Credibility_Proof")) folderCounts["4_Credibility_Proof"]++;
+        else if (doc.sharedUrl.includes("5_Commercial_Proof")) folderCounts["5_Commercial_Proof"]++;
+        else if (doc.sharedUrl.includes("6_Investor_Pack")) folderCounts["6_Investor_Pack"]++;
+        else folderCounts["0_Overview"]++; // Default to Overview for Box.com files
+      } else {
+        // Categorize by document type if no shared URL
+        const fileName = doc.originalName?.toLowerCase() || '';
+        if (fileName.includes('certificate')) folderCounts["0_Overview"]++;
+        else if (fileName.includes('report')) folderCounts["0_Overview"]++;
+        else if (fileName.includes('pitch') || fileName.includes('deck')) folderCounts["0_Overview"]++;
+        else folderCounts["0_Overview"]++; // Default to Overview
+      }
     });
 
     console.log(`📊 ProofVault file counts for venture ${latestVenture.ventureId}:`, folderCounts);
