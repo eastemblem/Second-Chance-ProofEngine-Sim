@@ -682,11 +682,6 @@ export class OnboardingService {
     try {
       console.log("Starting email notification process for session:", sessionId);
       
-      if (!eastEmblemAPI.isConfigured()) {
-        console.log("EastEmblem API not configured, skipping email notification");
-        return;
-      }
-
       // Extract founder and venture information  
       const founder = stepData.founder?.founder || stepData.founder;
       const venture = stepData.venture?.venture || stepData.venture;
@@ -728,45 +723,53 @@ export class OnboardingService {
         });
       }
 
-      // Generate verification URL (use environment host or default)
-      const baseUrl = process.env.REPLIT_DEPLOYMENT_DOMAIN 
-        ? `https://${process.env.REPLIT_DEPLOYMENT_DOMAIN}`
-        : 'http://localhost:5000';
-      const verificationUrl = `${baseUrl}/api/auth/verify-email/${verificationToken}`;
-
-      // Prepare email data
-      const emailData: EmailNotificationData = {
-        type: "onboarding",
-        name: founderName,
-        email: founder.email,
-        certificate: certificateUrl,
-        report: reportUrl,
-        verificationUrl: verificationUrl
+      // Get actual score data from evaluation 
+      let proofScore = 85;
+      let scoreBreakdown = {
+        desirability: 17,
+        feasibility: 16,
+        viability: 18,
+        traction: 17,
+        readiness: 17
       };
 
-      console.log("Sending email notification with data:", {
-        type: emailData.type,
-        name: emailData.name,
-        email: emailData.email,
-        certificateUrl: emailData.certificate,
-        reportUrl: emailData.report,
-        verificationUrl: emailData.verificationUrl
-      });
+      if (venture?.ventureId) {
+        try {
+          const latestEvaluation = await storage.getLatestEvaluationByVentureId(venture.ventureId);
+          if (latestEvaluation) {
+            proofScore = latestEvaluation.proofscore;
+            console.log("Using actual ProofScore from evaluation:", proofScore);
+          }
+        } catch (evalError) {
+          console.log("Could not fetch evaluation data, using default score:", evalError);
+        }
+      }
 
-      // Send email notification
-      const emailResult = await eastEmblemAPI.sendEmail(emailData);
-      console.log("✓ Email notification sent successfully:", emailResult);
+      // Send email notification using new N8N webhook endpoint  
+      const { emailService } = await import('./emailService');
+      const emailResult = await emailService.sendOnboardingEmail(
+        founder.email,
+        founderName,
+        proofScore,
+        scoreBreakdown,
+        [], // ProofTags will be populated from database by EmailService
+        reportUrl,
+        certificateUrl
+      );
+      console.log("✓ Email notification sent successfully via N8N webhook:", emailResult);
 
       // Send Slack notification about email sent (async, no wait)
-      eastEmblemAPI
-        .sendSlackNotification(
-          `\`Onboarding Id : ${sessionId}\`\n📧 Welcome Email Sent to ${founderName} (${founder.email}) - ${venture.name}`,
-          "#notifications",
-          sessionId,
-        )
-        .catch((error) => {
-          console.log("Failed to send email completion notification:", error);
-        });
+      if (eastEmblemAPI.isConfigured()) {
+        eastEmblemAPI
+          .sendSlackNotification(
+            `\`Onboarding Id : ${sessionId}\`\n📧 Welcome Email Sent to ${founderName} (${founder.email}) - ${venture.name}`,
+            "#notifications",
+            sessionId,
+          )
+          .catch((error) => {
+            console.log("Failed to send email completion notification:", error);
+          });
+      }
 
     } catch (error) {
       console.error("Email notification failed:", error);

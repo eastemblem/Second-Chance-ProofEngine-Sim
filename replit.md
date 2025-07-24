@@ -165,8 +165,9 @@ Demo experience for testing different user journeys:
 - **Complete Dark Header Design**: Changed all email template headers from gradient backgrounds to solid dark (#1A1A1B) for maximum logo visibility and professional appearance
 - **Increased Logo Size**: Enhanced logo prominence by increasing size from 120px to 180px across all email templates for stronger brand presence
 
-### July 24, 2025 - N8N Email Webhook Integration & Template Enhancement
+### July 24, 2025 - N8N Email Webhook Integration & Template Enhancement  
 - **NEW EMAIL ENDPOINT**: Integrated new N8N webhook endpoint for reliable email delivery using EASTEMBLEM_API_BASE_URL environment variable
+- **ONBOARDING EMAIL FIX**: Updated onboarding system to use latest N8N webhook endpoint (/webhook/notification/email/send) instead of old eastEmblemAPI.sendEmail() method
 - **Enhanced Email Templates**: All email templates now include:
   * Second Chance logo at the top of each email for brand consistency
   * Dynamic privacy and terms URLs ({{PRIVACY_URL}}, {{TERMS_URL}})

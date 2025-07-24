@@ -224,6 +224,16 @@ export class DatabaseStorage implements IStorage {
     await db.delete(evaluation).where(eq(evaluation.evaluationId, id));
   }
 
+  async getLatestEvaluationByVentureId(ventureId: string): Promise<Evaluation | undefined> {
+    const [evaluationRecord] = await db
+      .select()
+      .from(evaluation)
+      .where(eq(evaluation.ventureId, ventureId))
+      .orderBy(desc(evaluation.evaluationDate))
+      .limit(1);
+    return evaluationRecord;
+  }
+
   // Leaderboard methods
   async getLeaderboard(limit: number = 10): Promise<Leaderboard[]> {
     return db.select().from(leaderboard).orderBy(desc(leaderboard.totalScore)).limit(limit);
