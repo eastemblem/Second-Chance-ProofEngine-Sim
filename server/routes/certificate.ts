@@ -257,6 +257,49 @@ export async function generateCertificate(req: Request, res: Response) {
     if (session && session.stepData && session.stepData.processing && session.stepData.processing.certificateUrl) {
       const certificateUrl = session.stepData.processing.certificateUrl;
       console.log(`Certificate found in session data: ${certificateUrl}`);
+      
+      // Still update database even if certificate exists in session
+      try {
+        const { db } = await import('../db');
+        const { documentUpload, venture } = await import('@shared/schema');
+        const { eq } = await import('drizzle-orm');
+        const ventureId = session.stepData?.venture?.ventureId;
+        
+        if (ventureId) {
+          // Update venture table with certificate URL
+          await db
+            .update(venture)
+            .set({
+              certificateUrl: certificateUrl,
+              certificateGeneratedAt: new Date(),
+              updatedAt: new Date()
+            })
+            .where(eq(venture.ventureId, ventureId));
+          console.log("✓ Venture table updated with existing certificate URL");
+          
+          // Try to create document_upload record (ignore if already exists)
+          try {
+            await db.insert(documentUpload).values({
+              ventureId: ventureId,
+              fileName: 'validation_certificate.pdf',
+              originalName: 'validation_certificate.pdf',
+              filePath: '/generated/certificate.pdf',
+              fileSize: 0,
+              mimeType: 'application/pdf',
+              uploadStatus: 'completed',
+              processingStatus: 'completed',
+              sharedUrl: certificateUrl
+            });
+            console.log("✓ Certificate document_upload record created");
+          } catch (docError) {
+            // Document record might already exist, that's ok
+            console.log("Certificate document record might already exist");
+          }
+        }
+      } catch (error) {
+        console.error("Failed to update database with existing certificate:", error);
+      }
+      
       return res.json({
         success: true,
         certificateUrl: certificateUrl,
