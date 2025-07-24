@@ -180,7 +180,7 @@ export async function createReportForSession(sessionId: string) {
               uploadStatus: 'completed',
               processingStatus: 'completed',
               sharedUrl: existingUrl,
-              eastemblemFileId: '1934654032235', // Add the file ID from logs
+              eastemblemFileId: null, // Will be populated when we have the actual ID
               uploadedBy: 'system'
             });
             console.log("✓ Report document_upload record created");
