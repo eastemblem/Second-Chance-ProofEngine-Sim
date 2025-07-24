@@ -533,22 +533,36 @@ export default function DashboardPage() {
                   </TabsList>
 
                   <TabsContent value="overview" className="mt-6">
-                    <div className="grid grid-cols-4 gap-4">
+                    <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-4">
                       <div className="text-center p-4 bg-gray-800 rounded-lg">
                         <div className="text-2xl font-bold text-white mb-1">{proofVaultData?.overviewCount || 0}</div>
-                        <p className="text-gray-400 text-sm">Overview</p>
+                        <p className="text-gray-400 text-sm">0_Overview</p>
                       </div>
                       <div className="text-center p-4 bg-gray-800 rounded-lg">
                         <div className="text-2xl font-bold text-white mb-1">{proofVaultData?.problemProofCount || 0}</div>
-                        <p className="text-gray-400 text-sm">Problem Proof</p>
+                        <p className="text-gray-400 text-sm">1_Problem_Proof</p>
                       </div>
                       <div className="text-center p-4 bg-gray-800 rounded-lg">
                         <div className="text-2xl font-bold text-white mb-1">{proofVaultData?.solutionProofCount || 0}</div>
-                        <p className="text-gray-400 text-sm">Solution Proof</p>
+                        <p className="text-gray-400 text-sm">2_Solution_Proof</p>
                       </div>
                       <div className="text-center p-4 bg-gray-800 rounded-lg">
                         <div className="text-2xl font-bold text-white mb-1">{proofVaultData?.demandProofCount || 0}</div>
-                        <p className="text-gray-400 text-sm">Demand Proof</p>
+                        <p className="text-gray-400 text-sm">3_Demand_Proof</p>
+                      </div>
+                    </div>
+                    <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                      <div className="text-center p-4 bg-gray-800 rounded-lg">
+                        <div className="text-2xl font-bold text-white mb-1">{proofVaultData?.credibilityProofCount || 0}</div>
+                        <p className="text-gray-400 text-sm">4_Credibility_Proof</p>
+                      </div>
+                      <div className="text-center p-4 bg-gray-800 rounded-lg">
+                        <div className="text-2xl font-bold text-white mb-1">{proofVaultData?.commercialProofCount || 0}</div>
+                        <p className="text-gray-400 text-sm">5_Commercial_Proof</p>
+                      </div>
+                      <div className="text-center p-4 bg-gray-800 rounded-lg">
+                        <div className="text-2xl font-bold text-white mb-1">{proofVaultData?.investorPackCount || 0}</div>
+                        <p className="text-gray-400 text-sm">6_Investor_Pack</p>
                       </div>
                     </div>
                   </TabsContent>
@@ -600,7 +614,7 @@ export default function DashboardPage() {
                           const files = e.target.files;
                           if (files) {
                             Array.from(files).forEach(file => {
-                              handleFileUpload(file, 'overview'); // Default to overview folder
+                              handleFileUpload(file, '0_Overview'); // Default to overview folder
                             });
                           }
                         }}

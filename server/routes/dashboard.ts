@@ -26,15 +26,17 @@ router.get("/validation", async (req, res) => {
       return res.status(404).json({ error: "No venture found for founder" });
     }
 
-    // Get venture-specific validation data
-    // In production, this would fetch from actual scoring results for the specific venture
+    // Get venture-specific validation data from evaluations
+    const evaluations = await storage.getEvaluationsByVentureId(latestVenture.ventureId);
+    const latestEvaluation = evaluations.length > 0 ? evaluations[0] : null;
+    
     const validationData = {
-      proofScore: latestVenture.proofScore || 85,
+      proofScore: latestEvaluation?.totalScore || 85,
       proofTagsUnlocked: 11,
       totalProofTags: 21,
       filesUploaded: 0,
       status: "Excellent! You're investor-ready. Your data room is now visible to our verified investor network.",
-      ventureId: latestVenture.id,
+      ventureId: latestVenture.ventureId,
       ventureName: latestVenture.name
     };
 
@@ -62,28 +64,67 @@ router.get("/vault", async (req, res) => {
       return res.status(404).json({ error: "No venture found for founder" });
     }
 
-    // Get venture-specific ProofVault data
-    // In production, this would query actual file storage for the specific venture
+    // Get actual ProofVault records from database
+    const proofVaultRecords = await storage.getProofVaultsByVentureId(latestVenture.ventureId);
+    const documentUploads = await storage.getDocumentUploadsByVentureId(latestVenture.ventureId);
+
+    // Count files by folder category
+    const folderCounts = {
+      "0_Overview": 0,
+      "1_Problem_Proof": 0,
+      "2_Solution_Proof": 0,
+      "3_Demand_Proof": 0,
+      "4_Credibility_Proof": 0,
+      "5_Commercial_Proof": 0,
+      "6_Investor_Pack": 0
+    };
+
+    // Count documents by folder structure
+    documentUploads.forEach(doc => {
+      if (doc.sharedUrl && doc.sharedUrl.includes("0_Overview")) folderCounts["0_Overview"]++;
+      else if (doc.sharedUrl && doc.sharedUrl.includes("1_Problem_Proof")) folderCounts["1_Problem_Proof"]++;
+      else if (doc.sharedUrl && doc.sharedUrl.includes("2_Solution_Proof")) folderCounts["2_Solution_Proof"]++;
+      else if (doc.sharedUrl && doc.sharedUrl.includes("3_Demand_Proof")) folderCounts["3_Demand_Proof"]++;
+      else if (doc.sharedUrl && doc.sharedUrl.includes("4_Credibility_Proof")) folderCounts["4_Credibility_Proof"]++;
+      else if (doc.sharedUrl && doc.sharedUrl.includes("5_Commercial_Proof")) folderCounts["5_Commercial_Proof"]++;
+      else if (doc.sharedUrl && doc.sharedUrl.includes("6_Investor_Pack")) folderCounts["6_Investor_Pack"]++;
+    });
+
+    console.log(`📊 ProofVault file counts for venture ${latestVenture.ventureId}:`, folderCounts);
+
+    // Convert document uploads to file list
+    const files = documentUploads.map(doc => ({
+      id: doc.uploadId,
+      name: doc.originalName,
+      category: doc.sharedUrl ? getCategoryFromUrl(doc.sharedUrl) : "Unknown",
+      uploadDate: doc.createdAt.toISOString().split('T')[0],
+      size: formatFileSize(doc.fileSize || 0),
+      downloadUrl: doc.sharedUrl || `/api/vault/download/${latestVenture.ventureId}/${doc.uploadId}`,
+      ventureId: latestVenture.ventureId,
+      status: doc.uploadStatus
+    }));
+
+    console.log(`📄 Found ${files.length} files for venture ${latestVenture.ventureId}`);
+
     const vaultData = {
-      overviewCount: 0,
-      problemProofCount: 0,
-      solutionProofCount: 0,
-      demandProofCount: 0,
-      totalFiles: 0,
-      ventureId: latestVenture.id,
+      overviewCount: folderCounts["0_Overview"],
+      problemProofCount: folderCounts["1_Problem_Proof"],
+      solutionProofCount: folderCounts["2_Solution_Proof"],
+      demandProofCount: folderCounts["3_Demand_Proof"],
+      credibilityProofCount: folderCounts["4_Credibility_Proof"],
+      commercialProofCount: folderCounts["5_Commercial_Proof"],
+      investorPackCount: folderCounts["6_Investor_Pack"],
+      totalFiles: documentUploads.length,
+      ventureId: latestVenture.ventureId,
       ventureName: latestVenture.name,
-      files: [
-        // Example file structure for this venture
-        // {
-        //   id: "file-1",
-        //   name: "Pitch Deck.pdf",
-        //   category: "Overview",
-        //   uploadDate: "2025-01-15",
-        //   size: "2.4 MB",
-        //   downloadUrl: `/api/vault/download/${latestVenture.id}/file-1`,
-        //   ventureId: latestVenture.id
-        // }
-      ]
+      files: files,
+      folders: proofVaultRecords.map(pv => ({
+        id: pv.vaultId,
+        name: pv.folderName,
+        type: pv.artefactType,
+        sharedUrl: pv.sharedUrl,
+        fileCount: folderCounts[pv.folderName as keyof typeof folderCounts] || 0
+      }))
     };
 
     res.json(vaultData);
@@ -92,6 +133,27 @@ router.get("/vault", async (req, res) => {
     res.status(500).json({ error: "Failed to load vault data" });
   }
 });
+
+// Helper function to get category from URL
+function getCategoryFromUrl(url: string): string {
+  if (url.includes("0_Overview")) return "Overview";
+  if (url.includes("1_Problem_Proof")) return "Problem Proof";
+  if (url.includes("2_Solution_Proof")) return "Solution Proof";
+  if (url.includes("3_Demand_Proof")) return "Demand Proof";
+  if (url.includes("4_Credibility_Proof")) return "Credibility Proof";
+  if (url.includes("5_Commercial_Proof")) return "Commercial Proof";
+  if (url.includes("6_Investor_Pack")) return "Investor Pack";
+  return "Unknown";
+}
+
+// Helper function to format file size
+function formatFileSize(bytes: number): string {
+  if (bytes === 0) return "0 Bytes";
+  const k = 1024;
+  const sizes = ["Bytes", "KB", "MB", "GB"];
+  const i = Math.floor(Math.log(bytes) / Math.log(k));
+  return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + " " + sizes[i];
+}
 
 // Get recent activity data
 router.get("/activity", async (req, res) => {

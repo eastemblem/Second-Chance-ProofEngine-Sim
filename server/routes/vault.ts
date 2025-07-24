@@ -120,6 +120,7 @@ router.post("/upload-file", upload.single("file"), requireFields(['folder_id']),
     throw new Error("File is required for upload");
   }
 
+  console.log(`📁 Starting file upload: ${file.originalname} to folder ${folder_id}`);
   const fileBuffer = fs.readFileSync(file.path);
   const sessionId = getSessionId(req);
   
@@ -135,13 +136,76 @@ router.post("/upload-file", upload.single("file"), requireFields(['folder_id']),
   const updatedFiles = [...(sessionData.uploadedFiles || []), uploadResult];
   updateSessionData(req, { uploadedFiles: updatedFiles });
 
+  // Track file upload in database if we have venture context
+  if (req.session?.founderId) {
+    try {
+      const { storage } = await import("../storage");
+      const ventures = await storage.getFounderVentures(req.session.founderId);
+      const latestVenture = ventures.length > 0 ? ventures[ventures.length - 1] : null;
+      
+      if (latestVenture) {
+        await storage.createDocumentUpload({
+          ventureId: latestVenture.ventureId,
+          fileName: uploadResult.name || file.originalname,
+          originalName: file.originalname,
+          fileSize: file.size,
+          mimeType: file.mimetype,
+          uploadStatus: "completed",
+          processingStatus: "pending",
+          eastemblemFileId: uploadResult.id,
+          sharedUrl: uploadResult.url || uploadResult.download_url,
+        });
+        console.log(`✓ Tracked file upload in database for venture ${latestVenture.ventureId}`);
+      }
+    } catch (error) {
+      console.error("Failed to track file upload in database:", error);
+      // Don't fail the upload if database tracking fails
+    }
+  }
+
   // Clean up uploaded file after processing
   cleanupUploadedFile(file.path, file.originalname, "Upload complete");
 
+  console.log(`✅ File upload complete: ${file.originalname}, tracked in database: ${!!latestVenture}`);
+  
   res.json(createSuccessResponse({
     upload: uploadResult,
     filesCount: updatedFiles.length,
+    tracked: !!latestVenture,
   }, "File uploaded successfully"));
+}));
+
+// Add file remove endpoint
+router.delete("/remove-file/:fileId", asyncHandler(async (req, res) => {
+  const { fileId } = req.params;
+  
+  if (!req.session?.founderId) {
+    return res.status(401).json({ error: "Not authenticated" });
+  }
+
+  try {
+    const { storage } = await import("../storage");
+    
+    // Verify file belongs to user's venture
+    const ventures = await storage.getFounderVentures(req.session.founderId);
+    const latestVenture = ventures.length > 0 ? ventures[ventures.length - 1] : null;
+    
+    if (!latestVenture) {
+      return res.status(404).json({ error: "No venture found" });
+    }
+
+    const document = await storage.getDocumentUpload(fileId);
+    if (!document || document.ventureId !== latestVenture.ventureId) {
+      return res.status(404).json({ error: "File not found or access denied" });
+    }
+
+    await storage.deleteDocumentUpload(fileId);
+    
+    res.json(createSuccessResponse({}, "File removed successfully"));
+  } catch (error) {
+    console.error("Failed to remove file:", error);
+    res.status(500).json({ error: "Failed to remove file" });
+  }
 }));
 
 export default router;

@@ -312,43 +312,43 @@ export class OnboardingManager {
             {
               key: "0_Overview",
               type: "Pitch Deck",
-              name: "Overview",
+              name: "0_Overview",
               description: "Company overview and general information",
             },
             {
               key: "1_Problem_Proof",
               type: "Technical Documentation",
-              name: "Problem Proof",
+              name: "1_Problem_Proof",
               description: "Evidence of problem validation",
             },
             {
               key: "2_Solution_Proof",
               type: "Demo Video",
-              name: "Solution Proof",
+              name: "2_Solution_Proof",
               description: "Solution validation and proof of concept",
             },
             {
               key: "3_Demand_Proof",
               type: "Metrics Dashboard",
-              name: "Demand Proof",
+              name: "3_Demand_Proof",
               description: "Market demand validation",
             },
             {
               key: "4_Credibility_Proof",
               type: "Customer Testimonial",
-              name: "Credibility Proof",
+              name: "4_Credibility_Proof",
               description: "Team and company credibility evidence",
             },
             {
               key: "5_Commercial_Proof",
               type: "Financial Model",
-              name: "Commercial Proof",
+              name: "5_Commercial_Proof",
               description: "Commercial viability and business model proof",
             },
             {
               key: "6_Investor_Pack",
               type: "Product Screenshot",
-              name: "Investor Pack",
+              name: "6_Investor_Pack",
               description: "Investor presentation materials",
             },
           ];
@@ -415,7 +415,6 @@ export class OnboardingManager {
         .update(onboardingSession)
         .set({
           stepData: currentSession.stepData,
-          ventureId: venture.ventureId,
           currentStep: "team",
           updatedAt: new Date(),
         })
