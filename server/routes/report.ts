@@ -196,6 +196,11 @@ export async function createReportForSession(sessionId: string) {
     // Track report in document_upload table if we have ventureId
     if (ventureId && reportResult.url) {
       try {
+        // Get the Overview folder ID for this venture
+        const proofVaultRecords = await storage.getProofVaultsByVentureId(ventureId);
+        const overviewFolder = proofVaultRecords.find(pv => pv.folderName === '0_Overview');
+        const overviewFolderId = overviewFolder?.subFolderId || null;
+        
         const reportFileName = `${reportData.venture_name || 'Venture'}_Analysis_Report.pdf`;
         await storage.createDocumentUpload({
           ventureId: ventureId,
@@ -208,8 +213,9 @@ export async function createReportForSession(sessionId: string) {
           processingStatus: 'completed',
           eastemblemFileId: reportResult.id || 'generated-report',
           sharedUrl: reportResult.url,
+          folderId: overviewFolderId, // Map report to Overview folder
         });
-        console.log('✓ Report tracked in document_upload table');
+        console.log('✓ Report tracked in document_upload table with folder mapping:', overviewFolderId);
       } catch (error) {
         console.error('Failed to track report in document_upload:', error);
       }

@@ -349,18 +349,35 @@ export class OnboardingService {
     const fileName = file.originalname || file.filename || 'uploaded_pitch_deck.pdf';
     console.log('Creating upload record with fileName:', fileName, 'file object:', file);
 
+    // Get the Overview folder ID for onboarding pitch decks
+    let overviewFolderId = null;
+    try {
+      if (venture.ventureId) {
+        const proofVaultRecords = await storage.getProofVaultsByVentureId(venture.ventureId);
+        const overviewFolder = proofVaultRecords.find(pv => pv.folderName === '0_Overview');
+        if (overviewFolder && overviewFolder.subFolderId) {
+          overviewFolderId = overviewFolder.subFolderId;
+          console.log(`📁 Mapping onboarding pitch deck to Overview folder: ${overviewFolderId}`);
+        }
+      }
+    } catch (error) {
+      console.log('Warning: Could not find Overview folder for venture:', venture.ventureId);
+    }
+
     // Save upload to database
     const upload = await db
       .insert(documentUpload)
       .values({
         sessionId,
+        ventureId: venture.ventureId, // Ensure venture ID is set
         fileName: fileName,
         originalName: fileName,
         filePath: file.path,
         fileSize: file.size,
         mimeType: file.mimetype,
         uploadStatus: 'pending',
-        processingStatus: 'pending'
+        processingStatus: 'pending',
+        folderId: overviewFolderId // Map to Overview folder
       })
       .returning();
 

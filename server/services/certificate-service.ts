@@ -500,8 +500,13 @@ export class CertificateService {
           certificateGeneratedAt: new Date()
         });
 
-        // Track certificate in document_upload table
+        // Track certificate in document_upload table with proper folder mapping
         try {
+          // Get the Overview folder ID for this venture
+          const proofVaultRecords = await storage.getProofVaultsByVentureId(ventureId);
+          const overviewFolder = proofVaultRecords.find(pv => pv.folderName === '0_Overview');
+          const overviewFolderId = overviewFolder?.subFolderId || null;
+          
           await storage.createDocumentUpload({
             ventureId: ventureId,
             fileName: fileName,
@@ -513,8 +518,9 @@ export class CertificateService {
             processingStatus: 'completed',
             eastemblemFileId: uploadResult.id,
             sharedUrl: uploadResult.download_url,
+            folderId: overviewFolderId, // Map certificate to Overview folder
           });
-          console.log('✓ Certificate tracked in document_upload table');
+          console.log('✓ Certificate tracked in document_upload table with folder mapping:', overviewFolderId);
         } catch (error) {
           console.error('Failed to track certificate in document_upload:', error);
         }
