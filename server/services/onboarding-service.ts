@@ -686,8 +686,8 @@ export class OnboardingService {
       const founder = stepData.founder?.founder || stepData.founder;
       const venture = stepData.venture?.venture || stepData.venture;
 
-      // Define base URL for fallback usage
-      const baseUrl = 'https://secondchance.replit.app';
+      // Define base URL using environment variables (remove trailing slash)
+      const baseUrl = (process.env.FRONTEND_URL || `https://${process.env.REPLIT_DOMAINS?.split(',')[0]}`).replace(/\/+$/, '');
       
       // Fetch certificate and report URLs from session state (generated during onboarding)
       let latestCertificateUrl = certificateUrl || stepData.processing?.certificateUrl;

@@ -20,7 +20,7 @@ export class EmailService {
       // Ensure HOST_URL is always set
       const processedData = {
         ...data,
-        HOST_URL: data.HOST_URL || process.env.HOST_URL || 'https://secondchance.replit.app'
+        HOST_URL: data.HOST_URL || process.env.FRONTEND_URL || `https://${process.env.REPLIT_DOMAINS?.split(',')[0]}`
       };
 
       // Replace all template variables with actual data
@@ -111,8 +111,8 @@ export class EmailService {
     templateData: EmailTemplateData
   ): Promise<boolean> {
     try {
-      // Ensure dynamic values are properly set - use production domain for emails
-      const frontendUrl = 'https://secondchance.replit.app'; // Always use production domain for emails
+      // Ensure dynamic values are properly set - use environment variable for domain
+      const frontendUrl = process.env.FRONTEND_URL || `https://${process.env.REPLIT_DOMAINS?.split(',')[0]}`;
       const logoUrl = process.env.LOGO_URL || 'https://files.replit.com/assets/second_chance_logo_1750269371846.png';
       const enrichedData = {
         ...templateData,
@@ -196,7 +196,7 @@ export class EmailService {
       {
         USER_NAME: userName,
         VERIFICATION_URL: verificationUrl,
-        HOST_URL: process.env.FRONTEND_URL || process.env.HOST_URL || 'https://secondchance.replit.app'
+        HOST_URL: process.env.FRONTEND_URL || `https://${process.env.REPLIT_DOMAINS?.split(',')[0]}`
       }
     );
   }
@@ -205,7 +205,7 @@ export class EmailService {
    * Send password reset email
    */
   async sendPasswordResetEmail(to: string, founderName: string, resetToken: string): Promise<boolean> {
-    const frontendUrl = process.env.FRONTEND_URL || process.env.HOST_URL || 'https://secondchance.replit.app';
+    const frontendUrl = (process.env.FRONTEND_URL || `https://${process.env.REPLIT_DOMAINS?.split(',')[0]}`).replace(/\/+$/, '');
     const resetUrl = `${frontendUrl}/reset-password?token=${resetToken}`;
     
     return this.sendEmail(
@@ -230,7 +230,7 @@ export class EmailService {
       'welcome-email',
       {
         USER_NAME: userName,
-        HOST_URL: process.env.FRONTEND_URL || process.env.HOST_URL || 'https://secondchance.replit.app'
+        HOST_URL: process.env.FRONTEND_URL || `https://${process.env.REPLIT_DOMAINS?.split(',')[0]}`
       }
     );
   }
@@ -271,8 +271,8 @@ export class EmailService {
       PROOF_TAGS: proofTags.map(tag => ({ TAG_NAME: tag })),
       REPORT_DOWNLOAD_URL: reportUrl,
       CERTIFICATE_DOWNLOAD_URL: certificateUrl,
-      VERIFICATION_URL: verificationUrl || `${process.env.FRONTEND_URL}/set-password`,
-      HOST_URL: process.env.FRONTEND_URL || 'https://secondchance.replit.app'
+      VERIFICATION_URL: verificationUrl || `${(process.env.FRONTEND_URL || `https://${process.env.REPLIT_DOMAINS?.split(',')[0]}`).replace(/\/+$/, '')}/set-password`,
+      HOST_URL: process.env.FRONTEND_URL || `https://${process.env.REPLIT_DOMAINS?.split(',')[0]}`
     };
     
     console.log("📧 Template data URLs being sent:", {
