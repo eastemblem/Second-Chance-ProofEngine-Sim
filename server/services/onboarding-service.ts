@@ -755,8 +755,7 @@ export class OnboardingService {
         }
       }
 
-      // Generate verification URL (always use production domain for emails)
-      const baseUrl = 'https://secondchance.replit.app';
+      // Generate verification URL (reuse baseUrl from above)
       const verificationUrl = `${baseUrl}/api/auth/verify-email/${verificationToken}`;
 
       // Send email notification using new N8N webhook endpoint  

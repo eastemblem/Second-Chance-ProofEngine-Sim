@@ -155,12 +155,12 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Manual email trigger route
   app.post('/api/email/send-manual', async (req, res) => {
     try {
-      const { sessionId, certificateUrl, reportUrl } = req.body;
+      const { sessionId } = req.body;
       
-      if (!sessionId || !certificateUrl || !reportUrl) {
+      if (!sessionId) {
         return res.status(400).json({
           success: false,
-          error: 'sessionId, certificateUrl, and reportUrl are required'
+          error: 'sessionId is required'
         });
       }
       
@@ -174,9 +174,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
         });
       }
       
-      // Call the private email notification method via reflection
+      // Call the private email notification method without explicit URLs - let it generate them
       const stepData = session.stepData || {};
-      await (onboardingService as any).sendEmailNotification(sessionId, stepData, certificateUrl, reportUrl);
+      await (onboardingService as any).sendEmailNotification(sessionId, stepData);
       
       res.json({
         success: true,
