@@ -325,11 +325,12 @@ export default function DashboardPage() {
         return;
       }
 
-      if (user.venture.certificateUrl) {
+      const certificateUrl = user.venture.certificateUrl || validationData?.certificateUrl;
+      if (certificateUrl) {
         // Track successful certificate download
         trackEvent('download', 'document', 'certificate_download_success');
         
-        window.open(user.venture.certificateUrl, '_blank');
+        window.open(certificateUrl, '_blank');
         toast({
           title: "Certificate Downloaded",
           description: `Your ${user.venture.name} certificate has been opened.`,
@@ -365,11 +366,12 @@ export default function DashboardPage() {
         return;
       }
 
-      if (user.venture.reportUrl) {
+      const reportUrl = user.venture.reportUrl || validationData?.reportUrl;
+      if (reportUrl) {
         // Track successful report download
         trackEvent('download', 'document', 'report_download_success');
         
-        window.open(user.venture.reportUrl, '_blank');
+        window.open(reportUrl, '_blank');
         toast({
           title: "Report Downloaded",
           description: `Your ${user.venture.name} analysis report has been opened.`,
@@ -1559,14 +1561,14 @@ export default function DashboardPage() {
                       <Button 
                         onClick={handleDownloadCertificate}
                         className="w-full bg-gradient-to-r from-purple-500 to-purple-600 hover:from-purple-600 hover:to-purple-700 text-white border-0 shadow-lg hover:shadow-purple-500/25 transition-all duration-300"
-                        disabled={!user?.venture?.certificateUrl}
+                        disabled={!user?.venture?.certificateUrl && !validationData?.certificateUrl}
                       >
                         <Download className="w-4 h-4 mr-2" />
                         Download Certificate
                       </Button>
                       <div className="mt-3 text-center">
                         <p className="text-xs text-gray-500">
-                          {user?.venture?.certificateUrl ? 'Ready for download' : 'Generating certificate...'}
+                          {(user?.venture?.certificateUrl || validationData?.certificateUrl) ? 'Ready for download' : 'Generating certificate...'}
                         </p>
                       </div>
                     </div>
@@ -1588,14 +1590,14 @@ export default function DashboardPage() {
                       <Button 
                         onClick={handleDownloadReport}
                         className="w-full bg-gradient-to-r from-yellow-500 to-amber-600 hover:from-yellow-600 hover:to-amber-700 text-white border-0 shadow-lg hover:shadow-yellow-500/25 transition-all duration-300"
-                        disabled={!user?.venture?.reportUrl}
+                        disabled={!user?.venture?.reportUrl && !validationData?.reportUrl}
                       >
                         <Download className="w-4 h-4 mr-2" />
                         Download Report
                       </Button>
                       <div className="mt-3 text-center">
                         <p className="text-xs text-gray-500">
-                          {user?.venture?.reportUrl ? 'Ready for download' : 'Generating report...'}
+                          {(user?.venture?.reportUrl || validationData?.reportUrl) ? 'Ready for download' : 'Generating report...'}
                         </p>
                       </div>
                     </div>

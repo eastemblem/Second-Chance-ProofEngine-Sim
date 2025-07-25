@@ -137,6 +137,7 @@ Demo experience for testing different user journeys:
 - **✅ DEVELOPMENT SERVER RESTARTED**: Fresh build assets now being served with correct V1 API endpoint calls
 - **✅ DEBUGGING CODE CLEANUP**: Removed all temporary debugging console logs, cache-busting parameters, and debug HTTP headers
 - **✅ PRODUCTION READY**: Clean codebase calling V1 JWT-authenticated endpoints - ProofScore (80), founder "NILESH BAMNE", venture "Funder Flow"
+- **✅ DOWNLOAD BUTTONS FIXED**: Updated certificate and report download availability logic to check both user.venture URLs and validationData URLs from V1 API
 
 ### July 26, 2025 - ✅ CRITICAL V1 JWT AUTHENTICATION ISSUE COMPLETELY RESOLVED: Full API Working
 - **✅ BREAKTHROUGH ACHIEVEMENT**: Successfully resolved persistent JWT authentication failures that were blocking V1 API access for dashboard, vault, activity, and leaderboard endpoints
