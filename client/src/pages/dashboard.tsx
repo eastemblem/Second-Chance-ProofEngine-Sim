@@ -570,87 +570,7 @@ export default function DashboardPage() {
               </CardContent>
             </Card>
 
-            {/* Certificate & Report Downloads */}
-            <Card className="bg-black/50 border-gray-800">
-              <CardHeader>
-                <CardTitle className="text-white">Ready for Download</CardTitle>
-                <CardDescription className="text-gray-400">
-                  Access your validation certificate and analysis report
-                </CardDescription>
-              </CardHeader>
-              <CardContent>
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  {/* Certificate Download */}
-                  <div className="group relative overflow-hidden rounded-lg bg-gradient-to-br from-purple-500/10 to-purple-600/20 border border-purple-500/30 p-6 hover:border-purple-400/50 transition-all duration-300">
-                    <div className="absolute inset-0 bg-gradient-to-br from-purple-500/5 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
-                    <div className="relative">
-                      <div className="flex items-center gap-3 mb-4">
-                        <div className="p-2 rounded-lg bg-purple-500/20">
-                          <Award className="w-6 h-6 text-purple-400" />
-                        </div>
-                        <div>
-                          <h3 className="text-white font-semibold">ProofScore Certificate</h3>
-                          <p className="text-gray-400 text-sm">Official validation document</p>
-                        </div>
-                      </div>
-                      <Button 
-                        onClick={handleDownloadCertificate}
-                        className="w-full bg-gradient-to-r from-purple-500 to-purple-600 hover:from-purple-600 hover:to-purple-700 text-white border-0 shadow-lg hover:shadow-purple-500/25 transition-all duration-300"
-                        disabled={!user?.venture?.certificateUrl}
-                      >
-                        <Download className="w-4 h-4 mr-2" />
-                        Download Certificate
-                      </Button>
-                      <div className="mt-3 text-center">
-                        <p className="text-xs text-gray-500">
-                          {user?.venture?.certificateUrl ? 'Ready for download' : 'Generating certificate...'}
-                        </p>
-                      </div>
-                    </div>
-                  </div>
 
-                  {/* Report Download */}
-                  <div className="group relative overflow-hidden rounded-lg bg-gradient-to-br from-yellow-500/10 to-amber-600/20 border border-yellow-500/30 p-6 hover:border-yellow-400/50 transition-all duration-300">
-                    <div className="absolute inset-0 bg-gradient-to-br from-yellow-500/5 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
-                    <div className="relative">
-                      <div className="flex items-center gap-3 mb-4">
-                        <div className="p-2 rounded-lg bg-yellow-500/20">
-                          <FileText className="w-6 h-6 text-yellow-400" />
-                        </div>
-                        <div>
-                          <h3 className="text-white font-semibold">Analysis Report</h3>
-                          <p className="text-gray-400 text-sm">Detailed breakdown & insights</p>
-                        </div>
-                      </div>
-                      <Button 
-                        onClick={handleDownloadReport}
-                        className="w-full bg-gradient-to-r from-yellow-500 to-amber-600 hover:from-yellow-600 hover:to-amber-700 text-white border-0 shadow-lg hover:shadow-yellow-500/25 transition-all duration-300"
-                        disabled={!user?.venture?.reportUrl}
-                      >
-                        <Download className="w-4 h-4 mr-2" />
-                        Download Report
-                      </Button>
-                      <div className="mt-3 text-center">
-                        <p className="text-xs text-gray-500">
-                          {user?.venture?.reportUrl ? 'Ready for download' : 'Generating report...'}
-                        </p>
-                      </div>
-                    </div>
-                  </div>
-                </div>
-
-                {/* Information Panel */}
-                <div className="mt-6 bg-gray-800/50 rounded-lg p-4">
-                  <h4 className="text-sm font-medium text-gray-300 mb-2">📋 Document Information</h4>
-                  <ul className="text-xs text-gray-400 space-y-1">
-                    <li>• Certificate: Official ProofScore validation with your achievement level</li>
-                    <li>• Report: Comprehensive analysis with improvement recommendations</li>
-                    <li>• Both documents are investor-ready and can be shared with stakeholders</li>
-                    <li>• Documents are automatically uploaded to your Overview folder in Proof Vault</li>
-                  </ul>
-                </div>
-              </CardContent>
-            </Card>
 
             {/* Your Proof Vault */}
             <Card className="bg-gray-900 border-gray-700">
@@ -847,6 +767,77 @@ export default function DashboardPage() {
                     </div>
                   </TabsContent>
                 </Tabs>
+              </CardContent>
+            </Card>
+
+            {/* Certificate & Report Downloads */}
+            <Card className="bg-black/50 border-gray-800">
+              <CardHeader>
+                <CardTitle className="text-white">Ready for Download</CardTitle>
+                <CardDescription className="text-gray-400">
+                  Access your validation certificate and analysis report
+                </CardDescription>
+              </CardHeader>
+              <CardContent>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  {/* Certificate Download */}
+                  <div className="group relative overflow-hidden rounded-lg bg-gradient-to-br from-purple-500/10 to-purple-600/20 border border-purple-500/30 p-6 hover:border-purple-400/50 transition-all duration-300">
+                    <div className="absolute inset-0 bg-gradient-to-br from-purple-500/5 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
+                    <div className="relative">
+                      <div className="flex items-center gap-3 mb-4">
+                        <div className="p-2 rounded-lg bg-purple-500/20">
+                          <Award className="w-6 h-6 text-purple-400" />
+                        </div>
+                        <div>
+                          <h3 className="text-white font-semibold">ProofScore Certificate</h3>
+                          <p className="text-gray-400 text-sm">Official validation document</p>
+                        </div>
+                      </div>
+                      <Button 
+                        onClick={handleDownloadCertificate}
+                        className="w-full bg-gradient-to-r from-purple-500 to-purple-600 hover:from-purple-600 hover:to-purple-700 text-white border-0 shadow-lg hover:shadow-purple-500/25 transition-all duration-300"
+                        disabled={!user?.venture?.certificateUrl}
+                      >
+                        <Download className="w-4 h-4 mr-2" />
+                        Download Certificate
+                      </Button>
+                      <div className="mt-3 text-center">
+                        <p className="text-xs text-gray-500">
+                          {user?.venture?.certificateUrl ? 'Ready for download' : 'Generating certificate...'}
+                        </p>
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Report Download */}
+                  <div className="group relative overflow-hidden rounded-lg bg-gradient-to-br from-yellow-500/10 to-amber-600/20 border border-yellow-500/30 p-6 hover:border-yellow-400/50 transition-all duration-300">
+                    <div className="absolute inset-0 bg-gradient-to-br from-yellow-500/5 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
+                    <div className="relative">
+                      <div className="flex items-center gap-3 mb-4">
+                        <div className="p-2 rounded-lg bg-yellow-500/20">
+                          <FileText className="w-6 h-6 text-yellow-400" />
+                        </div>
+                        <div>
+                          <h3 className="text-white font-semibold">Analysis Report</h3>
+                          <p className="text-gray-400 text-sm">Detailed breakdown & insights</p>
+                        </div>
+                      </div>
+                      <Button 
+                        onClick={handleDownloadReport}
+                        className="w-full bg-gradient-to-r from-yellow-500 to-amber-600 hover:from-yellow-600 hover:to-amber-700 text-white border-0 shadow-lg hover:shadow-yellow-500/25 transition-all duration-300"
+                        disabled={!user?.venture?.reportUrl}
+                      >
+                        <Download className="w-4 h-4 mr-2" />
+                        Download Report
+                      </Button>
+                      <div className="mt-3 text-center">
+                        <p className="text-xs text-gray-500">
+                          {user?.venture?.reportUrl ? 'Ready for download' : 'Generating report...'}
+                        </p>
+                      </div>
+                    </div>
+                  </div>
+                </div>
               </CardContent>
             </Card>
           </div>
