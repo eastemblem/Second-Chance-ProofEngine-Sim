@@ -52,8 +52,19 @@ import Badge07 from "../../assets/badges/score/Badge_07.svg";
 import Badge08 from "../../assets/badges/score/Badge_08.svg";
 import Badge09 from "../../assets/badges/score/Badge_09.svg";
 
+// ProofTag interface for enhanced logic support
+interface ProofTag {
+  name: string;
+  emoji: string;
+  scoreThreshold?: number;
+  category: string;
+  customLogic?: (scoringResult: any, ventureData: any) => boolean;
+  description?: string;
+  requirements?: string[];
+}
+
 // Complete ProofTag system with all 21 tags
-const ALL_PROOF_TAGS = [
+const ALL_PROOF_TAGS: ProofTag[] = [
   {
     name: "Problem Hunter",
     emoji: "🧠",
@@ -179,6 +190,88 @@ const ALL_PROOF_TAGS = [
     emoji: "🔬",
     scoreThreshold: 98,
     category: "desirability",
+  },
+  
+  // ============= EXAMPLES: CUSTOM LOGIC PROOF TAGS =============
+  // These demonstrate how to add ProofTags with custom logic beyond simple score thresholds
+  
+  {
+    name: "Team Powerhouse",
+    emoji: "💪",
+    category: "feasibility",
+    description: "Strong founding team with complementary skills",
+    requirements: ["High team score", "Multiple team members", "Diverse backgrounds"],
+    customLogic: (scoringResult: any, ventureData: any) => {
+      const teamScore = scoringResult?.output?.team?.score || scoringResult?.team?.score || 0;
+      const teamMemberCount = ventureData?.teamMembers?.length || 0;
+      
+      // Unlock if team score > 15 AND has 2+ team members
+      return teamScore > 15 && teamMemberCount >= 2;
+    }
+  },
+  
+  {
+    name: "Revenue Rocket",
+    emoji: "🚀",
+    category: "traction", 
+    description: "Strong revenue trajectory with multiple income streams",
+    requirements: ["Revenue stage: Early Revenue or Scaling", "Business model score > 20"],
+    customLogic: (scoringResult: any, ventureData: any) => {
+      const businessModelScore = scoringResult?.output?.business_model?.score || 0;
+      const revenueStage = ventureData?.venture?.revenueStage;
+      
+      // Unlock if business model score > 20 AND not pre-revenue
+      return businessModelScore > 20 && !['None', 'Pre-Revenue'].includes(revenueStage);
+    }
+  },
+  
+  {
+    name: "Market Mover",
+    emoji: "📊",
+    category: "viability",
+    description: "Clear market opportunity with validated demand",
+    requirements: ["Market opportunity score > 18", "Problem score > 12", "Has testimonials"],
+    customLogic: (scoringResult: any, ventureData: any) => {
+      const marketScore = scoringResult?.output?.market_opportunity?.score || 0;
+      const problemScore = scoringResult?.output?.Problem?.score || 0;
+      const hasTestimonials = ventureData?.venture?.hasTestimonials || false;
+      
+      // Unlock if market score > 18 AND problem score > 12 AND has testimonials
+      return marketScore > 18 && problemScore > 12 && hasTestimonials;
+    }
+  },
+  
+  {
+    name: "Social Proof Star",
+    emoji: "⭐",
+    category: "traction",
+    description: "Strong online presence across multiple platforms",
+    requirements: ["Has LinkedIn URL", "Has Twitter/Instagram", "Total score > 40"],
+    customLogic: (scoringResult: any, ventureData: any) => {
+      const totalScore = scoringResult?.output?.total_score || scoringResult?.total_score || 0;
+      const venture = ventureData?.venture || {};
+      const socialCount = [venture.linkedinUrl, venture.twitterUrl, venture.instagramUrl]
+        .filter(url => url && url.trim()).length;
+      
+      // Unlock if total score > 40 AND has 2+ social media URLs
+      return totalScore > 40 && socialCount >= 2;
+    }
+  },
+  
+  {
+    name: "Tech Stack Master",
+    emoji: "⚙️",
+    category: "feasibility",
+    description: "Technical founder with launched MVP",
+    requirements: ["Founder is technical", "MVP status: Launched", "Product technology score > 15"],
+    customLogic: (scoringResult: any, ventureData: any) => {
+      const techScore = scoringResult?.output?.product_technology?.score || 0;
+      const isTechnical = ventureData?.founder?.isTechnical || false;
+      const mvpStatus = ventureData?.venture?.mvpStatus;
+      
+      // Unlock if founder is technical AND MVP is launched AND tech score > 15
+      return isTechnical && mvpStatus === 'Launched' && techScore > 15;
+    }
   },
 ];
 
