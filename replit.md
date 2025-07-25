@@ -126,6 +126,20 @@ Demo experience for testing different user journeys:
 
 ## Recent Key Updates
 
+### July 25, 2025 - ENHANCED FILE UPLOAD SYSTEM: Failed Files Display & Folder Upload Support
+- **FAILED FILES TRACKING**: Added comprehensive failed file display with error messages and retry functionality
+- **RETRY UPLOAD SYSTEM**: Users can retry failed uploads individually or in bulk with one-click retry button
+- **FOLDER UPLOAD SUPPORT**: Added folder upload capability using webkitdirectory for bulk file management
+- **ENHANCED ERROR HANDLING**: Failed uploads show specific error messages and file details (name, size)
+- **IMPROVED USER EXPERIENCE**: 
+  * Clear visual indication of failed uploads with red styling and error alerts
+  * Retry and Clear All buttons for easy failed upload management
+  * Folder upload button alongside regular file upload for flexibility
+  * Updated guidelines to mention folder upload capabilities
+- **UPLOAD QUEUE ENHANCEMENTS**: Enhanced upload queue to track error states and support retry operations
+- **SEQUENTIAL PROCESSING**: Maintains sequential file processing for both individual files and folder uploads
+- **PRODUCTION READY**: Complete upload system with comprehensive error handling, retry logic, and folder support
+
 ### July 25, 2025 - DASHBOARD LEADERBOARD CLEANUP: Removed Demo Badges  
 - **CLEAN LEADERBOARD DISPLAY**: Removed "Demo" badges from dashboard leaderboard for cleaner presentation
 - **AUTHENTIC DATA FOCUS**: Leaderboard now shows only venture names and scores without mock data indicators

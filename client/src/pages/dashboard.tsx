@@ -26,7 +26,11 @@ import {
   LogOut,
   Medal,
   Folder,
-  ExternalLink
+  ExternalLink,
+  FolderPlus,
+  RefreshCw,
+  X,
+  AlertCircle
 } from "lucide-react";
 import Navbar from "@/components/navbar";
 import Footer from "@/components/footer";
@@ -113,8 +117,9 @@ export default function DashboardPage() {
   const [selectedFolder, setSelectedFolder] = useState<string>("0_Overview");
   const [uploadProgress, setUploadProgress] = useState<number>(0);
   const [isUploading, setIsUploading] = useState(false);
-  const [uploadQueue, setUploadQueue] = useState<Array<{file: File, folderId: string, status: 'pending' | 'uploading' | 'completed' | 'failed', progress: number}>>([]);
+  const [uploadQueue, setUploadQueue] = useState<Array<{file: File, folderId: string, status: 'pending' | 'uploading' | 'completed' | 'failed', progress: number, error?: string}>>([]);
   const [currentUploadIndex, setCurrentUploadIndex] = useState(0);
+  const [showFailedFiles, setShowFailedFiles] = useState(false);
   const [, setLocation] = useLocation();
   const { toast } = useToast();
 
@@ -353,15 +358,26 @@ export default function DashboardPage() {
   };
 
   // Handle multiple file uploads with queue processing
-  const handleMultipleFileUpload = async (files: File[], folderId: string) => {
+  const handleMultipleFileUpload = async (files: File[], folderId: string, isRetry: boolean = false) => {
     const newQueue = Array.from(files).map(file => ({
       file,
       folderId,
       status: 'pending' as const,
-      progress: 0
+      progress: 0,
+      error: undefined
     }));
     
-    setUploadQueue(newQueue);
+    if (!isRetry) {
+      setUploadQueue(newQueue);
+    } else {
+      // For retries, update existing queue items
+      setUploadQueue(prev => prev.map(item => 
+        files.some(f => f.name === item.file.name) 
+          ? { ...item, status: 'pending' as const, progress: 0, error: undefined }
+          : item
+      ));
+    }
+    
     setCurrentUploadIndex(0);
     setIsUploading(true);
     
@@ -371,21 +387,31 @@ export default function DashboardPage() {
       await handleSingleFileUpload(newQueue[i], i);
     }
     
+    // Check for failed uploads
+    const failedFiles = uploadQueue.filter(item => item.status === 'failed');
+    if (failedFiles.length > 0) {
+      setShowFailedFiles(true);
+      toast({
+        title: "Some Uploads Failed",
+        description: `${failedFiles.length} file(s) failed to upload. You can retry them below.`,
+        variant: "destructive",
+      });
+    }
+    
     // All uploads complete
     setIsUploading(false);
-    setUploadQueue([]);
     setCurrentUploadIndex(0);
     setUploadProgress(0);
     
-    // Reload data to reflect all uploads
+    // Reload data to reflect successful uploads
     await loadDashboardData();
   };
 
-  const handleSingleFileUpload = async (queueItem: {file: File, folderId: string, status: string, progress: number}, index: number) => {
+  const handleSingleFileUpload = async (queueItem: {file: File, folderId: string, status: string, progress: number, error?: string}, index: number) => {
     try {
       // Update queue item status
       setUploadQueue(prev => prev.map((item, i) => 
-        i === index ? { ...item, status: 'uploading' } : item
+        i === index ? { ...item, status: 'uploading', error: undefined } : item
       ));
 
       const formData = new FormData();
@@ -416,7 +442,7 @@ export default function DashboardPage() {
         
         // Update queue item status to completed
         setUploadQueue(prev => prev.map((item, i) => 
-          i === index ? { ...item, status: 'completed' } : item
+          i === index ? { ...item, status: 'completed', error: undefined } : item
         ));
         
         // Track successful file upload
@@ -427,25 +453,46 @@ export default function DashboardPage() {
           description: `${queueItem.file.name} uploaded successfully to ${getFolderDisplayName(queueItem.folderId)}.`,
         });
       } else {
-        throw new Error('Upload failed');
+        const errorData = await response.json();
+        throw new Error(errorData.message || 'Upload failed');
       }
     } catch (error) {
       console.error('File upload error:', error);
+      const errorMessage = error instanceof Error ? error.message : 'Unknown error';
       
-      // Update queue item status to failed
+      // Update queue item status to failed with error message
       setUploadQueue(prev => prev.map((item, i) => 
-        i === index ? { ...item, status: 'failed' } : item
+        i === index ? { ...item, status: 'failed', error: errorMessage } : item
       ));
       
       // Track failed file upload
       trackEvent('upload_failed', 'proofvault', `file_upload_error_${queueItem.folderId}`);
-      
-      toast({
-        title: "Upload Error",
-        description: `Failed to upload ${queueItem.file.name}. Please try again.`,
-        variant: "destructive",
-      });
     }
+  };
+
+  // Retry failed uploads
+  const retryFailedUploads = async () => {
+    const failedFiles = uploadQueue.filter(item => item.status === 'failed');
+    if (failedFiles.length === 0) return;
+    
+    setShowFailedFiles(false);
+    await handleMultipleFileUpload(failedFiles.map(item => item.file), failedFiles[0].folderId, true);
+  };
+
+  // Handle folder uploads (for supported browsers)
+  const handleFolderUpload = async (event: React.ChangeEvent<HTMLInputElement>) => {
+    const files = event.target.files;
+    if (!files || files.length === 0) return;
+
+    const fileList = Array.from(files);
+    
+    toast({
+      title: "Folder Upload",
+      description: `Processing ${fileList.length} files from folder...`,
+    });
+
+    await handleMultipleFileUpload(fileList, selectedFolder);
+    event.target.value = '';
   };
 
   // Backward compatibility - single file upload
@@ -924,16 +971,91 @@ export default function DashboardPage() {
                                 }
                               }}
                             />
-                            <Button 
-                              onClick={() => document.getElementById('file-upload')?.click()} 
-                              className="bg-gradient-to-r from-purple-500 to-yellow-500 text-white hover:from-purple-600 hover:to-yellow-600"
-                            >
-                              <Plus className="w-4 h-4 mr-2" />
-                              Choose Multiple Files
-                            </Button>
+                            <input
+                              type="file"
+                              multiple
+                              {...({ webkitdirectory: "" } as any)}
+                              className="hidden"
+                              id="folder-upload"
+                              onChange={handleFolderUpload}
+                            />
+                            <div className="flex gap-2 flex-wrap justify-center">
+                              <Button 
+                                onClick={() => document.getElementById('file-upload')?.click()} 
+                                className="bg-gradient-to-r from-purple-500 to-yellow-500 text-white hover:from-purple-600 hover:to-yellow-600"
+                              >
+                                <Plus className="w-4 h-4 mr-2" />
+                                Choose Files
+                              </Button>
+                              <Button 
+                                onClick={() => document.getElementById('folder-upload')?.click()} 
+                                variant="outline"
+                                className="border-purple-400 text-purple-400 hover:bg-purple-500 hover:text-white"
+                              >
+                                <FolderPlus className="w-4 h-4 mr-2" />
+                                Upload Folder
+                              </Button>
+                            </div>
                           </>
                         )}
                       </div>
+
+                      {/* Failed Files Section */}
+                      {showFailedFiles && uploadQueue.some(item => item.status === 'failed') && (
+                        <div className="bg-red-500/10 border border-red-500/20 rounded-lg p-4 space-y-3">
+                          <div className="flex items-center justify-between">
+                            <div className="flex items-center gap-2">
+                              <AlertCircle className="w-4 h-4 text-red-400" />
+                              <h4 className="text-red-400 font-medium">Failed Uploads</h4>
+                            </div>
+                            <Button
+                              size="sm"
+                              variant="ghost"
+                              onClick={() => setShowFailedFiles(false)}
+                              className="text-gray-400 hover:text-white h-6 w-6 p-0"
+                            >
+                              <X className="w-3 h-3" />
+                            </Button>
+                          </div>
+                          
+                          <div className="space-y-2">
+                            {uploadQueue.filter(item => item.status === 'failed').map((item, index) => (
+                              <div key={index} className="text-sm bg-red-500/5 rounded p-2">
+                                <div className="flex items-center gap-2 mb-1">
+                                  <span className="text-red-300 font-medium">{item.file.name}</span>
+                                  <span className="text-gray-500 text-xs">({(item.file.size / 1024 / 1024).toFixed(1)} MB)</span>
+                                </div>
+                                {item.error && (
+                                  <p className="text-xs text-red-400">{item.error}</p>
+                                )}
+                              </div>
+                            ))}
+                          </div>
+                          
+                          <div className="flex gap-2">
+                            <Button
+                              size="sm"
+                              onClick={retryFailedUploads}
+                              className="bg-red-500 hover:bg-red-600 text-white"
+                              disabled={isUploading}
+                            >
+                              <RefreshCw className="w-3 h-3 mr-1" />
+                              Retry Failed
+                            </Button>
+                            <Button
+                              size="sm"
+                              variant="outline"
+                              onClick={() => {
+                                setUploadQueue([]);
+                                setShowFailedFiles(false);
+                              }}
+                              className="border-gray-600 text-gray-400 hover:bg-gray-700"
+                            >
+                              Clear All
+                            </Button>
+                          </div>
+                        </div>
+                      )}
 
                       {/* Upload Guidelines */}
                       <div className="bg-gray-800/50 rounded-lg p-4 space-y-2">
@@ -944,6 +1066,7 @@ export default function DashboardPage() {
                           <li>• Select multiple files at once or drag & drop for batch upload</li>
                           <li>• Files process sequentially to ensure reliable uploads</li>
                           <li>• Upload high-quality documents to maximize your ProofScore</li>
+                          <li>• Folder upload: Select entire folders for bulk file management</li>
                         </ul>
                       </div>
                     </div>
