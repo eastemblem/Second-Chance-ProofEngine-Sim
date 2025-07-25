@@ -25,7 +25,8 @@ import {
   Settings,
   LogOut,
   Medal,
-  Folder
+  Folder,
+  ExternalLink
 } from "lucide-react";
 import Navbar from "@/components/navbar";
 import Footer from "@/components/footer";
@@ -375,7 +376,26 @@ export default function DashboardPage() {
     { id: '6_Investor_Pack', name: 'Investor Pack', count: proofVaultData?.investorPackCount || 0 }
   ];
 
-
+  // Handle viewing parent folder
+  const handleViewParentFolder = () => {
+    const parentFolderUrl = proofVaultData?.folderUrls?.['root'];
+    if (parentFolderUrl) {
+      // Track parent folder view event
+      trackEvent('folder_view', 'document_management', 'view_parent_folder');
+      
+      window.open(parentFolderUrl, '_blank');
+      toast({
+        title: "Opening Parent Folder",
+        description: "Opening your main Proof Vault folder",
+      });
+    } else {
+      toast({
+        title: "Folder Not Available",
+        description: "Parent folder hasn't been created yet.",
+        variant: "destructive",
+      });
+    }
+  };
 
   const handleFileRemove = async (fileId: string) => {
     try {
@@ -638,7 +658,17 @@ export default function DashboardPage() {
                 <CardTitle className="flex items-center gap-2 text-white">
                   <FolderOpen className="w-5 h-5" />
                   Your Proof Vault
-
+                  {/* Parent Folder Access Button */}
+                  <Button 
+                    variant="ghost" 
+                    size="sm"
+                    onClick={handleViewParentFolder}
+                    className="ml-auto text-purple-400 hover:text-purple-300 hover:bg-gray-800"
+                    disabled={!proofVaultData?.folderUrls?.['root']}
+                    title="View parent folder in Proof Vault"
+                  >
+                    <ExternalLink className="w-4 h-4" />
+                  </Button>
                 </CardTitle>
               </CardHeader>
               <CardContent>
