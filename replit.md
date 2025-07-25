@@ -126,6 +126,12 @@ Demo experience for testing different user journeys:
 
 ## Recent Key Updates
 
+### July 25, 2025 - DASHBOARD LEADERBOARD CLEANUP: Removed Demo Badges  
+- **CLEAN LEADERBOARD DISPLAY**: Removed "Demo" badges from dashboard leaderboard for cleaner presentation
+- **AUTHENTIC DATA FOCUS**: Leaderboard now shows only venture names and scores without mock data indicators
+- **PROFESSIONAL APPEARANCE**: Maintains "You" badge for current user while removing demo labeling
+- **CONSISTENT USER EXPERIENCE**: All leaderboard entries now have uniform styling and presentation
+
 ### July 25, 2025 - NAVBAR STYLING UPDATE: Landing Page Sign-In Style Applied
 - **GOLDEN BORDER STYLING**: Updated navbar login and logout buttons to match landing page sign-in button design
 - **CONSISTENT BRAND EXPERIENCE**: Both buttons now feature `border-primary-gold text-primary-gold` styling with golden hover effects

@@ -1097,11 +1097,6 @@ export default function DashboardPage() {
                                     You
                                   </span>
                                 )}
-                                {!entry.isReal && (
-                                  <span className="px-1.5 py-0.5 text-xs bg-gray-600 text-gray-300 rounded-full">
-                                    Demo
-                                  </span>
-                                )}
                               </div>
                               <p className="text-xs text-gray-400 truncate">ProofScore validation</p>
                             </div>
