@@ -357,6 +357,46 @@ export default function DashboardPage() {
     }
   };
 
+  // Handle file upload with automatic folder creation
+  const handleFileUploadWithFolderCreation = async (files: File[], selectedCategory: string) => {
+    try {
+      // Generate folder name from current timestamp and user info
+      const folderName = `Upload_${new Date().toISOString().split('T')[0]}_${Date.now()}`;
+      
+      toast({
+        title: "Creating Upload Folder",
+        description: `Creating folder "${folderName}" for ${files.length} file(s)...`,
+      });
+
+      // Create a new folder in the selected category
+      const newFolderId = await createFolder(folderName, selectedCategory);
+      
+      if (newFolderId) {
+        toast({
+          title: "Folder Created",
+          description: `Folder "${folderName}" created successfully. Starting file uploads...`,
+        });
+        
+        // Upload files to the newly created folder
+        await handleMultipleFileUpload(files, newFolderId);
+      } else {
+        throw new Error('Failed to get new folder ID');
+      }
+    } catch (error) {
+      console.error('Folder creation error:', error);
+      const errorMessage = error instanceof Error ? error.message : 'Unknown error';
+      
+      toast({
+        title: "Folder Creation Failed",
+        description: `Failed to create folder: ${errorMessage}. Uploading directly to ${getFolderDisplayName(selectedCategory)}...`,
+        variant: "destructive",
+      });
+      
+      // Fallback: upload files directly to selected category
+      await handleMultipleFileUpload(files, selectedCategory);
+    }
+  };
+
   // Handle multiple file uploads with queue processing
   const handleMultipleFileUpload = async (files: File[], folderId: string, isRetry: boolean = false) => {
     const newQueue = Array.from(files).map(file => ({
@@ -966,12 +1006,12 @@ export default function DashboardPage() {
                           e.preventDefault();
                           e.currentTarget.classList.remove('border-purple-400', 'bg-purple-500/10');
                         }}
-                        onDrop={(e) => {
+                        onDrop={async (e) => {
                           e.preventDefault();
                           e.currentTarget.classList.remove('border-purple-400', 'bg-purple-500/10');
                           const files = Array.from(e.dataTransfer.files);
                           if (files.length > 0) {
-                            handleMultipleFileUpload(files, selectedFolder);
+                            await handleFileUploadWithFolderCreation(files, selectedFolder);
                           }
                         }}
                       >
@@ -1024,10 +1064,10 @@ export default function DashboardPage() {
                               accept=".pdf,.ppt,.pptx,.doc,.docx,.jpg,.jpeg,.png,.mp4,.mov"
                               className="hidden"
                               id="file-upload"
-                              onChange={(e) => {
+                              onChange={async (e) => {
                                 const files = e.target.files;
                                 if (files && files.length > 0) {
-                                  handleMultipleFileUpload(Array.from(files), selectedFolder);
+                                  await handleFileUploadWithFolderCreation(Array.from(files), selectedFolder);
                                   // Reset input
                                   e.target.value = '';
                                 }
