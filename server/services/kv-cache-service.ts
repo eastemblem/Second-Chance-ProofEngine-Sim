@@ -53,7 +53,21 @@ class KVCacheService {
         return null;
       }
 
-      const { data, timestamp, ttl } = JSON.parse(cached);
+      // Handle both string and object data from Replit Database
+      let parsedData;
+      if (typeof cached === 'string') {
+        try {
+          parsedData = JSON.parse(cached);
+        } catch {
+          // If parsing fails, treat as raw string data
+          console.log(`✅ KV Cache HIT: ${key} (raw data)`);
+          return cached;
+        }
+      } else {
+        parsedData = cached;
+      }
+
+      const { data, timestamp, ttl } = parsedData;
       
       // Check if cache has expired
       if (ttl && Date.now() - timestamp > ttl * 1000) {
