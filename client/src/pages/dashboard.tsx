@@ -73,6 +73,7 @@ interface FileItem {
   uploadDate: string;
   size: string;
   downloadUrl: string;
+  type?: string;
 }
 
 interface ValidationData {

@@ -174,7 +174,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         analysisDate: latestEvaluation?.evaluationDate || new Date().toISOString(),
         founderName: founderData?.fullName || founderData?.email?.split('@')[0] || 'Founder',
         ventureName: latestVenture?.name || 'Your Venture',
-        filesUploaded: 0, // Will be calculated from documents
+        filesUploaded: 0, // FIXED: Will be calculated from actual document count
         status: currentScore >= 90 ? 'Deal Room Ready' : currentScore >= 70 ? 'Investor Ready' : 'Building Validation', // FIXED: Add status field
         investorReady: currentScore >= 70,
         dealRoomAccess: currentScore >= 90,
@@ -182,7 +182,18 @@ export async function registerRoutes(app: Express): Promise<Server> {
         reportUrl: latestVenture?.reportUrl
       };
 
-      console.log(`📊 FIXED: Returning validation data for ${founderData?.fullName}, score: ${currentScore}`);
+      // FIXED: Calculate actual files uploaded for this venture
+      const { db } = await import('./db');
+      const { documentUpload } = await import('@shared/schema');
+      const { eq } = await import('drizzle-orm');
+      
+      const fileCount = await db.select()
+        .from(documentUpload)
+        .where(eq(documentUpload.ventureId, dashboardData.venture.ventureId));
+      
+      validationData.filesUploaded = fileCount.length;
+
+      console.log(`📊 FIXED: Returning validation data for ${founderData?.fullName}, score: ${currentScore}, files: ${fileCount.length}`);
       res.json(validationData);
     } catch (error) {
       console.error("FIXED: Dashboard validation error:", error);
