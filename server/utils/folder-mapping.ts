@@ -21,14 +21,8 @@ const CACHE_TTL = 5 * 60 * 1000; // 5 minutes
  */
 export async function loadFolderMappingFromDatabase(founderId: string): Promise<FolderMapping> {
   try {
-    // Check cache first
-    const now = Date.now();
-    if (cachedMapping && (now - cacheTimestamp) < CACHE_TTL) {
-      console.log('📦 Using cached folder mapping');
-      return cachedMapping;
-    }
-
-    console.log('🔄 Loading folder mapping from database...');
+    // FORCE CACHE REFRESH FOR DEBUGGING
+    console.log('🔄 FORCE LOADING folder mapping from database (cache bypassed)...');
     
     // Get user's ventures
     const ventures = await storage.getVenturesByFounderId(founderId);
@@ -46,13 +40,26 @@ export async function loadFolderMappingFromDatabase(founderId: string): Promise<
     
     console.log('📊 Found proof vault records:', proofVaultRecords.length);
     
+    // Add database mappings
     proofVaultRecords.forEach(pv => {
       // Use correct database field names: folderName, subFolderId (these match the Drizzle schema)
       if (pv.folderName && pv.subFolderId) {
         categoryToFolderId[pv.folderName] = pv.subFolderId;
         folderIdToCategory[pv.subFolderId] = getCategoryDisplayName(pv.folderName);
-        console.log(`📂 Mapping: ${pv.folderName} (${pv.subFolderId}) → ${getCategoryDisplayName(pv.folderName)}`);
+        console.log(`📂 DB Mapping: ${pv.folderName} (${pv.subFolderId}) → ${getCategoryDisplayName(pv.folderName)}`);
       }
+    });
+
+    // Add legacy folder mappings for files uploaded before current vault structure
+    const legacyMappings = {
+      '332842251627': 'Investor Pack', // Legacy folder
+      '332842993678': 'Solution Proofs', // Legacy folder  
+      '332844933261': 'Problem Proofs', // Legacy subfolder
+    };
+    
+    Object.entries(legacyMappings).forEach(([folderId, category]) => {
+      folderIdToCategory[folderId] = category;
+      console.log(`📂 Legacy Mapping: ${folderId} → ${category}`);
     });
 
     const mapping: FolderMapping = {
@@ -64,13 +71,15 @@ export async function loadFolderMappingFromDatabase(founderId: string): Promise<
     cachedMapping = mapping;
     cacheTimestamp = now;
     
-    console.log('✅ Loaded folder mapping from database:', mapping);
+    console.log('✅ Database mapping loaded successfully!');
+    console.log('📋 categoryToFolderId:', categoryToFolderId);
+    console.log('📋 folderIdToCategory:', folderIdToCategory);
     return mapping;
     
   } catch (error) {
     console.error('❌ Failed to load folder mapping from database:', error);
     
-    // Return current working folder IDs as fallback
+    // Return current working folder IDs as fallback + ADD MISSING LEGACY FOLDER IDs
     const fallbackMapping: FolderMapping = {
       categoryToFolderId: {
         '0_Overview': '332886218045',
@@ -82,13 +91,18 @@ export async function loadFolderMappingFromDatabase(founderId: string): Promise<
         '6_Investor_Pack': '332885728761'
       },
       folderIdToCategory: {
+        // Current database folder IDs
         '332886218045': 'Overview',
         '332887480277': 'Problem Proofs',
         '332887446170': 'Solution Proofs',
         '332885125206': 'Demand Proofs',
         '332885857453': 'Credibility Proofs',
         '332887928503': 'Commercial Proofs',
-        '332885728761': 'Investor Pack'
+        '332885728761': 'Investor Pack',
+        // LEGACY FOLDER IDs (files that exist but aren't in current vault structure)
+        '332842251627': 'Investor Pack', // Based on file analysis
+        '332842993678': 'Solution Proofs', // Based on file analysis  
+        '332844933261': 'Problem Proofs', // Subfolder for badges/awards
       }
     };
     
