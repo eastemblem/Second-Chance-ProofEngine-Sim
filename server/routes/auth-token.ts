@@ -10,6 +10,7 @@ import {
   AuthenticatedRequest
 } from '../middleware/token-auth';
 import { asyncHandler, createSuccessResponse, createErrorResponse } from '../utils/error-handler';
+import { appLogger } from '../utils/logger';
 
 const router = express.Router();
 
@@ -89,11 +90,11 @@ router.post('/register', asyncHandler(async (req, res) => {
       sameSite: 'strict'
     });
 
-    console.log(`✅ User registered and authenticated: ${email}`);
+    appLogger.auth(`✅ User registered and authenticated: ${email}`, { founderId: founder.founderId });
     res.json(authResponse);
 
   } catch (error) {
-    console.error('Registration error:', error);
+    appLogger.auth('Registration error:', error);
     res.status(500).json(createErrorResponse(500, 'Registration failed'));
   }
 }));
@@ -110,23 +111,35 @@ router.post('/login', asyncHandler(async (req, res) => {
 
   try {
     // Get founder by email
+    appLogger.auth(`🔍 Login attempt for email: ${email}`);
     const founder = await databaseService.getFounderByEmail(email);
-    if (!founder || !founder.passwordHash) {
+    
+    if (!founder) {
+      appLogger.auth(`❌ Founder not found for email: ${email}`);
+      return res.status(401).json(createErrorResponse(401, 'Invalid credentials'));
+    }
+    
+    if (!founder.passwordHash) {
+      appLogger.auth(`❌ No password hash found for founder: ${founder.founderId}`);
       return res.status(401).json(createErrorResponse(401, 'Invalid credentials'));
     }
 
+    appLogger.auth(`🔑 Verifying password for founder: ${founder.founderId}`);
     // Verify password
     const isPasswordValid = await bcrypt.compare(password, founder.passwordHash);
     if (!isPasswordValid) {
+      appLogger.auth(`❌ Password verification failed for founder: ${founder.founderId}`);
       return res.status(401).json(createErrorResponse(401, 'Invalid credentials'));
     }
+    
+    appLogger.auth(`✅ Password verified successfully for founder: ${founder.founderId}`);
 
     // Get associated venture
     const ventures = await databaseService.getVenturesByFounderId(founder.founderId);
     const primaryVenture = ventures[0] || null;
 
     // Update last login (simplified for now)
-    console.log(`User ${founder.founderId} logged in at ${new Date()}`);
+    appLogger.auth(`User ${founder.founderId} logged in at ${new Date()}`, { founderId: founder.founderId, email: founder.email });
 
     // Generate authentication token
     const authResponse = createAuthResponse({
@@ -157,11 +170,11 @@ router.post('/login', asyncHandler(async (req, res) => {
       sameSite: 'strict'
     });
 
-    console.log(`✅ User logged in: ${email}`);
+    appLogger.auth(`✅ User logged in: ${email}`, { founderId: founder.founderId, email });
     res.json(authResponse);
 
   } catch (error) {
-    console.error('Login error:', error);
+    appLogger.auth('Login error:', error);
     res.status(500).json(createErrorResponse(500, 'Login failed'));
   }
 }));
@@ -171,7 +184,7 @@ router.post('/login', asyncHandler(async (req, res) => {
  */
 router.post('/logout', (req: AuthenticatedRequest, res) => {
   logout(req, res);
-  console.log(`✅ User logged out: ${req.user?.email || 'unknown'}`);
+  appLogger.auth(`✅ User logged out: ${req.user?.email || 'unknown'}`, { founderId: req.user?.founderId });
 });
 
 /**
@@ -219,7 +232,7 @@ router.get('/verify', asyncHandler(async (req, res) => {
     }));
 
   } catch (error) {
-    console.error('Token verification error:', error);
+    appLogger.auth('Token verification error:', error);
     res.status(500).json(createErrorResponse(500, 'Token verification failed'));
   }
 }));
@@ -261,11 +274,11 @@ router.post('/refresh', asyncHandler(async (req, res) => {
       sameSite: 'strict'
     });
 
-    console.log(`🔄 Token refreshed for user: ${decoded.email}`);
+    appLogger.auth(`🔄 Token refreshed for user: ${decoded.email}`);
     res.json(authResponse);
 
   } catch (error) {
-    console.error('Token refresh error:', error);
+    appLogger.auth('Token refresh error:', error);
     res.status(500).json(createErrorResponse(500, 'Token refresh failed'));
   }
 }));

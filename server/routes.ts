@@ -83,7 +83,11 @@ export async function registerRoutes(app: Express): Promise<Server> {
   const v1Routes = (await import('./routes/v1/index')).default;
   app.use('/api/v1', v1Routes);
 
-  // Authentication routes
+  // JWT Authentication routes
+  const authTokenRoutes = (await import("./routes/auth-token")).default;
+  app.use('/api/auth-token', authTokenRoutes);
+
+  // Session Authentication routes
   app.use('/api/auth', authRoutes);
 
   // Dashboard routes are handled via apiRoutes (index.ts) to avoid duplicate registration

@@ -2,7 +2,8 @@ import { db, pool } from "../db";
 import { 
   founder, venture, teamMember, evaluation, documentUpload, proofVault, 
   leaderboard, userActivity, onboardingSession,
-  type Founder, type Venture, type Evaluation, type DocumentUpload, type ProofVault
+  type Founder, type Venture, type Evaluation, type DocumentUpload, type ProofVault,
+  type InsertFounder, type InsertVenture
 } from "@shared/schema";
 import { eq, desc, and, sql } from "drizzle-orm";
 import { cacheService } from "./cache-service";
@@ -272,6 +273,8 @@ export class DatabaseService {
     const [founderRecord] = await db.select().from(founder).where(eq(founder.founderId, founderId));
     return founderRecord;
   }
+
+
 
   /**
    * Create new founder for registration

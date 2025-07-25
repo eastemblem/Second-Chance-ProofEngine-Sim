@@ -19,15 +19,26 @@ export default function LoginPage() {
   const [, setLocation] = useLocation();
   const { toast } = useToast();
 
-  // Check if user is already logged in
+  // Check if user is already logged in with JWT token
   useEffect(() => {
     const checkAuthStatus = async () => {
       try {
-        const response = await fetch('/api/auth/me', { credentials: 'include' });
-        if (response.ok) {
-          // User is already logged in, redirect to dashboard
-          setLocation('/dashboard');
-          return;
+        const token = localStorage.getItem('auth_token');
+        if (token) {
+          const response = await fetch('/api/auth-token/verify', {
+            headers: {
+              'Authorization': `Bearer ${token}`
+            }
+          });
+          if (response.ok) {
+            // User is already logged in, redirect to dashboard
+            setLocation('/dashboard');
+            return;
+          } else {
+            // Token is invalid, remove it
+            localStorage.removeItem('auth_token');
+            localStorage.removeItem('auth_user');
+          }
         }
       } catch (error) {
         // User is not logged in, continue with login page
