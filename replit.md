@@ -216,14 +216,17 @@ Demo experience for testing different user journeys:
 - **Removed Downloads Section**: Eliminated "Ready for Download" section per user request for cleaner interface
 - **Enhanced User Guidance**: Clear visual confirmation of investor readiness and actionable next steps for deal room access
 
-### July 25, 2025 - Certificate & Report Downloads Section Restored + Box.com Integration
+### July 25, 2025 - Certificate & Report Downloads Section Restored + Proof Vault Branding Update
 - **CERTIFICATE & REPORT DOWNLOADS**: Re-added comprehensive downloads section with purple-gold gradient styling matching design system
 - **OFFICIAL VALIDATION DOCUMENTS**: ProofScore certificate download with Award icon and purple gradient styling
 - **ANALYSIS REPORT ACCESS**: Detailed breakdown report download with FileText icon and yellow/amber gradient styling
 - **DOWNLOAD STATUS INDICATORS**: Dynamic availability messaging showing "Ready for download" vs "Generating..." states
-- **INVESTOR-READY DOCUMENTS**: Both documents marked as stakeholder-shareable with automatic Box.com upload integration
-- **INFORMATION PANEL**: Added comprehensive document descriptions and Box.com integration details
+- **INVESTOR-READY DOCUMENTS**: Both documents marked as stakeholder-shareable with automatic Proof Vault upload integration
+- **INFORMATION PANEL**: Added comprehensive document descriptions and Proof Vault integration details
 - **GRADIENT HOVER EFFECTS**: Enhanced visual feedback with glow animations and border transitions on download cards
+- **PROOF VAULT BRANDING CONSISTENCY**: Replaced all "Box.com" references with "Proof Vault" throughout dashboard interface
+- **PARENT FOLDER ACCESS**: Added folder icon next to "Your Proof Vault" title with ExternalLink icon for direct parent folder navigation
+- **ENHANCED USER EXPERIENCE**: Consistent "Proof Vault" terminology across client and server components while maintaining all existing Box.com integration functionality
 - **BOX.COM FOLDER VIEWING IMPLEMENTED**: Added comprehensive Box.com folder viewing functionality to ProofVault dashboard
 - **FOLDER URL EXTRACTION**: Dashboard API now extracts individual folder URLs from venture.folderStructure JSON data
 - **HOVER-TO-VIEW INTERFACE**: Added hover-activated view buttons to all 7 proof category folders with smooth opacity transitions

@@ -25,7 +25,8 @@ import {
   Settings,
   LogOut,
   Medal,
-  Folder
+  Folder,
+  ExternalLink
 } from "lucide-react";
 import Navbar from "@/components/navbar";
 import Footer from "@/components/footer";
@@ -385,7 +386,7 @@ export default function DashboardPage() {
       window.open(folderUrl, '_blank');
       toast({
         title: "Opening Folder",
-        description: `Opening ${getFolderDisplayName(folderId)} folder in Box.com`,
+        description: `Opening ${getFolderDisplayName(folderId)} folder in Proof Vault`,
       });
     } else {
       toast({
@@ -645,7 +646,7 @@ export default function DashboardPage() {
                     <li>• Certificate: Official ProofScore validation with your achievement level</li>
                     <li>• Report: Comprehensive analysis with improvement recommendations</li>
                     <li>• Both documents are investor-ready and can be shared with stakeholders</li>
-                    <li>• Documents are automatically uploaded to your Overview folder in Box.com</li>
+                    <li>• Documents are automatically uploaded to your Overview folder in Proof Vault</li>
                   </ul>
                 </div>
               </CardContent>
@@ -657,6 +658,17 @@ export default function DashboardPage() {
                 <CardTitle className="flex items-center gap-2 text-white">
                   <FolderOpen className="w-5 h-5" />
                   Your Proof Vault
+                  {/* Parent Folder Access Button */}
+                  <Button 
+                    variant="ghost" 
+                    size="sm"
+                    onClick={() => handleViewFolder('root')}
+                    className="ml-auto text-purple-400 hover:text-purple-300 hover:bg-gray-800"
+                    disabled={!proofVaultData?.folderUrls?.['root']}
+                    title="View parent folder in Proof Vault"
+                  >
+                    <ExternalLink className="w-4 h-4" />
+                  </Button>
                 </CardTitle>
               </CardHeader>
               <CardContent>
@@ -766,9 +778,9 @@ export default function DashboardPage() {
                     
                     {/* Info panel about viewing folders */}
                     <div className="mt-6 bg-gray-800/50 rounded-lg p-4">
-                      <h4 className="text-sm font-medium text-gray-300 mb-2">📂 View Box.com Folders</h4>
+                      <h4 className="text-sm font-medium text-gray-300 mb-2">📂 View Proof Vault Folders</h4>
                       <p className="text-xs text-gray-400">
-                        Hover over any folder above and click the folder icon to view your documents directly in Box.com. 
+                        Hover over any folder above and click the folder icon to view your documents directly in Proof Vault. 
                         This gives you full access to organize, share, and manage your proof materials.
                       </p>
                     </div>
@@ -845,7 +857,7 @@ export default function DashboardPage() {
                             onClick={() => handleViewFolder(selectedFolder)}
                             className="bg-gray-800 border-gray-600 text-purple-400 hover:text-purple-300 hover:bg-gray-700"
                             disabled={!proofVaultData?.folderUrls?.[selectedFolder]}
-                            title="View folder in Box.com"
+                            title="View folder in Proof Vault"
                           >
                             <FolderOpen className="w-4 h-4" />
                           </Button>

@@ -140,10 +140,10 @@ router.get("/vault", async (req, res) => {
       // Get the base shared URL if available
       const baseUrl = folderStructure.url || folderStructure.shared_url;
       
-      // Map each folder to its Box.com URL
+      // Map each folder to its Proof Vault URL
       if (folderStructure.folders) {
         Object.entries(folderStructure.folders).forEach(([folderKey, folderId]) => {
-          // Use Box.com folder URL format: https://app.box.com/folder/{folderId}
+          // Use Proof Vault folder URL format: https://app.box.com/folder/{folderId}
           folderUrls[folderKey] = `https://app.box.com/folder/${folderId}`;
           console.log(`📂 Mapped ${folderKey} -> https://app.box.com/folder/${folderId}`);
         });
