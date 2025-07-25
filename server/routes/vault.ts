@@ -351,10 +351,35 @@ router.post('/create-folder', upload.none(), asyncHandler(async (req, res) => {
   }
 
   try {
+    // Map category to actual Box.com folder ID if needed
+    let actualParentFolderId = folder_id;
+    
+    console.log(`🔍 Folder creation - Input folder_id: '${folder_id}' (type: ${typeof folder_id})`);
+    
+    const categoryToFolderMap: Record<string, string> = {
+      '0_Overview': '332844784735',
+      '1_Problem_Proof': '332844933261', 
+      '2_Solution_Proof': '332842993678',
+      '3_Demand_Proof': '332843828465',
+      '4_Credibility_Proof': '332843291772',
+      '5_Commercial_Proof': '332845124499',
+      '6_Investor_Pack': '332842251627'
+    };
+    
+    console.log(`🗂️ Available mappings:`, Object.keys(categoryToFolderMap));
+    console.log(`🔍 Looking up mapping for '${folder_id}':`, categoryToFolderMap[folder_id]);
+    
+    if (categoryToFolderMap[folder_id]) {
+      actualParentFolderId = categoryToFolderMap[folder_id];
+      console.log(`✅ Mapped parent category '${folder_id}' to Box.com folder ID '${actualParentFolderId}'`);
+    } else {
+      console.log(`⚠️ No mapping found for '${folder_id}', using directly: '${actualParentFolderId}'`);
+    }
+
     // Create FormData for EastEmblem API
     const formData = new FormData();
     formData.append('folderName', folderName);
-    formData.append('folder_id', folder_id);
+    formData.append('folder_id', actualParentFolderId);
 
     // Call EastEmblem folder creation API using environment variable
     const apiBaseUrl = process.env.EASTEMBLEM_API_BASE_URL;
@@ -363,7 +388,7 @@ router.post('/create-folder', upload.none(), asyncHandler(async (req, res) => {
     }
     
     const folderCreateUrl = `${apiBaseUrl}/webhook/vault/folder/create`;
-    console.log(`🔄 Creating folder "${folderName}" in parent folder ${folder_id} via ${folderCreateUrl}`);
+    console.log(`🔄 Creating folder "${folderName}" in parent folder ${actualParentFolderId} via ${folderCreateUrl}`);
     
     const response = await fetch(folderCreateUrl, {
       method: 'POST',
