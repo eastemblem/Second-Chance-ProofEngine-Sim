@@ -11,8 +11,10 @@ import Footer from "@/components/footer";
 
 
 export default function ResetPasswordPage() {
+  console.log("🔍 ResetPasswordPage component loaded, URL:", window.location.href);
+  
   const [match, params] = useRoute("/reset-password/:token?");
-  const [location] = useLocation();
+  const [location, setLocation] = useLocation();
   const [password, setPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
   const [showPassword, setShowPassword] = useState(false);
@@ -20,7 +22,6 @@ export default function ResetPasswordPage() {
   const [isLoading, setIsLoading] = useState(false);
   const [tokenError, setTokenError] = useState<string>("");
   const [isValidating, setIsValidating] = useState(true);
-  const [, setLocation] = useLocation();
   const [token, setToken] = useState<string | null>(null);
   const { toast } = useToast();
 
