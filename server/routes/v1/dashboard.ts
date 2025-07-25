@@ -26,19 +26,51 @@ router.get('/validation', asyncHandler(async (req: Request, res: Response) => {
     const { founder: founderData, venture: latestVenture, latestEvaluation } = dashboardData;
     const currentScore = latestEvaluation?.proofscore || 0;
 
+    // FIXED: Extract ProofTags from JSON field and count unlocked tags
+    let proofTagsUnlocked = 0;
+    if (latestEvaluation?.prooftags) {
+      try {
+        let proofTagsData = latestEvaluation.prooftags;
+        
+        // Handle string JSON that needs parsing
+        if (typeof proofTagsData === 'string') {
+          proofTagsData = JSON.parse(proofTagsData);
+        }
+        
+        // The database shows it's an array of tag names, so count the array length
+        if (Array.isArray(proofTagsData)) {
+          proofTagsUnlocked = proofTagsData.length;
+          appLogger.api(`ProofTags found: ${proofTagsUnlocked} tags - ${JSON.stringify(proofTagsData.slice(0, 3))}...`);
+        } else if (proofTagsData && typeof proofTagsData === 'object') {
+          // Handle different ProofTags JSON structures
+          if (proofTagsData.unlockedTags && Array.isArray(proofTagsData.unlockedTags)) {
+            proofTagsUnlocked = proofTagsData.unlockedTags.length;
+          } else if (typeof proofTagsData.count === 'number') {
+            proofTagsUnlocked = proofTagsData.count;
+          } else {
+            // Count non-null/true values in the tags object
+            proofTagsUnlocked = Object.values(proofTagsData).filter(tag => tag && tag !== false && tag !== null).length;
+          }
+        }
+      } catch (error) {
+        appLogger.api('Error parsing prooftags JSON:', error);
+        proofTagsUnlocked = 0;
+      }
+    }
+
     const validationData = {
       proofScore: currentScore,
-      proofTagsUnlocked: latestEvaluation?.proof_tags_unlocked || 0,
+      proofTagsUnlocked: proofTagsUnlocked,
       totalProofTags: 21,
       evaluationDate: latestEvaluation?.created_at?.toISOString(),
       founderName: founderData?.fullName || founderData?.email?.split('@')[0] || 'Founder',
       ventureName: latestVenture?.name || 'Your Venture',
-      filesUploaded: 0, // FIXED: Will be calculated from actual document count
-      status: currentScore >= 90 ? 'Deal Room Ready' : currentScore >= 70 ? 'Investor Ready' : 'Building Validation', // FIXED: Add status field
+      filesUploaded: 0, // Will be calculated from actual document count
+      status: currentScore >= 90 ? 'Deal Room Ready' : currentScore >= 70 ? 'Investor Ready' : 'Building Validation',
       investorReady: currentScore >= 70,
       dealRoomAccess: currentScore >= 90,
-      certificateUrl: latestVenture?.certificateUrl,
-      reportUrl: latestVenture?.reportUrl
+      certificateUrl: latestVenture?.certificateUrl || latestVenture?.certificate_url,
+      reportUrl: latestVenture?.reportUrl || latestVenture?.report_url
     };
 
     // FIXED: Calculate actual files uploaded for this venture

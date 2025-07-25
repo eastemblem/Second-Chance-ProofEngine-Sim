@@ -88,6 +88,12 @@ interface ValidationData {
   totalProofTags: number;
   filesUploaded: number;
   status: string;
+  certificateUrl?: string;
+  reportUrl?: string;
+  investorReady?: boolean;
+  dealRoomAccess?: boolean;
+  investorReady?: boolean;
+  dealRoomAccess?: boolean;
 }
 
 interface ActivityItem {
