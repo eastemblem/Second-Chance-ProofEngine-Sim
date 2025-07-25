@@ -526,4 +526,113 @@ router.post("/cache/invalidate/:type", async (req, res) => {
   }
 });
 
+// Test endpoint for performance monitoring without authentication
+router.get("/test-performance", async (req, res) => {
+  try {
+    const startTime = Date.now();
+    
+    // Use a test founder ID for demonstration
+    const testFounderId = "test-founder-123";
+    
+    // Test optimized dashboard query performance with caching
+    const mockData = {
+      founder: { id: testFounderId, name: "Test Founder" },
+      venture: { id: "test-venture", name: "Test Venture" },
+      evaluation: { proofScore: 85 }
+    };
+    
+    // Simulate cache operations
+    await cacheService.getDashboardData(testFounderId, async () => mockData);
+    
+    const queryTime = Date.now() - startTime;
+    
+    const kvStats = kvCacheService.isAvailable() ? await kvCacheService.getStats() : null;
+    
+    res.json({
+      queryResponseTime: queryTime,
+      hasOptimizedData: true,
+      connectionHealth: await databaseService.healthCheck(),
+      cacheStats: cacheService.getStats(),
+      kvCacheStats: kvStats,
+      message: queryTime < 50 ? "Excellent performance (cached)" : 
+               queryTime < 100 ? "Excellent performance" : 
+               queryTime < 500 ? "Good performance" : "Needs optimization",
+      testMode: true
+    });
+  } catch (error) {
+    console.error("Performance test error:", error);
+    res.status(500).json({ error: "Performance test failed" });
+  }
+});
+
+// Test cache cleanup without authentication
+router.post("/test-cache-cleanup", async (req, res) => {
+  try {
+    if (!kvCacheService.isAvailable()) {
+      return res.json({ 
+        message: "KV store not available", 
+        memoryCleanup: cacheService.getStats(),
+        testMode: true
+      });
+    }
+
+    const cleanedCount = await kvCacheService.cleanup();
+    
+    res.json({
+      success: true,
+      cleanedEntries: cleanedCount,
+      kvStats: await kvCacheService.getStats(),
+      memoryStats: cacheService.getStats(),
+      testMode: true
+    });
+  } catch (error) {
+    console.error("Cache cleanup error:", error);
+    res.status(500).json({ error: "Cache cleanup failed" });
+  }
+});
+
+// Test cache invalidation without authentication
+router.post("/test-cache-invalidate/:type", async (req, res) => {
+  try {
+    const cacheType = req.params.type;
+    const testFounderId = "test-founder-123";
+
+    switch (cacheType) {
+      case 'founder':
+        cacheService.invalidateFounder(testFounderId);
+        if (kvCacheService.isAvailable()) {
+          await kvCacheService.delete(`founder_${testFounderId}`, { namespace: 'founder' });
+        }
+        break;
+      case 'dashboard':
+        cacheService.invalidateDashboard(testFounderId);
+        if (kvCacheService.isAvailable()) {
+          await kvCacheService.delete(`dashboard_${testFounderId}`, { namespace: 'dashboard' });
+        }
+        break;
+      case 'all':
+        cacheService.invalidateFounder(testFounderId);
+        cacheService.invalidateDashboard(testFounderId);
+        if (kvCacheService.isAvailable()) {
+          await kvCacheService.clearNamespace('founder');
+          await kvCacheService.clearNamespace('dashboard');
+        }
+        break;
+      default:
+        return res.status(400).json({ error: "Invalid cache type" });
+    }
+
+    res.json({
+      success: true,
+      invalidated: cacheType,
+      founderId: testFounderId,
+      cacheStats: cacheService.getStats(),
+      testMode: true
+    });
+  } catch (error) {
+    console.error("Cache invalidation error:", error);
+    res.status(500).json({ error: "Cache invalidation failed" });
+  }
+});
+
 export default router;

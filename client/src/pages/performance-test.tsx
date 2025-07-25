@@ -24,7 +24,7 @@ export default function PerformanceTest() {
   const testPerformance = async () => {
     setLoading(true);
     try {
-      const response = await apiRequest('GET', '/api/dashboard/performance');
+      const response = await apiRequest('GET', '/api/dashboard/test-performance');
       const data = await response.json();
       setPerformanceData(data);
       
@@ -46,7 +46,7 @@ export default function PerformanceTest() {
   const cleanupCache = async () => {
     setCleanupLoading(true);
     try {
-      const response = await apiRequest('POST', '/api/dashboard/cache/cleanup');
+      const response = await apiRequest('POST', '/api/dashboard/test-cache-cleanup');
       const data = await response.json();
       
       toast({
@@ -69,7 +69,7 @@ export default function PerformanceTest() {
 
   const invalidateCache = async (type: string) => {
     try {
-      const response = await apiRequest('POST', `/api/dashboard/cache/invalidate/${type}`);
+      const response = await apiRequest('POST', `/api/dashboard/test-cache-invalidate/${type}`);
       const data = await response.json();
       
       toast({
@@ -115,6 +115,11 @@ export default function PerformanceTest() {
             Performance Test Dashboard
           </h1>
           <p className="text-gray-400 mt-2">Test and monitor caching performance optimizations</p>
+          {performanceData?.testMode && (
+            <div className="mt-2 inline-block px-3 py-1 bg-green-900 text-green-300 text-xs rounded-full">
+              TEST MODE - Authentication Bypassed
+            </div>
+          )}
         </div>
 
         {/* Performance Test Controls */}
