@@ -6,44 +6,147 @@
     <title>Welcome to Second Chance - Complete Your Registration</title>
     <style>
         * { margin: 0; padding: 0; box-sizing: border-box; }
-        body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; line-height: 1.6; background-color: #f5f5f5; color: #333333; }
-        .container { max-width: 600px; margin: 0 auto; background-color: #ffffff; box-shadow: 0 0 20px rgba(0,0,0,0.1); }
-        .header { background: #1A1A1B; padding: 30px; text-align: center; }
+        body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; line-height: 1.6; background-color: #0A0A0B; color: #FFFFFF; }
+        .container { max-width: 600px; margin: 0 auto; background-color: #0A0A0B; }
+        .header { background: #1A1A1B; padding: 30px; text-align: center; border-radius: 12px 12px 0 0; }
         .logo-img { max-width: 180px; height: auto; margin-bottom: 15px; }
         .header-title { font-size: 28px; font-weight: bold; color: #FFFFFF; margin: 0; }
         .header-subtitle { color: #D97706; font-size: 16px; margin-top: 8px; }
-        .content { padding: 40px; background-color: #ffffff; }
-        .welcome-text { font-size: 18px; color: #333; margin-bottom: 25px; text-align: center; }
-        .greeting { font-size: 16px; color: #666; margin-bottom: 20px; }
-        .score-card { background: linear-gradient(135deg, #8B5CF6 0%, #D97706 100%); padding: 30px; border-radius: 15px; text-align: center; margin: 30px 0; color: white; }
-        .score-number { font-size: 56px; font-weight: bold; margin-bottom: 5px; text-shadow: 0 2px 4px rgba(0,0,0,0.3); }
-        .score-label { font-size: 18px; opacity: 0.9; }
-        .milestone { background: rgba(255,255,255,0.2); padding: 12px 20px; border-radius: 25px; margin-top: 15px; font-weight: bold; }
-        .action-needed { background: #fff3cd; border: 2px solid #D97706; border-radius: 12px; padding: 25px; margin: 30px 0; text-align: center; }
-        .action-title { color: #D97706; font-size: 20px; font-weight: bold; margin-bottom: 15px; }
-        .action-text { color: #856404; margin-bottom: 20px; font-size: 16px; }
-        .verify-button { display: inline-block; background: linear-gradient(135deg, #D97706 0%, #8B5CF6 100%); color: white; text-decoration: none; padding: 18px 35px; border-radius: 50px; font-weight: bold; font-size: 18px; box-shadow: 0 4px 15px rgba(139, 92, 246, 0.3); transition: transform 0.2s; }
-        .verify-button:hover { transform: translateY(-2px); }
-        .documents { background: #f8f9fa; border-radius: 12px; padding: 25px; margin: 30px 0; }
-        .documents-title { font-size: 20px; color: #333; margin-bottom: 15px; text-align: center; }
-        .documents-text { color: #666; margin-bottom: 20px; text-align: center; }
-        .download-buttons { text-align: center; }
-        .download-btn { display: inline-block; padding: 12px 25px; border-radius: 8px; text-decoration: none; font-weight: 600; margin: 8px; transition: transform 0.2s; }
-        .download-btn:hover { transform: translateY(-1px); }
+        .content { padding: 40px; background-color: #1A1A1B; }
+        .welcome-text { font-size: 18px; color: #D1D5DB; margin-bottom: 25px; text-align: center; }
+        .greeting { font-size: 16px; color: #9CA3AF; margin-bottom: 20px; }
+        .score-card { 
+            background: linear-gradient(135deg, rgba(139, 92, 246, 0.1) 0%, rgba(217, 119, 6, 0.2) 100%); 
+            border: 1px solid rgba(139, 92, 246, 0.3); 
+            padding: 30px; 
+            border-radius: 15px; 
+            text-align: center; 
+            margin: 30px 0; 
+            color: white;
+            position: relative;
+            overflow: hidden;
+        }
+        .score-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: linear-gradient(135deg, rgba(139, 92, 246, 0.05) 0%, transparent 100%);
+            opacity: 0;
+            transition: opacity 0.3s ease;
+        }
+        .score-number { font-size: 56px; font-weight: bold; margin-bottom: 5px; color: #8B5CF6; position: relative; z-index: 1; }
+        .score-label { font-size: 18px; color: #D1D5DB; position: relative; z-index: 1; }
+        .milestone { background: rgba(139, 92, 246, 0.2); padding: 12px 20px; border-radius: 25px; margin-top: 15px; font-weight: bold; color: #E9D5FF; border: 1px solid rgba(139, 92, 246, 0.3); position: relative; z-index: 1; }
+        .action-needed { 
+            background: linear-gradient(135deg, rgba(34, 197, 94, 0.1) 0%, rgba(34, 197, 94, 0.2) 100%); 
+            border: 1px solid rgba(34, 197, 94, 0.3); 
+            border-radius: 12px; 
+            padding: 25px; 
+            margin: 30px 0; 
+            text-align: center;
+            position: relative;
+            overflow: hidden;
+        }
+        .action-needed::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: linear-gradient(135deg, rgba(34, 197, 94, 0.05) 0%, transparent 100%);
+            opacity: 0;
+            transition: opacity 0.3s ease;
+        }
+        .action-title { color: #22C55E; font-size: 20px; font-weight: bold; margin-bottom: 15px; position: relative; z-index: 1; }
+        .action-text { color: #D1FAE5; margin-bottom: 20px; font-size: 16px; position: relative; z-index: 1; }
+        .verify-button { 
+            display: inline-block; 
+            background: linear-gradient(135deg, #D97706 0%, #8B5CF6 100%); 
+            color: white; 
+            text-decoration: none; 
+            padding: 18px 35px; 
+            border-radius: 50px; 
+            font-weight: bold; 
+            font-size: 18px; 
+            box-shadow: 0 4px 15px rgba(139, 92, 246, 0.3); 
+            transition: all 0.3s ease;
+            position: relative;
+            z-index: 1;
+        }
+        .verify-button:hover { transform: translateY(-2px); box-shadow: 0 6px 20px rgba(139, 92, 246, 0.4); }
+        .documents { 
+            background: linear-gradient(135deg, rgba(217, 119, 6, 0.1) 0%, rgba(245, 158, 11, 0.2) 100%); 
+            border: 1px solid rgba(217, 119, 6, 0.3); 
+            border-radius: 12px; 
+            padding: 25px; 
+            margin: 30px 0;
+            position: relative;
+            overflow: hidden;
+        }
+        .documents::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: linear-gradient(135deg, rgba(217, 119, 6, 0.05) 0%, transparent 100%);
+            opacity: 0;
+            transition: opacity 0.3s ease;
+        }
+        .documents-title { font-size: 20px; color: #F59E0B; margin-bottom: 15px; text-align: center; position: relative; z-index: 1; }
+        .documents-text { color: #FED7AA; margin-bottom: 20px; text-align: center; position: relative; z-index: 1; }
+        .download-buttons { text-align: center; position: relative; z-index: 1; }
+        .download-btn { 
+            display: inline-block; 
+            padding: 12px 25px; 
+            border-radius: 8px; 
+            text-decoration: none; 
+            font-weight: 600; 
+            margin: 8px; 
+            transition: all 0.3s ease;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+        }
+        .download-btn:hover { transform: translateY(-2px); box-shadow: 0 4px 12px rgba(0,0,0,0.2); }
         .btn-certificate { background: linear-gradient(135deg, #8B5CF6 0%, #D97706 100%); color: white; }
-        .btn-report { background: linear-gradient(135deg, #D97706 0%, #8B5CF6 100%); color: white; }
+        .btn-report { background: linear-gradient(135deg, #D97706 0%, #F59E0B 100%); color: white; }
         .next-steps { margin: 30px 0; }
-        .next-steps-title { font-size: 20px; color: #333; margin-bottom: 15px; }
+        .next-steps-title { font-size: 20px; color: #FFFFFF; margin-bottom: 15px; }
         .steps-list { list-style: none; padding: 0; }
-        .steps-list li { padding: 8px 0; color: #666; position: relative; padding-left: 25px; }
+        .steps-list li { padding: 8px 0; color: #D1D5DB; position: relative; padding-left: 25px; }
         .steps-list li:before { content: "✓"; color: #8B5CF6; font-weight: bold; position: absolute; left: 0; }
-        .support { background: #f8f9fa; padding: 20px; border-radius: 8px; margin: 25px 0; text-align: center; }
-        .support-text { color: #666; margin-bottom: 10px; }
-        .support-email { color: #8B5CF6; text-decoration: none; font-weight: 600; }
-        .footer { background: #1A1A1B; padding: 25px; text-align: center; }
+        .support { 
+            background: linear-gradient(135deg, rgba(75, 85, 99, 0.1) 0%, rgba(75, 85, 99, 0.2) 100%); 
+            border: 1px solid rgba(75, 85, 99, 0.3); 
+            padding: 20px; 
+            border-radius: 8px; 
+            margin: 25px 0; 
+            text-align: center;
+            position: relative;
+            overflow: hidden;
+        }
+        .support::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: linear-gradient(135deg, rgba(75, 85, 99, 0.05) 0%, transparent 100%);
+            opacity: 0;
+            transition: opacity 0.3s ease;
+        }
+        .support-text { color: #D1D5DB; margin-bottom: 10px; position: relative; z-index: 1; }
+        .support-email { color: #8B5CF6; text-decoration: none; font-weight: 600; position: relative; z-index: 1; }
+        .footer { background: #1A1A1B; padding: 25px; text-align: center; border-radius: 0 0 12px 12px; border-top: 1px solid #374151; }
         .footer-links { margin-bottom: 15px; }
-        .footer-link { color: #8B5CF6; text-decoration: none; margin: 0 15px; }
-        .footer-text { color: #999; font-size: 12px; line-height: 1.4; }
+        .footer-link { color: #8B5CF6; text-decoration: none; margin: 0 15px; transition: color 0.3s ease; }
+        .footer-link:hover { color: #A78BFA; }
+        .footer-text { color: #9CA3AF; font-size: 12px; line-height: 1.4; }
         @media (max-width: 600px) {
             .header, .content { padding: 20px; }
             .score-number { font-size: 48px; }
