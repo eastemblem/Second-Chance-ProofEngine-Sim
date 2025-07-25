@@ -34,7 +34,7 @@ interface ScoringInsights {
 
 export function ScoringInsightsDemo() {
   const { data: insights, isLoading, error } = useQuery<{ data: ScoringInsights }>({
-    queryKey: ["/api/dashboard/scoring-insights"],
+    queryKey: ["/api/v1/dashboard/scoring-insights"],
   });
 
   if (isLoading) {

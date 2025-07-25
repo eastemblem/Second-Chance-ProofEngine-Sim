@@ -24,7 +24,7 @@ export default function PerformanceTest() {
   const testPerformance = async () => {
     setLoading(true);
     try {
-      const response = await apiRequest('GET', '/api/dashboard/test-performance');
+      const response = await apiRequest('GET', '/api/v1/dashboard/test-performance');
       const data = await response.json();
       setPerformanceData(data);
       
@@ -46,7 +46,7 @@ export default function PerformanceTest() {
   const cleanupCache = async () => {
     setCleanupLoading(true);
     try {
-      const response = await apiRequest('POST', '/api/dashboard/test-cache-cleanup');
+      const response = await apiRequest('POST', '/api/v1/dashboard/test-cache-cleanup');
       const data = await response.json();
       
       toast({
@@ -69,7 +69,7 @@ export default function PerformanceTest() {
 
   const invalidateCache = async (type: string) => {
     try {
-      const response = await apiRequest('POST', `/api/dashboard/test-cache-invalidate/${type}`);
+      const response = await apiRequest('POST', `/api/v1/dashboard/test-cache-invalidate/${type}`);
       const data = await response.json();
       
       toast({
