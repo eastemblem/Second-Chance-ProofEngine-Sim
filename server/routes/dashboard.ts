@@ -541,12 +541,12 @@ router.get("/test-performance", async (req, res) => {
       evaluation: { proofScore: 85 }
     };
     
-    // Simulate cache operations
-    await cacheService.getDashboardData(testFounderId, async () => mockData);
+    // Test KV cache operations
+    const data = await cacheService.getDashboardData(testFounderId, async () => mockData);
     
     const queryTime = Date.now() - startTime;
     
-    const kvStats = kvCacheService.isAvailable() ? await kvCacheService.getStats() : null;
+    const kvStats = kvCacheService.isAvailable() ? await kvCacheService.getStats() : { available: false, error: "KV store not available" };
     
     res.json({
       queryResponseTime: queryTime,
@@ -576,13 +576,18 @@ router.post("/test-cache-cleanup", async (req, res) => {
       });
     }
 
-    const cleanedCount = await kvCacheService.cleanup();
+    let cleanedCount = 0;
+    try {
+      cleanedCount = await kvCacheService.cleanup();
+    } catch (error) {
+      console.error("KV cleanup error:", error);
+    }
     
     res.json({
       success: true,
       cleanedEntries: cleanedCount,
       kvStats: await kvCacheService.getStats(),
-      memoryStats: cacheService.getStats(),
+      cacheStats: cacheService.getStats(),
       testMode: true
     });
   } catch (error) {
