@@ -101,6 +101,7 @@ router.get('/vault', asyncHandler(async (req: Request, res: Response) => {
     // Create mapping from subFolderId to parent category
     const subfolderToParentMap: Record<string, string> = {};
     for (const mapping of folderMappings) {
+      // Use correct Drizzle field names
       const parentCategory = await getCategoryFromFolderId(mapping.parentFolderId, founderId);
       subfolderToParentMap[mapping.subFolderId] = parentCategory;
       console.log(`📂 Subfolder mapping: ${mapping.subFolderId} → ${parentCategory} (parent: ${mapping.parentFolderId})`);

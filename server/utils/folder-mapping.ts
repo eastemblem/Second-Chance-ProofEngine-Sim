@@ -44,10 +44,14 @@ export async function loadFolderMappingFromDatabase(founderId: string): Promise<
     const categoryToFolderId: Record<string, string> = {};
     const folderIdToCategory: Record<string, string> = {};
     
+    console.log('📊 Found proof vault records:', proofVaultRecords.length);
+    
     proofVaultRecords.forEach(pv => {
+      // Use correct database field names: folderName, subFolderId (these match the Drizzle schema)
       if (pv.folderName && pv.subFolderId) {
         categoryToFolderId[pv.folderName] = pv.subFolderId;
         folderIdToCategory[pv.subFolderId] = getCategoryDisplayName(pv.folderName);
+        console.log(`📂 Mapping: ${pv.folderName} (${pv.subFolderId}) → ${getCategoryDisplayName(pv.folderName)}`);
       }
     });
 
@@ -166,3 +170,6 @@ export function clearFolderMappingCache(): void {
   cacheTimestamp = 0;
   console.log('🗑️ Folder mapping cache cleared');
 }
+
+// Clear cache on startup to ensure fresh database mapping
+clearFolderMappingCache();
