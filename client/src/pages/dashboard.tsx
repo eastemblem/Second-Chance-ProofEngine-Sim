@@ -113,6 +113,8 @@ export default function DashboardPage() {
   const [selectedFolder, setSelectedFolder] = useState<string>("0_Overview");
   const [uploadProgress, setUploadProgress] = useState<number>(0);
   const [isUploading, setIsUploading] = useState(false);
+  const [uploadQueue, setUploadQueue] = useState<Array<{file: File, folderId: string, status: 'pending' | 'uploading' | 'completed' | 'failed', progress: number}>>([]);
+  const [currentUploadIndex, setCurrentUploadIndex] = useState(0);
   const [, setLocation] = useLocation();
   const { toast } = useToast();
 
@@ -350,19 +352,52 @@ export default function DashboardPage() {
     }
   };
 
-  const handleFileUpload = async (file: File, folderId: string) => {
+  // Handle multiple file uploads with queue processing
+  const handleMultipleFileUpload = async (files: File[], folderId: string) => {
+    const newQueue = Array.from(files).map(file => ({
+      file,
+      folderId,
+      status: 'pending' as const,
+      progress: 0
+    }));
+    
+    setUploadQueue(newQueue);
+    setCurrentUploadIndex(0);
+    setIsUploading(true);
+    
+    // Process files sequentially for better user experience and server stability
+    for (let i = 0; i < newQueue.length; i++) {
+      setCurrentUploadIndex(i);
+      await handleSingleFileUpload(newQueue[i], i);
+    }
+    
+    // All uploads complete
+    setIsUploading(false);
+    setUploadQueue([]);
+    setCurrentUploadIndex(0);
+    setUploadProgress(0);
+    
+    // Reload data to reflect all uploads
+    await loadDashboardData();
+  };
+
+  const handleSingleFileUpload = async (queueItem: {file: File, folderId: string, status: string, progress: number}, index: number) => {
     try {
-      setIsUploading(true);
-      setUploadProgress(0);
+      // Update queue item status
+      setUploadQueue(prev => prev.map((item, i) => 
+        i === index ? { ...item, status: 'uploading' } : item
+      ));
 
       const formData = new FormData();
-      formData.append('file', file);
-      formData.append('folder_id', folderId);
+      formData.append('file', queueItem.file);
+      formData.append('folder_id', queueItem.folderId);
 
-      // Simulate upload progress
+      // Simulate upload progress for current file
       const progressInterval = setInterval(() => {
-        setUploadProgress(prev => Math.min(prev + 10, 80));
-      }, 200);
+        setUploadQueue(prev => prev.map((item, i) => 
+          i === index ? { ...item, progress: Math.min(item.progress + 15, 80) } : item
+        ));
+      }, 300);
 
       const response = await fetch('/api/vault/upload-file', {
         method: 'POST',
@@ -370,44 +405,52 @@ export default function DashboardPage() {
       });
 
       clearInterval(progressInterval);
-      setUploadProgress(100);
+
+      // Update final progress for current file
+      setUploadQueue(prev => prev.map((item, i) => 
+        i === index ? { ...item, progress: 100 } : item
+      ));
 
       if (response.ok) {
         const result = await response.json();
         
+        // Update queue item status to completed
+        setUploadQueue(prev => prev.map((item, i) => 
+          i === index ? { ...item, status: 'completed' } : item
+        ));
+        
         // Track successful file upload
-        trackEvent('upload', 'proofvault', `file_upload_${folderId}`);
+        trackEvent('upload', 'proofvault', `file_upload_${queueItem.folderId}`);
         
         toast({
-          title: "File Uploaded Successfully",
-          description: `${file.name} has been uploaded to ${getFolderDisplayName(folderId)}.`,
+          title: "File Uploaded",
+          description: `${queueItem.file.name} uploaded successfully to ${getFolderDisplayName(queueItem.folderId)}.`,
         });
-        
-        // Reload data to reflect the upload
-        await loadDashboardData();
-        
-        // Reset upload state
-        setTimeout(() => {
-          setIsUploading(false);
-          setUploadProgress(0);
-        }, 1000);
       } else {
         throw new Error('Upload failed');
       }
     } catch (error) {
       console.error('File upload error:', error);
       
+      // Update queue item status to failed
+      setUploadQueue(prev => prev.map((item, i) => 
+        i === index ? { ...item, status: 'failed' } : item
+      ));
+      
       // Track failed file upload
-      trackEvent('upload_failed', 'proofvault', `file_upload_error_${folderId}`);
+      trackEvent('upload_failed', 'proofvault', `file_upload_error_${queueItem.folderId}`);
       
       toast({
         title: "Upload Error",
-        description: `Failed to upload ${file.name}. Please try again.`,
+        description: `Failed to upload ${queueItem.file.name}. Please try again.`,
         variant: "destructive",
       });
-      setIsUploading(false);
-      setUploadProgress(0);
     }
+  };
+
+  // Backward compatibility - single file upload
+  const handleFileUpload = async (file: File, folderId: string) => {
+    await handleMultipleFileUpload([file], folderId);
   };
 
   // Helper function to get folder display names
@@ -800,20 +843,63 @@ export default function DashboardPage() {
                       </div>
 
                       {/* Upload Area */}
-                      <div className={`border-2 border-dashed rounded-lg p-8 text-center transition-all ${
-                        isUploading 
-                          ? 'border-purple-500 bg-purple-500/5' 
-                          : 'border-gray-600 hover:border-gray-500'
-                      }`}>
+                      <div 
+                        className={`border-2 border-dashed rounded-lg p-8 text-center transition-all ${
+                          isUploading 
+                            ? 'border-purple-500 bg-purple-500/5' 
+                            : 'border-gray-600 hover:border-gray-500'
+                        }`}
+                        onDragOver={(e) => {
+                          e.preventDefault();
+                          e.currentTarget.classList.add('border-purple-400', 'bg-purple-500/10');
+                        }}
+                        onDragLeave={(e) => {
+                          e.preventDefault();
+                          e.currentTarget.classList.remove('border-purple-400', 'bg-purple-500/10');
+                        }}
+                        onDrop={(e) => {
+                          e.preventDefault();
+                          e.currentTarget.classList.remove('border-purple-400', 'bg-purple-500/10');
+                          const files = Array.from(e.dataTransfer.files);
+                          if (files.length > 0) {
+                            handleMultipleFileUpload(files, selectedFolder);
+                          }
+                        }}
+                      >
                         {isUploading ? (
-                          <div className="space-y-4">
+                          <div className="space-y-6">
                             <div className="w-16 h-16 mx-auto rounded-full bg-gradient-to-r from-purple-500 to-yellow-500 flex items-center justify-center">
                               <Upload className="w-8 h-8 text-white animate-pulse" />
                             </div>
-                            <div className="space-y-2">
-                              <p className="text-purple-400 font-medium">Uploading...</p>
-                              <Progress value={uploadProgress} className="h-2 bg-gray-700" />
-                              <p className="text-gray-400 text-sm">{uploadProgress}% complete</p>
+                            
+                            {/* Queue Status */}
+                            <div className="space-y-3">
+                              <p className="text-purple-400 font-medium">
+                                Uploading {currentUploadIndex + 1} of {uploadQueue.length} files...
+                              </p>
+                              
+                              {/* Current File Progress */}
+                              {uploadQueue[currentUploadIndex] && (
+                                <div className="space-y-2">
+                                  <p className="text-gray-300 text-sm">
+                                    {uploadQueue[currentUploadIndex].file.name}
+                                  </p>
+                                  <Progress value={uploadQueue[currentUploadIndex].progress} className="h-2 bg-gray-700" />
+                                  <p className="text-gray-400 text-xs">{uploadQueue[currentUploadIndex].progress}% complete</p>
+                                </div>
+                              )}
+                              
+                              {/* Queue Summary */}
+                              <div className="grid grid-cols-2 gap-4 text-xs text-gray-400 max-w-xs mx-auto">
+                                <div className="flex items-center gap-2">
+                                  <div className="w-2 h-2 bg-green-400 rounded-full"></div>
+                                  <span>Completed: {uploadQueue.filter(item => item.status === 'completed').length}</span>
+                                </div>
+                                <div className="flex items-center gap-2">
+                                  <div className="w-2 h-2 bg-red-400 rounded-full"></div>
+                                  <span>Failed: {uploadQueue.filter(item => item.status === 'failed').length}</span>
+                                </div>
+                              </div>
                             </div>
                           </div>
                         ) : (
@@ -831,10 +917,10 @@ export default function DashboardPage() {
                               id="file-upload"
                               onChange={(e) => {
                                 const files = e.target.files;
-                                if (files) {
-                                  Array.from(files).forEach(file => {
-                                    handleFileUpload(file, selectedFolder);
-                                  });
+                                if (files && files.length > 0) {
+                                  handleMultipleFileUpload(Array.from(files), selectedFolder);
+                                  // Reset input
+                                  e.target.value = '';
                                 }
                               }}
                             />
@@ -843,7 +929,7 @@ export default function DashboardPage() {
                               className="bg-gradient-to-r from-purple-500 to-yellow-500 text-white hover:from-purple-600 hover:to-yellow-600"
                             >
                               <Plus className="w-4 h-4 mr-2" />
-                              Choose Files
+                              Choose Multiple Files
                             </Button>
                           </>
                         )}
@@ -855,7 +941,8 @@ export default function DashboardPage() {
                         <ul className="text-xs text-gray-400 space-y-1">
                           <li>• Supported formats: PDF, PPT, PPTX, DOC, DOCX, JPG, PNG, MP4, MOV</li>
                           <li>• Maximum file size: 10 MB per file</li>
-                          <li>• Files will be automatically categorized in your selected folder</li>
+                          <li>• Select multiple files at once or drag & drop for batch upload</li>
+                          <li>• Files process sequentially to ensure reliable uploads</li>
                           <li>• Upload high-quality documents to maximize your ProofScore</li>
                         </ul>
                       </div>

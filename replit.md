@@ -126,6 +126,20 @@ Demo experience for testing different user journeys:
 
 ## Recent Key Updates
 
+### July 25, 2025 - MULTIPLE FILE UPLOAD SUPPORT COMPLETE: Enhanced ProofVault Upload Experience
+- **MULTIPLE FILE SELECTION**: ProofVault upload now supports selecting multiple files simultaneously through file dialog
+- **ENHANCED DRAG & DROP**: Added comprehensive drag-and-drop functionality with visual feedback (border highlights, background changes)
+- **SEQUENTIAL UPLOAD PROCESSING**: Files process sequentially for server stability and better user experience tracking
+- **UPLOAD QUEUE MANAGEMENT**: Real-time queue status showing current file progress, completed/failed counts, and overall progress
+- **ENHANCED UI FEEDBACK**: 
+  * Visual drag-over states with purple borders and background highlights
+  * Current file name and individual progress bars during upload
+  * Queue summary with completed (green) and failed (red) indicators
+  * Updated button text to "Choose Multiple Files" for clarity
+- **IMPROVED UPLOAD GUIDELINES**: Updated help text to mention batch upload capabilities and sequential processing
+- **BACKWARD COMPATIBILITY**: Single file upload functionality preserved alongside new multiple file support
+- **PRODUCTION READY**: Complete multiple file upload system with proper error handling, progress tracking, and data refresh
+
 ### July 25, 2025 - DASHBOARD LEADERBOARD INTEGRATION COMPLETE: Top 5 Scores with Real/Mock Data
 - **LEADERBOARD API INTEGRATION**: Dashboard now fetches top 5 ventures from `/api/leaderboard?limit=5` endpoint with smart real/mock data mixing
 - **REAL DATA PRIORITY**: Authentic database entries displayed first (Funder Flow #1 with score 69), mock data fills remaining positions to guarantee 5 entries
