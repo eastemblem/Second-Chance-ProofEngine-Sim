@@ -1,5 +1,6 @@
 import { Link } from "wouter";
 import { ExternalLink } from "lucide-react";
+import Logo from "@/components/logo";
 
 const Footer = () => {
   return (
@@ -8,17 +9,7 @@ const Footer = () => {
         <div className="flex flex-col sm:flex-row justify-between items-center gap-4">
           {/* Company Info - Compact */}
           <div className="flex items-center justify-center sm:justify-start space-x-3">
-            <img 
-              src={import.meta.env.VITE_LOGO_URL} 
-              alt="Second Chance Logo" 
-              className="w-8 h-8 rounded"
-            />
-            <div>
-              <span className="font-semibold text-base bg-gradient-to-r from-primary to-primary-gold bg-clip-text text-transparent">
-                Second Chance
-              </span>
-              <p className="text-sm text-muted-foreground">ProofScaling Platform</p>
-            </div>
+            <Logo size="sm" showTagline={false} />
           </div>
 
           {/* Quick Links */}
