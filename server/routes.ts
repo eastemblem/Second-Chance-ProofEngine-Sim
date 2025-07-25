@@ -9,7 +9,6 @@ import { cleanupUploadedFile } from "./utils/file-cleanup";
 import { onboardingService } from "./services/onboarding-service";
 import apiRoutes from "./routes/index";
 import authRoutes from "./routes/auth";
-import dashboardRoutes from "./routes/dashboard";
 import { getLeaderboard, createLeaderboardEntry } from "./routes/leaderboard";
 import { generateCertificate, downloadCertificate, getCertificateStatus } from "./routes/certificate";
 import { generateReport } from "./routes/report";
@@ -557,6 +556,38 @@ export async function registerRoutes(app: Express): Promise<Server> {
   }));
 
 
+
+  // Test database service endpoint (direct database query - no cache)
+  app.get("/api/test/database/:founderId", asyncHandler(async (req, res) => {
+    const founderId = req.params.founderId;
+    console.log(`🧪 Testing database service DIRECT QUERY for founderId: ${founderId}`);
+    
+    try {
+      // Call the direct database method to bypass all caching
+      const data = await databaseService.fetchFounderWithLatestVentureFromDB(founderId);
+      
+      console.log(`🧪 Raw data structure:`, JSON.stringify(data, null, 2));
+      console.log(`🧪 Data properties:`, {
+        founderExists: !!data?.founder,
+        ventureExists: !!data?.venture, 
+        evaluationExists: !!data?.latestEvaluation,
+        dataKeys: data ? Object.keys(data) : 'null'
+      });
+      
+      res.json({
+        success: true,
+        founderId,
+        data,
+        hasFounder: !!data?.founder,
+        hasVenture: !!data?.venture,
+        hasEvaluation: !!data?.latestEvaluation,
+        proofscore: data?.latestEvaluation?.proofscore || null
+      });
+    } catch (error) {
+      console.error("Database test error:", error);
+      res.status(500).json({ error: error.message });
+    }
+  }));
 
   // Slack notification endpoint
   app.post("/api/notification/send", asyncHandler(async (req, res) => {

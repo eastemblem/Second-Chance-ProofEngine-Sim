@@ -110,63 +110,72 @@ export class DatabaseService {
   /**
    * Internal method: Fetch founder with venture from database
    */
-  private async fetchFounderWithLatestVentureFromDB(founderId: string) {
+  async fetchFounderWithLatestVentureFromDB(founderId: string) {
     console.log(`🔍 Database query - fetchFounderWithLatestVentureFromDB for founderId: ${founderId}`);
     
-    const result = await db
-      .select({
-        founder: {
-          founderId: founder.founderId,
-          fullName: founder.fullName,
-          email: founder.email,
-          emailVerified: founder.emailVerified,
-          lastLoginAt: founder.lastLoginAt,
-        },
-        venture: {
-          ventureId: venture.ventureId,
-          name: venture.name,
-          description: venture.description,
-          industry: venture.industry,
-          businessModel: venture.businessModel,
-          revenueStage: venture.revenueStage,
-          folderStructure: venture.folderStructure,
-          certificateUrl: venture.certificateUrl,
-          reportUrl: venture.reportUrl,
-          createdAt: venture.createdAt,
-        },
-        latestEvaluation: {
-          evaluationId: evaluation.evaluationId,
-          proofscore: evaluation.proofscore,
-          prooftags: evaluation.prooftags,
-          fullApiResponse: evaluation.fullApiResponse,
-          dimensionScores: evaluation.dimensionScores,
-          evaluationDate: evaluation.evaluationDate,
-        }
-      })
-      .from(founder)
-      .leftJoin(venture, eq(venture.founderId, founder.founderId))
-      .leftJoin(evaluation, eq(evaluation.ventureId, venture.ventureId))
-      .where(eq(founder.founderId, founderId))
-      .orderBy(desc(venture.createdAt), desc(evaluation.evaluationDate))
-      .limit(1);
+    try {
+      const result = await db
+        .select({
+          founder: {
+            founderId: founder.founderId,
+            fullName: founder.fullName,
+            email: founder.email,
+            emailVerified: founder.emailVerified,
+            lastLoginAt: founder.lastLoginAt,
+          },
+          venture: {
+            ventureId: venture.ventureId,
+            name: venture.name,
+            description: venture.description,
+            industry: venture.industry,
+            businessModel: venture.businessModel,
+            revenueStage: venture.revenueStage,
+            folderStructure: venture.folderStructure,
+            certificateUrl: venture.certificateUrl,
+            reportUrl: venture.reportUrl,
+            createdAt: venture.createdAt,
+          },
+          latestEvaluation: {
+            evaluationId: evaluation.evaluationId,
+            proofscore: evaluation.proofscore,
+            prooftags: evaluation.prooftags,
+            fullApiResponse: evaluation.fullApiResponse,
+            dimensionScores: evaluation.dimensionScores,
+            evaluationDate: evaluation.evaluationDate,
+          }
+        })
+        .from(founder)
+        .leftJoin(venture, eq(venture.founderId, founder.founderId))
+        .leftJoin(evaluation, eq(evaluation.ventureId, venture.ventureId))
+        .where(eq(founder.founderId, founderId))
+        .orderBy(desc(venture.createdAt), desc(evaluation.evaluationDate))
+        .limit(1);
 
-    console.log(`📊 Query result - rows found: ${result.length}`);
-    if (result.length > 0) {
-      const data = result[0];
-      console.log(`📊 Query result details:`, {
-        hasFounder: !!data.founder?.founderId,
-        founderId: data.founder?.founderId,
-        founderEmail: data.founder?.email,
-        hasVenture: !!data.venture?.ventureId,
-        ventureId: data.venture?.ventureId,
-        ventureName: data.venture?.name,
-        hasEvaluation: !!data.latestEvaluation?.evaluationId,
-        evaluationId: data.latestEvaluation?.evaluationId,
-        proofscore: data.latestEvaluation?.proofscore
-      });
+      console.log(`📊 Query result - rows found: ${result.length}`);
+      if (result.length > 0) {
+        const data = result[0];
+        console.log(`📊 Query result details:`, {
+          hasFounder: !!data.founder?.founderId,
+          founderId: data.founder?.founderId,
+          founderEmail: data.founder?.email,
+          hasVenture: !!data.venture?.ventureId,
+          ventureId: data.venture?.ventureId,
+          ventureName: data.venture?.name,
+          hasEvaluation: !!data.latestEvaluation?.evaluationId,
+          evaluationId: data.latestEvaluation?.evaluationId,
+          proofscore: data.latestEvaluation?.proofscore
+        });
+        
+        return data;
+      }
+
+      console.log(`❌ No data found for founderId: ${founderId}`);
+      return null;
+      
+    } catch (error) {
+      console.error(`💥 Database query error in fetchFounderWithLatestVentureFromDB:`, error);
+      throw error;
     }
-
-    return result[0] || null;
   }
 
   /**
