@@ -1,5 +1,6 @@
 import { Request, Response, NextFunction } from "express";
 import { z } from "zod";
+import { appLogger } from "./logger";
 
 export interface ApiError {
   status: number;
@@ -80,7 +81,7 @@ export function errorHandler(
   res: Response,
   next: NextFunction
 ) {
-  console.error(`Error in ${req.method} ${req.path}:`, error);
+  appLogger.api(`Error in ${req.method} ${req.path}:`, error);
   
   const errorResponse = handleError(error);
   res.status(errorResponse.error.status).json(errorResponse);

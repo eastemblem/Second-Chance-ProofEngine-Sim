@@ -2,6 +2,7 @@
  * Server-side performance tracking utilities
  * Phase 1.2: Backend performance monitoring and optimization
  */
+import { appLogger } from './logger';
 
 interface RequestTiming {
   path: string;
@@ -36,9 +37,9 @@ class PerformanceTracker {
 
     // Log slow requests
     if (duration > 1000 && !cached) {
-      console.warn(`🐌 Slow request: ${method} ${path} took ${duration}ms`);
+      appLogger.performance(`Slow request: ${method} ${path} took ${duration}ms`);
     } else if (duration < 50 && cached) {
-      console.log(`⚡ Fast cached request: ${method} ${path} took ${duration}ms`);
+      appLogger.performance(`Fast cached request: ${method} ${path} took ${duration}ms`);
     }
   }
 

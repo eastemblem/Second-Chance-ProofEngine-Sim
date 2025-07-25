@@ -1,6 +1,7 @@
 import { Request } from 'express';
 import { storage } from '../storage';
 import { InsertUserActivity, UserActivity } from '@shared/schema';
+import { appLogger } from "../utils/logger";
 
 export interface ActivityContext {
   founderId?: string;
@@ -56,10 +57,10 @@ export class ActivityService {
       };
 
       const createdActivity = await storage.createUserActivity(activityData);
-      console.log(`📝 Activity logged: ${activity.action} - ${activity.title}`);
+      appLogger.business(`Activity logged: ${activity.action} - ${activity.title}`);
       return createdActivity;
     } catch (error) {
-      console.error('Failed to log activity:', error);
+      appLogger.business('Failed to log activity:', error);
       return null;
     }
   }
@@ -225,7 +226,7 @@ export class ActivityService {
     try {
       return await storage.getUserActivities(founderId, limit, activityType);
     } catch (error) {
-      console.error('Failed to get recent activities:', error);
+      appLogger.business('Failed to get recent activities:', error);
       return [];
     }
   }
@@ -302,9 +303,9 @@ export class ActivityService {
         }
       }
 
-      console.log(`✅ Migration completed for founder ${founderId}`);
+      appLogger.business(`Migration completed for founder ${founderId}`);
     } catch (error) {
-      console.error('Migration failed:', error);
+      appLogger.business('Migration failed:', error);
     }
   }
 }

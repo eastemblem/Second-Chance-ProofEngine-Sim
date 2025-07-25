@@ -1,5 +1,6 @@
 // NewRelic observability middleware (simplified for ES module compatibility)
 import { Request, Response, NextFunction } from "express";
+import { appLogger } from "../utils/logger";
 
 // Simplified NewRelic middleware (disabled for ES module compatibility) 
 export function newRelicMiddleware(req: Request, res: Response, next: NextFunction) {
@@ -22,5 +23,5 @@ function getTransactionName(path: string, method: string): string {
 // Helper function to configure NewRelic (disabled for ES module)
 export function configureNewRelic() {
   // Skip NewRelic configuration in ES module environment
-  console.log('📊 NewRelic configuration skipped - ES module compatibility');
+  appLogger.system('NewRelic configuration skipped - ES module compatibility');
 }

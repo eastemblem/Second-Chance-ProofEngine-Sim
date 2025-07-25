@@ -1,4 +1,5 @@
 import { storage } from "../storage";
+import { appLogger } from "./logger";
 
 /**
  * Database-driven folder mapping utility
@@ -29,11 +30,11 @@ export async function loadFolderMappingFromDatabase(founderId: string): Promise<
     const currentTime = Date.now();
     
     if (cached && (currentTime - cached.timestamp) < CACHE_TTL) {
-      console.log(`📦 Using cached folder mapping for founder ${founderId}`);
+      appLogger.cache(`Using cached folder mapping for founder ${founderId}`);
       return cached.mapping;
     }
     
-    console.log('🔄 Loading folder mapping from database (100% dynamic)...');
+    appLogger.database('Loading folder mapping from database (100% dynamic)...');
     
     // Get user's ventures
     const ventures = await storage.getVenturesByFounderId(founderId);
@@ -49,7 +50,7 @@ export async function loadFolderMappingFromDatabase(founderId: string): Promise<
     const categoryToFolderId: Record<string, string> = {};
     const folderIdToCategory: Record<string, string> = {};
     
-    console.log('📊 Found proof vault records:', proofVaultRecords.length);
+    appLogger.database('Found proof vault records:', proofVaultRecords.length);
     
     // Add database mappings
     proofVaultRecords.forEach(pv => {
@@ -57,7 +58,7 @@ export async function loadFolderMappingFromDatabase(founderId: string): Promise<
       if (pv.folderName && pv.subFolderId) {
         categoryToFolderId[pv.folderName] = pv.subFolderId;
         folderIdToCategory[pv.subFolderId] = getCategoryDisplayName(pv.folderName);
-        console.log(`📂 DB Mapping: ${pv.folderName} (${pv.subFolderId}) → ${getCategoryDisplayName(pv.folderName)}`);
+        appLogger.database(`DB Mapping: ${pv.folderName} (${pv.subFolderId}) → ${getCategoryDisplayName(pv.folderName)}`);
       }
     });
 
@@ -71,13 +72,13 @@ export async function loadFolderMappingFromDatabase(founderId: string): Promise<
     // Cache the result per founder
     founderCacheMap.set(founderId, { mapping, timestamp: currentTime });
     
-    console.log('✅ 100% database-driven mapping loaded successfully!');
-    console.log('📋 categoryToFolderId:', categoryToFolderId);
-    console.log('📋 folderIdToCategory:', folderIdToCategory);
+    appLogger.database('100% database-driven mapping loaded successfully!');
+    appLogger.database('categoryToFolderId:', categoryToFolderId);
+    appLogger.database('folderIdToCategory:', folderIdToCategory);
     return mapping;
     
   } catch (error) {
-    console.error('❌ Failed to load folder mapping from database:', error);
+    appLogger.database('Failed to load folder mapping from database:', error);
     
     // Return current working folder IDs as fallback + ADD MISSING LEGACY FOLDER IDs
     const fallbackMapping: FolderMapping = {
@@ -103,7 +104,7 @@ export async function loadFolderMappingFromDatabase(founderId: string): Promise<
       }
     };
     
-    console.log('⚠️ Using fallback folder mapping');
+    appLogger.database('Using fallback folder mapping');
     return fallbackMapping;
   }
 }
@@ -137,14 +138,14 @@ export async function getCategoryFromFolderIdDB(folderId: string, founderId: str
     const category = mapping.folderIdToCategory[folderId];
     
     if (category) {
-      console.log(`📁 Mapped folder ID '${folderId}' to category: ${category}`);
+      appLogger.database(`Mapped folder ID '${folderId}' to category: ${category}`);
       return category;
     } else {
-      console.log(`📁 No mapping found for folder ID '${folderId}', using default: Overview`);
+      appLogger.database(`No mapping found for folder ID '${folderId}', using default: Overview`);
       return 'Overview (default)';
     }
   } catch (error) {
-    console.error('❌ Error getting category from folder ID:', error);
+    appLogger.database('Error getting category from folder ID:', error);
     return 'Overview (default)';
   }
 }
@@ -161,14 +162,14 @@ export async function getFolderIdFromCategoryDB(category: string, founderId: str
     const folderId = mapping.categoryToFolderId[category];
     
     if (folderId) {
-      console.log(`🗂️ Mapped category '${category}' to folder ID: ${folderId}`);
+      appLogger.database(`Mapped category '${category}' to folder ID: ${folderId}`);
       return folderId;
     } else {
-      console.log(`🗂️ No mapping found for category '${category}', using Overview folder`);
+      appLogger.database(`No mapping found for category '${category}', using Overview folder`);
       return mapping.categoryToFolderId['0_Overview'] || '332886218045';
     }
   } catch (error) {
-    console.error('❌ Error getting folder ID from category:', error);
+    appLogger.database('Error getting folder ID from category:', error);
     return '332886218045'; // Overview folder fallback
   }
 }
@@ -179,7 +180,7 @@ export async function getFolderIdFromCategoryDB(category: string, founderId: str
 export function clearFolderMappingCache(): void {
   cachedMapping = null;
   cacheTimestamp = 0;
-  console.log('🗑️ Folder mapping cache cleared');
+  appLogger.cache('Folder mapping cache cleared');
 }
 
 // Clear cache on startup to ensure fresh database mapping

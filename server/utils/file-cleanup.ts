@@ -1,5 +1,6 @@
 import fs from "fs";
 import path from "path";
+import { appLogger } from "./logger";
 
 /**
  * Clean up uploaded file with proper error handling
@@ -8,12 +9,12 @@ export function cleanupUploadedFile(filePath: string, fileName: string, reason: 
   try {
     if (fs.existsSync(filePath)) {
       fs.unlinkSync(filePath);
-      console.log(`✓ ${reason} - cleaned up file: ${fileName}`);
+      appLogger.file(`${reason} - cleaned up file: ${fileName}`);
     } else {
-      console.warn(`File not found for cleanup: ${filePath}`);
+      appLogger.file(`File not found for cleanup: ${filePath}`);
     }
   } catch (error) {
-    console.error(`File cleanup error for ${fileName}:`, error);
+    appLogger.file(`File cleanup error for ${fileName}:`, error);
     // Don't throw errors for cleanup failures
   }
 }
@@ -51,15 +52,15 @@ export function cleanupOldFiles(uploadDir: string, maxAgeHours: number = 24): vo
           cleanedCount++;
         }
       } catch (error) {
-        console.warn(`Error checking file ${file}:`, error);
+        appLogger.file(`Error checking file ${file}:`, error);
       }
     });
 
     if (cleanedCount > 0) {
-      console.log(`✓ Cleaned up ${cleanedCount} old files from upload directory`);
+      appLogger.file(`Cleaned up ${cleanedCount} old files from upload directory`);
     }
   } catch (error) {
-    console.error("Error during old files cleanup:", error);
+    appLogger.file("Error during old files cleanup:", error);
   }
 }
 
@@ -73,5 +74,5 @@ export function schedulePeriodicCleanup(uploadDir: string, intervalHours: number
     cleanupOldFiles(uploadDir, 24); // Clean files older than 24 hours
   }, intervalMs);
   
-  console.log(`✓ Scheduled periodic cleanup every ${intervalHours} hours`);
+  appLogger.system(`Scheduled periodic cleanup every ${intervalHours} hours`);
 }

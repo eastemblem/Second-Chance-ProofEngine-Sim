@@ -1,4 +1,5 @@
 import { Request, Response, NextFunction } from "express";
+import { appLogger } from "../utils/logger";
 
 // Enhanced error types
 export class ApiError extends Error {
@@ -60,7 +61,7 @@ class CircuitBreaker {
     this.failures++;
     if (this.failures >= this.threshold) {
       this.nextAttempt = Date.now() + this.timeout;
-      console.warn(`🔥 Circuit breaker opened - ${this.failures} failures`);
+      appLogger.system(`Circuit breaker opened - ${this.failures} failures`);
     }
   }
 
@@ -95,12 +96,12 @@ export async function retryWithBackoff<T>(
       lastError = error as Error;
       
       if (attempt === maxRetries) {
-        console.error(`💥 Max retries (${maxRetries}) reached for operation`);
+        appLogger.system(`Max retries (${maxRetries}) reached for operation`);
         break;
       }
 
       const delay = initialDelay * Math.pow(2, attempt) + Math.random() * 1000;
-      console.warn(`⏳ Retry attempt ${attempt + 1}/${maxRetries} after ${Math.round(delay)}ms`);
+      appLogger.system(`Retry attempt ${attempt + 1}/${maxRetries} after ${Math.round(delay)}ms`);
       
       await new Promise(resolve => setTimeout(resolve, delay));
     }
@@ -134,7 +135,7 @@ export function advancedErrorHandler(
     details: error.details
   };
 
-  console.error(`💥 API Error [${correlationId}]:`, errorDetails);
+  appLogger.api(`API Error [${correlationId}]:`, errorDetails);
 
   // Determine if error is operational or programming error
   const isOperational = error.isOperational !== undefined ? error.isOperational : error.statusCode < 500;
@@ -174,7 +175,7 @@ export function advancedErrorHandler(
 // Graceful degradation middleware
 export function gracefulDegradation(fallbackResponse: any) {
   return (error: any, req: Request, res: Response, next: NextFunction) => {
-    console.warn(`🔄 Graceful degradation activated for ${req.path}: ${error.message}`);
+    appLogger.system(`Graceful degradation activated for ${req.path}: ${error.message}`);
     
     res.status(200).json({
       ...fallbackResponse,
@@ -205,7 +206,7 @@ class ErrorAggregator {
 
     // Alert on high error rates
     if (count > 10) {
-      console.error(`🚨 High error rate detected: ${key} (${count} occurrences)`);
+      appLogger.system(`High error rate detected: ${key} (${count} occurrences)`);
     }
   }
 

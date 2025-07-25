@@ -1,4 +1,5 @@
 import { Request, Response, NextFunction } from "express";
+import { appLogger } from "../utils/logger";
 
 // Standard error response interface
 export interface ApiError extends Error {
@@ -14,7 +15,7 @@ export function errorHandler(
   next: NextFunction
 ) {
   // Log error details
-  console.error(`❌ API Error [${req.method} ${req.path}]:`, {
+  appLogger.api(`API Error [${req.method} ${req.path}]:`, {
     message: error.message,
     stack: error.stack,
     statusCode: error.statusCode,

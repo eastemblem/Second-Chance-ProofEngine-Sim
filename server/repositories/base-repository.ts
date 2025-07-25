@@ -1,5 +1,6 @@
 import { db } from "../db";
 import { cacheService } from "../services/cache-service";
+import { appLogger } from "../utils/logger";
 
 /**
  * Base Repository class with caching and error handling
@@ -34,7 +35,7 @@ export abstract class BaseRepository {
     try {
       return await queryFn();
     } catch (error) {
-      console.error("Database query error:", error);
+      appLogger.database("Database query error:", error);
       throw new Error(`Database operation failed: ${error instanceof Error ? error.message : 'Unknown error'}`);
     }
   }
@@ -47,6 +48,6 @@ export abstract class BaseRepository {
     key: string
   ): Promise<void> {
     // Note: Will be implemented when cache service supports it
-    console.log(`Cache invalidation requested: ${type}:${key}`);
+    appLogger.cache(`Cache invalidation requested: ${type}:${key}`);
   }
 }

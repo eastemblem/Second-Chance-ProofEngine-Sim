@@ -1,6 +1,7 @@
 import { Request, Response, NextFunction } from 'express';
 import jwt from 'jsonwebtoken';
 import { databaseService } from '../services/database-service';
+import { appLogger } from "../utils/logger";
 
 // JWT secret from environment or fallback
 const JWT_SECRET = process.env.JWT_SECRET || 'dev-jwt-secret-key-change-in-production';
@@ -38,7 +39,7 @@ export function verifyAuthToken(token: string): AuthToken | null {
     const decoded = jwt.verify(token, JWT_SECRET) as AuthToken;
     return decoded;
   } catch (error) {
-    console.log('Token verification failed:', error instanceof Error ? error.message : 'Unknown error');
+    appLogger.auth('Token verification failed:', error instanceof Error ? error.message : 'Unknown error');
     return null;
   }
 }
@@ -147,10 +148,10 @@ export async function refreshTokenIfNeeded(req: AuthenticatedRequest, res: Respo
         // Set new token in response header for client to update
         res.setHeader('X-New-Auth-Token', newToken);
         
-        console.log(`🔄 Token refreshed for user: ${req.user.email}`);
+        appLogger.auth(`Token refreshed for user: ${req.user.email}`);
       }
     } catch (error) {
-      console.error('Token refresh failed:', error);
+      appLogger.auth('Token refresh failed:', error);
       // Continue with existing token
     }
   }

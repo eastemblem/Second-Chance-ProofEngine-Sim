@@ -1,6 +1,7 @@
 // Session management utilities
 import { Request } from "express";
 import crypto from "crypto";
+import { appLogger } from "./logger";
 
 export function getSessionId(req: Request): string {
   // Always generate a valid UUID for onboarding sessions
@@ -42,5 +43,5 @@ export async function getSessionData(sessionId: string): Promise<any> {
 
 export async function updateSessionData(sessionId: string, data: any): Promise<void> {
   // This would typically update session store
-  console.log(`📝 Session ${sessionId} updated with data`);
+  appLogger.auth(`Session ${sessionId} updated with data`);
 }

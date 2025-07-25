@@ -12,6 +12,7 @@ import authRoutes from "./routes/auth";
 import { getLeaderboard, createLeaderboardEntry } from "./routes/leaderboard";
 import { generateCertificate, downloadCertificate, getCertificateStatus } from "./routes/certificate";
 import { generateReport } from "./routes/report";
+import { appLogger } from "./utils/logger";
 import { databaseService } from "./services/database-service";
 import { authenticateToken } from "./middleware/token-auth";
 import multer from "multer";
@@ -89,7 +90,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
   // Direct submit for scoring endpoint (must be before general API routes)
   app.post("/api/submit-for-scoring", asyncHandler(async (req, res) => {
-    console.log('Direct submit-for-scoring endpoint called');
+    appLogger.api('Direct submit-for-scoring endpoint called');
     const { sessionId } = req.body;
     
     if (!sessionId) {
@@ -122,7 +123,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       res.setHeader('Content-Type', 'application/json');
       res.json(response);
     } catch (error) {
-      console.error('Submit for scoring error:', error);
+      appLogger.api('Submit for scoring error:', error);
       const errorMessage = error instanceof Error ? error.message : 'Unknown error';
       res.setHeader('Content-Type', 'application/json');
       res.status(500).json({
@@ -145,7 +146,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
   // Dashboard API endpoints - fixed in main routes file 
   app.get('/api/dashboard/validation', authenticateToken, asyncHandler(async (req: any, res) => {
-    console.log(`🔧 FIXED: Dashboard validation route accessed`);
+    appLogger.api(`FIXED: Dashboard validation route accessed`);
     
     const founderId = req.user?.founderId;
     
@@ -154,7 +155,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
 
     try {
-      console.log(`🔍 FIXED: Looking for founderId: ${founderId}`);
+      appLogger.api(`FIXED: Looking for founderId: ${founderId}`);
       const dashboardData = await databaseService.getFounderWithLatestVenture(founderId);
 
       if (!dashboardData) {
@@ -196,10 +197,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
       
       validationData.filesUploaded = fileCount.length;
 
-      console.log(`📊 FIXED: Returning validation data for ${founderData?.fullName}, score: ${currentScore}, files: ${fileCount.length}`);
+      appLogger.api(`FIXED: Returning validation data for ${founderData?.fullName}, score: ${currentScore}, files: ${fileCount.length}`);
       res.json(validationData);
     } catch (error) {
-      console.error("FIXED: Dashboard validation error:", error);
+      appLogger.api("FIXED: Dashboard validation error:", error);
       res.status(500).json({ error: "Failed to load validation data" });
     }
   }));
@@ -212,7 +213,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       return res.status(401).json({ error: "Not authenticated" });
     }
 
-    console.log(`🔍 VAULT DEBUG: Processing vault request for founder: ${founderId}`);
+    appLogger.api(`VAULT DEBUG: Processing vault request for founder: ${founderId}`);
 
     try {
       const dashboardData = await databaseService.getFounderWithLatestVenture(founderId);
@@ -249,11 +250,11 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const folderMappings = await db.select().from(proofVault)
         .where(eq(proofVault.ventureId, dashboardData.venture.ventureId));
       
-      console.log(`📊 VAULT DEBUG: Found ${folderMappings.length} folder mappings for venture ${dashboardData.venture.ventureId}`);
+      appLogger.api(`VAULT DEBUG: Found ${folderMappings.length} folder mappings for venture ${dashboardData.venture.ventureId}`);
       
       // DEBUG: Log all folder mappings
       for (const mapping of folderMappings) {
-        console.log(`📂 VAULT DEBUG: Mapping - Parent: ${mapping.parentFolderId}, Sub: ${mapping.subFolderId}, Category: ${mapping.folderName}`);
+        appLogger.api(`VAULT DEBUG: Mapping - Parent: ${mapping.parentFolderId}, Sub: ${mapping.subFolderId}, Category: ${mapping.folderName}`);
       }
 
       // CORRECTED FILE CATEGORIZATION: Database-first approach with proper recursive logic
@@ -269,7 +270,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
           // This is a main category folder
           mainCategoryFolders.add(mapping.subFolderId);
           mainCategoryMapping[mapping.subFolderId] = mapping.folderName;
-          console.log(`📁 VAULT DEBUG: Main category folder identified: ${mapping.subFolderId} → ${mapping.folderName}`);
+          appLogger.api(`VAULT DEBUG: Main category folder identified: ${mapping.subFolderId} → ${mapping.folderName}`);
         }
       }
       
@@ -278,20 +279,20 @@ export async function registerRoutes(app: Express): Promise<Server> {
         let category = 'Overview (default)';
         const folderId = file.folderId || '332886218045';
         
-        console.log(`📄 VAULT DEBUG: Processing file ${file.fileName} in folder ${folderId}`);
+        appLogger.api(`VAULT DEBUG: Processing file ${file.fileName} in folder ${folderId}`);
         
         // CORRECTED RECURSIVE LOGIC: Traverse up folder hierarchy until we reach a main category folder
         const findMainCategory = async (currentFolderId: string, depth = 0): Promise<string> => {
           // Prevent infinite loops
           if (depth > 10) {
-            console.warn(`⚠️ VAULT DEBUG: Maximum recursion depth reached for folder ${currentFolderId}`);
+            appLogger.api(`VAULT DEBUG: Maximum recursion depth reached for folder ${currentFolderId}`);
             return 'Overview (default)';
           }
           
           // Step 1: Check if current folder is already a main category folder
           if (mainCategoryFolders.has(currentFolderId)) {
             const categoryName = mainCategoryMapping[currentFolderId];
-            console.log(`✅ VAULT DEBUG: Found main category folder ${currentFolderId} → ${categoryName} (depth ${depth})`);
+            appLogger.api(`VAULT DEBUG: Found main category folder ${currentFolderId} → ${categoryName} (depth ${depth})`);
             return categoryName;
           }
           
@@ -299,17 +300,17 @@ export async function registerRoutes(app: Express): Promise<Server> {
           const folderRecord = folderMappings.find(mapping => mapping.subFolderId === currentFolderId);
           if (folderRecord && folderRecord.parentFolderId !== currentFolderId) {
             // Continue recursion with parent folder
-            console.log(`🔍 VAULT DEBUG: Folder ${currentFolderId} → parent ${folderRecord.parentFolderId} (depth ${depth})`);
+            appLogger.api(`VAULT DEBUG: Folder ${currentFolderId} → parent ${folderRecord.parentFolderId} (depth ${depth})`);
             return await findMainCategory(folderRecord.parentFolderId, depth + 1);
           } else {
             // No parent mapping found - this might be a main category folder not in our Set
             const directMapping = folderMappings.find(mapping => mapping.subFolderId === currentFolderId);
             if (directMapping && directMapping.folderName.includes('_')) {
-              console.log(`📁 VAULT DEBUG: Direct mapping found: ${currentFolderId} → ${directMapping.folderName}`);
+              appLogger.api(`VAULT DEBUG: Direct mapping found: ${currentFolderId} → ${directMapping.folderName}`);
               return directMapping.folderName;
             }
             
-            console.log(`❓ VAULT DEBUG: No parent found for folder ${currentFolderId}, defaulting to Overview`);
+            appLogger.api(`VAULT DEBUG: No parent found for folder ${currentFolderId}, defaulting to Overview`);
             return 'Overview (default)';
           }
         };
@@ -321,35 +322,35 @@ export async function registerRoutes(app: Express): Promise<Server> {
           case '0_Overview':
           case 'Overview (default)': 
             fileCounts.overview++; 
-            console.log(`📊 VAULT DEBUG: ${file.fileName} → Overview (${fileCounts.overview})`);
+            appLogger.api(`VAULT DEBUG: ${file.fileName} → Overview (${fileCounts.overview})`);
             break;
           case '1_Problem_Proof': 
             fileCounts.problemProof++; 
-            console.log(`📊 VAULT DEBUG: ${file.fileName} → Problem Proofs (${fileCounts.problemProof})`);
+            appLogger.api(`VAULT DEBUG: ${file.fileName} → Problem Proofs (${fileCounts.problemProof})`);
             break;
           case '2_Solution_Proof': 
             fileCounts.solutionProof++; 
-            console.log(`📊 VAULT DEBUG: ${file.fileName} → Solution Proofs (${fileCounts.solutionProof})`);
+            appLogger.api(`VAULT DEBUG: ${file.fileName} → Solution Proofs (${fileCounts.solutionProof})`);
             break;
           case '3_Demand_Proof': 
             fileCounts.demandProof++; 
-            console.log(`📊 VAULT DEBUG: ${file.fileName} → Demand Proofs (${fileCounts.demandProof})`);
+            appLogger.api(`VAULT DEBUG: ${file.fileName} → Demand Proofs (${fileCounts.demandProof})`);
             break;
           case '4_Credibility_Proof': 
             fileCounts.credibilityProof++; 
-            console.log(`📊 VAULT DEBUG: ${file.fileName} → Credibility Proofs (${fileCounts.credibilityProof})`);
+            appLogger.api(`VAULT DEBUG: ${file.fileName} → Credibility Proofs (${fileCounts.credibilityProof})`);
             break;
           case '5_Commercial_Proof': 
             fileCounts.commercialProof++; 
-            console.log(`📊 VAULT DEBUG: ${file.fileName} → Commercial Proofs (${fileCounts.commercialProof})`);
+            appLogger.api(`VAULT DEBUG: ${file.fileName} → Commercial Proofs (${fileCounts.commercialProof})`);
             break;
           case '6_Investor_Pack': 
             fileCounts.investorPack++; 
-            console.log(`📊 VAULT DEBUG: ${file.fileName} → Investor Pack (${fileCounts.investorPack})`);
+            appLogger.api(`VAULT DEBUG: ${file.fileName} → Investor Pack (${fileCounts.investorPack})`);
             break;
           default:
             fileCounts.overview++; 
-            console.log(`📊 VAULT DEBUG: ${file.fileName} → Overview (default case) (${fileCounts.overview})`);
+            appLogger.api(`VAULT DEBUG: ${file.fileName} → Overview (default case) (${fileCounts.overview})`);
             break;
         }
       }
@@ -389,7 +390,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
       res.json(vaultData);
     } catch (error) {
-      console.error("Dashboard vault error:", error);
+      appLogger.api("Dashboard vault error:", error);
       res.status(500).json({ error: "Failed to load vault data" });
     }
   }));
@@ -407,7 +408,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const { userActivity } = await import('@shared/schema');
       const { eq, desc } = await import('drizzle-orm');
 
-      console.log(`🔍 ACTIVITY DEBUG: Looking for activities for founder: ${founderId}`);
+      appLogger.api(`ACTIVITY DEBUG: Looking for activities for founder: ${founderId}`);
 
       // Get real activity data from database
       const activities = await db.select()
@@ -416,9 +417,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
         .orderBy(desc(userActivity.createdAt))
         .limit(10);
 
-      console.log(`📊 ACTIVITY DEBUG: Found ${activities.length} activities in database`);
+      appLogger.api(`ACTIVITY DEBUG: Found ${activities.length} activities in database`);
       if (activities.length > 0) {
-        console.log(`📊 ACTIVITY DEBUG: Sample activity:`, activities[0]);
+        appLogger.api(`ACTIVITY DEBUG: Sample activity:`, activities[0]);
       }
 
       // Format activities for frontend display
@@ -432,10 +433,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
         color: getActivityColor(activity.activityType)
       }));
 
-      console.log(`📤 ACTIVITY DEBUG: Returning ${formattedActivities.length} formatted activities`);
+      appLogger.api(`ACTIVITY DEBUG: Returning ${formattedActivities.length} formatted activities`);
       res.json(formattedActivities);
     } catch (error) {
-      console.error("Dashboard activity error:", error);
+      appLogger.api("Dashboard activity error:", error);
       res.status(500).json({ error: "Failed to load activity data" });
     }
   }));
@@ -482,30 +483,30 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const { createCertificateForSession } = await import('./routes/certificate');
       const { createReportForSession } = await import('./routes/report');
       
-      console.log("🧪 Testing certificate generation for session:", sessionId);
+      appLogger.business("Testing certificate generation for session:", sessionId);
       const certificateResult = await createCertificateForSession(sessionId);
-      console.log("Certificate result:", certificateResult);
+      appLogger.business("Certificate result:", certificateResult);
       
-      console.log("🧪 Testing report generation for session:", sessionId);
+      appLogger.business("Testing report generation for session:", sessionId);
       const reportResult = await createReportForSession(sessionId);
-      console.log("Report result:", reportResult);
+      appLogger.business("Report result:", reportResult);
       
       // Send email notification with fallback logic
       if (certificateResult.success && reportResult.success) {
         const session = await onboardingService.getSession(sessionId);
         const stepData = session?.stepData || {};
         await onboardingService.sendEmailNotification(sessionId, stepData, certificateResult.certificateUrl, reportResult.reportUrl);
-        console.log("✓ Email notification sent with successful generation URLs");
+        appLogger.email("Email notification sent with successful generation URLs");
       } else {
         // Use fallback URLs
-        console.log("Using fallback URLs for email notification");
+        appLogger.email("Using fallback URLs for email notification");
         const fallbackCertificateUrl = `https://app.box.com/s/${sessionId}_certificate`;
         const fallbackReportUrl = `https://app.box.com/s/${sessionId}_report`;
         
         const session = await onboardingService.getSession(sessionId);
         const stepData = session?.stepData || {};
         await onboardingService.sendEmailNotification(sessionId, stepData, fallbackCertificateUrl, fallbackReportUrl);
-        console.log("✓ Email notification sent with fallback URLs");
+        appLogger.email("Email notification sent with fallback URLs");
       }
       
       res.json({ 
@@ -515,7 +516,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         reportResult: reportResult.success ? "success" : "failed"
       });
     } catch (error) {
-      console.error("Email flow test failed:", error);
+      appLogger.email("Email flow test failed:", error);
       res.status(500).json({ success: false, error: error instanceof Error ? error.message : 'Unknown error' });
     }
   }));
@@ -617,7 +618,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       });
 
     } catch (error) {
-      console.error('Error fixing venture URLs:', error);
+      appLogger.business('Error fixing venture URLs:', error);
       res.status(500).json({
         success: false,
         error: error instanceof Error ? error.message : 'Failed to fix venture URLs'
@@ -657,7 +658,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       });
       
     } catch (error) {
-      console.error('Manual email send error:', error);
+      appLogger.email('Manual email send error:', error);
       res.status(500).json({
         success: false,
         error: error instanceof Error ? error.message : 'Unknown error'
@@ -668,7 +669,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Legacy onboarding data storage (kept for compatibility)
   app.post("/api/onboarding/store", asyncHandler(async (req, res) => {
     const founderData = req.body;
-    console.log("Storing onboarding data in session:", founderData);
+    appLogger.business("Storing onboarding data in session:", founderData);
 
     updateSessionData(req, {
       founderData,
@@ -692,7 +693,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       throw new Error("EastEmblem API not configured");
     }
 
-    console.log(`Creating startup vault for: ${startupName}`);
+    appLogger.business(`Creating startup vault for: ${startupName}`);
 
     const folderStructure = await eastEmblemAPI.createFolderStructure(startupName, getSessionId(req));
 
@@ -712,7 +713,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.get("/api/vault/session", asyncHandler(async (req, res) => {
     const sessionData = getSessionData(req);
 
-    console.log("Retrieved session data:", {
+    appLogger.business("Retrieved session data:", {
       sessionId: getSessionId(req),
       hasStructure: !!sessionData.folderStructure,
       filesCount: sessionData.uploadedFiles?.length || 0,
@@ -733,7 +734,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       throw new Error("File is required for upload");
     }
 
-    console.log(`Storing file for later processing: ${file.originalname}`);
+    appLogger.file(`Storing file for later processing: ${file.originalname}`);
 
     updateSessionData(req, {
       uploadedFile: {
@@ -772,14 +773,14 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
 
     const sessionId = getSessionId(req);
-    console.log(`Starting scoring workflow for: ${uploadedFile.originalname}`);
+    appLogger.business(`Starting scoring workflow for: ${uploadedFile.originalname}`);
 
     const overviewFolderId = folderStructure.folders["0_Overview"];
     if (!overviewFolderId) {
       throw new Error("Overview folder not found");
     }
 
-    console.log(`Uploading ${uploadedFile.originalname} to Overview folder: ${overviewFolderId}`);
+    appLogger.file(`Uploading ${uploadedFile.originalname} to Overview folder: ${overviewFolderId}`);
     const fileBuffer = fs.readFileSync(uploadedFile.filepath);
     
     // Upload file to Overview folder and score
@@ -790,7 +791,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       sessionId,
       true
     );
-    console.log("Overview folder upload result:", uploadResult);
+    appLogger.file("Overview folder upload result:", uploadResult);
 
     const pitchDeckScore = await eastEmblemAPI.scorePitchDeck(
       fileBuffer,
@@ -822,14 +823,14 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Test database service endpoint (direct database query - no cache)
   app.get("/api/test/database/:founderId", asyncHandler(async (req, res) => {
     const founderId = req.params.founderId;
-    console.log(`🧪 Testing database service DIRECT QUERY for founderId: ${founderId}`);
+    appLogger.database(`Testing database service DIRECT QUERY for founderId: ${founderId}`);
     
     try {
       // Call the direct database method to bypass all caching
       const data = await databaseService.fetchFounderWithLatestVentureFromDB(founderId);
       
-      console.log(`🧪 Raw data structure:`, JSON.stringify(data, null, 2));
-      console.log(`🧪 Data properties:`, {
+      appLogger.database(`Raw data structure:`, JSON.stringify(data, null, 2));
+      appLogger.database(`Data properties:`, {
         founderExists: !!data?.founder,
         ventureExists: !!data?.venture, 
         evaluationExists: !!data?.latestEvaluation,
@@ -846,7 +847,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         proofscore: data?.latestEvaluation?.proofscore || null
       });
     } catch (error) {
-      console.error("Database test error:", error);
+      appLogger.database("Database test error:", error);
       res.status(500).json({ error: error instanceof Error ? error.message : 'Unknown error' });
     }
   }));
@@ -883,7 +884,7 @@ async function getCategoryFromFolderId(folderId: string, founderId?: string): Pr
       const { getCategoryFromFolderIdDB } = await import('./utils/folder-mapping');
       return await getCategoryFromFolderIdDB(folderId, founderId);
     } catch (error) {
-      console.error('Error getting category from database:', error);
+      appLogger.database('Error getting category from database:', error);
     }
   }
   

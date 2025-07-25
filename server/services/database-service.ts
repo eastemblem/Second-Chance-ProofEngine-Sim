@@ -7,6 +7,7 @@ import {
 import { eq, desc, and, sql } from "drizzle-orm";
 import { cacheService } from "./cache-service";
 import { lruCacheService } from "./lru-cache-service";
+import { appLogger } from "../utils/logger";
 
 /**
  * Centralized Database Service Layer
@@ -93,7 +94,7 @@ export class DatabaseService {
       };
       
     } catch (error) {
-      console.error("Dashboard data query error:", error);
+      appLogger.database("Dashboard data query error:", error);
       throw error;
     }
   }
@@ -111,7 +112,7 @@ export class DatabaseService {
    * Internal method: Fetch founder with venture from database
    */
   async fetchFounderWithLatestVentureFromDB(founderId: string) {
-    console.log(`🔍 Database query - fetchFounderWithLatestVentureFromDB for founderId: ${founderId}`);
+    appLogger.database(`Database query - fetchFounderWithLatestVentureFromDB for founderId: ${founderId}`);
     
     try {
       const result = await db
@@ -151,10 +152,10 @@ export class DatabaseService {
         .orderBy(desc(venture.createdAt), desc(evaluation.evaluationDate))
         .limit(1);
 
-      console.log(`📊 Query result - rows found: ${result.length}`);
+      appLogger.database(`Query result - rows found: ${result.length}`);
       if (result.length > 0) {
         const data = result[0];
-        console.log(`📊 Query result details:`, {
+        appLogger.database(`Query result details:`, {
           hasFounder: !!data.founder?.founderId,
           founderId: data.founder?.founderId,
           founderEmail: data.founder?.email,
@@ -169,11 +170,11 @@ export class DatabaseService {
         return data;
       }
 
-      console.log(`❌ No data found for founderId: ${founderId}`);
+      appLogger.database(`No data found for founderId: ${founderId}`);
       return null;
       
     } catch (error) {
-      console.error(`💥 Database query error in fetchFounderWithLatestVentureFromDB:`, error);
+      appLogger.database(`Database query error in fetchFounderWithLatestVentureFromDB:`, error);
       throw error;
     }
   }
@@ -334,7 +335,7 @@ export class DatabaseService {
         uptime: responseTime
       };
     } catch (error) {
-      console.error("Database health check failed:", error);
+      appLogger.database("Database health check failed:", error);
       return {
         status: 'unhealthy',
         connections: 0,
@@ -353,15 +354,15 @@ export class DatabaseService {
       const duration = Date.now() - startTime;
       
       if (duration > 1000) {
-        console.warn(`Slow query detected - ${queryName}: ${duration}ms`);
+        appLogger.performance(`Slow query detected - ${queryName}: ${duration}ms`);
       } else if (duration > 100) {
-        console.log(`Query timing - ${queryName}: ${duration}ms`);
+        appLogger.performance(`Query timing - ${queryName}: ${duration}ms`);
       }
       
       return result;
     } catch (error) {
       const duration = Date.now() - startTime;
-      console.error(`Query failed - ${queryName}: ${duration}ms`, error);
+      appLogger.database(`Query failed - ${queryName}: ${duration}ms`, error);
       throw error;
     }
   }
@@ -420,7 +421,7 @@ export class DatabaseService {
         timestamp: new Date().toISOString()
       };
     } catch (error) {
-      console.error("Failed to get database stats:", error);
+      appLogger.database("Failed to get database stats:", error);
       return null;
     }
   }

@@ -1,4 +1,5 @@
 import { Request, Response, NextFunction } from "express";
+import { appLogger } from "../utils/logger";
 
 // Performance tracking middleware
 export function performanceTracker(req: Request, res: Response, next: NextFunction) {
@@ -18,7 +19,7 @@ export function performanceTracker(req: Request, res: Response, next: NextFuncti
     const responseTime = endTime - startTime;
     
     // Log performance metrics
-    console.log(`📊 Performance [${req.method} ${req.path}]:`, {
+    appLogger.performance(`Performance [${req.method} ${req.path}]:`, {
       responseTime: `${responseTime}ms`,
       statusCode: res.statusCode,
       memoryDelta: {
@@ -30,7 +31,7 @@ export function performanceTracker(req: Request, res: Response, next: NextFuncti
 
     // Warn on slow requests
     if (responseTime > 1000) {
-      console.warn(`⚠️ Slow request detected: ${req.method} ${req.path} took ${responseTime}ms`);
+      appLogger.performance(`Slow request detected: ${req.method} ${req.path} took ${responseTime}ms`);
     }
 
     // Add performance headers (only if headers haven't been sent)
@@ -56,10 +57,10 @@ export function queryPerformanceTracker() {
       const startTime = queryTimes.get(queryId);
       if (startTime) {
         const duration = Date.now() - startTime;
-        console.log(`🗄️ Query Performance [${queryType}]: ${duration}ms`);
+        appLogger.performance(`Query Performance [${queryType}]: ${duration}ms`);
         
         if (duration > 500) {
-          console.warn(`⚠️ Slow query detected: ${queryType} took ${duration}ms`);
+          appLogger.performance(`Slow query detected: ${queryType} took ${duration}ms`);
         }
         
         queryTimes.delete(queryId);

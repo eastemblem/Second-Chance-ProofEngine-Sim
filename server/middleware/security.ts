@@ -1,5 +1,6 @@
 import { Request, Response, NextFunction } from "express";
 import rateLimit from "express-rate-limit";
+import { appLogger } from "../utils/logger";
 
 // Rate limiting configuration
 export const createRateLimit = (windowMs: number, max: number, message?: string) => {
@@ -15,7 +16,7 @@ export const createRateLimit = (windowMs: number, max: number, message?: string)
     legacyHeaders: false,
     // Trust proxy handled globally in app.set('trust proxy', 1)
     handler: (req, res) => {
-      console.warn(`🚨 Rate limit exceeded: ${req.ip} - ${req.path}`);
+      appLogger.auth(`Rate limit exceeded: ${req.ip} - ${req.path}`);
       res.status(429).json({
         error: message || 'Too many requests from this IP, please try again later.',
         statusCode: 429,

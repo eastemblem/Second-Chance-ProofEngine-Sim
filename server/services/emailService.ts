@@ -1,5 +1,6 @@
 import fs from 'fs/promises';
 import path from 'path';
+import { appLogger } from "../utils/logger";
 
 interface EmailTemplateData {
   [key: string]: any;
@@ -28,7 +29,7 @@ export class EmailService {
       
       return template;
     } catch (error) {
-      console.error(`Error loading email template ${templateName}:`, error);
+      appLogger.email(`Error loading email template ${templateName}:`, error);
       throw new Error(`Failed to load email template: ${templateName}`);
     }
   }
@@ -41,7 +42,7 @@ export class EmailService {
 
     // Debug: Log URL data before processing
     if (data.CERTIFICATE_DOWNLOAD_URL || data.REPORT_DOWNLOAD_URL) {
-      console.log("🔧 Processing template with URLs:", {
+      appLogger.email("Processing template with URLs:", {
         CERTIFICATE_DOWNLOAD_URL: data.CERTIFICATE_DOWNLOAD_URL,
         REPORT_DOWNLOAD_URL: data.REPORT_DOWNLOAD_URL
       });
@@ -57,7 +58,7 @@ export class EmailService {
         
         // Debug: Log URL replacements specifically
         if (key === 'CERTIFICATE_DOWNLOAD_URL' || key === 'REPORT_DOWNLOAD_URL') {
-          console.log(`🔄 Replaced {{${key}}} with: ${value}`);
+          appLogger.email(`Replaced {{${key}}} with: ${value}`);
         }
       }
     });
@@ -130,14 +131,14 @@ export class EmailService {
       if (templateName === 'onboarding') {
         const certMatch = htmlContent.match(/href="([^"]*)" class="download-btn btn-certificate"/);
         const reportMatch = htmlContent.match(/href="([^"]*)" class="download-btn btn-report"/);
-        console.log("🚨 FINAL HTML CONTAINS THESE URLS:");
-        console.log("Certificate URL:", certMatch ? certMatch[1] : 'NOT FOUND');
-        console.log("Report URL:", reportMatch ? reportMatch[1] : 'NOT FOUND');
+        appLogger.email("FINAL HTML CONTAINS THESE URLS:");
+        appLogger.email("Certificate URL:", certMatch ? certMatch[1] : 'NOT FOUND');
+        appLogger.email("Report URL:", reportMatch ? reportMatch[1] : 'NOT FOUND');
         
         // Also check the template data one more time
-        console.log("🚨 TEMPLATE DATA BEING USED:");
-        console.log("CERTIFICATE_DOWNLOAD_URL:", enrichedData.CERTIFICATE_DOWNLOAD_URL);
-        console.log("REPORT_DOWNLOAD_URL:", enrichedData.REPORT_DOWNLOAD_URL);
+        appLogger.email("TEMPLATE DATA BEING USED:");
+        appLogger.email("CERTIFICATE_DOWNLOAD_URL:", enrichedData.CERTIFICATE_DOWNLOAD_URL);
+        appLogger.email("REPORT_DOWNLOAD_URL:", enrichedData.REPORT_DOWNLOAD_URL);
       }
       
       // Call N8N webhook email API using environment variable

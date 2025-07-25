@@ -1,5 +1,6 @@
 import { z } from "zod";
 import { Request, Response, NextFunction } from "express";
+import { appLogger } from "../utils/logger";
 
 // Comprehensive validation schemas for all endpoints
 export const validationSchemas = {
@@ -212,7 +213,7 @@ export function validateRequestComprehensive(schema: {
 
       // Return validation errors if any
       if (errors.length > 0) {
-        console.warn(`🚫 Validation failed for ${req.method} ${req.path}:`, errors);
+        appLogger.api(`Validation failed for ${req.method} ${req.path}:`, errors);
         return res.status(400).json({
           error: "Validation failed",
           statusCode: 400,
@@ -225,7 +226,7 @@ export function validateRequestComprehensive(schema: {
 
       next();
     } catch (error) {
-      console.error(`💥 Validation middleware error:`, error);
+      appLogger.api(`Validation middleware error:`, error);
       res.status(500).json({
         error: "Validation system error",
         statusCode: 500,
@@ -255,7 +256,7 @@ export function sanitizeInputComprehensive(req: Request, res: Response, next: Ne
 
     next();
   } catch (error) {
-    console.error(`💥 Input sanitization error:`, error);
+    appLogger.api(`Input sanitization error:`, error);
     res.status(500).json({
       error: "Input processing error",
       statusCode: 500

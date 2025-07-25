@@ -1,4 +1,5 @@
 import { Request, Response, NextFunction } from "express";
+import { appLogger } from "../utils/logger";
 
 // API versioning middleware
 export function apiVersioning(req: Request, res: Response, next: NextFunction) {
@@ -32,7 +33,7 @@ export function deprecationWarning(deprecatedVersion: string, supportEndDate: st
       res.set('Sunset', supportEndDate);
       res.set('Warning', `299 - "API version ${deprecatedVersion} is deprecated. Support ends ${supportEndDate}"`);
       
-      console.warn(`⚠️ Deprecated API version used: ${deprecatedVersion} for ${req.method} ${req.path}`);
+      appLogger.api(`Deprecated API version used: ${deprecatedVersion} for ${req.method} ${req.path}`);
     }
     
     next();

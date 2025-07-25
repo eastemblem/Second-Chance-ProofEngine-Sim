@@ -1,6 +1,7 @@
 import { Router, Request, Response } from 'express';
 import { asyncHandler } from '../middleware/error';
 import { databaseService } from '../../services/database-service';
+import { appLogger } from '../../utils/logger';
 
 const router = Router();
 
@@ -47,10 +48,10 @@ router.get('/validation', asyncHandler(async (req: Request, res: Response) => {
     
     validationData.filesUploaded = fileCount.length;
 
-    console.log(`📊 FIXED: Returning validation data for ${founderData?.fullName}, score: ${currentScore}, files: ${fileCount.length}`);
+    appLogger.api(`FIXED: Returning validation data for ${founderData?.fullName}, score: ${currentScore}, files: ${fileCount.length}`);
     res.json(validationData);
   } catch (error) {
-    console.error("FIXED: Dashboard validation error:", error);
+    appLogger.api("FIXED: Dashboard validation error:", error);
     res.status(500).json({ error: "Failed to load validation data" });
   }
 }));
