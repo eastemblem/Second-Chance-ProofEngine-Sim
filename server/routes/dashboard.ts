@@ -1,10 +1,11 @@
 import { Router } from "express";
 import { storage } from "../storage";
 import { ActivityService } from "../services/activity-service";
+import { databaseService } from "../services/database-service";
 
 const router = Router();
 
-// Get validation data (ProofScore, ProofTags, etc.)
+// OPTIMIZED: Get validation data (ProofScore, ProofTags, etc.)
 router.get("/validation", async (req, res) => {
   try {
     const founderId = req.session?.founderId;
@@ -13,23 +14,21 @@ router.get("/validation", async (req, res) => {
       return res.status(401).json({ error: "Not authenticated" });
     }
 
-    // Get founder's latest venture and scoring data
-    const founder = await storage.getFounder(founderId);
-    if (!founder) {
+    // OPTIMIZATION: Single query instead of 4 separate database calls
+    const dashboardData = await databaseService.executeWithTiming(
+      'dashboard-validation',
+      () => databaseService.getFounderWithLatestVenture(founderId)
+    );
+
+    if (!dashboardData) {
       return res.status(404).json({ error: "Founder not found" });
     }
 
-    // Get founder's ventures and use the latest one
-    const ventures = await storage.getFounderVentures(founderId);
-    const latestVenture = ventures.length > 0 ? ventures[ventures.length - 1] : null;
-
-    if (!latestVenture) {
+    if (!dashboardData.venture) {
       return res.status(404).json({ error: "No venture found for founder" });
     }
 
-    // Get venture-specific validation data from evaluations
-    const evaluations = await storage.getEvaluationsByVentureId(latestVenture.ventureId);
-    const latestEvaluation = evaluations.length > 0 ? evaluations[0] : null;
+    const latestEvaluation = dashboardData.latestEvaluation;
     
     const validationData = {
       proofScore: latestEvaluation?.proofscore || 0, // Use actual score, no fallback
@@ -37,8 +36,8 @@ router.get("/validation", async (req, res) => {
       totalProofTags: 21,
       filesUploaded: 0,
       status: "Excellent! You're investor-ready. Your data room is now visible to our verified investor network.",
-      ventureId: latestVenture.ventureId,
-      ventureName: latestVenture.name,
+      ventureId: dashboardData.venture.ventureId,
+      ventureName: dashboardData.venture.name,
       // NEW: Rich scoring data available from stored API response
       hasFullApiResponse: !!latestEvaluation?.fullApiResponse,
       dimensionScores: latestEvaluation?.dimensionScores || {},
@@ -56,7 +55,7 @@ router.get("/validation", async (req, res) => {
   }
 });
 
-// Get ProofVault data (file counts, file lists)
+// OPTIMIZED: Get ProofVault data (file counts, file lists)
 router.get("/vault", async (req, res) => {
   try {
     const founderId = req.session?.founderId;
@@ -65,17 +64,17 @@ router.get("/vault", async (req, res) => {
       return res.status(401).json({ error: "Not authenticated" });
     }
 
-    // Get founder's latest venture
-    const ventures = await storage.getFounderVentures(founderId);
-    const latestVenture = ventures.length > 0 ? ventures[ventures.length - 1] : null;
+    // OPTIMIZATION: Single optimized query for all dashboard data
+    const dashboardData = await databaseService.executeWithTiming(
+      'dashboard-vault',
+      () => databaseService.getDashboardData(founderId)
+    );
 
-    if (!latestVenture) {
+    if (!dashboardData || !dashboardData.venture) {
       return res.status(404).json({ error: "No venture found for founder" });
     }
 
-    // Get actual ProofVault records from database
-    const proofVaultRecords = await storage.getProofVaultsByVentureId(latestVenture.ventureId);
-    const documentUploads = await storage.getDocumentUploadsByVentureId(latestVenture.ventureId);
+    const { venture: latestVenture, documentUploads, proofVaultRecords } = dashboardData;
 
     // Count files by folder category
     const folderCounts = {
@@ -392,6 +391,52 @@ router.get("/scoring-insights", async (req, res) => {
   } catch (error) {
     console.error("Error fetching scoring insights:", error);
     res.status(500).json({ error: "Failed to fetch scoring insights" });
+  }
+});
+
+// Database health monitoring endpoint
+router.get("/health", async (req, res) => {
+  try {
+    const health = await databaseService.healthCheck();
+    const stats = await databaseService.getDatabaseStats();
+    
+    res.json({
+      database: health,
+      statistics: stats,
+      timestamp: new Date().toISOString()
+    });
+  } catch (error) {
+    console.error("Health check error:", error);
+    res.status(500).json({ error: "Health check failed" });
+  }
+});
+
+// Performance monitoring endpoint 
+router.get("/performance", async (req, res) => {
+  try {
+    const founderId = req.session?.founderId;
+    
+    if (!founderId) {
+      return res.status(401).json({ error: "Not authenticated" });
+    }
+
+    const startTime = Date.now();
+    
+    // Test optimized dashboard query performance
+    const dashboardData = await databaseService.getDashboardData(founderId);
+    
+    const queryTime = Date.now() - startTime;
+    
+    res.json({
+      queryResponseTime: queryTime,
+      hasOptimizedData: !!dashboardData,
+      connectionHealth: await databaseService.healthCheck(),
+      message: queryTime < 100 ? "Excellent performance" : 
+               queryTime < 500 ? "Good performance" : "Needs optimization"
+    });
+  } catch (error) {
+    console.error("Performance test error:", error);
+    res.status(500).json({ error: "Performance test failed" });
   }
 });
 

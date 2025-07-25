@@ -11,5 +11,32 @@ if (!process.env.DATABASE_URL) {
   );
 }
 
-export const pool = new Pool({ connectionString: process.env.DATABASE_URL });
+// Optimized connection pool configuration for production
+export const pool = new Pool({ 
+  connectionString: process.env.DATABASE_URL,
+  // Production-optimized settings
+  max: 20,           // Maximum connections in pool
+  min: 2,            // Minimum connections to maintain
+  idleTimeoutMillis: 30000,   // Close idle connections after 30s
+  connectionTimeoutMillis: 10000, // Connection timeout: 10s
+  maxUses: 7500,     // Rotate connections after 7500 uses
+  acquireTimeoutMillis: 8000, // Wait max 8s for available connection
+});
+
 export const db = drizzle({ client: pool, schema });
+
+// Connection pool event handlers for monitoring
+pool.on('connect', (client: any) => {
+  console.log('Database connection established:', client.processID);
+});
+
+pool.on('error', (err: Error) => {
+  console.error('Database pool error:', err);
+});
+
+// Graceful shutdown handler
+process.on('SIGINT', async () => {
+  console.log('Shutting down database pool...');
+  await pool.end();
+  process.exit(0);
+});
