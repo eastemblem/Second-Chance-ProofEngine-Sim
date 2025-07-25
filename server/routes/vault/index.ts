@@ -3,6 +3,9 @@ import multer from "multer";
 import path from "path";
 import fs from "fs";
 import { asyncHandler, createSuccessResponse } from "../../utils/error-handler";
+import { fileUploadRateLimit } from "../../middleware/security";
+import { validateRequestComprehensive, validationSchemas } from "../../middleware/comprehensive-validation";
+import { businessLogicService } from "../../services/business-logic-service";
 import { eastEmblemAPI } from "../../eastemblem-api";
 import { getSessionId, getSessionData, updateSessionData } from "../../utils/session-manager";
 import { cleanupUploadedFile } from "../../utils/file-cleanup";
@@ -47,7 +50,14 @@ const vaultUpload = multer({
 });
 
 // Single file upload endpoint - extracted from main routes.ts
-router.post("/upload", vaultUpload.single("file"), asyncHandler(async (req, res) => {
+router.post("/upload", 
+  fileUploadRateLimit,
+  vaultUpload.single("file"),
+  validateRequestComprehensive({ 
+    body: validationSchemas.vault.fileUpload,
+    files: validationSchemas.file.document 
+  }),
+  asyncHandler(async (req, res) => {
   if (!eastEmblemAPI.isConfigured()) {
     return res.status(500).json({ error: "EastEmblem API not configured" });
   }
@@ -62,25 +72,12 @@ router.post("/upload", vaultUpload.single("file"), asyncHandler(async (req, res)
   console.log(`📤 VAULT UPLOAD: Processing file ${req.file.originalname} for category ${category}`);
 
   try {
-    // Get session data for folder structure
-    const sessionData = await getSessionData(sessionId);
-    
-    if (!sessionData?.folderStructure) {
-      throw new Error("Folder structure not found in session");
-    }
-
-    // Map category to folder ID using session data
-    const folderId = getCategoryFolderId(category, sessionData);
-    
-    if (!folderId) {
-      throw new Error(`Invalid category: ${category}`);
-    }
-
-    // Upload file to EastEmblem/Box.com
-    const uploadResult = await eastEmblemAPI.uploadFile(
-      req.file.path,
-      req.file.originalname,
-      folderId
+    // Use business logic service for file upload processing
+    const uploadResult = await businessLogicService.processFileUpload(
+      req.file,
+      category,
+      req.session?.founderId || 'unknown',
+      sessionId
     );
 
     console.log(`✅ VAULT UPLOAD: File uploaded successfully`, uploadResult);

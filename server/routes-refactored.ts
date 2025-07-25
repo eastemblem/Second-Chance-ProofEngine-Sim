@@ -6,7 +6,10 @@ import { createServer, type Server } from "http";
 import { performanceTracker, healthCheck } from "./middleware/performance";
 import { errorHandler, notFoundHandler, timeoutHandler } from "./middleware/error-handling";
 import { apiVersioning, contentNegotiation } from "./middleware/api-versioning";
-import { corsConfig, sanitizeRequest } from "./middleware/security";
+import { corsConfig, fileUploadRateLimit, apiRateLimit } from "./middleware/security";
+import { sanitizeInputComprehensive } from "./middleware/comprehensive-validation";
+import { advancedErrorHandler, correlationMiddleware } from "./middleware/advanced-error-handling";
+import { newRelicMiddleware, trackBusinessMetrics, configureNewRelic } from "./middleware/newrelic-observability";
 
 // Modular route imports
 import dashboardRoutes from "./routes/dashboard";
@@ -24,12 +27,19 @@ import { generateReport } from "./routes/report";
 
 export async function registerRoutes(app: Express): Promise<Server> {
   
+  // Initialize observability
+  configureNewRelic();
+
   // Apply global middleware
   app.use(healthCheck);
+  app.use(correlationMiddleware);
   app.use(corsConfig);
-  app.use(sanitizeRequest);
+  app.use(apiRateLimit); // General API rate limiting
+  app.use(sanitizeInputComprehensive);
   app.use(apiVersioning);
   app.use(contentNegotiation);
+  app.use(newRelicMiddleware);
+  app.use(trackBusinessMetrics);
   app.use(performanceTracker);
   app.use(timeoutHandler(30000));
 
@@ -63,7 +73,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
   // Apply error handling middleware (must be last)
   app.use(notFoundHandler);
-  app.use(errorHandler);
+  app.use(advancedErrorHandler);
 
   console.log("✅ All routes registered successfully with modular architecture");
   

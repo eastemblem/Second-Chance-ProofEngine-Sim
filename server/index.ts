@@ -7,6 +7,7 @@ import { schedulePeriodicCleanup } from "./utils/file-cleanup";
 import path from "path";
 
 const app = express();
+app.set('trust proxy', true); // Enable trust proxy for rate limiting
 app.use(express.json());
 app.use(express.urlencoded({ extended: false }));
 

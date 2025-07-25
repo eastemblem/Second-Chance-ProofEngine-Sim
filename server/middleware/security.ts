@@ -1,20 +1,44 @@
 import { Request, Response, NextFunction } from "express";
-// Note: Install express-rate-limit if rate limiting is needed
-// import rateLimit from "express-rate-limit";
+import rateLimit from "express-rate-limit";
 
-// Rate limiting configuration (placeholder - install express-rate-limit to use)
+// Rate limiting configuration
 export const createRateLimit = (windowMs: number, max: number, message?: string) => {
-  return (req: any, res: any, next: any) => {
-    // Placeholder for rate limiting - install express-rate-limit package
-    console.log(`Rate limit check: ${req.ip} - ${req.path}`);
-    next();
-  };
+  return rateLimit({
+    windowMs,
+    max,
+    message: {
+      error: message || 'Too many requests from this IP, please try again later.',
+      statusCode: 429,
+      retryAfter: Math.ceil(windowMs / 1000)
+    },
+    standardHeaders: true,
+    legacyHeaders: false,
+    handler: (req, res) => {
+      console.warn(`🚨 Rate limit exceeded: ${req.ip} - ${req.path}`);
+      res.status(429).json({
+        error: message || 'Too many requests from this IP, please try again later.',
+        statusCode: 429,
+        retryAfter: Math.ceil(windowMs / 1000),
+        timestamp: new Date().toISOString()
+      });
+    }
+  });
 };
 
 // File upload rate limiting (stricter)
 export const fileUploadRateLimit = createRateLimit(
   15 * 60 * 1000, // 15 minutes
-  10, // 10 requests per window
+  10, // max 10 uploads per 15 minutes
+  'Too many file uploads. Please wait before uploading more files.'
+);
+
+// General API rate limiting
+export const apiRateLimit = createRateLimit(
+  15 * 60 * 1000, // 15 minutes
+  100, // max 100 requests per 15 minutes
+  'Too many API requests. Please wait before making more requests.'
+);
+
   'Too many file uploads, please wait before uploading again.'
 );
 
