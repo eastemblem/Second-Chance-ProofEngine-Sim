@@ -5,65 +5,119 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Verify Your Email - Second Chance</title>
     <style>
-        * { margin: 0; padding: 0; box-sizing: border-box; }
-        body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; line-height: 1.6; background-color: #0A0A0B; color: #FFFFFF; }
-        .container { max-width: 600px; margin: 0 auto; background-color: #0A0A0B; border-radius: 12px; overflow: hidden; }
-        .header { background: #1A1A1B; padding: 30px 40px; text-align: center; border-radius: 12px 12px 0 0; }
-        .logo { font-size: 28px; font-weight: bold; color: #FFFFFF; text-decoration: none; }
-        .content { padding: 40px; background-color: #1A1A1B; }
-        .title { font-size: 24px; font-weight: bold; margin-bottom: 20px; color: #FFFFFF; }
-        .text { font-size: 16px; color: #D1D5DB; margin-bottom: 20px; }
+        body { 
+            margin: 0; 
+            padding: 0; 
+            font-family: Arial, sans-serif; 
+            line-height: 1.6; 
+            background-color: #f8f9fa;
+        }
+        .email-container { 
+            max-width: 600px; 
+            margin: 0 auto; 
+            background-color: #ffffff; 
+            border: 1px solid #e5e7eb;
+        }
+        .header { 
+            background-color: #8B5CF6; 
+            padding: 30px 20px; 
+            text-align: center; 
+        }
+        .logo-img { 
+            max-width: 120px; 
+            height: auto; 
+            margin-bottom: 10px; 
+        }
+        .header-title { 
+            color: #ffffff; 
+            font-size: 24px; 
+            font-weight: bold; 
+            margin: 0; 
+        }
+        .content { 
+            padding: 40px 30px; 
+            background-color: #ffffff; 
+        }
+        .title { 
+            font-size: 28px; 
+            font-weight: bold; 
+            margin-bottom: 20px; 
+            color: #1f2937; 
+            text-align: center;
+        }
+        .text { 
+            font-size: 16px; 
+            color: #4b5563; 
+            margin-bottom: 20px; 
+            line-height: 1.6;
+        }
+        .cta-section {
+            text-align: center;
+            margin: 30px 0;
+        }
         .cta-button { 
             display: inline-block; 
-            background: linear-gradient(135deg, #8B5CF6 0%, #D97706 100%); 
-            color: #FFFFFF; 
+            background-color: #8B5CF6; 
+            color: #ffffff; 
             text-decoration: none; 
-            padding: 15px 30px; 
-            border-radius: 8px; 
+            padding: 16px 32px; 
+            border-radius: 6px; 
             font-weight: bold; 
             font-size: 16px; 
+        }
+        .url-text {
+            font-size: 14px;
+            color: #8B5CF6;
+            word-break: break-all;
             margin: 20px 0;
-            transition: all 0.3s ease;
-            box-shadow: 0 4px 15px rgba(139, 92, 246, 0.3);
+            padding: 15px;
+            background-color: #f3f4f6;
+            border-left: 4px solid #8B5CF6;
         }
-        .cta-button:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 6px 20px rgba(139, 92, 246, 0.4);
+        .footer { 
+            background-color: #f9fafb; 
+            padding: 30px 20px; 
+            text-align: center; 
+            border-top: 1px solid #e5e7eb; 
         }
-        .footer { background-color: #1A1A1B; padding: 30px 40px; text-align: center; border-top: 1px solid #374151; border-radius: 0 0 12px 12px; }
-        .footer-links { margin-bottom: 15px; }
-        .footer-link { color: #8B5CF6; text-decoration: none; margin: 0 15px; font-size: 14px; transition: color 0.3s ease; }
-        .footer-link:hover { color: #A78BFA; }
-        .footer-text { color: #9CA3AF; font-size: 12px; }
-        @media (max-width: 600px) {
-            .header, .content, .footer { padding: 20px; }
-            .title { font-size: 20px; }
-            .text { font-size: 14px; }
+        .footer-links { 
+            margin-bottom: 15px; 
+        }
+        .footer-link { 
+            color: #8B5CF6; 
+            text-decoration: none; 
+            margin: 0 15px; 
+            font-size: 14px; 
+        }
+        .footer-text { 
+            color: #6b7280; 
+            font-size: 12px; 
+            margin: 5px 0;
         }
     </style>
 </head>
 <body>
-    <div class="container">
+    <div class="email-container">
         <!-- Header -->
         <div class="header">
-            <div style="margin-bottom: 20px;">
-                <img src="{{LOGO_URL}}" alt="Second Chance Logo" style="max-width: 180px; height: auto;">
-            </div>
-            <a href="{{HOST_URL}}" class="logo">Second Chance</a>
+            <img src="{{LOGO_URL}}" alt="Second Chance Logo" class="logo-img">
+            <h1 class="header-title">Second Chance</h1>
         </div>
 
         <!-- Content -->
         <div class="content">
-            <h1 class="title">Verify Your Email Address</h1>
-            <p class="text">Hello {{USER_NAME}},</p>
-            <p class="text">Welcome to Second Chance! To complete your registration and start your ProofScaling journey, please verify your email address by clicking the button below.</p>
+            <h1 class="title">🔐 Verify Your Email</h1>
+            <p class="text">Hello <strong>{{USER_NAME}}</strong>,</p>
+            <p class="text">Welcome to Second Chance! To complete your registration and start your ProofScaling journey, please verify your email address.</p>
             
-            <a href="{{VERIFICATION_URL}}" class="cta-button">Verify Email Address</a>
+            <div class="cta-section">
+                <a href="{{VERIFICATION_URL}}" class="cta-button">Verify Email Address</a>
+            </div>
             
-            <p class="text">If the button doesn't work, you can copy and paste this link into your browser:</p>
-            <p class="text" style="word-break: break-all; color: #8B5CF6;">{{VERIFICATION_URL}}</p>
+            <p class="text">If the button doesn't work, copy and paste this link into your browser:</p>
+            <div class="url-text">{{VERIFICATION_URL}}</div>
             
-            <p class="text">This verification link will expire in 24 hours for security reasons.</p>
+            <p class="text"><strong>Important:</strong> This verification link will expire in 24 hours for security reasons.</p>
             <p class="text">If you didn't create an account with Second Chance, you can safely ignore this email.</p>
         </div>
 
@@ -73,7 +127,7 @@
                 <a href="{{PRIVACY_URL}}" class="footer-link">Privacy Policy</a>
                 <a href="{{TERMS_URL}}" class="footer-link">Terms & Conditions</a>
             </div>
-            <p class="footer-text">© {{CURRENT_YEAR}} Second Chance - ProofScaling Platform. All rights reserved.</p>
+            <p class="footer-text">© {{CURRENT_YEAR}} Second Chance - ProofScaling Platform</p>
             <p class="footer-text">East Emblem Technologies, Masdar City Free Zone, UAE</p>
         </div>
     </div>
