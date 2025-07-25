@@ -8,6 +8,7 @@ import { founderOnboardingSchema, ventureOnboardingSchema, teamMemberSchema } fr
 import multer from "multer";
 import path from "path";
 import fs from "fs";
+import { appLogger } from "../utils/logger";
 
 const router = Router();
 
@@ -97,8 +98,8 @@ router.post("/venture", asyncHandler(async (req, res) => {
   // Use sessionId from request body if provided, otherwise get from middleware
   const { sessionId: requestSessionId, ...ventureData } = req.body;
   const sessionId = requestSessionId || getSessionId(req);
-  console.log(`Venture API received sessionId: ${sessionId} (from request: ${requestSessionId})`);
-  console.log(`Venture data received:`, JSON.stringify(ventureData, null, 2));
+  appLogger.business(`Venture API received sessionId: ${sessionId} (from request: ${requestSessionId})`);
+  appLogger.business(`Venture data received:`, JSON.stringify(ventureData, null, 2));
   
   const validation = safeValidate(ventureOnboardingSchema, ventureData);
   if (!validation.success) {
@@ -119,7 +120,7 @@ router.post("/upload", upload.single("pitchDeck"), asyncHandler(async (req, res)
   // Get sessionId from body (sent by frontend) or fallback to session middleware
   const sessionId = req.body.sessionId || getSessionId(req);
   
-  console.log('Upload request received:', { 
+  appLogger.business('Upload request received:', { 
     sessionId, 
     hasFile: !!req.file, 
     fileName: req.file?.originalname,
@@ -235,11 +236,11 @@ router.post("/team/complete", asyncHandler(async (req, res) => {
 // Submit for scoring
 router.post("/submit-for-scoring", requireFields(['sessionId']), asyncHandler(async (req, res) => {
   const { sessionId } = req.body;
-  console.log('Submit for scoring request:', { sessionId });
+  appLogger.business('Submit for scoring request:', { sessionId });
   
   try {
     const result = await onboardingService.submitForScoring(sessionId);
-    console.log('Submit for scoring result:', result);
+    appLogger.business('Submit for scoring result:', result);
 
     const response = createSuccessResponse({
       session: {
@@ -251,13 +252,13 @@ router.post("/submit-for-scoring", requireFields(['sessionId']), asyncHandler(as
       ...result
     });
     
-    console.log('Sending JSON response:', JSON.stringify(response, null, 2));
+    appLogger.business('Sending JSON response:', JSON.stringify(response, null, 2));
     
     // Ensure proper JSON content type
     res.setHeader('Content-Type', 'application/json');
     res.json(response);
   } catch (error) {
-    console.error('Submit for scoring error:', error);
+    appLogger.business('Submit for scoring error:', error);
     res.setHeader('Content-Type', 'application/json');
     res.status(500).json({
       success: false,
@@ -311,7 +312,7 @@ router.post("/retry-analysis", asyncHandler(async (req, res) => {
     throw new Error("Session is not complete yet");
   }
 
-  console.log(`🔄 Retrying analysis for session: ${sessionId}`);
+  appLogger.business(`🔄 Retrying analysis for session: ${sessionId}`);
   
   // Get the uploaded file data
   const uploadData = session.stepData?.upload;

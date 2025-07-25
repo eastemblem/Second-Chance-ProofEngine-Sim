@@ -1,5 +1,6 @@
 import { Router } from "express";
 import { lruCacheService } from "../services/lru-cache-service";
+import { appLogger } from "../utils/logger";
 
 const router = Router();
 
@@ -17,7 +18,7 @@ router.get("/lru-stats", async (req, res) => {
       timestamp: new Date().toISOString()
     });
   } catch (error) {
-    console.error("LRU stats error:", error);
+    appLogger.business("LRU stats error:", error);
     res.status(500).json({ error: "Failed to get LRU cache stats" });
   }
 });
@@ -49,7 +50,7 @@ router.get("/lru-test", async (req, res) => {
       message: `LRU get operation: ${getTime}ms (expected: <1ms for memory access)`
     });
   } catch (error) {
-    console.error("LRU test error:", error);
+    appLogger.business("LRU test error:", error);
     res.status(500).json({ error: "LRU cache test failed" });
   }
 });

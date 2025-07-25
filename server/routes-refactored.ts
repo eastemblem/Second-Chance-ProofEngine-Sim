@@ -83,6 +83,127 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Serve React frontend from build directory temporarily
   app.use(express.static(path.join(process.cwd(), 'dist/public')));
   
+  // Special handling for reset password route to bypass client routing issues
+  app.get('/reset-password', (req, res) => {
+    const token = req.query.token as string;
+    const html = `
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Reset Password - Second Chance</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <style>
+    .gradient-text { 
+      background: linear-gradient(135deg, #8B5CF6 0%, #F59E0B 100%); 
+      -webkit-background-clip: text; 
+      -webkit-text-fill-color: transparent; 
+    }
+    .gradient-button { 
+      background: linear-gradient(135deg, #8B5CF6 0%, #F59E0B 100%); 
+    }
+    .gradient-button:hover { opacity: 0.9; }
+  </style>
+</head>
+<body class="min-h-screen flex items-center justify-center bg-gradient-to-br from-gray-50 to-gray-100">
+  <div class="w-full max-w-md px-4">
+    <div class="bg-white rounded-lg shadow-xl border p-6">
+      <div class="text-center mb-6">
+        <h1 class="text-2xl font-bold gradient-text">Reset Your Password</h1>
+        <p class="text-gray-600 mt-2">Enter a new secure password for your account</p>
+      </div>
+      
+      ${!token ? `
+        <div class="text-center p-4 bg-red-50 border border-red-200 rounded-lg">
+          <div class="text-red-600 text-sm">❌ Invalid reset link - no token found</div>
+          <a href="/forgot-password" class="inline-block mt-3 text-blue-600 hover:underline">Request new reset link</a>
+        </div>
+      ` : `
+        <form id="reset-form" class="space-y-4">
+          <div>
+            <label class="block text-sm font-medium text-gray-700 mb-1">New Password</label>
+            <input 
+              id="password" 
+              type="password" 
+              required 
+              class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-purple-500" 
+              placeholder="Enter your new password"
+              minlength="8"
+            />
+            <div class="text-xs text-gray-500 mt-1">Must be at least 8 characters</div>
+          </div>
+          <div>
+            <label class="block text-sm font-medium text-gray-700 mb-1">Confirm New Password</label>
+            <input 
+              id="confirmPassword" 
+              type="password" 
+              required 
+              class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-purple-500" 
+              placeholder="Confirm your new password" 
+            />
+          </div>
+          <button 
+            type="submit" 
+            class="w-full gradient-button text-white py-2 px-4 rounded-md transition-opacity"
+          >
+            Reset Password
+          </button>
+        </form>
+      `}
+      
+      <div id="message" class="mt-4 text-center text-sm"></div>
+    </div>
+  </div>
+  
+  <script>
+    const token = '${token || ''}';
+    
+    if (token) {
+      document.getElementById('reset-form').addEventListener('submit', async (e) => {
+        e.preventDefault();
+        const password = document.getElementById('password').value;
+        const confirmPassword = document.getElementById('confirmPassword').value;
+        const messageDiv = document.getElementById('message');
+        
+        if (password !== confirmPassword) {
+          messageDiv.innerHTML = '<div class="text-red-600">❌ Passwords do not match</div>';
+          return;
+        }
+        
+        if (password.length < 8) {
+          messageDiv.innerHTML = '<div class="text-red-600">❌ Password must be at least 8 characters</div>';
+          return;
+        }
+        
+        try {
+          messageDiv.innerHTML = '<div class="text-blue-600">🔄 Resetting password...</div>';
+          
+          const response = await fetch(\`/api/auth/reset-password/\${token}\`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ password })
+          });
+          
+          const data = await response.json();
+          
+          if (response.ok) {
+            messageDiv.innerHTML = '<div class="text-green-600">✅ Password reset successfully! Redirecting to login...</div>';
+            setTimeout(() => { window.location.href = '/login'; }, 2000);
+          } else {
+            messageDiv.innerHTML = \`<div class="text-red-600">❌ \${data.error || 'Failed to reset password'}</div>\`;
+          }
+        } catch (error) {
+          messageDiv.innerHTML = '<div class="text-red-600">❌ Network error. Please try again.</div>';
+        }
+      });
+    }
+  </script>
+</body>
+</html>`;
+    res.send(html);
+  });
+
   // Fallback to serve index.html for SPA routing
   app.get('*', (req, res, next) => {
     // Skip API routes

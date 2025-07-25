@@ -1,6 +1,7 @@
 import { Request, Response } from 'express';
 import { storage } from '../storage';
 import { randomUUID } from 'crypto';
+import { appLogger } from '../utils/logger';
 
 // Function to map scoring response to report format
 function mapScoringToReportData(scoringResult: any, sessionId: string, folderStructure: any): any {
@@ -163,7 +164,7 @@ export async function createReportForSession(sessionId: string) {
               updatedAt: new Date()
             })
             .where(eq(venture.ventureId, ventureId));
-          console.log("✓ Venture table updated with existing report URL");
+          appLogger.business("✓ Venture table updated with existing report URL");
           
           // Try to create document_upload record (ignore if already exists)
           try {
@@ -184,14 +185,14 @@ export async function createReportForSession(sessionId: string) {
               eastemblemFileId: null, // Will be populated when we have the actual ID
               uploadedBy: 'system'
             });
-            console.log("✓ Report document_upload record created");
+            appLogger.business("✓ Report document_upload record created");
           } catch (docError) {
             // Document record might already exist, that's ok
-            console.log("Report document record might already exist:", docError);
+            appLogger.business("Report document record might already exist:", docError);
           }
         }
       } catch (error) {
-        console.error("Failed to update database with existing report:", error);
+        appLogger.business("Failed to update database with existing report:", error);
       }
       
       return {
@@ -212,7 +213,7 @@ export async function createReportForSession(sessionId: string) {
     // Map scoring response to report format
     const reportData = mapScoringToReportData(scoringResult, sessionId, folderStructure);
 
-    console.log('Mapped report data structure:', JSON.stringify(reportData, null, 2));
+    appLogger.business('Mapped report data structure:', JSON.stringify(reportData, null, 2));
 
     // Generate report using EastEmblem API
     const { eastEmblemAPI } = await import('../eastemblem-api');
@@ -260,7 +261,7 @@ export async function createReportForSession(sessionId: string) {
           eastemblemFileId: reportResult.id,
           uploadedBy: 'system'
         });
-        console.log("✓ Report document_upload record created");
+        appLogger.business("✓ Report document_upload record created");
         
         // Update venture table with report URL
         const { venture } = await import('@shared/schema');
@@ -272,10 +273,10 @@ export async function createReportForSession(sessionId: string) {
             updatedAt: new Date()
           })
           .where(eq(venture.ventureId, ventureId));
-        console.log("✓ Venture table updated with report URL");
+        appLogger.business("✓ Venture table updated with report URL");
       }
     } catch (error) {
-      console.error("Failed to create report document record:", error);
+      appLogger.business("Failed to create report document record:", error);
       // Don't fail the entire process
     }
 
@@ -288,7 +289,7 @@ export async function createReportForSession(sessionId: string) {
     };
 
   } catch (error) {
-    console.error('Report creation error:', error);
+    appLogger.business('Report creation error:', error);
     return {
       success: false,
       error: error instanceof Error ? error.message : 'Unknown error'
@@ -328,7 +329,7 @@ export async function generateReport(req: Request, res: Response) {
     }
 
   } catch (error) {
-    console.error('Report generation error:', error);
+    appLogger.business('Report generation error:', error);
     return res.status(500).json({
       success: false,
       error: error instanceof Error ? error.message : 'Internal server error'

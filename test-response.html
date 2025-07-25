@@ -1,0 +1,91 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1" />
+    <!-- Critical resource optimization -->
+    <link rel="preload" href="/src/assets/second_chance_logo_1750269371846.png" as="image" fetchpriority="high">
+    <link rel="modulepreload" href="data:application/octet-stream;base64,aW1wb3J0IHsgY3JlYXRlUm9vdCB9IGZyb20gInJlYWN0LWRvbS9jbGllbnQiOwppbXBvcnQgQXBwIGZyb20gIi4vQXBwIjsKaW1wb3J0ICIuL2luZGV4LmNzcyI7CgovLyBNaW5pbWFsIGluaXRpYWxpemF0aW9uIHRvIHByZXZlbnQgYmxvY2tpbmcgcmVuZGVyCmNvbnN0IHJvb3QgPSBkb2N1bWVudC5nZXRFbGVtZW50QnlJZCgicm9vdCIpOwoKaWYgKCFyb290KSB7CiAgdGhyb3cgbmV3IEVycm9yKCJSb290IGVsZW1lbnQgbm90IGZvdW5kIik7Cn0KCi8vIEltbWVkaWF0ZSByZW5kZXIgd2l0aCBubyBibG9ja2luZyBvcGVyYXRpb25zCmNyZWF0ZVJvb3Qocm9vdCkucmVuZGVyKDxBcHAgLz4pOwoKLy8gTWFyayBhcyBsb2FkZWQgYW5kIGluaXRpYWxpemUgb3B0aW1pemF0aW9ucwpkb2N1bWVudC5ib2R5LmNsYXNzTGlzdC5hZGQoJ2xvYWRlZCcpOwoKLy8gT3B0aW1pemF0aW9uIGxvYWRpbmcgZGlzYWJsZWQgdG8gcHJldmVudCBwYWludCBpbnRlcmZlcmVuY2UKLy8gUGVyZm9ybWFuY2UgbW9uaXRvcmluZyB3YXMgY2F1c2luZyBoaWdoIExDUCB0aW1lcyAoMzQrIHNlY29uZHMpCi8vIFJlLWVuYWJsZSBhZnRlciBpbnZlc3RpZ2F0aW5nIHBhaW50IGlzc3VlIHJlc29sdXRpb24K">
+    <link rel="modulepreload" href="/assets/App-zWnwDYR5.tsx">
+    <link rel="dns-prefetch" href="//api.eastemblem.com">
+    
+    <!-- Use system fonts only for faster rendering -->
+    
+    <!-- Essential favicon only -->
+    <link rel="icon" type="image/x-icon" href="/favicon.ico">
+    <link rel="apple-touch-icon" sizes="180x180" href="/apple-icon-180x180.png">
+    
+    <!-- Theme Colors -->
+    <meta name="theme-color" content="#8B5CF6">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <title>Second Chance - ProofScaling Platform</title>
+    <style>
+      /* Critical inline styles to prevent white screen flash and improve LCP */
+      html, body, #root {
+        margin: 0;
+        padding: 0;
+        background-color: hsl(240 10% 6%) !important;
+        color: hsl(0 0% 98%) !important;
+        min-height: 100vh;
+        font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+        font-display: swap;
+      }
+      
+      /* Critical hero text styles for immediate rendering */
+      .hero-text {
+        font-size: clamp(2.5rem, 8vw, 4rem);
+        font-weight: 900;
+        line-height: 1.1;
+        margin-bottom: 1.5rem;
+        contain: layout style paint;
+      }
+      
+      .gradient-text {
+        background: linear-gradient(135deg, hsl(263 70% 64%) 0%, hsl(32 98% 56%) 100%);
+        background-clip: text;
+        -webkit-background-clip: text;
+        color: transparent;
+        -webkit-text-fill-color: transparent;
+        will-change: transform;
+      }
+      
+      /* Optimize logo container */
+      .logo-container {
+        contain: layout style paint;
+        transform: translateZ(0);
+      }
+      
+      /* Reduce favicon load impact */
+      @font-face {
+        font-family: 'system-ui';
+        font-display: swap;
+      }
+      
+      /* Prevent layout shift */
+      img[width][height] {
+        height: auto;
+      }
+      
+      /* Hide initial loader - React loads fast enough without it */
+      .initial-loader {
+        display: none !important;
+      }
+    </style>
+    <script type="module" crossorigin src="/assets/index-CbB5ATkR.js"></script>
+    <link rel="stylesheet" crossorigin href="/assets/index-Y-lRjq7R.css">
+  </head>
+  <body>
+    <div id="root"></div>
+    <script>
+      // Hide initial loader once React loads
+      window.addEventListener('load', () => {
+        setTimeout(() => {
+          document.body.classList.add('loaded');
+        }, 100);
+      });
+    </script>
+    <!-- This is a replit script which adds a banner on the top of the page when opened in development mode outside the replit environment -->
+    <script type="text/javascript" src="https://replit.com/public/js/replit-dev-banner.js"></script>
+  </body>
+</html>

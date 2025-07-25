@@ -32,6 +32,7 @@ const TokenExpiredPage = lazy(() => import("@/pages/token-expired"));
 const PerformanceTest = lazy(() => import("@/pages/performance-test"));
 const SentryTest = lazy(() => import("@/pages/sentry-test"));
 const RoutingDebug = lazy(() => import("@/pages/routing-debug"));
+const SimpleResetPassword = lazy(() => import("@/pages/simple-reset-password"));
 
 // Disable preloading to reduce initial bundle size and blocking
 const preloadComponents = () => {
@@ -179,7 +180,12 @@ function Router() {
           <ForgotPasswordPage />
         </Suspense>
       )} />
-      <Route path="/reset-password/:token?" component={() => (
+      <Route path="/reset-password" component={() => (
+        <Suspense fallback={<SimpleLoader />}>
+          <ResetPasswordPage />
+        </Suspense>
+      )} />
+      <Route path="/reset-password/:token" component={() => (
         <Suspense fallback={<SimpleLoader />}>
           <ResetPasswordPage />
         </Suspense>

@@ -1,6 +1,7 @@
 import { Request, Response } from "express";
 import { storage } from "../storage";
 import { z } from "zod";
+import { appLogger } from "../utils/logger";
 
 // Remove mock data - only use real leaderboard data
 
@@ -88,7 +89,7 @@ export async function getLeaderboard(req: Request, res: Response) {
       mockEntries: finalData.length - formattedRealData.length
     });
   } catch (error) {
-    console.error("Error fetching leaderboard:", error);
+    appLogger.business("Error fetching leaderboard:", error);
     res.status(500).json({
       success: false,
       error: "Failed to fetch leaderboard"
@@ -133,7 +134,7 @@ export async function createLeaderboardEntry(req: Request, res: Response) {
       data: entry
     });
   } catch (error) {
-    console.error("Error creating leaderboard entry:", error);
+    appLogger.business("Error creating leaderboard entry:", error);
     res.status(500).json({
       success: false,
       error: "Failed to create leaderboard entry"

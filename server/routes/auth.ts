@@ -13,6 +13,7 @@ import {
   isTokenExpired 
 } from '../utils/auth';
 import { emailService } from '../services/emailService';
+import { appLogger } from '../utils/logger';
 
 const router = express.Router();
 
@@ -69,7 +70,7 @@ router.get('/verify-email/:token?', async (req: Request, res: Response) => {
     // Redirect to set password page with success message
     res.redirect(`/set-password?verified=true&email=${encodeURIComponent(founderRecord.email)}`);
   } catch (error) {
-    console.error('Email verification error:', error);
+    appLogger.auth('Email verification error:', { error: error instanceof Error ? error.message : String(error), token: req.params.token || req.query.token });
     res.status(500).json({ error: 'Email verification failed' });
   }
 });
@@ -119,7 +120,7 @@ router.post('/set-password', async (req: Request, res: Response) => {
 
     res.json({ success: true, message: 'Password set successfully' });
   } catch (error) {
-    console.error('Set password error:', error);
+    appLogger.auth('Set password error:', { error: error instanceof Error ? error.message : String(error), email: req.body.email });
     if (error instanceof z.ZodError) {
       return res.status(400).json({ error: 'Invalid input', details: error.errors });
     }
@@ -187,7 +188,7 @@ router.post('/login', async (req: Request, res: Response) => {
       }
     });
   } catch (error) {
-    console.error('Login error:', error);
+    appLogger.auth('Login error:', { error: error instanceof Error ? error.message : String(error), email: req.body.email });
     if (error instanceof z.ZodError) {
       return res.status(400).json({ error: 'Invalid input', details: error.errors });
     }
@@ -199,7 +200,7 @@ router.post('/login', async (req: Request, res: Response) => {
 router.post('/logout', (req: Request, res: Response) => {
   req.session.destroy((err) => {
     if (err) {
-      console.error('Logout error:', err);
+      appLogger.auth('Logout error:', { error: err instanceof Error ? err.message : String(err), sessionId: req.sessionID });
       return res.status(500).json({ error: 'Logout failed' });
     }
     res.json({ success: true, message: 'Logout successful' });
@@ -235,7 +236,7 @@ router.get('/me', async (req: Request, res: Response) => {
       totalVentures: ventures.length
     });
   } catch (error) {
-    console.error('Get user data error:', error);
+    appLogger.auth('Get user data error:', { error: error instanceof Error ? error.message : String(error), founderId: req.session.founderId });
     res.status(500).json({ error: 'Failed to retrieve user data' });
   }
 });
@@ -284,9 +285,9 @@ router.post('/forgot-password', async (req: Request, res: Response) => {
         founderRecord.fullName,
         resetToken
       );
-      console.log(`Password reset email sent to ${founderRecord.email}`);
+      appLogger.email(`Password reset email sent to ${founderRecord.email}`, { email: founderRecord.email });
     } catch (emailError) {
-      console.error('Failed to send password reset email:', emailError);
+      appLogger.email('Failed to send password reset email:', { error: emailError instanceof Error ? emailError.message : String(emailError), email: founderRecord.email });
       // Continue without failing the request - user won't know email failed
     }
 
@@ -295,7 +296,7 @@ router.post('/forgot-password', async (req: Request, res: Response) => {
       message: 'If an account with this email exists, you will receive a password reset link shortly.' 
     });
   } catch (error) {
-    console.error('Forgot password error:', error);
+    appLogger.auth('Forgot password error:', { error: error instanceof Error ? error.message : String(error), email: req.body.email });
     if (error instanceof z.ZodError) {
       return res.status(400).json({ error: 'Invalid email format', details: error.errors });
     }
@@ -331,7 +332,7 @@ router.get('/reset-password/:token', async (req: Request, res: Response) => {
     // Redirect to reset password page
     res.redirect(`/reset-password/${token}`);
   } catch (error) {
-    console.error('Reset password GET error:', error);
+    appLogger.auth('Reset password GET error:', { error: error instanceof Error ? error.message : String(error), token: req.params.token });
     res.redirect('/forgot-password?error=invalid');
   }
 });
@@ -385,7 +386,7 @@ router.post('/reset-password/:token', async (req: Request, res: Response) => {
       message: 'Password reset successfully' 
     });
   } catch (error) {
-    console.error('Reset password POST error:', error);
+    appLogger.auth('Reset password POST error:', { error: error instanceof Error ? error.message : String(error), token: req.params.token });
     if (error instanceof z.ZodError) {
       return res.status(400).json({ error: 'Invalid input', details: error.errors });
     }

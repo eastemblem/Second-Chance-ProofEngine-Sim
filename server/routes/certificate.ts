@@ -1,6 +1,7 @@
 import { Request, Response } from 'express';
 import { storage } from '../storage';
 import { randomUUID } from 'crypto';
+import { appLogger } from '../utils/logger';
 
 // Standalone function for certificate generation (no HTTP context needed)
 export async function createCertificateForSession(sessionId: string) {
@@ -40,7 +41,7 @@ export async function createCertificateForSession(sessionId: string) {
               updatedAt: new Date()
             })
             .where(eq(venture.ventureId, ventureId));
-          console.log("✓ Venture table updated with existing certificate URL");
+          appLogger.business("✓ Venture table updated with existing certificate URL");
           
           // Try to create document_upload record (ignore if already exists)
           try {
@@ -55,14 +56,14 @@ export async function createCertificateForSession(sessionId: string) {
               processingStatus: 'completed',
               sharedUrl: existingUrl
             });
-            console.log("✓ Certificate document_upload record created");
+            appLogger.business("✓ Certificate document_upload record created", { ventureId, fileName: 'validation_certificate.pdf' });
           } catch (docError) {
             // Document record might already exist, that's ok
-            console.log("Certificate document record might already exist");
+            appLogger.business("Certificate document record might already exist", { ventureId });
           }
         }
       } catch (error) {
-        console.error("Failed to update database with existing certificate:", error);
+        appLogger.business("Failed to update database with existing certificate:", error);
       }
       
       return {
@@ -144,7 +145,7 @@ export async function createCertificateForSession(sessionId: string) {
           folderId: certificateResult.folderId || overviewFolderId, // Use folder ID from API or session
           eastemblemFileId: certificateResult.id
         });
-        console.log("✓ Certificate document_upload record created");
+        appLogger.business("✓ Certificate document_upload record created");
         
         // Update venture table with certificate URL
         const { venture } = await import('@shared/schema');
@@ -156,10 +157,10 @@ export async function createCertificateForSession(sessionId: string) {
             updatedAt: new Date()
           })
           .where(eq(venture.ventureId, ventureId));
-        console.log("✓ Venture table updated with certificate URL");
+        appLogger.business("✓ Venture table updated with certificate URL");
       }
     } catch (error) {
-      console.error("Failed to create certificate document record:", error);
+      appLogger.business("Failed to create certificate document record:", error);
       // Don't fail the entire process
     }
 
@@ -172,7 +173,7 @@ export async function createCertificateForSession(sessionId: string) {
     };
 
   } catch (error) {
-    console.error('Certificate creation error:', error);
+    appLogger.business('Certificate creation error:', error);
     return {
       success: false,
       error: error instanceof Error ? error.message : 'Unknown error'
@@ -194,7 +195,7 @@ export async function generateCertificate(req: Request, res: Response) {
       });
     }
 
-    console.log(`Certificate request for identifier: ${identifier}`);
+    appLogger.business(`Certificate request for identifier: ${identifier}`);
     
     let venture = null;
     let session = null;
@@ -208,7 +209,7 @@ export async function generateCertificate(req: Request, res: Response) {
         const ventures = await storage.getVenturesByFounderId(ventureId);
         if (ventures && ventures.length > 0) {
           venture = ventures[0];
-          console.log(`Found venture via founder ID: ${venture.ventureId}`);
+          appLogger.business(`Found venture via founder ID: ${venture.ventureId}`);
         }
       }
     }
@@ -227,25 +228,25 @@ export async function generateCertificate(req: Request, res: Response) {
 
         if (sessionData) {
           session = sessionData;
-          console.log(`Found session: ${session.sessionId}`);
+          appLogger.business(`Found session: ${session.sessionId}`);
           
           // Try to find venture by founder ID from session
           if (session.founderId) {
             const ventures = await storage.getVenturesByFounderId(session.founderId);
             if (ventures && ventures.length > 0) {
               venture = ventures[0];
-              console.log(`Found venture via session founder ID: ${venture.ventureId}`);
+              appLogger.business(`Found venture via session founder ID: ${venture.ventureId}`);
             }
           }
         }
       } catch (error) {
-        console.error('Error fetching session:', error);
+        appLogger.business('Error fetching session:', error);
       }
     }
 
     // Check if we have a venture with certificate
     if (venture && venture.certificateUrl) {
-      console.log(`Certificate exists for venture ${venture.name}: ${venture.certificateUrl}`);
+      appLogger.business(`Certificate exists for venture ${venture.name}: ${venture.certificateUrl}`);
       return res.json({
         success: true,
         certificateUrl: venture.certificateUrl,
@@ -257,7 +258,7 @@ export async function generateCertificate(req: Request, res: Response) {
     // Check if session has certificate URL in stepData
     if (session && session.stepData && session.stepData.processing && session.stepData.processing.certificateUrl) {
       const certificateUrl = session.stepData.processing.certificateUrl;
-      console.log(`Certificate found in session data: ${certificateUrl}`);
+      appLogger.business(`Certificate found in session data: ${certificateUrl}`);
       
       // Still update database even if certificate exists in session
       try {
@@ -276,7 +277,7 @@ export async function generateCertificate(req: Request, res: Response) {
               updatedAt: new Date()
             })
             .where(eq(venture.ventureId, ventureId));
-          console.log("✓ Venture table updated with existing certificate URL");
+          appLogger.business("✓ Venture table updated with existing certificate URL");
           
           // Try to create document_upload record (ignore if already exists)
           try {
@@ -295,14 +296,14 @@ export async function generateCertificate(req: Request, res: Response) {
               sharedUrl: certificateUrl,
               uploadedBy: 'system'
             });
-            console.log("✓ Certificate document_upload record created");
+            appLogger.business("✓ Certificate document_upload record created");
           } catch (docError) {
             // Document record might already exist, that's ok
-            console.log("Certificate document record might already exist:", docError);
+            appLogger.business("Certificate document record might already exist:", docError);
           }
         }
       } catch (error) {
-        console.error("Failed to update database with existing certificate:", error);
+        appLogger.business("Failed to update database with existing certificate:", error);
       }
       
       return res.json({
@@ -326,7 +327,7 @@ export async function generateCertificate(req: Request, res: Response) {
           const { eastEmblemAPI } = await import('../eastemblem-api');
           
           if (eastEmblemAPI.isConfigured()) {
-            console.log(`Attempting to create certificate for session ${session.sessionId} with score ${totalScore}`);
+            appLogger.business(`Attempting to create certificate for session ${session.sessionId} with score ${totalScore}`);
             
             const certificateResult = await eastEmblemAPI.createCertificate(
               overviewFolderId,
@@ -335,7 +336,7 @@ export async function generateCertificate(req: Request, res: Response) {
               false // is_course_complete = false for pitch deck validation
             );
             
-            console.log("Certificate created/retrieved successfully:", certificateResult);
+            appLogger.business("Certificate created/retrieved successfully:", certificateResult);
             
             // Update session with certificate URL
             const { db } = await import('../db');
@@ -368,7 +369,7 @@ export async function generateCertificate(req: Request, res: Response) {
                   updatedAt: new Date()
                 })
                 .where(eq(ventureTable.ventureId, ventureId));
-              console.log("✓ Venture table updated with certificate URL");
+              appLogger.business("✓ Venture table updated with certificate URL");
 
               // Create document_upload record for certificate
               const { randomUUID } = await import('crypto');
@@ -388,7 +389,7 @@ export async function generateCertificate(req: Request, res: Response) {
                 eastemblemFileId: certificateResult.id,
                 uploadedBy: 'system'
               });
-              console.log("✓ Certificate document_upload record created");
+              appLogger.business("✓ Certificate document_upload record created");
             }
             
             return res.json({
@@ -399,7 +400,7 @@ export async function generateCertificate(req: Request, res: Response) {
             });
           }
         } catch (error) {
-          console.error("Error creating/retrieving certificate:", error);
+          appLogger.business("Error creating/retrieving certificate:", error);
         }
       }
     }
@@ -412,7 +413,7 @@ export async function generateCertificate(req: Request, res: Response) {
     });
 
   } catch (error) {
-    console.error('Certificate request error:', error);
+    appLogger.business('Certificate request error:', error);
     return res.status(500).json({
       success: false,
       error: 'Failed to retrieve certificate'
@@ -446,7 +447,7 @@ export async function downloadCertificate(req: Request, res: Response) {
     res.send(fileBuffer);
     
   } catch (error) {
-    console.error('Error downloading certificate:', error);
+    appLogger.business('Error downloading certificate:', error);
     res.status(500).json({
       success: false,
       error: 'Failed to download certificate'
@@ -481,7 +482,7 @@ export async function getCertificateStatus(req: Request, res: Response) {
     });
 
   } catch (error) {
-    console.error('Certificate status check error:', error);
+    appLogger.business('Certificate status check error:', error);
     return res.status(500).json({
       success: false,
       error: 'Internal server error'

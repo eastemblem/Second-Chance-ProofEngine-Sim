@@ -1,5 +1,6 @@
 import { Router } from 'express';
 import { emailService } from '../services/emailService.js';
+import { appLogger } from '../utils/logger';
 
 const router = Router();
 
@@ -24,7 +25,7 @@ router.post('/send-verification', async (req, res) => {
       res.status(500).json({ error: 'Failed to send verification email' });
     }
   } catch (error) {
-    console.error('Error sending verification email:', error);
+    appLogger.email('Error sending verification email:', { error: error instanceof Error ? error.message : String(error), email: req.body.email });
     res.status(500).json({ error: 'Internal server error' });
   }
 });
@@ -50,7 +51,7 @@ router.post('/send-welcome', async (req, res) => {
       res.status(500).json({ error: 'Failed to send welcome email' });
     }
   } catch (error) {
-    console.error('Error sending welcome email:', error);
+    appLogger.email('Error sending welcome email:', { error: error instanceof Error ? error.message : String(error), email: req.body.email });
     res.status(500).json({ error: 'Internal server error' });
   }
 });
@@ -92,7 +93,7 @@ router.post('/send-onboarding', async (req, res) => {
       res.status(500).json({ error: 'Failed to send onboarding email' });
     }
   } catch (error) {
-    console.error('Error sending onboarding email:', error);
+    appLogger.email('Error sending onboarding email:', { error: error instanceof Error ? error.message : String(error), email: req.body.email });
     res.status(500).json({ error: 'Internal server error' });
   }
 });
@@ -118,7 +119,7 @@ router.post('/send-template', async (req, res) => {
       res.status(500).json({ error: `Failed to send ${templateName} email` });
     }
   } catch (error) {
-    console.error(`Error sending ${req.body.templateName} email:`, error);
+    appLogger.email(`Error sending ${req.body.templateName} email:`, { error: error instanceof Error ? error.message : String(error), email: req.body.email, templateName: req.body.templateName });
     res.status(500).json({ error: 'Internal server error' });
   }
 });
@@ -139,7 +140,7 @@ router.post('/preview-template', async (req, res) => {
     const html = await emailService.loadTemplate(templateName, templateData);
     res.json({ success: true, html });
   } catch (error) {
-    console.error('Error previewing email template:', error);
+    appLogger.email('Error previewing email template:', { error: error instanceof Error ? error.message : String(error), templateName: req.body.templateName });
     res.status(500).json({ error: 'Failed to preview template' });
   }
 });
