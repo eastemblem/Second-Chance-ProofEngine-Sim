@@ -1013,34 +1013,33 @@ export default function Analysis({
                     🏆 ProofTag Validation Progress
                   </h3>
 
-                  {/* Milestones Text and Progress Bar - Side by Side */}
-                  <div className="flex flex-col sm:flex-row items-center justify-center gap-4 sm:gap-8 mb-4">
-                    {/* Milestones Text - Left Side */}
-                    <div className="text-center sm:text-left flex-1">
-                      <p className="text-sm sm:text-lg text-muted-foreground mb-2">
-                        {extractedProofTags.unlocked} of{" "}
-                        {extractedProofTags.total} validation milestones
-                        unlocked
-                      </p>
-                      <div className="inline-flex items-center gap-2 px-3 sm:px-4 py-2 bg-primary/10 rounded-full border border-primary/20">
-                        <Target className="w-4 h-4 text-primary" />
-                        <span className="text-sm font-semibold text-primary">
-                          {extractedProofTags.unlocked}/
-                          {extractedProofTags.total} Tags Unlocked
+                  {/* Milestones Text - Center Aligned */}
+                  <div className="text-center mb-4">
+                    <p className="text-sm sm:text-lg text-muted-foreground mb-2">
+                      {extractedProofTags.unlocked} of{" "}
+                      {extractedProofTags.total} validation milestones
+                      unlocked
+                    </p>
+                    <div className="inline-flex items-center gap-2 px-3 sm:px-4 py-2 bg-primary/10 rounded-full border border-primary/20">
+                      <Target className="w-4 h-4 text-primary" />
+                      <span className="text-sm font-semibold text-primary">
+                        {extractedProofTags.unlocked}/
+                        {extractedProofTags.total} Tags Unlocked
+                      </span>
+                      {extractedProofTags.unlocked <
+                        extractedProofTags.total && (
+                        <span className="text-sm text-muted-foreground">
+                          -{" "}
+                          {extractedProofTags.total -
+                            extractedProofTags.unlocked}{" "}
+                          to go
                         </span>
-                        {extractedProofTags.unlocked <
-                          extractedProofTags.total && (
-                          <span className="text-sm text-muted-foreground">
-                            -{" "}
-                            {extractedProofTags.total -
-                              extractedProofTags.unlocked}{" "}
-                            to go
-                          </span>
-                        )}
-                      </div>
+                      )}
                     </div>
+                  </div>
 
-                    {/* Progress Bar - Right Side */}
+                  {/* Progress Bar - Center Aligned */}
+                  <div className="flex justify-center mb-4">
                     <div className="flex-shrink-0">
                       <div className="relative w-20 h-20 sm:w-24 sm:h-24">
                         <svg

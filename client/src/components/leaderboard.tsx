@@ -174,7 +174,7 @@ export function Leaderboard({ currentVentureName }: LeaderboardProps) {
                       {entry.totalScore}
                     </div>
                     <div className="text-xs text-muted-foreground">
-                      Score
+                      points
                     </div>
                   </div>
                 </div>
