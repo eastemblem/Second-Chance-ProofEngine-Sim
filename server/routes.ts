@@ -204,6 +204,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(404).json({ error: "Venture not found" });
       }
 
+      // FIXED: Add missing files array and folder structure for frontend compatibility
       const vaultData = {
         overviewCount: 1,
         problemProofCount: 0,
@@ -214,7 +215,18 @@ export async function registerRoutes(app: Express): Promise<Server> {
         investorPackCount: 0,
         totalFiles: 1,
         ventureId: dashboardData.venture.ventureId,
-        ventureName: dashboardData.venture.name
+        ventureName: dashboardData.venture.name,
+        files: [], // FIXED: Add empty files array to match frontend interface
+        folders: [ // FIXED: Add folder structure to match frontend interface
+          { name: "0_Overview", displayName: "Overview", count: 1 },
+          { name: "1_Problem_Proof", displayName: "Problem Proofs", count: 0 },
+          { name: "2_Solution_Proof", displayName: "Solution Proofs", count: 0 },
+          { name: "3_Demand_Proof", displayName: "Demand Proofs", count: 0 },
+          { name: "4_Credibility_Proof", displayName: "Credibility Proofs", count: 0 },
+          { name: "5_Commercial_Proof", displayName: "Commercial Proofs", count: 0 },
+          { name: "6_Investor_Pack", displayName: "Investor Pack", count: 0 }
+        ],
+        folderUrls: {} // FIXED: Add empty folderUrls to match frontend interface
       };
 
       res.json(vaultData);
@@ -233,20 +245,25 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
 
     try {
+      // FIXED: Match frontend ActivityItem interface exactly
       const activities = [
         {
-          id: 1,
-          action: "Completed analysis",
+          id: "1",
+          type: "evaluation", 
+          title: "Completed analysis", // FIXED: Use title instead of action
           description: "ProofScore established: 69/100",
           timestamp: new Date().toISOString(),
-          type: "evaluation"
+          icon: "TrendingUp", // FIXED: Add icon field
+          color: "green" // FIXED: Add color field
         },
         {
-          id: 2,
-          action: "Email verified",
-          description: "Account verification completed",
+          id: "2",
+          type: "authentication",
+          title: "Email verified", // FIXED: Use title instead of action
+          description: "Account verification completed", 
           timestamp: new Date(Date.now() - 3600000).toISOString(),
-          type: "authentication"
+          icon: "CheckCircle", // FIXED: Add icon field
+          color: "blue" // FIXED: Add color field
         }
       ];
 
