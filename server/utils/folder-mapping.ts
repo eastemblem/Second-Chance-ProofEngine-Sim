@@ -68,6 +68,7 @@ export async function loadFolderMappingFromDatabase(founderId: string): Promise<
     };
 
     // Cache the result
+    const now = Date.now();
     cachedMapping = mapping;
     cacheTimestamp = now;
     
