@@ -694,17 +694,23 @@ export default function DashboardPage() {
     console.log("📁 Step 1: Analyzing folder structure from uploaded files");
     const folderStructure = analyzeFolderStructure(fileList);
     
-    setFolderCreationStatus(`Found ${Object.keys(folderStructure.folders).length} folders with ${fileList.length} files. Creating structure...`);
+    setFolderCreationStatus(`Found ${Object.keys(folderStructure.folders).length} folders with ${fileList.length} files. Organizing files...`);
     
     toast({
       title: "Analyzing Folder Structure",
-      description: `Found ${Object.keys(folderStructure.folders).length} folders with ${fileList.length} files. Creating structure...`,
+      description: `Found ${Object.keys(folderStructure.folders).length} folders with ${fileList.length} files. Organizing into ${getFolderDisplayName(selectedCategory)}...`,
     });
 
     try {
-      // Step 2: Create main folder first and get its ID
-      console.log("📁 Step 2: Creating main folder");
-      setFolderCreationStatus(`Creating main folder: ${folderStructure.rootFolderName}...`);
+      // Step 2: Organize files into the selected category folder
+      console.log("📁 Step 2: Organizing files into selected category");
+      setFolderCreationStatus(`Organizing files into ${getFolderDisplayName(selectedCategory)} folder...`);
+      
+      toast({
+        title: "Organizing Files",
+        description: `Files will be organized in your ${getFolderDisplayName(selectedCategory)} category`,
+      });
+      
       const mainFolderId = await createFolder(folderStructure.rootFolderName, selectedCategory);
       
       if (!mainFolderId) {
@@ -1473,7 +1479,7 @@ export default function DashboardPage() {
                           <li>• Select multiple files at once or drag & drop for batch upload</li>
                           <li>• Files process sequentially to ensure reliable uploads</li>
                           <li>• Upload high-quality documents to maximize your ProofScore</li>
-                          <li>• Folder upload: Creates a new folder and uploads all files in sequence</li>
+                          <li>• Folder upload: Organizes your files into the selected category folder</li>
                           <li>• Failed uploads can be retried individually or cleared from the interface</li>
                         </ul>
                       </div>

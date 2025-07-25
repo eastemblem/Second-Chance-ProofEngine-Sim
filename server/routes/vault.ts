@@ -474,14 +474,15 @@ router.post('/create-folder', upload.none(), asyncHandler(async (req, res) => {
       
       // Fallback: Since EastEmblem API folder creation failed, use the parent folder for uploads
       // This allows files to still be uploaded to the selected category folder
-      console.log(`🔄 EastEmblem API doesn't support folder creation - files will upload to parent folder: ${actualParentFolderId}`);
+      console.log(`🔄 EastEmblem API doesn't support individual folder creation - files will upload to parent category folder: ${actualParentFolderId}`);
       result = {
         id: actualParentFolderId, // Use parent folder ID so files can be uploaded
         name: folderName,
-        url: `https://app.box.com/folder/${actualParentFolderId}`
+        url: `https://app.box.com/folder/${actualParentFolderId}`,
+        note: `Files will be uploaded to the ${getFolderDisplayName(folder_id)} category folder`
       };
       usedFallback = true;
-      console.log(`✅ Fallback folder mapping created - uploads will go to parent folder:`, result);
+      console.log(`✅ Fallback folder mapping created - uploads will go to category folder:`, result);
     }
     
     // CRITICAL FIX: Store folder mapping in proof_vault table
