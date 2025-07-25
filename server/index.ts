@@ -1,7 +1,38 @@
-// Skip NewRelic initialization in ES module for now - will configure post-startup
+// NewRelic agent initialization 
+import { createRequire } from 'module';
+const require = createRequire(import.meta.url);
+
 let newrelic: any = null;
+
+// Try to initialize NewRelic using require for CommonJS compatibility
 if (process.env.NEW_RELIC_LICENSE_KEY) {
-  console.log('📊 NewRelic configured - monitoring active');
+  try {
+    // Set app name environment variable if not set
+    if (!process.env.NEW_RELIC_APP_NAME) {
+      process.env.NEW_RELIC_APP_NAME = 'Second Chance Platform';
+    }
+    
+    newrelic = require('newrelic');
+    
+    if (newrelic && typeof newrelic.recordMetric === 'function') {
+      console.log('✅ NewRelic agent initialized successfully - monitoring active');
+      console.log('📊 Application name: "Second Chance Platform"');  
+      console.log('📊 License key configured: ***' + process.env.NEW_RELIC_LICENSE_KEY.slice(-4));
+      
+      // Record startup metric
+      newrelic.recordMetric('Custom/ApplicationStart', 1);
+    } else {
+      throw new Error('NewRelic agent not properly loaded');
+    }
+  } catch (error) {
+    console.log('❌ NewRelic initialization failed - monitoring disabled');
+    console.error('Error details:', error.message);
+    console.log('💡 Verify your NEW_RELIC_LICENSE_KEY is valid in your Replit secrets');
+    newrelic = null;
+  }
+} else {
+  console.log('⚠️ NewRelic license key not found - monitoring disabled');
+  console.log('💡 Add NEW_RELIC_LICENSE_KEY to your Replit secrets to enable monitoring');
 }
 
 import express, { type Request, Response, NextFunction } from "express";
@@ -52,6 +83,19 @@ app.use((req, res, next) => {
       }
 
       log(logLine);
+    }
+    
+    // Send metrics to NewRelic if available
+    if (newrelic && path.startsWith("/api")) {
+      try {
+        newrelic.recordMetric(`Custom/API${path}`, duration);
+        newrelic.recordMetric('Custom/APIResponse', 1);
+        if (res.statusCode >= 400) {
+          newrelic.recordMetric('Custom/APIError', 1);
+        }
+      } catch (error) {
+        // Silently fail if NewRelic not available
+      }
     }
   });
 
