@@ -4,7 +4,7 @@ import { getSessionId, updateSessionData } from '../../utils/session-manager';
 import { createSuccessResponse } from '../../utils/error-handler';
 import { safeValidate } from '../../utils/validation';
 import { onboardingService } from '../../services/onboarding-service';
-import { founderOnboardingSchema } from '../../onboarding';
+import { founderOnboardingSchema, ventureOnboardingSchema } from '../../onboarding';
 
 const router = Router();
 
@@ -28,8 +28,30 @@ router.post("/founder", asyncHandler(async (req: Request, res: Response) => {
   }));
 }));
 
+// Venture onboarding step - EXACT SAME LOGIC as routes/onboarding.ts
+router.post("/venture", asyncHandler(async (req: Request, res: Response) => {
+  // Use sessionId from request body if provided, otherwise get from middleware
+  const { sessionId: requestSessionId, ...ventureData } = req.body;
+  const sessionId = requestSessionId || getSessionId(req);
+  console.log(`V1 Venture API received sessionId: ${sessionId} (from request: ${requestSessionId})`);
+  console.log(`V1 Venture data received:`, JSON.stringify(ventureData, null, 2));
+  
+  const validation = safeValidate(ventureOnboardingSchema, ventureData);
+  if (!validation.success) {
+    throw validation.errors;
+  }
+
+  const result = await onboardingService.completeVentureStep(sessionId, validation.data);
+
+  res.json(createSuccessResponse({
+    venture: result.venture,
+    folderStructure: result.folderStructure,
+    nextStep: "team",
+  }));
+}));
+
 // Submit for scoring endpoint - EXACT SAME LOGIC as routes.ts
-router.post('/submit-for-scoring', asyncHandler(async (req, res) => {
+router.post('/submit-for-scoring', asyncHandler(async (req: Request, res: Response) => {
   console.log('V1 submit-for-scoring endpoint called');
   const { sessionId } = req.body;
   
@@ -77,7 +99,7 @@ router.post('/submit-for-scoring', asyncHandler(async (req, res) => {
 }));
 
 // Legacy onboarding data storage - EXACT SAME LOGIC as routes.ts
-router.post('/store', asyncHandler(async (req, res) => {
+router.post('/store', asyncHandler(async (req: Request, res: Response) => {
   const founderData = req.body;
   console.log("Storing onboarding data in session:", founderData);
 
