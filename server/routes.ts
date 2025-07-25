@@ -252,22 +252,44 @@ export async function registerRoutes(app: Express): Promise<Server> {
         console.log(`📂 Subfolder mapping: ${mapping.subFolderId} → ${parentCategory} (parent: ${mapping.parentFolderId})`);
       });
 
-      // DATABASE-FIRST APPROACH: Count files by category using database queries
+      // DATABASE-FIRST APPROACH: Count files by category using recursive subfolder traversal
       const fileCounts = files.reduce((counts, file) => {
         let category;
         
-        // Step 1: Check if this folder ID exists as a subfolder in proof_vault
-        const subfolderMapping = folderMappings.find(mapping => mapping.subFolderId === file.folderId);
+        // RECURSIVE LOGIC: Find ultimate parent category for nested subfolders
+        const findUltimateParentCategory = (folderId: string, depth = 0): string => {
+          // Prevent infinite loops
+          if (depth > 10) {
+            console.warn(`⚠️ Maximum depth reached for folder ${folderId}`);
+            return 'Overview';
+          }
+          
+          // Step 1: Check if this folder ID exists as a subfolder in proof_vault
+          const subfolderMapping = folderMappings.find(mapping => mapping.subFolderId === folderId);
+          
+          if (subfolderMapping) {
+            // Check if parent is also a subfolder (nested structure)
+            const parentIsSubfolder = folderMappings.find(mapping => mapping.subFolderId === subfolderMapping.parentFolderId);
+            
+            if (parentIsSubfolder) {
+              // Recursive case: parent is also a subfolder, go deeper
+              console.log(`📁 Nested subfolder: ${folderId} → parent ${subfolderMapping.parentFolderId} (depth ${depth})`);
+              return findUltimateParentCategory(subfolderMapping.parentFolderId, depth + 1);
+            } else {
+              // Base case: parent is a main folder, return its category
+              const category = getCategoryFromFolderId(subfolderMapping.parentFolderId);
+              console.log(`📁 File ${file.fileName} ultimate parent: ${subfolderMapping.parentFolderId} → ${category} (depth ${depth})`);
+              return category;
+            }
+          } else {
+            // This is a main folder - use direct categorization
+            const category = getCategoryFromFolderId(folderId || '332844784735');
+            console.log(`📁 File ${file.fileName} in main folder ${folderId} → ${category}`);
+            return category;
+          }
+        };
         
-        if (subfolderMapping) {
-          // This is a user-created subfolder - use parent category
-          category = getCategoryFromFolderId(subfolderMapping.parentFolderId);
-          console.log(`📁 File ${file.fileName} in subfolder ${file.folderId} → parent ${subfolderMapping.parentFolderId} → category: ${category}`);
-        } else {
-          // This is a main folder - use direct categorization
-          category = getCategoryFromFolderId(file.folderId || '332844784735');
-          console.log(`📁 File ${file.fileName} in main folder ${file.folderId} → category: ${category}`);
-        }
+        category = findUltimateParentCategory(file.folderId || '332844784735');
         
         switch(category) {
           case 'Overview': counts.overview++; break;

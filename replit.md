@@ -138,7 +138,9 @@ Demo experience for testing different user journeys:
 - **ELIMINATED GUESSWORK**: No more hardcoded folder ID lists or assumptions about folder types
 - **FOLDER UPLOAD FAILED FILES DISPLAY FIXED**: Resolved state timing issue where failed files notification appeared but list wasn't shown due to stale state checking
 - **SYSTEMATIC UPLOAD TRACKING**: Enhanced handleMultipleFileUpload to track actual upload results during processing instead of checking stale queue state
-- **PRODUCTION READY**: Database-driven categorization system eliminates bug cascade patterns and provides reliable file counting
+- **NESTED SUBFOLDER CATEGORIZATION**: Implemented recursive logic to properly count files in multi-level subfolder hierarchies (badges → svg/png/awards)
+- **DATABASE-FIRST RECURSIVE TRAVERSAL**: Fixed file counting for complex folder structures where subfolders contain additional subfolders
+- **PRODUCTION READY**: Database-driven categorization system with recursive traversal eliminates bug cascade patterns and provides accurate file counting across all hierarchy levels
 
 ## Improved Collaboration Guidelines
 - **Analysis Before Action**: Always identify root cause and systematic solution before implementing fixes
