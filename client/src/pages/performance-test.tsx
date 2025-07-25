@@ -221,46 +221,29 @@ export default function PerformanceTest() {
                 <CardContent className="pt-6">
                   <div className="text-center">
                     <div className="text-lg font-bold text-white">
-                      {performanceData.cacheStats?.founderCache?.size || 0}
+                      KV Store
                     </div>
-                    <div className="text-sm text-gray-400">Cached Entries</div>
+                    <div className="text-sm text-gray-400">Cache Type</div>
                   </div>
                 </CardContent>
               </Card>
             </div>
 
-            {/* Memory Cache Statistics */}
+            {/* Cache Statistics */}
             <Card className="bg-gray-900 border-gray-700">
               <CardHeader>
-                <CardTitle>Memory Cache Statistics</CardTitle>
+                <CardTitle>Cache Statistics (KV Store Only)</CardTitle>
               </CardHeader>
               <CardContent>
-                <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-                  <div>
-                    <h4 className="font-semibold text-purple-400 mb-2">Founder Cache</h4>
-                    <div className="text-sm space-y-1">
-                      <div>Size: {performanceData.cacheStats?.founderCache?.size || 0}</div>
-                      <div>Max: {performanceData.cacheStats?.founderCache?.max || 0}</div>
-                      <div>TTL: {performanceData.cacheStats?.founderCache?.ttl ? `${performanceData.cacheStats.founderCache.ttl / 1000}s` : 'N/A'}</div>
-                    </div>
+                <div className="text-center">
+                  <div className="text-lg font-semibold text-purple-400 mb-2">
+                    {performanceData.cacheStats?.type || 'KV Store'}
                   </div>
-                  
-                  <div>
-                    <h4 className="font-semibold text-purple-400 mb-2">Dashboard Cache</h4>
-                    <div className="text-sm space-y-1">
-                      <div>Size: {performanceData.cacheStats?.dashboardCache?.size || 0}</div>
-                      <div>Max: {performanceData.cacheStats?.dashboardCache?.max || 0}</div>
-                      <div>TTL: {performanceData.cacheStats?.dashboardCache?.ttl ? `${performanceData.cacheStats.dashboardCache.ttl / 1000}s` : 'N/A'}</div>
-                    </div>
+                  <div className="text-sm text-gray-400">
+                    Status: {performanceData.cacheStats?.kvStoreAvailable ? 'Available' : 'Unavailable'}
                   </div>
-                  
-                  <div>
-                    <h4 className="font-semibold text-purple-400 mb-2">Leaderboard Cache</h4>
-                    <div className="text-sm space-y-1">
-                      <div>Size: {performanceData.cacheStats?.leaderboardCache?.size || 0}</div>
-                      <div>Max: {performanceData.cacheStats?.leaderboardCache?.max || 0}</div>
-                      <div>TTL: {performanceData.cacheStats?.leaderboardCache?.ttl ? `${performanceData.cacheStats.leaderboardCache.ttl / 1000}s` : 'N/A'}</div>
-                    </div>
+                  <div className="text-sm text-gray-400 mt-2">
+                    {performanceData.cacheStats?.message || 'Using Replit KV store for persistent caching'}
                   </div>
                 </div>
               </CardContent>
