@@ -2,7 +2,7 @@
 import fetch from 'node-fetch';
 
 const BASE_URL = 'http://localhost:5000';
-const TEST_EMAIL = 'test@example.com';
+const TEST_EMAIL = 'developer@eastemblem.com';
 
 const emailTests = [
   {
