@@ -510,19 +510,29 @@ export default function DashboardPage() {
     setCurrentUploadIndex(0);
     setIsUploading(true);
     
+    // Track upload results during processing
+    const uploadResults: Array<{file: File, status: 'completed' | 'failed', error?: string}> = [];
+    
     // Process files sequentially for better user experience and server stability
     for (let i = 0; i < newQueue.length; i++) {
       setCurrentUploadIndex(i);
-      await handleSingleFileUpload(newQueue[i], i);
+      const result = await handleSingleFileUpload(newQueue[i], i);
+      
+      // Track the actual result for later failed files check
+      uploadResults.push({
+        file: newQueue[i].file,
+        status: result ? 'completed' : 'failed',
+        error: result ? undefined : 'Upload failed'
+      });
     }
     
-    // Check for failed uploads
-    const failedFiles = uploadQueue.filter(item => item.status === 'failed');
-    if (failedFiles.length > 0) {
+    // DATABASE-FIRST APPROACH: Check for failed uploads using actual results
+    const failedUploads = uploadResults.filter(result => result.status === 'failed');
+    if (failedUploads.length > 0) {
       setShowFailedFiles(true);
       toast({
         title: "Some Uploads Failed",
-        description: `${failedFiles.length} file(s) failed to upload. You can retry them below.`,
+        description: `${failedUploads.length} file(s) failed to upload. You can retry them below.`,
         variant: "destructive",
       });
     }
@@ -536,7 +546,7 @@ export default function DashboardPage() {
     await loadDashboardData();
   };
 
-  const handleSingleFileUpload = async (queueItem: {file: File, folderId: string, status: string, progress: number, error?: string}, index: number) => {
+  const handleSingleFileUpload = async (queueItem: {file: File, folderId: string, status: string, progress: number, error?: string}, index: number): Promise<boolean> => {
     try {
       // Update queue item status
       setUploadQueue(prev => prev.map((item, i) => 
@@ -581,6 +591,8 @@ export default function DashboardPage() {
           title: "File Uploaded",
           description: `${queueItem.file.name} uploaded successfully to ${getFolderDisplayName(queueItem.folderId)}.`,
         });
+        
+        return true; // Success
       } else {
         const errorData = await response.json();
         throw new Error(errorData.message || 'Upload failed');
@@ -596,6 +608,8 @@ export default function DashboardPage() {
       
       // Track failed file upload
       trackEvent('upload_failed', 'proofvault', `file_upload_error_${queueItem.folderId}`);
+      
+      return false; // Failure
     }
   };
 

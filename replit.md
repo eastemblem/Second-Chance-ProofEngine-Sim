@@ -136,6 +136,8 @@ Demo experience for testing different user journeys:
   * Step 2: If subfolder exists, use parent category mapping
   * Step 3: If not subfolder, treat as main folder with direct categorization
 - **ELIMINATED GUESSWORK**: No more hardcoded folder ID lists or assumptions about folder types
+- **FOLDER UPLOAD FAILED FILES DISPLAY FIXED**: Resolved state timing issue where failed files notification appeared but list wasn't shown due to stale state checking
+- **SYSTEMATIC UPLOAD TRACKING**: Enhanced handleMultipleFileUpload to track actual upload results during processing instead of checking stale queue state
 - **PRODUCTION READY**: Database-driven categorization system eliminates bug cascade patterns and provides reliable file counting
 
 ## Improved Collaboration Guidelines
