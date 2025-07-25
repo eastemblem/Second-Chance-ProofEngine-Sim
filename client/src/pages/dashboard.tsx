@@ -126,11 +126,13 @@ export default function DashboardPage() {
         const userData = await response.json();
         setUser(userData);
       } else {
-        setLocation('/login');
+        // Redirect to onboarding for fresh start since database was cleared
+        setLocation('/');
       }
     } catch (error) {
       console.error('Auth check error:', error);
-      setLocation('/login');
+      // Redirect to onboarding for fresh start since database was cleared
+      setLocation('/');
     } finally {
       setIsLoading(false);
     }
@@ -177,58 +179,31 @@ export default function DashboardPage() {
         }));
         setRecentActivity(updatedActivity);
       }
-    } catch (error) {
+    } catch (error: unknown) {
       console.error('Dashboard data load error:', error);
-      // Set fallback data for demo purposes
-      setValidationData({
-        proofScore: 85,
-        proofTagsUnlocked: 11,
-        totalProofTags: 21,
-        filesUploaded: 0,
-        status: "Excellent! You're investor-ready. Your data room is now visible to our verified investor network."
-      });
+      const errorMessage = error instanceof Error ? error.message : String(error);
       
-      setProofVaultData({
-        overviewCount: 0,
-        problemProofCount: 0,
-        solutionProofCount: 0,
-        demandProofCount: 0,
-        credibilityProofCount: 0,
-        commercialProofCount: 0,
-        investorPackCount: 0,
-        totalFiles: 0,
-        files: []
-      });
+      // If authentication fails, redirect to login instead of showing dummy data
+      if (errorMessage.includes('401') || errorMessage.includes('Unauthorized') || errorMessage.includes('Not authenticated')) {
+        toast({
+          title: "Authentication Required",
+          description: "Please log in to access your dashboard.",
+          variant: "destructive",
+        });
+        setLocation('/login');
+        return;
+      }
       
-      setRecentActivity([
-        {
-          id: "activity-1",
-          type: "account",
-          title: "Email verified successfully",
-          description: "Your email has been verified and account is active",
-          timestamp: new Date().toISOString(), // Current time
-          icon: "check",
-          color: "green"
-        },
-        {
-          id: "activity-2",
-          type: "platform",
-          title: "Password set successfully",
-          description: "Account security configured and ready to use",
-          timestamp: new Date(Date.now() - 5 * 60 * 1000).toISOString(), // 5 minutes ago
-          icon: "shield",
-          color: "blue"
-        },
-        {
-          id: "activity-3",
-          type: "platform",
-          title: "Joined Second Chance platform", 
-          description: "Welcome to the startup validation ecosystem",
-          timestamp: new Date(Date.now() - 10 * 60 * 1000).toISOString(), // 10 minutes ago
-          icon: "user-plus",
-          color: "purple"
-        }
-      ]);
+      // For other errors, show empty state but don't show dummy data
+      setValidationData(null);
+      setProofVaultData(null);
+      setRecentActivity([]);
+      
+      toast({
+        title: "Data Load Error",
+        description: "Unable to load dashboard data. Please refresh the page.",
+        variant: "destructive",
+      });
     }
   };
 
@@ -544,7 +519,7 @@ export default function DashboardPage() {
                     <div className="relative text-center">
                       <div className="w-20 h-20 mx-auto mb-3 rounded-full bg-gradient-to-r from-purple-500 to-yellow-500 flex items-center justify-center shadow-lg">
                         <div className="w-16 h-16 rounded-full bg-gray-900 flex items-center justify-center">
-                          <span className="text-xl font-bold text-white">{validationData?.proofScore || 85}</span>
+                          <span className="text-xl font-bold text-white">{validationData?.proofScore || 0}</span>
                         </div>
                       </div>
                       <h3 className="text-white font-semibold mb-1">ProofScore</h3>
@@ -561,9 +536,9 @@ export default function DashboardPage() {
                           <Trophy className="w-6 h-6 text-blue-400" />
                         </div>
                       </div>
-                      <div className="text-2xl font-bold text-blue-400 mb-2">{validationData?.proofTagsUnlocked || 11}</div>
+                      <div className="text-2xl font-bold text-blue-400 mb-2">{validationData?.proofTagsUnlocked || 0}</div>
                       <h3 className="text-white font-semibold mb-1">ProofTags Unlocked</h3>
-                      <Progress value={((validationData?.proofTagsUnlocked || 11) / (validationData?.totalProofTags || 21)) * 100} className="h-2 mb-2" />
+                      <Progress value={((validationData?.proofTagsUnlocked || 0) / (validationData?.totalProofTags || 21)) * 100} className="h-2 mb-2" />
                       <p className="text-gray-400 text-sm">of {validationData?.totalProofTags || 21} total</p>
                     </div>
                   </div>
@@ -916,14 +891,11 @@ export default function DashboardPage() {
                 </CardDescription>
               </CardHeader>
               <CardContent>
-                <div className="space-y-2">
-                {[
-                  { rank: 1, name: "Alex Chen", venture: "TechFlow", score: 92, isCurrentUser: false },
-                  { rank: 2, name: "Sarah Kim", venture: "EcoSmart", score: 89, isCurrentUser: false },
-                  { rank: 3, name: "You", venture: user?.venture?.name || 'Your Venture', score: validationData?.proofScore || 0, isCurrentUser: true },
-                  { rank: 4, name: "Michael Park", venture: "DataViz", score: 82, isCurrentUser: false },
-                  { rank: 5, name: "Lisa Wang", venture: "HealthTech", score: 78, isCurrentUser: false }
-                ].map((entry) => {
+                {validationData?.proofScore ? (
+                  <div className="space-y-2">
+                  {[
+                    { rank: 1, name: "You", venture: user?.venture?.name || 'Your Venture', score: validationData.proofScore, isCurrentUser: true }
+                  ].map((entry) => {
                   const isTopThree = entry.rank <= 3;
                   
                   return (
@@ -992,7 +964,13 @@ export default function DashboardPage() {
                     </div>
                   );
                 })}
-                </div>
+                  </div>
+                ) : (
+                  <div className="text-center py-8">
+                    <Trophy className="w-12 h-12 text-gray-600 mx-auto mb-3" />
+                    <p className="text-gray-400 text-sm">Complete onboarding to see your leaderboard position</p>
+                  </div>
+                )}
               </CardContent>
             </Card>
 
@@ -1029,7 +1007,7 @@ export default function DashboardPage() {
                       <p className="text-gray-400 text-sm">Upload more files to your data room to achieve a score above 90 and access the deal room.</p>
                       <div className="bg-yellow-900/20 border border-yellow-700 rounded-lg p-3">
                         <p className="text-yellow-300 text-xs">
-                          Current Score: {validationData?.proofScore || 85}/100<br/>
+                          Current Score: {validationData?.proofScore || 0}/100<br/>
                           Required: 90+ for Deal Room Access
                         </p>
                       </div>
