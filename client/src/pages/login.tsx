@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useLocation } from "wouter";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -14,8 +14,30 @@ export default function LoginPage() {
   const [password, setPassword] = useState("");
   const [showPassword, setShowPassword] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
+  const [isCheckingAuth, setIsCheckingAuth] = useState(true);
   const [, setLocation] = useLocation();
   const { toast } = useToast();
+
+  // Check if user is already logged in
+  useEffect(() => {
+    const checkAuthStatus = async () => {
+      try {
+        const response = await fetch('/api/auth/me');
+        if (response.ok) {
+          // User is already logged in, redirect to dashboard
+          setLocation('/dashboard');
+          return;
+        }
+      } catch (error) {
+        // User is not logged in, continue with login page
+        console.log('User not authenticated, showing login page');
+      } finally {
+        setIsCheckingAuth(false);
+      }
+    };
+
+    checkAuthStatus();
+  }, [setLocation]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -70,6 +92,18 @@ export default function LoginPage() {
       setIsLoading(false);
     }
   };
+
+  // Show loading while checking authentication status
+  if (isCheckingAuth) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-background">
+        <div className="text-center">
+          <div className="animate-spin w-8 h-8 border-4 border-primary border-t-transparent rounded-full mx-auto mb-4"></div>
+          <p className="text-muted-foreground">Checking authentication...</p>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen flex flex-col">
