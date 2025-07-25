@@ -155,7 +155,7 @@ export class EmailService {
         html: htmlContent
       };
       
-      console.log("🚨 SENDING TO N8N WEBHOOK:", {
+      appLogger.email("SENDING TO N8N WEBHOOK:", {
         to: emailData.to,
         subject: emailData.subject,
         htmlContainsCertificateUrl: emailData.html.includes('https://app.box.com/s/dr8mbtnqbtvgtisbv1x7604t2qn4ay2c'),
@@ -177,11 +177,11 @@ export class EmailService {
       }
 
       const result = await response.json();
-      console.log(`Email sent successfully to ${to} via N8N webhook`);
+      appLogger.email(`Email sent successfully to ${to} via N8N webhook`);
       return true;
 
     } catch (error) {
-      console.error(`Failed to send email to ${to}:`, error);
+      appLogger.email(`Failed to send email to ${to}:`, error);
       return false;
     }
   }
