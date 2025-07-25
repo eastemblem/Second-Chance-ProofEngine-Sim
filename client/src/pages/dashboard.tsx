@@ -1212,7 +1212,7 @@ export default function DashboardPage() {
                           e.currentTarget.classList.remove('border-purple-400', 'bg-purple-500/10');
                           const files = Array.from(e.dataTransfer.files);
                           if (files.length > 0) {
-                            await handleFileUploadWithFolderCreation(files, selectedFolder);
+                            await handleMultipleFileUpload(files, selectedFolder);
                           }
                         }}
                       >
@@ -1268,7 +1268,7 @@ export default function DashboardPage() {
                               onChange={async (e) => {
                                 const files = e.target.files;
                                 if (files && files.length > 0) {
-                                  await handleFileUploadWithFolderCreation(Array.from(files), selectedFolder);
+                                  await handleMultipleFileUpload(Array.from(files), selectedFolder);
                                   // Reset input
                                   e.target.value = '';
                                 }
