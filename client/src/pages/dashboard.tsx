@@ -763,7 +763,7 @@ export default function DashboardPage() {
 
       // Step 4: Upload files to their respective folders using the collected folder IDs
       console.log("📁 Step 4: Uploading files to their respective folders");
-      setFolderCreationStatus('Folder structure created! Starting file uploads...');
+      setFolderCreationStatus('File organization complete! Starting uploads...');
       
       // End folder creation loading, start file upload loading
       setIsCreatingFolders(false);
