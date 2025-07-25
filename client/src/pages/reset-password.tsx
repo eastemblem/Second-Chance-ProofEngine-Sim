@@ -21,10 +21,36 @@ export default function ResetPasswordPage() {
   const [tokenError, setTokenError] = useState<string>("");
   const [isValidating, setIsValidating] = useState(true);
   const [, setLocation] = useLocation();
+  const [token, setToken] = useState<string | null>(null);
   const { toast } = useToast();
 
-  // Support both path and query parameter formats
-  const token = params?.token || new URLSearchParams(location.split('?')[1] || '').get('token');
+  // Extract token from URL on component mount and when location changes
+  useEffect(() => {
+    const extractToken = () => {
+      // First try query parameter from window.location
+      if (typeof window !== 'undefined') {
+        const urlParams = new URLSearchParams(window.location.search);
+        const queryToken = urlParams.get('token');
+        if (queryToken) {
+          console.log('Found token in query params:', queryToken);
+          setToken(queryToken);
+          return;
+        }
+      }
+      
+      // Then try path parameter from wouter
+      if (params?.token) {
+        console.log('Found token in path params:', params.token);
+        setToken(params.token);
+        return;
+      }
+      
+      console.log('No token found in URL');
+      setToken(null);
+    };
+
+    extractToken();
+  }, [location, params]);
 
   useEffect(() => {
     if (!token) {
@@ -122,11 +148,34 @@ export default function ResetPasswordPage() {
   }
 
   // Show error state for token issues
-  if (tokenError || !token) {
+  if (tokenError || (!token && !isValidating)) {
     return (
-      <div className="min-h-screen flex flex-col">
-        <div className="flex-1 flex items-center justify-center bg-gradient-to-br from-background via-card to-background px-4 py-8">
-          <div className="w-full max-w-md">
+      <div className="min-h-screen flex flex-col bg-gradient-to-br from-gray-50 to-gray-100">
+        <div className="flex-1 flex items-center justify-center px-4">
+          <Card className="w-full max-w-md shadow-xl border-red-200 bg-red-50">
+            <CardHeader className="text-center">
+              <div className="mx-auto mb-4 w-12 h-12 rounded-full bg-red-100 flex items-center justify-center">
+                <XCircle className="w-6 h-6 text-red-600" />
+              </div>
+              <CardTitle className="text-red-900">Invalid Reset Link</CardTitle>
+              <CardDescription className="text-red-700">
+                {tokenError || "Reset token is missing or invalid"}
+              </CardDescription>
+            </CardHeader>
+            <CardContent className="text-center">
+              <Button 
+                onClick={() => setLocation('/forgot-password')}
+                className="w-full bg-red-600 hover:bg-red-700"
+              >
+                Request New Reset Link
+              </Button>
+            </CardContent>
+          </Card>
+        </div>
+        <Footer />
+      </div>
+    );
+  }
             {/* Error State */}
             <Card>
               <CardContent className="p-8 text-center">

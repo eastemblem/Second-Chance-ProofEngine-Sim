@@ -23,6 +23,7 @@ const Privacy = lazy(() => import("@/pages/Privacy"));
 const Terms = lazy(() => import("@/pages/Terms"));
 const SetPasswordPage = lazy(() => import("@/pages/set-password"));
 const ResetPasswordPage = lazy(() => import("@/pages/reset-password"));
+const ResetPasswordDebugPage = lazy(() => import("@/pages/reset-password-debug"));
 const LoginPage = lazy(() => import("@/pages/login"));
 const ForgotPasswordPage = lazy(() => import("@/pages/forgot-password"));
 const Dashboard = lazy(() => import("@/pages/dashboard"));
@@ -184,6 +185,11 @@ function Router() {
       <Route path="/reset-password/:token" component={() => (
         <Suspense fallback={<SimpleLoader />}>
           <ResetPasswordPage />
+        </Suspense>
+      )} />
+      <Route path="/reset-password-debug" component={() => (
+        <Suspense fallback={<SimpleLoader />}>
+          <ResetPasswordDebugPage />
         </Suspense>
       )} />
       <Route path="/dashboard" component={() => (
