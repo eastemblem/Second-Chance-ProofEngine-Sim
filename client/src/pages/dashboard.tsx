@@ -115,6 +115,7 @@ export default function DashboardPage() {
   const [leaderboardData, setLeaderboardData] = useState<LeaderboardEntry[]>([]);
   const [activeTab, setActiveTab] = useState("overview");
   const [selectedFolder, setSelectedFolder] = useState<string>("0_Overview");
+  const [selectedCategory, setSelectedCategory] = useState<string>("0_Overview");
   const [uploadProgress, setUploadProgress] = useState<number>(0);
   const [isUploading, setIsUploading] = useState(false);
   const [isCreatingFolders, setIsCreatingFolders] = useState(false);
@@ -1227,7 +1228,10 @@ export default function DashboardPage() {
                       <div className="space-y-2">
                         <label className="text-sm font-medium text-gray-300">Select Folder</label>
                         <div className="flex gap-2">
-                          <Select value={selectedFolder} onValueChange={setSelectedFolder}>
+                          <Select value={selectedFolder} onValueChange={(value) => {
+                            setSelectedFolder(value);
+                            setSelectedCategory(value);
+                          }}>
                             <SelectTrigger className="bg-gray-800 border-gray-600 text-white flex-1">
                               <SelectValue placeholder="Choose a folder...">
                                 <div className="flex items-center gap-2">
