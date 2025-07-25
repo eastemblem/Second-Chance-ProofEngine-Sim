@@ -6,6 +6,7 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
 import { apiRequest } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
+import { trackEvent } from "@/lib/analytics";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -68,6 +69,9 @@ export default function FounderOnboarding({
     },
     onSuccess: async (data) => {
       if (data.success) {
+        // Track founder step completion
+        trackEvent('onboarding_founder_complete', 'user_journey', 'founder_details_saved');
+        
         toast({
           title: "Success",
           description: "Founder information saved successfully",
@@ -76,13 +80,16 @@ export default function FounderOnboarding({
         console.log("👤 Founder step completed successfully");
         
         // Trigger session refresh from server
-        await onDataUpdate?.("founder", data);
+        onDataUpdate(data);
         
         // Navigate to next step
         onNext();
       }
     },
     onError: (error: any) => {
+      // Track founder step error
+      trackEvent('onboarding_founder_error', 'user_journey', 'founder_details_error');
+      
       toast({
         title: "Error",
         description: error.message || "Failed to save founder information",

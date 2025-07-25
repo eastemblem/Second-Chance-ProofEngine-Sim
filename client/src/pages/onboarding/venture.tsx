@@ -5,6 +5,7 @@ import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { apiRequest } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
+import { trackEvent } from "@/lib/analytics";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -59,6 +60,9 @@ export default function VentureOnboarding({
     },
     onSuccess: (data) => {
       if (data?.success) {
+        // Track venture step completion
+        trackEvent('onboarding_venture_complete', 'user_journey', 'venture_details_saved');
+        
         toast({
           title: "Success",
           description: "Venture information saved successfully",
@@ -80,6 +84,9 @@ export default function VentureOnboarding({
       }
     },
     onError: (error: any) => {
+      // Track venture step error
+      trackEvent('onboarding_venture_error', 'user_journey', 'venture_details_error');
+      
       toast({
         title: "Error",
         description: error.message || "Failed to save venture information",

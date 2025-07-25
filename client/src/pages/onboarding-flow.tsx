@@ -3,6 +3,7 @@ import { motion, AnimatePresence } from "framer-motion";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { apiRequest } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
+import { trackEvent } from "@/lib/analytics";
 import FounderOnboarding from "./onboarding/founder";
 import VentureOnboarding from "./onboarding/venture";
 import TeamOnboarding from "./onboarding/team";
@@ -49,6 +50,9 @@ export default function OnboardingFlow({ onComplete }: OnboardingFlowProps) {
     onSuccess: (response) => {
       if (response.success && response.data) {
         console.log(`🎯 Initialized session:`, response);
+        
+        // Track onboarding start event
+        trackEvent('onboarding_start', 'user_journey', 'session_initialized');
         
         // Extract session data from API response format
         const sessionData = {
@@ -107,7 +111,16 @@ export default function OnboardingFlow({ onComplete }: OnboardingFlowProps) {
   // Navigate to next step
   const nextStep = () => {
     if (currentStepIndex < steps.length - 1) {
+      const currentStep = steps[currentStepIndex];
       const nextIndex = currentStepIndex + 1;
+      const nextStep = steps[nextIndex];
+      
+      // Track step completion
+      trackEvent('onboarding_step_complete', 'user_journey', currentStep.key, currentStepIndex + 1);
+      
+      // Track step progression
+      trackEvent('onboarding_step_start', 'user_journey', nextStep.key, nextIndex + 1);
+      
       setCurrentStepIndex(nextIndex);
       
       if (sessionData) {
@@ -126,7 +139,13 @@ export default function OnboardingFlow({ onComplete }: OnboardingFlowProps) {
   // Navigate to previous step
   const prevStep = () => {
     if (currentStepIndex > 0) {
+      const currentStep = steps[currentStepIndex];
       const prevIndex = currentStepIndex - 1;
+      const prevStep = steps[prevIndex];
+      
+      // Track step back navigation
+      trackEvent('onboarding_step_back', 'user_journey', `${currentStep.key}_to_${prevStep.key}`, prevIndex + 1);
+      
       setCurrentStepIndex(prevIndex);
       
       if (sessionData) {
@@ -218,6 +237,9 @@ export default function OnboardingFlow({ onComplete }: OnboardingFlowProps) {
   };
 
   const handleComplete = () => {
+    // Track onboarding completion
+    trackEvent('onboarding_complete', 'user_journey', 'full_analysis_complete');
+    
     // Clear session from localStorage
     localStorage.removeItem('onboardingSession');
     onComplete();

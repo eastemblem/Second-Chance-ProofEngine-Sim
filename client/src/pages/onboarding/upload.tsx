@@ -3,6 +3,7 @@ import { motion } from "framer-motion";
 import { useMutation } from "@tanstack/react-query";
 import { apiRequest } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
+import { trackEvent } from "@/lib/analytics";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { ChevronLeft, Upload, FileText, CheckCircle } from "lucide-react";
@@ -45,6 +46,9 @@ export default function DocumentUpload({
     },
     onSuccess: (data) => {
       if (data?.success) {
+        // Track document upload completion
+        trackEvent('onboarding_upload_complete', 'user_journey', 'pitch_deck_uploaded');
+        
         toast({
           title: "Success",
           description: "Pitch deck uploaded successfully",
@@ -54,6 +58,9 @@ export default function DocumentUpload({
       }
     },
     onError: (error: any) => {
+      // Track upload error
+      trackEvent('onboarding_upload_error', 'user_journey', 'pitch_deck_upload_failed');
+      
       toast({
         title: "Error",
         description: error.message || "Failed to upload pitch deck",

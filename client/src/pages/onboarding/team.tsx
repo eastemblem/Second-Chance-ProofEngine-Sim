@@ -6,6 +6,7 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
 import { apiRequest } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
+import { trackEvent } from "@/lib/analytics";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -145,6 +146,9 @@ export default function TeamOnboarding({
     },
     onSuccess: (data) => {
       if (data?.success) {
+        // Track team member addition
+        trackEvent('team_member_added', 'form_submission', 'onboarding_team_management');
+        
         const memberName = data?.data?.teamMember?.fullName || "Team member";
         toast({
           title: "Success",
@@ -182,6 +186,9 @@ export default function TeamOnboarding({
     },
     onSuccess: (data) => {
       if (data?.success) {
+        // Track team member update
+        trackEvent('team_member_updated', 'form_submission', 'onboarding_team_management');
+        
         const memberName = data?.data?.teamMember?.fullName || "Team member";
         toast({
           title: "Success", 
@@ -250,6 +257,9 @@ export default function TeamOnboarding({
       return await response.json();
     },
     onSuccess: () => {
+      // Track team step completion
+      trackEvent('onboarding_team_complete', 'user_journey', 'team_information_saved');
+      
       toast({
         title: "Success",
         description: "Team information saved successfully",
@@ -257,6 +267,9 @@ export default function TeamOnboarding({
       onNext();
     },
     onError: (error: any) => {
+      // Track team step error
+      trackEvent('onboarding_team_error', 'user_journey', 'team_information_error');
+      
       toast({
         title: "Error",
         description: error.message || "Failed to save team information",

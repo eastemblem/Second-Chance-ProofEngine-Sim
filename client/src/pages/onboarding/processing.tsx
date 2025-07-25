@@ -3,6 +3,7 @@ import { motion } from "framer-motion";
 import { useMutation } from "@tanstack/react-query";
 import { apiRequest } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
+import { trackEvent } from "@/lib/analytics";
 import { Button } from "@/components/ui/button";
 import { Loader2, FileText, Brain, BarChart3, CheckCircle, RefreshCw, AlertCircle } from "lucide-react";
 
@@ -73,6 +74,9 @@ export default function ProcessingScreen({
     },
     onSuccess: async (data) => {
       if (data?.success) {
+        // Track processing completion
+        trackEvent('onboarding_processing_complete', 'user_journey', 'ai_analysis_complete');
+        
         console.log("Processing completed. Full response:", data);
         console.log("Session data from processing:", data.data?.session);
         console.log("Session stepData:", data.data?.session?.stepData);
@@ -80,7 +84,7 @@ export default function ProcessingScreen({
         
         // Update session data with processing results - use data.data structure
         const processingData = data.data?.session?.stepData?.processing || data.data?.scoringResult;
-        await onDataUpdate("processing", processingData);
+        onDataUpdate(processingData);
         setProcessingComplete(true);
         
         setTimeout(() => {
@@ -89,6 +93,9 @@ export default function ProcessingScreen({
       }
     },
     onError: (error: any) => {
+      // Track processing error
+      trackEvent('onboarding_processing_error', 'user_journey', 'ai_analysis_failed');
+      
       const errorMsg = error.message || "Failed to process your submission";
       setHasError(true);
       setErrorMessage(errorMsg);
