@@ -129,6 +129,9 @@ export default function DashboardPage() {
   const { toast } = useToast();
 
   useEffect(() => {
+    // DEBUG: Force clear any cached API calls
+    console.log('🔄 Dashboard mounting - clearing any cached data');
+    
     // Load auth check immediately and load dashboard data for better UX
     checkAuthStatus();
     
@@ -194,9 +197,16 @@ export default function DashboardPage() {
       const token = localStorage.getItem('auth_token');
       const authHeaders = token ? { 'Authorization': `Bearer ${token}` } : {};
       
-      const validationResponse = await fetch('/api/v1/dashboard/validation', {
+      console.log('🔍 DEBUG: About to call V1 validation API:', '/api/v1/dashboard/validation');
+      const validationResponse = await fetch('/api/v1/dashboard/validation?v=' + Date.now(), {
         credentials: 'include',
-        headers: { ...headers, ...authHeaders }
+        headers: { 
+          ...headers, 
+          ...authHeaders,
+          'Cache-Control': 'no-cache, no-store, must-revalidate',
+          'Pragma': 'no-cache',
+          'Expires': '0'
+        }
       });
       if (validationResponse.ok) {
         const validation = await validationResponse.json();
@@ -207,26 +217,37 @@ export default function DashboardPage() {
       }
 
       // Load secondary data in parallel - activity with higher priority - USE V1 APIS with JWT
+      console.log('🔍 DEBUG: About to call V1 APIs:', {
+        vault: '/api/v1/dashboard/vault',
+        activity: '/api/v1/dashboard/activity', 
+        leaderboard: '/api/v1/leaderboard'
+      });
       const [vaultResponse, activityResponse, leaderboardResponse] = await Promise.all([
-        fetch('/api/v1/dashboard/vault', {
+        fetch('/api/v1/dashboard/vault?v=' + Date.now(), {
           credentials: 'include',
           headers: { 
             ...(forceRefresh ? headers : { 'Cache-Control': 'max-age=600' }),
-            ...authHeaders
+            ...authHeaders,
+            'Cache-Control': 'no-cache, no-store, must-revalidate',
+            'Pragma': 'no-cache'
           }
         }),
-        fetch('/api/v1/dashboard/activity', {
+        fetch('/api/v1/dashboard/activity?v=' + Date.now(), {
           credentials: 'include',
           headers: { 
             ...(forceRefresh ? headers : { 'Cache-Control': 'max-age=120' }),
-            ...authHeaders
+            ...authHeaders,
+            'Cache-Control': 'no-cache, no-store, must-revalidate',
+            'Pragma': 'no-cache'
           }
         }),
-        fetch('/api/v1/leaderboard?limit=5', {
+        fetch('/api/v1/leaderboard?limit=5&v=' + Date.now(), {
           credentials: 'include',
           headers: { 
             ...(forceRefresh ? headers : { 'Cache-Control': 'max-age=1200' }),
-            ...authHeaders
+            ...authHeaders,
+            'Cache-Control': 'no-cache, no-store, must-revalidate',
+            'Pragma': 'no-cache'
           }
         })
       ]);
