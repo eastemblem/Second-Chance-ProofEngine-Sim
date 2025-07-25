@@ -21,8 +21,7 @@ const CACHE_TTL = 5 * 60 * 1000; // 5 minutes
  */
 export async function loadFolderMappingFromDatabase(founderId: string): Promise<FolderMapping> {
   try {
-    // FORCE CACHE REFRESH FOR DEBUGGING
-    console.log('🔄 FORCE LOADING folder mapping from database (cache bypassed)...');
+    console.log('🔄 Loading folder mapping from database (100% dynamic)...');
     
     // Get user's ventures
     const ventures = await storage.getVenturesByFounderId(founderId);
@@ -50,17 +49,7 @@ export async function loadFolderMappingFromDatabase(founderId: string): Promise<
       }
     });
 
-    // Add legacy folder mappings for files uploaded before current vault structure
-    const legacyMappings = {
-      '332842251627': 'Investor Pack', // Legacy folder
-      '332842993678': 'Solution Proofs', // Legacy folder  
-      '332844933261': 'Problem Proofs', // Legacy subfolder
-    };
-    
-    Object.entries(legacyMappings).forEach(([folderId, category]) => {
-      folderIdToCategory[folderId] = category;
-      console.log(`📂 Legacy Mapping: ${folderId} → ${category}`);
-    });
+    // System is now 100% database-driven - no legacy mappings needed
 
     const mapping: FolderMapping = {
       categoryToFolderId,
@@ -72,7 +61,7 @@ export async function loadFolderMappingFromDatabase(founderId: string): Promise<
     cachedMapping = mapping;
     cacheTimestamp = now;
     
-    console.log('✅ Database mapping loaded successfully!');
+    console.log('✅ 100% database-driven mapping loaded successfully!');
     console.log('📋 categoryToFolderId:', categoryToFolderId);
     console.log('📋 folderIdToCategory:', folderIdToCategory);
     return mapping;
@@ -100,10 +89,7 @@ export async function loadFolderMappingFromDatabase(founderId: string): Promise<
         '332885857453': 'Credibility Proofs',
         '332887928503': 'Commercial Proofs',
         '332885728761': 'Investor Pack',
-        // LEGACY FOLDER IDs (files that exist but aren't in current vault structure)
-        '332842251627': 'Investor Pack', // Based on file analysis
-        '332842993678': 'Solution Proofs', // Based on file analysis  
-        '332844933261': 'Problem Proofs', // Subfolder for badges/awards
+        // Fallback mappings only used if database completely fails
       }
     };
     
