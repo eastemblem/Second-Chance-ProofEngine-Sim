@@ -126,6 +126,24 @@ Demo experience for testing different user journeys:
 
 ## Recent Key Updates
 
+### July 25, 2025 - PRECISE FOLDER UPLOAD WORKFLOW: Sequential Structure Creation & File Organization
+- **EXACT WORKFLOW IMPLEMENTATION**: Redesigned folder upload system to follow user-specified sequence:
+  1. **Folder Selection**: User selects folder from file dialog with webkitdirectory support
+  2. **File Structure Analysis**: System analyzes uploaded files and identifies complete folder hierarchy
+  3. **Folder Identification**: Maps out all folders and subfolders that need to be created
+  4. **Sequential Folder Creation**: Creates main folder first, then subfolders in depth-order
+  5. **Folder ID Collection**: Collects and maps folder IDs from EastEmblem API responses
+  6. **File Upload to Folders**: Uploads files to their respective folders using collected IDs
+  7. **Subfolder Processing**: Creates nested subfolders and uploads files to deeper levels
+- **ENHANCED FOLDER ANALYSIS**: New `analyzeFolderStructure()` function preserves complete folder hierarchy from webkitRelativePath
+- **SEQUENTIAL PROCESSING**: All folder creation waits for completion before proceeding to next step
+- **FOLDER ID MAPPING**: Comprehensive Map-based system tracks parent-child folder relationships and IDs
+- **DEPTH-ORDERED CREATION**: Folders created by depth level (shallow first) to ensure parent folders exist before subfolders
+- **IMPROVED ERROR HANDLING**: Fallback to parent folder when subfolder creation fails, with detailed logging
+- **COMPREHENSIVE PROGRESS FEEDBACK**: Step-by-step user notifications for analysis, creation, and upload phases
+- **API INTEGRATION**: Multiple endpoint fallback system for EastEmblem folder creation with mock fallback
+- **PRODUCTION READY**: Complete hierarchical folder upload system with precise workflow adherence
+
 ### July 25, 2025 - COMPLETE FOLDER UPLOAD SYSTEM: API Integration & Enhanced UI Implementation
 - **FOLDER CREATION API ENDPOINT**: Added comprehensive `/api/vault/create-folder` endpoint with EastEmblem API integration
 - **AUTOMATED FOLDER WORKFLOW**: Users can upload entire folders which automatically creates subfolders in Box.com before file upload

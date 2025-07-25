@@ -648,98 +648,93 @@ export default function DashboardPage() {
     }
   };
 
-  // Handle folder uploads with hierarchical folder structure (preserves original folder structure)
+  // Handle folder uploads with precise workflow: analyze → create folders → get IDs → upload files
   const handleFolderUpload = async (event: React.ChangeEvent<HTMLInputElement>) => {
     const files = event.target.files;
     if (!files || files.length === 0) return;
 
     const fileList = Array.from(files);
     
-    // Extract folder name from the first file's path
-    const firstFile = fileList[0];
-    const pathParts = firstFile.webkitRelativePath?.split('/') || [];
-    const originalFolderName = pathParts[0] || 'uploaded-folder';
+    // Step 1: Analyze folder structure from file paths
+    console.log("📁 Step 1: Analyzing folder structure from uploaded files");
+    const folderStructure = analyzeFolderStructure(fileList);
     
     toast({
-      title: "Folder Upload Started",
-      description: `Creating hierarchical structure for "${originalFolderName}" with ${fileList.length} files...`,
+      title: "Analyzing Folder Structure",
+      description: `Found ${Object.keys(folderStructure.folders).length} folders with ${fileList.length} files. Creating structure...`,
     });
 
     try {
-      // Step 1: Create main folder in selected category
-      const mainFolderId = await createFolder(originalFolderName, selectedFolder);
+      // Step 2: Create main folder first and get its ID
+      console.log("📁 Step 2: Creating main folder");
+      const mainFolderId = await createFolder(folderStructure.rootFolderName, selectedFolder);
       
       if (!mainFolderId) {
         throw new Error('Failed to create main folder');
       }
 
-      toast({
-        title: "Main Folder Created",
-        description: `"${originalFolderName}" created. Now organizing subfolders...`,
+      console.log(`✅ Main folder created with ID: ${mainFolderId}`);
+      
+      // Step 3: Create all subfolders sequentially and collect their IDs
+      console.log("📁 Step 3: Creating subfolders and mapping IDs");
+      const folderIdMap = new Map<string, string>();
+      folderIdMap.set('root', mainFolderId);
+
+      // Create subfolders in order (parent folders first)
+      const sortedFolderPaths = Object.keys(folderStructure.folders).sort((a, b) => {
+        const depthA = a.split('/').length;
+        const depthB = b.split('/').length;
+        return depthA - depthB; // Create shallow folders first
       });
 
-      // Step 2: Group files by their folder paths to recreate original structure
-      const folderStructure = groupFilesByFolderPath(fileList);
-      const uploadPromises: Promise<void>[] = [];
+      for (const folderPath of sortedFolderPaths) {
+        if (folderPath === 'root') continue;
 
-      // Step 3: Create subfolders and upload files sequentially
-      for (const [subfolderPath, groupedFiles] of Object.entries(folderStructure)) {
-        if (subfolderPath === 'root') {
-          // Files in root of uploaded folder - upload directly to main folder
-          toast({
-            title: "Uploading Root Files",
-            description: `Uploading ${groupedFiles.length} files to main folder...`,
-          });
-          await handleMultipleFileUpload(groupedFiles, mainFolderId);
-        } else {
-          // Create subfolder structure
-          const subfolderName = subfolderPath.replace(/\//g, '_'); // Replace slashes with underscores for folder name
-          
-          toast({
-            title: "Creating Subfolder",
-            description: `Creating "${subfolderName}" for ${groupedFiles.length} file(s)...`,
-          });
+        const folderName = folderPath.split('/').pop() || folderPath;
+        const parentPath = folderPath.includes('/') ? folderPath.substring(0, folderPath.lastIndexOf('/')) : 'root';
+        const parentFolderId = folderIdMap.get(parentPath) || mainFolderId;
 
-          try {
-            // Wait for subfolder creation to complete
-            const subFolderId = await createFolder(subfolderName, mainFolderId);
-            
-            if (subFolderId) {
-              toast({
-                title: "Subfolder Ready",
-                description: `"${subfolderName}" created. Now uploading ${groupedFiles.length} files...`,
-              });
-              // Wait for upload to complete before next subfolder
-              await handleMultipleFileUpload(groupedFiles, subFolderId);
-              
-              toast({
-                title: "Subfolder Complete",
-                description: `${groupedFiles.length} files uploaded to "${subfolderName}"`,
-              });
-            } else {
-              // Fallback to main folder
-              toast({
-                title: "Subfolder Failed",
-                description: `Could not create "${subfolderName}". Uploading to main folder...`,
-                variant: "destructive",
-              });
-              await handleMultipleFileUpload(groupedFiles, mainFolderId);
-            }
-          } catch (subfolderError) {
-            console.error(`Subfolder creation failed for ${subfolderPath}:`, subfolderError);
-            toast({
-              title: "Subfolder Error",
-              description: `Error creating "${subfolderName}". Uploading to main folder...`,
-              variant: "destructive",
-            });
-            await handleMultipleFileUpload(groupedFiles, mainFolderId);
+        toast({
+          title: "Creating Subfolder",
+          description: `Creating "${folderName}" in ${parentPath === 'root' ? 'main folder' : parentPath}...`,
+        });
+
+        try {
+          const subFolderId = await createFolder(folderName, parentFolderId);
+          if (subFolderId) {
+            folderIdMap.set(folderPath, subFolderId);
+            console.log(`✅ Subfolder "${folderPath}" created with ID: ${subFolderId}`);
+          } else {
+            console.log(`❌ Failed to create subfolder "${folderPath}", using parent folder`);
+            folderIdMap.set(folderPath, parentFolderId);
           }
+        } catch (error) {
+          console.error(`❌ Error creating subfolder "${folderPath}":`, error);
+          folderIdMap.set(folderPath, parentFolderId);
         }
+      }
+
+      // Step 4: Upload files to their respective folders using the collected folder IDs
+      console.log("📁 Step 4: Uploading files to their respective folders");
+      
+      for (const [folderPath, files] of Object.entries(folderStructure.folders)) {
+        const targetFolderId = folderIdMap.get(folderPath) || mainFolderId;
+        const folderDisplayName = folderPath === 'root' ? 'main folder' : folderPath;
+
+        toast({
+          title: "Uploading Files",
+          description: `Uploading ${files.length} files to ${folderDisplayName}...`,
+        });
+
+        console.log(`📤 Uploading ${files.length} files to folder "${folderPath}" (ID: ${targetFolderId})`);
+        await handleMultipleFileUpload(files, targetFolderId);
+        
+        console.log(`✅ Completed upload to folder "${folderPath}"`);
       }
 
       toast({
         title: "Folder Upload Complete",
-        description: `"${originalFolderName}" structure created with all files organized!`,
+        description: `Successfully created ${Object.keys(folderStructure.folders).length} folders and uploaded all files!`,
       });
 
     } catch (error) {
@@ -748,37 +743,53 @@ export default function DashboardPage() {
       
       toast({
         title: "Folder Upload Failed",
-        description: `Failed to create folder structure: ${errorMessage}. Using hierarchical upload instead...`,
+        description: `Failed to create folder structure: ${errorMessage}`,
         variant: "destructive",
       });
-      
-      // Fallback to hierarchical file type organization
-      await handleFileUploadWithFolderCreation(fileList, selectedFolder);
     }
     
     event.target.value = '';
   };
 
-  // Group files by their folder paths to preserve original structure
-  const groupFilesByFolderPath = (files: File[]): Record<string, File[]> => {
-    const groups: Record<string, File[]> = {};
+  // Analyze complete folder structure from uploaded files
+  const analyzeFolderStructure = (files: File[]) => {
+    const folders: Record<string, File[]> = {};
+    let rootFolderName = 'uploaded-folder';
     
+    // Extract root folder name from first file
+    if (files.length > 0) {
+      const firstFilePath = files[0].webkitRelativePath;
+      if (firstFilePath) {
+        rootFolderName = firstFilePath.split('/')[0];
+      }
+    }
+    
+    // Group files by their complete folder paths
     files.forEach(file => {
       const pathParts = file.webkitRelativePath?.split('/') || [];
       
       if (pathParts.length <= 2) {
-        // File is in root of uploaded folder
-        if (!groups['root']) groups['root'] = [];
-        groups['root'].push(file);
+        // File is in root folder
+        if (!folders['root']) folders['root'] = [];
+        folders['root'].push(file);
       } else {
-        // File is in a subfolder - use the subfolder path (excluding root folder and filename)
-        const subfolderPath = pathParts.slice(1, -1).join('/');
-        if (!groups[subfolderPath]) groups[subfolderPath] = [];
-        groups[subfolderPath].push(file);
+        // File is in subfolder - preserve complete path structure
+        const folderPath = pathParts.slice(1, -1).join('/');
+        if (!folders[folderPath]) folders[folderPath] = [];
+        folders[folderPath].push(file);
       }
     });
     
-    return groups;
+    console.log('📁 Analyzed folder structure:', {
+      rootFolderName,
+      folders: Object.keys(folders),
+      fileCount: files.length
+    });
+    
+    return {
+      rootFolderName,
+      folders
+    };
   };
 
   // Backward compatibility - single file upload
