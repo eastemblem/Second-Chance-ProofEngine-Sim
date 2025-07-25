@@ -1,0 +1,13 @@
+# Exclude temporary test artifacts
+temp/
+*.log
+*.tmp
+
+# Exclude sensitive test data
+temp/cookies/*
+!temp/cookies/.gitkeep
+
+# Keep directory structure
+!temp/cookies/.gitkeep
+!temp/uploads/.gitkeep
+!temp/mappings/.gitkeep

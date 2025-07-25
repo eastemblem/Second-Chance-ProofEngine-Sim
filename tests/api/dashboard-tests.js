@@ -1,6 +1,6 @@
 // Dashboard API testing script
-const http = require('http');
-const querystring = require('querystring');
+import http from 'http';
+import querystring from 'querystring';
 
 async function testDashboardAPI(endpoint, founderId) {
   return new Promise((resolve, reject) => {
