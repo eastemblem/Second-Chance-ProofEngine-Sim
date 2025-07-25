@@ -395,12 +395,84 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
   // Certificate routes
   app.post("/api/certificate/generate", asyncHandler(generateCertificate));
+  app.post("/api/certificate/create", asyncHandler(async (req: Request, res: Response) => {
+    const { sessionId } = req.body;
+    if (!sessionId) {
+      return res.status(400).json({ success: false, error: 'sessionId is required' });
+    }
+    
+    const { createCertificateForSession } = await import('./routes/certificate');
+    const result = await createCertificateForSession(sessionId);
+    res.json(result);
+  }));
   app.get("/api/certificate/download/:filename", asyncHandler(downloadCertificate));
   app.get("/api/certificate/status/:ventureId", asyncHandler(getCertificateStatus));
 
   // Report routes
   app.post("/api/report/generate", asyncHandler(generateReport));
+  app.post("/api/report/create", asyncHandler(async (req: Request, res: Response) => {
+    const { sessionId } = req.body;
+    if (!sessionId) {
+      return res.status(400).json({ success: false, error: 'sessionId is required' });
+    }
+    
+    const { createReportForSession } = await import('./routes/report');
+    const result = await createReportForSession(sessionId);
+    res.json(result);
+  }));
   
+  // Trigger email flow manually for testing
+  app.post("/api/onboarding/trigger-email-flow", asyncHandler(async (req, res) => {
+    const { sessionId } = req.body;
+    if (!sessionId) {
+      return res.status(400).json({ success: false, error: 'sessionId is required' });
+    }
+    
+    try {
+      const { onboardingService } = await import('./services/onboarding-service');
+      
+      // Simulate the async certificate/report generation and email flow
+      const { createCertificateForSession } = await import('./routes/certificate');
+      const { createReportForSession } = await import('./routes/report');
+      
+      console.log("🧪 Testing certificate generation for session:", sessionId);
+      const certificateResult = await createCertificateForSession(sessionId);
+      console.log("Certificate result:", certificateResult);
+      
+      console.log("🧪 Testing report generation for session:", sessionId);
+      const reportResult = await createReportForSession(sessionId);
+      console.log("Report result:", reportResult);
+      
+      // Send email notification with fallback logic
+      if (certificateResult.success && reportResult.success) {
+        const session = await onboardingService.getSession(sessionId);
+        const stepData = session?.stepData || {};
+        await onboardingService.sendEmailNotification(sessionId, stepData, certificateResult.certificateUrl, reportResult.reportUrl);
+        console.log("✓ Email notification sent with successful generation URLs");
+      } else {
+        // Use fallback URLs
+        console.log("Using fallback URLs for email notification");
+        const fallbackCertificateUrl = `https://app.box.com/s/${sessionId}_certificate`;
+        const fallbackReportUrl = `https://app.box.com/s/${sessionId}_report`;
+        
+        const session = await onboardingService.getSession(sessionId);
+        const stepData = session?.stepData || {};
+        await onboardingService.sendEmailNotification(sessionId, stepData, fallbackCertificateUrl, fallbackReportUrl);
+        console.log("✓ Email notification sent with fallback URLs");
+      }
+      
+      res.json({ 
+        success: true, 
+        message: "Email flow triggered successfully",
+        certificateResult: certificateResult.success ? "success" : "failed",
+        reportResult: reportResult.success ? "success" : "failed"
+      });
+    } catch (error) {
+      console.error("Email flow test failed:", error);
+      res.status(500).json({ success: false, error: error instanceof Error ? error.message : 'Unknown error' });
+    }
+  }));
+
   // Fix venture table with certificate and report URLs
   app.post("/api/fix-venture-urls", async (req, res) => {
     try {

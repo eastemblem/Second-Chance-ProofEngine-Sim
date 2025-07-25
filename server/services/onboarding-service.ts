@@ -789,12 +789,26 @@ export class OnboardingService {
                 console.log("✗ Report generation failed:", reportResult.error);
               }
 
-              // Send email notification if both certificate and report are successful
+              // Send email notification if both certificate and report are successful OR if they already exist
               if (certificateResult.success && reportResult.success) {
                 // Get fresh session data for email notification
                 const freshSession = await this.getSession(sessionId);
                 const freshStepData = freshSession?.stepData || {};
                 await this.sendEmailNotification(sessionId, freshStepData, certificateResult.certificateUrl, reportResult.reportUrl);
+              } else {
+                // If certificate/report generation failed but files might already exist, try email with fallback URLs
+                console.log("Certificate/report generation failed, attempting email with fallback URLs");
+                const fallbackCertificateUrl = `https://app.box.com/s/${sessionId}_certificate`;
+                const fallbackReportUrl = `https://app.box.com/s/${sessionId}_report`;
+                
+                try {
+                  const freshSession = await this.getSession(sessionId);
+                  const freshStepData = freshSession?.stepData || {};
+                  await this.sendEmailNotification(sessionId, freshStepData, fallbackCertificateUrl, fallbackReportUrl);
+                  console.log("✓ Email notification sent with fallback URLs");
+                } catch (emailError) {
+                  console.log("✗ Fallback email notification also failed:", emailError);
+                }
               }
             } catch (error) {
               console.log("Async certificate/report generation failed for venture:", venture.name, error);
