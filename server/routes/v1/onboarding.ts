@@ -4,9 +4,24 @@ import { getSessionId, updateSessionData } from '../../utils/session-manager';
 import { createSuccessResponse } from '../../utils/error-handler';
 import { safeValidate } from '../../utils/validation';
 import { onboardingService } from '../../services/onboarding-service';
+import { requireSession } from '../../middleware/auth';
 import { founderOnboardingSchema, ventureOnboardingSchema } from '../../onboarding';
 
 const router = Router();
+
+// Initialize onboarding session - V1 VERSION
+router.post("/session/init", requireSession, asyncHandler(async (req: Request, res: Response) => {
+  const sessionId = await onboardingService.initializeSession(req);
+  const session = await onboardingService.getSession(sessionId);
+
+  res.json(createSuccessResponse({
+    sessionId,
+    currentStep: session?.currentStep || "founder",
+    stepData: session?.stepData || {},
+    completedSteps: session?.completedSteps || [],
+    isComplete: session?.isComplete || false,
+  }));
+}));
 
 // Founder onboarding step - UPDATED LOGIC to accept sessionId from request body
 router.post("/founder", asyncHandler(async (req: Request, res: Response) => {
