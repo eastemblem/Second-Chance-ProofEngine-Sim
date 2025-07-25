@@ -126,15 +126,17 @@ Demo experience for testing different user journeys:
 
 ## Recent Key Updates
 
-### July 25, 2025 - CRITICAL FOLDER UPLOAD API FIX: Eliminated Bulk Folder-Structure API Calls
-- **ROOT CAUSE IDENTIFIED**: Folder upload was incorrectly calling bulk folder-structure API (`createFolderStructure`) instead of individual folder creation
-- **BULK API DISABLED**: Disabled `/create-startup-vault` endpoint that was calling bulk folder-structure creation during folder uploads
-- **INDIVIDUAL FOLDER CREATION ENFORCED**: Folder upload now exclusively uses individual `/api/vault/create-folder` endpoint for each folder
-- **API WORKFLOW CORRECTED**: 
-  * ❌ OLD: Bulk folder-structure creation via `createFolderStructure()` 
-  * ✅ NEW: Individual folder creation via `createFolder()` for each folder
+### July 25, 2025 - API USAGE CLARIFICATION: Proper Separation of Onboarding vs Folder Upload APIs
+- **CORRECT API USAGE CLARIFIED**: 
+  * `createFolderStructure()` - ONBOARDING ONLY: Creates initial vault structure during user onboarding
+  * `createFolder()` - FOLDER UPLOADS: Individual folder creation for user uploads
+- **RESTORED ONBOARDING FUNCTIONALITY**: Re-enabled `/create-startup-vault` endpoint for proper onboarding workflow
+- **FOLDER UPLOAD ISOLATION**: Confirmed folder upload exclusively uses individual `/api/vault/create-folder` endpoint
+- **CLEAR SEPARATION OF CONCERNS**: 
+  * Onboarding: Bulk folder structure creation for initial setup
+  * Folder Uploads: Individual folder creation as needed
 - **ENHANCED ERROR HANDLING**: Added fallback logic when individual folder creation fails - files upload to parent category folder
-- **PRODUCTION READY**: Folder upload workflow now follows correct individual folder creation approach without any bulk API calls
+- **PRODUCTION READY**: Both onboarding and folder upload workflows use their appropriate APIs correctly
 
 ### July 25, 2025 - ENHANCED FOLDER UPLOAD LOADING INDICATORS: Complete Visual Feedback Implementation
 - **FOLDER CREATION LOADING STATE**: Added dedicated loading indicator specifically for folder creation process with blue-green gradient animation

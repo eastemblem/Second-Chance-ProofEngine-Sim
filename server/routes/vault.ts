@@ -90,22 +90,26 @@ const upload = multer({
   },
 });
 
-// Create startup vault - DISABLED: Use individual folder creation instead
+// Create startup vault - ONBOARDING ONLY: Creates initial folder structure during onboarding
 router.post("/create-startup-vault", requireFields(['startupName']), asyncHandler(async (req, res) => {
   const { startupName } = req.body;
   const sessionId = getSessionId(req);
   
-  // CRITICAL FIX: Do not call bulk folder structure creation
-  // Instead, return a message directing users to use individual folder creation
-  console.log(`❌ DEPRECATED: Startup vault creation endpoint called for "${startupName}"`);
-  console.log(`🔄 SOLUTION: Use individual folder creation via /api/vault/create-folder instead`);
+  console.log(`📁 ONBOARDING: Creating startup vault structure for "${startupName}"`);
+  console.log(`🔄 NOTE: This endpoint is for onboarding only - folder uploads use individual creation`);
   
-  res.status(400).json({
-    success: false,
-    error: "Bulk folder structure creation is deprecated. Use individual folder creation instead.",
-    message: "Please use the /api/vault/create-folder endpoint to create folders individually.",
-    recommendedAction: "Use the folder upload feature which creates folders one by one as needed."
+  const folderStructure = await vaultService.createStartupVault(startupName, sessionId);
+  
+  updateSessionData(req, {
+    folderStructure,
+    startupName,
+    uploadedFiles: [],
   });
+
+  res.json(createSuccessResponse({
+    folderStructure,
+    sessionId,
+  }, "Startup vault created successfully"));
 }));
 
 // Get session data
