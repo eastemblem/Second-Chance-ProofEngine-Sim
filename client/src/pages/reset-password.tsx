@@ -28,27 +28,35 @@ export default function ResetPasswordPage() {
 
   // Extract token from URL on component mount and when location changes
   useEffect(() => {
+    console.log('🔍 Token extraction effect running');
+    console.log('🔍 Current location:', location);
+    console.log('🔍 Current params:', params);
+    console.log('🔍 Window location:', typeof window !== 'undefined' ? window.location.href : 'N/A');
+    
     const extractToken = () => {
       // First try query parameter from window.location
       if (typeof window !== 'undefined') {
         const urlParams = new URLSearchParams(window.location.search);
         const queryToken = urlParams.get('token');
         if (queryToken) {
-          console.log('Found token in query params:', queryToken);
+          console.log('✅ Found token in query params:', queryToken);
           setToken(queryToken);
+          setTokenError('');
           return;
         }
       }
       
       // Then try path parameter from wouter
       if (params?.token) {
-        console.log('Found token in path params:', params.token);
+        console.log('✅ Found token in path params:', params.token);
         setToken(params.token);
+        setTokenError('');
         return;
       }
       
-      console.log('No token found in URL');
+      console.log('❌ No token found in URL');
       setToken(null);
+      setTokenError('Token not found in URL');
     };
 
     extractToken();

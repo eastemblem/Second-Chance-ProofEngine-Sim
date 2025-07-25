@@ -179,12 +179,7 @@ function Router() {
           <ForgotPasswordPage />
         </Suspense>
       )} />
-      <Route path="/reset-password" component={() => (
-        <Suspense fallback={<SimpleLoader />}>
-          <ResetPasswordPage />
-        </Suspense>
-      )} />
-      <Route path="/reset-password/:token" component={() => (
+      <Route path="/reset-password/:token?" component={() => (
         <Suspense fallback={<SimpleLoader />}>
           <ResetPasswordPage />
         </Suspense>

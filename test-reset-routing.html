@@ -1,0 +1,36 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Reset Password Routing Test</title>
+</head>
+<body>
+    <h1>Reset Password Routing Test</h1>
+    <p>Testing routing to reset password page</p>
+    
+    <div>
+        <h2>Test Links:</h2>
+        <ul>
+            <li><a href="/reset-password" target="_blank">Basic Reset Password</a></li>
+            <li><a href="/reset-password?token=test123" target="_blank">Reset Password with Query Token</a></li>
+            <li><a href="/reset-password/test456" target="_blank">Reset Password with Path Token</a></li>
+            <li><a href="/routing-debug" target="_blank">Routing Debug Page</a></li>
+        </ul>
+    </div>
+    
+    <script>
+        console.log('Test page loaded');
+        // Test the reset password URL directly
+        fetch('/reset-password?token=364d4eeee3ecad0018dcdd814f40abea644b96e6ecd48a0923ed4c6d6897f556')
+            .then(response => response.text())
+            .then(data => {
+                console.log('Reset password response:', data.includes('404') ? '404 FOUND' : 'OK');
+                if (data.includes('404')) {
+                    console.log('Response contains 404 error');
+                } else {
+                    console.log('Response appears to be valid HTML');
+                }
+            })
+            .catch(error => console.error('Error:', error));
+    </script>
+</body>
+</html>
