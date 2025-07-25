@@ -225,8 +225,9 @@ Demo experience for testing different user journeys:
 - **INFORMATION PANEL**: Added comprehensive document descriptions and Proof Vault integration details
 - **GRADIENT HOVER EFFECTS**: Enhanced visual feedback with glow animations and border transitions on download cards
 - **PROOF VAULT BRANDING CONSISTENCY**: Replaced all "Box.com" references with "Proof Vault" throughout dashboard interface
-- **PARENT FOLDER ACCESS**: Added folder icon next to "Your Proof Vault" title with ExternalLink icon for direct parent folder navigation
 - **ENHANCED USER EXPERIENCE**: Consistent "Proof Vault" terminology across client and server components while maintaining all existing Box.com integration functionality
+- **SIMPLIFIED FOLDER INTERFACE**: Removed view folder logic and folder access buttons from dashboard interface while keeping folder URLs in backend for future use
+- **CLEAN PROOF VAULT OVERVIEW**: Simplified folder overview cards showing only file counts without hover actions or view buttons
 - **BOX.COM FOLDER VIEWING IMPLEMENTED**: Added comprehensive Box.com folder viewing functionality to ProofVault dashboard
 - **FOLDER URL EXTRACTION**: Dashboard API now extracts individual folder URLs from venture.folderStructure JSON data
 - **HOVER-TO-VIEW INTERFACE**: Added hover-activated view buttons to all 7 proof category folders with smooth opacity transitions
