@@ -18,6 +18,23 @@ export class VaultService {
   }
 
   /**
+   * Create folder
+   */
+  async createFolder(folderName: string, parentFolderId: string, sessionId: string) {
+    if (!eastEmblemAPI.isConfigured()) {
+      throw new Error("EastEmblem API not configured");
+    }
+
+    const folderResult = await eastEmblemAPI.createFolder(
+      folderName,
+      parentFolderId,
+      sessionId
+    );
+
+    return folderResult;
+  }
+
+  /**
    * Upload file to vault
    */
   async uploadFileToVault(fileBuffer: Buffer, fileName: string, folderId: string, sessionId: string) {

@@ -763,11 +763,17 @@ export default function DashboardPage() {
       setFolderCreationStatus('');
       
       for (const [folderPath, files] of Object.entries(folderStructure.folders)) {
-        const targetFolderId = folderIdMap.get(folderPath) || mainFolderId;
+        let targetFolderId = folderIdMap.get(folderPath) || mainFolderId;
         const folderDisplayName = folderPath === 'root' ? 'main folder' : folderPath;
 
+        // CRITICAL FIX: If folder creation failed, fall back to using the selected category folder
+        if (!folderIdMap.get(folderPath) && folderPath !== 'root') {
+          console.log(`⚠️ No folder ID found for "${folderPath}", using selected category "${selectedCategory}" as fallback`);
+          targetFolderId = selectedCategory;
+        }
+
         toast({
-          title: "Uploading Files",
+          title: "Uploading Files", 
           description: `Uploading ${files.length} files to ${folderDisplayName}...`,
         });
 

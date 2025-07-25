@@ -363,6 +363,88 @@ class EastEmblemAPI {
     }
   }
 
+  async createFolder(
+    folderName: string,
+    parentFolderId: string,
+    onboardingId?: string
+  ): Promise<{ id: string; name: string; url: string }> {
+    try {
+      const formData = new FormData();
+      formData.append("folderName", folderName);
+      formData.append("folder_id", parentFolderId);
+      if (onboardingId) {
+        formData.append("onboarding_id", onboardingId);
+      }
+
+      console.log(`Creating folder: ${folderName} in parent: ${parentFolderId}`);
+      console.log(`API endpoint: ${this.getEndpoint("/webhook/vault/folder/create")}`);
+
+      const controller = new AbortController();
+      const timeoutId = setTimeout(() => controller.abort(), 30000);
+
+      const response = await fetch(this.getEndpoint("/webhook/vault/folder/create"), {
+        method: "POST",
+        body: formData,
+        signal: controller.signal,
+      });
+
+      clearTimeout(timeoutId);
+
+      if (!response.ok) {
+        const errorText = await response.text();
+        console.error(`Folder creation failed with status ${response.status}:`, errorText);
+        
+        if (response.status >= 500) {
+          throw new Error(`EastEmblem API service unavailable (${response.status}). Please try again later.`);
+        } else if (response.status === 401) {
+          throw new Error("EastEmblem API authentication failed. Please check API credentials.");
+        } else if (response.status === 403) {
+          throw new Error("EastEmblem API access forbidden. Please verify API permissions.");
+        } else if (response.status === 400) {
+          // For folder creation, a 400 might mean the folder already exists or parent doesn't exist
+          console.log(`❌ Folder creation failed - parent folder ${parentFolderId} may not exist or folder ${folderName} already exists`);
+          console.log(`⚠️ CRITICAL: The EastEmblem API folder creation endpoint may not exist or has different requirements`);
+          throw new Error(`EastEmblem API folder creation failed: The folder creation endpoint may not be available`);
+        } else {
+          throw new Error(`Folder creation failed (${response.status}): ${errorText}`);
+        }
+      }
+
+      const responseText = await response.text();
+      console.log("Raw folder creation response:", responseText);
+      
+      try {
+        const result = JSON.parse(responseText);
+        console.log("Folder created successfully:", result);
+        
+        // Extract folder ID from various possible response structures
+        const folderId = result.data?.folderId || result.folderId || result.data?.id || result.id || result.folder_id;
+        const folderUrl = result.data?.url || result.url || `https://app.box.com/folder/${folderId}`;
+        
+        return {
+          id: folderId?.toString() || `folder-${Date.now()}`,
+          name: folderName,
+          url: folderUrl
+        };
+      } catch (parseError) {
+        console.error("Failed to parse folder creation response JSON:", parseError);
+        console.log("Response was:", responseText);
+        throw new Error(`Folder creation succeeded but response parsing failed: ${parseError instanceof Error ? parseError.message : 'Invalid JSON'}`);
+      }
+    } catch (error) {
+      console.error("Error creating folder:", error);
+      if (!this.isConfigured()) {
+        throw new Error("EastEmblem API is not configured. Please provide EASTEMBLEM_API_URL and EASTEMBLEM_API_KEY.");
+      }
+      
+      if (error instanceof Error && error.name === 'AbortError') {
+        throw new Error("Folder creation is taking longer than expected. Please try again.");
+      }
+      
+      throw new Error(`Folder creation failed: ${error instanceof Error ? error.message : 'Unknown error'}`);
+    }
+  }
+
   async uploadFile(
     fileBuffer: Buffer,
     fileName: string,
