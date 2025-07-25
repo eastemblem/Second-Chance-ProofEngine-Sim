@@ -150,6 +150,9 @@ export default function DashboardPage() {
       if (validationResponse.ok) {
         const validation = await validationResponse.json();
         setValidationData(validation);
+        
+        // Check for newly available documents and show toast notifications
+        checkDocumentReadiness(validation);
       }
 
       // Load secondary data in parallel for better performance
@@ -207,6 +210,39 @@ export default function DashboardPage() {
         description: "Unable to load dashboard data. Please refresh the page.",
         variant: "destructive",
       });
+    }
+  };
+
+  // Check for newly available documents and show toast notifications
+  const checkDocumentReadiness = (validation: any) => {
+    // Check for certificate availability
+    if (validation.certificateUrl && !sessionStorage.getItem('certificate_ready_notified')) {
+      toast({
+        title: "Certificate Ready!",
+        description: "Your ProofScore certificate is now available for download.",
+        variant: "default",
+      });
+      
+      // Track certificate availability
+      trackEvent('notification', 'document', 'certificate_ready');
+      
+      // Mark as notified to prevent duplicate notifications
+      sessionStorage.setItem('certificate_ready_notified', 'true');
+    }
+    
+    // Check for report availability
+    if (validation.reportUrl && !sessionStorage.getItem('report_ready_notified')) {
+      toast({
+        title: "Analysis Report Ready!",
+        description: "Your detailed venture analysis report is now available for download.",
+        variant: "default",
+      });
+      
+      // Track report availability
+      trackEvent('notification', 'document', 'report_ready');
+      
+      // Mark as notified to prevent duplicate notifications
+      sessionStorage.setItem('report_ready_notified', 'true');
     }
   };
 

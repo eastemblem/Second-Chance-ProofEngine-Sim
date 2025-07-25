@@ -7,6 +7,10 @@ import { kvCacheService } from "../services/kv-cache-service";
 
 const router = Router();
 
+
+
+
+
 // OPTIMIZED: Get validation data (ProofScore, ProofTags, etc.)
 router.get("/validation", async (req, res) => {
   try {
@@ -24,10 +28,19 @@ router.get("/validation", async (req, res) => {
     }
 
     // OPTIMIZATION: Single query instead of 4 separate database calls
+    console.log(`🔍 Dashboard validation - looking for founderId: ${founderId}`);
+    
     const dashboardData = await databaseService.executeWithTiming(
       'dashboard-validation',
       () => databaseService.getFounderWithLatestVenture(founderId)
     );
+
+    console.log(`📊 Dashboard data result:`, {
+      hasData: !!dashboardData,
+      founder: dashboardData?.founder ? 'found' : 'not found',
+      venture: dashboardData?.venture ? 'found' : 'not found',
+      evaluation: dashboardData?.latestEvaluation ? 'found' : 'not found'
+    });
 
     if (!dashboardData) {
       return res.status(404).json({ error: "Founder not found" });

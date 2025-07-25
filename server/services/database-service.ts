@@ -111,6 +111,8 @@ export class DatabaseService {
    * Internal method: Fetch founder with venture from database
    */
   private async fetchFounderWithLatestVentureFromDB(founderId: string) {
+    console.log(`🔍 Database query - fetchFounderWithLatestVentureFromDB for founderId: ${founderId}`);
+    
     const result = await db
       .select({
         founder: {
@@ -147,6 +149,22 @@ export class DatabaseService {
       .where(eq(founder.founderId, founderId))
       .orderBy(desc(venture.createdAt), desc(evaluation.evaluationDate))
       .limit(1);
+
+    console.log(`📊 Query result - rows found: ${result.length}`);
+    if (result.length > 0) {
+      const data = result[0];
+      console.log(`📊 Query result details:`, {
+        hasFounder: !!data.founder?.founderId,
+        founderId: data.founder?.founderId,
+        founderEmail: data.founder?.email,
+        hasVenture: !!data.venture?.ventureId,
+        ventureId: data.venture?.ventureId,
+        ventureName: data.venture?.name,
+        hasEvaluation: !!data.latestEvaluation?.evaluationId,
+        evaluationId: data.latestEvaluation?.evaluationId,
+        proofscore: data.latestEvaluation?.proofscore
+      });
+    }
 
     return result[0] || null;
   }
