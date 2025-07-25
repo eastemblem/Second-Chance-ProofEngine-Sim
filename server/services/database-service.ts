@@ -257,6 +257,62 @@ export class DatabaseService {
   }
 
   /**
+   * Get founder by email for authentication
+   */
+  async getFounderByEmail(email: string): Promise<Founder | undefined> {
+    const [founderRecord] = await db.select().from(founder).where(eq(founder.email, email));
+    return founderRecord;
+  }
+
+  /**
+   * Get founder by ID for authentication verification
+   */
+  async getFounderById(founderId: string): Promise<Founder | undefined> {
+    const [founderRecord] = await db.select().from(founder).where(eq(founder.founderId, founderId));
+    return founderRecord;
+  }
+
+  /**
+   * Create new founder for registration
+   */
+  async createFounder(insertFounder: InsertFounder): Promise<Founder> {
+    const [founderRecord] = await db.insert(founder).values(insertFounder).returning();
+    return founderRecord;
+  }
+
+  /**
+   * Create new venture for founder
+   */
+  async createVenture(insertVenture: InsertVenture): Promise<Venture> {
+    // Filter out any fields that don't exist in the database schema
+    const filteredVenture = {
+      founderId: insertVenture.founderId,
+      name: insertVenture.name,
+      industry: insertVenture.industry,
+      geography: insertVenture.geography,
+      businessModel: insertVenture.businessModel,
+      revenueStage: insertVenture.revenueStage,
+      mvpStatus: insertVenture.mvpStatus,
+      website: insertVenture.website,
+      hasTestimonials: insertVenture.hasTestimonials,
+      description: insertVenture.description,
+      linkedinUrl: insertVenture.linkedinUrl,
+      twitterUrl: insertVenture.twitterUrl,
+      instagramUrl: insertVenture.instagramUrl,
+    };
+    
+    const [ventureRecord] = await db.insert(venture).values(filteredVenture).returning();
+    return ventureRecord;
+  }
+
+  /**
+   * Get ventures by founder ID
+   */
+  async getVenturesByFounderId(founderId: string): Promise<Venture[]> {
+    return await db.select().from(venture).where(eq(venture.founderId, founderId));
+  }
+
+  /**
    * Connection health check and monitoring
    */
   async healthCheck(): Promise<{ status: string; connections: number; uptime: number }> {

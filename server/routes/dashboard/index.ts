@@ -2,14 +2,15 @@ import express from "express";
 import { asyncHandler } from "../../utils/error-handler";
 import { databaseService } from "../../services/database-service";
 import { lruCacheService } from "../../services/lru-cache-service";
+import { authenticateToken } from "../../middleware/token-auth";
 import { eq } from "drizzle-orm";
 import { db } from "../../db";
 
 const router = express.Router();
 
-// Dashboard validation endpoint - extracted from main routes.ts
-router.get("/validation", asyncHandler(async (req, res) => {
-  const founderId = req.session?.founderId;
+// Dashboard validation endpoint with JWT authentication
+router.get("/validation", authenticateToken, asyncHandler(async (req, res) => {
+  const founderId = req.user?.founderId;
 
   if (!founderId) {
     return res.status(401).json({ error: "Not authenticated" });
@@ -27,15 +28,23 @@ router.get("/validation", asyncHandler(async (req, res) => {
     }
 
     // Response with ProofScore and other validation metrics
+    const actualProofScore = dashboardData.evaluation?.proofscore || 0;
+    const actualProofTags = dashboardData.evaluation?.prooftags || [];
+    
+    console.log(`📊 VALIDATION: Found ProofScore ${actualProofScore}, ProofTags: ${actualProofTags.length}`, {
+      evaluation: dashboardData.evaluation ? 'exists' : 'missing',
+      venture: dashboardData.venture ? 'exists' : 'missing'
+    });
+    
     const response = {
       founderName: dashboardData.founder.fullName || "Unknown Founder",
       ventureName: dashboardData.venture?.name || "No Venture",
-      proofScore: dashboardData.latestEvaluation?.proofscore || 0,
-      proofTagsUnlocked: 14, // Example from working system
+      proofScore: actualProofScore,
+      proofTagsUnlocked: Array.isArray(actualProofTags) ? actualProofTags.length : 0,
       totalProofTags: 21,
       status: "active",
-      evaluationDate: dashboardData.latestEvaluation?.createdAt?.toISOString() || new Date().toISOString(),
-      investmentReadiness: getInvestmentReadinessStatus(dashboardData.latestEvaluation?.proofscore || 0)
+      evaluationDate: dashboardData.evaluation?.evaluationDate?.toISOString() || new Date().toISOString(),
+      investmentReadiness: getInvestmentReadinessStatus(actualProofScore)
     };
 
     console.log(`✅ DASHBOARD: Validation data retrieved successfully for ${founderId}`);
@@ -53,9 +62,9 @@ router.get("/validation", asyncHandler(async (req, res) => {
   }
 }));
 
-// Dashboard vault endpoint - extracted from main routes.ts  
-router.get("/vault", asyncHandler(async (req, res) => {
-  const founderId = req.session?.founderId;
+// Dashboard vault endpoint with JWT authentication
+router.get("/vault", authenticateToken, asyncHandler(async (req, res) => {
+  const founderId = req.user?.founderId;
 
   if (!founderId) {
     return res.status(401).json({ error: "Not authenticated" });
@@ -138,9 +147,9 @@ router.get("/vault", asyncHandler(async (req, res) => {
   }
 }));
 
-// Dashboard activity endpoint - extracted from main routes.ts
-router.get("/activity", asyncHandler(async (req, res) => {
-  const founderId = req.session?.founderId;
+// Dashboard activity endpoint with JWT authentication
+router.get("/activity", authenticateToken, asyncHandler(async (req, res) => {
+  const founderId = req.user?.founderId;
 
   if (!founderId) {
     return res.status(401).json({ error: "Not authenticated" });
