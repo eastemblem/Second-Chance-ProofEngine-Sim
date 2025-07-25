@@ -1375,6 +1375,12 @@ export default function Analysis({
                     </div>
                     Validation Dimensions
                   </h3>
+                  <p className="text-sm text-muted-foreground mb-4">
+                    Your venture's performance across the five critical validation areas
+                    <span className="block text-xs mt-1 opacity-75">
+                      Each dimension is scored against industry benchmarks and investor criteria
+                    </span>
+                  </p>
                   <div className="space-y-3">
                     {Object.entries(proofScore.dimensions).map(
                       ([dimension, score]) => {
@@ -1442,6 +1448,12 @@ export default function Analysis({
                     </div>
                     Key Insights
                   </h3>
+                  <p className="text-sm text-muted-foreground mb-4">
+                    AI-powered analysis of your venture's strengths and improvement opportunities
+                    <span className="block text-xs mt-1 opacity-75">
+                      Personalized recommendations based on your pitch deck and venture data
+                    </span>
+                  </p>
                   <div className="space-y-3">
                     {proofScore.insights.strengths
                       .slice(0, 2)
