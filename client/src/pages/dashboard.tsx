@@ -138,19 +138,42 @@ export default function DashboardPage() {
 
   const checkAuthStatus = async () => {
     try {
-      const response = await fetch('/api/auth/me', { credentials: 'include' });
+      // Use JWT token verification instead of session-based auth
+      const token = localStorage.getItem('auth_token');
+      if (!token) {
+        setLocation('/login');
+        return;
+      }
+
+      const response = await fetch('/api/auth-token/verify', { 
+        headers: {
+          'Authorization': `Bearer ${token}`
+        }
+      });
       
       if (response.ok) {
-        const userData = await response.json();
-        setUser(userData);
+        const result = await response.json();
+        if (result.success && result.data) {
+          const userData = {
+            founderId: result.data.user.founderId,
+            email: result.data.user.email,
+            isAuthenticated: true,
+            fullName: result.data.user.fullName,
+            venture: {
+              name: result.data.venture.name,
+              ventureId: result.data.venture.ventureId
+            }
+          };
+          setUser(userData);
+        } else {
+          setLocation('/login');
+        }
       } else {
-        // Redirect to onboarding for fresh start since database was cleared
-        setLocation('/');
+        setLocation('/login');
       }
     } catch (error) {
       console.error('Auth check error:', error);
-      // Redirect to onboarding for fresh start since database was cleared
-      setLocation('/');
+      setLocation('/login');
     } finally {
       setIsLoading(false);
     }
@@ -167,10 +190,13 @@ export default function DashboardPage() {
         'Cache-Control': 'max-age=300' // Cache for 5 minutes normally
       };
 
-      // Load critical data first (validation) for faster LCP
-      const validationResponse = await fetch('/api/dashboard/validation', {
+      // Load critical data first (validation) for faster LCP - USE V1 API with JWT
+      const token = localStorage.getItem('auth_token');
+      const authHeaders = token ? { 'Authorization': `Bearer ${token}` } : {};
+      
+      const validationResponse = await fetch('/api/v1/dashboard/validation', {
         credentials: 'include',
-        headers
+        headers: { ...headers, ...authHeaders }
       });
       if (validationResponse.ok) {
         const validation = await validationResponse.json();
@@ -180,24 +206,27 @@ export default function DashboardPage() {
         checkDocumentReadiness(validation);
       }
 
-      // Load secondary data in parallel - activity with higher priority
+      // Load secondary data in parallel - activity with higher priority - USE V1 APIS with JWT
       const [vaultResponse, activityResponse, leaderboardResponse] = await Promise.all([
-        fetch('/api/dashboard/vault', {
+        fetch('/api/v1/dashboard/vault', {
           credentials: 'include',
-          headers: forceRefresh ? headers : {
-            'Cache-Control': 'max-age=600' // Cache for 10 minutes normally
+          headers: { 
+            ...(forceRefresh ? headers : { 'Cache-Control': 'max-age=600' }),
+            ...authHeaders
           }
         }),
-        fetch('/api/dashboard/activity', {
+        fetch('/api/v1/dashboard/activity', {
           credentials: 'include',
-          headers: forceRefresh ? headers : {
-            'Cache-Control': 'max-age=120' // Reduced cache for activity - 2 minutes
+          headers: { 
+            ...(forceRefresh ? headers : { 'Cache-Control': 'max-age=120' }),
+            ...authHeaders
           }
         }),
-        fetch('/api/leaderboard?limit=5', {
+        fetch('/api/v1/leaderboard?limit=5', {
           credentials: 'include',
-          headers: forceRefresh ? headers : {
-            'Cache-Control': 'max-age=1200' // Cache for 20 minutes normally
+          headers: { 
+            ...(forceRefresh ? headers : { 'Cache-Control': 'max-age=1200' }),
+            ...authHeaders
           }
         })
       ]);

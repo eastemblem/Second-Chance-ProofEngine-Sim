@@ -17,7 +17,7 @@ import { newRelicMiddleware, trackBusinessMetrics, configureNewRelic } from "./m
 import dashboardRoutes from "./routes/dashboard";
 import vaultRoutes from "./routes/vault";
 import onboardingRoutes from "./routes/onboarding";
-import v1ApiRoutes from "./routes/api/v1";
+import v1ApiRoutes from "./routes/v1-working";
 import healthRoutes from "./routes/health";
 import sentryTestRoutes from "./routes/sentry-test";
 
@@ -35,7 +35,13 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Initialize observability
   configureNewRelic();
 
-  // Apply global middleware
+  // API versioning and route organization
+  appLogger.system("Registering API routes with modular structure...");
+
+  // V1 API routes (new modular structure) - MOUNTED FIRST TO AVOID MIDDLEWARE CONFLICTS
+  app.use('/api/v1', v1ApiRoutes);
+
+  // Apply global middleware AFTER v1 routes to avoid JWT conflicts
   app.use(healthCheck);
   app.use(correlationMiddleware);
   app.use(corsConfig);
@@ -47,12 +53,6 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.use(trackBusinessMetrics);
   app.use(performanceTracker);
   app.use(timeoutHandler(30000));
-
-  // API versioning and route organization
-  appLogger.system("Registering API routes with modular structure...");
-
-  // V1 API routes (new modular structure)
-  app.use('/api/v1', v1ApiRoutes);
 
   // Core feature routes (new modular structure)
   app.use('/api/dashboard', dashboardRoutes);

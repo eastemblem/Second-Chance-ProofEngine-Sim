@@ -8,10 +8,24 @@ import notificationRoutes from './notifications';
 import testRoutes from './test';
 import { getLeaderboard } from '../../routes/leaderboard';
 import { asyncHandler } from '../middleware/error';
+import { authenticateToken } from '../../middleware/token-auth';
 
 const router = Router();
 
-// Register all v1 routes
+// Debug log to verify middleware import
+console.log('V1 Router: JWT Middleware function loaded:', typeof authenticateToken);
+
+// Apply basic auth check middleware globally to v1 routes
+router.use((req, res, next) => {
+  console.log('V1 Route middleware executing for:', req.path);
+  console.log('V1 Route headers:', req.headers.authorization ? 'Bearer token present' : 'No auth header');
+  next();
+});
+
+// Apply JWT authentication to all v1 routes globally
+router.use(authenticateToken);
+
+// Register all v1 routes (all protected by JWT)
 router.use('/dashboard', dashboardRoutes);
 router.use('/vault', vaultRoutes);
 router.use('/onboarding', onboardingRoutes);

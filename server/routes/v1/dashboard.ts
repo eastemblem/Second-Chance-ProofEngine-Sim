@@ -2,15 +2,42 @@ import { Router, Request, Response } from 'express';
 import { asyncHandler } from '../middleware/error';
 import { databaseService } from '../../services/database-service';
 import { appLogger } from '../../utils/logger';
+import { authenticateToken } from '../../middleware/token-auth';
 
 const router = Router();
 
-// Dashboard validation endpoint - EXACT SAME LOGIC as routes.ts
-router.get('/validation', asyncHandler(async (req: Request, res: Response) => {
-  const founderId = req.session?.founderId;
+// JWT authentication is now applied globally in v1/index.ts
+
+// Dashboard validation endpoint - JWT AUTHENTICATED (inline authentication)
+router.get('/validation', (req, res, next) => {
+  appLogger.api('V1 validation route hit - checking token manually');
+  const authHeader = req.headers.authorization;
+  if (!authHeader || !authHeader.startsWith('Bearer ')) {
+    appLogger.api('No Bearer token found in headers');
+    return res.status(401).json({ error: "Authentication required" });
+  }
+  
+  const token = authHeader.substring(7);
+  const jwt = require('jsonwebtoken');
+  const JWT_SECRET = process.env.JWT_SECRET || 'dev-jwt-secret-key-change-in-production';
+  
+  try {
+    const decoded = jwt.verify(token, JWT_SECRET);
+    (req as any).user = decoded;
+    appLogger.api('Token verified successfully for founder:', decoded.founderId);
+    next();
+  } catch (error) {
+    appLogger.api('Token verification failed:', error);
+    return res.status(401).json({ error: "Invalid token" });
+  }
+}, asyncHandler(async (req: Request, res: Response) => {
+  appLogger.api('V1 Dashboard validation request received');
+  
+  const founderId = (req as any).user?.founderId;
   
   if (!founderId) {
-    return res.status(401).json({ error: "Not authenticated" });
+    appLogger.api('Authentication failed - no founderId');
+    return res.status(401).json({ error: "Authentication required" });
   }
   
   try {
@@ -56,12 +83,12 @@ router.get('/validation', asyncHandler(async (req: Request, res: Response) => {
   }
 }));
 
-// Dashboard vault endpoint - EXACT SAME LOGIC as routes.ts
-router.get('/vault', asyncHandler(async (req: Request, res: Response) => {
-  const founderId = req.session?.founderId;
+// Dashboard vault endpoint - JWT AUTHENTICATED (inline authentication)
+router.get('/vault', authenticateToken, asyncHandler(async (req: Request, res: Response) => {
+  const founderId = (req as any).user?.founderId;
   
   if (!founderId) {
-    return res.status(401).json({ error: "Not authenticated" });
+    return res.status(401).json({ error: "Authentication token required" });
   }
   
   try {
@@ -211,12 +238,12 @@ router.get('/vault', asyncHandler(async (req: Request, res: Response) => {
   }
 }));
 
-// Dashboard activity endpoint - EXACT SAME LOGIC as routes.ts
-router.get('/activity', asyncHandler(async (req: Request, res: Response) => {
-  const founderId = req.session?.founderId;
+// Dashboard activity endpoint - JWT AUTHENTICATED (inline authentication)
+router.get('/activity', authenticateToken, asyncHandler(async (req: Request, res: Response) => {
+  const founderId = (req as any).user?.founderId;
   
   if (!founderId) {
-    return res.status(401).json({ error: "Not authenticated" });
+    return res.status(401).json({ error: "Authentication token required" });
   }
   
   try {
