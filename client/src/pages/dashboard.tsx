@@ -704,7 +704,7 @@ export default function DashboardPage() {
       // Step 2: Create main folder first and get its ID
       console.log("📁 Step 2: Creating main folder");
       setFolderCreationStatus(`Creating main folder: ${folderStructure.rootFolderName}...`);
-      const mainFolderId = await createFolder(folderStructure.rootFolderName, selectedFolder);
+      const mainFolderId = await createFolder(folderStructure.rootFolderName, selectedCategory);
       
       if (!mainFolderId) {
         throw new Error('Failed to create main folder');
