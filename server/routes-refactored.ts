@@ -17,7 +17,7 @@ import { newRelicMiddleware, trackBusinessMetrics, configureNewRelic } from "./m
 import dashboardRoutes from "./routes/dashboard";
 import vaultRoutes from "./routes/vault";
 import onboardingRoutes from "./routes/onboarding";
-import v1ApiRoutes from "./routes/v1-working";
+import v1ApiRoutes from "./routes/v1";
 import healthRoutes from "./routes/health";
 import sentryTestRoutes from "./routes/sentry-test";
 
