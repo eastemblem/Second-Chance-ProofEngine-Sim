@@ -2,9 +2,31 @@ import { Router, Request, Response } from 'express';
 import { asyncHandler } from '../middleware/error';
 import { getSessionId, updateSessionData } from '../../utils/session-manager';
 import { createSuccessResponse } from '../../utils/error-handler';
+import { safeValidate } from '../../utils/validation';
 import { onboardingService } from '../../services/onboarding-service';
+import { founderOnboardingSchema } from '../../onboarding';
 
 const router = Router();
+
+// Founder onboarding step - EXACT SAME LOGIC as routes/onboarding.ts
+router.post("/founder", asyncHandler(async (req: Request, res: Response) => {
+  // Use session from middleware, ignore any provided sessionId
+  const sessionId = getSessionId(req);
+  const { sessionId: _, ...founderData } = req.body; // Remove sessionId from body
+  
+  const validation = safeValidate(founderOnboardingSchema, founderData);
+  if (!validation.success) {
+    throw validation.errors;
+  }
+
+  const result = await onboardingService.completeFounderStep(sessionId, validation.data);
+
+  res.json(createSuccessResponse({
+    sessionId: result.sessionId,
+    founderId: result.founderId,
+    nextStep: "venture",
+  }));
+}));
 
 // Submit for scoring endpoint - EXACT SAME LOGIC as routes.ts
 router.post('/submit-for-scoring', asyncHandler(async (req, res) => {
