@@ -1146,8 +1146,8 @@ export default function DashboardPage() {
                   </TabsContent>
 
                   <TabsContent value="files" className="mt-6">
-                    {/* Fixed height container with scrolling */}
-                    <div className="h-80 overflow-y-auto border border-gray-700 rounded-lg bg-gray-900/50">
+                    {/* Fixed height container with scrolling - sized for ~10 files */}
+                    <div className="h-96 overflow-y-auto border border-gray-700 rounded-lg bg-gray-900/50">
                       <div className="p-4 space-y-3">
                         {proofVaultData?.files?.length ? (
                           proofVaultData.files.map((file) => (
