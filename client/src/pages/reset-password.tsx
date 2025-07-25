@@ -176,28 +176,6 @@ export default function ResetPasswordPage() {
       </div>
     );
   }
-            {/* Error State */}
-            <Card>
-              <CardContent className="p-8 text-center">
-                <XCircle className="w-16 h-16 mx-auto mb-4 text-destructive" />
-                <h1 className="text-2xl font-bold mb-2">Invalid Reset Link</h1>
-                <p className="text-muted-foreground mb-6">
-                  This password reset link is invalid or has expired. Please request a new one.
-                </p>
-                <Button
-                  onClick={() => setLocation('/forgot-password')}
-                  className="gradient-button"
-                >
-                  Request New Reset Link
-                </Button>
-              </CardContent>
-            </Card>
-          </div>
-        </div>
-        <Footer />
-      </div>
-    );
-  }
 
   const passwordErrors = validatePassword(password);
 
