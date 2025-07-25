@@ -126,6 +126,14 @@ Demo experience for testing different user journeys:
 
 ## Recent Key Updates
 
+### July 25, 2025 - DASHBOARD LEADERBOARD INTEGRATION COMPLETE: Top 5 Scores with Real/Mock Data
+- **LEADERBOARD API INTEGRATION**: Dashboard now fetches top 5 ventures from `/api/leaderboard?limit=5` endpoint with smart real/mock data mixing
+- **REAL DATA PRIORITY**: Authentic database entries displayed first (Funder Flow #1 with score 69), mock data fills remaining positions to guarantee 5 entries
+- **ENHANCED UI FEATURES**: Added "Demo" badges for mock entries, "You" badge for current user, animated borders for user's venture
+- **PROPER RANKING SYSTEM**: Trophy icons for top 3 positions, color-coded styling based on rank and user status
+- **CACHE OPTIMIZATION**: Leaderboard data cached for 20 minutes with LRU + KV hybrid caching for optimal performance
+- **PRODUCTION READY**: Complete leaderboard system operational with authentic data integration and graceful mock data fallback
+
 ### July 25, 2025 - PROOF VAULT FILE MANAGEMENT COMPLETE: Ordering, Categorization & Timestamps Fixed
 - **FILE CHRONOLOGICAL ORDERING**: Files now displayed in chronological order (most recent first) in ProofVault Files section using SQL ORDER BY DESC(created_at)
 - **TIMESTAMP DISPLAY FIXED**: File timestamps now show user-friendly relative time ("1h ago", "2m ago", "just now") instead of raw ISO dates using formatTimeAgo() function

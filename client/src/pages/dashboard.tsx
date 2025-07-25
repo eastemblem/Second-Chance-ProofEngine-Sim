@@ -94,12 +94,21 @@ interface ActivityItem {
   color: string;
 }
 
+interface LeaderboardEntry {
+  ventureName: string;
+  totalScore: number;
+  rank: number;
+  analysisDate: string;
+  isReal: boolean;
+}
+
 export default function DashboardPage() {
   const [user, setUser] = useState<User | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [validationData, setValidationData] = useState<ValidationData | null>(null);
   const [proofVaultData, setProofVaultData] = useState<ProofVaultData | null>(null);
   const [recentActivity, setRecentActivity] = useState<ActivityItem[]>([]);
+  const [leaderboardData, setLeaderboardData] = useState<LeaderboardEntry[]>([]);
   const [activeTab, setActiveTab] = useState("overview");
   const [selectedFolder, setSelectedFolder] = useState<string>("0_Overview");
   const [uploadProgress, setUploadProgress] = useState<number>(0);
@@ -157,7 +166,7 @@ export default function DashboardPage() {
       }
 
       // Load secondary data in parallel for better performance
-      const [vaultResponse, activityResponse] = await Promise.all([
+      const [vaultResponse, activityResponse, leaderboardResponse] = await Promise.all([
         fetch('/api/dashboard/vault', {
           credentials: 'include',
           headers: {
@@ -168,6 +177,12 @@ export default function DashboardPage() {
           credentials: 'include',
           headers: {
             'Cache-Control': 'max-age=600' // Cache for 10 minutes
+          }
+        }),
+        fetch('/api/leaderboard?limit=5', {
+          credentials: 'include',
+          headers: {
+            'Cache-Control': 'max-age=1200' // Cache for 20 minutes
           }
         })
       ]);
@@ -185,6 +200,13 @@ export default function DashboardPage() {
           timestamp: item.timestamp || new Date(Date.now() - (index + 1) * 5 * 60 * 1000).toISOString()
         }));
         setRecentActivity(updatedActivity);
+      }
+
+      if (leaderboardResponse.ok) {
+        const leaderboard = await leaderboardResponse.json();
+        if (leaderboard.success && leaderboard.data) {
+          setLeaderboardData(leaderboard.data);
+        }
       }
     } catch (error: unknown) {
       console.error('Dashboard data load error:', error);
@@ -205,6 +227,7 @@ export default function DashboardPage() {
       setValidationData(null);
       setProofVaultData(null);
       setRecentActivity([]);
+      setLeaderboardData([]);
       
       toast({
         title: "Data Load Error",
@@ -931,75 +954,79 @@ export default function DashboardPage() {
                 </CardDescription>
               </CardHeader>
               <CardContent>
-                {validationData?.proofScore ? (
+                {leaderboardData.length > 0 ? (
                   <div className="space-y-2">
-                  {[
-                    { rank: 1, name: "You", venture: user?.venture?.name || 'Your Venture', score: validationData.proofScore, isCurrentUser: true }
-                  ].map((entry) => {
-                  const isTopThree = entry.rank <= 3;
-                  
-                  return (
-                    <div
-                      key={entry.rank}
-                      className={`relative transition-all duration-300 rounded-xl overflow-hidden ${
-                        entry.isCurrentUser 
-                          ? 'bg-gradient-to-r from-violet-500/20 to-amber-500/20 border-2 border-transparent shadow-lg shadow-violet-500/25' 
-                          : isTopThree
-                          ? 'bg-gradient-to-r from-yellow-500/10 to-amber-500/10 border border-yellow-400/30 shadow-md'
-                          : 'bg-gray-800/50 border border-gray-700/50 hover:border-purple-500/20'
-                      }`}
-                    >
-                      {entry.isCurrentUser && (
-                        <>
-                          {/* Animated border */}
-                          <div className="absolute inset-0 pointer-events-none rounded-xl">
-                            <div className="absolute inset-[2px] bg-gray-900/95 rounded-xl" />
-                          </div>
-                          <div className="absolute -top-1 -right-1 w-3 h-3 bg-gradient-to-r from-violet-400 to-amber-400 rounded-full animate-pulse z-10"></div>
-                        </>
-                      )}
+                    {leaderboardData.map((entry) => {
+                      const isTopThree = entry.rank <= 3;
+                      const isCurrentUser = user?.venture?.name === entry.ventureName;
                       
-                      <div className="relative z-10 flex items-center gap-3 p-3">
-                        <div className={`flex items-center justify-center w-8 h-8 rounded-full ${
-                          isTopThree ? 'bg-gradient-to-r from-yellow-400 to-amber-500' : 'bg-gray-600/50'
-                        } shadow-lg`}>
-                          {entry.rank <= 3 ? (
-                            entry.rank === 1 ? (
-                              <Trophy className="w-4 h-4 text-yellow-900" />
-                            ) : entry.rank === 2 ? (
-                              <Medal className="w-4 h-4 text-gray-700" />
-                            ) : (
-                              <Award className="w-4 h-4 text-amber-700" />
-                            )
-                          ) : (
-                            <span className="text-xs font-bold text-white">{entry.rank}</span>
+                      return (
+                        <div
+                          key={entry.rank}
+                          className={`relative transition-all duration-300 rounded-xl overflow-hidden ${
+                            isCurrentUser 
+                              ? 'bg-gradient-to-r from-violet-500/20 to-amber-500/20 border-2 border-transparent shadow-lg shadow-violet-500/25' 
+                              : isTopThree
+                              ? 'bg-gradient-to-r from-yellow-500/10 to-amber-500/10 border border-yellow-400/30 shadow-md'
+                              : 'bg-gray-800/50 border border-gray-700/50 hover:border-purple-500/20'
+                          }`}
+                        >
+                          {isCurrentUser && (
+                            <>
+                              {/* Animated border */}
+                              <div className="absolute inset-0 pointer-events-none rounded-xl">
+                                <div className="absolute inset-[2px] bg-gray-900/95 rounded-xl" />
+                              </div>
+                              <div className="absolute -top-1 -right-1 w-3 h-3 bg-gradient-to-r from-violet-400 to-amber-400 rounded-full animate-pulse z-10"></div>
+                            </>
                           )}
-                        </div>
-                        
-                        <div className="flex-1 min-w-0">
-                          <div className="flex items-center gap-2">
-                            <h4 className={`text-sm font-medium truncate ${
-                              entry.isCurrentUser ? 'text-violet-300' : 'text-white'
-                            }`}>
-                              {entry.name}
-                            </h4>
-                            {entry.isCurrentUser && (
-                              <span className="px-1.5 py-0.5 text-xs bg-gradient-to-r from-violet-500 to-amber-500 text-white rounded-full">
-                                You
-                              </span>
-                            )}
-                          </div>
-                          <p className="text-xs text-gray-400 truncate">{entry.venture}</p>
-                        </div>
-                        
-                        <div className="text-right">
-                          <div className={`text-2xl font-bold ${
-                            entry.isCurrentUser ? 'text-violet-400' : isTopThree ? 'text-amber-400' : 'text-gray-300'
-                          }`}>
-                            {entry.score}
-                          </div>
-                          <div className="text-xs text-gray-500">ProofScore</div>
-                        </div>
+                          
+                          <div className="relative z-10 flex items-center gap-3 p-3">
+                            <div className={`flex items-center justify-center w-8 h-8 rounded-full ${
+                              isTopThree ? 'bg-gradient-to-r from-yellow-400 to-amber-500' : 'bg-gray-600/50'
+                            } shadow-lg`}>
+                              {entry.rank <= 3 ? (
+                                entry.rank === 1 ? (
+                                  <Trophy className="w-4 h-4 text-yellow-900" />
+                                ) : entry.rank === 2 ? (
+                                  <Medal className="w-4 h-4 text-gray-700" />
+                                ) : (
+                                  <Award className="w-4 h-4 text-amber-700" />
+                                )
+                              ) : (
+                                <span className="text-xs font-bold text-white">{entry.rank}</span>
+                              )}
+                            </div>
+                            
+                            <div className="flex-1 min-w-0">
+                              <div className="flex items-center gap-2">
+                                <h4 className={`text-sm font-medium truncate ${
+                                  isCurrentUser ? 'text-violet-300' : 'text-white'
+                                }`}>
+                                  {entry.ventureName}
+                                </h4>
+                                {isCurrentUser && (
+                                  <span className="px-1.5 py-0.5 text-xs bg-gradient-to-r from-violet-500 to-amber-500 text-white rounded-full">
+                                    You
+                                  </span>
+                                )}
+                                {!entry.isReal && (
+                                  <span className="px-1.5 py-0.5 text-xs bg-gray-600 text-gray-300 rounded-full">
+                                    Demo
+                                  </span>
+                                )}
+                              </div>
+                              <p className="text-xs text-gray-400 truncate">ProofScore validation</p>
+                            </div>
+                            
+                            <div className="text-right">
+                              <div className={`text-2xl font-bold ${
+                                isCurrentUser ? 'text-violet-400' : isTopThree ? 'text-amber-400' : 'text-gray-300'
+                              }`}>
+                                {entry.totalScore}
+                              </div>
+                              <div className="text-xs text-gray-500">ProofScore</div>
+                            </div>
                       </div>
                     </div>
                   );
