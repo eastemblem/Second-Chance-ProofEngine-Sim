@@ -144,16 +144,20 @@ export default function DashboardPage() {
 
   const checkAuthStatus = async () => {
     try {
-      // Use JWT token verification instead of session-based auth
+      // CRITICAL FIX: Clear any stale data first
       const token = localStorage.getItem('auth_token');
-      if (!token) {
+      if (!token || token === 'null' || token === 'undefined') {
+        console.log('No valid token found, redirecting to login');
+        localStorage.clear(); // Clear all localStorage data
         setLocation('/login');
         return;
       }
 
       const response = await fetch('/api/auth-token/verify', { 
         headers: {
-          'Authorization': `Bearer ${token}`
+          'Authorization': `Bearer ${token}`,
+          'Cache-Control': 'no-cache, no-store, must-revalidate',
+          'Pragma': 'no-cache'
         }
       });
       
@@ -171,14 +175,20 @@ export default function DashboardPage() {
             }
           };
           setUser(userData);
+          console.log('Auth successful for user:', result.data.user.email);
         } else {
+          console.log('Auth failed - no success or data');
+          localStorage.clear();
           setLocation('/login');
         }
       } else {
+        console.log('Auth failed - response not ok:', response.status);
+        localStorage.clear();
         setLocation('/login');
       }
     } catch (error) {
       console.error('Auth check error:', error);
+      localStorage.clear();
       setLocation('/login');
     } finally {
       setIsLoading(false);

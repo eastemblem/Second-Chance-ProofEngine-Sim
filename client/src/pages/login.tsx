@@ -19,30 +19,35 @@ export default function LoginPage() {
   const [, setLocation] = useLocation();
   const { toast } = useToast();
 
-  // Check if user is already logged in with JWT token
+  // CRITICAL FIX: Check if user is already logged in with JWT token
   useEffect(() => {
     const checkAuthStatus = async () => {
       try {
         const token = localStorage.getItem('auth_token');
-        if (token) {
+        if (token && token !== 'null' && token !== 'undefined') {
           const response = await fetch('/api/auth-token/verify', {
             headers: {
-              'Authorization': `Bearer ${token}`
+              'Authorization': `Bearer ${token}`,
+              'Cache-Control': 'no-cache, no-store, must-revalidate',
+              'Pragma': 'no-cache'
             }
           });
           if (response.ok) {
-            // User is already logged in, redirect to dashboard
-            setLocation('/dashboard');
-            return;
-          } else {
-            // Token is invalid, remove it
-            localStorage.removeItem('auth_token');
-            localStorage.removeItem('auth_user');
+            const result = await response.json();
+            if (result.success && result.data) {
+              // User is already logged in, redirect to dashboard
+              console.log('User already authenticated, redirecting to dashboard');
+              setLocation('/dashboard');
+              return;
+            }
           }
         }
+        // CRITICAL FIX: Clear any invalid/stale tokens
+        localStorage.clear();
+        console.log('No valid authentication found, showing login page');
       } catch (error) {
-        // User is not logged in, continue with login page
-        console.log('User not authenticated, showing login page');
+        console.log('Authentication check failed, showing login page');
+        localStorage.clear();
       } finally {
         setIsCheckingAuth(false);
       }
@@ -84,7 +89,9 @@ export default function LoginPage() {
         // Track successful login event
         trackEvent('login', 'authentication', 'login_success');
         
-        // Store JWT token and user data
+        // CRITICAL FIX: Clear any existing data first, then store new token
+        localStorage.clear();
+        
         if (data.token) {
           localStorage.setItem('auth_token', data.token);
           localStorage.setItem('auth_user', JSON.stringify(data.founder));
@@ -96,10 +103,8 @@ export default function LoginPage() {
           duration: 3000,
         });
         
-        // Redirect to dashboard/home after successful login
-        setTimeout(() => {
-          setLocation('/dashboard');
-        }, 1000);
+        // CRITICAL FIX: Redirect immediately to dashboard after successful login
+        setLocation('/dashboard');
       } else {
         throw new Error(data.error?.message || data.error || 'Login failed');
       }

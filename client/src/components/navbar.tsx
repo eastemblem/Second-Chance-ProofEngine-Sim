@@ -33,22 +33,32 @@ export default function Navbar({ showSignOut = false, showSignIn = false, logoOn
       });
 
       if (response.ok) {
-        // Clear localStorage
+        // CRITICAL FIX: Clear ALL localStorage data immediately
         localStorage.removeItem('auth_token');
         localStorage.removeItem('auth_user');
+        localStorage.removeItem('user_data');
+        localStorage.removeItem('dashboard_data');
+        
+        // CRITICAL FIX: Clear any browser cached data
+        if ('caches' in window) {
+          caches.keys().then(names => {
+            names.forEach(name => {
+              caches.delete(name);
+            });
+          });
+        }
         
         // Track successful logout event
         trackEvent('logout', 'authentication', 'navbar_logout_success');
         
         toast({
           title: "Signed Out",
-          description: "JWT token invalidated. You have been successfully signed out.",
+          description: "JWT token invalidated. Please sign in again to access dashboard.",
           duration: 3000,
         });
         
-        setTimeout(() => {
-          setLocation('/');
-        }, 1000);
+        // CRITICAL FIX: Redirect immediately without delay
+        setLocation('/login');
       } else {
         throw new Error('Sign out failed');
       }
