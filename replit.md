@@ -126,6 +126,18 @@ Demo experience for testing different user journeys:
 
 ## Recent Key Updates
 
+### July 25, 2025 - CRITICAL FOLDER COUNTER & PARENT FOLDER LINK FIXES: Database Mapping Implementation
+- **FOLDER MAPPING DATABASE STORAGE**: Fixed critical issue where created folders weren't being tracked in proof_vault table
+- **PARENT FOLDER ASSOCIATION**: All newly created folders now store mapping with `parentFolderId` and `subFolderId` in proof_vault table
+- **ENHANCED FILE COUNTING**: Updated dashboard file counting logic to include files in subfolders by checking proof_vault mappings
+- **SUBFOLDER-TO-CATEGORY MAPPING**: System now creates `subfolderToParentMap` from proof_vault records to properly categorize files in nested folders
+- **PARENT FOLDER LINK FIXED**: Fixed "Your Proof Vault" parent folder link by ensuring folderUrls contains proper root folder URL from venture.folderStructure
+- **COMPLETE FOLDER HIERARCHY**: Dashboard now correctly counts files across all folder levels (parent categories + subfolders)
+- **DATABASE SCHEMA COMPLIANCE**: Fixed documentUpload table insertions to include all required fields (sessionId, filePath, folderId)
+- **REAL-TIME FOLDER TRACKING**: All folder creation operations now automatically create proof_vault records with proper parent-child relationships
+- **ACCURATE COUNTER DISPLAY**: File counters in dashboard now reflect true file counts including files uploaded to user-created subfolders
+- **PRODUCTION READY**: Complete folder mapping system operational with proper database persistence and category association
+
 ### July 25, 2025 - CRITICAL FOLDER MAPPING FIX: Investor Pack Upload Issue Resolved
 - **FOLDER ID MAPPING FIXED**: Resolved critical issue where files were uploading to temporary folders instead of selected categories (Investor Pack)
 - **CATEGORY-TO-FOLDERID TRANSLATION**: Added proper mapping system that translates frontend categories (`6_Investor_Pack`) to actual Box.com folder IDs (`332842251627`)

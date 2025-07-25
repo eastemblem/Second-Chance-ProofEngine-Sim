@@ -237,9 +237,31 @@ export async function registerRoutes(app: Express): Promise<Server> {
         type: file.mimeType || 'application/pdf'
       }));
 
-      // Count files by category
+      // ENHANCED FILE COUNTING: Count files including those in subfolders
+      const { proofVault } = await import('@shared/schema');
+      
+      // Get all proof vault folder mappings for this venture
+      const folderMappings = await db.select().from(proofVault)
+        .where(eq(proofVault.ventureId, dashboardData.venture.ventureId));
+      
+      // Create mapping from subFolderId to parent category
+      const subfolderToParentMap: Record<string, string> = {};
+      folderMappings.forEach(mapping => {
+        const parentCategory = getCategoryFromFolderId(mapping.parentFolderId);
+        subfolderToParentMap[mapping.subFolderId] = parentCategory;
+        console.log(`📂 Subfolder mapping: ${mapping.subFolderId} → ${parentCategory} (parent: ${mapping.parentFolderId})`);
+      });
+
+      // Count files by category, including subfolder mappings
       const fileCounts = files.reduce((counts, file) => {
-        const category = getCategoryFromFolderId(file.folderId || '332844784735');
+        let category = getCategoryFromFolderId(file.folderId || '332844784735');
+        
+        // Check if this file is in a subfolder that maps to a parent category
+        if (file.folderId && subfolderToParentMap[file.folderId]) {
+          category = subfolderToParentMap[file.folderId];
+          console.log(`📁 File ${file.fileName} in subfolder ${file.folderId} mapped to category: ${category}`);
+        }
+        
         switch(category) {
           case 'Overview': counts.overview++; break;
           case 'Problem Proofs': counts.problemProof++; break;
@@ -273,7 +295,16 @@ export async function registerRoutes(app: Express): Promise<Server> {
           { name: "5_Commercial_Proof", displayName: "Commercial Proofs", count: fileCounts.commercialProof },
           { name: "6_Investor_Pack", displayName: "Investor Pack", count: fileCounts.investorPack }
         ],
-        folderUrls: {} // FIXED: Add empty folderUrls to match frontend interface
+        folderUrls: {
+          // FIXED: Add parent folder URL for "Your Proof Vault" link
+          root: dashboardData.venture?.folderStructure?.url || 
+                `https://app.box.com/folder/${dashboardData.venture?.folderStructure?.id || '0'}`,
+          // Individual category folder URLs
+          ...Object.entries(dashboardData.venture?.folderStructure?.folders || {}).reduce((urls, [category, folderId]) => {
+            urls[category] = `https://app.box.com/folder/${folderId}`;
+            return urls;
+          }, {} as Record<string, string>)
+        }
       };
 
       res.json(vaultData);
@@ -379,16 +410,18 @@ export async function registerRoutes(app: Express): Promise<Server> {
       if (certificateUrl) {
         try {
           await db.insert(documentUpload).values({
+            sessionId: null,
             ventureId: ventureId,
             fileName: 'validation_certificate.pdf',
             originalName: 'validation_certificate.pdf',
-            filePath: null,
+            filePath: 'generated/certificate.pdf',
             fileSize: 0,
             mimeType: 'application/pdf',
             uploadStatus: 'completed',
             processingStatus: 'completed',
+            eastemblemFileId: null,
             sharedUrl: certificateUrl,
-            uploadedBy: 'system'
+            folderId: '332844784735' // Overview folder
           });
           documentsCreated++;
         } catch (e) { /* ignore if exists */ }
@@ -397,16 +430,18 @@ export async function registerRoutes(app: Express): Promise<Server> {
       if (reportUrl) {
         try {
           await db.insert(documentUpload).values({
+            sessionId: null,
             ventureId: ventureId,
             fileName: 'analysis_report.pdf',
             originalName: 'analysis_report.pdf',
-            filePath: null,
+            filePath: 'generated/report.pdf',
             fileSize: 0,
             mimeType: 'application/pdf',
             uploadStatus: 'completed',
             processingStatus: 'completed',
+            eastemblemFileId: null,
             sharedUrl: reportUrl,
-            uploadedBy: 'system'
+            folderId: '332844784735' // Overview folder
           });
           documentsCreated++;
         } catch (e) { /* ignore if exists */ }

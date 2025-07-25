@@ -404,7 +404,7 @@ router.post('/create-folder', upload.none(), asyncHandler(async (req, res) => {
     const result = await response.json();
     console.log(`✅ Folder creation successful:`, result);
     
-    // Track folder creation activity
+    // CRITICAL FIX: Store folder mapping in proof_vault table
     if (req.session?.founderId) {
       try {
         const { storage } = await import("../storage");
@@ -412,6 +412,22 @@ router.post('/create-folder', upload.none(), asyncHandler(async (req, res) => {
         const latestVenture = ventures.length > 0 ? ventures[0] : null;
         
         if (latestVenture) {
+          // Store folder mapping in proof_vault table
+          const createdFolderId = result.folderId || result.id;
+          if (createdFolderId) {
+            await storage.createProofVault({
+              ventureId: latestVenture.ventureId,
+              artefactType: 'Technical Documentation', // Default artefact type
+              parentFolderId: actualParentFolderId, // Box.com parent folder ID
+              subFolderId: createdFolderId.toString(), // Box.com created folder ID
+              sharedUrl: result.shared_url || result.url || '',
+              folderName: folderName,
+              description: `Subfolder created in ${getFolderDisplayName(folder_id)}`
+            });
+            console.log(`✅ FOLDER MAPPING STORED: ${folderName} (${createdFolderId}) → parent ${actualParentFolderId} (${folder_id})`);
+          }
+
+          // Track folder creation activity
           await ActivityService.logActivity(
             {
               founderId: req.session.founderId,
@@ -429,7 +445,7 @@ router.post('/create-folder', upload.none(), asyncHandler(async (req, res) => {
           );
         }
       } catch (error) {
-        console.error('Failed to log folder creation activity:', error);
+        console.error('Failed to store folder mapping or log activity:', error);
       }
     }
 
