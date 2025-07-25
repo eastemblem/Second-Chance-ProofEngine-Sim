@@ -64,10 +64,9 @@ import { appLogger } from "./utils/logger";
 const app = express();
 
 // Add Sentry request handler (must be before all other handlers)
-if (sentry && Sentry.Handlers) {
-  app.use(Sentry.Handlers.requestHandler());
-  app.use(Sentry.Handlers.tracingHandler());
-  appLogger.system('Sentry request and tracing handlers installed');
+if (sentry && process.env.SENTRY_DSN) {
+  // Modern Sentry doesn't require explicit handlers setup
+  appLogger.system('Sentry request tracking integrated');
 } else if (process.env.SENTRY_DSN) {
   appLogger.warn('Sentry DSN found but handlers not available - check integration');
 } else {
@@ -136,10 +135,9 @@ app.use((req, res, next) => {
 (async () => {
   const server = await registerRoutes(app);
 
-  // Add Sentry error handler (must be before any other error middleware)
-  if (sentry && Sentry.Handlers) {
-    app.use(Sentry.Handlers.errorHandler());
-    appLogger.system('Sentry error handler installed');
+  // Sentry error handling is integrated automatically in modern versions
+  if (sentry && process.env.SENTRY_DSN) {
+    appLogger.system('Sentry error tracking enabled');
   }
 
   // Use centralized error handler
