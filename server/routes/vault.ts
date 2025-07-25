@@ -275,22 +275,29 @@ router.post("/upload-file", upload.single("file"), requireFields(['folder_id']),
           userAgent: req.get('User-Agent')
         };
         
-        await ActivityService.logActivity(context, {
-          activityType: 'document',
-          action: 'upload',
-          title: file.originalname,
-          description: `Uploaded to ${folderDisplayName}`,
-          metadata: {
-            fileName: file.originalname,
-            fileSize: file.size,
-            fileType: file.mimetype,
-            folderId: actualFolderId,
-            folderName: folder_id,
-            folderDisplayName: folderDisplayName,
-            ventureId: latestVenture.ventureId
-          }
-        });
-        console.log(`✅ Activity tracking complete for file upload: ${file.originalname}`);
+        console.log(`🎯 ACTIVITY TRACKING - Attempting to log activity for: ${file.originalname}`);
+        console.log(`🎯 CONTEXT:`, JSON.stringify(context, null, 2));
+        
+        try {
+          const activityResult = await ActivityService.logActivity(context, {
+            activityType: 'document',
+            action: 'upload',
+            title: file.originalname,
+            description: `Uploaded to ${folderDisplayName}`,
+            metadata: {
+              fileName: file.originalname,
+              fileSize: file.size,
+              fileType: file.mimetype,
+              folderId: actualFolderId,
+              folderName: folder_id,
+              folderDisplayName: folderDisplayName,
+              ventureId: latestVenture.ventureId
+            }
+          });
+          console.log(`✅ Activity tracking SUCCESS for file upload: ${file.originalname}`, activityResult);
+        } catch (activityError) {
+          console.error(`❌ Activity tracking FAILED for file upload: ${file.originalname}`, activityError);
+        }
       }
     } catch (error) {
       console.error("Failed to track file upload in database:", error);

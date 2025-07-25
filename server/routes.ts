@@ -368,12 +368,19 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const { userActivity } = await import('@shared/schema');
       const { eq, desc } = await import('drizzle-orm');
 
+      console.log(`🔍 ACTIVITY DEBUG: Looking for activities for founder: ${founderId}`);
+
       // Get real activity data from database
       const activities = await db.select()
         .from(userActivity)
         .where(eq(userActivity.founderId, founderId))
         .orderBy(desc(userActivity.createdAt))
         .limit(10);
+
+      console.log(`📊 ACTIVITY DEBUG: Found ${activities.length} activities in database`);
+      if (activities.length > 0) {
+        console.log(`📊 ACTIVITY DEBUG: Sample activity:`, activities[0]);
+      }
 
       // Format activities for frontend display
       const formattedActivities = activities.map(activity => ({
@@ -386,6 +393,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         color: getActivityColor(activity.activityType)
       }));
 
+      console.log(`📤 ACTIVITY DEBUG: Returning ${formattedActivities.length} formatted activities`);
       res.json(formattedActivities);
     } catch (error) {
       console.error("Dashboard activity error:", error);
