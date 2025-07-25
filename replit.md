@@ -126,6 +126,23 @@ Demo experience for testing different user journeys:
 
 ## Recent Key Updates
 
+### July 25, 2025 - COMPLETE FILE CATEGORIZATION FIX: Root Cause Resolution & Recursive Logic Correction
+- **CRITICAL ROOT CAUSE RESOLUTION**: Fixed major categorization bug where all files showed as "Overview" (19 files) due to recursive logic traversing to root folder (332843137473) instead of stopping at main category folders
+- **DATABASE-FIRST APPROACH**: Implemented systematic solution that queries proof_vault table to determine folder types before categorization
+- **COLLABORATION IMPROVEMENT**: Established better workflow - systematic analysis before reactive fixes to prevent bug cascades
+- **AUTHENTICATION ISSUES RESOLVED**: Fixed folder creation endpoint ventureId parameter and frontend integration
+- **CORRECTED RECURSIVE LOGIC**: Enhanced recursive subfolder traversal to:
+  * Step 1: Check if current folder is already a main category folder (stop here if yes)
+  * Step 2: If subfolder, check if parent is main category folder (stop at category level)
+  * Step 3: Only continue recursion if parent is also a subfolder (nested structure)
+  * Step 4: Never traverse to root folder 332843137473 which contains all categories
+- **ELIMINATED ROOT FOLDER TRAVERSAL**: Prevented categorization logic from reaching root folder that contains all main categories as subfolders
+- **FOLDER UPLOAD FAILED FILES DISPLAY FIXED**: Resolved state timing issue where failed files notification appeared but list wasn't shown due to stale state checking
+- **SYSTEMATIC UPLOAD TRACKING**: Enhanced handleMultipleFileUpload to track actual upload results during processing instead of checking stale queue state
+- **NESTED SUBFOLDER CATEGORIZATION**: Fixed multi-level folder hierarchies (badges → svg/png/awards) to properly count files under correct categories
+- **ENHANCED ERROR HANDLING**: Added comprehensive logging and fallback handling for unknown categories and edge cases
+- **PRODUCTION READY**: Database-driven categorization system with corrected recursive traversal provides accurate file counting across all hierarchy levels without root folder confusion
+
 ### July 25, 2025 - DASHBOARD PERFORMANCE FIXES: Refresh After Uploads & Recent Activity Loading Fixed
 - **REFRESH ISSUE RESOLVED**: Dashboard now refreshes properly after file uploads using forceRefresh parameter that bypasses cache
 - **RECENT ACTIVITY OPTIMIZED**: No longer deferred on page load, loads immediately with reduced cache times (300 seconds vs 600 seconds)

@@ -203,13 +203,15 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   }));
 
-  // Dashboard vault endpoint
+  // Dashboard vault endpoint - CACHE DISABLED FOR DEBUGGING
   app.get('/api/dashboard/vault', asyncHandler(async (req, res) => {
     const founderId = req.session?.founderId;
     
     if (!founderId) {
       return res.status(401).json({ error: "Not authenticated" });
     }
+
+    console.log(`🔍 VAULT DEBUG: Processing vault request for founder: ${founderId}`);
 
     try {
       const dashboardData = await databaseService.getFounderWithLatestVenture(founderId);
@@ -239,81 +241,114 @@ export async function registerRoutes(app: Express): Promise<Server> {
         type: file.mimeType || 'application/pdf'
       })));
 
-      // ENHANCED FILE COUNTING: Count files including those in subfolders
+      // ENHANCED FILE COUNTING: Count files including those in subfolders  
       const { proofVault } = await import('@shared/schema');
       
       // Get all proof vault folder mappings for this venture
       const folderMappings = await db.select().from(proofVault)
         .where(eq(proofVault.ventureId, dashboardData.venture.ventureId));
       
-      // Create mapping from subFolderId to parent category
-      const subfolderToParentMap: Record<string, string> = {};
+      console.log(`📊 VAULT DEBUG: Found ${folderMappings.length} folder mappings for venture ${dashboardData.venture.ventureId}`);
+      
+      // DEBUG: Log all folder mappings
       for (const mapping of folderMappings) {
-        // Use correct Drizzle field names
-        const parentCategory = await getCategoryFromFolderId(mapping.parentFolderId, founderId);
-        subfolderToParentMap[mapping.subFolderId] = parentCategory;
-        console.log(`📂 Subfolder mapping: ${mapping.subFolderId} → ${parentCategory} (parent: ${mapping.parentFolderId})`);
+        console.log(`📂 VAULT DEBUG: Mapping - Parent: ${mapping.parentFolderId}, Sub: ${mapping.subFolderId}, Category: ${mapping.folderName}`);
       }
 
-      // DATABASE-FIRST APPROACH: Count files by category using recursive subfolder traversal
+      // CORRECTED FILE CATEGORIZATION: Database-first approach with proper recursive logic
       const fileCounts = { overview: 0, problemProof: 0, solutionProof: 0, demandProof: 0, credibilityProof: 0, commercialProof: 0, investorPack: 0 };
       
-      // Process files individually with async categorization
+      // First, identify which folder IDs are main category folders (those with parent = root folder)
+      const rootFolderId = '332889411946'; // The main vault root folder
+      const mainCategoryFolders = new Set<string>();
+      const mainCategoryMapping: Record<string, string> = {};
+      
+      for (const mapping of folderMappings) {
+        if (mapping.parentFolderId === rootFolderId) {
+          // This is a main category folder
+          mainCategoryFolders.add(mapping.subFolderId);
+          mainCategoryMapping[mapping.subFolderId] = mapping.folderName;
+          console.log(`📁 VAULT DEBUG: Main category folder identified: ${mapping.subFolderId} → ${mapping.folderName}`);
+        }
+      }
+      
+      // Process files individually with CORRECTED categorization logic
       for (const file of files) {
-        let category;
+        let category = 'Overview (default)';
+        const folderId = file.folderId || '332886218045';
         
-        // RECURSIVE LOGIC: Find correct parent category for nested subfolders
-        const findCorrectParentCategory = async (folderId: string, depth = 0): Promise<string> => {
+        console.log(`📄 VAULT DEBUG: Processing file ${file.fileName} in folder ${folderId}`);
+        
+        // CORRECTED RECURSIVE LOGIC: Traverse up folder hierarchy until we reach a main category folder
+        const findMainCategory = async (currentFolderId: string, depth = 0): Promise<string> => {
           // Prevent infinite loops
           if (depth > 10) {
-            console.warn(`⚠️ Maximum depth reached for folder ${folderId}`);
-            return 'Overview';
+            console.warn(`⚠️ VAULT DEBUG: Maximum recursion depth reached for folder ${currentFolderId}`);
+            return 'Overview (default)';
           }
           
-          // CRITICAL FIX: First check if current folder is already a main category folder
-          const directCategory = await getCategoryFromFolderId(folderId, founderId);
-          if (directCategory !== 'Overview (default)') {
-            // This IS a main category folder, use it directly
-            console.log(`📁 File ${file.fileName} in main category folder ${folderId} → ${directCategory}`);
-            return directCategory;
+          // Step 1: Check if current folder is already a main category folder
+          if (mainCategoryFolders.has(currentFolderId)) {
+            const categoryName = mainCategoryMapping[currentFolderId];
+            console.log(`✅ VAULT DEBUG: Found main category folder ${currentFolderId} → ${categoryName} (depth ${depth})`);
+            return categoryName;
           }
           
-          // Step 2: Check if this folder ID exists as a subfolder in proof_vault
-          const subfolderMapping = folderMappings.find(mapping => mapping.subFolderId === folderId);
-          
-          if (subfolderMapping) {
-            // Check if parent is a main category folder
-            const parentCategory = await getCategoryFromFolderId(subfolderMapping.parentFolderId, founderId);
-            if (parentCategory !== 'Overview (default)') {
-              // Parent is a main category folder - use it
-              console.log(`📁 File ${file.fileName} in subfolder ${folderId} → parent category: ${parentCategory} (depth ${depth})`);
-              return parentCategory;
-            } else {
-              // Parent is also a subfolder, continue recursion
-              console.log(`📁 Nested subfolder: ${folderId} → parent ${subfolderMapping.parentFolderId} (depth ${depth})`);
-              return await findCorrectParentCategory(subfolderMapping.parentFolderId, depth + 1);
-            }
+          // Step 2: Find parent folder using proof_vault table
+          const folderRecord = folderMappings.find(mapping => mapping.subFolderId === currentFolderId);
+          if (folderRecord && folderRecord.parentFolderId !== currentFolderId) {
+            // Continue recursion with parent folder
+            console.log(`🔍 VAULT DEBUG: Folder ${currentFolderId} → parent ${folderRecord.parentFolderId} (depth ${depth})`);
+            return await findMainCategory(folderRecord.parentFolderId, depth + 1);
           } else {
-            // Fallback to Overview if no mapping found
-            console.log(`📁 File ${file.fileName} no mapping found for ${folderId} → Overview fallback`);
+            // No parent mapping found - this might be a main category folder not in our Set
+            const directMapping = folderMappings.find(mapping => mapping.subFolderId === currentFolderId);
+            if (directMapping && directMapping.folderName.includes('_')) {
+              console.log(`📁 VAULT DEBUG: Direct mapping found: ${currentFolderId} → ${directMapping.folderName}`);
+              return directMapping.folderName;
+            }
+            
+            console.log(`❓ VAULT DEBUG: No parent found for folder ${currentFolderId}, defaulting to Overview`);
             return 'Overview (default)';
           }
         };
         
-        category = await findCorrectParentCategory(file.folderId || '332886218045');
+        category = await findMainCategory(folderId);
         
+        // CORRECTED CATEGORY MAPPING: Map folder names to count variables
         switch(category) {
-          case 'Overview':
-          case 'Overview (default)': fileCounts.overview++; break;
-          case 'Problem Proofs': fileCounts.problemProof++; break;
-          case 'Solution Proofs': fileCounts.solutionProof++; break;
-          case 'Demand Proofs': fileCounts.demandProof++; break;
-          case 'Credibility Proofs': fileCounts.credibilityProof++; break;
-          case 'Commercial Proofs': fileCounts.commercialProof++; break;
-          case 'Investor Pack': fileCounts.investorPack++; break;
-          default: 
-            console.warn(`⚠️ Unknown category: ${category} for file ${file.fileName}`);
-            fileCounts.overview++;
+          case '0_Overview':
+          case 'Overview (default)': 
+            fileCounts.overview++; 
+            console.log(`📊 VAULT DEBUG: ${file.fileName} → Overview (${fileCounts.overview})`);
+            break;
+          case '1_Problem_Proof': 
+            fileCounts.problemProof++; 
+            console.log(`📊 VAULT DEBUG: ${file.fileName} → Problem Proofs (${fileCounts.problemProof})`);
+            break;
+          case '2_Solution_Proof': 
+            fileCounts.solutionProof++; 
+            console.log(`📊 VAULT DEBUG: ${file.fileName} → Solution Proofs (${fileCounts.solutionProof})`);
+            break;
+          case '3_Demand_Proof': 
+            fileCounts.demandProof++; 
+            console.log(`📊 VAULT DEBUG: ${file.fileName} → Demand Proofs (${fileCounts.demandProof})`);
+            break;
+          case '4_Credibility_Proof': 
+            fileCounts.credibilityProof++; 
+            console.log(`📊 VAULT DEBUG: ${file.fileName} → Credibility Proofs (${fileCounts.credibilityProof})`);
+            break;
+          case '5_Commercial_Proof': 
+            fileCounts.commercialProof++; 
+            console.log(`📊 VAULT DEBUG: ${file.fileName} → Commercial Proofs (${fileCounts.commercialProof})`);
+            break;
+          case '6_Investor_Pack': 
+            fileCounts.investorPack++; 
+            console.log(`📊 VAULT DEBUG: ${file.fileName} → Investor Pack (${fileCounts.investorPack})`);
+            break;
+          default:
+            fileCounts.overview++; 
+            console.log(`📊 VAULT DEBUG: ${file.fileName} → Overview (default case) (${fileCounts.overview})`);
             break;
         }
       }
