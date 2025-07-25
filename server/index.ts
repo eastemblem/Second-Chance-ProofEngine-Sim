@@ -1,3 +1,8 @@
+// Initialize monitoring services
+// Sentry must be imported before any other modules
+import { initSentry, Sentry, enrichErrorContext } from "./sentry";
+const sentry = initSentry();
+
 // NewRelic agent initialization 
 import { createRequire } from 'module';
 const require = createRequire(import.meta.url);
@@ -54,6 +59,18 @@ import { schedulePeriodicCleanup } from "./utils/file-cleanup";
 import path from "path";
 
 const app = express();
+
+// Add Sentry request handler (must be before all other handlers)
+if (sentry && Sentry.Handlers) {
+  app.use(Sentry.Handlers.requestHandler());
+  app.use(Sentry.Handlers.tracingHandler());
+  console.log('✅ Sentry request and tracing handlers installed');
+} else if (process.env.SENTRY_DSN) {
+  console.log('⚠️ Sentry DSN found but handlers not available - check integration');
+} else {
+  console.log('⚠️ Sentry DSN not found - error tracking disabled');
+}
+
 app.set('trust proxy', 1); // Trust first proxy only (safer for rate limiting)
 app.use(express.json());
 app.use(express.urlencoded({ extended: false }));
@@ -114,6 +131,12 @@ app.use((req, res, next) => {
 
 (async () => {
   const server = await registerRoutes(app);
+
+  // Add Sentry error handler (must be before any other error middleware)
+  if (sentry && Sentry.Handlers) {
+    app.use(Sentry.Handlers.errorHandler());
+    console.log('✅ Sentry error handler installed');
+  }
 
   // Use centralized error handler
   app.use(errorHandler);

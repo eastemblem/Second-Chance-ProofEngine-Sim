@@ -28,6 +28,7 @@ const ForgotPasswordPage = lazy(() => import("@/pages/forgot-password"));
 const Dashboard = lazy(() => import("@/pages/dashboard"));
 const TokenExpiredPage = lazy(() => import("@/pages/token-expired"));
 const PerformanceTest = lazy(() => import("@/pages/performance-test"));
+const SentryTestPage = lazy(() => import("@/pages/sentry-test"));
 
 // Disable preloading to reduce initial bundle size and blocking
 const preloadComponents = () => {
@@ -35,6 +36,7 @@ const preloadComponents = () => {
 };
 import { useSimulation } from "@/hooks/use-simulation";
 import NotFound from "@/pages/not-found";
+import { initSentry, SentryErrorBoundary } from "./lib/sentry";
 
 // Initialize preloading after component definition
 preloadComponents();
@@ -194,15 +196,23 @@ function Router() {
           <PerformanceTest />
         </Suspense>
       )} />
+      <Route path="/sentry-test" component={() => (
+        <Suspense fallback={<SimpleLoader />}>
+          <SentryTestPage />
+        </Suspense>
+      )} />
       <Route component={NotFound} />
     </Switch>
   );
 }
 
 function App() {
-  // Initialize Google Analytics when app loads
+  // Initialize monitoring services when app loads
   useEffect(() => {
-    // Verify required environment variable is present
+    // Initialize Sentry for client-side error tracking
+    initSentry();
+    
+    // Initialize Google Analytics
     if (!import.meta.env.VITE_GA_MEASUREMENT_ID) {
       console.warn('Missing required Google Analytics key: VITE_GA_MEASUREMENT_ID');
     } else {
@@ -212,10 +222,36 @@ function App() {
 
   return (
     <QueryClientProvider client={queryClient}>
-      <TooltipProvider>
-        <Toaster />
-        <Router />
-      </TooltipProvider>
+      <SentryErrorBoundary fallback={({ error, resetError }) => (
+        <div className="min-h-screen flex items-center justify-center bg-gray-50">
+          <div className="max-w-md w-full bg-white rounded-lg shadow-lg p-8 text-center">
+            <div className="text-red-500 text-6xl mb-4">⚠️</div>
+            <h1 className="text-2xl font-bold text-gray-900 mb-4">Something went wrong</h1>
+            <p className="text-gray-600 mb-6">
+              An unexpected error occurred. Our team has been notified and is working on a fix.
+            </p>
+            <div className="space-y-3">
+              <button 
+                onClick={resetError}
+                className="w-full bg-primary text-primary-foreground px-4 py-2 rounded-md hover:bg-primary/90 transition-colors"
+              >
+                Try Again
+              </button>
+              <button 
+                onClick={() => window.location.reload()}
+                className="w-full bg-gray-200 text-gray-800 px-4 py-2 rounded-md hover:bg-gray-300 transition-colors"
+              >
+                Reload Page
+              </button>
+            </div>
+          </div>
+        </div>
+      )}>
+        <TooltipProvider>
+          <Toaster />
+          <Router />
+        </TooltipProvider>
+      </SentryErrorBoundary>
     </QueryClientProvider>
   );
 }
