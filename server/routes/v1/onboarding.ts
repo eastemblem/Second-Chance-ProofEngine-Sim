@@ -1,11 +1,11 @@
 import { Router, Request, Response } from 'express';
 import { asyncHandler } from '../middleware/error';
 import { getSessionId, updateSessionData } from '../../utils/session-manager';
-import { createSuccessResponse } from '../../utils/error-handler';
+import { createSuccessResponse, createErrorResponse } from '../../utils/error-handler';
 import { safeValidate } from '../../utils/validation';
 import { onboardingService } from '../../services/onboarding-service';
 import { requireSession } from '../../middleware/auth';
-import { founderOnboardingSchema, ventureOnboardingSchema } from '../../onboarding';
+import { founderOnboardingSchema, ventureOnboardingSchema, teamMemberSchema } from '../../onboarding';
 
 const router = Router();
 
@@ -114,6 +114,98 @@ router.post('/submit-for-scoring', asyncHandler(async (req: Request, res: Respon
       }
     });
   }
+}));
+
+// Team member endpoints - V1 VERSION
+router.post("/team/add", asyncHandler(async (req: Request, res: Response) => {
+  // Try to get sessionId from body first, then from session middleware
+  const { sessionId: bodySessionId, ...memberData } = req.body;
+  let sessionId = bodySessionId;
+  
+  // Fallback to session middleware if no sessionId in body
+  if (!sessionId) {
+    try {
+      sessionId = getSessionId(req);
+    } catch (error) {
+      // If session middleware fails, still require sessionId in body
+      throw new Error("Session ID required in request body");
+    }
+  }
+  
+  if (!sessionId || sessionId === 'undefined') {
+    throw new Error("Valid session ID required");
+  }
+  
+  const validation = safeValidate(teamMemberSchema, memberData);
+  if (!validation.success) {
+    throw validation.errors;
+  }
+
+  const result = await onboardingService.addTeamMember(sessionId, validation.data);
+
+  res.json(createSuccessResponse({
+    teamMember: result,
+    nextStep: "team",
+  }));
+}));
+
+router.get("/team/:sessionId", asyncHandler(async (req: Request, res: Response) => {
+  const { sessionId } = req.params;
+  
+  // Validate sessionId is not undefined or invalid
+  if (!sessionId || sessionId === 'undefined') {
+    return res.status(400).json(createErrorResponse("Invalid session ID", 400));
+  }
+  
+  const teamMembers = await onboardingService.getTeamMembers(sessionId);
+
+  res.json(createSuccessResponse({
+    teamMembers,
+  }));
+}));
+
+router.put("/team/update/:memberId", asyncHandler(async (req: Request, res: Response) => {
+  const { memberId } = req.params;
+  const { memberId: _, ...memberData } = req.body;
+  
+  const validation = safeValidate(teamMemberSchema, memberData);
+  if (!validation.success) {
+    throw validation.errors;
+  }
+
+  const result = await onboardingService.updateTeamMember(memberId, validation.data);
+
+  res.json(createSuccessResponse({
+    teamMember: result,
+  }));
+}));
+
+router.delete("/team/delete/:memberId", asyncHandler(async (req: Request, res: Response) => {
+  const { memberId } = req.params;
+  
+  await onboardingService.deleteTeamMember(memberId);
+
+  res.json(createSuccessResponse({
+    message: "Team member deleted successfully",
+  }));
+}));
+
+router.post("/team/complete", asyncHandler(async (req: Request, res: Response) => {
+  // Try to get sessionId from body first, then from session middleware
+  const { sessionId: bodySessionId } = req.body;
+  const sessionId = bodySessionId || getSessionId(req);
+  
+  if (!sessionId) {
+    throw new Error("Session ID required");
+  }
+
+  const result = await onboardingService.completeTeamStep(sessionId);
+
+  res.json(createSuccessResponse({
+    teamComplete: true,
+    nextStep: "upload",
+    completedSteps: result.completedSteps,
+  }));
 }));
 
 // Legacy onboarding data storage - EXACT SAME LOGIC as routes.ts
