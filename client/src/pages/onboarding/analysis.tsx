@@ -1283,6 +1283,9 @@ export default function Analysis({
                     </div>
                     Validation Dimensions
                   </h3>
+                  <p className="text-sm text-muted-foreground mb-4">
+                    Comprehensive breakdown of your venture's validation across five key dimensions
+                  </p>
                   <div className="space-y-3">
                     {Object.entries(proofScore.dimensions).map(
                       ([dimension, score]) => {
@@ -1350,6 +1353,9 @@ export default function Analysis({
                     </div>
                     Key Insights
                   </h3>
+                  <p className="text-sm text-muted-foreground mb-4">
+                    AI-powered analysis highlighting your venture's strengths and improvement areas
+                  </p>
                   <div className="space-y-3">
                     {proofScore.insights.strengths
                       .slice(0, 2)
