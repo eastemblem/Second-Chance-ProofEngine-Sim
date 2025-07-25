@@ -9,7 +9,7 @@ const Footer = () => {
         <div className="flex flex-col sm:flex-row justify-between items-center gap-4">
           {/* Company Info - Compact */}
           <div className="flex items-center justify-center sm:justify-start space-x-3">
-            <Logo size="sm" showTagline={false} />
+            <Logo size="md" showTagline={false} />
           </div>
 
           {/* Quick Links */}
