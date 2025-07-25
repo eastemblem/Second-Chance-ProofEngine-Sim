@@ -21,15 +21,22 @@ const Footer = () => {
 
           {/* Quick Links */}
           <div className="flex flex-wrap items-center justify-center sm:justify-start gap-x-6 gap-y-2 text-xs">
-            <Link to="/" className="text-muted-foreground hover:text-primary transition-colors">
-              Get Started
-            </Link>
-            <Link to="/privacy" className="text-muted-foreground hover:text-primary transition-colors">
+            <a 
+              href="/privacy" 
+              target="_blank" 
+              rel="noopener noreferrer"
+              className="text-muted-foreground hover:text-primary transition-colors"
+            >
               Privacy Policy
-            </Link>
-            <Link to="/terms" className="text-muted-foreground hover:text-primary transition-colors">
+            </a>
+            <a 
+              href="/terms" 
+              target="_blank" 
+              rel="noopener noreferrer"
+              className="text-muted-foreground hover:text-primary transition-colors"
+            >
               Terms
-            </Link>
+            </a>
             <a 
               href="mailto:info@eastemblem.com" 
               className="text-muted-foreground hover:text-primary transition-colors"

@@ -5,6 +5,7 @@ import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { motion } from "framer-motion";
 import Footer from "@/components/footer";
+import Navbar from "@/components/navbar";
 
 const Terms = () => {
   const [showBackToTop, setShowBackToTop] = useState(false);
@@ -76,6 +77,7 @@ const Terms = () => {
 
   return (
     <div className="min-h-screen bg-background">
+      <Navbar />
       {/* Header */}
       <div className="bg-gradient-to-r from-primary/10 to-primary-gold/10 border-b">
         <div className="max-w-4xl mx-auto px-4 py-12">
