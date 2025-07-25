@@ -460,6 +460,10 @@ export default function Analysis({
 
   const ventureName = ventureData?.name || apiVentureData?.name;
 
+  // Extract report and certificate URLs from processing step data
+  const reportUrl = sessionFromAPI?.stepData?.processing?.reportUrl || ventureData?.reportUrl;
+  const certificateUrl = sessionFromAPI?.stepData?.processing?.certificateUrl || ventureData?.certificateUrl;
+
   console.log("Analysis component - scoringResult:", scoringResult);
   console.log(
     "Analysis component - sessionData keys:",
@@ -1545,7 +1549,7 @@ export default function Analysis({
                 <ReportDownload 
                   ventureId={ventureData?.ventureId}
                   sessionId={sessionId}
-                  existingReportUrl={ventureData?.reportUrl}
+                  existingReportUrl={reportUrl}
                 />
               </motion.div>
             )}
@@ -1562,7 +1566,7 @@ export default function Analysis({
                   ventureId={ventureData?.ventureId}
                   sessionId={sessionId}
                   ventureName={ventureName || ventureData?.name || "Your Venture"}
-                  existingCertificateUrl={ventureData?.certificateUrl}
+                  existingCertificateUrl={certificateUrl}
                 />
               </motion.div>
             )}
