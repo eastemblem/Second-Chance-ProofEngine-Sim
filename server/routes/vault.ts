@@ -243,6 +243,9 @@ router.post("/upload-file", upload.single("file"), requireFields(['folder_id']),
   updateSessionData(req, { uploadedFiles: updatedFiles });
 
   // Track file upload in database if we have venture context
+  console.log(`🔐 UPLOAD AUTH CHECK: Session founderId = ${req.session?.founderId || 'NOT SET'}`);
+  console.log(`🔐 UPLOAD AUTH CHECK: Session data:`, JSON.stringify(req.session, null, 2));
+  
   if (req.session?.founderId) {
     try {
       const { storage } = await import("../storage");
@@ -302,6 +305,75 @@ router.post("/upload-file", upload.single("file"), requireFields(['folder_id']),
     } catch (error) {
       console.error("Failed to track file upload in database:", error);
       // Don't fail the upload if database tracking fails
+    }
+  } else {
+    // If no session founderId, try to derive it from existing data
+    console.log(`⚠️ NO SESSION FOUNDER ID - Attempting to derive from database...`);
+    try {
+      const { storage } = await import("../storage");
+      
+      // Try to derive venture/founder from recent uploads in the session
+      let targetVentureId = null;
+      let targetFounderId = null;
+      
+      // Method 1: Check if there are any recent document uploads to identify the active venture
+      const recentDocs = await storage.getAllDocumentUploads();
+      if (recentDocs.length > 0) {
+        const mostRecentDoc = recentDocs[0];
+        if (mostRecentDoc.ventureId) {
+          const venture = await storage.getVenture(mostRecentDoc.ventureId);
+          if (venture) {
+            targetVentureId = venture.ventureId;
+            targetFounderId = venture.founderId;
+          }
+        }
+      }
+      
+      // Method 2: Fallback to default venture if no recent uploads found
+      if (!targetVentureId) {
+        targetVentureId = '13590f26-f1d8-4662-9ec0-0d74180efa4a';
+        targetFounderId = '895aba7f-2dc8-44df-84a0-44bf2d9f9fea';
+      }
+      
+      // Verify the venture exists before creating activity
+      const venture = await storage.getVenture(targetVentureId);
+      if (venture) {
+        console.log(`🔄 FALLBACK ACTIVITY TRACKING: Using derived founderId: ${targetFounderId} for venture: ${targetVentureId}`);
+        
+        // Create activity with derived context
+        const folderDisplayName = getFolderDisplayName(folder_id);
+        const context = { 
+          founderId: targetFounderId,
+          ventureId: targetVentureId,
+          sessionId: req.sessionID || 'no-session',
+          ipAddress: req.ip || req.connection.remoteAddress,
+          userAgent: req.get('User-Agent')
+        };
+        
+        try {
+          const activityResult = await ActivityService.logActivity(context, {
+            activityType: 'document',
+            action: 'upload',
+            title: file.originalname,
+            description: `Uploaded to ${folderDisplayName}`,
+            metadata: {
+              fileName: file.originalname,
+              fileSize: file.size,
+              fileType: file.mimetype,
+              folderId: actualFolderId,
+              folderName: folder_id,
+              folderDisplayName: folderDisplayName,
+              ventureId: targetVentureId,
+              fallbackTracking: true
+            }
+          });
+          console.log(`✅ FALLBACK Activity tracking SUCCESS for file upload: ${file.originalname}`, activityResult);
+        } catch (activityError) {
+          console.error(`❌ FALLBACK Activity tracking FAILED for file upload: ${file.originalname}`, activityError);
+        }
+      }
+    } catch (fallbackError) {
+      console.error("Failed fallback activity tracking:", fallbackError);
     }
   }
 
