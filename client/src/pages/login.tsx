@@ -55,7 +55,7 @@ export default function LoginPage() {
     setIsLoading(true);
 
     try {
-      const response = await fetch('/api/auth/login', {
+      const response = await fetch('/api/auth-token/login', {
         method: 'POST',
         credentials: 'include',
         headers: {
@@ -69,9 +69,15 @@ export default function LoginPage() {
 
       const data = await response.json();
 
-      if (response.ok) {
+      if (response.ok && data.success) {
         // Track successful login event
         trackEvent('login', 'authentication', 'login_success');
+        
+        // Store JWT token and user data
+        if (data.token) {
+          localStorage.setItem('auth_token', data.token);
+          localStorage.setItem('auth_user', JSON.stringify(data.founder));
+        }
         
         toast({
           title: "Welcome Back!",
@@ -84,7 +90,7 @@ export default function LoginPage() {
           setLocation('/dashboard');
         }, 1000);
       } else {
-        throw new Error(data.error || 'Login failed');
+        throw new Error(data.error?.message || data.error || 'Login failed');
       }
     } catch (error) {
       console.error('Login error:', error);

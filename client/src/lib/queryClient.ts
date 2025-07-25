@@ -28,9 +28,16 @@ export async function apiRequest(
 ): Promise<Response> {
   const apiUrl = getApiUrl(url);
   
+  // Get JWT token from localStorage for authentication
+  const token = localStorage.getItem('auth_token');
+  const headers: Record<string, string> = {
+    ...(data && { "Content-Type": "application/json" }),
+    ...(token && { "Authorization": `Bearer ${token}` }),
+  };
+  
   const res = await fetch(apiUrl, {
     method,
-    headers: data ? { "Content-Type": "application/json" } : {},
+    headers,
     body: data ? JSON.stringify(data) : undefined,
     credentials: "include",
   });
@@ -47,7 +54,14 @@ export const getQueryFn: <T>(options: {
   async ({ queryKey }) => {
     const apiUrl = getApiUrl(queryKey[0] as string);
     
+    // Get JWT token from localStorage for authentication
+    const token = localStorage.getItem('auth_token');
+    const headers: Record<string, string> = {
+      ...(token && { "Authorization": `Bearer ${token}` }),
+    };
+    
     const res = await fetch(apiUrl, {
+      headers,
       credentials: "include",
     });
 

@@ -1,0 +1,94 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>JWT Token Persistence Test</title>
+</head>
+<body>
+    <h1>JWT Token Persistence Test</h1>
+    
+    <div id="token-status">Checking token...</div>
+    
+    <button onclick="loginWithJWT()">Login with JWT</button>
+    <button onclick="testDashboardAPI()">Test Dashboard API</button>
+    <button onclick="checkLocalStorage()">Check LocalStorage</button>
+    <button onclick="clearAuth()">Clear Auth</button>
+    
+    <div id="results"></div>
+
+    <script>
+        function log(message) {
+            document.getElementById('results').innerHTML += '<div>' + message + '</div>';
+        }
+
+        function checkLocalStorage() {
+            const token = localStorage.getItem('auth_token');
+            const user = localStorage.getItem('auth_user');
+            
+            log('Token in storage: ' + (token ? 'YES (' + token.substring(0, 50) + '...)' : 'NO'));
+            log('User in storage: ' + (user ? 'YES' : 'NO'));
+            
+            document.getElementById('token-status').innerHTML = 
+                'Token: ' + (token ? 'FOUND' : 'MISSING');
+        }
+
+        async function loginWithJWT() {
+            try {
+                const response = await fetch('/api/auth/login', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({
+                        email: 'bamne123@gmail.com',
+                        password: '123456'
+                    })
+                });
+                
+                const data = await response.json();
+                log('Login response: ' + JSON.stringify(data));
+                
+                if (data.success && data.token) {
+                    localStorage.setItem('auth_token', data.token);
+                    localStorage.setItem('auth_user', JSON.stringify(data.user));
+                    log('JWT token saved to localStorage');
+                    checkLocalStorage();
+                }
+            } catch (error) {
+                log('Login error: ' + error.message);
+            }
+        }
+
+        async function testDashboardAPI() {
+            const token = localStorage.getItem('auth_token');
+            
+            if (!token) {
+                log('No token found - login first');
+                return;
+            }
+            
+            try {
+                const response = await fetch('/api/dashboard/validation', {
+                    headers: {
+                        'Authorization': 'Bearer ' + token
+                    }
+                });
+                
+                const data = await response.json();
+                log('Dashboard API response (' + response.status + '): ' + JSON.stringify(data));
+            } catch (error) {
+                log('Dashboard API error: ' + error.message);
+            }
+        }
+
+        function clearAuth() {
+            localStorage.removeItem('auth_token');
+            localStorage.removeItem('auth_user');
+            log('Auth data cleared');
+            checkLocalStorage();
+        }
+
+        // Initialize
+        checkLocalStorage();
+    </script>
+</body>
+</html>
