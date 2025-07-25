@@ -204,27 +204,60 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(404).json({ error: "Venture not found" });
       }
 
-      // FIXED: Add missing files array and folder structure for frontend compatibility
+      // RETRIEVE ACTUAL FILES FROM DATABASE
+      const { db } = await import('./db');
+      const { documentUpload } = await import('@shared/schema');
+      const { eq } = await import('drizzle-orm');
+
+      // Get all files for this venture
+      const files = await db.select().from(documentUpload).where(eq(documentUpload.ventureId, dashboardData.venture.ventureId));
+      
+      // Format files for frontend display
+      const formattedFiles = files.map(file => ({
+        id: file.uploadId,
+        name: file.fileName || file.originalName || 'Unknown File',
+        category: getCategoryFromFolderId(file.folderId || '332844784735'), // Default to Overview folder
+        uploadDate: file.createdAt?.toISOString() || new Date().toISOString(),
+        size: formatFileSize(file.fileSize || 0),
+        downloadUrl: file.sharedUrl || '',
+        type: file.mimeType || 'application/pdf'
+      }));
+
+      // Count files by category
+      const fileCounts = files.reduce((counts, file) => {
+        const category = getCategoryFromFolderId(file.folderId || '332844784735');
+        switch(category) {
+          case 'Overview': counts.overview++; break;
+          case 'Problem Proofs': counts.problemProof++; break;
+          case 'Solution Proofs': counts.solutionProof++; break;
+          case 'Demand Proofs': counts.demandProof++; break;
+          case 'Credibility Proofs': counts.credibilityProof++; break;
+          case 'Commercial Proofs': counts.commercialProof++; break;
+          case 'Investor Pack': counts.investorPack++; break;
+        }
+        return counts;
+      }, { overview: 0, problemProof: 0, solutionProof: 0, demandProof: 0, credibilityProof: 0, commercialProof: 0, investorPack: 0 });
+
       const vaultData = {
-        overviewCount: 1,
-        problemProofCount: 0,
-        solutionProofCount: 0,
-        demandProofCount: 0,
-        credibilityProofCount: 0,
-        commercialProofCount: 0,
-        investorPackCount: 0,
-        totalFiles: 1,
+        overviewCount: fileCounts.overview,
+        problemProofCount: fileCounts.problemProof,
+        solutionProofCount: fileCounts.solutionProof,
+        demandProofCount: fileCounts.demandProof,
+        credibilityProofCount: fileCounts.credibilityProof,
+        commercialProofCount: fileCounts.commercialProof,
+        investorPackCount: fileCounts.investorPack,
+        totalFiles: files.length,
         ventureId: dashboardData.venture.ventureId,
         ventureName: dashboardData.venture.name,
-        files: [], // FIXED: Add empty files array to match frontend interface
+        files: formattedFiles, // REAL FILES from database
         folders: [ // FIXED: Add folder structure to match frontend interface
-          { name: "0_Overview", displayName: "Overview", count: 1 },
-          { name: "1_Problem_Proof", displayName: "Problem Proofs", count: 0 },
-          { name: "2_Solution_Proof", displayName: "Solution Proofs", count: 0 },
-          { name: "3_Demand_Proof", displayName: "Demand Proofs", count: 0 },
-          { name: "4_Credibility_Proof", displayName: "Credibility Proofs", count: 0 },
-          { name: "5_Commercial_Proof", displayName: "Commercial Proofs", count: 0 },
-          { name: "6_Investor_Pack", displayName: "Investor Pack", count: 0 }
+          { name: "0_Overview", displayName: "Overview", count: fileCounts.overview },
+          { name: "1_Problem_Proof", displayName: "Problem Proofs", count: fileCounts.problemProof },
+          { name: "2_Solution_Proof", displayName: "Solution Proofs", count: fileCounts.solutionProof },
+          { name: "3_Demand_Proof", displayName: "Demand Proofs", count: fileCounts.demandProof },
+          { name: "4_Credibility_Proof", displayName: "Credibility Proofs", count: fileCounts.credibilityProof },
+          { name: "5_Commercial_Proof", displayName: "Commercial Proofs", count: fileCounts.commercialProof },
+          { name: "6_Investor_Pack", displayName: "Investor Pack", count: fileCounts.investorPack }
         ],
         folderUrls: {} // FIXED: Add empty folderUrls to match frontend interface
       };
@@ -632,4 +665,30 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
   const httpServer = createServer(app);
   return httpServer;
+}
+
+// Helper functions for file processing
+function getCategoryFromFolderId(folderId: string): string {
+  // Map folder IDs to category names
+  const folderMap: Record<string, string> = {
+    '332844784735': 'Overview', // Main folder ID seen in database
+    '332844784736': 'Problem Proofs',
+    '332844784737': 'Solution Proofs', 
+    '332844784738': 'Demand Proofs',
+    '332844784739': 'Credibility Proofs',
+    '332844784740': 'Commercial Proofs',
+    '332844784741': 'Investor Pack'
+  };
+  
+  return folderMap[folderId] || 'Overview';
+}
+
+function formatFileSize(bytes: number): string {
+  if (bytes === 0) return '0 Bytes';
+  
+  const k = 1024;
+  const sizes = ['Bytes', 'KB', 'MB', 'GB'];
+  const i = Math.floor(Math.log(bytes) / Math.log(k));
+  
+  return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + ' ' + sizes[i];
 }
