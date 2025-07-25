@@ -383,7 +383,7 @@ export default function DashboardPage() {
       const fileGroups = groupFilesByType(files);
       const uploadPromises: Promise<void>[] = [];
 
-      // Step 3: Create subfolders and upload files to respective subfolders
+      // Step 3: Create subfolders and upload files sequentially (wait for each folder creation)
       for (const [folderType, groupedFiles] of Object.entries(fileGroups)) {
         const subfolderName = `${folderType}_Files`;
         
@@ -393,17 +393,22 @@ export default function DashboardPage() {
         });
 
         try {
-          // Create subfolder within the main folder
+          // Wait for subfolder creation to complete before proceeding
           const subFolderId = await createFolder(subfolderName, mainFolderId);
           
           if (subFolderId) {
             toast({
               title: "Subfolder Ready",
-              description: `"${subfolderName}" created. Uploading ${groupedFiles.length} files...`,
+              description: `"${subfolderName}" created. Now uploading ${groupedFiles.length} files...`,
             });
             
-            // Upload files to this subfolder
-            uploadPromises.push(handleMultipleFileUpload(groupedFiles, subFolderId));
+            // Wait for this upload to complete before creating next subfolder
+            await handleMultipleFileUpload(groupedFiles, subFolderId);
+            
+            toast({
+              title: "Upload Complete",
+              description: `${groupedFiles.length} files uploaded to "${subfolderName}"`,
+            });
           } else {
             // Fallback: upload to main folder if subfolder creation fails
             toast({
@@ -411,17 +416,19 @@ export default function DashboardPage() {
               description: `Could not create "${subfolderName}". Uploading to main folder instead...`,
               variant: "destructive",
             });
-            uploadPromises.push(handleMultipleFileUpload(groupedFiles, mainFolderId));
+            await handleMultipleFileUpload(groupedFiles, mainFolderId);
           }
         } catch (subfolderError) {
           console.error(`Subfolder creation failed for ${folderType}:`, subfolderError);
+          toast({
+            title: "Subfolder Error",
+            description: `Error creating "${subfolderName}". Uploading to main folder...`,
+            variant: "destructive",
+          });
           // Fallback to main folder
-          uploadPromises.push(handleMultipleFileUpload(groupedFiles, mainFolderId));
+          await handleMultipleFileUpload(groupedFiles, mainFolderId);
         }
       }
-
-      // Wait for all uploads to complete
-      await Promise.all(uploadPromises);
 
       toast({
         title: "Upload Complete",
@@ -615,10 +622,25 @@ export default function DashboardPage() {
 
       if (response.ok) {
         const result = await response.json();
-        return result.folderId || result.id; // Return the new folder ID
+        const newFolderId = result.folderId || result.id;
+        
+        console.log('📁 Folder created successfully:', {
+          folderName,
+          parentFolderId,
+          newFolderId,
+          result
+        });
+        
+        toast({
+          title: "Folder Created",
+          description: `Folder "${folderName}" created successfully with ID: ${newFolderId}`,
+        });
+        
+        return newFolderId; // Return the new folder ID
       } else {
         const errorData = await response.json();
-        throw new Error(errorData.message || 'Folder creation failed');
+        console.error('❌ Folder creation failed:', errorData);
+        throw new Error(errorData.message || errorData.error || 'Folder creation failed');
       }
     } catch (error) {
       console.error('Folder creation error:', error);
@@ -660,11 +682,15 @@ export default function DashboardPage() {
       const folderStructure = groupFilesByFolderPath(fileList);
       const uploadPromises: Promise<void>[] = [];
 
-      // Step 3: Create subfolders and upload files
+      // Step 3: Create subfolders and upload files sequentially
       for (const [subfolderPath, groupedFiles] of Object.entries(folderStructure)) {
         if (subfolderPath === 'root') {
           // Files in root of uploaded folder - upload directly to main folder
-          uploadPromises.push(handleMultipleFileUpload(groupedFiles, mainFolderId));
+          toast({
+            title: "Uploading Root Files",
+            description: `Uploading ${groupedFiles.length} files to main folder...`,
+          });
+          await handleMultipleFileUpload(groupedFiles, mainFolderId);
         } else {
           // Create subfolder structure
           const subfolderName = subfolderPath.replace(/\//g, '_'); // Replace slashes with underscores for folder name
@@ -675,27 +701,41 @@ export default function DashboardPage() {
           });
 
           try {
+            // Wait for subfolder creation to complete
             const subFolderId = await createFolder(subfolderName, mainFolderId);
             
             if (subFolderId) {
               toast({
                 title: "Subfolder Ready",
-                description: `"${subfolderName}" created. Uploading ${groupedFiles.length} files...`,
+                description: `"${subfolderName}" created. Now uploading ${groupedFiles.length} files...`,
               });
-              uploadPromises.push(handleMultipleFileUpload(groupedFiles, subFolderId));
+              // Wait for upload to complete before next subfolder
+              await handleMultipleFileUpload(groupedFiles, subFolderId);
+              
+              toast({
+                title: "Subfolder Complete",
+                description: `${groupedFiles.length} files uploaded to "${subfolderName}"`,
+              });
             } else {
               // Fallback to main folder
-              uploadPromises.push(handleMultipleFileUpload(groupedFiles, mainFolderId));
+              toast({
+                title: "Subfolder Failed",
+                description: `Could not create "${subfolderName}". Uploading to main folder...`,
+                variant: "destructive",
+              });
+              await handleMultipleFileUpload(groupedFiles, mainFolderId);
             }
           } catch (subfolderError) {
             console.error(`Subfolder creation failed for ${subfolderPath}:`, subfolderError);
-            uploadPromises.push(handleMultipleFileUpload(groupedFiles, mainFolderId));
+            toast({
+              title: "Subfolder Error",
+              description: `Error creating "${subfolderName}". Uploading to main folder...`,
+              variant: "destructive",
+            });
+            await handleMultipleFileUpload(groupedFiles, mainFolderId);
           }
         }
       }
-
-      // Wait for all uploads to complete
-      await Promise.all(uploadPromises);
 
       toast({
         title: "Folder Upload Complete",
