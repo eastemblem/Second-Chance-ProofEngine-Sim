@@ -126,6 +126,20 @@ Demo experience for testing different user journeys:
 
 ## Recent Key Updates
 
+### July 25, 2025 - CRITICAL FOLDER MAPPING FIX: Investor Pack Upload Issue Resolved
+- **FOLDER ID MAPPING FIXED**: Resolved critical issue where files were uploading to temporary folders instead of selected categories (Investor Pack)
+- **CATEGORY-TO-FOLDERID TRANSLATION**: Added proper mapping system that translates frontend categories (`6_Investor_Pack`) to actual Box.com folder IDs (`332842251627`)
+- **UPLOAD VERIFICATION**: Files now correctly upload to the selected Investor Pack folder and appear in Box.com as expected
+- **COMPREHENSIVE MAPPING**: Complete folder mapping for all 7 proof categories with authentic Box.com folder IDs:
+  * `6_Investor_Pack` → `332842251627` (Investor Pack)
+  * `0_Overview` → `332844784735` (Overview)
+  * `1_Problem_Proof` → `332844933261` (Problem Proofs)
+  * `2_Solution_Proof` → `332842993678` (Solution Proofs)
+  * `3_Demand_Proof` → `332843828465` (Demand Proofs)
+  * `4_Credibility_Proof` → `332843291772` (Credibility Proofs)
+  * `5_Commercial_Proof` → `332845124499` (Commercial Proofs)
+- **PRODUCTION READY**: Folder upload workflow now works end-to-end with proper file placement in selected categories
+
 ### July 25, 2025 - ENVIRONMENT VARIABLE COMPLIANCE: Complete API Endpoint Configuration
 - **ELIMINATED HARDCODED ENDPOINTS**: Removed all hardcoded EastEmblem API URLs and replaced with `EASTEMBLEM_API_BASE_URL` environment variable
 - **PROPER ERROR HANDLING**: Added environment variable validation with clear error messages when `EASTEMBLEM_API_BASE_URL` is missing

@@ -176,50 +176,52 @@ router.post("/upload-file", upload.single("file"), requireFields(['folder_id']),
   
   // Get the actual Box.com folder ID from database
   let actualFolderId = folder_id;
-  console.log(`🔍 Attempting to map folder name '${folder_id}' to Box.com folder ID...`);
+  console.log(`🔍 Attempting to map category '${folder_id}' to Box.com folder ID...`);
   console.log(`🔐 Session founderId: ${req.session?.founderId || 'NOT SET'}`);
   
-  // Try to get folder mapping
-  try {
-    const { storage } = await import("../storage");
-    
-    // First try with authenticated user
-    if (req.session?.founderId) {
-      const ventures = await storage.getVenturesByFounderId(req.session.founderId);
-      const latestVenture = ventures.length > 0 ? ventures[0] : null;
+  // First check if this is a category name that needs mapping to actual Box.com folder ID
+  const categoryToFolderMap: Record<string, string> = {
+    '0_Overview': '332844784735',
+    '1_Problem_Proof': '332844933261', 
+    '2_Solution_Proof': '332842993678',
+    '3_Demand_Proof': '332843828465',
+    '4_Credibility_Proof': '332843291772',
+    '5_Commercial_Proof': '332845124499',
+    '6_Investor_Pack': '332842251627'
+  };
+  
+  // Check if the folder_id is a category that needs mapping
+  if (categoryToFolderMap[folder_id]) {
+    actualFolderId = categoryToFolderMap[folder_id];
+    console.log(`✅ Mapped category '${folder_id}' to Box.com folder ID '${actualFolderId}'`);
+  } else if (folder_id.match(/^\d+$/)) {
+    // If it's already a numeric ID, use it directly
+    actualFolderId = folder_id;
+    console.log(`✅ Using numeric folder ID directly: '${actualFolderId}'`);
+  } else {
+    // Try dynamic mapping from database as fallback
+    try {
+      const { storage } = await import("../storage");
       
-      if (latestVenture) {
-        const proofVaultRecords = await storage.getProofVaultsByVentureId(latestVenture.ventureId);
-        const targetFolder = proofVaultRecords.find(pv => pv.folderName === folder_id);
-        if (targetFolder?.subFolderId) {
-          actualFolderId = targetFolder.subFolderId.toString();
-          console.log(`✅ Mapped folder name '${folder_id}' to Box.com folder ID '${actualFolderId}' (authenticated)`);
-        }
-      }
-    } else {
-      // Fallback: try to find the most recent venture for testing
-      console.log(`⚠️ No authenticated session, trying to find folder mapping for testing...`);
-      const latestVenture = await storage.getVenture('7ca13a11-b56f-4158-a8fa-58a34b985613');
-      
-      if (latestVenture) {
-        const proofVaultRecords = await storage.getProofVaultsByVentureId(latestVenture.ventureId);
-        console.log(`📋 Found ${proofVaultRecords.length} ProofVault records for venture`);
+      if (req.session?.founderId) {
+        const ventures = await storage.getVenturesByFounderId(req.session.founderId);
+        const latestVenture = ventures.length > 0 ? ventures[0] : null;
         
-        const targetFolder = proofVaultRecords.find(pv => pv.folderName === folder_id);
-        if (targetFolder?.subFolderId) {
-          actualFolderId = targetFolder.subFolderId.toString();
-          console.log(`✅ Mapped folder name '${folder_id}' to Box.com folder ID '${actualFolderId}' (fallback)`);
-        } else {
-          console.log(`❌ No mapping found for folder '${folder_id}' in ProofVault records`);
-          console.log(`Available folders:`, proofVaultRecords.map(pv => `${pv.folderName} -> ${pv.subFolderId}`));
+        if (latestVenture) {
+          const proofVaultRecords = await storage.getProofVaultsByVentureId(latestVenture.ventureId);
+          const targetFolder = proofVaultRecords.find(pv => pv.folderName === folder_id);
+          if (targetFolder?.subFolderId) {
+            actualFolderId = targetFolder.subFolderId.toString();
+            console.log(`✅ Mapped folder name '${folder_id}' to Box.com folder ID '${actualFolderId}' (database)`);
+          }
         }
-      } else {
-        console.log(`❌ No venture found for testing fallback`);
       }
+    } catch (error) {
+      console.error("Failed to map folder ID from database:", error);
+      // Use the categoryToFolderMap default if available
+      actualFolderId = categoryToFolderMap['0_Overview'] || folder_id;
+      console.log(`⚠️ Using fallback folder ID: '${actualFolderId}'`);
     }
-  } catch (error) {
-    console.error("Failed to map folder ID:", error);
-    // Continue with original folder_id as fallback
   }
   
   console.log(`📤 Uploading to Box.com folder ID: '${actualFolderId}' (original: '${folder_id}')`);
