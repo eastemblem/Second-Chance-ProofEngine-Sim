@@ -13,6 +13,7 @@ import dashboardRoutes from "./routes/dashboard";
 import { getLeaderboard, createLeaderboardEntry } from "./routes/leaderboard";
 import { generateCertificate, downloadCertificate, getCertificateStatus } from "./routes/certificate";
 import { generateReport } from "./routes/report";
+import { databaseService } from "./services/database-service";
 import multer from "multer";
 import path from "path";
 import fs from "fs";
@@ -120,11 +121,12 @@ export async function registerRoutes(app: Express): Promise<Server> {
       res.json(response);
     } catch (error) {
       console.error('Submit for scoring error:', error);
+      const errorMessage = error instanceof Error ? error.message : 'Unknown error';
       res.setHeader('Content-Type', 'application/json');
       res.status(500).json({
         success: false,
         error: {
-          message: error.message,
+          message: errorMessage,
           status: 500
         },
         sessionId
