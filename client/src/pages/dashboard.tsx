@@ -622,14 +622,20 @@ export default function DashboardPage() {
 
       if (response.ok) {
         const result = await response.json();
-        const newFolderId = result.folderId || result.id;
+        // Extract folder ID from various possible response structures
+        const newFolderId = result.data?.folderId || result.folderId || result.data?.id || result.id;
         
         console.log('📁 Folder created successfully:', {
           folderName,
           parentFolderId,
           newFolderId,
-          result
+          fullResult: result
         });
+        
+        if (!newFolderId) {
+          console.error('❌ No folder ID found in response:', result);
+          throw new Error('Folder creation succeeded but no folder ID returned');
+        }
         
         toast({
           title: "Folder Created",
