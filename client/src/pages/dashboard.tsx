@@ -1404,7 +1404,7 @@ export default function DashboardPage() {
                       </div>
 
                       {/* Failed Files Section */}
-                      {showFailedFiles && uploadQueue.some(item => item.status === 'failed') && (
+                      {uploadQueue.some(item => item.status === 'failed') && (
                         <div className="bg-red-500/10 border border-red-500/20 rounded-lg p-4 space-y-3">
                           <div className="flex items-center justify-between">
                             <div className="flex items-center gap-2">
@@ -1414,7 +1414,11 @@ export default function DashboardPage() {
                             <Button
                               size="sm"
                               variant="ghost"
-                              onClick={() => setShowFailedFiles(false)}
+                              onClick={() => {
+                                // Remove failed files from queue to hide the section
+                                setUploadQueue(prev => prev.filter(item => item.status !== 'failed'));
+                                setShowFailedFiles(false);
+                              }}
                               className="text-gray-400 hover:text-white h-6 w-6 p-0"
                             >
                               <X className="w-3 h-3" />
