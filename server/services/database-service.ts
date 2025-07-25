@@ -307,8 +307,8 @@ export class DatabaseService {
     cacheService.invalidateFounder(founderId);
   }
 
-  invalidateVentureCache(ventureId: string, founderId?: string): void {
-    cacheService.invalidateVenture(ventureId, founderId);
+  invalidateVentureCache(ventureId: string): void {
+    cacheService.invalidateVenture(ventureId);
   }
 
   /**
