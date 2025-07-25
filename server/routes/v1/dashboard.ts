@@ -1,13 +1,16 @@
-import { Router, Response } from 'express';
-import { requireAuth, AuthenticatedRequest } from '../middleware/auth';
+import { Router, Request, Response } from 'express';
 import { asyncHandler } from '../middleware/error';
 import { databaseService } from '../../services/database-service';
 
 const router = Router();
 
 // Dashboard validation endpoint - EXACT SAME LOGIC as routes.ts
-router.get('/validation', requireAuth, asyncHandler(async (req: AuthenticatedRequest, res) => {
-  const founderId = req.user!.founderId;
+router.get('/validation', asyncHandler(async (req: Request, res: Response) => {
+  const founderId = req.session?.founderId;
+  
+  if (!founderId) {
+    return res.status(401).json({ error: "Not authenticated" });
+  }
   
   try {
     const dashboardData = await databaseService.getFounderWithLatestVenture(founderId);
@@ -53,8 +56,12 @@ router.get('/validation', requireAuth, asyncHandler(async (req: AuthenticatedReq
 }));
 
 // Dashboard vault endpoint - EXACT SAME LOGIC as routes.ts
-router.get('/vault', requireAuth, asyncHandler(async (req: AuthenticatedRequest, res) => {
-  const founderId = req.user!.founderId;
+router.get('/vault', asyncHandler(async (req: Request, res: Response) => {
+  const founderId = req.session?.founderId;
+  
+  if (!founderId) {
+    return res.status(401).json({ error: "Not authenticated" });
+  }
   
   try {
     const dashboardData = await databaseService.getFounderWithLatestVenture(founderId);
@@ -201,8 +208,12 @@ router.get('/vault', requireAuth, asyncHandler(async (req: AuthenticatedRequest,
 }));
 
 // Dashboard activity endpoint - EXACT SAME LOGIC as routes.ts
-router.get('/activity', requireAuth, asyncHandler(async (req: AuthenticatedRequest, res) => {
-  const founderId = req.user!.founderId;
+router.get('/activity', asyncHandler(async (req: Request, res: Response) => {
+  const founderId = req.session?.founderId;
+  
+  if (!founderId) {
+    return res.status(401).json({ error: "Not authenticated" });
+  }
   
   try {
     const { db } = await import('../../db');

@@ -77,6 +77,10 @@ interface SessionData {
 export async function registerRoutes(app: Express): Promise<Server> {
   // Session middleware is already configured in index.ts, don't duplicate it
 
+  // V1 API Routes (versioned) - RESTORE WORKING SYSTEM
+  const v1Routes = (await import('./routes/v1/index')).default;
+  app.use('/api/v1', v1Routes);
+
   // Authentication routes
   app.use('/api/auth', authRoutes);
 
