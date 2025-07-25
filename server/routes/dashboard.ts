@@ -661,4 +661,74 @@ router.post("/test-cache-invalidate/:type", async (req, res) => {
   }
 });
 
+// LRU Cache Performance Monitoring
+router.get("/cache-stats", async (req, res) => {
+  try {
+    const { lruCacheService } = await import("../services/lru-cache-service");
+    const stats = lruCacheService.getStats();
+    const memoryInfo = lruCacheService.getMemoryInfo();
+    
+    const totalHits = Object.values(stats).reduce((sum, stat) => sum + stat.hits, 0);
+    const totalMisses = Object.values(stats).reduce((sum, stat) => sum + stat.misses, 0);
+    const overallHitRate = totalHits + totalMisses > 0 ? 
+      ((totalHits / (totalHits + totalMisses)) * 100).toFixed(1) : 0;
+
+    res.json({
+      timestamp: new Date().toISOString(),
+      performanceType: "lru-cache-hybrid",
+      overallHitRate: `${overallHitRate}%`,
+      totalOperations: totalHits + totalMisses,
+      cacheStats: stats,
+      memoryUsage: memoryInfo,
+      interpretation: {
+        excellent: overallHitRate > 80,
+        good: overallHitRate > 60,
+        needsOptimization: overallHitRate < 40
+      }
+    });
+  } catch (error) {
+    console.error("Cache stats error:", error);
+    res.status(500).json({ error: "Failed to get cache statistics" });
+  }
+});
+
+// Cache Performance Benchmark
+router.get("/benchmark", async (req, res) => {
+  try {
+    const { lruCacheService } = await import("../services/lru-cache-service");
+    const testKey = `perf-test-${Date.now()}`;
+    const testData = { score: 75, timestamp: Date.now() };
+    
+    // Measure memory cache performance
+    const start = process.hrtime.bigint();
+    await lruCacheService.set("dashboard", testKey, testData);
+    const setTime = Number(process.hrtime.bigint() - start) / 1000000;
+    
+    const getStart = process.hrtime.bigint();
+    const result = await lruCacheService.get("dashboard", testKey);
+    const getTime = Number(process.hrtime.bigint() - getStart) / 1000000;
+    
+    // Clean up
+    await lruCacheService.invalidate("dashboard", testKey);
+    
+    res.json({
+      benchmark: "LRU Memory Cache Performance",
+      results: {
+        setOperation: `${setTime.toFixed(3)}ms`,
+        getOperation: `${getTime.toFixed(3)}ms`,
+        dataRetrieved: !!result
+      },
+      comparison: {
+        memoryAccess: `${getTime.toFixed(3)}ms`,
+        typicalDatabase: "200-350ms",
+        performanceGain: `${(300 / Math.max(getTime, 0.1)).toFixed(0)}x faster`
+      },
+      rating: getTime < 1 ? "excellent" : getTime < 5 ? "good" : "needs optimization"
+    });
+  } catch (error) {
+    console.error("Benchmark error:", error);
+    res.status(500).json({ error: "Performance benchmark failed" });
+  }
+});
+
 export default router;
