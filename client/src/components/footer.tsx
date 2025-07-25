@@ -41,7 +41,6 @@ const Footer = () => {
           {/* Copyright - Compact */}
           <div className="text-xs text-muted-foreground text-center sm:text-right">
             <p>© {new Date().getFullYear()} East Emblem Ltd</p>
-            <p className="text-xs opacity-75">UAE License: MC 13353</p>
           </div>
         </div>
       </div>
