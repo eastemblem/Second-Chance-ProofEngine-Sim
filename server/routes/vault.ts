@@ -253,7 +253,7 @@ router.post("/upload-file", upload.single("file"), requireFields(['folder_id']),
           fileName: uploadResult.name || file.originalname,
           originalName: file.originalname,
           filePath: `/uploads/${folder_id}/${file.originalname}`,
-          fileSize: uploadResult.size || file.size, // Use EastEmblem API size if available, fallback to local file size
+          fileSize: (uploadResult as any).size || file.size, // Use EastEmblem API size if available, fallback to local file size
           mimeType: file.mimetype,
           uploadStatus: "completed",
           processingStatus: "completed",
@@ -337,6 +337,75 @@ router.delete("/remove-file/:fileId", asyncHandler(async (req, res) => {
   } catch (error) {
     console.error("Failed to remove file:", error);
     res.status(500).json({ error: "Failed to remove file" });
+  }
+}));
+
+// Create folder endpoint
+router.post('/create-folder', upload.none(), asyncHandler(async (req, res) => {
+  const { folderName, folder_id } = req.body;
+  
+  if (!folderName || !folder_id) {
+    return res.status(400).json({ error: 'folderName and folder_id are required' });
+  }
+
+  try {
+    // Create FormData for EastEmblem API
+    const formData = new FormData();
+    formData.append('folderName', folderName);
+    formData.append('folder_id', folder_id);
+
+    // Call EastEmblem folder creation API
+    const response = await fetch('https://eastemblemsecondchance.app.n8n.cloud/webhook-test/vault/folder/create', {
+      method: 'POST',
+      body: formData,
+    });
+
+    if (!response.ok) {
+      throw new Error(`EastEmblem API error: ${response.status} ${response.statusText}`);
+    }
+
+    const result = await response.json();
+    
+    // Track folder creation activity
+    if (req.session?.founderId) {
+      try {
+        const { storage } = await import("../storage");
+        const ventures = await storage.getVenturesByFounderId(req.session.founderId);
+        const latestVenture = ventures.length > 0 ? ventures[0] : null;
+        
+        if (latestVenture) {
+          await ActivityService.logActivity(
+            {
+              founderId: req.session.founderId,
+              ventureId: latestVenture.ventureId,
+              sessionId: req.sessionID,
+              ipAddress: req.ip || req.connection.remoteAddress,
+              userAgent: req.get('User-Agent')
+            },
+            {
+              activityType: 'document',
+              action: 'folder_created',
+              title: `Created folder "${folderName}"`,
+              description: `Created folder "${folderName}" in ${getFolderDisplayName(folder_id)}`
+            }
+          );
+        }
+      } catch (error) {
+        console.error('Failed to log folder creation activity:', error);
+      }
+    }
+
+    res.json(createSuccessResponse({
+      message: 'Folder created successfully',
+      folderId: result.folderId || result.id,
+      folderName,
+      parentFolderId: folder_id,
+      ...result
+    }));
+  } catch (error) {
+    console.error('Folder creation error:', error);
+    const errorMessage = error instanceof Error ? error.message : 'Unknown error';
+    res.status(500).json({ error: `Failed to create folder: ${errorMessage}` });
   }
 }));
 

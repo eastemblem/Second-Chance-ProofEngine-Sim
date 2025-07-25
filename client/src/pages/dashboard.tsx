@@ -479,19 +479,81 @@ export default function DashboardPage() {
     await handleMultipleFileUpload(failedFiles.map(item => item.file), failedFiles[0].folderId, true);
   };
 
-  // Handle folder uploads (for supported browsers)
+  // Create folder using EastEmblem API
+  const createFolder = async (folderName: string, parentFolderId: string): Promise<string | null> => {
+    try {
+      const formData = new FormData();
+      formData.append('folderName', folderName);
+      formData.append('folder_id', parentFolderId);
+
+      const response = await fetch('/api/vault/create-folder', {
+        method: 'POST',
+        body: formData,
+      });
+
+      if (response.ok) {
+        const result = await response.json();
+        return result.folderId || result.id; // Return the new folder ID
+      } else {
+        const errorData = await response.json();
+        throw new Error(errorData.message || 'Folder creation failed');
+      }
+    } catch (error) {
+      console.error('Folder creation error:', error);
+      throw error;
+    }
+  };
+
+  // Handle folder uploads with automatic folder creation
   const handleFolderUpload = async (event: React.ChangeEvent<HTMLInputElement>) => {
     const files = event.target.files;
     if (!files || files.length === 0) return;
 
     const fileList = Array.from(files);
     
+    // Extract folder name from the first file's path
+    const firstFile = fileList[0];
+    const pathParts = firstFile.webkitRelativePath?.split('/') || [];
+    const folderName = pathParts[0] || 'uploaded-folder';
+    
     toast({
-      title: "Folder Upload",
-      description: `Processing ${fileList.length} files from folder...`,
+      title: "Folder Upload Started",
+      description: `Creating folder "${folderName}" and uploading ${fileList.length} files...`,
     });
 
-    await handleMultipleFileUpload(fileList, selectedFolder);
+    try {
+      // Create a new folder first
+      const newFolderId = await createFolder(folderName, selectedFolder);
+      
+      if (newFolderId) {
+        toast({
+          title: "Folder Created",
+          description: `Folder "${folderName}" created successfully. Starting file uploads...`,
+        });
+        
+        // Upload files to the newly created folder
+        await handleMultipleFileUpload(fileList, newFolderId);
+      } else {
+        throw new Error('Failed to get new folder ID');
+      }
+    } catch (error) {
+      console.error('Folder upload error:', error);
+      const errorMessage = error instanceof Error ? error.message : 'Unknown error';
+      
+      toast({
+        title: "Folder Upload Failed",
+        description: `Failed to create folder "${folderName}": ${errorMessage}`,
+        variant: "destructive",
+      });
+      
+      // Fallback: upload files to selected folder without creating new folder
+      toast({
+        title: "Fallback Upload",
+        description: `Uploading files to ${getFolderDisplayName(selectedFolder)} instead...`,
+      });
+      await handleMultipleFileUpload(fileList, selectedFolder);
+    }
+    
     event.target.value = '';
   };
 
@@ -1066,7 +1128,8 @@ export default function DashboardPage() {
                           <li>• Select multiple files at once or drag & drop for batch upload</li>
                           <li>• Files process sequentially to ensure reliable uploads</li>
                           <li>• Upload high-quality documents to maximize your ProofScore</li>
-                          <li>• Folder upload: Select entire folders for bulk file management</li>
+                          <li>• Folder upload: Creates a new folder and uploads all files in sequence</li>
+                          <li>• Failed uploads can be retried individually or cleared from the interface</li>
                         </ul>
                       </div>
                     </div>
