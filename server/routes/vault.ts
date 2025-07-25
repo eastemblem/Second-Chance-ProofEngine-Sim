@@ -354,9 +354,16 @@ router.post('/create-folder', upload.none(), asyncHandler(async (req, res) => {
     formData.append('folderName', folderName);
     formData.append('folder_id', folder_id);
 
-    // Call EastEmblem folder creation API (now working!)
-    console.log(`🔄 Creating folder "${folderName}" in parent folder ${folder_id}`);
-    const response = await fetch('https://eastemblemsecondchance.app.n8n.cloud/webhook/vault/folder/create', {
+    // Call EastEmblem folder creation API using environment variable
+    const apiBaseUrl = process.env.EASTEMBLEM_API_BASE_URL;
+    if (!apiBaseUrl) {
+      throw new Error('EASTEMBLEM_API_BASE_URL environment variable is not configured');
+    }
+    
+    const folderCreateUrl = `${apiBaseUrl}/webhook/vault/folder/create`;
+    console.log(`🔄 Creating folder "${folderName}" in parent folder ${folder_id} via ${folderCreateUrl}`);
+    
+    const response = await fetch(folderCreateUrl, {
       method: 'POST',
       body: formData,
     });

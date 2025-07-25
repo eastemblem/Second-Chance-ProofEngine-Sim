@@ -126,6 +126,13 @@ Demo experience for testing different user journeys:
 
 ## Recent Key Updates
 
+### July 25, 2025 - ENVIRONMENT VARIABLE COMPLIANCE: Complete API Endpoint Configuration
+- **ELIMINATED HARDCODED ENDPOINTS**: Removed all hardcoded EastEmblem API URLs and replaced with `EASTEMBLEM_API_BASE_URL` environment variable
+- **PROPER ERROR HANDLING**: Added environment variable validation with clear error messages when `EASTEMBLEM_API_BASE_URL` is missing
+- **CONFIGURATION FLEXIBILITY**: API endpoints now fully configurable for different deployment environments (dev/staging/prod)
+- **ENHANCED LOGGING**: Folder creation now logs the dynamic API URL being used for better debugging and monitoring
+- **PRODUCTION COMPLIANCE**: All external API calls now follow environment variable best practices for security and maintainability
+
 ### July 25, 2025 - PRECISE FOLDER UPLOAD WORKFLOW: Sequential Structure Creation & File Organization
 - **EXACT WORKFLOW IMPLEMENTATION**: Redesigned folder upload system to follow user-specified sequence:
   1. **Folder Selection**: User selects folder from file dialog with webkitdirectory support
