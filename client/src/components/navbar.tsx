@@ -78,13 +78,11 @@ export default function Navbar({ showSignOut = false, showSignIn = false, logoOn
             <div className="flex items-center space-x-2 sm:space-x-4">
               {showSignIn && (
                 <Button
-                  variant="ghost"
+                  variant="outline"
                   onClick={handleSignIn}
-                  className="text-muted-foreground hover:text-foreground px-3 py-2 text-sm"
+                  className="px-4 py-2 text-sm border-primary-gold text-primary-gold hover:bg-primary-gold hover:text-background transition-all duration-300"
                 >
-                  <User className="w-4 h-4 mr-1 sm:mr-2" />
-                  <span className="hidden sm:inline">Sign In</span>
-                  <span className="sm:hidden">Sign In</span>
+                  Sign In
                 </Button>
               )}
 
@@ -93,11 +91,9 @@ export default function Navbar({ showSignOut = false, showSignIn = false, logoOn
                   variant="outline"
                   onClick={handleSignOut}
                   disabled={isLoggingOut}
-                  className="hover:bg-destructive hover:text-destructive-foreground px-3 py-2 text-sm"
+                  className="px-4 py-2 text-sm border-primary-gold text-primary-gold hover:bg-primary-gold hover:text-background transition-all duration-300 disabled:opacity-50 disabled:cursor-not-allowed"
                 >
-                  <LogOut className="w-4 h-4 mr-1 sm:mr-2" />
-                  <span className="hidden sm:inline">{isLoggingOut ? 'Signing Out...' : 'Sign Out'}</span>
-                  <span className="sm:hidden">{isLoggingOut ? 'Out...' : 'Out'}</span>
+                  {isLoggingOut ? 'Signing Out...' : 'Sign Out'}
                 </Button>
               )}
             </div>
