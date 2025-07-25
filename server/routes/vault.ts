@@ -466,7 +466,7 @@ router.post('/create-folder', upload.none(), asyncHandler(async (req, res) => {
       throw new Error('EASTEMBLEM_API_BASE_URL environment variable is not configured');
     }
     
-    const folderCreateUrl = `${apiBaseUrl}/webhook/vault/folder/create-structure`;
+    const folderCreateUrl = `${apiBaseUrl}/webhook/vault/folder/create`;
     console.log(`🔄 Creating folder "${folderName}" in parent folder ${actualParentFolderId} via ${folderCreateUrl}`);
     
     const response = await fetch(folderCreateUrl, {
