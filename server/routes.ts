@@ -256,8 +256,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const fileCounts = files.reduce((counts, file) => {
         let category = getCategoryFromFolderId(file.folderId || '332844784735');
         
-        // Check if this file is in a subfolder that maps to a parent category
-        if (file.folderId && subfolderToParentMap[file.folderId]) {
+        // FIXED: Only use subfolderToParentMap for actual user-created subfolders
+        // Don't override the category if the file is already in a main category folder
+        if (file.folderId && subfolderToParentMap[file.folderId] && category === 'Overview') {
+          // Only override if getCategoryFromFolderId returned 'Overview' (meaning unknown folder)
           category = subfolderToParentMap[file.folderId];
           console.log(`📁 File ${file.fileName} in subfolder ${file.folderId} mapped to category: ${category}`);
         }
