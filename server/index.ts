@@ -52,6 +52,7 @@ if (process.env.NEW_RELIC_LICENSE_KEY) {
 
 import express, { type Request, Response, NextFunction } from "express";
 import session from "express-session";
+import cookieParser from "cookie-parser";
 import { registerRoutes } from "./routes-refactored";
 import { setupVite, serveStatic, log } from "./vite";
 import { errorHandler } from "./utils/error-handler";
@@ -74,6 +75,7 @@ if (sentry && Sentry.Handlers) {
 app.set('trust proxy', 1); // Trust first proxy only (safer for rate limiting)
 app.use(express.json());
 app.use(express.urlencoded({ extended: false }));
+app.use(cookieParser());
 
 // Configure session middleware
 app.use(session({

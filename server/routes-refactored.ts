@@ -24,6 +24,7 @@ import sentryTestRoutes from "./routes/sentry-test";
 // Legacy route imports (preserved during transition)
 import apiRoutes from "./routes/index";
 import authRoutes from "./routes/auth";
+import authTokenRoutes from "./routes/auth-token";
 import { getLeaderboard } from "./routes/leaderboard";
 import { generateCertificate, downloadCertificate, getCertificateStatus } from "./routes/certificate";
 import { generateReport } from "./routes/report";
@@ -66,6 +67,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Legacy routes (preserved during transition)
   app.use('/api', apiRoutes);
   app.use('/api/auth', authRoutes);
+  app.use('/api/auth-token', authTokenRoutes);
 
   // Individual route handlers (preserved)
   app.get('/api/leaderboard', getLeaderboard);
