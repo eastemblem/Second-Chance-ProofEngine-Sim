@@ -19,35 +19,36 @@ if (process.env.NEW_RELIC_LICENSE_KEY) {
     
     newrelic = require('newrelic');
     
-    console.log('🔍 NewRelic module loaded, checking functions...');
-    console.log('🔍 NewRelic object type:', typeof newrelic);
-    console.log('🔍 recordMetric function:', typeof newrelic?.recordMetric);
+    appLogger.system('NewRelic module loaded, checking functions...', { 
+      type: typeof newrelic,
+      recordMetric: typeof newrelic?.recordMetric 
+    });
     
     if (newrelic && typeof newrelic.recordMetric === 'function') {
-      console.log('✅ NewRelic agent initialized successfully - monitoring active');
-      console.log('📊 Application name: "Second Chance Platform"');  
-      console.log('📊 License key configured: ***' + process.env.NEW_RELIC_LICENSE_KEY.slice(-4));
+      appLogger.system('NewRelic agent initialized successfully - monitoring active', {
+        appName: 'Second Chance Platform',
+        licenseKey: '***' + process.env.NEW_RELIC_LICENSE_KEY.slice(-4)
+      });
       
       // Record startup metric
       newrelic.recordMetric('Custom/ApplicationStart', 1);
-      console.log('📊 Startup metric recorded successfully');
+      appLogger.performance('Startup metric recorded successfully');
     } else {
       // NewRelic is in initialization phase - this is normal behavior
-      console.log('⏳ NewRelic agent in initialization phase (configuration loaded)');
-      console.log('✅ NewRelic monitoring will activate once agent fully starts');
+      appLogger.system('NewRelic agent in initialization phase (configuration loaded)');
+      appLogger.system('NewRelic monitoring will activate once agent fully starts');
       
       // Don't throw error - the agent will become functional later
       // The require('newrelic') call starts the agent initialization process
     }
   } catch (error: any) {
-    console.log('❌ NewRelic initialization failed - monitoring disabled');
-    console.error('Error details:', error.message);
-    console.log('💡 Verify your NEW_RELIC_LICENSE_KEY is valid in your Replit secrets');
+    appLogger.error('NewRelic initialization failed - monitoring disabled', error);
+    appLogger.warn('Verify your NEW_RELIC_LICENSE_KEY is valid in your Replit secrets');
     newrelic = null;
   }
 } else {
-  console.log('⚠️ NewRelic license key not found - monitoring disabled');
-  console.log('💡 Add NEW_RELIC_LICENSE_KEY to your Replit secrets to enable monitoring');
+  appLogger.warn('NewRelic license key not found - monitoring disabled');
+  appLogger.info('Add NEW_RELIC_LICENSE_KEY to your Replit secrets to enable monitoring');
 }
 
 import express, { type Request, Response, NextFunction } from "express";
@@ -58,6 +59,7 @@ import { setupVite, serveStatic, log } from "./vite";
 import { errorHandler } from "./utils/error-handler";
 import { schedulePeriodicCleanup } from "./utils/file-cleanup";
 import path from "path";
+import { appLogger } from "./utils/logger";
 
 const app = express();
 
@@ -65,11 +67,11 @@ const app = express();
 if (sentry && Sentry.Handlers) {
   app.use(Sentry.Handlers.requestHandler());
   app.use(Sentry.Handlers.tracingHandler());
-  console.log('✅ Sentry request and tracing handlers installed');
+  appLogger.system('Sentry request and tracing handlers installed');
 } else if (process.env.SENTRY_DSN) {
-  console.log('⚠️ Sentry DSN found but handlers not available - check integration');
+  appLogger.warn('Sentry DSN found but handlers not available - check integration');
 } else {
-  console.log('⚠️ Sentry DSN not found - error tracking disabled');
+  appLogger.warn('Sentry DSN not found - error tracking disabled');
 }
 
 app.set('trust proxy', 1); // Trust first proxy only (safer for rate limiting)
@@ -137,7 +139,7 @@ app.use((req, res, next) => {
   // Add Sentry error handler (must be before any other error middleware)
   if (sentry && Sentry.Handlers) {
     app.use(Sentry.Handlers.errorHandler());
-    console.log('✅ Sentry error handler installed');
+    appLogger.system('Sentry error handler installed');
   }
 
   // Use centralized error handler
@@ -146,12 +148,12 @@ app.use((req, res, next) => {
   // importantly only setup vite in development and after
   // setting up all the other routes so the catch-all route
   // doesn't interfere with the other routes
-  console.log(`🔧 Environment: ${app.get("env")}, NODE_ENV: ${process.env.NODE_ENV}`);
+  appLogger.system(`Environment: ${app.get("env")}, NODE_ENV: ${process.env.NODE_ENV}`);
   if (process.env.NODE_ENV === "development") {
-    console.log("🎨 Setting up Vite development server...");
+    appLogger.system("Setting up Vite development server...");
     await setupVite(app, server);
   } else {
-    console.log("📦 Serving static files for production...");
+    appLogger.system("Serving static files for production...");
     serveStatic(app);
   }
 
@@ -164,7 +166,7 @@ app.use((req, res, next) => {
   // It is the only port that is not firewalled.
   const port = process.env.PORT || 5000;
   server.listen(Number(port), "0.0.0.0", () => {
-    log(`serving on port ${port}`);
-    log(`server accessible at http://0.0.0.0:${port}`);
+    appLogger.system(`Server started on port ${port}`);
+    appLogger.system(`Server accessible at http://0.0.0.0:${port}`);
   });
 })();
