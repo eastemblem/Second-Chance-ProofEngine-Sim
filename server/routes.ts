@@ -252,19 +252,21 @@ export async function registerRoutes(app: Express): Promise<Server> {
         console.log(`📂 Subfolder mapping: ${mapping.subFolderId} → ${parentCategory} (parent: ${mapping.parentFolderId})`);
       });
 
-      // Count files by category, including subfolder mappings
+      // DATABASE-FIRST APPROACH: Count files by category using database queries
       const fileCounts = files.reduce((counts, file) => {
-        let category = getCategoryFromFolderId(file.folderId || '332844784735');
+        let category;
         
-        // CORRECTED: Check if this folder ID is actually a user-created subfolder
-        // Main category folder IDs are known, subfolders are dynamically created
-        const mainFolderIds = ['332844784735', '332844933261', '332842993678', '332843828465', '332843291772', '332845124499', '332842251627'];
-        const isMainFolder = mainFolderIds.includes(file.folderId || '');
+        // Step 1: Check if this folder ID exists as a subfolder in proof_vault
+        const subfolderMapping = folderMappings.find(mapping => mapping.subFolderId === file.folderId);
         
-        // If it's not a main folder and exists in subfolderToParentMap, it's a user-created subfolder
-        if (!isMainFolder && file.folderId && subfolderToParentMap[file.folderId]) {
-          category = subfolderToParentMap[file.folderId];
-          console.log(`📁 File ${file.fileName} in subfolder ${file.folderId} mapped to category: ${category}`);
+        if (subfolderMapping) {
+          // This is a user-created subfolder - use parent category
+          category = getCategoryFromFolderId(subfolderMapping.parentFolderId);
+          console.log(`📁 File ${file.fileName} in subfolder ${file.folderId} → parent ${subfolderMapping.parentFolderId} → category: ${category}`);
+        } else {
+          // This is a main folder - use direct categorization
+          category = getCategoryFromFolderId(file.folderId || '332844784735');
+          console.log(`📁 File ${file.fileName} in main folder ${file.folderId} → category: ${category}`);
         }
         
         switch(category) {

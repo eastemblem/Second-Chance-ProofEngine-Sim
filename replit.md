@@ -126,15 +126,23 @@ Demo experience for testing different user journeys:
 
 ## Recent Key Updates
 
-### July 25, 2025 - CRITICAL FILE CATEGORIZATION BUG FIXED: Proper Category Display Restored  
-- **FILE CATEGORIZATION AUTHENTICATION ISSUE RESOLVED**: Fixed critical bug where folder creation endpoint wasn't receiving ventureId causing authentication failures
-- **BACKEND PARAMETER UPDATE**: Updated `/api/vault/create-folder` endpoint to properly accept and use ventureId parameter from frontend  
-- **FRONTEND INTEGRATION FIX**: Updated `createFolder` function in dashboard to include user's ventureId in API requests
-- **DATABASE MAPPING OPERATIONAL**: Confirmed proof_vault table entries are now created successfully with proper parent-child folder relationships
-- **SUBFOLDER LOGIC CORRECTED**: Fixed dashboard file counting logic where files in main category folders were incorrectly being overridden to "Overview"
-- **PROPER CATEGORY PRESERVATION**: Updated subfolder mapping logic to only override categories for actual unknown folders, preserving correct categorization for main folders
-- **AUTHENTICATION WORKFLOW VERIFIED**: Complete folder creation workflow now operational with proper authentication and database persistence
-- **PRODUCTION READY**: Folder mapping system fully operational with accurate file categorization and proper database tracking across all proof categories
+### July 25, 2025 - DATABASE-FIRST FILE CATEGORIZATION: Systematic Solution Implemented
+- **ROOT CAUSE IDENTIFIED**: File categorization bugs caused by hardcoded logic and assumptions instead of database-driven decisions
+- **DATABASE-FIRST APPROACH**: Implemented systematic solution that queries proof_vault table to determine folder types before categorization
+- **COLLABORATION IMPROVEMENT**: Established better workflow - systematic analysis before reactive fixes to prevent bug cascades
+- **AUTHENTICATION ISSUES RESOLVED**: Fixed folder creation endpoint ventureId parameter and frontend integration
+- **SYSTEMATIC CATEGORIZATION LOGIC**: 
+  * Step 1: Query if folder ID exists as subFolderId in proof_vault
+  * Step 2: If subfolder exists, use parent category mapping
+  * Step 3: If not subfolder, treat as main folder with direct categorization
+- **ELIMINATED GUESSWORK**: No more hardcoded folder ID lists or assumptions about folder types
+- **PRODUCTION READY**: Database-driven categorization system eliminates bug cascade patterns and provides reliable file counting
+
+## Improved Collaboration Guidelines
+- **Analysis Before Action**: Always identify root cause and systematic solution before implementing fixes
+- **Database-Driven Logic**: Query actual data instead of making assumptions about system state
+- **Test Critical Paths**: Verify authentication and database persistence before feature logic
+- **Documentation Updates**: Track architectural decisions and successful patterns for future reference
 
 ### July 25, 2025 - CRITICAL FOLDER MAPPING FIX: Investor Pack Upload Issue Resolved
 - **FOLDER ID MAPPING FIXED**: Resolved critical issue where files were uploading to temporary folders instead of selected categories (Investor Pack)
