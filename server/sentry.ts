@@ -22,7 +22,7 @@ export function initSentry() {
 
       integrations: [
         // HTTP integration for request tracing
-        Sentry.httpIntegration({ tracing: true }),
+        Sentry.httpIntegration(),
         // Express integration
         Sentry.expressIntegration(),
         // File system integration
@@ -56,33 +56,77 @@ export function initSentry() {
 // Export Sentry instance for use throughout the application
 export { Sentry };
 
-// Error context enrichment
-export function enrichErrorContext(error: Error, context: Record<string, any>) {
-  if (!sentryInitialized) return;
-  
-  Sentry.withScope((scope) => {
-    // Add user context
-    if (context.userId) {
-      scope.setUser({ id: context.userId });
+// Error context enrichment with enhanced transmission logging
+export function enrichErrorContext(error: Error, user: any = {}, context: any = {}) {
+  if (!sentryInitialized) {
+    console.log('📊 Error captured (Sentry not initialized):', error.message);
+    return;
+  }
+
+  try {
+    // Set user context if provided
+    if (user && Object.keys(user).length > 0) {
+      Sentry.setUser({
+        id: user.id,
+        email: user.email,
+        username: user.username,
+        venture: user.ventureName,
+      });
     }
-    
+
     // Add custom context
-    Object.keys(context).forEach(key => {
-      if (key !== 'userId') {
-        scope.setContext(key, context[key]);
+    Sentry.withScope((scope) => {
+      // Add component context
+      if (context.component) {
+        scope.setTag('component', context.component);
       }
+      if (context.page) {
+        scope.setTag('page', context.page);
+      }
+      if (context.operation) {
+        scope.setTag('operation', context.operation);
+      }
+
+      // Add business context
+      if (context.proofScore) {
+        scope.setExtra('proofScore', context.proofScore);
+      }
+      if (context.fileUpload) {
+        scope.setExtra('fileUpload', context.fileUpload);
+      }
+      if (context.folderOperation) {
+        scope.setExtra('folderOperation', context.folderOperation);
+      }
+
+      // Add request metadata
+      if (context.requestPath) {
+        scope.setExtra('requestPath', context.requestPath);
+      }
+      if (context.userAgent) {
+        scope.setExtra('userAgent', context.userAgent);
+      }
+
+      // Enhanced logging for debugging transmission
+      console.log('🔴 Sending error to Sentry dashboard:', error.message);
+      console.log('📊 Error context:', {
+        user: user ? Object.keys(user) : [],
+        context: Object.keys(context),
+        timestamp: new Date().toISOString()
+      });
+      
+      // Capture the error
+      Sentry.captureException(error);
+      
+      // Force flush to ensure immediate transmission
+      Sentry.flush(2000).then(() => {
+        console.log('✅ Error successfully transmitted to Sentry dashboard');
+      }).catch((flushError) => {
+        console.error('❌ Failed to transmit error to Sentry:', flushError);
+      });
     });
-    
-    // Add tags for better filtering
-    if (context.component) {
-      scope.setTag('component', context.component);
-    }
-    if (context.operation) {
-      scope.setTag('operation', context.operation);
-    }
-    
-    Sentry.captureException(error);
-  });
+  } catch (sentryError) {
+    console.error('❌ Sentry error processing failed:', sentryError);
+  }
 }
 
 // Performance monitoring
