@@ -515,65 +515,84 @@ export default function DashboardPage() {
           <div className="lg:col-span-2 space-y-6">
             
             {/* Validation Overview */}
-            <Card className="bg-gray-900 border-gray-700">
+            <Card className="bg-black/50 border-gray-800">
               <CardHeader>
-                <CardTitle className="flex items-center gap-2 text-white">
-                  <Shield className="w-5 h-5" />
-                  Validation Overview
-                </CardTitle>
+                <CardTitle className="text-white">Validation Overview</CardTitle>
+                <CardDescription className="text-gray-400">
+                  Your current ProofScore and validation progress
+                </CardDescription>
               </CardHeader>
               <CardContent>
-                <div className="grid grid-cols-3 gap-6">
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                   {/* ProofScore Circle */}
-                  <div className="text-center">
-                    <div className="relative w-24 h-24 mx-auto mb-3">
-                      <div className="w-24 h-24 rounded-full bg-gradient-to-r from-purple-500 to-yellow-500 flex items-center justify-center">
-                        <div className="w-20 h-20 rounded-full bg-gray-900 flex items-center justify-center">
-                          <span className="text-2xl font-bold text-white">{validationData?.proofScore || 85}</span>
+                  <div className="group relative overflow-hidden rounded-lg bg-gradient-to-br from-purple-500/10 to-purple-600/20 border border-purple-500/30 p-6 hover:border-purple-400/50 transition-all duration-300">
+                    <div className="absolute inset-0 bg-gradient-to-br from-purple-500/5 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
+                    <div className="relative text-center">
+                      <div className="w-20 h-20 mx-auto mb-3 rounded-full bg-gradient-to-r from-purple-500 to-yellow-500 flex items-center justify-center shadow-lg">
+                        <div className="w-16 h-16 rounded-full bg-gray-900 flex items-center justify-center">
+                          <span className="text-xl font-bold text-white">{validationData?.proofScore || 85}</span>
                         </div>
                       </div>
+                      <h3 className="text-white font-semibold mb-1">ProofScore</h3>
+                      <p className="text-gray-400 text-sm">Current validation score</p>
                     </div>
-                    <p className="text-gray-400 text-sm">ProofScore</p>
                   </div>
 
                   {/* ProofTags */}
-                  <div className="text-center">
-                    <div className="text-3xl font-bold text-purple-400 mb-2">{validationData?.proofTagsUnlocked || 11}</div>
-                    <p className="text-gray-400 text-sm mb-2">ProofTags Unlocked</p>
-                    <Progress value={((validationData?.proofTagsUnlocked || 11) / (validationData?.totalProofTags || 21)) * 100} className="h-2" />
+                  <div className="group relative overflow-hidden rounded-lg bg-gradient-to-br from-blue-500/10 to-blue-600/20 border border-blue-500/30 p-6 hover:border-blue-400/50 transition-all duration-300">
+                    <div className="absolute inset-0 bg-gradient-to-br from-blue-500/5 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
+                    <div className="relative text-center">
+                      <div className="flex items-center gap-2 mb-3">
+                        <div className="p-2 rounded-lg bg-blue-500/20 mx-auto">
+                          <Trophy className="w-6 h-6 text-blue-400" />
+                        </div>
+                      </div>
+                      <div className="text-2xl font-bold text-blue-400 mb-2">{validationData?.proofTagsUnlocked || 11}</div>
+                      <h3 className="text-white font-semibold mb-1">ProofTags Unlocked</h3>
+                      <Progress value={((validationData?.proofTagsUnlocked || 11) / (validationData?.totalProofTags || 21)) * 100} className="h-2 mb-2" />
+                      <p className="text-gray-400 text-sm">of {validationData?.totalProofTags || 21} total</p>
+                    </div>
                   </div>
 
                   {/* Files Uploaded */}
-                  <div className="text-center">
-                    <div className="text-3xl font-bold text-yellow-500 mb-2">{validationData?.filesUploaded || proofVaultData?.totalFiles || 0}</div>
-                    <p className="text-gray-400 text-sm">Files Uploaded</p>
+                  <div className="group relative overflow-hidden rounded-lg bg-gradient-to-br from-yellow-500/10 to-amber-600/20 border border-yellow-500/30 p-6 hover:border-yellow-400/50 transition-all duration-300">
+                    <div className="absolute inset-0 bg-gradient-to-br from-yellow-500/5 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
+                    <div className="relative text-center">
+                      <div className="flex items-center gap-2 mb-3">
+                        <div className="p-2 rounded-lg bg-yellow-500/20 mx-auto">
+                          <FileText className="w-6 h-6 text-yellow-400" />
+                        </div>
+                      </div>
+                      <div className="text-2xl font-bold text-yellow-400 mb-2">{validationData?.filesUploaded || proofVaultData?.totalFiles || 0}</div>
+                      <h3 className="text-white font-semibold mb-1">Files Uploaded</h3>
+                      <p className="text-gray-400 text-sm">Documents in Proof Vault</p>
+                    </div>
                   </div>
                 </div>
 
                 {validationData?.status && (
-                  <div className="mt-6 p-4 bg-amber-50 border border-amber-200 rounded-lg">
-                    <div className="flex items-start gap-3">
-                      <div className="p-1 rounded-full bg-amber-100 mt-0.5">
-                        <Award className="w-4 h-4 text-amber-600" />
+                  <div className="mt-6 group relative overflow-hidden rounded-lg bg-gradient-to-br from-green-500/10 to-emerald-600/20 border border-green-500/30 p-6 hover:border-green-400/50 transition-all duration-300">
+                    <div className="absolute inset-0 bg-gradient-to-br from-green-500/5 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
+                    <div className="relative flex items-start gap-3">
+                      <div className="p-2 rounded-lg bg-green-500/20">
+                        <Award className="w-5 h-5 text-green-400" />
                       </div>
                       <div className="flex-1">
-                        <h4 className="text-amber-800 font-semibold text-sm mb-2">Excellent! You are investor ready.</h4>
-                        <p className="text-amber-700 text-sm">
+                        <h4 className="text-green-300 font-semibold text-sm mb-2">Excellent! You are investor ready.</h4>
+                        <p className="text-gray-300 text-sm">
                           To access the Deal Room and Pass Due Diligence, please upload your Data Room into the Proof Vault.
                         </p>
                       </div>
                     </div>
                   </div>
                 )}
-
-
               </CardContent>
             </Card>
 
 
 
             {/* Your Proof Vault */}
-            <Card className="bg-gray-900 border-gray-700">
+            <Card className="bg-black/50 border-gray-800">
               <CardHeader>
                 <CardTitle className="flex items-center gap-2 text-white">
                   <FolderOpen className="w-5 h-5" />
@@ -590,6 +609,9 @@ export default function DashboardPage() {
                     <ExternalLink className="w-4 h-4" />
                   </Button>
                 </CardTitle>
+                <CardDescription className="text-gray-400">
+                  Manage and organize your validation documents
+                </CardDescription>
               </CardHeader>
               <CardContent>
                 <Tabs value={activeTab} onValueChange={setActiveTab}>
@@ -601,35 +623,56 @@ export default function DashboardPage() {
 
                   <TabsContent value="overview" className="mt-6">
                     <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-4">
-                      <div className="text-center p-4 bg-gray-800 rounded-lg">
-                        <div className="text-2xl font-bold text-white mb-1">{proofVaultData?.overviewCount || 0}</div>
-                        <p className="text-gray-400 text-sm mb-2">Overview</p>
+                      <div className="group relative overflow-hidden rounded-lg bg-gradient-to-br from-purple-500/10 to-purple-600/20 border border-purple-500/30 p-4 hover:border-purple-400/50 transition-all duration-300">
+                        <div className="absolute inset-0 bg-gradient-to-br from-purple-500/5 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
+                        <div className="relative text-center">
+                          <div className="text-2xl font-bold text-purple-400 mb-1">{proofVaultData?.overviewCount || 0}</div>
+                          <p className="text-gray-300 text-sm font-medium">Overview</p>
+                        </div>
                       </div>
-                      <div className="text-center p-4 bg-gray-800 rounded-lg">
-                        <div className="text-2xl font-bold text-white mb-1">{proofVaultData?.problemProofCount || 0}</div>
-                        <p className="text-gray-400 text-sm mb-2">Problem Proofs</p>
+                      <div className="group relative overflow-hidden rounded-lg bg-gradient-to-br from-blue-500/10 to-blue-600/20 border border-blue-500/30 p-4 hover:border-blue-400/50 transition-all duration-300">
+                        <div className="absolute inset-0 bg-gradient-to-br from-blue-500/5 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
+                        <div className="relative text-center">
+                          <div className="text-2xl font-bold text-blue-400 mb-1">{proofVaultData?.problemProofCount || 0}</div>
+                          <p className="text-gray-300 text-sm font-medium">Problem Proofs</p>
+                        </div>
                       </div>
-                      <div className="text-center p-4 bg-gray-800 rounded-lg">
-                        <div className="text-2xl font-bold text-white mb-1">{proofVaultData?.solutionProofCount || 0}</div>
-                        <p className="text-gray-400 text-sm mb-2">Solution Proofs</p>
+                      <div className="group relative overflow-hidden rounded-lg bg-gradient-to-br from-green-500/10 to-green-600/20 border border-green-500/30 p-4 hover:border-green-400/50 transition-all duration-300">
+                        <div className="absolute inset-0 bg-gradient-to-br from-green-500/5 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
+                        <div className="relative text-center">
+                          <div className="text-2xl font-bold text-green-400 mb-1">{proofVaultData?.solutionProofCount || 0}</div>
+                          <p className="text-gray-300 text-sm font-medium">Solution Proofs</p>
+                        </div>
                       </div>
-                      <div className="text-center p-4 bg-gray-800 rounded-lg">
-                        <div className="text-2xl font-bold text-white mb-1">{proofVaultData?.demandProofCount || 0}</div>
-                        <p className="text-gray-400 text-sm mb-2">Demand Proofs</p>
+                      <div className="group relative overflow-hidden rounded-lg bg-gradient-to-br from-orange-500/10 to-orange-600/20 border border-orange-500/30 p-4 hover:border-orange-400/50 transition-all duration-300">
+                        <div className="absolute inset-0 bg-gradient-to-br from-orange-500/5 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
+                        <div className="relative text-center">
+                          <div className="text-2xl font-bold text-orange-400 mb-1">{proofVaultData?.demandProofCount || 0}</div>
+                          <p className="text-gray-300 text-sm font-medium">Demand Proofs</p>
+                        </div>
                       </div>
                     </div>
                     <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                      <div className="text-center p-4 bg-gray-800 rounded-lg">
-                        <div className="text-2xl font-bold text-white mb-1">{proofVaultData?.credibilityProofCount || 0}</div>
-                        <p className="text-gray-400 text-sm mb-2">Credibility Proofs</p>
+                      <div className="group relative overflow-hidden rounded-lg bg-gradient-to-br from-red-500/10 to-red-600/20 border border-red-500/30 p-4 hover:border-red-400/50 transition-all duration-300">
+                        <div className="absolute inset-0 bg-gradient-to-br from-red-500/5 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
+                        <div className="relative text-center">
+                          <div className="text-2xl font-bold text-red-400 mb-1">{proofVaultData?.credibilityProofCount || 0}</div>
+                          <p className="text-gray-300 text-sm font-medium">Credibility Proofs</p>
+                        </div>
                       </div>
-                      <div className="text-center p-4 bg-gray-800 rounded-lg">
-                        <div className="text-2xl font-bold text-white mb-1">{proofVaultData?.commercialProofCount || 0}</div>
-                        <p className="text-gray-400 text-sm mb-2">Commercial Proofs</p>
+                      <div className="group relative overflow-hidden rounded-lg bg-gradient-to-br from-teal-500/10 to-teal-600/20 border border-teal-500/30 p-4 hover:border-teal-400/50 transition-all duration-300">
+                        <div className="absolute inset-0 bg-gradient-to-br from-teal-500/5 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
+                        <div className="relative text-center">
+                          <div className="text-2xl font-bold text-teal-400 mb-1">{proofVaultData?.commercialProofCount || 0}</div>
+                          <p className="text-gray-300 text-sm font-medium">Commercial Proofs</p>
+                        </div>
                       </div>
-                      <div className="text-center p-4 bg-gray-800 rounded-lg">
-                        <div className="text-2xl font-bold text-white mb-1">{proofVaultData?.investorPackCount || 0}</div>
-                        <p className="text-gray-400 text-sm mb-2">Investor Pack</p>
+                      <div className="group relative overflow-hidden rounded-lg bg-gradient-to-br from-indigo-500/10 to-indigo-600/20 border border-indigo-500/30 p-4 hover:border-indigo-400/50 transition-all duration-300">
+                        <div className="absolute inset-0 bg-gradient-to-br from-indigo-500/5 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
+                        <div className="relative text-center">
+                          <div className="text-2xl font-bold text-indigo-400 mb-1">{proofVaultData?.investorPackCount || 0}</div>
+                          <p className="text-gray-300 text-sm font-medium">Investor Pack</p>
+                        </div>
                       </div>
                     </div>
 
@@ -846,18 +889,20 @@ export default function DashboardPage() {
           <div className="space-y-6">
             
             {/* Leaderboard - Top Right */}
-            <div className="bg-gray-900 border border-gray-700 rounded-lg p-4">
-              <h3 className="text-lg font-semibold mb-4 bg-gradient-to-r from-violet-400 to-amber-400 bg-clip-text text-transparent flex items-center gap-2">
-                <div className="p-1.5 rounded-lg bg-gradient-to-r from-violet-500 to-amber-500 shadow-lg">
-                  <Trophy className="w-4 h-4 text-white" />
-                </div>
-                Leaderboard
-              </h3>
-              <p className="text-sm text-gray-400 mb-4">
-                Top performing ventures by ProofScore validation
-              </p>
-              
-              <div className="space-y-2">
+            <Card className="bg-black/50 border-gray-800">
+              <CardHeader>
+                <CardTitle className="bg-gradient-to-r from-violet-400 to-amber-400 bg-clip-text text-transparent flex items-center gap-2">
+                  <div className="p-1.5 rounded-lg bg-gradient-to-r from-violet-500 to-amber-500 shadow-lg">
+                    <Trophy className="w-4 h-4 text-white" />
+                  </div>
+                  Leaderboard
+                </CardTitle>
+                <CardDescription className="text-gray-400">
+                  Top performing ventures by ProofScore validation
+                </CardDescription>
+              </CardHeader>
+              <CardContent>
+                <div className="space-y-2">
                 {[
                   { rank: 1, name: "Alex Chen", venture: "TechFlow", score: 92, isCurrentUser: false },
                   { rank: 2, name: "Sarah Kim", venture: "EcoSmart", score: 89, isCurrentUser: false },
@@ -933,16 +978,19 @@ export default function DashboardPage() {
                     </div>
                   );
                 })}
-              </div>
-            </div>
+              </CardContent>
+            </Card>
 
             {/* Deal Room Access */}
-            <Card className="bg-gray-900 border-gray-700">
+            <Card className="bg-black/50 border-gray-800">
               <CardHeader>
                 <CardTitle className="flex items-center gap-2 text-white">
                   <Shield className="w-5 h-5" />
                   Deal Room Access
                 </CardTitle>
+                <CardDescription className="text-gray-400">
+                  Premium investor access portal
+                </CardDescription>
               </CardHeader>
               <CardContent>
                 <div className="space-y-4">
@@ -980,12 +1028,15 @@ export default function DashboardPage() {
             </Card>
 
             {/* Recent Activity */}
-            <Card className="bg-gray-900 border-gray-700">
+            <Card className="bg-black/50 border-gray-800">
               <CardHeader>
                 <CardTitle className="flex items-center gap-2 text-white">
                   <TrendingUp className="w-5 h-5" />
                   Recent Activity
                 </CardTitle>
+                <CardDescription className="text-gray-400">
+                  Your latest platform interactions
+                </CardDescription>
               </CardHeader>
               <CardContent>
                 <div className="space-y-3 max-h-80 overflow-y-auto">
@@ -1002,12 +1053,15 @@ export default function DashboardPage() {
                       };
                       
                       return (
-                        <div key={activity.id} className="flex items-start gap-3 p-3 bg-gray-800 rounded-lg hover:bg-gray-750 transition-colors">
-                          <div className={`w-2 h-2 rounded-full ${colorClasses[activity.color as keyof typeof colorClasses] || 'bg-gray-400'} mt-2 flex-shrink-0`}></div>
-                          <div className="flex-1 min-w-0">
-                            <p className="text-white text-sm font-medium">{activity.title}</p>
-                            <p className="text-gray-400 text-xs truncate">{activity.description}</p>
-                            <p className="text-gray-500 text-xs mt-1">{timeAgo}</p>
+                        <div key={activity.id} className="group relative overflow-hidden rounded-lg bg-gradient-to-br from-gray-500/10 to-gray-600/20 border border-gray-500/30 p-3 hover:border-gray-400/50 transition-all duration-300">
+                          <div className="absolute inset-0 bg-gradient-to-br from-gray-500/5 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
+                          <div className="relative flex items-start gap-3">
+                            <div className={`w-2 h-2 rounded-full ${colorClasses[activity.color as keyof typeof colorClasses] || 'bg-gray-400'} mt-2 flex-shrink-0`}></div>
+                            <div className="flex-1 min-w-0">
+                              <p className="text-white text-sm font-medium">{activity.title}</p>
+                              <p className="text-gray-400 text-xs truncate">{activity.description}</p>
+                              <p className="text-gray-500 text-xs mt-1">{timeAgo}</p>
+                            </div>
                           </div>
                         </div>
                       );
