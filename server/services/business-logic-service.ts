@@ -192,8 +192,8 @@ export class BusinessLogicService {
   }
 
   private getStorageQuota(founderId: string): number {
-    // Business rule: Basic storage quota (could be expanded with user tiers)
-    return 100 * 1024 * 1024; // 100MB default quota
+    // Business rule: Generous storage quota for folder uploads
+    return 500 * 1024 * 1024; // 500MB default quota (supports large folder uploads)
   }
 
   private hasMinimumVentureData(venture: any): boolean {

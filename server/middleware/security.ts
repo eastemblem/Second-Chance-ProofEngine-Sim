@@ -25,28 +25,18 @@ export const createRateLimit = (windowMs: number, max: number, message?: string)
   });
 };
 
-// File upload rate limiting (stricter)
+// File upload rate limiting - optimized for large folder uploads
 export const fileUploadRateLimit = createRateLimit(
   15 * 60 * 1000, // 15 minutes
-  10, // max 10 uploads per 15 minutes
+  200, // max 200 file uploads per 15 minutes (supports 100+ file folders)
   'Too many file uploads. Please wait before uploading more files.'
 );
 
-// General API rate limiting
+// General API rate limiting - increased for high-volume operations
 export const apiRateLimit = createRateLimit(
   15 * 60 * 1000, // 15 minutes
-  100, // max 100 requests per 15 minutes
+  500, // max 500 requests per 15 minutes (supports folder operations)
   'Too many API requests. Please wait before making more requests.'
-);
-
-  'Too many file uploads, please wait before uploading again.'
-);
-
-// API rate limiting (general)
-export const apiRateLimit = createRateLimit(
-  15 * 60 * 1000, // 15 minutes
-  100, // 100 requests per window
-  'Too many API requests, please try again later.'
 );
 
 // Authentication rate limiting (very strict)

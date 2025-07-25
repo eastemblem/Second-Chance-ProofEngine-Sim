@@ -276,8 +276,8 @@ server/routes/
 
 ### July 25, 2025 - 🏗️ PRODUCTION-READY API INFRASTRUCTURE COMPLETED: Comprehensive Middleware & Business Logic Implementation
 - **✅ COMPLETE RATE LIMITING SYSTEM**: Implemented production-ready rate limiting with express-rate-limit:
-  * General API: 100 requests per 15 minutes with exponential backoff
-  * File Upload: 10 uploads per 15 minutes with stricter controls
+  * General API: 500 requests per 15 minutes (optimized for high-volume folder operations)
+  * File Upload: 200 uploads per 15 minutes (supports 100+ file folder uploads)
   * Custom error handling with retry-after headers and correlation IDs
   * Trust proxy configuration for accurate IP detection in deployment environments
 - **✅ COMPREHENSIVE VALIDATION SCHEMAS**: Complete Zod validation system for all endpoints:
