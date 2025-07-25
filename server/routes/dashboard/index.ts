@@ -72,10 +72,10 @@ router.get("/vault", asyncHandler(async (req, res) => {
     }
 
     // Get uploaded documents for this venture
-    const { document } = await import("@shared/schema");
-    const files = await db.select().from(document)
-      .where(eq(document.ventureId, dashboardData.venture.ventureId))
-      .orderBy(document.createdAt);
+    const { documentUpload } = await import("@shared/schema");
+    const files = await db.select().from(documentUpload)
+      .where(eq(documentUpload.ventureId, dashboardData.venture.ventureId))
+      .orderBy(documentUpload.createdAt);
 
     // Format files for frontend
     const formattedFiles = await Promise.all(files.map(async file => ({
