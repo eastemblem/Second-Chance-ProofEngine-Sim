@@ -30,7 +30,9 @@ import {
   FolderPlus,
   RefreshCw,
   X,
-  AlertCircle
+  AlertCircle,
+  Building,
+  Navigation
 } from "lucide-react";
 import Navbar from "@/components/navbar";
 import Footer from "@/components/footer";
@@ -1729,20 +1731,47 @@ export default function DashboardPage() {
                   {recentActivity.length > 0 ? (
                     recentActivity.map((activity) => {
                       const timeAgo = formatTimeAgo(activity.timestamp);
-                      const colorClasses = {
-                        green: "bg-green-400",
-                        blue: "bg-blue-400", 
-                        purple: "bg-purple-400",
-                        yellow: "bg-yellow-400",
-                        orange: "bg-orange-400",
-                        red: "bg-red-400"
+                      
+                      // Get proper icon component
+                      const getIconComponent = (iconName: string) => {
+                        const iconMap = {
+                          'User': User,
+                          'Shield': Shield,
+                          'Building': Building,
+                          'FileText': FileText,
+                          'TrendingUp': TrendingUp,
+                          'Navigation': Navigation,
+                          'Settings': Settings,
+                          'CheckCircle': CheckCircle,
+                          'Upload': Upload,
+                          'Plus': Plus,
+                          'Award': Award,
+                          'Circle': Clock
+                        };
+                        return iconMap[iconName as keyof typeof iconMap] || Clock;
                       };
                       
+                      const IconComponent = getIconComponent(activity.icon);
+                      
+                      const colorClasses = {
+                        green: "text-green-400 bg-green-400/20 border-green-400/30",
+                        blue: "text-blue-400 bg-blue-400/20 border-blue-400/30",
+                        purple: "text-purple-400 bg-purple-400/20 border-purple-400/30",
+                        yellow: "text-yellow-400 bg-yellow-400/20 border-yellow-400/30",
+                        orange: "text-orange-400 bg-orange-400/20 border-orange-400/30",
+                        red: "text-red-400 bg-red-400/20 border-red-400/30",
+                        gray: "text-gray-400 bg-gray-400/20 border-gray-400/30"
+                      };
+                      
+                      const colorClass = colorClasses[activity.color as keyof typeof colorClasses] || colorClasses.gray;
+                      
                       return (
-                        <div key={activity.id} className="group relative overflow-hidden rounded-lg bg-gradient-to-br from-gray-500/10 to-gray-600/20 border border-gray-500/30 p-3 hover:border-gray-400/50 transition-all duration-300">
-                          <div className="absolute inset-0 bg-gradient-to-br from-gray-500/5 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
+                        <div key={activity.id} className="group relative overflow-hidden rounded-lg bg-gradient-to-br from-gray-800/30 to-gray-900/50 border border-gray-700/50 p-3 hover:border-gray-600/70 transition-all duration-300">
+                          <div className="absolute inset-0 bg-gradient-to-br from-gray-700/5 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
                           <div className="relative flex items-start gap-3">
-                            <div className={`w-2 h-2 rounded-full ${colorClasses[activity.color as keyof typeof colorClasses] || 'bg-gray-400'} mt-2 flex-shrink-0`}></div>
+                            <div className={`p-2 rounded-lg border ${colorClass}`}>
+                              <IconComponent className="w-4 h-4" />
+                            </div>
                             <div className="flex-1 min-w-0">
                               <p className="text-white text-sm font-medium">{activity.title}</p>
                               <p className="text-gray-400 text-xs truncate">{activity.description}</p>
