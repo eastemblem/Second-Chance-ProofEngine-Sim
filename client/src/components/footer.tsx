@@ -3,7 +3,7 @@ import { ExternalLink } from "lucide-react";
 
 const Footer = () => {
   return (
-    <footer className="bg-muted/30 border-t border-border/40">
+    <footer className="bg-background border-t border-border/40">
       <div className="max-w-6xl mx-auto px-4 py-4">
         <div className="flex flex-col sm:flex-row justify-between items-center sm:items-start gap-4">
           {/* Company Info - Compact */}
