@@ -1,6 +1,6 @@
 import express, { type Request, Response, NextFunction } from "express";
 import session from "express-session";
-import { registerRoutes } from "./routes";
+import { registerRoutes } from "./routes-refactored";
 import { setupVite, serveStatic, log } from "./vite";
 import { errorHandler } from "./utils/error-handler";
 import { schedulePeriodicCleanup } from "./utils/file-cleanup";
@@ -74,7 +74,7 @@ app.use((req, res, next) => {
   // this serves both the API and the client.
   // It is the only port that is not firewalled.
   const port = process.env.PORT || 5000;
-  server.listen(port, "0.0.0.0", () => {
+  server.listen(Number(port), "0.0.0.0", () => {
     log(`serving on port ${port}`);
     log(`server accessible at http://0.0.0.0:${port}`);
   });
