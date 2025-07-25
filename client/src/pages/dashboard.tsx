@@ -1,6 +1,7 @@
 import { useState, useEffect } from "react";
 import { useLocation } from "wouter";
 import { Button } from "@/components/ui/button";
+import { trackEvent } from "@/lib/analytics";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Progress } from "@/components/ui/progress";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
@@ -220,12 +221,18 @@ export default function DashboardPage() {
       }
 
       if (user.venture.certificateUrl) {
+        // Track successful certificate download
+        trackEvent('download', 'document', 'certificate_download_success');
+        
         window.open(user.venture.certificateUrl, '_blank');
         toast({
           title: "Certificate Downloaded",
           description: `Your ${user.venture.name} certificate has been opened.`,
         });
       } else {
+        // Track certificate not available
+        trackEvent('download_failed', 'document', 'certificate_not_available');
+        
         toast({
           title: "Certificate Not Available",
           description: "Your certificate is being generated. Please try again later.",
@@ -254,12 +261,18 @@ export default function DashboardPage() {
       }
 
       if (user.venture.reportUrl) {
+        // Track successful report download
+        trackEvent('download', 'document', 'report_download_success');
+        
         window.open(user.venture.reportUrl, '_blank');
         toast({
           title: "Report Downloaded",
           description: `Your ${user.venture.name} analysis report has been opened.`,
         });
       } else {
+        // Track report not available
+        trackEvent('download_failed', 'document', 'report_not_available');
+        
         toast({
           title: "Report Not Available",
           description: "Your report is being generated. Please try again later.",
@@ -301,6 +314,9 @@ export default function DashboardPage() {
       if (response.ok) {
         const result = await response.json();
         
+        // Track successful file upload
+        trackEvent('upload', 'proofvault', `file_upload_${folderId}`);
+        
         toast({
           title: "File Uploaded Successfully",
           description: `${file.name} has been uploaded to ${getFolderDisplayName(folderId)}.`,
@@ -319,6 +335,10 @@ export default function DashboardPage() {
       }
     } catch (error) {
       console.error('File upload error:', error);
+      
+      // Track failed file upload
+      trackEvent('upload_failed', 'proofvault', `file_upload_error_${folderId}`);
+      
       toast({
         title: "Upload Error",
         description: `Failed to upload ${file.name}. Please try again.`,
@@ -386,6 +406,9 @@ export default function DashboardPage() {
       });
 
       if (response.ok) {
+        // Track successful logout event
+        trackEvent('logout', 'authentication', 'logout_success');
+        
         toast({
           title: "Logged Out",
           description: "You have been successfully logged out.",
@@ -400,6 +423,8 @@ export default function DashboardPage() {
       }
     } catch (error) {
       console.error('Logout error:', error);
+      // Track failed logout event
+      trackEvent('logout_failed', 'authentication', 'logout_error');
       toast({
         title: "Logout Error",
         description: "Failed to logout. Please try again.",

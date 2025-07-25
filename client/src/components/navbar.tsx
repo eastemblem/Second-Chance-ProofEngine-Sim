@@ -4,6 +4,7 @@ import { Button } from "@/components/ui/button";
 import { LogOut, User } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import Logo from "@/components/logo";
+import { trackEvent } from "@/lib/analytics";
 
 interface NavbarProps {
   showSignOut?: boolean;
@@ -25,6 +26,9 @@ export default function Navbar({ showSignOut = false, showSignIn = false, logoOn
       });
 
       if (response.ok) {
+        // Track successful logout event
+        trackEvent('logout', 'authentication', 'navbar_logout_success');
+        
         toast({
           title: "Signed Out",
           description: "You have been successfully signed out.",
@@ -39,6 +43,8 @@ export default function Navbar({ showSignOut = false, showSignIn = false, logoOn
       }
     } catch (error) {
       console.error('Sign out error:', error);
+      // Track failed logout event
+      trackEvent('logout_failed', 'authentication', 'navbar_logout_error');
       toast({
         title: "Sign Out Error",
         description: "Failed to sign out. Please try again.",

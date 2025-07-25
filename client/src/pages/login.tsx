@@ -8,6 +8,7 @@ import { useToast } from "@/hooks/use-toast";
 import { Eye, EyeOff, LogIn } from "lucide-react";
 import Logo from "@/components/logo";
 import Footer from "@/components/footer";
+import { trackEvent } from "@/lib/analytics";
 
 export default function LoginPage() {
   const [email, setEmail] = useState("");
@@ -68,6 +69,9 @@ export default function LoginPage() {
       const data = await response.json();
 
       if (response.ok) {
+        // Track successful login event
+        trackEvent('login', 'authentication', 'login_success');
+        
         toast({
           title: "Welcome Back!",
           description: `Hello ${data.founder.fullName}, you're now logged in.`,
@@ -83,6 +87,8 @@ export default function LoginPage() {
       }
     } catch (error) {
       console.error('Login error:', error);
+      // Track failed login event
+      trackEvent('login_failed', 'authentication', 'login_error');
       toast({
         title: "Login Failed",
         description: error instanceof Error ? error.message : "Please check your credentials and try again",
