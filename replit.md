@@ -126,21 +126,22 @@ Demo experience for testing different user journeys:
 
 ## Recent Key Updates
 
-### July 25, 2025 - DATABASE-FIRST FILE CATEGORIZATION: Systematic Solution Implemented
-- **ROOT CAUSE IDENTIFIED**: File categorization bugs caused by hardcoded logic and assumptions instead of database-driven decisions
+### July 25, 2025 - COMPLETE FILE CATEGORIZATION FIX: Root Cause Resolution & Recursive Logic Correction
+- **CRITICAL ROOT CAUSE RESOLUTION**: Fixed major categorization bug where all files showed as "Overview" (136 files) due to recursive logic traversing to root folder (332843137473) instead of stopping at main category folders
 - **DATABASE-FIRST APPROACH**: Implemented systematic solution that queries proof_vault table to determine folder types before categorization
 - **COLLABORATION IMPROVEMENT**: Established better workflow - systematic analysis before reactive fixes to prevent bug cascades
 - **AUTHENTICATION ISSUES RESOLVED**: Fixed folder creation endpoint ventureId parameter and frontend integration
-- **SYSTEMATIC CATEGORIZATION LOGIC**: 
-  * Step 1: Query if folder ID exists as subFolderId in proof_vault
-  * Step 2: If subfolder exists, use parent category mapping
-  * Step 3: If not subfolder, treat as main folder with direct categorization
-- **ELIMINATED GUESSWORK**: No more hardcoded folder ID lists or assumptions about folder types
+- **CORRECTED RECURSIVE LOGIC**: Enhanced recursive subfolder traversal to:
+  * Step 1: Check if current folder is already a main category folder (stop here if yes)
+  * Step 2: If subfolder, check if parent is main category folder (stop at category level)
+  * Step 3: Only continue recursion if parent is also a subfolder (nested structure)
+  * Step 4: Never traverse to root folder 332843137473 which contains all categories
+- **ELIMINATED ROOT FOLDER TRAVERSAL**: Prevented categorization logic from reaching root folder that contains all main categories as subfolders
 - **FOLDER UPLOAD FAILED FILES DISPLAY FIXED**: Resolved state timing issue where failed files notification appeared but list wasn't shown due to stale state checking
 - **SYSTEMATIC UPLOAD TRACKING**: Enhanced handleMultipleFileUpload to track actual upload results during processing instead of checking stale queue state
-- **NESTED SUBFOLDER CATEGORIZATION**: Implemented recursive logic to properly count files in multi-level subfolder hierarchies (badges → svg/png/awards)
-- **DATABASE-FIRST RECURSIVE TRAVERSAL**: Fixed file counting for complex folder structures where subfolders contain additional subfolders
-- **PRODUCTION READY**: Database-driven categorization system with recursive traversal eliminates bug cascade patterns and provides accurate file counting across all hierarchy levels
+- **NESTED SUBFOLDER CATEGORIZATION**: Fixed multi-level folder hierarchies (badges → svg/png/awards) to properly count files under correct categories
+- **ENHANCED ERROR HANDLING**: Added comprehensive logging and fallback handling for unknown categories and edge cases
+- **PRODUCTION READY**: Database-driven categorization system with corrected recursive traversal provides accurate file counting across all hierarchy levels without root folder confusion
 
 ## Improved Collaboration Guidelines
 - **Analysis Before Action**: Always identify root cause and systematic solution before implementing fixes

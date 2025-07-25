@@ -256,49 +256,59 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const fileCounts = files.reduce((counts, file) => {
         let category;
         
-        // RECURSIVE LOGIC: Find ultimate parent category for nested subfolders
-        const findUltimateParentCategory = (folderId: string, depth = 0): string => {
+        // RECURSIVE LOGIC: Find correct parent category for nested subfolders
+        const findCorrectParentCategory = (folderId: string, depth = 0): string => {
           // Prevent infinite loops
           if (depth > 10) {
             console.warn(`⚠️ Maximum depth reached for folder ${folderId}`);
             return 'Overview';
           }
           
-          // Step 1: Check if this folder ID exists as a subfolder in proof_vault
+          // CRITICAL FIX: First check if current folder is already a main category folder
+          const directCategory = getCategoryFromFolderId(folderId);
+          if (directCategory !== 'Overview (default)') {
+            // This IS a main category folder, use it directly
+            console.log(`📁 File ${file.fileName} in main category folder ${folderId} → ${directCategory}`);
+            return directCategory;
+          }
+          
+          // Step 2: Check if this folder ID exists as a subfolder in proof_vault
           const subfolderMapping = folderMappings.find(mapping => mapping.subFolderId === folderId);
           
           if (subfolderMapping) {
-            // Check if parent is also a subfolder (nested structure)
-            const parentIsSubfolder = folderMappings.find(mapping => mapping.subFolderId === subfolderMapping.parentFolderId);
-            
-            if (parentIsSubfolder) {
-              // Recursive case: parent is also a subfolder, go deeper
-              console.log(`📁 Nested subfolder: ${folderId} → parent ${subfolderMapping.parentFolderId} (depth ${depth})`);
-              return findUltimateParentCategory(subfolderMapping.parentFolderId, depth + 1);
+            // Check if parent is a main category folder
+            const parentCategory = getCategoryFromFolderId(subfolderMapping.parentFolderId);
+            if (parentCategory !== 'Overview (default)') {
+              // Parent is a main category folder - use it
+              console.log(`📁 File ${file.fileName} in subfolder ${folderId} → parent category: ${parentCategory} (depth ${depth})`);
+              return parentCategory;
             } else {
-              // Base case: parent is a main folder, return its category
-              const category = getCategoryFromFolderId(subfolderMapping.parentFolderId);
-              console.log(`📁 File ${file.fileName} ultimate parent: ${subfolderMapping.parentFolderId} → ${category} (depth ${depth})`);
-              return category;
+              // Parent is also a subfolder, continue recursion
+              console.log(`📁 Nested subfolder: ${folderId} → parent ${subfolderMapping.parentFolderId} (depth ${depth})`);
+              return findCorrectParentCategory(subfolderMapping.parentFolderId, depth + 1);
             }
           } else {
-            // This is a main folder - use direct categorization
-            const category = getCategoryFromFolderId(folderId || '332844784735');
-            console.log(`📁 File ${file.fileName} in main folder ${folderId} → ${category}`);
-            return category;
+            // Fallback to Overview if no mapping found
+            console.log(`📁 File ${file.fileName} no mapping found for ${folderId} → Overview fallback`);
+            return 'Overview (default)';
           }
         };
         
-        category = findUltimateParentCategory(file.folderId || '332844784735');
+        category = findCorrectParentCategory(file.folderId || '332844784735');
         
         switch(category) {
-          case 'Overview': counts.overview++; break;
+          case 'Overview':
+          case 'Overview (default)': counts.overview++; break;
           case 'Problem Proofs': counts.problemProof++; break;
           case 'Solution Proofs': counts.solutionProof++; break;
           case 'Demand Proofs': counts.demandProof++; break;
           case 'Credibility Proofs': counts.credibilityProof++; break;
           case 'Commercial Proofs': counts.commercialProof++; break;
           case 'Investor Pack': counts.investorPack++; break;
+          default: 
+            console.warn(`⚠️ Unknown category: ${category} for file ${file.fileName}`);
+            counts.overview++;
+            break;
         }
         return counts;
       }, { overview: 0, problemProof: 0, solutionProof: 0, demandProof: 0, credibilityProof: 0, commercialProof: 0, investorPack: 0 });
@@ -758,8 +768,14 @@ function getCategoryFromFolderId(folderId: string): string {
     '332842251627': 'Investor Pack'       // 6_Investor_Pack
   };
   
-  console.log(`📁 Mapping folder ID '${folderId}' to category: ${folderMap[folderId] || 'Overview (default)'}`);
-  return folderMap[folderId] || 'Overview';
+  const category = folderMap[folderId];
+  if (category) {
+    console.log(`📁 Mapping folder ID '${folderId}' to category: ${category}`);
+    return category;
+  } else {
+    console.log(`📁 Mapping folder ID '${folderId}' to category: Overview (default)`);
+    return 'Overview (default)';
+  }
 }
 
 function formatFileSize(bytes: number): string {
