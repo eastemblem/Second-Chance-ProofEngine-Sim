@@ -10,6 +10,8 @@ import DocumentUpload from "./onboarding/upload";
 import ProcessingScreen from "./onboarding/processing";
 import Analysis from "./onboarding/analysis";
 import ProgressBar from "@/components/progress-bar";
+import Navbar from "@/components/navbar";
+import Footer from "@/components/footer";
 
 interface OnboardingFlowProps {
   onComplete: () => void;
@@ -223,10 +225,22 @@ export default function OnboardingFlow({ onComplete }: OnboardingFlowProps) {
 
   if (!sessionData) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-background via-card to-background flex items-center justify-center">
-        <div className="text-foreground text-center">
-          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary mx-auto mb-4"></div>
-          <p>Initializing onboarding session...</p>
+      <div className="min-h-screen bg-gradient-to-br from-background via-card to-background">
+        {/* Sticky Navbar */}
+        <div className="sticky top-0 z-50 bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
+          <Navbar logoOnly={true} />
+        </div>
+        
+        <div className="flex items-center justify-center" style={{ minHeight: 'calc(100vh - 120px)' }}>
+          <div className="text-foreground text-center">
+            <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary mx-auto mb-4"></div>
+            <p>Initializing onboarding session...</p>
+          </div>
+        </div>
+        
+        {/* Sticky Footer */}
+        <div className="sticky bottom-0 z-40 mt-auto">
+          <Footer />
         </div>
       </div>
     );
@@ -237,13 +251,14 @@ export default function OnboardingFlow({ onComplete }: OnboardingFlowProps) {
     console.error('OnboardingFlow: sessionData exists but sessionId is missing', sessionData);
     
     // Try to fix the session data structure if it's in API response format
-    if (sessionData.success && sessionData.data && sessionData.data.sessionId) {
+    if ((sessionData as any).success && (sessionData as any).data && (sessionData as any).data.sessionId) {
+      const apiResponse = sessionData as any;
       const fixedSessionData = {
-        sessionId: sessionData.data.sessionId,
-        currentStep: sessionData.data.currentStep,
-        stepData: sessionData.data.stepData,
-        completedSteps: sessionData.data.completedSteps,
-        isComplete: sessionData.data.isComplete
+        sessionId: apiResponse.data.sessionId,
+        currentStep: apiResponse.data.currentStep,
+        stepData: apiResponse.data.stepData,
+        completedSteps: apiResponse.data.completedSteps,
+        isComplete: apiResponse.data.isComplete
       };
       setSessionData(fixedSessionData);
       localStorage.setItem('onboardingSession', JSON.stringify(fixedSessionData));
@@ -251,18 +266,30 @@ export default function OnboardingFlow({ onComplete }: OnboardingFlowProps) {
     }
     
     return (
-      <div className="min-h-screen bg-gradient-to-br from-background via-card to-background flex items-center justify-center">
-        <div className="text-foreground text-center text-red-600">
-          <p>Session initialization error. Please refresh the page.</p>
-          <button 
-            onClick={() => {
-              localStorage.removeItem('onboardingSession');
-              window.location.reload();
-            }}
-            className="mt-4 px-4 py-2 bg-primary text-primary-foreground rounded"
-          >
-            Restart Onboarding
-          </button>
+      <div className="min-h-screen bg-gradient-to-br from-background via-card to-background">
+        {/* Sticky Navbar */}
+        <div className="sticky top-0 z-50 bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
+          <Navbar logoOnly={true} />
+        </div>
+        
+        <div className="flex items-center justify-center" style={{ minHeight: 'calc(100vh - 120px)' }}>
+          <div className="text-foreground text-center text-red-600">
+            <p>Session initialization error. Please refresh the page.</p>
+            <button 
+              onClick={() => {
+                localStorage.removeItem('onboardingSession');
+                window.location.reload();
+              }}
+              className="mt-4 px-4 py-2 bg-primary text-primary-foreground rounded"
+            >
+              Restart Onboarding
+            </button>
+          </div>
+        </div>
+        
+        {/* Sticky Footer */}
+        <div className="sticky bottom-0 z-40 mt-auto">
+          <Footer />
         </div>
       </div>
     );
@@ -272,6 +299,11 @@ export default function OnboardingFlow({ onComplete }: OnboardingFlowProps) {
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-background via-card to-background">
+      {/* Sticky Navbar */}
+      <div className="sticky top-0 z-50 bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
+        <Navbar logoOnly={true} />
+      </div>
+      
       <div className="container mx-auto px-4 py-8 max-w-5xl">
         {/* Progress Bar */}
         <div className="mb-8 mx-4 sm:mx-8">
@@ -327,7 +359,7 @@ export default function OnboardingFlow({ onComplete }: OnboardingFlowProps) {
                 sessionId={sessionData.sessionId}
                 initialData={sessionData.stepData?.founder}
                 onNext={nextStep}
-                onDataUpdate={updateSessionData}
+                onDataUpdate={(data) => updateSessionData("founder", data)}
               />
             )}
             
@@ -350,7 +382,7 @@ export default function OnboardingFlow({ onComplete }: OnboardingFlowProps) {
                 initialData={sessionData?.stepData?.team}
                 onNext={nextStep}
                 onPrev={prevStep}
-                onDataUpdate={updateSessionData}
+                onDataUpdate={(data) => updateSessionData("team", data)}
               />
             )}
             
@@ -359,7 +391,7 @@ export default function OnboardingFlow({ onComplete }: OnboardingFlowProps) {
                 sessionId={sessionData.sessionId}
                 onNext={nextStep}
                 onPrev={prevStep}
-                onDataUpdate={updateSessionData}
+                onDataUpdate={(data) => updateSessionData("upload", data)}
               />
             )}
             
@@ -367,7 +399,7 @@ export default function OnboardingFlow({ onComplete }: OnboardingFlowProps) {
               <ProcessingScreen
                 sessionId={sessionData.sessionId}
                 onNext={nextStep}
-                onDataUpdate={updateSessionData}
+                onDataUpdate={(data) => updateSessionData("processing", data)}
               />
             )}
             
@@ -383,6 +415,11 @@ export default function OnboardingFlow({ onComplete }: OnboardingFlowProps) {
             )}
           </motion.div>
         </AnimatePresence>
+      </div>
+      
+      {/* Sticky Footer */}
+      <div className="sticky bottom-0 z-40 mt-auto">
+        <Footer />
       </div>
     </div>
   );
