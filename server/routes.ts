@@ -9,6 +9,7 @@ import { cleanupUploadedFile } from "./utils/file-cleanup";
 import { onboardingService } from "./services/onboarding-service";
 import apiRoutes from "./routes/index";
 import authRoutes from "./routes/auth";
+import dashboardRoutes from "./routes/dashboard";
 import { getLeaderboard, createLeaderboardEntry } from "./routes/leaderboard";
 import { generateCertificate, downloadCertificate, getCertificateStatus } from "./routes/certificate";
 import { generateReport } from "./routes/report";
@@ -88,6 +89,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
   // Authentication routes
   app.use('/api/auth', authRoutes);
+
+  // Dashboard routes
+  app.use('/api/dashboard', dashboardRoutes);
 
   // Direct submit for scoring endpoint (must be before general API routes)
   app.post("/api/submit-for-scoring", asyncHandler(async (req, res) => {

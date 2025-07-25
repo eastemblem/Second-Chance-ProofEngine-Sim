@@ -105,7 +105,7 @@ router.get("/vault", async (req, res) => {
 
     // Create a mapping of subfolder IDs to folder names
     const folderMapping: Record<string, string> = {};
-    proofVaultRecords.forEach(vault => {
+    proofVaultRecords.forEach((vault: any) => {
       if (vault.subFolderId && vault.folderName) {
         folderMapping[vault.subFolderId] = vault.folderName;
       }
@@ -141,7 +141,7 @@ router.get("/vault", async (req, res) => {
     console.log(`📊 ProofVault file counts for venture ${latestVenture.ventureId}:`, folderCounts);
 
     // Convert document uploads to file list
-    const files = documentUploads.map(doc => ({
+    const files = documentUploads.map((doc: any) => ({
       id: doc.uploadId,
       name: doc.originalName,
       category: doc.sharedUrl ? getCategoryFromUrl(doc.sharedUrl) : "Unknown",
@@ -191,7 +191,7 @@ router.get("/vault", async (req, res) => {
       ventureId: latestVenture.ventureId,
       ventureName: latestVenture.name,
       files: files,
-      folders: proofVaultRecords.map(pv => ({
+      folders: proofVaultRecords.map((pv: any) => ({
         id: pv.vaultId,
         name: pv.folderName,
         type: pv.artefactType,
@@ -681,9 +681,9 @@ router.get("/cache-stats", async (req, res) => {
       cacheStats: stats,
       memoryUsage: memoryInfo,
       interpretation: {
-        excellent: overallHitRate > 80,
-        good: overallHitRate > 60,
-        needsOptimization: overallHitRate < 40
+        excellent: Number(overallHitRate) > 80,
+        good: Number(overallHitRate) > 60,
+        needsOptimization: Number(overallHitRate) < 40
       }
     });
   } catch (error) {
