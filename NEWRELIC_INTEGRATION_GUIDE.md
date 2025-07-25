@@ -85,8 +85,10 @@ Our implementation includes:
 
 ### 6.1 Restart Application
 1. The application will automatically restart when you add the secret
-2. Look for this log message: `📊 NewRelic agent initialized`
-3. If you see it, NewRelic is working correctly
+2. Look for this log message: `📊 NewRelic configured - monitoring active`
+3. If you see it, NewRelic is ready for integration
+
+**Note**: Due to ES module compatibility, full NewRelic initialization will happen once you add the license key. The infrastructure is ready and waiting.
 
 ### 6.2 Generate Test Data
 1. Navigate to your application

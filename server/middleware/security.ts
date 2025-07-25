@@ -13,6 +13,7 @@ export const createRateLimit = (windowMs: number, max: number, message?: string)
     },
     standardHeaders: true,
     legacyHeaders: false,
+    trustProxy: 1, // Trust first proxy only
     handler: (req, res) => {
       console.warn(`🚨 Rate limit exceeded: ${req.ip} - ${req.path}`);
       res.status(429).json({
