@@ -53,7 +53,7 @@ router.post("/venture", asyncHandler(async (req: Request, res: Response) => {
 
 // Submit for scoring endpoint - EXACT SAME LOGIC as routes.ts
 router.post('/submit-for-scoring', asyncHandler(async (req: Request, res: Response) => {
-  console.log('V1 submit-for-scoring endpoint called');
+  console.log('V1 submit-for-scoring endpoint called with body:', JSON.stringify(req.body, null, 2));
   const { sessionId } = req.body;
   
   if (!sessionId) {
@@ -68,7 +68,9 @@ router.post('/submit-for-scoring', asyncHandler(async (req: Request, res: Respon
   }
 
   try {
+    console.log('Calling onboardingService.submitForScoring with sessionId:', sessionId);
     const result = await onboardingService.submitForScoring(sessionId);
+    console.log('Scoring result received:', result ? 'SUCCESS' : 'NULL');
     
     const response = {
       success: true,
