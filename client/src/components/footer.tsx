@@ -4,7 +4,7 @@ import Logo from "@/components/logo";
 
 const Footer = () => {
   return (
-    <footer className="bg-background border-t border-border/40">
+    <footer className="mt-auto bg-gray-900 border-t border-gray-800">
       <div className="max-w-6xl mx-auto px-4 py-3">
         <div className="flex flex-col sm:flex-row justify-between items-center gap-2">
           {/* Company Info - Compact */}
