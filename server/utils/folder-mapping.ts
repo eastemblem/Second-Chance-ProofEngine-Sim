@@ -14,6 +14,9 @@ let cachedMapping: FolderMapping | null = null;
 let cacheTimestamp: number = 0;
 const CACHE_TTL = 5 * 60 * 1000; // 5 minutes
 
+// Per-founder caching to avoid conflicts between users
+const founderCacheMap = new Map<string, { mapping: FolderMapping; timestamp: number }>();
+
 /**
  * Load folder mappings from database
  * @param founderId - Current user's founder ID
@@ -21,6 +24,15 @@ const CACHE_TTL = 5 * 60 * 1000; // 5 minutes
  */
 export async function loadFolderMappingFromDatabase(founderId: string): Promise<FolderMapping> {
   try {
+    // Check per-founder cache first
+    const cached = founderCacheMap.get(founderId);
+    const currentTime = Date.now();
+    
+    if (cached && (currentTime - cached.timestamp) < CACHE_TTL) {
+      console.log(`📦 Using cached folder mapping for founder ${founderId}`);
+      return cached.mapping;
+    }
+    
     console.log('🔄 Loading folder mapping from database (100% dynamic)...');
     
     // Get user's ventures
@@ -56,10 +68,8 @@ export async function loadFolderMappingFromDatabase(founderId: string): Promise<
       folderIdToCategory
     };
 
-    // Cache the result
-    const now = Date.now();
-    cachedMapping = mapping;
-    cacheTimestamp = now;
+    // Cache the result per founder
+    founderCacheMap.set(founderId, { mapping, timestamp: currentTime });
     
     console.log('✅ 100% database-driven mapping loaded successfully!');
     console.log('📋 categoryToFolderId:', categoryToFolderId);

@@ -129,15 +129,11 @@ export default function DashboardPage() {
   const { toast } = useToast();
 
   useEffect(() => {
-    // Load auth check immediately but defer dashboard data for better LCP
+    // Load auth check immediately and load dashboard data for better UX
     checkAuthStatus();
     
-    // Defer dashboard data loading slightly for better perceived performance
-    const timer = setTimeout(() => {
-      loadDashboardData();
-    }, 50);
-
-    return () => clearTimeout(timer);
+    // Load dashboard data immediately for recent activity and file counts
+    loadDashboardData();
   }, []);
 
   const checkAuthStatus = async () => {
@@ -160,14 +156,21 @@ export default function DashboardPage() {
     }
   };
 
-  const loadDashboardData = async () => {
+  const loadDashboardData = async (forceRefresh = false) => {
     try {
+      // Prepare headers - skip cache when forcing refresh
+      const headers = forceRefresh ? {
+        'Cache-Control': 'no-cache, no-store, must-revalidate',
+        'Pragma': 'no-cache',
+        'Expires': '0'
+      } : {
+        'Cache-Control': 'max-age=300' // Cache for 5 minutes normally
+      };
+
       // Load critical data first (validation) for faster LCP
       const validationResponse = await fetch('/api/dashboard/validation', {
         credentials: 'include',
-        headers: {
-          'Cache-Control': 'max-age=300' // Cache for 5 minutes
-        }
+        headers
       });
       if (validationResponse.ok) {
         const validation = await validationResponse.json();
@@ -177,24 +180,24 @@ export default function DashboardPage() {
         checkDocumentReadiness(validation);
       }
 
-      // Load secondary data in parallel for better performance
+      // Load secondary data in parallel - activity with higher priority
       const [vaultResponse, activityResponse, leaderboardResponse] = await Promise.all([
         fetch('/api/dashboard/vault', {
           credentials: 'include',
-          headers: {
-            'Cache-Control': 'max-age=600' // Cache for 10 minutes
+          headers: forceRefresh ? headers : {
+            'Cache-Control': 'max-age=600' // Cache for 10 minutes normally
           }
         }),
         fetch('/api/dashboard/activity', {
           credentials: 'include',
-          headers: {
-            'Cache-Control': 'max-age=600' // Cache for 10 minutes
+          headers: forceRefresh ? headers : {
+            'Cache-Control': 'max-age=120' // Reduced cache for activity - 2 minutes
           }
         }),
         fetch('/api/leaderboard?limit=5', {
           credentials: 'include',
-          headers: {
-            'Cache-Control': 'max-age=1200' // Cache for 20 minutes
+          headers: forceRefresh ? headers : {
+            'Cache-Control': 'max-age=1200' // Cache for 20 minutes normally
           }
         })
       ]);
@@ -547,8 +550,8 @@ export default function DashboardPage() {
     setCurrentUploadIndex(0);
     setUploadProgress(0);
     
-    // Reload data to reflect successful uploads
-    await loadDashboardData();
+    // Force refresh to get latest data immediately after upload
+    await loadDashboardData(true);
   };
 
   const handleSingleFileUpload = async (queueItem: {file: File, folderId: string, status: string, progress: number, error?: string}, index: number): Promise<boolean> => {
@@ -804,6 +807,9 @@ export default function DashboardPage() {
         description: `Successfully created ${Object.keys(folderStructure.folders).length} folders and uploaded all files!`,
       });
       
+      // Force refresh after folder upload
+      await loadDashboardData(true);
+      
       // Reset input
       event.target.value = '';
 
@@ -928,7 +934,7 @@ export default function DashboardPage() {
           title: "File Removed",
           description: "File has been removed successfully.",
         });
-        loadDashboardData(); // Refresh data
+        loadDashboardData(true); // Force refresh after file removal
       } else {
         throw new Error('Remove failed');
       }

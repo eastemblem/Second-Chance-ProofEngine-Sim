@@ -126,6 +126,15 @@ Demo experience for testing different user journeys:
 
 ## Recent Key Updates
 
+### July 25, 2025 - DASHBOARD PERFORMANCE FIXES: Refresh After Uploads & Recent Activity Loading Fixed
+- **REFRESH ISSUE RESOLVED**: Dashboard now refreshes properly after file uploads using forceRefresh parameter that bypasses cache
+- **RECENT ACTIVITY OPTIMIZED**: No longer deferred on page load, loads immediately with reduced cache times (300 seconds vs 600 seconds)
+- **FOLDER MAPPING CACHING**: Implemented per-founder cache system with 5-minute TTL to reduce database calls and improve performance
+- **CACHE BYPASS SYSTEM**: Added forceRefresh mechanism for dashboard data refresh after uploads, deletions, and folder operations
+- **USER-REPORTED ISSUES FIXED**: Both critical performance problems (refresh after uploads, slow activity loading) have been addressed
+- **CACHING STRATEGY**: Balanced approach - cache for performance but force refresh when data changes (uploads, deletions)
+- **PRODUCTION READY**: Dashboard now provides immediate feedback after user actions with proper cache invalidation
+
 ### July 25, 2025 - RECENT ACTIVITY UI RESTORED: Icon-Based Display Fixed
 - **V1 MIGRATION SIDE EFFECT RESOLVED**: Recent Activity UI was degraded during V1 migration from proper icons to simple color dots
 - **ICON COMPONENT RESTORATION**: Restored proper Lucide icon components (User, Shield, Building, FileText, Upload, Plus, Award, etc.) instead of basic color dots
