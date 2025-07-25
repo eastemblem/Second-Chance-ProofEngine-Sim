@@ -2,6 +2,7 @@ import { Router } from "express";
 import { storage } from "../storage";
 import { ActivityService } from "../services/activity-service";
 import { databaseService } from "../services/database-service";
+import { cacheService } from "../services/cache-service";
 
 const router = Router();
 
@@ -411,7 +412,7 @@ router.get("/health", async (req, res) => {
   }
 });
 
-// Performance monitoring endpoint 
+// Performance monitoring endpoint with cache statistics
 router.get("/performance", async (req, res) => {
   try {
     const founderId = req.session?.founderId;
@@ -422,7 +423,7 @@ router.get("/performance", async (req, res) => {
 
     const startTime = Date.now();
     
-    // Test optimized dashboard query performance
+    // Test optimized dashboard query performance with caching
     const dashboardData = await databaseService.getDashboardData(founderId);
     
     const queryTime = Date.now() - startTime;
@@ -431,7 +432,9 @@ router.get("/performance", async (req, res) => {
       queryResponseTime: queryTime,
       hasOptimizedData: !!dashboardData,
       connectionHealth: await databaseService.healthCheck(),
-      message: queryTime < 100 ? "Excellent performance" : 
+      cacheStats: cacheService.getStats(),
+      message: queryTime < 50 ? "Excellent performance (cached)" : 
+               queryTime < 100 ? "Excellent performance" : 
                queryTime < 500 ? "Good performance" : "Needs optimization"
     });
   } catch (error) {

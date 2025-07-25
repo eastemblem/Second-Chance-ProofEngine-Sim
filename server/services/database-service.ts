@@ -5,6 +5,7 @@ import {
   type Founder, type Venture, type Evaluation, type DocumentUpload, type ProofVault
 } from "@shared/schema";
 import { eq, desc, and, sql } from "drizzle-orm";
+import { cacheService } from "./cache-service";
 
 /**
  * Centralized Database Service Layer
@@ -13,10 +14,19 @@ import { eq, desc, and, sql } from "drizzle-orm";
 export class DatabaseService {
   
   /**
-   * OPTIMIZED: Get complete dashboard data in a single query
-   * Replaces 4-5 separate database calls with one optimized join
+   * OPTIMIZED: Get complete dashboard data with caching
+   * Replaces 4-5 separate database calls with one optimized join + cache layer
    */
   async getDashboardData(founderId: string) {
+    return await cacheService.getDashboardData(founderId, async () => {
+      return await this.fetchDashboardDataFromDB(founderId);
+    });
+  }
+
+  /**
+   * Internal method: Fetch dashboard data from database
+   */
+  private async fetchDashboardDataFromDB(founderId: string) {
     try {
       // Single optimized query with joins to get all dashboard data
       const result = await db
@@ -88,9 +98,18 @@ export class DatabaseService {
   }
 
   /**
-   * OPTIMIZED: Get founder with their latest venture and evaluation in one query
+   * OPTIMIZED: Get founder with their latest venture and evaluation with caching
    */
   async getFounderWithLatestVenture(founderId: string) {
+    return await cacheService.getFounder(founderId, async () => {
+      return await this.fetchFounderWithLatestVentureFromDB(founderId);
+    });
+  }
+
+  /**
+   * Internal method: Fetch founder with venture from database
+   */
+  private async fetchFounderWithLatestVentureFromDB(founderId: string) {
     const result = await db
       .select({
         founder: {
@@ -278,6 +297,17 @@ export class DatabaseService {
       const batch = records.slice(i, i + batchSize);
       await db.insert(table).values(batch);
     }
+  }
+
+  /**
+   * Cache invalidation triggers for data updates
+   */
+  invalidateFounderCache(founderId: string): void {
+    cacheService.invalidateFounder(founderId);
+  }
+
+  invalidateVentureCache(ventureId: string, founderId?: string): void {
+    cacheService.invalidateVenture(ventureId, founderId);
   }
 
   /**
