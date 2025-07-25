@@ -182,16 +182,19 @@ router.post("/upload-file", upload.single("file"), requireFields(['folder_id']),
   console.log(`🔍 Attempting to map category '${folder_id}' to Box.com folder ID...`);
   console.log(`🔐 Session founderId: ${req.session?.founderId || 'NOT SET'}`);
   
-  // First check if this is a category name that needs mapping to actual Box.com folder ID
-  const categoryToFolderMap: Record<string, string> = {
-    '0_Overview': '332844784735',
-    '1_Problem_Proof': '332844933261', 
-    '2_Solution_Proof': '332842993678',
-    '3_Demand_Proof': '332843828465',
-    '4_Credibility_Proof': '332843291772',
-    '5_Commercial_Proof': '332845124499',
-    '6_Investor_Pack': '332842251627'
-  };
+  // Use database-driven folder mapping
+  let categoryToFolderMap: Record<string, string> = {};
+  
+  if (req.session?.founderId) {
+    try {
+      const { loadFolderMappingFromDatabase } = await import("../utils/folder-mapping");
+      const mapping = await loadFolderMappingFromDatabase(req.session.founderId);
+      categoryToFolderMap = mapping.categoryToFolderId;
+      console.log(`✅ Loaded folder mapping from database:`, categoryToFolderMap);
+    } catch (error) {
+      console.error("Failed to load folder mapping from database:", error);
+    }
+  }
   
   // Check if the folder_id is a category that needs mapping
   if (categoryToFolderMap[folder_id]) {
@@ -442,35 +445,27 @@ router.post('/create-folder', upload.none(), asyncHandler(async (req, res) => {
     let categoryToFolderMap: Record<string, string> = {};
     
     try {
-      // Try to get the user's vault structure from session data
+      // Try to get the user's vault structure from session data first
       const sessionData = getSessionData(req);
       if (sessionData?.folderStructure?.folders) {
         categoryToFolderMap = sessionData.folderStructure.folders;
         console.log(`🔄 Using session vault structure:`, categoryToFolderMap);
-      } else {
-        // Fallback to static mapping (these may be outdated)
-        categoryToFolderMap = {
-          '0_Overview': '332844784735',
-          '1_Problem_Proof': '332844933261', 
-          '2_Solution_Proof': '332842993678',
-          '3_Demand_Proof': '332843828465',
-          '4_Credibility_Proof': '332843291772',
-          '5_Commercial_Proof': '332845124499',
-          '6_Investor_Pack': '332842251627'
-        };
-        console.log(`⚠️ Using fallback static folder mapping - may be outdated`);
+      } else if (req.session?.founderId) {
+        // Load from database using utility function
+        const { loadFolderMappingFromDatabase } = await import("../utils/folder-mapping");
+        const mapping = await loadFolderMappingFromDatabase(req.session.founderId);
+        categoryToFolderMap = mapping.categoryToFolderId;
+        console.log(`✅ Using database folder mapping:`, categoryToFolderMap);
+        
+        // Only if database lookup fails, show error
+        if (Object.keys(categoryToFolderMap).length === 0) {
+          console.log(`❌ No folder mapping found in session or database`);
+          throw new Error('No folder structure available');
+        }
       }
     } catch (error) {
-      console.log(`❌ Failed to get vault structure, using static mapping:`, error);
-      categoryToFolderMap = {
-        '0_Overview': '332844784735',
-        '1_Problem_Proof': '332844933261', 
-        '2_Solution_Proof': '332842993678',
-        '3_Demand_Proof': '332843828465',
-        '4_Credibility_Proof': '332843291772',
-        '5_Commercial_Proof': '332845124499',
-        '6_Investor_Pack': '332842251627'
-      };
+      console.log(`❌ Failed to get vault structure:`, error);
+      throw new Error('Unable to determine folder structure. Please ensure vault is properly initialized.');
     }
     
     console.log(`🗂️ Available mappings:`, Object.keys(categoryToFolderMap));

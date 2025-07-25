@@ -80,16 +80,16 @@ router.get('/vault', asyncHandler(async (req: Request, res: Response) => {
       .where(eq(documentUpload.ventureId, dashboardData.venture.ventureId))
       .orderBy(desc(documentUpload.createdAt));
     
-    // Format files for frontend display
-    const formattedFiles = files.map(file => ({
+    // Format files for frontend display - need to use async mapping
+    const formattedFiles = await Promise.all(files.map(async (file) => ({
       id: file.uploadId,
       name: file.fileName || file.originalName || 'Unknown File',
-      category: getCategoryFromFolderId(file.folderId || '332844784735'), // Default to Overview folder
+      category: await getCategoryFromFolderId(file.folderId || '332886218045', founderId), // Default to Overview folder
       uploadDate: file.createdAt?.toISOString() || new Date().toISOString(),
       size: formatFileSize(file.fileSize || 0),
       downloadUrl: file.sharedUrl || '',
       type: file.mimeType || 'application/pdf'
-    }));
+    })));
 
     // ENHANCED FILE COUNTING: Count files including those in subfolders
     const { proofVault } = await import('@shared/schema');
@@ -100,18 +100,21 @@ router.get('/vault', asyncHandler(async (req: Request, res: Response) => {
     
     // Create mapping from subFolderId to parent category
     const subfolderToParentMap: Record<string, string> = {};
-    folderMappings.forEach(mapping => {
-      const parentCategory = getCategoryFromFolderId(mapping.parentFolderId);
+    for (const mapping of folderMappings) {
+      const parentCategory = await getCategoryFromFolderId(mapping.parentFolderId, founderId);
       subfolderToParentMap[mapping.subFolderId] = parentCategory;
       console.log(`📂 Subfolder mapping: ${mapping.subFolderId} → ${parentCategory} (parent: ${mapping.parentFolderId})`);
-    });
+    }
 
     // DATABASE-FIRST APPROACH: Count files by category using recursive subfolder traversal
-    const fileCounts = files.reduce((counts, file) => {
+    const fileCounts = { overview: 0, problemProof: 0, solutionProof: 0, demandProof: 0, credibilityProof: 0, commercialProof: 0, investorPack: 0 };
+    
+    // Process files individually with async categorization
+    for (const file of files) {
       let category;
       
       // RECURSIVE LOGIC: Find correct parent category for nested subfolders
-      const findCorrectParentCategory = (folderId: string, depth = 0): string => {
+      const findCorrectParentCategory = async (folderId: string, depth = 0): Promise<string> => {
         // Prevent infinite loops
         if (depth > 10) {
           console.warn(`⚠️ Maximum depth reached for folder ${folderId}`);
@@ -119,7 +122,7 @@ router.get('/vault', asyncHandler(async (req: Request, res: Response) => {
         }
         
         // CRITICAL FIX: First check if current folder is already a main category folder
-        const directCategory = getCategoryFromFolderId(folderId);
+        const directCategory = await getCategoryFromFolderId(folderId, founderId);
         if (directCategory !== 'Overview (default)') {
           // This IS a main category folder, use it directly
           console.log(`📁 File ${file.fileName} in main category folder ${folderId} → ${directCategory}`);
@@ -131,7 +134,7 @@ router.get('/vault', asyncHandler(async (req: Request, res: Response) => {
         
         if (subfolderMapping) {
           // Check if parent is a main category folder
-          const parentCategory = getCategoryFromFolderId(subfolderMapping.parentFolderId);
+          const parentCategory = await getCategoryFromFolderId(subfolderMapping.parentFolderId, founderId);
           if (parentCategory !== 'Overview (default)') {
             // Parent is a main category folder - use it
             console.log(`📁 File ${file.fileName} in subfolder ${folderId} → parent category: ${parentCategory} (depth ${depth})`);
@@ -139,7 +142,7 @@ router.get('/vault', asyncHandler(async (req: Request, res: Response) => {
           } else {
             // Parent is also a subfolder, continue recursion
             console.log(`📁 Nested subfolder: ${folderId} → parent ${subfolderMapping.parentFolderId} (depth ${depth})`);
-            return findCorrectParentCategory(subfolderMapping.parentFolderId, depth + 1);
+            return await findCorrectParentCategory(subfolderMapping.parentFolderId, depth + 1);
           }
         } else {
           // Fallback to Overview if no mapping found
@@ -148,24 +151,23 @@ router.get('/vault', asyncHandler(async (req: Request, res: Response) => {
         }
       };
       
-      category = findCorrectParentCategory(file.folderId || '332844784735');
+      category = await findCorrectParentCategory(file.folderId || '332886218045');
       
       switch(category) {
         case 'Overview':
-        case 'Overview (default)': counts.overview++; break;
-        case 'Problem Proofs': counts.problemProof++; break;
-        case 'Solution Proofs': counts.solutionProof++; break;
-        case 'Demand Proofs': counts.demandProof++; break;
-        case 'Credibility Proofs': counts.credibilityProof++; break;
-        case 'Commercial Proofs': counts.commercialProof++; break;
-        case 'Investor Pack': counts.investorPack++; break;
+        case 'Overview (default)': fileCounts.overview++; break;
+        case 'Problem Proofs': fileCounts.problemProof++; break;
+        case 'Solution Proofs': fileCounts.solutionProof++; break;
+        case 'Demand Proofs': fileCounts.demandProof++; break;
+        case 'Credibility Proofs': fileCounts.credibilityProof++; break;
+        case 'Commercial Proofs': fileCounts.commercialProof++; break;
+        case 'Investor Pack': fileCounts.investorPack++; break;
         default: 
           console.warn(`⚠️ Unknown category: ${category} for file ${file.fileName}`);
-          counts.overview++;
+          fileCounts.overview++;
           break;
       }
-      return counts;
-    }, { overview: 0, problemProof: 0, solutionProof: 0, demandProof: 0, credibilityProof: 0, commercialProof: 0, investorPack: 0 });
+    }
 
     const vaultData = {
       overviewCount: fileCounts.overview,
@@ -245,27 +247,29 @@ router.get('/activity', asyncHandler(async (req: Request, res: Response) => {
   }
 }));
 
-// Helper functions preserved from routes.ts
-function getCategoryFromFolderId(folderId: string): string {
-  // FIXED: Map actual Box.com folder IDs to category names based on real folder structure
+// Helper functions - using database-driven folder mapping
+async function getCategoryFromFolderId(folderId: string, founderId?: string): Promise<string> {
+  if (founderId) {
+    try {
+      const { getCategoryFromFolderIdDB } = await import('../../utils/folder-mapping');
+      return await getCategoryFromFolderIdDB(folderId, founderId);
+    } catch (error) {
+      console.error('Error getting category from database:', error);
+    }
+  }
+  
+  // Fallback to current working folder mapping
   const folderMap: Record<string, string> = {
-    '332844784735': 'Overview',     // 0_Overview
-    '332844933261': 'Problem Proofs', // 1_Problem_Proof  
-    '332842993678': 'Solution Proofs', // 2_Solution_Proof
-    '332843828465': 'Demand Proofs',   // 3_Demand_Proof
-    '332843291772': 'Credibility Proofs', // 4_Credibility_Proof
-    '332845124499': 'Commercial Proofs',  // 5_Commercial_Proof
-    '332842251627': 'Investor Pack'       // 6_Investor_Pack
+    '332886218045': 'Overview',     // 0_Overview
+    '332887480277': 'Problem Proofs', // 1_Problem_Proof  
+    '332887446170': 'Solution Proofs', // 2_Solution_Proof
+    '332885125206': 'Demand Proofs',   // 3_Demand_Proof
+    '332885857453': 'Credibility Proofs', // 4_Credibility_Proof
+    '332887928503': 'Commercial Proofs',  // 5_Commercial_Proof
+    '332885728761': 'Investor Pack'       // 6_Investor_Pack
   };
   
-  const category = folderMap[folderId];
-  if (category) {
-    console.log(`📁 Mapping folder ID '${folderId}' to category: ${category}`);
-    return category;
-  } else {
-    console.log(`📁 Mapping folder ID '${folderId}' to category: Overview (default)`);
-    return 'Overview (default)';
-  }
+  return folderMap[folderId] || 'Overview (default)';
 }
 
 function formatFileSize(bytes: number): string {

@@ -126,6 +126,26 @@ Demo experience for testing different user journeys:
 
 ## Recent Key Updates
 
+### July 25, 2025 - DATABASE-DRIVEN FOLDER MAPPING SYSTEM IMPLEMENTED: Complete Replacement of Hardcoded Folder IDs
+- **ARCHITECTURAL BREAKTHROUGH**: Completely replaced hardcoded Box.com folder IDs with database-driven dynamic mapping system
+- **CENTRALIZED FOLDER MAPPING UTILITY**: Created `server/utils/folder-mapping.ts` with comprehensive database-driven folder management:
+  * `loadFolderMappingFromDatabase()` - Loads current folder structure from proof_vault table with 5-minute caching
+  * `getCategoryFromFolderIdDB()` - Dynamic category resolution using founder's actual vault data
+  * `getFolderIdFromCategoryDB()` - Real-time folder ID lookup from database records
+  * `clearFolderMappingCache()` - Cache invalidation for vault structure changes
+- **ALL HARDCODED FOLDER IDS ELIMINATED**: Updated all route files to use database-driven mapping:
+  * `server/routes.ts` - Main dashboard routes use async folder mapping
+  * `server/routes/vault.ts` - Vault upload routes with database-first folder resolution
+  * `server/routes/v1/dashboard.ts` - V1 dashboard APIs with dynamic categorization
+- **ASYNC FUNCTION ARCHITECTURE**: Converted all folder mapping functions to async for proper database integration:
+  * `getCategoryFromFolderId()` now queries database first, fallback to current working IDs
+  * `findCorrectParentCategory()` uses recursive async database lookups for nested folders
+  * File categorization loops converted from reduce() to for-loops supporting async operations
+- **INTELLIGENT CACHING SYSTEM**: 5-minute TTL cache prevents database overload while ensuring fresh data
+- **FALLBACK PROTECTION**: System gracefully falls back to current working folder IDs if database lookup fails
+- **PRODUCTION READY**: Complete database-driven folder mapping system operational with proper error handling and performance optimization
+- **USER REQUIREMENT FULFILLED**: All folder mappings now database-driven as specifically requested - no more hardcoded values
+
 ### July 25, 2025 - SYSTEM RESTORED: Removed V1 Migration Interference & Folder Creation Working
 - **CRITICAL FIX**: Removed v1 route imports from `server/routes.ts` that were breaking the working system
 - **V1 MIGRATION REVERTED**: Eliminated `/api/v1` route mounting that was interfering with existing functionality  
