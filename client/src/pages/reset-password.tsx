@@ -12,6 +12,7 @@ import Footer from "@/components/footer";
 
 export default function ResetPasswordPage() {
   const [match, params] = useRoute("/reset-password/:token?");
+  const [location] = useLocation();
   const [password, setPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
   const [showPassword, setShowPassword] = useState(false);
@@ -23,7 +24,7 @@ export default function ResetPasswordPage() {
   const { toast } = useToast();
 
   // Support both path and query parameter formats
-  const token = params?.token || new URLSearchParams(window.location.search).get('token');
+  const token = params?.token || new URLSearchParams(location.split('?')[1] || '').get('token');
 
   useEffect(() => {
     if (!token) {
