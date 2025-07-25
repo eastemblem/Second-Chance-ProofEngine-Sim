@@ -4,7 +4,6 @@ import { Request, Response, NextFunction } from "express";
 export function newRelicMiddleware(req: Request, res: Response, next: NextFunction) {
   // Check if NewRelic is configured
   if (!process.env.NEW_RELIC_LICENSE_KEY) {
-    console.warn('⚠️ NewRelic not configured - set NEW_RELIC_LICENSE_KEY environment variable');
     return next();
   }
 

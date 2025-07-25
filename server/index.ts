@@ -1,3 +1,9 @@
+// NewRelic must be the first import
+if (process.env.NEW_RELIC_LICENSE_KEY) {
+  require('newrelic');
+  console.log('📊 NewRelic agent initialized');
+}
+
 import express, { type Request, Response, NextFunction } from "express";
 import session from "express-session";
 import { registerRoutes } from "./routes-refactored";
