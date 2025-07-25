@@ -120,7 +120,7 @@ export default function DashboardPage() {
 
   const checkAuthStatus = async () => {
     try {
-      const response = await fetch('/api/auth/me');
+      const response = await fetch('/api/auth/me', { credentials: 'include' });
       
       if (response.ok) {
         const userData = await response.json();
@@ -142,6 +142,7 @@ export default function DashboardPage() {
     try {
       // Load critical data first (validation) for faster LCP
       const validationResponse = await fetch('/api/dashboard/validation', {
+        credentials: 'include',
         headers: {
           'Cache-Control': 'max-age=300' // Cache for 5 minutes
         }
@@ -154,11 +155,13 @@ export default function DashboardPage() {
       // Load secondary data in parallel for better performance
       const [vaultResponse, activityResponse] = await Promise.all([
         fetch('/api/dashboard/vault', {
+          credentials: 'include',
           headers: {
             'Cache-Control': 'max-age=600' // Cache for 10 minutes
           }
         }),
         fetch('/api/dashboard/activity', {
+          credentials: 'include',
           headers: {
             'Cache-Control': 'max-age=600' // Cache for 10 minutes
           }
