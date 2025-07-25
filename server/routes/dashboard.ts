@@ -131,6 +131,31 @@ router.get("/vault", async (req, res) => {
 
     console.log(`📄 Found ${files.length} files for venture ${latestVenture.ventureId}`);
 
+    // Extract folder URLs from venture's folder structure
+    const folderUrls: Record<string, string> = {};
+    if (latestVenture.folderStructure && typeof latestVenture.folderStructure === 'object') {
+      const folderStructure = latestVenture.folderStructure as any;
+      console.log(`📁 Processing folder structure for URLs:`, folderStructure);
+      
+      // Get the base shared URL if available
+      const baseUrl = folderStructure.url || folderStructure.shared_url;
+      
+      // Map each folder to its Box.com URL
+      if (folderStructure.folders) {
+        Object.entries(folderStructure.folders).forEach(([folderKey, folderId]) => {
+          // Use Box.com folder URL format: https://app.box.com/folder/{folderId}
+          folderUrls[folderKey] = `https://app.box.com/folder/${folderId}`;
+          console.log(`📂 Mapped ${folderKey} -> https://app.box.com/folder/${folderId}`);
+        });
+      }
+      
+      // If we have a base shared URL, use that for root access
+      if (baseUrl) {
+        folderUrls['root'] = baseUrl;
+        console.log(`🏠 Root folder URL: ${baseUrl}`);
+      }
+    }
+
     const vaultData = {
       overviewCount: folderCounts["0_Overview"],
       problemProofCount: folderCounts["1_Problem_Proof"],
@@ -149,7 +174,8 @@ router.get("/vault", async (req, res) => {
         type: pv.artefactType,
         sharedUrl: pv.sharedUrl,
         fileCount: folderCounts[pv.folderName as keyof typeof folderCounts] || 0
-      }))
+      })),
+      folderUrls: folderUrls
     };
 
     res.json(vaultData);

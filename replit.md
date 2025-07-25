@@ -216,6 +216,18 @@ Demo experience for testing different user journeys:
 - **Removed Downloads Section**: Eliminated "Ready for Download" section per user request for cleaner interface
 - **Enhanced User Guidance**: Clear visual confirmation of investor readiness and actionable next steps for deal room access
 
+### July 25, 2025 - Box.com Folder Viewing Integration Complete
+- **BOX.COM FOLDER VIEWING IMPLEMENTED**: Added comprehensive Box.com folder viewing functionality to ProofVault dashboard
+- **FOLDER URL EXTRACTION**: Dashboard API now extracts individual folder URLs from venture.folderStructure JSON data
+- **HOVER-TO-VIEW INTERFACE**: Added hover-activated view buttons to all 7 proof category folders with smooth opacity transitions
+- **FOLDER SELECTION ENHANCEMENT**: Added view folder button next to upload folder dropdown for immediate Box.com access
+- **ANALYTICS INTEGRATION**: Implemented folder view tracking with GA4 events for 'folder_view' category
+- **USER-FRIENDLY TOOLTIPS**: Added informational panel explaining Box.com integration functionality
+- **DYNAMIC BUTTON STATES**: View buttons are disabled/enabled based on actual folder availability from folderStructure data
+- **COMPLETE FOLDER MAPPING**: All proof categories (Overview, Problem, Solution, Demand, Credibility, Commercial, Investor Pack) now viewable in Box.com
+- **SEAMLESS BOX.COM INTEGRATION**: Users can now access their complete proof vault structure with full Box.com functionality
+- **PRODUCTION READY**: Feature includes proper error handling, loading states, and user feedback via toast notifications
+
 ### July 25, 2025 - Comprehensive Google Analytics Integration Complete
 - **COMPLETE GA4 ONBOARDING TRACKING**: Implemented comprehensive Google Analytics 4 integration across entire onboarding flow
 - **ONBOARDING JOURNEY ANALYTICS**: Added step-by-step event tracking for all onboarding components:

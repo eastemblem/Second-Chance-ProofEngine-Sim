@@ -62,6 +62,7 @@ interface ProofVaultData {
   totalFiles: number;
   files: FileItem[];
   folders?: ProofVaultFolder[];
+  folderUrls?: Record<string, string>;
 }
 
 interface FileItem {
@@ -374,6 +375,27 @@ export default function DashboardPage() {
     { id: '6_Investor_Pack', name: 'Investor Pack', count: proofVaultData?.investorPackCount || 0 }
   ];
 
+  // Handle viewing folder in Box.com
+  const handleViewFolder = (folderId: string) => {
+    const folderUrl = proofVaultData?.folderUrls?.[folderId];
+    if (folderUrl) {
+      // Track folder view event
+      trackEvent('folder_view', 'document_management', `view_${folderId}_folder`);
+      
+      window.open(folderUrl, '_blank');
+      toast({
+        title: "Opening Folder",
+        description: `Opening ${getFolderDisplayName(folderId)} folder in Box.com`,
+      });
+    } else {
+      toast({
+        title: "Folder Not Available",
+        description: "This folder hasn't been created yet. Upload files to create it.",
+        variant: "destructive",
+      });
+    }
+  };
+
   const handleFileRemove = async (fileId: string) => {
     try {
       const response = await fetch(`/api/vault/remove-file/${fileId}`, {
@@ -567,36 +589,108 @@ export default function DashboardPage() {
 
                   <TabsContent value="overview" className="mt-6">
                     <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-4">
-                      <div className="text-center p-4 bg-gray-800 rounded-lg">
+                      <div className="text-center p-4 bg-gray-800 rounded-lg group relative">
                         <div className="text-2xl font-bold text-white mb-1">{proofVaultData?.overviewCount || 0}</div>
-                        <p className="text-gray-400 text-sm">Overview</p>
+                        <p className="text-gray-400 text-sm mb-2">Overview</p>
+                        <Button 
+                          variant="ghost" 
+                          size="sm" 
+                          onClick={() => handleViewFolder('0_Overview')}
+                          className="opacity-0 group-hover:opacity-100 transition-opacity absolute top-2 right-2 text-purple-400 hover:text-purple-300"
+                          disabled={!proofVaultData?.folderUrls?.['0_Overview']}
+                        >
+                          <FolderOpen className="w-4 h-4" />
+                        </Button>
                       </div>
-                      <div className="text-center p-4 bg-gray-800 rounded-lg">
+                      <div className="text-center p-4 bg-gray-800 rounded-lg group relative">
                         <div className="text-2xl font-bold text-white mb-1">{proofVaultData?.problemProofCount || 0}</div>
-                        <p className="text-gray-400 text-sm">Problem Proofs</p>
+                        <p className="text-gray-400 text-sm mb-2">Problem Proofs</p>
+                        <Button 
+                          variant="ghost" 
+                          size="sm" 
+                          onClick={() => handleViewFolder('1_Problem_Proof')}
+                          className="opacity-0 group-hover:opacity-100 transition-opacity absolute top-2 right-2 text-purple-400 hover:text-purple-300"
+                          disabled={!proofVaultData?.folderUrls?.['1_Problem_Proof']}
+                        >
+                          <FolderOpen className="w-4 h-4" />
+                        </Button>
                       </div>
-                      <div className="text-center p-4 bg-gray-800 rounded-lg">
+                      <div className="text-center p-4 bg-gray-800 rounded-lg group relative">
                         <div className="text-2xl font-bold text-white mb-1">{proofVaultData?.solutionProofCount || 0}</div>
-                        <p className="text-gray-400 text-sm">Solution Proofs</p>
+                        <p className="text-gray-400 text-sm mb-2">Solution Proofs</p>
+                        <Button 
+                          variant="ghost" 
+                          size="sm" 
+                          onClick={() => handleViewFolder('2_Solution_Proof')}
+                          className="opacity-0 group-hover:opacity-100 transition-opacity absolute top-2 right-2 text-purple-400 hover:text-purple-300"
+                          disabled={!proofVaultData?.folderUrls?.['2_Solution_Proof']}
+                        >
+                          <FolderOpen className="w-4 h-4" />
+                        </Button>
                       </div>
-                      <div className="text-center p-4 bg-gray-800 rounded-lg">
+                      <div className="text-center p-4 bg-gray-800 rounded-lg group relative">
                         <div className="text-2xl font-bold text-white mb-1">{proofVaultData?.demandProofCount || 0}</div>
-                        <p className="text-gray-400 text-sm">Demand Proofs</p>
+                        <p className="text-gray-400 text-sm mb-2">Demand Proofs</p>
+                        <Button 
+                          variant="ghost" 
+                          size="sm" 
+                          onClick={() => handleViewFolder('3_Demand_Proof')}
+                          className="opacity-0 group-hover:opacity-100 transition-opacity absolute top-2 right-2 text-purple-400 hover:text-purple-300"
+                          disabled={!proofVaultData?.folderUrls?.['3_Demand_Proof']}
+                        >
+                          <FolderOpen className="w-4 h-4" />
+                        </Button>
                       </div>
                     </div>
                     <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                      <div className="text-center p-4 bg-gray-800 rounded-lg">
+                      <div className="text-center p-4 bg-gray-800 rounded-lg group relative">
                         <div className="text-2xl font-bold text-white mb-1">{proofVaultData?.credibilityProofCount || 0}</div>
-                        <p className="text-gray-400 text-sm">Credibility Proofs</p>
+                        <p className="text-gray-400 text-sm mb-2">Credibility Proofs</p>
+                        <Button 
+                          variant="ghost" 
+                          size="sm" 
+                          onClick={() => handleViewFolder('4_Credibility_Proof')}
+                          className="opacity-0 group-hover:opacity-100 transition-opacity absolute top-2 right-2 text-purple-400 hover:text-purple-300"
+                          disabled={!proofVaultData?.folderUrls?.['4_Credibility_Proof']}
+                        >
+                          <FolderOpen className="w-4 h-4" />
+                        </Button>
                       </div>
-                      <div className="text-center p-4 bg-gray-800 rounded-lg">
+                      <div className="text-center p-4 bg-gray-800 rounded-lg group relative">
                         <div className="text-2xl font-bold text-white mb-1">{proofVaultData?.commercialProofCount || 0}</div>
-                        <p className="text-gray-400 text-sm">Commercial Proofs</p>
+                        <p className="text-gray-400 text-sm mb-2">Commercial Proofs</p>
+                        <Button 
+                          variant="ghost" 
+                          size="sm" 
+                          onClick={() => handleViewFolder('5_Commercial_Proof')}
+                          className="opacity-0 group-hover:opacity-100 transition-opacity absolute top-2 right-2 text-purple-400 hover:text-purple-300"
+                          disabled={!proofVaultData?.folderUrls?.['5_Commercial_Proof']}
+                        >
+                          <FolderOpen className="w-4 h-4" />
+                        </Button>
                       </div>
-                      <div className="text-center p-4 bg-gray-800 rounded-lg">
+                      <div className="text-center p-4 bg-gray-800 rounded-lg group relative">
                         <div className="text-2xl font-bold text-white mb-1">{proofVaultData?.investorPackCount || 0}</div>
-                        <p className="text-gray-400 text-sm">Investor Pack</p>
+                        <p className="text-gray-400 text-sm mb-2">Investor Pack</p>
+                        <Button 
+                          variant="ghost" 
+                          size="sm" 
+                          onClick={() => handleViewFolder('6_Investor_Pack')}
+                          className="opacity-0 group-hover:opacity-100 transition-opacity absolute top-2 right-2 text-purple-400 hover:text-purple-300"
+                          disabled={!proofVaultData?.folderUrls?.['6_Investor_Pack']}
+                        >
+                          <FolderOpen className="w-4 h-4" />
+                        </Button>
                       </div>
+                    </div>
+                    
+                    {/* Info panel about viewing folders */}
+                    <div className="mt-6 bg-gray-800/50 rounded-lg p-4">
+                      <h4 className="text-sm font-medium text-gray-300 mb-2">📂 View Box.com Folders</h4>
+                      <p className="text-xs text-gray-400">
+                        Hover over any folder above and click the folder icon to view your documents directly in Box.com. 
+                        This gives you full access to organize, share, and manage your proof materials.
+                      </p>
                     </div>
                   </TabsContent>
 
@@ -639,29 +733,43 @@ export default function DashboardPage() {
                       {/* Folder Selection */}
                       <div className="space-y-2">
                         <label className="text-sm font-medium text-gray-300">Select Folder</label>
-                        <Select value={selectedFolder} onValueChange={setSelectedFolder}>
-                          <SelectTrigger className="bg-gray-800 border-gray-600 text-white">
-                            <SelectValue placeholder="Choose a folder...">
-                              <div className="flex items-center gap-2">
-                                <Folder className="w-4 h-4" />
-                                {getFolderDisplayName(selectedFolder)} ({getAvailableFolders().find(f => f.id === selectedFolder)?.count || 0} files)
-                              </div>
-                            </SelectValue>
-                          </SelectTrigger>
-                          <SelectContent className="bg-gray-800 border-gray-600">
-                            {getAvailableFolders().map((folder) => (
-                              <SelectItem key={folder.id} value={folder.id} className="text-white hover:bg-gray-700">
-                                <div className="flex items-center justify-between w-full">
-                                  <span className="flex items-center gap-2">
-                                    <Folder className="w-4 h-4" />
-                                    {folder.name}
-                                  </span>
-                                  <span className="text-gray-400 text-sm">({folder.count} files)</span>
+                        <div className="flex gap-2">
+                          <Select value={selectedFolder} onValueChange={setSelectedFolder}>
+                            <SelectTrigger className="bg-gray-800 border-gray-600 text-white flex-1">
+                              <SelectValue placeholder="Choose a folder...">
+                                <div className="flex items-center gap-2">
+                                  <Folder className="w-4 h-4" />
+                                  {getFolderDisplayName(selectedFolder)} ({getAvailableFolders().find(f => f.id === selectedFolder)?.count || 0} files)
                                 </div>
-                              </SelectItem>
-                            ))}
-                          </SelectContent>
-                        </Select>
+                              </SelectValue>
+                            </SelectTrigger>
+                            <SelectContent className="bg-gray-800 border-gray-600">
+                              {getAvailableFolders().map((folder) => (
+                                <SelectItem key={folder.id} value={folder.id} className="text-white hover:bg-gray-700">
+                                  <div className="flex items-center justify-between w-full">
+                                    <span className="flex items-center gap-2">
+                                      <Folder className="w-4 h-4" />
+                                      {folder.name}
+                                    </span>
+                                    <span className="text-gray-400 text-sm">({folder.count} files)</span>
+                                  </div>
+                                </SelectItem>
+                              ))}
+                            </SelectContent>
+                          </Select>
+                          
+                          {/* View Folder Button */}
+                          <Button 
+                            variant="outline" 
+                            size="icon"
+                            onClick={() => handleViewFolder(selectedFolder)}
+                            className="bg-gray-800 border-gray-600 text-purple-400 hover:text-purple-300 hover:bg-gray-700"
+                            disabled={!proofVaultData?.folderUrls?.[selectedFolder]}
+                            title="View folder in Box.com"
+                          >
+                            <FolderOpen className="w-4 h-4" />
+                          </Button>
+                        </div>
                       </div>
 
                       {/* Upload Area */}
