@@ -371,12 +371,12 @@ class EastEmblemAPI {
     try {
       const formData = new FormData();
       formData.append("folderName", folderName);
-      formData.append("folder_id", parentFolderId);
+      // Note: parentFolderId is not used by the API - folders are created in default location
       if (onboardingId) {
         formData.append("onboarding_id", onboardingId);
       }
 
-      console.log(`Creating folder: ${folderName} in parent: ${parentFolderId}`);
+      console.log(`Creating folder: ${folderName} (parentFolderId ignored by API)`);
       console.log(`API endpoint: ${this.getEndpoint("/webhook/vault/folder/create")}`);
 
       const controller = new AbortController();
@@ -417,13 +417,17 @@ class EastEmblemAPI {
         const result = JSON.parse(responseText);
         console.log("Folder created successfully:", result);
         
-        // Extract folder ID from various possible response structures
-        const folderId = result.data?.folderId || result.folderId || result.data?.id || result.id || result.folder_id;
-        const folderUrl = result.data?.url || result.url || `https://app.box.com/folder/${folderId}`;
+        // API returns: {"id":"332883623890","name":"TestFolder"}
+        const folderId = result.id;
+        const folderUrl = `https://app.box.com/folder/${folderId}`;
+        
+        if (!folderId) {
+          throw new Error("API response missing folder ID");
+        }
         
         return {
-          id: folderId?.toString() || `folder-${Date.now()}`,
-          name: folderName,
+          id: folderId.toString(),
+          name: result.name || folderName,
           url: folderUrl
         };
       } catch (parseError) {

@@ -743,7 +743,7 @@ export default function DashboardPage() {
         
         toast({
           title: "Creating Subfolder",
-          description: `Creating "${folderName}" in ${parentPath === 'root' ? 'main folder' : parentPath}...`,
+          description: `Creating "${folderName}" in your ProofVault...`,
         });
 
         try {

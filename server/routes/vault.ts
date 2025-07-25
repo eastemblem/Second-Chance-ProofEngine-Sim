@@ -474,7 +474,7 @@ router.post('/create-folder', upload.none(), asyncHandler(async (req, res) => {
       
       // Fallback: Since EastEmblem API folder creation failed, use the parent folder for uploads
       // This allows files to still be uploaded to the selected category folder
-      console.log(`🔄 EastEmblem API doesn't support individual folder creation - files will upload to parent category folder: ${actualParentFolderId}`);
+      console.log(`🔄 EastEmblem API folder creation failed - files will upload to category folder: ${actualParentFolderId}`);
       result = {
         id: actualParentFolderId, // Use parent folder ID so files can be uploaded
         name: folderName,
