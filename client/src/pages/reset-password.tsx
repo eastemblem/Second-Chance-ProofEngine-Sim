@@ -12,6 +12,7 @@ import Footer from "@/components/footer";
 
 export default function ResetPasswordPage() {
   console.log("🔍 ResetPasswordPage component loaded, URL:", window.location.href);
+  console.log("🔍 Component is rendering - this should appear if routing works");
   
   const [match, params] = useRoute("/reset-password/:token?");
   const [location, setLocation] = useLocation();

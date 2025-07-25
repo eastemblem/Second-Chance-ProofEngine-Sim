@@ -8,6 +8,9 @@ import Footer from "@/components/footer";
 
 export default function NotFound() {
   const [mounted, setMounted] = useState(false);
+  
+  // Log when 404 page is shown to help debug routing issues
+  console.log("🔍 NotFound component rendered, URL:", window.location.href);
 
   useEffect(() => {
     setMounted(true);
