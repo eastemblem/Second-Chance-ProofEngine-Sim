@@ -1146,36 +1146,48 @@ export default function DashboardPage() {
                   </TabsContent>
 
                   <TabsContent value="files" className="mt-6">
-                    <div className="space-y-3">
-                      {proofVaultData?.files?.length ? (
-                        proofVaultData.files.map((file) => (
-                          <div key={file.id} className="flex items-center justify-between p-3 bg-gray-800 rounded-lg">
-                            <div className="flex items-center gap-3">
-                              <FileText className="w-5 h-5 text-gray-400" />
-                              <div>
-                                <p className="text-white font-medium">{file.name}</p>
-                                <p className="text-gray-400 text-sm">{file.category} • {file.size} • {formatTimeAgo(file.uploadDate)}</p>
+                    {/* Fixed height container with scrolling */}
+                    <div className="h-80 overflow-y-auto border border-gray-700 rounded-lg bg-gray-900/50">
+                      <div className="p-4 space-y-3">
+                        {proofVaultData?.files?.length ? (
+                          proofVaultData.files.map((file) => (
+                            <div key={file.id} className="flex items-center justify-between p-3 bg-gray-800 rounded-lg hover:bg-gray-750 transition-colors">
+                              <div className="flex items-center gap-3">
+                                <FileText className="w-5 h-5 text-gray-400" />
+                                <div>
+                                  <p className="text-white font-medium">{file.name}</p>
+                                  <p className="text-gray-400 text-sm">{file.category} • {file.size} • {formatTimeAgo(file.uploadDate)}</p>
+                                </div>
+                              </div>
+                              <div className="flex items-center gap-2">
+                                <Button variant="ghost" size="sm" onClick={() => window.open(file.downloadUrl, '_blank')}>
+                                  <Eye className="w-4 h-4" />
+                                </Button>
+                                <Button variant="ghost" size="sm" onClick={() => window.open(file.downloadUrl, '_blank')}>
+                                  <Download className="w-4 h-4" />
+                                </Button>
+                                <Button variant="ghost" size="sm" onClick={() => handleFileRemove(file.id)} className="text-red-400 hover:text-red-300">
+                                  <Trash2 className="w-4 h-4" />
+                                </Button>
                               </div>
                             </div>
-                            <div className="flex items-center gap-2">
-                              <Button variant="ghost" size="sm" onClick={() => window.open(file.downloadUrl, '_blank')}>
-                                <Eye className="w-4 h-4" />
-                              </Button>
-                              <Button variant="ghost" size="sm" onClick={() => window.open(file.downloadUrl, '_blank')}>
-                                <Download className="w-4 h-4" />
-                              </Button>
-                              <Button variant="ghost" size="sm" onClick={() => handleFileRemove(file.id)} className="text-red-400 hover:text-red-300">
-                                <Trash2 className="w-4 h-4" />
-                              </Button>
-                            </div>
+                          ))
+                        ) : (
+                          <div className="text-center py-8 text-gray-400">
+                            <FileText className="w-12 h-12 mx-auto mb-3 opacity-50" />
+                            <p>No files uploaded yet</p>
                           </div>
-                        ))
-                      ) : (
-                        <div className="text-center py-8 text-gray-400">
-                          <FileText className="w-12 h-12 mx-auto mb-3 opacity-50" />
-                          <p>No files uploaded yet</p>
+                        )}
+                      </div>
+                      
+                      {/* File count indicator at bottom */}
+                      {proofVaultData?.files?.length ? (
+                        <div className="sticky bottom-0 bg-gray-800/90 backdrop-blur-sm border-t border-gray-700 px-4 py-2">
+                          <p className="text-xs text-gray-400 text-center">
+                            {proofVaultData.files.length} file{proofVaultData.files.length !== 1 ? 's' : ''} • Scroll for more
+                          </p>
                         </div>
-                      )}
+                      ) : null}
                     </div>
                   </TabsContent>
 
