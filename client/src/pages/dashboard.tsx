@@ -981,17 +981,28 @@ export default function DashboardPage() {
 
   const handleLogout = async () => {
     try {
-      const response = await fetch('/api/auth/logout', {
+      // Get JWT token from localStorage for Authorization header
+      const token = localStorage.getItem('auth_token');
+      
+      const response = await fetch('/api/auth-token/logout', {
         method: 'POST',
+        headers: {
+          'Authorization': token ? `Bearer ${token}` : '',
+          'Content-Type': 'application/json'
+        },
       });
 
       if (response.ok) {
+        // Clear localStorage
+        localStorage.removeItem('auth_token');
+        localStorage.removeItem('auth_user');
+        
         // Track successful logout event
         trackEvent('logout', 'authentication', 'logout_success');
         
         toast({
           title: "Logged Out",
-          description: "You have been successfully logged out.",
+          description: "JWT token invalidated. You have been successfully logged out.",
           duration: 3000,
         });
         
@@ -1003,13 +1014,22 @@ export default function DashboardPage() {
       }
     } catch (error) {
       console.error('Logout error:', error);
+      // Clear localStorage even if server call fails
+      localStorage.removeItem('auth_token');
+      localStorage.removeItem('auth_user');
+      
       // Track failed logout event
       trackEvent('logout_failed', 'authentication', 'logout_error');
       toast({
         title: "Logout Error",
-        description: "Failed to logout. Please try again.",
+        description: "Token cleared locally. Please try again if needed.",
         variant: "destructive",
       });
+      
+      // Redirect anyway since token is cleared
+      setTimeout(() => {
+        setLocation('/');
+      }, 1000);
     }
   };
 

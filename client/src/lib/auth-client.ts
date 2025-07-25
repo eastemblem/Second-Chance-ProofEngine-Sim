@@ -234,20 +234,23 @@ class AuthClient {
   }
 
   /**
-   * Logout user
+   * Logout user - invalidate JWT token on server and clear local storage
    */
   async logout(): Promise<void> {
     try {
+      // Call JWT logout endpoint to invalidate token on server
       await this.apiRequest('/logout', {
         method: 'POST',
       });
+      console.log('🔐 JWT token invalidated on server');
     } catch (error) {
       console.error('Logout API call failed:', error);
       // Continue with local cleanup even if API fails
     }
 
+    // Clear local authentication data
     this.clearAuth();
-    console.log('✅ User logged out');
+    console.log('✅ User logged out and token invalidated');
   }
 
   /**

@@ -1,7 +1,8 @@
 import express from 'express';
 import bcrypt from 'bcryptjs';
 import { databaseService } from '../services/database-service';
-import { CacheService } from '../utils/cache-service';
+// JWT token blacklist for logout functionality
+const blacklistedTokens = new Set<string>();
 import { 
   generateAuthToken, 
   verifyAuthToken, 
@@ -180,12 +181,29 @@ router.post('/login', asyncHandler(async (req, res) => {
 }));
 
 /**
- * Logout - clear token
+ * Logout - invalidate JWT token
  */
-router.post('/logout', (req: AuthenticatedRequest, res) => {
-  logout(req, res);
-  appLogger.auth(`✅ User logged out: ${req.user?.email || 'unknown'}`, { founderId: req.user?.founderId });
-});
+router.post('/logout', asyncHandler(async (req, res) => {
+  const token = req.headers.authorization?.replace('Bearer ', '') || req.cookies?.authToken;
+  
+  if (token) {
+    // Import invalidateToken function
+    const { invalidateToken } = await import('../middleware/token-auth');
+    
+    // Add token to blacklist
+    invalidateToken(token);
+    
+    // Clear HTTP-only cookie
+    res.clearCookie('authToken');
+    
+    appLogger.auth('✅ JWT token invalidated and user logged out');
+  }
+  
+  res.json({ 
+    success: true, 
+    message: 'Logout successful - token invalidated' 
+  });
+}));
 
 /**
  * Verify token and get user info

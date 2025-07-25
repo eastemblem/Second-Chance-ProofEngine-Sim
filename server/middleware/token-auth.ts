@@ -7,6 +7,25 @@ import { appLogger } from "../utils/logger";
 const JWT_SECRET = process.env.JWT_SECRET || 'dev-jwt-secret-key-change-in-production';
 const JWT_EXPIRES_IN = '7d'; // 7 days
 
+// Token blacklist for logout functionality
+const blacklistedTokens = new Set<string>();
+
+// Clean up expired tokens from blacklist every hour
+setInterval(() => {
+  const now = Date.now() / 1000;
+  for (const token of blacklistedTokens) {
+    try {
+      const decoded = jwt.decode(token) as any;
+      if (decoded && decoded.exp && decoded.exp < now) {
+        blacklistedTokens.delete(token);
+      }
+    } catch (error) {
+      // If token can't be decoded, remove it
+      blacklistedTokens.delete(token);
+    }
+  }
+}, 60 * 60 * 1000); // 1 hour
+
 export interface AuthToken {
   founderId: string;
   email: string;
@@ -32,16 +51,30 @@ export function generateAuthToken(payload: Omit<AuthToken, 'iat' | 'exp'>): stri
 }
 
 /**
- * Verify JWT token
+ * Verify JWT token and check if it's blacklisted
  */
 export function verifyAuthToken(token: string): AuthToken | null {
   try {
+    // Check if token is blacklisted (logged out)
+    if (blacklistedTokens.has(token)) {
+      appLogger.auth('Token is blacklisted (logged out)');
+      return null;
+    }
+
     const decoded = jwt.verify(token, JWT_SECRET) as AuthToken;
     return decoded;
   } catch (error) {
     appLogger.auth('Token verification failed:', error instanceof Error ? error.message : 'Unknown error');
     return null;
   }
+}
+
+/**
+ * Invalidate a JWT token by adding it to blacklist
+ */
+export function invalidateToken(token: string): void {
+  blacklistedTokens.add(token);
+  appLogger.auth('Token invalidated and added to blacklist');
 }
 
 /**

@@ -21,17 +21,28 @@ export default function Navbar({ showSignOut = false, showSignIn = false, logoOn
     try {
       setIsLoggingOut(true);
       
-      const response = await fetch('/api/auth/logout', {
+      // Get JWT token from localStorage
+      const token = localStorage.getItem('auth_token');
+      
+      const response = await fetch('/api/auth-token/logout', {
         method: 'POST',
+        headers: {
+          'Authorization': token ? `Bearer ${token}` : '',
+          'Content-Type': 'application/json'
+        },
       });
 
       if (response.ok) {
+        // Clear localStorage
+        localStorage.removeItem('auth_token');
+        localStorage.removeItem('auth_user');
+        
         // Track successful logout event
         trackEvent('logout', 'authentication', 'navbar_logout_success');
         
         toast({
           title: "Signed Out",
-          description: "You have been successfully signed out.",
+          description: "JWT token invalidated. You have been successfully signed out.",
           duration: 3000,
         });
         
