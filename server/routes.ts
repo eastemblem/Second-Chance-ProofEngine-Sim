@@ -680,17 +680,18 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
 // Helper functions for file processing
 function getCategoryFromFolderId(folderId: string): string {
-  // Map folder IDs to category names
+  // FIXED: Map actual Box.com folder IDs to category names based on real folder structure
   const folderMap: Record<string, string> = {
-    '332844784735': 'Overview', // Main folder ID seen in database
-    '332844784736': 'Problem Proofs',
-    '332844784737': 'Solution Proofs', 
-    '332844784738': 'Demand Proofs',
-    '332844784739': 'Credibility Proofs',
-    '332844784740': 'Commercial Proofs',
-    '332844784741': 'Investor Pack'
+    '332844784735': 'Overview',     // 0_Overview
+    '332844933261': 'Problem Proofs', // 1_Problem_Proof  
+    '332842993678': 'Solution Proofs', // 2_Solution_Proof
+    '332843828465': 'Demand Proofs',   // 3_Demand_Proof
+    '332843291772': 'Credibility Proofs', // 4_Credibility_Proof
+    '332845124499': 'Commercial Proofs',  // 5_Commercial_Proof
+    '332842251627': 'Investor Pack'       // 6_Investor_Pack
   };
   
+  console.log(`📁 Mapping folder ID '${folderId}' to category: ${folderMap[folderId] || 'Overview (default)'}`);
   return folderMap[folderId] || 'Overview';
 }
 
