@@ -256,10 +256,13 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const fileCounts = files.reduce((counts, file) => {
         let category = getCategoryFromFolderId(file.folderId || '332844784735');
         
-        // FIXED: Only use subfolderToParentMap for actual user-created subfolders
-        // Don't override the category if the file is already in a main category folder
-        if (file.folderId && subfolderToParentMap[file.folderId] && category === 'Overview') {
-          // Only override if getCategoryFromFolderId returned 'Overview' (meaning unknown folder)
+        // CORRECTED: Check if this folder ID is actually a user-created subfolder
+        // Main category folder IDs are known, subfolders are dynamically created
+        const mainFolderIds = ['332844784735', '332844933261', '332842993678', '332843828465', '332843291772', '332845124499', '332842251627'];
+        const isMainFolder = mainFolderIds.includes(file.folderId || '');
+        
+        // If it's not a main folder and exists in subfolderToParentMap, it's a user-created subfolder
+        if (!isMainFolder && file.folderId && subfolderToParentMap[file.folderId]) {
           category = subfolderToParentMap[file.folderId];
           console.log(`📁 File ${file.fileName} in subfolder ${file.folderId} mapped to category: ${category}`);
         }
