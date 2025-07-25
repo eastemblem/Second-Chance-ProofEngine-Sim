@@ -1,8 +1,25 @@
 // Session management utilities
 import { Request } from "express";
+import crypto from "crypto";
 
 export function getSessionId(req: Request): string {
-  return req.sessionID || req.headers['x-session-id'] as string || 'default-session';
+  // Always generate a valid UUID for onboarding sessions
+  // Express session IDs are not UUID format and won't work with our database schema
+  
+  // Try to get session ID from headers first (for API calls with proper UUIDs)
+  let sessionId = req.headers['x-session-id'] as string;
+  
+  // Validate if it's a proper UUID, if not generate a new one
+  if (!sessionId || !isValidUUID(sessionId)) {
+    sessionId = crypto.randomUUID();
+  }
+  
+  return sessionId;
+}
+
+function isValidUUID(str: string): boolean {
+  const uuidRegex = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
+  return uuidRegex.test(str);
 }
 
 export async function getSessionData(sessionId: string): Promise<any> {
