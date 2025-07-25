@@ -3,6 +3,7 @@ import { storage } from "../storage";
 import { ActivityService } from "../services/activity-service";
 import { databaseService } from "../services/database-service";
 import { cacheService } from "../services/cache-service";
+import { kvCacheService } from "../services/kv-cache-service";
 
 const router = Router();
 
@@ -428,11 +429,14 @@ router.get("/performance", async (req, res) => {
     
     const queryTime = Date.now() - startTime;
     
+    const kvStats = kvCacheService.isAvailable() ? await kvCacheService.getStats() : null;
+    
     res.json({
       queryResponseTime: queryTime,
       hasOptimizedData: !!dashboardData,
       connectionHealth: await databaseService.healthCheck(),
       cacheStats: cacheService.getStats(),
+      kvCacheStats: kvStats,
       message: queryTime < 50 ? "Excellent performance (cached)" : 
                queryTime < 100 ? "Excellent performance" : 
                queryTime < 500 ? "Good performance" : "Needs optimization"
@@ -440,6 +444,85 @@ router.get("/performance", async (req, res) => {
   } catch (error) {
     console.error("Performance test error:", error);
     res.status(500).json({ error: "Performance test failed" });
+  }
+});
+
+// KV Cache management endpoint
+router.post("/cache/cleanup", async (req, res) => {
+  try {
+    const founderId = req.session?.founderId;
+    
+    if (!founderId) {
+      return res.status(401).json({ error: "Not authenticated" });
+    }
+
+    if (!kvCacheService.isAvailable()) {
+      return res.json({ 
+        message: "KV store not available", 
+        memoryCleanup: cacheService.getStats() 
+      });
+    }
+
+    const cleanedCount = await kvCacheService.cleanup();
+    
+    res.json({
+      success: true,
+      cleanedEntries: cleanedCount,
+      kvStats: await kvCacheService.getStats(),
+      memoryStats: cacheService.getStats()
+    });
+  } catch (error) {
+    console.error("Cache cleanup error:", error);
+    res.status(500).json({ error: "Cache cleanup failed" });
+  }
+});
+
+// Cache invalidation endpoint for testing
+router.post("/cache/invalidate/:type", async (req, res) => {
+  try {
+    const founderId = req.session?.founderId;
+    const cacheType = req.params.type;
+    
+    if (!founderId) {
+      return res.status(401).json({ error: "Not authenticated" });
+    }
+
+    switch (cacheType) {
+      case 'founder':
+        cacheService.invalidateFounder(founderId);
+        databaseService.invalidateFounderCache(founderId);
+        if (kvCacheService.isAvailable()) {
+          await kvCacheService.delete(`founder_${founderId}`, { namespace: 'founder' });
+        }
+        break;
+      case 'dashboard':
+        cacheService.invalidateDashboard(founderId);
+        if (kvCacheService.isAvailable()) {
+          await kvCacheService.delete(`dashboard_${founderId}`, { namespace: 'dashboard' });
+        }
+        break;
+      case 'all':
+        cacheService.invalidateFounder(founderId);
+        cacheService.invalidateDashboard(founderId);
+        databaseService.invalidateFounderCache(founderId);
+        if (kvCacheService.isAvailable()) {
+          await kvCacheService.clearNamespace('founder');
+          await kvCacheService.clearNamespace('dashboard');
+        }
+        break;
+      default:
+        return res.status(400).json({ error: "Invalid cache type" });
+    }
+
+    res.json({
+      success: true,
+      invalidated: cacheType,
+      founderId,
+      cacheStats: cacheService.getStats()
+    });
+  } catch (error) {
+    console.error("Cache invalidation error:", error);
+    res.status(500).json({ error: "Cache invalidation failed" });
   }
 });
 

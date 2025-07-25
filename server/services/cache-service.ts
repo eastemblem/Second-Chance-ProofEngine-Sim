@@ -1,4 +1,5 @@
 import { LRUCache } from "lru-cache";
+import { kvCacheService } from "./kv-cache-service";
 
 /**
  * Cache Service for Performance Optimization
@@ -45,15 +46,26 @@ export class CacheService {
   }
 
   /**
-   * Founder data caching with automatic invalidation
+   * Founder data caching with KV backup and automatic invalidation
    */
   async getFounder(founderId: string, fetchFn: () => Promise<any>): Promise<any> {
     const cacheKey = `founder_${founderId}`;
-    let cached = this.founderCache.get(cacheKey);
     
+    // Try memory cache first
+    let cached = this.founderCache.get(cacheKey);
     if (cached) {
-      console.log(`🎯 Cache HIT: Founder ${founderId}`);
+      console.log(`🎯 Memory Cache HIT: Founder ${founderId}`);
       return cached;
+    }
+
+    // Try KV store backup
+    if (kvCacheService.isAvailable()) {
+      cached = await kvCacheService.get(cacheKey, { namespace: 'founder', ttl: 900 });
+      if (cached) {
+        console.log(`🎯 KV Cache HIT: Founder ${founderId}`);
+        this.founderCache.set(cacheKey, cached);
+        return cached;
+      }
     }
 
     console.log(`📥 Cache MISS: Fetching founder ${founderId}`);
@@ -61,28 +73,47 @@ export class CacheService {
     
     if (data) {
       this.founderCache.set(cacheKey, data);
+      if (kvCacheService.isAvailable()) {
+        await kvCacheService.set(cacheKey, data, { namespace: 'founder', ttl: 900 });
+      }
     }
     
     return data;
   }
 
   /**
-   * Dashboard data caching with founder-specific keys
+   * Dashboard data caching with founder-specific keys and KV backup
    */
   async getDashboardData(founderId: string, fetchFn: () => Promise<any>): Promise<any> {
     const cacheKey = `dashboard_${founderId}`;
-    let cached = this.dashboardCache.get(cacheKey);
     
+    // Try memory cache first (fastest)
+    let cached = this.dashboardCache.get(cacheKey);
     if (cached) {
-      console.log(`🎯 Cache HIT: Dashboard ${founderId}`);
+      console.log(`🎯 Memory Cache HIT: Dashboard ${founderId}`);
       return cached;
+    }
+
+    // Try KV store as backup (persistent)
+    if (kvCacheService.isAvailable()) {
+      cached = await kvCacheService.get(cacheKey, { namespace: 'dashboard', ttl: 300 });
+      if (cached) {
+        console.log(`🎯 KV Cache HIT: Dashboard ${founderId}`);
+        // Populate memory cache for next request
+        this.dashboardCache.set(cacheKey, cached);
+        return cached;
+      }
     }
 
     console.log(`📥 Cache MISS: Fetching dashboard data ${founderId}`);
     const data = await fetchFn();
     
     if (data) {
+      // Store in both memory and KV cache
       this.dashboardCache.set(cacheKey, data);
+      if (kvCacheService.isAvailable()) {
+        await kvCacheService.set(cacheKey, data, { namespace: 'dashboard', ttl: 300 });
+      }
     }
     
     return data;
