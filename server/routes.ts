@@ -169,7 +169,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         proofscore: currentScore,
         prooftags: latestEvaluation?.prooftags || [],
         prooftagsProgress: `${unlockedProofTags}/${totalProofTags}`,
-        analysisDate: latestEvaluation?.evaluationDate?.toISOString(),
+        analysisDate: latestEvaluation?.evaluationDate || new Date().toISOString(),
         founderName: founderData?.fullName || founderData?.email?.split('@')[0] || 'Founder',
         ventureName: latestVenture?.name || 'Your Venture',
         filesUploaded: 0, // Will be calculated from documents

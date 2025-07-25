@@ -14,19 +14,25 @@ export class CacheService {
 
   /**
    * Founder data caching with hybrid LRU + KV approach
+   * FIXED: Don't cache null/undefined results and bypass cache for null values
    */
   async getFounder(founderId: string, fetchFn: () => Promise<any>): Promise<any> {
     // Try LRU cache first (memory)
     const cached = await lruCacheService.get('founder', founderId);
-    if (cached !== null) {
+    if (cached !== null && cached !== undefined) {
+      console.log(`🎯 Cache HIT: Founder ${founderId}`);
       return cached;
     }
 
     console.log(`📥 Cache MISS: Fetching founder ${founderId}`);
     const data = await fetchFn();
     
-    if (data) {
+    // Only cache valid, non-null data
+    if (data && data !== null && data !== undefined) {
       await lruCacheService.set('founder', founderId, data);
+      console.log(`💾 Cache SET: Founder ${founderId}`);
+    } else {
+      console.log(`⚠️ Not caching null/empty result for founder ${founderId}`);
     }
     
     return data;
@@ -34,19 +40,25 @@ export class CacheService {
 
   /**
    * Dashboard data caching with hybrid LRU + KV approach
+   * FIXED: Don't cache null/undefined results and bypass cache for null values
    */
   async getDashboardData(founderId: string, fetchFn: () => Promise<any>): Promise<any> {
     // Try LRU cache first (sub-millisecond response)
     const cached = await lruCacheService.get('dashboard', founderId);
-    if (cached !== null) {
+    if (cached !== null && cached !== undefined) {
+      console.log(`🎯 Dashboard Cache HIT: ${founderId}`);
       return cached;
     }
 
     console.log(`📥 Cache MISS: Fetching dashboard data ${founderId}`);
     const data = await fetchFn();
     
-    if (data) {
+    // Only cache valid, non-null data
+    if (data && data !== null && data !== undefined) {
       await lruCacheService.set('dashboard', founderId, data);
+      console.log(`💾 Dashboard Cache SET: ${founderId}`);
+    } else {
+      console.log(`⚠️ Not caching null/empty result for dashboard ${founderId}`);
     }
     
     return data;
