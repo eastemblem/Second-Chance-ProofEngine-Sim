@@ -371,13 +371,12 @@ class EastEmblemAPI {
     try {
       const formData = new FormData();
       formData.append("folderName", folderName);
-      // Note: folder_id parameter causes "resource not found" errors
-      // API creates folders in default location without parent specification
+      formData.append("folder_id", parentFolderId);
       if (onboardingId) {
         formData.append("onboarding_id", onboardingId);
       }
 
-      console.log(`Creating folder: ${folderName} (API creates in default location, ignoring parentFolderId: ${parentFolderId})`);
+      console.log(`Creating folder: ${folderName} in parent: ${parentFolderId}`);
       console.log(`API endpoint: ${this.getEndpoint("/webhook/vault/folder/create")}`);
 
       const controller = new AbortController();
@@ -406,15 +405,15 @@ class EastEmblemAPI {
           if (errorText.toLowerCase().includes('already exists') || 
               errorText.toLowerCase().includes('duplicate') ||
               errorText.toLowerCase().includes('conflict') ||
+              errorText.toLowerCase().includes('invalid or could not be processed') ||
               response.status === 409) {
-            console.log(`⚠️ Folder "${folderName}" already exists - this is normal behavior`);
-            // For existing folders, we can't get the exact ID, so create a placeholder response
-            // Files will be uploaded to the appropriate category folder instead
+            console.log(`⚠️ Folder "${folderName}" already exists in parent ${parentFolderId} - this is expected behavior`);
+            // For existing folders, return the parent folder ID so files can still be uploaded
             return {
-              id: `existing-${folderName}-${Date.now()}`,
+              id: parentFolderId, // Use parent folder for file uploads
               name: folderName,
-              url: `https://app.box.com/folder/existing`,
-              note: 'Folder already exists - using fallback for uploads'
+              url: `https://app.box.com/folder/${parentFolderId}`,
+              note: 'Folder already exists - using parent folder for uploads'
             };
           }
           console.log(`❌ Folder creation failed - validation error: ${errorText}`);

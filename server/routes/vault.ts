@@ -438,15 +438,40 @@ router.post('/create-folder', upload.none(), asyncHandler(async (req, res) => {
     
     console.log(`🔍 Folder creation - Input folder_id: '${folder_id}' (type: ${typeof folder_id})`);
     
-    const categoryToFolderMap: Record<string, string> = {
-      '0_Overview': '332844784735',
-      '1_Problem_Proof': '332844933261', 
-      '2_Solution_Proof': '332842993678',
-      '3_Demand_Proof': '332843828465',
-      '4_Credibility_Proof': '332843291772',
-      '5_Commercial_Proof': '332845124499',
-      '6_Investor_Pack': '332842251627'
-    };
+    // First, try to get the user's actual vault structure with current folder IDs
+    let categoryToFolderMap: Record<string, string> = {};
+    
+    try {
+      // Try to get the user's vault structure from session data
+      const sessionData = getSessionData(req);
+      if (sessionData?.folderStructure?.folders) {
+        categoryToFolderMap = sessionData.folderStructure.folders;
+        console.log(`🔄 Using session vault structure:`, categoryToFolderMap);
+      } else {
+        // Fallback to static mapping (these may be outdated)
+        categoryToFolderMap = {
+          '0_Overview': '332844784735',
+          '1_Problem_Proof': '332844933261', 
+          '2_Solution_Proof': '332842993678',
+          '3_Demand_Proof': '332843828465',
+          '4_Credibility_Proof': '332843291772',
+          '5_Commercial_Proof': '332845124499',
+          '6_Investor_Pack': '332842251627'
+        };
+        console.log(`⚠️ Using fallback static folder mapping - may be outdated`);
+      }
+    } catch (error) {
+      console.log(`❌ Failed to get vault structure, using static mapping:`, error);
+      categoryToFolderMap = {
+        '0_Overview': '332844784735',
+        '1_Problem_Proof': '332844933261', 
+        '2_Solution_Proof': '332842993678',
+        '3_Demand_Proof': '332843828465',
+        '4_Credibility_Proof': '332843291772',
+        '5_Commercial_Proof': '332845124499',
+        '6_Investor_Pack': '332842251627'
+      };
+    }
     
     console.log(`🗂️ Available mappings:`, Object.keys(categoryToFolderMap));
     console.log(`🔍 Looking up mapping for '${folder_id}':`, categoryToFolderMap[folder_id]);
