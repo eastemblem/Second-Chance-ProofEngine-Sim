@@ -686,6 +686,10 @@ export default function DashboardPage() {
 
     const fileList = Array.from(files);
     
+    console.log(`🔍 FOLDER UPLOAD DEBUG: selectedCategory = "${selectedCategory}"`);
+    console.log(`🔍 FOLDER UPLOAD DEBUG: selectedCategory type = ${typeof selectedCategory}`);
+    console.log(`🔍 FOLDER UPLOAD DEBUG: Expected categories: 0_Overview, 1_Problem_Proof, etc.`);
+    
     // Start folder creation loading state
     setIsCreatingFolders(true);
     setFolderCreationStatus('Analyzing folder structure...');
@@ -710,6 +714,9 @@ export default function DashboardPage() {
         title: "Organizing Files",
         description: `Files will be organized in your ${getFolderDisplayName(selectedCategory)} category`,
       });
+      
+      console.log(`🔍 DEBUG: selectedCategory = "${selectedCategory}" (should NOT be a folder ID like 332844933261)`);
+      console.log(`🔍 DEBUG: folderStructure.rootFolderName = "${folderStructure.rootFolderName}"`);
       
       const mainFolderId = await createFolder(folderStructure.rootFolderName, selectedCategory);
       
