@@ -58,7 +58,7 @@ export default function ProcessingScreen({
 
   const submitForScoringMutation = useMutation({
     mutationFn: async () => {
-      const res = await apiRequest("POST", "/api/submit-for-scoring", {
+      const res = await apiRequest("POST", "/api/v1/onboarding/submit-for-scoring", {
         sessionId
       });
       

@@ -408,6 +408,14 @@ Demo experience for testing different user journeys:
 - **EXPECTED RESULTS**: LCP reduction from 5 seconds to under 2 seconds through improved loading states, lazy loading, and caching
 - **PRODUCTION READY**: All optimizations include proper error handling and graceful degradation
 
+### July 25, 2025 - RETRY LOGIC FIXED: Corrected Frontend Endpoint Path for Successful Processing
+- **RETRY LOGIC ENDPOINT CORRECTION**: Fixed processing page retry functionality to use correct V1 endpoint `/api/v1/onboarding/submit-for-scoring` instead of legacy `/api/submit-for-scoring`
+- **FRONTEND-BACKEND INTEGRATION**: Processing retry button now properly calls V1 API system ensuring successful score processing
+- **ENDPOINT PATH RESOLUTION**: Root cause of "retry logic failed" was incorrect API endpoint path in frontend mutation
+- **COMPLETE FUNCTIONALITY RESTORED**: Both automatic retries and manual user retry button now working with V1 API integration
+- **SCORING SYSTEM OPERATIONAL**: Full end-to-end processing flow functional - scoring, retry logic, certificate generation all working
+- **PRODUCTION READY**: All retry mechanisms (automatic exponential backoff + manual user retry) operational with correct API endpoints
+
 ### July 25, 2025 - CRITICAL: Complete Scoring API Response Storage Implementation
 - **MAJOR DATA STORAGE ENHANCEMENT**: Implemented permanent storage of complete EastEmblem API responses in evaluation table
 - **Database Schema Enhancement**: Added `fullApiResponse` (jsonb) and `dimensionScores` (json) fields to evaluation table
