@@ -166,13 +166,16 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const unlockedProofTags = Math.floor((currentScore / 100) * totalProofTags);
 
       const validationData = {
-        proofscore: currentScore,
+        proofScore: currentScore, // FIXED: Use camelCase to match frontend interface
+        proofTagsUnlocked: unlockedProofTags, // FIXED: Match frontend interface
+        totalProofTags: totalProofTags, // FIXED: Match frontend interface
         prooftags: latestEvaluation?.prooftags || [],
         prooftagsProgress: `${unlockedProofTags}/${totalProofTags}`,
         analysisDate: latestEvaluation?.evaluationDate || new Date().toISOString(),
         founderName: founderData?.fullName || founderData?.email?.split('@')[0] || 'Founder',
         ventureName: latestVenture?.name || 'Your Venture',
         filesUploaded: 0, // Will be calculated from documents
+        status: currentScore >= 90 ? 'Deal Room Ready' : currentScore >= 70 ? 'Investor Ready' : 'Building Validation', // FIXED: Add status field
         investorReady: currentScore >= 70,
         dealRoomAccess: currentScore >= 90,
         certificateUrl: latestVenture?.certificateUrl,
