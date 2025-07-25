@@ -126,6 +126,27 @@ Demo experience for testing different user journeys:
 
 ## Recent Key Updates
 
+### July 25, 2025 - CRITICAL: Complete Scoring API Response Storage Implementation
+- **MAJOR DATA STORAGE ENHANCEMENT**: Implemented permanent storage of complete EastEmblem API responses in evaluation table
+- **Database Schema Enhancement**: Added `fullApiResponse` (jsonb) and `dimensionScores` (json) fields to evaluation table
+- **Rich Data Persistence**: Complete scoring responses now permanently stored including:
+  * All category scores (problem, solution, market_opportunity, traction, etc.)
+  * Key insights and detailed recommendations  
+  * Team analysis and business model evaluation
+  * Complete API response structure with nested data
+- **Advanced ProofTag Foundation**: Full API storage enables sophisticated ProofTag logic beyond simple thresholds
+- **Data Access API**: Added `/api/dashboard/scoring-insights` endpoint to demonstrate rich data access
+- **Migration Complete**: Database migration successful, new evaluations store complete API responses
+- **ProofTag Enhancement Ready**: System can now implement complex conditional ProofTag logic using:
+  * Team quality analysis (team.score, roles, experience)
+  * Market validation metrics (market_opportunity.validation_score)
+  * Revenue model assessment (business_model.sustainability)
+  * Traction milestone tracking (customer_acquisition, growth_metrics)
+  * Investment readiness combinations (multi-category custom thresholds)
+- **Demo Component**: Created ScoringInsightsDemo component showcasing rich data access patterns
+- **Data Integrity**: No more data loss - complete scoring responses preserved permanently after onboarding
+- **Backward Compatibility**: Existing evaluations continue working, new ones include rich data storage
+
 ### July 24, 2025 - EastEmblem Upload Response Integration & Automated Flow Fix
 - **Upload API Response Mapping**: Updated system to handle EastEmblem's upload response format properly
 - **Field Mapping Implementation**: 

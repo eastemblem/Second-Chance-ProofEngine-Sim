@@ -92,6 +92,15 @@ export const evaluation = pgTable("evaluation", {
   evaluationDate: date("evaluation_date").notNull().defaultNow(),
   proofscore: integer("proofscore").notNull(),
   prooftags: json("prooftags").$type<string[]>().notNull().default([]),
+  // ADDITION: Store complete API response for rich insights and advanced ProofTag logic
+  fullApiResponse: jsonb("full_api_response"), // Complete scoring API response
+  dimensionScores: json("dimension_scores").$type<{
+    desirability?: number;
+    feasibility?: number; 
+    viability?: number;
+    traction?: number;
+    readiness?: number;
+  }>().default({}), // Mapped dimension scores for easy access
   folderId: varchar("folder_id", { length: 255 }).unique(),
   folderUrl: varchar("folder_url", { length: 255 }),
   isCurrent: boolean("is_current").notNull().default(true),

@@ -38,7 +38,15 @@ router.get("/validation", async (req, res) => {
       filesUploaded: 0,
       status: "Excellent! You're investor-ready. Your data room is now visible to our verified investor network.",
       ventureId: latestVenture.ventureId,
-      ventureName: latestVenture.name
+      ventureName: latestVenture.name,
+      // NEW: Rich scoring data available from stored API response
+      hasFullApiResponse: !!latestEvaluation?.fullApiResponse,
+      dimensionScores: latestEvaluation?.dimensionScores || {},
+      apiResponsePreview: latestEvaluation?.fullApiResponse ? {
+        hasKeyInsights: !!(latestEvaluation.fullApiResponse as any)?.key_insights || !!(latestEvaluation.fullApiResponse as any)?.output?.key_insights,
+        hasDetailedScores: !!(latestEvaluation.fullApiResponse as any)?.output,
+        totalCategories: (latestEvaluation.fullApiResponse as any)?.output ? Object.keys((latestEvaluation.fullApiResponse as any).output).length : 0
+      } : null
     };
 
     res.json(validationData);
@@ -323,6 +331,67 @@ router.get("/leaderboard", async (req, res) => {
   } catch (error) {
     console.error("Leaderboard data error:", error);
     res.status(500).json({ error: "Failed to load leaderboard data" });
+  }
+});
+
+// NEW: Get full scoring insights for advanced ProofTag logic
+router.get("/scoring-insights", async (req, res) => {
+  try {
+    const founderId = req.session?.founderId;
+    
+    if (!founderId) {
+      return res.status(401).json({ error: "Not authenticated" });
+    }
+
+    // Get founder's latest venture
+    const ventures = await storage.getFounderVentures(founderId);
+    const latestVenture = ventures.length > 0 ? ventures[ventures.length - 1] : null;
+
+    if (!latestVenture) {
+      return res.status(404).json({ error: "No venture found" });
+    }
+
+    // Get latest evaluation with full API response
+    const latestEvaluation = await storage.getLatestEvaluationByVentureId(latestVenture.ventureId);
+    
+    if (!latestEvaluation?.fullApiResponse) {
+      return res.status(404).json({ error: "No detailed scoring data available" });
+    }
+
+    const apiResponse = latestEvaluation.fullApiResponse as any;
+    
+    // Extract rich insights from stored API response
+    const scoringInsights = {
+      evaluation: {
+        id: latestEvaluation.evaluationId,
+        venture: latestVenture.name,
+        score: latestEvaluation.proofscore,
+        evaluationDate: latestEvaluation.evaluationDate,
+        proofTags: latestEvaluation.prooftags
+      },
+      dimensionScores: latestEvaluation.dimensionScores,
+      detailedScores: apiResponse.output || {},
+      keyInsights: apiResponse.key_insights || apiResponse.output?.key_insights || [],
+      recommendations: apiResponse.recommendations || [],
+      // Example of rich data for advanced ProofTag logic
+      availableData: {
+        hasTeamInfo: !!(apiResponse.output?.team),
+        hasMarketData: !!(apiResponse.output?.market_opportunity),
+        hasFinancials: !!(apiResponse.output?.financials_projections_ask),
+        hasTraction: !!(apiResponse.output?.traction),
+        hasBusinessModel: !!(apiResponse.output?.business_model),
+        totalCategories: apiResponse.output ? Object.keys(apiResponse.output).length : 0
+      }
+    };
+
+    res.json({
+      success: true,
+      data: scoringInsights,
+      message: "Complete scoring insights retrieved from stored API response"
+    });
+  } catch (error) {
+    console.error("Error fetching scoring insights:", error);
+    res.status(500).json({ error: "Failed to fetch scoring insights" });
   }
 });
 

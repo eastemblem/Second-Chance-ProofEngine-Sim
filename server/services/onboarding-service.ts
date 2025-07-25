@@ -744,6 +744,9 @@ export class OnboardingService {
             evaluationDate: new Date().toISOString().split('T')[0], // YYYY-MM-DD format
             proofscore: totalScore,
             prooftags: extractedTags,
+            // STORE COMPLETE API RESPONSE for rich insights and advanced ProofTag logic
+            fullApiResponse: scoringResult, // Complete scoring API response
+            dimensionScores: dimensionScores, // Mapped dimension scores for easy access
             folderId: folderStructure?.id || null,
             folderUrl: folderStructure?.url || null,
             isCurrent: true,
