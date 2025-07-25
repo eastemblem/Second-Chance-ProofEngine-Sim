@@ -614,6 +614,14 @@ export default function DashboardPage() {
       const formData = new FormData();
       formData.append('folderName', folderName);
       formData.append('folder_id', parentFolderId);
+      
+      // CRITICAL FIX: Add ventureId from user data for proof_vault mapping
+      if (user?.venture?.ventureId) {
+        formData.append('ventureId', user.venture.ventureId);
+        console.log(`🔍 Creating folder with ventureId: ${user.venture.ventureId}`);
+      } else {
+        console.log(`⚠️ No ventureId available in user data:`, user);
+      }
 
       const response = await fetch('/api/vault/create-folder', {
         method: 'POST',

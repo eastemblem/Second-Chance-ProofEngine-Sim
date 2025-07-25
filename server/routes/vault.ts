@@ -344,7 +344,7 @@ router.delete("/remove-file/:fileId", asyncHandler(async (req, res) => {
 
 // Create folder endpoint
 router.post('/create-folder', upload.none(), asyncHandler(async (req, res) => {
-  const { folderName, folder_id } = req.body;
+  const { folderName, folder_id, ventureId } = req.body;
   
   if (!folderName || !folder_id) {
     return res.status(400).json({ error: 'folderName and folder_id are required' });
@@ -405,33 +405,63 @@ router.post('/create-folder', upload.none(), asyncHandler(async (req, res) => {
     console.log(`✅ Folder creation successful:`, result);
     
     // CRITICAL FIX: Store folder mapping in proof_vault table
-    if (req.session?.founderId) {
-      try {
-        const { storage } = await import("../storage");
+    console.log(`🔍 DEBUG: Session founderId: ${req.session?.founderId || 'NOT FOUND'}`);
+    console.log(`🔍 DEBUG: Request ventureId: ${ventureId || 'NOT PROVIDED'}`);
+    
+    try {
+      const { storage } = await import("../storage");
+      let targetVenture = null;
+      
+      // Method 1: Use ventureId directly from request (preferred for API calls)
+      if (ventureId) {
+        console.log(`🔍 DEBUG: Using provided ventureId: ${ventureId}`);
+        targetVenture = await storage.getVenture(ventureId);
+        if (targetVenture) {
+          console.log(`✅ Found venture by ID: ${targetVenture.ventureName} (${targetVenture.ventureId})`);
+        }
+      }
+      
+      // Method 2: Fallback to session-based approach
+      if (!targetVenture && req.session?.founderId) {
+        console.log(`🔍 DEBUG: Fallback - Fetching ventures for founder ${req.session.founderId}`);
         const ventures = await storage.getVenturesByFounderId(req.session.founderId);
-        const latestVenture = ventures.length > 0 ? ventures[0] : null;
+        console.log(`🔍 DEBUG: Found ${ventures.length} ventures for founder`);
+        targetVenture = ventures.length > 0 ? ventures[0] : null;
+      }
+      
+      if (targetVenture) {
+        console.log(`🔍 DEBUG: Using venture ${targetVenture.ventureId} (${targetVenture.ventureName})`);
         
-        if (latestVenture) {
-          // Store folder mapping in proof_vault table
-          const createdFolderId = result.folderId || result.id;
-          if (createdFolderId) {
-            await storage.createProofVault({
-              ventureId: latestVenture.ventureId,
-              artefactType: 'Technical Documentation', // Default artefact type
-              parentFolderId: actualParentFolderId, // Box.com parent folder ID
-              subFolderId: createdFolderId.toString(), // Box.com created folder ID
-              sharedUrl: result.shared_url || result.url || '',
-              folderName: folderName,
-              description: `Subfolder created in ${getFolderDisplayName(folder_id)}`
-            });
-            console.log(`✅ FOLDER MAPPING STORED: ${folderName} (${createdFolderId}) → parent ${actualParentFolderId} (${folder_id})`);
-          }
+        // Store folder mapping in proof_vault table
+        const createdFolderId = result.folderId || result.id;
+        console.log(`🔍 DEBUG: Created folder ID: ${createdFolderId}`);
+        
+        if (createdFolderId) {
+          const proofVaultData = {
+            ventureId: targetVenture.ventureId,
+            artefactType: 'Technical Documentation' as const, // Default artefact type
+            parentFolderId: actualParentFolderId, // Box.com parent folder ID
+            subFolderId: createdFolderId.toString(), // Box.com created folder ID
+            sharedUrl: result.shared_url || result.url || '',
+            folderName: folderName,
+            description: `Subfolder created in ${getFolderDisplayName(folder_id)}`
+          };
+          
+          console.log(`🔍 DEBUG: About to create proof_vault entry:`, proofVaultData);
+          
+          const proofVaultEntry = await storage.createProofVault(proofVaultData);
+          console.log(`✅ FOLDER MAPPING STORED: ${folderName} (${createdFolderId}) → parent ${actualParentFolderId} (${folder_id})`);
+          console.log(`✅ PROOF VAULT ENTRY CREATED: ID ${proofVaultEntry.vaultId}`);
+        } else {
+          console.log(`❌ No created folder ID found in result:`, result);
+        }
 
-          // Track folder creation activity
+        // Track folder creation activity if session exists
+        if (req.session?.founderId) {
           await ActivityService.logActivity(
             {
               founderId: req.session.founderId,
-              ventureId: latestVenture.ventureId,
+              ventureId: targetVenture.ventureId,
               sessionId: req.sessionID,
               ipAddress: req.ip || req.connection.remoteAddress,
               userAgent: req.get('User-Agent')
@@ -444,8 +474,14 @@ router.post('/create-folder', upload.none(), asyncHandler(async (req, res) => {
             }
           );
         }
-      } catch (error) {
-        console.error('Failed to store folder mapping or log activity:', error);
+      } else {
+        console.log(`❌ No venture found - neither by ventureId (${ventureId}) nor by founderId (${req.session?.founderId})`);
+      }
+    } catch (error) {
+      console.error('❌ DETAILED ERROR in folder mapping storage:', error);
+      if (error instanceof Error) {
+        console.error('Error message:', error.message);
+        console.error('Error stack:', error.stack);
       }
     }
 
