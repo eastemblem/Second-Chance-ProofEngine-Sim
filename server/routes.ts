@@ -13,6 +13,7 @@ import { getLeaderboard, createLeaderboardEntry } from "./routes/leaderboard";
 import { generateCertificate, downloadCertificate, getCertificateStatus } from "./routes/certificate";
 import { generateReport } from "./routes/report";
 import { databaseService } from "./services/database-service";
+import { authenticateToken } from "./middleware/token-auth";
 import multer from "multer";
 import path from "path";
 import fs from "fs";
@@ -138,15 +139,15 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Mount modular API routes
   app.use("/api", apiRoutes);
 
-  // Leaderboard routes
-  app.get("/api/leaderboard", asyncHandler(getLeaderboard));
-  app.post("/api/leaderboard", asyncHandler(createLeaderboardEntry));
+  // Leaderboard routes with JWT authentication
+  app.get("/api/leaderboard", authenticateToken, asyncHandler(getLeaderboard));
+  app.post("/api/leaderboard", authenticateToken, asyncHandler(createLeaderboardEntry));
 
   // Dashboard API endpoints - fixed in main routes file 
-  app.get('/api/dashboard/validation', asyncHandler(async (req, res) => {
+  app.get('/api/dashboard/validation', authenticateToken, asyncHandler(async (req: any, res) => {
     console.log(`🔧 FIXED: Dashboard validation route accessed`);
     
-    const founderId = req.session?.founderId;
+    const founderId = req.user?.founderId;
     
     if (!founderId) {
       return res.status(401).json({ error: "Not authenticated" });
@@ -204,8 +205,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
   }));
 
   // Dashboard vault endpoint - CACHE DISABLED FOR DEBUGGING
-  app.get('/api/dashboard/vault', asyncHandler(async (req, res) => {
-    const founderId = req.session?.founderId;
+  app.get('/api/dashboard/vault', authenticateToken, asyncHandler(async (req: any, res) => {
+    const founderId = req.user?.founderId;
     
     if (!founderId) {
       return res.status(401).json({ error: "Not authenticated" });
@@ -394,8 +395,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
   }));
 
   // Dashboard activity endpoint - REAL DATA FROM DATABASE
-  app.get('/api/dashboard/activity', asyncHandler(async (req, res) => {
-    const founderId = req.session?.founderId;
+  app.get('/api/dashboard/activity', authenticateToken, asyncHandler(async (req: any, res) => {
+    const founderId = req.user?.founderId;
     
     if (!founderId) {
       return res.status(401).json({ error: "Not authenticated" });

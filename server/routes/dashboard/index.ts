@@ -43,7 +43,11 @@ router.get("/validation", authenticateToken, asyncHandler(async (req, res) => {
       proofTagsUnlocked: Array.isArray(actualProofTags) ? actualProofTags.length : 0,
       totalProofTags: 21,
       status: "active",
-      evaluationDate: dashboardData.evaluation?.evaluationDate?.toISOString() || new Date().toISOString(),
+      evaluationDate: dashboardData.evaluation?.evaluationDate ? 
+        (typeof dashboardData.evaluation.evaluationDate === 'string' ? 
+          dashboardData.evaluation.evaluationDate : 
+          dashboardData.evaluation.evaluationDate.toISOString()) : 
+        new Date().toISOString(),
       investmentReadiness: getInvestmentReadinessStatus(actualProofScore)
     };
 
