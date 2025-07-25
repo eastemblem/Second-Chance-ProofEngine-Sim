@@ -103,7 +103,9 @@ const Privacy = () => {
 
   return (
     <div className="min-h-screen bg-background">
-      <Navbar />
+      <div className="sticky top-0 z-50 bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
+        <Navbar />
+      </div>
       {/* Header */}
       <div className="bg-gradient-to-r from-primary/10 to-primary-gold/10 border-b">
         <div className="max-w-4xl mx-auto px-4 py-12">
@@ -2408,13 +2410,16 @@ const Privacy = () => {
           animate={{ opacity: 1, scale: 1 }}
           exit={{ opacity: 0, scale: 0.5 }}
           onClick={scrollToTop}
-          className="fixed bottom-6 right-6 w-12 h-12 bg-gradient-to-r from-primary to-primary-gold text-white rounded-full shadow-lg hover:shadow-xl transition-shadow z-50 flex items-center justify-center"
+          className="fixed bottom-20 right-6 w-12 h-12 bg-gradient-to-r from-primary to-primary-gold text-white rounded-full shadow-lg hover:shadow-xl transition-shadow z-50 flex items-center justify-center"
         >
           <ArrowUp className="w-5 h-5" />
         </motion.button>
       )}
       
-      <Footer />
+      {/* Sticky Footer */}
+      <div className="sticky bottom-0 z-40 mt-auto">
+        <Footer />
+      </div>
     </div>
   );
 };

@@ -77,7 +77,9 @@ const Terms = () => {
 
   return (
     <div className="min-h-screen bg-background">
-      <Navbar />
+      <div className="sticky top-0 z-50 bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
+        <Navbar />
+      </div>
       {/* Header */}
       <div className="bg-gradient-to-r from-primary/10 to-primary-gold/10 border-b">
         <div className="max-w-4xl mx-auto px-4 py-12">
@@ -844,7 +846,7 @@ const Terms = () => {
         <motion.div
           initial={{ opacity: 0, scale: 0.8 }}
           animate={{ opacity: 1, scale: 1 }}
-          className="fixed bottom-8 right-8 z-50"
+          className="fixed bottom-20 right-8 z-50"
         >
           <Button
             onClick={scrollToTop}
@@ -856,7 +858,10 @@ const Terms = () => {
         </motion.div>
       )}
       
-      <Footer />
+      {/* Sticky Footer */}
+      <div className="sticky bottom-0 z-40 mt-auto">
+        <Footer />
+      </div>
     </div>
   );
 };
