@@ -1,61 +1,52 @@
 import { kvCacheService } from "./kv-cache-service";
+import { lruCacheService } from "./lru-cache-service";
 
 /**
  * Cache Service for Performance Optimization
- * Phase 1.3: Replit KV store only caching
+ * Phase 2: Hybrid LRU + KV store caching
  */
 export class CacheService {
   constructor() {
-    console.log('🔄 CacheService initialized with Replit KV store only');
+    console.log('🔄 CacheService initialized with hybrid LRU + KV caching');
+    // Initialize LRU cache periodic tasks
+    lruCacheService.schedulePeriodicTasks();
   }
 
   /**
-   * Founder data caching with KV store only
+   * Founder data caching with hybrid LRU + KV approach
    */
   async getFounder(founderId: string, fetchFn: () => Promise<any>): Promise<any> {
-    const cacheKey = `founder_${founderId}`;
-    
-    // Try KV store
-    if (kvCacheService.isAvailable()) {
-      const cached = await kvCacheService.get(cacheKey, { namespace: 'founder', ttl: 900 });
-      if (cached) {
-        console.log(`🎯 KV Cache HIT: Founder ${founderId}`);
-        return cached;
-      }
+    // Try LRU cache first (memory)
+    const cached = await lruCacheService.get('founder', founderId);
+    if (cached !== null) {
+      return cached;
     }
 
     console.log(`📥 Cache MISS: Fetching founder ${founderId}`);
     const data = await fetchFn();
     
-    if (data && kvCacheService.isAvailable()) {
-      await kvCacheService.set(cacheKey, data, { namespace: 'founder', ttl: 900 });
-      console.log(`💾 KV Cache SET: ${cacheKey} (TTL: 900s)`);
+    if (data) {
+      await lruCacheService.set('founder', founderId, data);
     }
     
     return data;
   }
 
   /**
-   * Dashboard data caching with KV store only - Extended TTL for better performance
+   * Dashboard data caching with hybrid LRU + KV approach
    */
   async getDashboardData(founderId: string, fetchFn: () => Promise<any>): Promise<any> {
-    const cacheKey = `dashboard_${founderId}`;
-    
-    // Try KV store with longer TTL for dashboard data
-    if (kvCacheService.isAvailable()) {
-      const cached = await kvCacheService.get(cacheKey, { namespace: 'dashboard', ttl: 600 });
-      if (cached) {
-        console.log(`🎯 KV Cache HIT: Dashboard ${founderId}`);
-        return cached;
-      }
+    // Try LRU cache first (sub-millisecond response)
+    const cached = await lruCacheService.get('dashboard', founderId);
+    if (cached !== null) {
+      return cached;
     }
 
     console.log(`📥 Cache MISS: Fetching dashboard data ${founderId}`);
     const data = await fetchFn();
     
-    if (data && kvCacheService.isAvailable()) {
-      await kvCacheService.set(cacheKey, data, { namespace: 'dashboard', ttl: 600 });
-      console.log(`💾 KV Cache SET: ${cacheKey} (TTL: 600s)`);
+    if (data) {
+      await lruCacheService.set('dashboard', founderId, data);
     }
     
     return data;

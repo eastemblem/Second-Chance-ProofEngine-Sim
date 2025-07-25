@@ -6,6 +6,7 @@ import {
 } from "@shared/schema";
 import { eq, desc, and, sql } from "drizzle-orm";
 import { cacheService } from "./cache-service";
+import { lruCacheService } from "./lru-cache-service";
 
 /**
  * Centralized Database Service Layer
