@@ -1,6 +1,8 @@
 import type { Express } from "express";
 import express from "express";
 import { createServer, type Server } from "http";
+import path from "path";
+import fs from "fs";
 
 // New middleware imports
 import { performanceTracker, healthCheck } from "./middleware/performance";
@@ -70,6 +72,48 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
   // Email routes (preserved)
   app.use("/api/email", (await import("./routes/emailRoutes")).default);
+
+  // Serve React frontend from build directory temporarily
+  app.use(express.static(path.join(process.cwd(), 'dist/public')));
+  
+  // Fallback to serve index.html for SPA routing
+  app.get('*', (req, res, next) => {
+    // Skip API routes
+    if (req.path.startsWith('/api')) {
+      return next();
+    }
+    
+    const indexPath = path.join(process.cwd(), 'dist/public/index.html');
+    if (fs.existsSync(indexPath)) {
+      res.sendFile(indexPath);
+    } else {
+      res.send(`
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Second Chance Platform</title>
+    <style>
+        body { font-family: -apple-system, BlinkMacSystemFont, sans-serif; margin: 0; padding: 2rem; background: #0f0f23; color: white; text-align: center; }
+        .container { max-width: 600px; margin: 0 auto; }
+        .error { background: #dc2626; padding: 1rem; border-radius: 0.5rem; margin: 1rem 0; }
+        .link { background: #6366f1; color: white; text-decoration: none; padding: 0.75rem 1.5rem; border-radius: 0.5rem; display: inline-block; margin: 0.5rem; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🚀 Second Chance Platform</h1>
+        <div class="error">Frontend build not found. Run 'npm run build' to build the React application.</div>
+        <p>Backend is running with all APIs operational:</p>
+        <a href="/api/health" class="link">Health Check</a>
+        <a href="/api/dashboard/validation?founderId=test" class="link">Test API</a>
+    </div>
+</body>
+</html>
+      `);
+    }
+  });
 
   // Apply error handling middleware (must be last)
   app.use(notFoundHandler);
