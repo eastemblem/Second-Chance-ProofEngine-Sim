@@ -18,16 +18,18 @@ export function performanceTracker(req: Request, res: Response, next: NextFuncti
     const endMemory = process.memoryUsage();
     const responseTime = endTime - startTime;
     
-    // Log performance metrics
-    appLogger.performance(`Performance [${req.method} ${req.path}]:`, {
-      responseTime: `${responseTime}ms`,
-      statusCode: res.statusCode,
-      memoryDelta: {
-        rss: `${Math.round((endMemory.rss - startMemory.rss) / 1024 / 1024 * 100) / 100}MB`,
-        heapUsed: `${Math.round((endMemory.heapUsed - startMemory.heapUsed) / 1024 / 1024 * 100) / 100}MB`
-      },
-      timestamp: new Date().toISOString()
-    });
+    // Only log slow requests and errors to reduce noise
+    if (responseTime > 1000 || res.statusCode >= 400) {
+      appLogger.performance(`Performance [${req.method} ${req.path}]:`, {
+        responseTime: `${responseTime}ms`,
+        statusCode: res.statusCode,
+        memoryDelta: {
+          rss: `${Math.round((endMemory.rss - startMemory.rss) / 1024 / 1024 * 100) / 100}MB`,
+          heapUsed: `${Math.round((endMemory.heapUsed - startMemory.heapUsed) / 1024 / 1024 * 100) / 100}MB`
+        },
+        timestamp: new Date().toISOString()
+      });
+    }
 
     // Warn on slow requests
     if (responseTime > 1000) {
