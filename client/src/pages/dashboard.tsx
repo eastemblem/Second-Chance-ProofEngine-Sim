@@ -117,6 +117,8 @@ export default function DashboardPage() {
   const [selectedFolder, setSelectedFolder] = useState<string>("0_Overview");
   const [uploadProgress, setUploadProgress] = useState<number>(0);
   const [isUploading, setIsUploading] = useState(false);
+  const [isCreatingFolders, setIsCreatingFolders] = useState(false);
+  const [folderCreationStatus, setFolderCreationStatus] = useState<string>('');
   const [uploadQueue, setUploadQueue] = useState<Array<{file: File, folderId: string, status: 'pending' | 'uploading' | 'completed' | 'failed', progress: number, error?: string}>>([]);
   const [currentUploadIndex, setCurrentUploadIndex] = useState(0);
   const [showFailedFiles, setShowFailedFiles] = useState(false);
@@ -683,9 +685,15 @@ export default function DashboardPage() {
 
     const fileList = Array.from(files);
     
+    // Start folder creation loading state
+    setIsCreatingFolders(true);
+    setFolderCreationStatus('Analyzing folder structure...');
+    
     // Step 1: Analyze folder structure from file paths
     console.log("📁 Step 1: Analyzing folder structure from uploaded files");
     const folderStructure = analyzeFolderStructure(fileList);
+    
+    setFolderCreationStatus(`Found ${Object.keys(folderStructure.folders).length} folders with ${fileList.length} files. Creating structure...`);
     
     toast({
       title: "Analyzing Folder Structure",
@@ -695,6 +703,7 @@ export default function DashboardPage() {
     try {
       // Step 2: Create main folder first and get its ID
       console.log("📁 Step 2: Creating main folder");
+      setFolderCreationStatus(`Creating main folder: ${folderStructure.rootFolderName}...`);
       const mainFolderId = await createFolder(folderStructure.rootFolderName, selectedFolder);
       
       if (!mainFolderId) {
@@ -705,6 +714,7 @@ export default function DashboardPage() {
       
       // Step 3: Create all subfolders sequentially and collect their IDs
       console.log("📁 Step 3: Creating subfolders and mapping IDs");
+      setFolderCreationStatus('Creating subfolders and mapping IDs...');
       const folderIdMap = new Map<string, string>();
       folderIdMap.set('root', mainFolderId);
 
@@ -722,6 +732,8 @@ export default function DashboardPage() {
         const parentPath = folderPath.includes('/') ? folderPath.substring(0, folderPath.lastIndexOf('/')) : 'root';
         const parentFolderId = folderIdMap.get(parentPath) || mainFolderId;
 
+        setFolderCreationStatus(`Creating subfolder: ${folderName} in ${parentPath === 'root' ? 'main folder' : parentPath}...`);
+        
         toast({
           title: "Creating Subfolder",
           description: `Creating "${folderName}" in ${parentPath === 'root' ? 'main folder' : parentPath}...`,
@@ -744,6 +756,11 @@ export default function DashboardPage() {
 
       // Step 4: Upload files to their respective folders using the collected folder IDs
       console.log("📁 Step 4: Uploading files to their respective folders");
+      setFolderCreationStatus('Folder structure created! Starting file uploads...');
+      
+      // End folder creation loading, start file upload loading
+      setIsCreatingFolders(false);
+      setFolderCreationStatus('');
       
       for (const [folderPath, files] of Object.entries(folderStructure.folders)) {
         const targetFolderId = folderIdMap.get(folderPath) || mainFolderId;
@@ -764,10 +781,17 @@ export default function DashboardPage() {
         title: "Folder Upload Complete",
         description: `Successfully created ${Object.keys(folderStructure.folders).length} folders and uploaded all files!`,
       });
+      
+      // Reset input
+      event.target.value = '';
 
     } catch (error) {
       console.error('Folder upload error:', error);
       const errorMessage = error instanceof Error ? error.message : 'Unknown error';
+      
+      // Reset loading states on error
+      setIsCreatingFolders(false);
+      setFolderCreationStatus('');
       
       toast({
         title: "Folder Upload Failed",
@@ -1229,13 +1253,17 @@ export default function DashboardPage() {
                       {/* Upload Area */}
                       <div 
                         className={`border-2 border-dashed rounded-lg p-8 text-center transition-all ${
-                          isUploading 
-                            ? 'border-purple-500 bg-purple-500/5' 
-                            : 'border-gray-600 hover:border-gray-500'
+                          isCreatingFolders
+                            ? 'border-blue-500 bg-blue-500/5'
+                            : isUploading 
+                              ? 'border-purple-500 bg-purple-500/5' 
+                              : 'border-gray-600 hover:border-gray-500'
                         }`}
                         onDragOver={(e) => {
                           e.preventDefault();
-                          e.currentTarget.classList.add('border-purple-400', 'bg-purple-500/10');
+                          if (!isCreatingFolders && !isUploading) {
+                            e.currentTarget.classList.add('border-purple-400', 'bg-purple-500/10');
+                          }
                         }}
                         onDragLeave={(e) => {
                           e.preventDefault();
@@ -1244,13 +1272,39 @@ export default function DashboardPage() {
                         onDrop={async (e) => {
                           e.preventDefault();
                           e.currentTarget.classList.remove('border-purple-400', 'bg-purple-500/10');
-                          const files = Array.from(e.dataTransfer.files);
-                          if (files.length > 0) {
-                            await handleMultipleFileUpload(files, selectedFolder);
+                          if (!isCreatingFolders && !isUploading) {
+                            const files = Array.from(e.dataTransfer.files);
+                            if (files.length > 0) {
+                              await handleMultipleFileUpload(files, selectedFolder);
+                            }
                           }
                         }}
                       >
-                        {isUploading ? (
+                        {isCreatingFolders ? (
+                          <div className="space-y-6">
+                            <div className="w-16 h-16 mx-auto rounded-full bg-gradient-to-r from-blue-500 to-green-500 flex items-center justify-center">
+                              <FolderPlus className="w-8 h-8 text-white animate-pulse" />
+                            </div>
+                            
+                            {/* Folder Creation Status */}
+                            <div className="space-y-3">
+                              <p className="text-blue-400 font-medium">
+                                Creating Folder Structure...
+                              </p>
+                              
+                              {folderCreationStatus && (
+                                <div className="space-y-2">
+                                  <p className="text-gray-300 text-sm">
+                                    {folderCreationStatus}
+                                  </p>
+                                  <div className="w-full bg-gray-700 rounded-full h-2">
+                                    <div className="bg-gradient-to-r from-blue-500 to-green-500 h-2 rounded-full animate-pulse" style={{width: '100%'}}></div>
+                                  </div>
+                                </div>
+                              )}
+                            </div>
+                          </div>
+                        ) : isUploading ? (
                           <div className="space-y-6">
                             <div className="w-16 h-16 mx-auto rounded-full bg-gradient-to-r from-purple-500 to-yellow-500 flex items-center justify-center">
                               <Upload className="w-8 h-8 text-white animate-pulse" />
@@ -1320,6 +1374,7 @@ export default function DashboardPage() {
                               <Button 
                                 onClick={() => document.getElementById('file-upload')?.click()} 
                                 className="bg-gradient-to-r from-purple-500 to-yellow-500 text-white hover:from-purple-600 hover:to-yellow-600"
+                                disabled={isCreatingFolders || isUploading}
                               >
                                 <Plus className="w-4 h-4 mr-2" />
                                 Choose Files
@@ -1328,9 +1383,10 @@ export default function DashboardPage() {
                                 onClick={() => document.getElementById('folder-upload')?.click()} 
                                 variant="outline"
                                 className="border-purple-400 text-purple-400 hover:bg-purple-500 hover:text-white"
+                                disabled={isCreatingFolders || isUploading}
                               >
                                 <FolderPlus className="w-4 h-4 mr-2" />
-                                Upload Folder
+                                {isCreatingFolders ? 'Creating Folders...' : 'Upload Folder'}
                               </Button>
                             </div>
                           </>
