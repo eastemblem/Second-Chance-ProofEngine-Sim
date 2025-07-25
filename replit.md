@@ -126,6 +126,15 @@ Demo experience for testing different user journeys:
 
 ## Recent Key Updates
 
+### July 25, 2025 - CRITICAL DOWNLOAD BUG FIXED: Analysis Page Download Buttons Corrected
+- **CRITICAL BUG RESOLVED**: Fixed analysis page download buttons that were incorrectly calling creation endpoints (`/api/certificate/create`, `/api/report/create`) instead of using existing document URLs
+- **ROOT CAUSE IDENTIFIED**: CertificateDownload and ReportDownload components were designed to create new database entries when users just wanted to download existing files
+- **CLEAN DOWNLOAD LOGIC**: Download buttons now use existing certificateUrl/reportUrl directly without making API calls that create unwanted database entries
+- **REMOVED CREATION CALLS**: Eliminated all API calls to certificate/report creation endpoints from download components
+- **USER EXPERIENCE IMPROVED**: Download buttons now show clear error messages when documents aren't ready instead of attempting to recreate them
+- **CODE CLEANUP**: Removed unused imports (Loader2, useMutation, apiRequest) and loading states from both download components
+- **PRODUCTION READY**: Download system now works correctly without creating duplicate database entries or unwanted API calls
+
 ### July 25, 2025 - COMPLETE FILE CATEGORIZATION FIX: Root Cause Resolution & Recursive Logic Correction
 - **CRITICAL ROOT CAUSE RESOLUTION**: Fixed major categorization bug where all files showed as "Overview" (136 files) due to recursive logic traversing to root folder (332843137473) instead of stopping at main category folders
 - **DATABASE-FIRST APPROACH**: Implemented systematic solution that queries proof_vault table to determine folder types before categorization

@@ -1,10 +1,8 @@
 import React, { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
-import { Download, FileText, Loader2 } from 'lucide-react';
+import { Download } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
-import { useMutation } from '@tanstack/react-query';
-import { apiRequest } from '@/lib/queryClient';
 
 interface ReportDownloadProps {
   sessionId?: string;
@@ -12,21 +10,12 @@ interface ReportDownloadProps {
   existingReportUrl?: string;
 }
 
-interface ReportResponse {
-  success: boolean;
-  reportUrl?: string;
-  message?: string;
-  error?: string;
-  generatedAt?: string;
-}
-
 export function ReportDownload({ sessionId, ventureId, existingReportUrl }: ReportDownloadProps) {
   const { toast } = useToast();
   const [reportUrl, setReportUrl] = useState<string | null>(existingReportUrl || null);
-  const [generatedAt, setGeneratedAt] = useState<string | null>(null);
-  const [isLoading, setIsLoading] = useState(false);
 
   const handleDownloadReport = async () => {
+    // If we have an existing report URL, use it directly without making API calls
     if (reportUrl) {
       window.open(reportUrl, '_blank');
       toast({
@@ -36,51 +25,12 @@ export function ReportDownload({ sessionId, ventureId, existingReportUrl }: Repo
       return;
     }
 
-    setIsLoading(true);
-    
-    try {
-      const identifier = sessionId || ventureId;
-      if (!identifier) {
-        throw new Error('Session ID or Venture ID is required');
-      }
-
-      const response = await fetch('/api/report/generate', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          sessionId: sessionId,
-          ventureId: ventureId
-        })
-      });
-
-      const result = await response.json() as ReportResponse;
-
-      if (result.success && result.reportUrl) {
-        setReportUrl(result.reportUrl);
-        setGeneratedAt(result.generatedAt || null);
-        
-        // Open the report URL in a new tab
-        window.open(result.reportUrl, '_blank');
-        
-        toast({
-          title: "Report Generated!",
-          description: "Your validation report has been generated successfully.",
-        });
-      } else {
-        throw new Error(result.error || 'Failed to generate report');
-      }
-    } catch (error) {
-      console.error('Report generation error:', error);
-      toast({
-        title: "Report Generation Failed",
-        description: "There was an error generating your report. Please try again.",
-        variant: "destructive",
-      });
-    } finally {
-      setIsLoading(false);
-    }
+    // If no existing URL, show error instead of trying to create new report
+    toast({
+      title: "Report Not Available",
+      description: "Your report is being generated. Please refresh the page and try again in a moment.",
+      variant: "destructive",
+    });
   };
 
 
@@ -97,13 +47,8 @@ export function ReportDownload({ sessionId, ventureId, existingReportUrl }: Repo
         <Button 
           className="gradient-button w-full sm:w-auto min-h-[44px]" 
           onClick={handleDownloadReport}
-          disabled={isLoading}
         >
-          {isLoading ? (
-            <Loader2 className="mr-2 w-4 h-4 animate-spin" />
-          ) : (
-            <Download className="mr-2 w-4 h-4" />
-          )}
+          <Download className="mr-2 w-4 h-4" />
           Download Report
         </Button>
       </div>

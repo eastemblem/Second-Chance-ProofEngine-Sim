@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
-import { Download, Loader2 } from 'lucide-react';
+import { Download } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 
 interface CertificateDownloadProps {
@@ -17,11 +17,11 @@ export function CertificateDownload({
   ventureName, 
   existingCertificateUrl 
 }: CertificateDownloadProps) {
-  const [isLoading, setIsLoading] = useState(false);
   const [certificateUrl, setCertificateUrl] = useState<string | null>(existingCertificateUrl || null);
   const { toast } = useToast();
 
   const handleDownloadCertificate = async () => {
+    // If we have an existing certificate URL, use it directly without making API calls
     if (certificateUrl) {
       window.open(certificateUrl, '_blank');
       toast({
@@ -31,44 +31,12 @@ export function CertificateDownload({
       return;
     }
 
-    setIsLoading(true);
-    
-    try {
-      const response = await fetch('/api/certificate/generate', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({ ventureId, sessionId })
-      });
-
-      const result = await response.json();
-
-      if (result.success && result.certificateUrl) {
-        setCertificateUrl(result.certificateUrl);
-        
-        // Open the certificate URL in a new tab
-        window.open(result.certificateUrl, '_blank');
-        
-        toast({
-          title: "Certificate Download",
-          description: result.uploadedToCloud 
-            ? "Certificate opened from cloud storage" 
-            : "Certificate download started",
-        });
-      } else {
-        throw new Error(result.error || 'Failed to generate certificate');
-      }
-    } catch (error) {
-      console.error('Certificate download error:', error);
-      toast({
-        title: "Download Failed", 
-        description: `Unable to download certificate: ${error.message || 'Please try again.'}`,
-        variant: "destructive",
-      });
-    } finally {
-      setIsLoading(false);
-    }
+    // If no existing URL, show error instead of trying to create new certificate
+    toast({
+      title: "Certificate Not Available",
+      description: "Your certificate is being generated. Please refresh the page and try again in a moment.",
+      variant: "destructive",
+    });
   };
 
   return (
@@ -83,13 +51,8 @@ export function CertificateDownload({
         <Button 
           className="gradient-button w-full sm:w-auto min-h-[44px]" 
           onClick={handleDownloadCertificate}
-          disabled={isLoading}
         >
-          {isLoading ? (
-            <Loader2 className="mr-2 w-4 h-4 animate-spin" />
-          ) : (
-            <Download className="mr-2 w-4 h-4" />
-          )}
+          <Download className="mr-2 w-4 h-4" />
           Download Certificate
         </Button>
       </div>
