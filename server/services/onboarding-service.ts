@@ -123,7 +123,7 @@ export class OnboardingService {
       sessionId = crypto.randomUUID();
     }
 
-    // Ensure session exists in database
+    // Ensure session exists in database (this handles both new and existing sessions)
     await this.ensureSession(sessionId);
 
     // Check if founder exists by email
@@ -196,14 +196,24 @@ export class OnboardingService {
     let founderData = session.stepData?.founder;
     let founderId = session.stepData?.founderId || founderData?.founderId;
     
-    // If session data is empty/corrupted, try to find founder by session or provide clear error
+    // If session data is empty/corrupted, provide clear guidance
     if (!founderData || !founderId) {
       console.warn(`⚠️ Session stepData missing for ${sessionId}. Session may be corrupted.`);
-      console.warn(`Session stepData:`, session.stepData);
+      console.warn(`Session created:`, session.createdAt);
+      console.warn(`Current step:`, session.currentStep);
       console.warn(`Completed steps:`, session.completedSteps);
+      console.warn(`Session stepData:`, session.stepData);
       
-      // Provide more helpful error message
-      throw new Error(`Session data is incomplete. Please complete the founder step first before proceeding to venture information. Session ID: ${sessionId}`);
+      // Calculate session age
+      const sessionAge = Date.now() - new Date(session.createdAt).getTime();
+      const ageInHours = Math.floor(sessionAge / (1000 * 60 * 60));
+      
+      // Provide clear guidance based on session state
+      if (ageInHours > 24) {
+        throw new Error(`This session is ${ageInHours} hours old and appears to be expired. Please start a new onboarding session by completing the founder step first.`);
+      } else {
+        throw new Error(`The founder step has not been completed for this session. Please complete the founder information step first before proceeding to venture details. Session ID: ${sessionId}`);
+      }
     }
     
     // Map productStatus to mvpStatus for database schema compatibility

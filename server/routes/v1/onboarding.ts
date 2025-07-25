@@ -8,11 +8,12 @@ import { founderOnboardingSchema, ventureOnboardingSchema } from '../../onboardi
 
 const router = Router();
 
-// Founder onboarding step - EXACT SAME LOGIC as routes/onboarding.ts
+// Founder onboarding step - UPDATED LOGIC to accept sessionId from request body
 router.post("/founder", asyncHandler(async (req: Request, res: Response) => {
-  // Use session from middleware, ignore any provided sessionId
-  const sessionId = getSessionId(req);
-  const { sessionId: _, ...founderData } = req.body; // Remove sessionId from body
+  // Use sessionId from request body if provided, otherwise get from middleware
+  const { sessionId: requestSessionId, ...founderData } = req.body;
+  const sessionId = requestSessionId || getSessionId(req);
+  console.log(`V1 Founder API received sessionId: ${sessionId} (from request: ${requestSessionId})`);
   
   const validation = safeValidate(founderOnboardingSchema, founderData);
   if (!validation.success) {
