@@ -126,8 +126,10 @@ Demo experience for testing different user journeys:
 
 ## Recent Key Updates
 
-### July 25, 2025 - FOLDER CATEGORIZATION ISSUE COMPLETELY RESOLVED
-- **CRITICAL FOLDER MAPPING FIX**: Fixed getCategoryFromFolderId function with correct Box.com folder IDs for accurate file categorization
+### July 25, 2025 - PROOF VAULT FILE MANAGEMENT COMPLETE: Ordering, Categorization & Timestamps Fixed
+- **FILE CHRONOLOGICAL ORDERING**: Files now displayed in chronological order (most recent first) in ProofVault Files section using SQL ORDER BY DESC(created_at)
+- **TIMESTAMP DISPLAY FIXED**: File timestamps now show user-friendly relative time ("1h ago", "2m ago", "just now") instead of raw ISO dates using formatTimeAgo() function
+- **FOLDER CATEGORIZATION COMPLETELY RESOLVED**: Fixed getCategoryFromFolderId function with correct Box.com folder IDs for accurate file categorization
 - **DASHBOARD COUNTS FIXED**: Files now properly categorized by upload destination (Solution Proofs: 2 files, Overview: 3 files) instead of all showing under Overview
 - **REAL-TIME UPDATES WORKING**: Dashboard file counts update correctly after uploads and display accurate folder-specific counts
 - **FOLDER ID MAPPING CORRECTED**: Updated hardcoded folder IDs to match actual Box.com folder structure:

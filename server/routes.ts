@@ -220,8 +220,11 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const { documentUpload } = await import('@shared/schema');
       const { eq } = await import('drizzle-orm');
 
-      // Get all files for this venture
-      const files = await db.select().from(documentUpload).where(eq(documentUpload.ventureId, dashboardData.venture.ventureId));
+      // Get all files for this venture ordered by upload time (most recent first)
+      const { desc } = await import('drizzle-orm');
+      const files = await db.select().from(documentUpload)
+        .where(eq(documentUpload.ventureId, dashboardData.venture.ventureId))
+        .orderBy(desc(documentUpload.createdAt));
       
       // Format files for frontend display
       const formattedFiles = files.map(file => ({
