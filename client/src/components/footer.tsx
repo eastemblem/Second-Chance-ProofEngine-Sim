@@ -9,7 +9,7 @@ const Footer = () => {
           {/* Company Info - Compact */}
           <div className="flex items-center justify-center sm:justify-start space-x-3">
             <img 
-              src={import.meta.env.VITE_LOGO_URL || "https://replit.com/cdn-cgi/image/width=64,height=64,fit=contain,format=auto/https://storage.googleapis.com/replit/images/1753114394817_f7cf986ddd0d207603fc13682f9cee00.ico"} 
+              src={import.meta.env.VITE_LOGO_URL} 
               alt="Second Chance Logo" 
               className="w-8 h-8 rounded"
             />
