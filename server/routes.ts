@@ -269,7 +269,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   }));
 
-  // Dashboard activity endpoint  
+  // Dashboard activity endpoint - REAL DATA FROM DATABASE
   app.get('/api/dashboard/activity', asyncHandler(async (req, res) => {
     const founderId = req.session?.founderId;
     
@@ -278,29 +278,29 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
 
     try {
-      // FIXED: Match frontend ActivityItem interface exactly
-      const activities = [
-        {
-          id: "1",
-          type: "evaluation", 
-          title: "Completed analysis", // FIXED: Use title instead of action
-          description: "ProofScore established: 69/100",
-          timestamp: new Date().toISOString(),
-          icon: "TrendingUp", // FIXED: Add icon field
-          color: "green" // FIXED: Add color field
-        },
-        {
-          id: "2",
-          type: "authentication",
-          title: "Email verified", // FIXED: Use title instead of action
-          description: "Account verification completed", 
-          timestamp: new Date(Date.now() - 3600000).toISOString(),
-          icon: "CheckCircle", // FIXED: Add icon field
-          color: "blue" // FIXED: Add color field
-        }
-      ];
+      const { db } = await import('./db');
+      const { userActivity } = await import('@shared/schema');
+      const { eq, desc } = await import('drizzle-orm');
 
-      res.json(activities);
+      // Get real activity data from database
+      const activities = await db.select()
+        .from(userActivity)
+        .where(eq(userActivity.founderId, founderId))
+        .orderBy(desc(userActivity.createdAt))
+        .limit(10);
+
+      // Format activities for frontend display
+      const formattedActivities = activities.map(activity => ({
+        id: activity.activityId,
+        type: activity.activityType,
+        title: activity.title || activity.action || 'Activity',
+        description: activity.description || `${activity.action} completed`,
+        timestamp: activity.createdAt?.toISOString() || new Date().toISOString(),
+        icon: getActivityIcon(activity.activityType, activity.action),
+        color: getActivityColor(activity.activityType)
+      }));
+
+      res.json(formattedActivities);
     } catch (error) {
       console.error("Dashboard activity error:", error);
       res.status(500).json({ error: "Failed to load activity data" });
@@ -691,4 +691,38 @@ function formatFileSize(bytes: number): string {
   const i = Math.floor(Math.log(bytes) / Math.log(k));
   
   return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + ' ' + sizes[i];
+}
+
+function getActivityIcon(activityType: string, action?: string): string {
+  const iconMap: Record<string, string> = {
+    'account': 'User',
+    'authentication': 'Shield', 
+    'venture': 'Building',
+    'document': 'FileText',
+    'evaluation': 'TrendingUp',
+    'navigation': 'Navigation',
+    'system': 'Settings'
+  };
+  
+  // Special cases based on action
+  if (action === 'email_verify') return 'CheckCircle';
+  if (action === 'upload') return 'Upload';
+  if (action === 'create') return 'Plus';
+  if (action === 'score_generate') return 'Award';
+  
+  return iconMap[activityType] || 'Circle';
+}
+
+function getActivityColor(activityType: string): string {
+  const colorMap: Record<string, string> = {
+    'account': 'blue',
+    'authentication': 'green',
+    'venture': 'purple', 
+    'document': 'yellow',
+    'evaluation': 'green',
+    'navigation': 'gray',
+    'system': 'orange'
+  };
+  
+  return colorMap[activityType] || 'gray';
 }
