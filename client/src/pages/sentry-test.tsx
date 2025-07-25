@@ -4,6 +4,7 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Alert, AlertDescription } from "@/components/ui/alert";
+// Import Sentry functions with fallbacks for when Sentry isn't initialized
 import { reportError, enrichErrorContext, setUserContext, clearUserContext } from "@/lib/sentry";
 import { apiRequest } from "@/lib/queryClient";
 import { useMutation } from "@tanstack/react-query";
@@ -31,22 +32,32 @@ export default function SentryTestPage() {
       // Intentional error for testing
       throw new Error('Frontend test error - this is intentional');
     } catch (error: any) {
-      enrichErrorContext(error, {}, {
-        component: 'sentry-test-page',
-        page: 'frontend-testing',
-        testType: 'manual-frontend-error'
-      });
-      addResult('Frontend Error', 'error', 'Error sent to Sentry successfully');
+      try {
+        enrichErrorContext(error, {}, {
+          component: 'sentry-test-page',
+          page: 'frontend-testing',
+          testType: 'manual-frontend-error'
+        });
+        addResult('Frontend Error', 'error', 'Error sent to Sentry successfully');
+      } catch (sentryError) {
+        addResult('Frontend Error', 'error', 'Error captured (Sentry not initialized - need VITE_SENTRY_DSN)');
+        console.error('Original error:', error);
+      }
     }
   };
 
   const testFrontendWarning = () => {
-    reportError('Frontend warning test message', 'warning', {
-      component: 'sentry-test-page',
-      testType: 'frontend-warning',
-      timestamp: new Date().toISOString()
-    });
-    addResult('Frontend Warning', 'success', 'Warning sent to Sentry successfully');
+    try {
+      reportError('Frontend warning test message', 'warning', {
+        component: 'sentry-test-page',
+        testType: 'frontend-warning',
+        timestamp: new Date().toISOString()
+      });
+      addResult('Frontend Warning', 'success', 'Warning sent to Sentry successfully');
+    } catch (error) {
+      addResult('Frontend Warning', 'success', 'Warning captured (Sentry not initialized - need VITE_SENTRY_DSN)');
+      console.warn('Frontend warning test:', 'Frontend warning test message');
+    }
   };
 
   const testUserContext = () => {

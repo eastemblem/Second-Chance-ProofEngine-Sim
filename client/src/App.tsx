@@ -28,7 +28,7 @@ const ForgotPasswordPage = lazy(() => import("@/pages/forgot-password"));
 const Dashboard = lazy(() => import("@/pages/dashboard"));
 const TokenExpiredPage = lazy(() => import("@/pages/token-expired"));
 const PerformanceTest = lazy(() => import("@/pages/performance-test"));
-const SentryTestPage = lazy(() => import("@/pages/sentry-test"));
+const SentryTest = lazy(() => import("@/pages/sentry-test"));
 
 // Disable preloading to reduce initial bundle size and blocking
 const preloadComponents = () => {
@@ -198,7 +198,7 @@ function Router() {
       )} />
       <Route path="/sentry-test" component={() => (
         <Suspense fallback={<SimpleLoader />}>
-          <SentryTestPage />
+          <SentryTest />
         </Suspense>
       )} />
       <Route component={NotFound} />

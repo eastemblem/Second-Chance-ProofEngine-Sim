@@ -23,10 +23,7 @@ export function initSentry() {
       replaysSessionSampleRate: 0.1,
       replaysOnErrorSampleRate: 1.0,
       integrations: [
-        Sentry.browserTracingIntegration({
-          // Capture interactions and navigation
-          tracePropagationTargets: ["localhost", /^\/api/],
-        }),
+        Sentry.browserTracingIntegration(),
         Sentry.replayIntegration({
           // Capture replays of user sessions for debugging
           maskAllText: false,
