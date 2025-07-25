@@ -36,14 +36,14 @@ export class CacheService {
   }
 
   /**
-   * Dashboard data caching with KV store only
+   * Dashboard data caching with KV store only - Extended TTL for better performance
    */
   async getDashboardData(founderId: string, fetchFn: () => Promise<any>): Promise<any> {
     const cacheKey = `dashboard_${founderId}`;
     
-    // Try KV store
+    // Try KV store with longer TTL for dashboard data
     if (kvCacheService.isAvailable()) {
-      const cached = await kvCacheService.get(cacheKey, { namespace: 'dashboard', ttl: 300 });
+      const cached = await kvCacheService.get(cacheKey, { namespace: 'dashboard', ttl: 600 });
       if (cached) {
         console.log(`🎯 KV Cache HIT: Dashboard ${founderId}`);
         return cached;
@@ -54,8 +54,8 @@ export class CacheService {
     const data = await fetchFn();
     
     if (data && kvCacheService.isAvailable()) {
-      await kvCacheService.set(cacheKey, data, { namespace: 'dashboard', ttl: 300 });
-      console.log(`💾 KV Cache SET: ${cacheKey} (TTL: 300s)`);
+      await kvCacheService.set(cacheKey, data, { namespace: 'dashboard', ttl: 600 });
+      console.log(`💾 KV Cache SET: ${cacheKey} (TTL: 600s)`);
     }
     
     return data;

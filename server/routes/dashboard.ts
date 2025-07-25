@@ -10,6 +10,13 @@ const router = Router();
 // OPTIMIZED: Get validation data (ProofScore, ProofTags, etc.)
 router.get("/validation", async (req, res) => {
   try {
+    // Add cache headers for validation data (5 minutes)
+    res.set({
+      'Cache-Control': 'public, max-age=300',
+      'ETag': `"validation-${Math.floor(Date.now() / 300000)}"`,
+      'Vary': 'Accept-Encoding'
+    });
+
     const founderId = req.session?.founderId;
     
     if (!founderId) {
@@ -60,6 +67,13 @@ router.get("/validation", async (req, res) => {
 // OPTIMIZED: Get ProofVault data (file counts, file lists)
 router.get("/vault", async (req, res) => {
   try {
+    // Add cache headers for vault data (10 minutes)
+    res.set({
+      'Cache-Control': 'public, max-age=600',
+      'ETag': `"vault-${Math.floor(Date.now() / 600000)}"`,
+      'Vary': 'Accept-Encoding'
+    });
+
     const founderId = req.session?.founderId;
     
     if (!founderId) {
@@ -218,6 +232,13 @@ function formatFileSize(bytes: number): string {
 // Get recent activity data - NEW ACTIVITY SYSTEM
 router.get("/activity", async (req, res) => {
   try {
+    // Add cache headers for activity data (5 minutes)
+    res.set({
+      'Cache-Control': 'public, max-age=300',
+      'ETag': `"activity-${Math.floor(Date.now() / 300000)}"`,
+      'Vary': 'Accept-Encoding'
+    });
+
     const founderId = req.session?.founderId;
     
     if (!founderId) {
