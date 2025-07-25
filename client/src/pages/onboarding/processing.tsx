@@ -51,6 +51,10 @@ export default function ProcessingScreen({
   const [hasError, setHasError] = useState(false);
   const [errorMessage, setErrorMessage] = useState("");
   const [retryCount, setRetryCount] = useState(0);
+  const [documentsNotified, setDocumentsNotified] = useState({
+    certificate: false,
+    report: false
+  });
 
   const submitForScoringMutation = useMutation({
     mutationFn: async () => {
@@ -87,6 +91,26 @@ export default function ProcessingScreen({
         onDataUpdate(processingData);
         setProcessingComplete(true);
         
+        // Show toast notifications for certificate and report when ready
+        const processingInfo = data.data?.session?.stepData?.processing;
+        if (processingInfo?.certificateUrl && !documentsNotified.certificate) {
+          toast({
+            title: "🏆 Certificate Ready!",
+            description: "Your ProofScore certificate has been generated and is ready for download.",
+            duration: 5000,
+          });
+          setDocumentsNotified(prev => ({ ...prev, certificate: true }));
+        }
+        
+        if (processingInfo?.reportUrl && !documentsNotified.report) {
+          toast({
+            title: "📊 Analysis Report Ready!",
+            description: "Your detailed analysis report has been generated and is ready for download.",
+            duration: 5000,
+          });
+          setDocumentsNotified(prev => ({ ...prev, report: true }));
+        }
+        
         setTimeout(() => {
           onNext();
         }, 2000);
@@ -117,6 +141,58 @@ export default function ProcessingScreen({
     setCurrentStep(processingSteps.length - 2); // Go to scoring step
     submitForScoringMutation.mutate();
   };
+
+  // Polling for document completion
+  useEffect(() => {
+    let documentCheckInterval: NodeJS.Timeout;
+    
+    if (processingComplete && !hasError) {
+      // Start polling for document completion every 3 seconds
+      documentCheckInterval = setInterval(async () => {
+        try {
+          const res = await apiRequest("GET", `/api/onboarding/session/${sessionId}`);
+          const data = await res.json();
+          
+          if (data.success) {
+            const processingInfo = data.data?.stepData?.processing;
+            
+            // Check for certificate completion
+            if (processingInfo?.certificateUrl && !documentsNotified.certificate) {
+              toast({
+                title: "🏆 Certificate Ready!",
+                description: "Your ProofScore certificate has been generated and is ready for download.",
+                duration: 5000,
+              });
+              setDocumentsNotified(prev => ({ ...prev, certificate: true }));
+            }
+            
+            // Check for report completion
+            if (processingInfo?.reportUrl && !documentsNotified.report) {
+              toast({
+                title: "📊 Analysis Report Ready!",
+                description: "Your detailed analysis report has been generated and is ready for download.",
+                duration: 5000,
+              });
+              setDocumentsNotified(prev => ({ ...prev, report: true }));
+            }
+            
+            // Stop polling if both documents are ready
+            if (processingInfo?.certificateUrl && processingInfo?.reportUrl) {
+              clearInterval(documentCheckInterval);
+            }
+          }
+        } catch (error) {
+          console.log('Document check polling error:', error);
+        }
+      }, 3000);
+    }
+    
+    return () => {
+      if (documentCheckInterval) {
+        clearInterval(documentCheckInterval);
+      }
+    };
+  }, [processingComplete, hasError, sessionId, documentsNotified, toast]);
 
   useEffect(() => {
     // Only start automatic processing on first load, not on retries
