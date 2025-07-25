@@ -192,15 +192,18 @@ export class OnboardingService {
       throw new Error("Session not found - founder step must be completed first");
     }
 
-    const founderData = session.stepData?.founder;
-    const founderId = session.stepData?.founderId || founderData?.founderId;
+    // Try to get founder data from session first
+    let founderData = session.stepData?.founder;
+    let founderId = session.stepData?.founderId || founderData?.founderId;
     
-    if (!founderData) {
-      throw new Error("Founder step not completed");
-    }
-
-    if (!founderId) {
-      throw new Error("Founder ID not found in session data - founder step may not have completed properly");
+    // If session data is empty/corrupted, try to find founder by session or provide clear error
+    if (!founderData || !founderId) {
+      console.warn(`⚠️ Session stepData missing for ${sessionId}. Session may be corrupted.`);
+      console.warn(`Session stepData:`, session.stepData);
+      console.warn(`Completed steps:`, session.completedSteps);
+      
+      // Provide more helpful error message
+      throw new Error(`Session data is incomplete. Please complete the founder step first before proceeding to venture information. Session ID: ${sessionId}`);
     }
     
     // Map productStatus to mvpStatus for database schema compatibility
