@@ -1,4 +1,4 @@
-import { useState, useEffect, lazy, Suspense } from "react";
+import { useState, useEffect } from "react";
 import { useLocation } from "wouter";
 import { Button } from "@/components/ui/button";
 import { trackEvent } from "@/lib/analytics";
@@ -31,9 +31,6 @@ import {
 import Navbar from "@/components/navbar";
 import Footer from "@/components/footer";
 import { DashboardLoadingSkeleton } from "@/components/dashboard-loading";
-
-// Lazy load heavy components
-const Leaderboard = lazy(() => import("@/components/leaderboard").then(module => ({ default: module.Leaderboard })));
 
 interface User {
   founderId: string;
@@ -919,28 +916,83 @@ export default function DashboardPage() {
                 </CardDescription>
               </CardHeader>
               <CardContent>
-                <Suspense fallback={
-                  <div className="space-y-2">
-                    {[1,2,3,4,5].map(i => (
-                      <div key={i} className="bg-gray-800/50 border border-gray-700/50 rounded-xl p-3">
-                        <div className="flex items-center gap-3">
-                          <div className="w-8 h-8 bg-gray-600 rounded-full animate-pulse"></div>
-                          <div className="flex-1">
-                            <div className="h-3 bg-gray-600 rounded animate-pulse mb-1"></div>
-                            <div className="h-2 bg-gray-700 rounded animate-pulse w-20"></div>
+                <div className="space-y-2">
+                {[
+                  { rank: 1, name: "Alex Chen", venture: "TechFlow", score: 92, isCurrentUser: false },
+                  { rank: 2, name: "Sarah Kim", venture: "EcoSmart", score: 89, isCurrentUser: false },
+                  { rank: 3, name: "You", venture: user?.venture?.name || 'Your Venture', score: validationData?.proofScore || 0, isCurrentUser: true },
+                  { rank: 4, name: "Michael Park", venture: "DataViz", score: 82, isCurrentUser: false },
+                  { rank: 5, name: "Lisa Wang", venture: "HealthTech", score: 78, isCurrentUser: false }
+                ].map((entry) => {
+                  const isTopThree = entry.rank <= 3;
+                  
+                  return (
+                    <div
+                      key={entry.rank}
+                      className={`relative transition-all duration-300 rounded-xl overflow-hidden ${
+                        entry.isCurrentUser 
+                          ? 'bg-gradient-to-r from-violet-500/20 to-amber-500/20 border-2 border-transparent shadow-lg shadow-violet-500/25' 
+                          : isTopThree
+                          ? 'bg-gradient-to-r from-yellow-500/10 to-amber-500/10 border border-yellow-400/30 shadow-md'
+                          : 'bg-gray-800/50 border border-gray-700/50 hover:border-purple-500/20'
+                      }`}
+                    >
+                      {entry.isCurrentUser && (
+                        <>
+                          {/* Animated border */}
+                          <div className="absolute inset-0 pointer-events-none rounded-xl">
+                            <div className="absolute inset-[2px] bg-gray-900/95 rounded-xl" />
                           </div>
-                          <div className="h-6 w-8 bg-gray-600 rounded animate-pulse"></div>
+                          <div className="absolute -top-1 -right-1 w-3 h-3 bg-gradient-to-r from-violet-400 to-amber-400 rounded-full animate-pulse z-10"></div>
+                        </>
+                      )}
+                      
+                      <div className="relative z-10 flex items-center gap-3 p-3">
+                        <div className={`flex items-center justify-center w-8 h-8 rounded-full ${
+                          isTopThree ? 'bg-gradient-to-r from-yellow-400 to-amber-500' : 'bg-gray-600/50'
+                        } shadow-lg`}>
+                          {entry.rank <= 3 ? (
+                            entry.rank === 1 ? (
+                              <Trophy className="w-4 h-4 text-yellow-900" />
+                            ) : entry.rank === 2 ? (
+                              <Medal className="w-4 h-4 text-gray-700" />
+                            ) : (
+                              <Award className="w-4 h-4 text-amber-700" />
+                            )
+                          ) : (
+                            <span className="text-xs font-bold text-white">{entry.rank}</span>
+                          )}
+                        </div>
+                        
+                        <div className="flex-1 min-w-0">
+                          <div className="flex items-center gap-2">
+                            <h4 className={`text-sm font-medium truncate ${
+                              entry.isCurrentUser ? 'text-violet-300' : 'text-white'
+                            }`}>
+                              {entry.name}
+                            </h4>
+                            {entry.isCurrentUser && (
+                              <span className="px-1.5 py-0.5 text-xs bg-gradient-to-r from-violet-500 to-amber-500 text-white rounded-full">
+                                You
+                              </span>
+                            )}
+                          </div>
+                          <p className="text-xs text-gray-400 truncate">{entry.venture}</p>
+                        </div>
+                        
+                        <div className="text-right">
+                          <div className={`text-2xl font-bold ${
+                            entry.isCurrentUser ? 'text-violet-400' : isTopThree ? 'text-amber-400' : 'text-gray-300'
+                          }`}>
+                            {entry.score}
+                          </div>
+                          <div className="text-xs text-gray-500">ProofScore</div>
                         </div>
                       </div>
-                    ))}
-                  </div>
-                }>
-                  <Leaderboard currentUser={{
-                    name: user?.fullName || user?.email?.split('@')[0] || 'You',
-                    venture: user?.venture?.name || 'Your Venture',
-                    score: validationData?.proofScore || 0
-                  }} />
-                </Suspense>
+                    </div>
+                  );
+                })}
+                </div>
               </CardContent>
             </Card>
 
