@@ -192,11 +192,11 @@ export default function DashboardPage() {
 
       // Load critical data first (validation) for faster LCP - USE V1 API with JWT
       const token = localStorage.getItem('auth_token');
-      const authHeaders = token ? { 'Authorization': `Bearer ${token}` } : {};
+      const authHeaders: Record<string, string> = token ? { 'Authorization': `Bearer ${token}` } : {};
       
       const validationResponse = await fetch('/api/v1/dashboard/validation', {
         credentials: 'include',
-        headers: { ...headers, ...authHeaders }
+        headers: { ...headers, ...authHeaders } as HeadersInit
       });
       if (validationResponse.ok) {
         const validation = await validationResponse.json();
@@ -213,21 +213,21 @@ export default function DashboardPage() {
           headers: { 
             ...(forceRefresh ? headers : { 'Cache-Control': 'max-age=600' }),
             ...authHeaders
-          }
+          } as HeadersInit
         }),
         fetch('/api/v1/dashboard/activity', {
           credentials: 'include',
           headers: { 
             ...(forceRefresh ? headers : { 'Cache-Control': 'max-age=120' }),
             ...authHeaders
-          }
+          } as HeadersInit
         }),
         fetch('/api/v1/leaderboard?limit=5', {
           credentials: 'include',
           headers: { 
             ...(forceRefresh ? headers : { 'Cache-Control': 'max-age=1200' }),
             ...authHeaders
-          }
+          } as HeadersInit
         })
       ]);
 

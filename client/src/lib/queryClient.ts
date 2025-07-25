@@ -31,8 +31,8 @@ export async function apiRequest(
   // Get JWT token from localStorage for authentication
   const token = localStorage.getItem('auth_token');
   const headers: Record<string, string> = {
-    ...(data && { "Content-Type": "application/json" }),
-    ...(token && { "Authorization": `Bearer ${token}` }),
+    ...(data ? { "Content-Type": "application/json" } : {}),
+    ...(token ? { "Authorization": `Bearer ${token}` } : {}),
   };
   
   const res = await fetch(apiUrl, {
