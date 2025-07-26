@@ -620,13 +620,19 @@ export default function DashboardPage() {
       }, 300);
 
       // Get JWT token for authentication
-      const token = localStorage.getItem('auth_token');
+      const token = localStorage.getItem('authToken');
       const headers: Record<string, string> = {};
       if (token) {
         headers['Authorization'] = `Bearer ${token}`;
       }
 
-      const response = await fetch('/api/v1/vault/upload-file', {
+      // Determine if this is a category upload (like "1_Problem_Proof") or direct folder ID (like "332970573225")
+      const isDirectFolderUpload = /^\d+$/.test(queueItem.folderId); // Check if folder ID is purely numeric
+      const uploadEndpoint = isDirectFolderUpload ? '/api/v1/vault/upload-file-direct' : '/api/v1/vault/upload-file';
+      
+      console.log(`📁 Upload strategy: ${isDirectFolderUpload ? 'Direct folder' : 'Category'} upload to "${queueItem.folderId}" via ${uploadEndpoint}`);
+
+      const response = await fetch(uploadEndpoint, {
         method: 'POST',
         headers,
         body: formData,
