@@ -13,13 +13,15 @@ import { authenticateToken } from '../../middleware/token-auth';
 
 const router = Router();
 
-// Apply proper JWT authentication with blacklist checking to all v1 routes globally
+// Register onboarding routes FIRST (no authentication required for session init)
+router.use('/onboarding', onboardingRoutes);
+
+// Apply JWT authentication with blacklist checking to remaining v1 routes
 router.use(authenticateToken);
 
-// Register all v1 routes (all protected by JWT)
+// Register authenticated v1 routes (all protected by JWT)
 router.use('/dashboard', dashboardRoutes);
 router.use('/vault', vaultRoutes);
-router.use('/onboarding', onboardingRoutes);
 router.use('/certificate', certificateRoutes);
 router.use('/report', reportRoutes);
 router.use('/notification', notificationRoutes);

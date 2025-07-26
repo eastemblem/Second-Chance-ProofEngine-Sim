@@ -9,8 +9,8 @@ import { founderOnboardingSchema, ventureOnboardingSchema, teamMemberSchema } fr
 
 const router = Router();
 
-// Initialize onboarding session - V1 VERSION
-router.post("/session/init", requireSession, asyncHandler(async (req: Request, res: Response) => {
+// Initialize onboarding session - V1 VERSION (No authentication required)
+router.post("/session/init", asyncHandler(async (req: Request, res: Response) => {
   const sessionId = await onboardingService.initializeSession(req);
   const session = await onboardingService.getSession(sessionId);
 
