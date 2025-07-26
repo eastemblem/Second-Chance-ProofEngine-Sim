@@ -12,7 +12,7 @@ import ProcessingScreen from "./onboarding/processing";
 import Analysis from "./onboarding/analysis";
 import ProgressBar from "@/components/progress-bar";
 import Navbar from "@/components/navbar";
-import Footer from "@/components/footer";
+import Layout from "@/components/layout";
 
 interface OnboardingFlowProps {
   onComplete: () => void;
@@ -247,8 +247,7 @@ export default function OnboardingFlow({ onComplete }: OnboardingFlowProps) {
 
   if (!sessionData) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-background via-card to-background">
-        {/* Sticky Navbar */}
+      <Layout>
         <div className="sticky top-0 z-50 bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
           <Navbar logoOnly={true} />
         </div>
@@ -259,12 +258,7 @@ export default function OnboardingFlow({ onComplete }: OnboardingFlowProps) {
             <p>Initializing onboarding session...</p>
           </div>
         </div>
-        
-        {/* Sticky Footer */}
-        <div className="sticky bottom-0 z-40 mt-auto">
-          <Footer />
-        </div>
-      </div>
+      </Layout>
     );
   }
 
@@ -288,8 +282,7 @@ export default function OnboardingFlow({ onComplete }: OnboardingFlowProps) {
     }
     
     return (
-      <div className="min-h-screen bg-gradient-to-br from-background via-card to-background">
-        {/* Sticky Navbar */}
+      <Layout>
         <div className="sticky top-0 z-50 bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
           <Navbar logoOnly={true} />
         </div>
@@ -308,20 +301,14 @@ export default function OnboardingFlow({ onComplete }: OnboardingFlowProps) {
             </button>
           </div>
         </div>
-        
-        {/* Sticky Footer */}
-        <div className="sticky bottom-0 z-40 mt-auto">
-          <Footer />
-        </div>
-      </div>
+      </Layout>
     );
   }
 
   const currentStep = steps[currentStepIndex];
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-background via-card to-background">
-      {/* Sticky Navbar */}
+    <Layout>
       <div className="sticky top-0 z-50 bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
         <Navbar logoOnly={true} />
       </div>
@@ -438,11 +425,6 @@ export default function OnboardingFlow({ onComplete }: OnboardingFlowProps) {
           </motion.div>
         </AnimatePresence>
       </div>
-      
-      {/* Sticky Footer */}
-      <div className="sticky bottom-0 z-40 mt-auto">
-        <Footer />
-      </div>
-    </div>
+    </Layout>
   );
 }

@@ -4,7 +4,7 @@ import { motion } from "framer-motion";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Home, ArrowLeft, Compass, Star, Sparkles } from "lucide-react";
-import Footer from "@/components/footer";
+import Layout from "@/components/layout";
 
 export default function NotFound() {
   const [mounted, setMounted] = useState(false);
@@ -25,7 +25,7 @@ export default function NotFound() {
   }
 
   return (
-    <div className="min-h-screen w-full bg-background">
+    <Layout>
       {/* Background decorative elements */}
       <div className="absolute inset-0 overflow-hidden pointer-events-none">
         <div className="absolute top-20 left-20 w-64 h-64 bg-gradient-to-br from-primary/20 to-primary-gold/20 rounded-full blur-3xl"></div>
@@ -188,7 +188,6 @@ export default function NotFound() {
         </motion.div>
       </div>
       
-      <Footer />
-    </div>
+    </Layout>
   );
 }

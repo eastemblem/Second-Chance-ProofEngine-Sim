@@ -35,7 +35,7 @@ import {
   Navigation
 } from "lucide-react";
 import Navbar from "@/components/navbar";
-import Footer from "@/components/footer";
+import { DashboardLayout } from "@/components/layout";
 import { DashboardLoadingSkeleton } from "@/components/dashboard-loading";
 
 interface User {
@@ -1066,7 +1066,7 @@ export default function DashboardPage() {
   }
 
   return (
-    <div className="min-h-screen flex flex-col bg-black text-white">
+    <DashboardLayout>
       <Navbar showSignOut />
       
       {/* Header Section */}
@@ -1094,7 +1094,7 @@ export default function DashboardPage() {
       </div>
 
       {/* Main Dashboard Content */}
-      <div className="flex-1 max-w-7xl mx-auto px-4 py-8 w-full">
+      <div className="flex-1 max-w-7xl mx-auto px-4 py-8 w-full bg-black text-white">
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
           
           {/* Left Column - Main Content */}
@@ -1868,7 +1868,6 @@ export default function DashboardPage() {
           </div>
         </div>
       </div>
-      <Footer />
-    </div>
+    </DashboardLayout>
   );
 }

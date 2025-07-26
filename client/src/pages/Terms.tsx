@@ -4,7 +4,7 @@ import { ArrowUp, Mail, ExternalLink, Shield, Users, Gavel } from "lucide-react"
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { motion } from "framer-motion";
-import Footer from "@/components/footer";
+import Layout from "@/components/layout";
 import Navbar from "@/components/navbar";
 
 const Terms = () => {
@@ -76,7 +76,7 @@ const Terms = () => {
   };
 
   return (
-    <div className="min-h-screen bg-background">
+    <Layout>
       <div className="sticky top-0 z-50 bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
         <Navbar />
       </div>
@@ -858,11 +858,7 @@ const Terms = () => {
         </motion.div>
       )}
       
-      {/* Sticky Footer */}
-      <div className="sticky bottom-0 z-40 mt-auto">
-        <Footer />
-      </div>
-    </div>
+    </Layout>
   );
 };
 

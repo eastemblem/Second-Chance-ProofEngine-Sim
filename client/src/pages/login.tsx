@@ -7,7 +7,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { useToast } from "@/hooks/use-toast";
 import { Eye, EyeOff, LogIn } from "lucide-react";
 import Logo from "@/components/logo";
-import Footer from "@/components/footer";
+import { AuthLayout } from "@/components/layout";
 import { trackEvent } from "@/lib/analytics";
 
 export default function LoginPage() {
@@ -135,9 +135,8 @@ export default function LoginPage() {
   }
 
   return (
-    <div className="min-h-screen flex flex-col">
-      <div className="flex-1 flex items-center justify-center bg-gradient-to-br from-background via-card to-background px-4 py-8">
-        <div className="w-full max-w-md">
+    <AuthLayout>
+      <div className="w-full max-w-md">
           {/* Logo */}
           <div className="text-center mb-8">
             <Logo size="lg" showTagline={false} />
@@ -221,9 +220,6 @@ export default function LoginPage() {
             </CardContent>
           </Card>
         </div>
-      </div>
-      
-      <Footer />
-    </div>
+    </AuthLayout>
   );
 }

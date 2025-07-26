@@ -7,7 +7,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { useToast } from "@/hooks/use-toast";
 import { CheckCircle, Eye, EyeOff, Lock, AlertCircle, XCircle } from "lucide-react";
 
-import Footer from "@/components/footer";
+import { AuthLayout } from "@/components/layout";
 
 
 export default function ResetPasswordPage() {
@@ -160,8 +160,8 @@ export default function ResetPasswordPage() {
   // Show error state for token issues
   if (tokenError || (!token && !isValidating)) {
     return (
-      <div className="min-h-screen flex flex-col bg-gradient-to-br from-gray-50 to-gray-100">
-        <div className="flex-1 flex items-center justify-center px-4">
+      <AuthLayout>
+        <div className="flex items-center justify-center px-4">
           <Card className="w-full max-w-md shadow-xl border-red-200 bg-red-50">
             <CardHeader className="text-center">
               <div className="mx-auto mb-4 w-12 h-12 rounded-full bg-red-100 flex items-center justify-center">
@@ -182,16 +182,15 @@ export default function ResetPasswordPage() {
             </CardContent>
           </Card>
         </div>
-        <Footer />
-      </div>
+      </AuthLayout>
     );
   }
 
   const passwordErrors = validatePassword(password);
 
   return (
-    <div className="min-h-screen flex flex-col">
-      <div className="flex-1 flex items-center justify-center bg-gradient-to-br from-background via-card to-background px-4 py-8">
+    <AuthLayout>
+      <div className="flex items-center justify-center px-4 py-8">
         <div className="w-full max-w-md">
           {/* Reset Password Form */}
           <Card>
@@ -302,7 +301,6 @@ export default function ResetPasswordPage() {
         </div>
       </div>
       
-      <Footer />
-    </div>
+    </AuthLayout>
   );
 }

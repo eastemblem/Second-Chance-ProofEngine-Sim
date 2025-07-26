@@ -2,7 +2,7 @@ import { motion } from "framer-motion";
 import { Rocket, GraduationCap, Users, Download, Calendar } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
-import Footer from "@/components/footer";
+import Layout from "@/components/layout";
 
 interface FinalPageProps {
   onReset: () => void;
@@ -10,8 +10,9 @@ interface FinalPageProps {
 
 export default function FinalPage({ onReset }: FinalPageProps) {
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-background via-card to-background">
-      <div className="max-w-2xl mx-auto px-6 text-center">
+    <Layout>
+      <div className="flex items-center justify-center px-6">
+        <div className="max-w-2xl mx-auto text-center">
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
@@ -95,9 +96,9 @@ export default function FinalPage({ onReset }: FinalPageProps) {
             ← Start Over
           </Button>
         </motion.div>
+        </div>
       </div>
       
-      <Footer />
-    </div>
+    </Layout>
   );
 }

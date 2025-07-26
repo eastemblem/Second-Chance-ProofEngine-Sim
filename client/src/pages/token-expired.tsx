@@ -4,7 +4,7 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { AlertCircle, Mail, ArrowLeft, RefreshCw } from "lucide-react";
 import Logo from "@/components/logo";
-import Footer from "@/components/footer";
+import { AuthLayout } from "@/components/layout";
 
 interface TokenExpiredPageProps {
   reason?: 'expired' | 'already_verified' | 'invalid';
@@ -178,7 +178,6 @@ export default function TokenExpiredPage() {
         </div>
       </div>
       
-      <Footer />
-    </div>
+    </AuthLayout>
   );
 }

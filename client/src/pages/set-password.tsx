@@ -7,7 +7,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { useToast } from "@/hooks/use-toast";
 import { CheckCircle, Eye, EyeOff, Lock, AlertCircle, XCircle } from "lucide-react";
 
-import Footer from "@/components/footer";
+import { AuthLayout } from "@/components/layout";
 
 
 export default function SetPasswordPage() {
@@ -159,8 +159,8 @@ export default function SetPasswordPage() {
   // Show error state for token issues
   if (tokenError) {
     return (
-      <div className="min-h-screen flex flex-col">
-        <div className="flex-1 flex items-center justify-center bg-gradient-to-br from-background via-card to-background px-4 py-8">
+      <AuthLayout>
+        <div className="flex items-center justify-center px-4 py-8">
           <div className="w-full max-w-md">
 
 
@@ -216,8 +216,7 @@ export default function SetPasswordPage() {
             </Card>
           </div>
         </div>
-        <Footer />
-      </div>
+      </AuthLayout>
     );
   }
 
@@ -237,8 +236,8 @@ export default function SetPasswordPage() {
   const passwordErrors = validatePassword(password);
 
   return (
-    <div className="min-h-screen flex flex-col">
-      <div className="flex-1 flex items-center justify-center bg-gradient-to-br from-background via-card to-background px-4 py-8">
+    <AuthLayout>
+      <div className="flex items-center justify-center px-4 py-8">
         <div className="w-full max-w-md">
 
 
@@ -343,7 +342,6 @@ export default function SetPasswordPage() {
         </div>
       </div>
       
-      <Footer />
-    </div>
+    </AuthLayout>
   );
 }

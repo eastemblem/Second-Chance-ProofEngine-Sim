@@ -2,7 +2,7 @@ import { ArrowRight } from "lucide-react";
 import { useLocation } from "wouter";
 import Logo from "@/components/logo";
 import { Button } from "@/components/ui/button";
-import Footer from "@/components/footer";
+import Layout from "@/components/layout";
 
 interface LandingPageProps {
   onNext: () => void;
@@ -23,8 +23,8 @@ export default function LandingPage({ onNext }: LandingPageProps) {
   ];
 
   return (
-    <div className="min-h-screen flex flex-col">
-      <div className="flex-1 flex items-center justify-center bg-gradient-to-br from-background via-card to-background py-8">
+    <Layout className="bg-gradient-to-br from-background via-card to-background">
+      <div className="flex-1 flex items-center justify-center py-8">
         <div className="max-w-4xl mx-auto px-4 sm:px-6 text-center">
           {/* Logo Section */}
           <div className="logo-container mb-2">
@@ -91,9 +91,6 @@ export default function LandingPage({ onNext }: LandingPageProps) {
           </div>
         </div>
       </div>
-      <div className="mt-8 sm:mt-0">
-        <Footer />
-      </div>
-    </div>
+    </Layout>
   );
 }
