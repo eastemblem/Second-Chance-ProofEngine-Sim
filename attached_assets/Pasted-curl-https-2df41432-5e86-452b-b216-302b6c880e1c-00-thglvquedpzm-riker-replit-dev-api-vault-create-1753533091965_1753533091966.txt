@@ -1,0 +1,18 @@
+curl 'https://2df41432-5e86-452b-b216-302b6c880e1c-00-thglvquedpzm.riker.replit.dev/api/vault/create-folder' \
+  -H 'Accept: */*' \
+  -H 'Accept-Language: en-IN,en-GB;q=0.9,en-US;q=0.8,en;q=0.7,ar;q=0.6,mr;q=0.5' \
+  -H 'Connection: keep-alive' \
+  -H 'Content-Type: multipart/form-data; boundary=----WebKitFormBoundaryeDJzrQX7ff1Znv5Q' \
+  -b '_ga=GA1.1.1738572821.1753440071; authToken=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJmb3VuZGVySWQiOiIxNzE1ZjY2Zi0zYmFiLTQzZDUtODQ5My1lNDU3ZDg0Njg0ZWQiLCJlbWFpbCI6ImRldmVsb3BlckBlYXN0ZW1ibGVtLmNvbSIsInN0YXJ0dXBOYW1lIjoiTmlsZXNoIEJhbW5lIiwiaWF0IjoxNzUzNTI5NjU3LCJleHAiOjE3NTQxMzQ0NTcsImlzcyI6InNlY29uZC1jaGFuY2UtcGxhdGZvcm0ifQ.p89zqHuORqX01WcGUNiDA93O72_aoIkdtqQ0QcZlqq8; connect.sid=s%3A4pXPwaNBaxkdaA5kKn1nBYiwiTfZRW1S.TNF23OOAvEbVf%2FjNd8xBwz97lLH3layN7LlVEGWaE6E; _ga_90NNFCXEZV=GS2.1.s1753525563$o2$g1$t1753532989$j13$l0$h0' \
+  -H 'Origin: https://2df41432-5e86-452b-b216-302b6c880e1c-00-thglvquedpzm.riker.replit.dev' \
+  -H 'Referer: https://2df41432-5e86-452b-b216-302b6c880e1c-00-thglvquedpzm.riker.replit.dev/dashboard' \
+  -H 'Sec-Fetch-Dest: empty' \
+  -H 'Sec-Fetch-Mode: cors' \
+  -H 'Sec-Fetch-Site: same-origin' \
+  -H 'User-Agent: Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/137.0.0.0 Safari/537.36' \
+  -H 'baggage: sentry-environment=production,sentry-public_key=5270de4287ea5e452a57bb85b25c7a40,sentry-trace_id=f4796137565445de8e29041f3d9c7b22,sentry-org_id=4509731263938560,sentry-sampled=false,sentry-sample_rand=0.10593944144688949,sentry-sample_rate=0.1' \
+  -H 'sec-ch-ua: "Google Chrome";v="137", "Chromium";v="137", "Not/A)Brand";v="24"' \
+  -H 'sec-ch-ua-mobile: ?0' \
+  -H 'sec-ch-ua-platform: "macOS"' \
+  -H 'sentry-trace: f4796137565445de8e29041f3d9c7b22-a798f91951fef9bb-0' \
+  --data-raw $'------WebKitFormBoundaryeDJzrQX7ff1Znv5Q\r\nContent-Disposition: form-data; name="folderName"\r\n\r\nbadges\r\n------WebKitFormBoundaryeDJzrQX7ff1Znv5Q\r\nContent-Disposition: form-data; name="folder_id"\r\n\r\n2_Solution_Proof\r\n------WebKitFormBoundaryeDJzrQX7ff1Znv5Q\r\nContent-Disposition: form-data; name="ventureId"\r\n\r\nd77c5cba-5faf-480c-b11d-672f2c0ed8e7\r\n------WebKitFormBoundaryeDJzrQX7ff1Znv5Q--\r\n'

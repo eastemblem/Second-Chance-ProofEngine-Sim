@@ -700,8 +700,17 @@ export default function DashboardPage() {
         console.log(`⚠️ No ventureId available in user data:`, user);
       }
 
-      const response = await fetch('/api/vault/create-folder', {
+      // Get JWT token for V1 API authentication
+      const token = localStorage.getItem('authToken');
+      if (!token) {
+        throw new Error('Authentication required for folder creation');
+      }
+
+      const response = await fetch('/api/v1/vault/create-folder', {
         method: 'POST',
+        headers: {
+          'Authorization': `Bearer ${token}`
+        },
         body: formData,
       });
 

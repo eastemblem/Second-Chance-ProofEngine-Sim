@@ -258,78 +258,140 @@ router.post('/upload-file', upload.single("file"), asyncHandler(async (req: Auth
   }
 }));
 
-// Create folder endpoint - Missing from v1 vault route
-router.post('/create-folder', upload.none(), asyncHandler(async (req, res) => {
+// Create folder endpoint - V1 DATABASE-DRIVEN with JWT authentication
+router.post('/create-folder', upload.none(), asyncHandler(async (req: AuthenticatedRequest, res: Response) => {
   const { folderName, folder_id, ventureId } = req.body;
+  const founderId = req.user?.founderId;
+  
+  if (!founderId) {
+    return res.status(401).json({ success: false, error: "JWT authentication required for folder creation" });
+  }
   
   if (!folderName || !folder_id) {
     return res.status(400).json({ error: 'folderName and folder_id are required' });
   }
 
+  console.log(`📁 V1 CREATE FOLDER: Processing database-driven folder creation for founder ${founderId}`);
+
   try {
-    // Map category to actual Box.com folder ID if needed
-    let actualParentFolderId = folder_id;
+    // Step 1: Get actual Box.com parent folder ID from database - NO FALLBACKS
+    const { getFolderIdFromCategory } = await import("../../utils/folder-mapping");
+    const actualParentFolderId = await getFolderIdFromCategory(folder_id, founderId);
     
-    console.log(`🔍 V1 Folder creation - Input folder_id: '${folder_id}' (type: ${typeof folder_id})`);
+    console.log(`📁 V1 CREATE FOLDER: Resolved category "${folder_id}" to parent folder ID "${actualParentFolderId}"`);
+
+    // Step 2: Create folder via EastEmblem API using service layer with proper error handling
+    const { vaultService } = await import("../../services/vault-service");
+    const { getSessionId } = await import("../../utils/session-manager");
     
-    const categoryToFolderMap: Record<string, string> = {
-      '0_Overview': '332844784735',
-      '1_Problem_Proof': '332844933261', 
-      '2_Solution_Proof': '332842993678',
-      '3_Demand_Proof': '332843828465',
-      '4_Credibility_Proof': '332843291772',
-      '5_Commercial_Proof': '332845124499',
-      '6_Investor_Pack': '332842251627'
-    };
+    const sessionId = getSessionId(req);
+    let result;
+    let usedFallback = false;
     
-    console.log(`🗂️ V1 Available mappings:`, Object.keys(categoryToFolderMap));
-    console.log(`🔍 V1 Looking up mapping for '${folder_id}':`, categoryToFolderMap[folder_id]);
-    
-    if (categoryToFolderMap[folder_id]) {
-      actualParentFolderId = categoryToFolderMap[folder_id];
-      console.log(`✅ V1 Mapped parent category '${folder_id}' to Box.com folder ID '${actualParentFolderId}'`);
-    } else {
-      console.log(`⚠️ V1 No mapping found for '${folder_id}', using directly: '${actualParentFolderId}'`);
+    try {
+      result = await vaultService.createFolder(folderName, actualParentFolderId, sessionId);
+      console.log(`✅ V1 Folder creation successful via EastEmblem API:`, {
+        folderName,
+        folderId: result.id
+      });
+    } catch (apiError) {
+      const errorMessage = apiError instanceof Error ? apiError.message : 'Unknown error';
+      console.log(`⚠️ V1 EastEmblem API folder creation failed - using fallback:`, {
+        folderName,
+        error: errorMessage
+      });
+      
+      // Fallback: Use parent folder for uploads (same as legacy vault route)
+      result = {
+        id: actualParentFolderId,
+        name: folderName,
+        url: `https://app.box.com/folder/${actualParentFolderId}`,
+        note: `Files will be uploaded to the ${folder_id} category folder`
+      };
+      usedFallback = true;
     }
-
-    // Create FormData for EastEmblem API
-    const formData = new FormData();
-    formData.append('folderName', folderName);
-    formData.append('folder_id', actualParentFolderId);
-
-    // Call EastEmblem folder creation API using environment variable
-    const apiBaseUrl = process.env.EASTEMBLEM_API_BASE_URL;
-    if (!apiBaseUrl) {
-      throw new Error('EASTEMBLEM_API_BASE_URL environment variable is not configured');
-    }
-    
-    const folderCreateUrl = `${apiBaseUrl}/webhook/vault/folder/create`;
-    console.log(`🔄 V1 Creating folder "${folderName}" in parent folder ${actualParentFolderId} via ${folderCreateUrl}`);
-    
-    const response = await fetch(folderCreateUrl, {
-      method: 'POST',
-      body: formData,
-    });
-
-    if (!response.ok) {
-      const errorText = await response.text();
-      console.log(`❌ V1 Folder creation failed: ${response.status} ${response.statusText} - ${errorText}`);
-      throw new Error(`EastEmblem API error: ${response.status} ${response.statusText}`);
-    }
-
-    const result = await response.json();
-    console.log(`✅ V1 Folder creation successful:`, result);
     
     res.json(createSuccessResponse({
-      folderId: result.folderId || result.id,
+      folderId: result.id,
       folderName: folderName,
       parentFolderId: actualParentFolderId,
-      message: 'Folder created successfully'
+      usedFallback: usedFallback,
+      message: usedFallback ? 'Folder creation used fallback strategy' : 'Folder created successfully',
+      note: result.note || undefined
     }, "V1 Folder creation completed"));
 
   } catch (error) {
     console.error('V1 Folder creation error:', error);
     throw new Error(`Failed to create folder: ${error instanceof Error ? error.message : 'Unknown error'}`);
+  }
+}));
+
+// Upload file directly to folder ID (bypasses category mapping) - V1 JWT AUTHENTICATED
+router.post('/upload-file-direct', upload.single("file"), asyncHandler(async (req: AuthenticatedRequest, res: Response) => {
+  const { folder_id } = req.body;
+  const file = req.file;
+  const founderId = req.user?.founderId;
+
+  if (!founderId) {
+    return res.status(401).json({ success: false, error: "JWT authentication required for file upload" });
+  }
+
+  if (!file) {
+    throw new Error("File is required for upload");
+  }
+
+  if (!folder_id) {
+    throw new Error("folder_id is required for direct upload");
+  }
+
+  console.log(`📁 V1 DIRECT UPLOAD: Processing direct folder upload for founder ${founderId} to folder ${folder_id}`);
+
+  const sessionId = getSessionId(req);
+  
+  try {
+    // Use folder_id directly (no category mapping) for newly created subfolders
+    const fileBuffer = fs.readFileSync(file.path);
+    const uploadResult = await eastEmblemAPI.uploadFile(
+      fileBuffer,
+      file.originalname,
+      folder_id, // Use folder ID directly
+      sessionId,
+      true // allowShare
+    );
+
+    // Update session with uploaded file
+    const sessionData = getSessionData(req);
+    const updatedFiles = [...(sessionData.uploadedFiles || []), uploadResult];
+    updateSessionData(req, { uploadedFiles: updatedFiles });
+
+    // Cleanup uploaded file
+    cleanupUploadedFile(file.path);
+
+    console.log(`✅ V1 DIRECT UPLOAD: File "${file.originalname}" uploaded successfully to folder ${folder_id}`);
+
+    res.json(createSuccessResponse({
+      file: {
+        id: uploadResult.id,
+        name: uploadResult.name,
+        url: uploadResult.url,
+        size: file.size,
+        folderId: folder_id
+      }
+    }));
+
+  } catch (error) {
+    const errorMessage = error instanceof Error ? error.message : String(error);
+    console.error(`❌ V1 DIRECT UPLOAD: Failed to upload file:`, error);
+    
+    // Cleanup uploaded file on error
+    if (file.path && fs.existsSync(file.path)) {
+      cleanupUploadedFile(file.path);
+    }
+
+    return res.status(400).json({ 
+      success: false, 
+      error: errorMessage
+    });
   }
 }));
 
