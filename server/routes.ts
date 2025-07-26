@@ -9,6 +9,7 @@ import { cleanupUploadedFile } from "./utils/file-cleanup";
 import { onboardingService } from "./services/onboarding-service";
 import apiRoutes from "./routes/index";
 import authRoutes from "./routes/auth";
+import vaultRoutes from "./routes/vault-pure";
 import { getLeaderboard, createLeaderboardEntry } from "./routes/leaderboard";
 import { generateCertificate, downloadCertificate, getCertificateStatus } from "./routes/certificate";
 import { generateReport } from "./routes/report";
@@ -876,34 +877,27 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
   // Email routes
   app.use("/api/email", (await import("./routes/emailRoutes")).default);
+  
+  // Pure database-driven vault routes
+  app.use("/api/vault", vaultRoutes);
 
   const httpServer = createServer(app);
   return httpServer;
 }
 
-// Helper functions for file processing - database-driven folder mapping
+// 100% DATABASE-DRIVEN folder mapping - NO FALLBACKS
 async function getCategoryFromFolderId(folderId: string, founderId?: string): Promise<string> {
-  if (founderId) {
-    try {
-      const { getCategoryFromFolderIdDB } = await import('./utils/folder-mapping');
-      return await getCategoryFromFolderIdDB(folderId, founderId);
-    } catch (error) {
-      appLogger.database('Error getting category from database:', error);
-    }
+  if (!founderId) {
+    throw new Error("founderId required for database-driven folder mapping");
   }
   
-  // Fallback to current working folder mapping
-  const folderMap: Record<string, string> = {
-    '332886218045': 'Overview',     // 0_Overview
-    '332887480277': 'Problem Proofs', // 1_Problem_Proof  
-    '332887446170': 'Solution Proofs', // 2_Solution_Proof
-    '332885125206': 'Demand Proofs',   // 3_Demand_Proof
-    '332885857453': 'Credibility Proofs', // 4_Credibility_Proof
-    '332887928503': 'Commercial Proofs',  // 5_Commercial_Proof
-    '332885728761': 'Investor Pack'       // 6_Investor_Pack
-  };
-  
-  return folderMap[folderId] || 'Overview (default)';
+  try {
+    const { getCategoryFromFolderIdDB } = await import('./utils/folder-mapping-pure');
+    return await getCategoryFromFolderIdDB(folderId, founderId);
+  } catch (error) {
+    appLogger.database('❌ CRITICAL: Pure database folder mapping failed:', error);
+    throw new Error(`Category not found for folder ${folderId}. Database-driven mapping required.`);
+  }
 }
 
 function formatFileSize(bytes: number): string {
