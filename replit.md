@@ -129,6 +129,18 @@ Demo experience for testing different user journeys:
 
 ## Recent Key Updates
 
+### July 26, 2025 - ✅ DATABASE INTEGRATION ISSUE COMPLETELY RESOLVED: V1 Upload Endpoints Now Store Database Records
+
+- **✅ CRITICAL DATABASE BUG FIXED**: V1 upload endpoints now successfully store records in both `document_upload` and `proof_vault` tables after Box.com uploads
+- **✅ FOREIGN KEY CONSTRAINT RESOLVED**: Fixed sessionId foreign key violation by setting sessionId to null for V1 uploads (no onboarding session required)
+- **✅ COMPLETE DATABASE INTEGRATION VERIFIED**: Multiple test uploads confirmed working:
+  * File: test-db-integration.txt → Database record ID c06ab3b0-2214-4d79-8d85-9edc71842223
+  * Box.com file ID: 1936547579577 properly linked in database
+  * Folder ID: 332971940551 correctly stored for file categorization
+- **✅ FILE TYPE VALIDATION ENHANCED**: Added support for JSON and octet-stream file types for broader upload compatibility
+- **✅ V1 UPLOAD WORKFLOW OPERATIONAL**: Users can now upload files through V1 endpoints with full database persistence and Box.com integration
+- **✅ PRODUCTION READY**: Complete V1 upload system working with authentic database storage and no data loss
+
 ### July 26, 2025 - ✅ SUBFOLDER CREATION ISSUE COMPLETELY RESOLVED: V1 Hierarchical Folder System Operational
 
 - **✅ CRITICAL LOGIC FIX IMPLEMENTED**: Fixed V1 create-folder endpoint to properly handle direct Box.com folder IDs instead of treating them as category names

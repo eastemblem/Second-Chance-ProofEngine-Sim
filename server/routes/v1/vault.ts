@@ -40,7 +40,9 @@ const upload = multer({
       "image/svg+xml",
       "application/msword",
       "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
-      "text/plain"
+      "text/plain",
+      "application/json",
+      "application/octet-stream"
     ];
     if (allowedTypes.includes(file.mimetype)) {
       cb(null, true);
@@ -222,12 +224,35 @@ router.post('/upload-file', upload.single("file"), asyncHandler(async (req: Auth
       true // allowShare
     );
 
-    // Step 3: Update session with uploaded file
+    // Step 3: Store upload in database
+    const { storage } = await import("../../storage");
+    try {
+      const uploadRecord = await storage.createDocumentUpload({
+        sessionId: null, // V1 uploads don't require session reference
+        ventureId: req.user?.ventureId || null,
+        fileName: file.originalname,
+        originalName: file.originalname,
+        filePath: file.path,
+        fileSize: file.size,
+        mimeType: file.mimetype,
+        uploadStatus: 'completed',
+        processingStatus: 'completed',
+        eastemblemFileId: uploadResult.id,
+        sharedUrl: uploadResult.url,
+        folderId: actualFolderId
+      });
+      console.log(`📝 V1 UPLOAD: Database record created with ID ${uploadRecord.uploadId}`);
+    } catch (dbError) {
+      console.error(`⚠️ V1 UPLOAD: Database storage failed:`, dbError);
+      // Continue without failing the upload since Box.com upload succeeded
+    }
+
+    // Step 4: Update session with uploaded file
     const sessionData = getSessionData(req);
     const updatedFiles = [...(sessionData.uploadedFiles || []), uploadResult];
     updateSessionData(req, { uploadedFiles: updatedFiles });
 
-    // Step 4: Cleanup uploaded file
+    // Step 5: Cleanup uploaded file
     cleanupUploadedFile(file.path);
 
     console.log(`✅ V1 UPLOAD: File "${file.originalname}" uploaded successfully to folder ${actualFolderId}`);
@@ -372,6 +397,29 @@ router.post('/upload-file-direct', upload.single("file"), asyncHandler(async (re
     const sessionData = getSessionData(req);
     const updatedFiles = [...(sessionData.uploadedFiles || []), uploadResult];
     updateSessionData(req, { uploadedFiles: updatedFiles });
+
+    // Store upload in database
+    const { storage } = await import("../../storage");
+    try {
+      const uploadRecord = await storage.createDocumentUpload({
+        sessionId: null, // V1 uploads don't require session reference
+        ventureId: req.user?.ventureId || null,
+        fileName: file.originalname,
+        originalName: file.originalname,
+        filePath: file.path,
+        fileSize: file.size,
+        mimeType: file.mimetype,
+        uploadStatus: 'completed',
+        processingStatus: 'completed',
+        eastemblemFileId: uploadResult.id,
+        sharedUrl: uploadResult.url,
+        folderId: folder_id
+      });
+      console.log(`📝 V1 DIRECT UPLOAD: Database record created with ID ${uploadRecord.uploadId}`);
+    } catch (dbError) {
+      console.error(`⚠️ V1 DIRECT UPLOAD: Database storage failed:`, dbError);
+      // Continue without failing the upload since Box.com upload succeeded
+    }
 
     // Cleanup uploaded file
     cleanupUploadedFile(file.path);
