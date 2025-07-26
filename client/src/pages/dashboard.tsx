@@ -620,13 +620,13 @@ export default function DashboardPage() {
       }, 300);
 
       // Get JWT token for authentication
-      const token = localStorage.getItem('authToken');
+      const token = localStorage.getItem('auth_token');
       console.log(`🔍 UPLOAD DEBUG: Token exists: ${!!token}, Token length: ${token?.length || 0}`);
       const headers: Record<string, string> = {};
       if (token) {
         headers['Authorization'] = `Bearer ${token}`;
       } else {
-        console.error('❌ No authToken found for upload. Available keys:', Object.keys(localStorage));
+        console.error('❌ No auth_token found for upload. Available keys:', Object.keys(localStorage));
       }
 
       // Determine if this is a category upload (like "1_Problem_Proof") or direct folder ID (like "332970573225")
@@ -710,10 +710,10 @@ export default function DashboardPage() {
       }
 
       // Get JWT token for V1 API authentication
-      const token = localStorage.getItem('authToken');
+      const token = localStorage.getItem('auth_token');
       console.log(`🔍 DEBUG: Token exists: ${!!token}, Token length: ${token?.length || 0}`);
       if (!token) {
-        console.error('❌ No authToken found in localStorage. Available keys:', Object.keys(localStorage));
+        console.error('❌ No auth_token found in localStorage. Available keys:', Object.keys(localStorage));
         throw new Error('Authentication required for folder creation');
       }
 
