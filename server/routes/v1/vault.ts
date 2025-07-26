@@ -37,6 +37,7 @@ const upload = multer({
       "image/jpg",
       "image/gif",
       "image/webp",
+      "image/svg+xml",
       "application/msword",
       "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
       "text/plain"
@@ -44,7 +45,7 @@ const upload = multer({
     if (allowedTypes.includes(file.mimetype)) {
       cb(null, true);
     } else {
-      cb(new Error(`Invalid file type: ${file.mimetype}. Allowed types: PDF, PPT, PPTX, images, Word documents, and text files.`));
+      cb(new Error(`Invalid file type: ${file.mimetype}. Allowed types: PDF, PPT, PPTX, images (PNG, JPEG, GIF, WebP, SVG), Word documents, and text files.`));
     }
   },
 });

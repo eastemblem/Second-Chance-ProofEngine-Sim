@@ -1,0 +1,19 @@
+curl 'https://2df41432-5e86-452b-b216-302b6c880e1c-00-thglvquedpzm.riker.replit.dev/api/v1/vault/upload-file-direct' \
+  -H 'Accept: */*' \
+  -H 'Accept-Language: en-IN,en-GB;q=0.9,en-US;q=0.8,en;q=0.7,ar;q=0.6,mr;q=0.5' \
+  -H 'Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJmb3VuZGVySWQiOiIxNzE1ZjY2Zi0zYmFiLTQzZDUtODQ5My1lNDU3ZDg0Njg0ZWQiLCJlbWFpbCI6ImRldmVsb3BlckBlYXN0ZW1ibGVtLmNvbSIsInN0YXJ0dXBOYW1lIjoiTmlsZXNoIEJhbW5lIiwiaWF0IjoxNzUzNTM0MjI1LCJleHAiOjE3NTQxMzkwMjUsImlzcyI6InNlY29uZC1jaGFuY2UtcGxhdGZvcm0ifQ.coLVJGS6wJvSEUZOzKlIYt92GzAh0VqaQw1kJBzWwKw' \
+  -H 'Connection: keep-alive' \
+  -H 'Content-Type: multipart/form-data; boundary=----WebKitFormBoundarygGxrSIBokgBahxiq' \
+  -b '_ga=GA1.1.1738572821.1753440071; connect.sid=s%3ATUF5Rma0Bi0GMQPj__tOICqqoivUr7Yb.jGZqEu%2F0IwtIp4fAwnygtDDMD4%2BWX8vU0%2F6LU9liQRg; authToken=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJmb3VuZGVySWQiOiIxNzE1ZjY2Zi0zYmFiLTQzZDUtODQ5My1lNDU3ZDg0Njg0ZWQiLCJlbWFpbCI6ImRldmVsb3BlckBlYXN0ZW1ibGVtLmNvbSIsInN0YXJ0dXBOYW1lIjoiTmlsZXNoIEJhbW5lIiwiaWF0IjoxNzUzNTM0MjI1LCJleHAiOjE3NTQxMzkwMjUsImlzcyI6InNlY29uZC1jaGFuY2UtcGxhdGZvcm0ifQ.coLVJGS6wJvSEUZOzKlIYt92GzAh0VqaQw1kJBzWwKw; _ga_90NNFCXEZV=GS2.1.s1753525563$o2$g1$t1753534252$j12$l0$h0' \
+  -H 'Origin: https://2df41432-5e86-452b-b216-302b6c880e1c-00-thglvquedpzm.riker.replit.dev' \
+  -H 'Referer: https://2df41432-5e86-452b-b216-302b6c880e1c-00-thglvquedpzm.riker.replit.dev/dashboard' \
+  -H 'Sec-Fetch-Dest: empty' \
+  -H 'Sec-Fetch-Mode: cors' \
+  -H 'Sec-Fetch-Site: same-origin' \
+  -H 'User-Agent: Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/137.0.0.0 Safari/537.36' \
+  -H 'baggage: sentry-environment=production,sentry-public_key=5270de4287ea5e452a57bb85b25c7a40,sentry-trace_id=dca42df6346a41f8a7f1f1663f87eca7,sentry-org_id=4509731263938560,sentry-sampled=false,sentry-sample_rand=0.5400442090618961,sentry-sample_rate=0.1' \
+  -H 'sec-ch-ua: "Google Chrome";v="137", "Chromium";v="137", "Not/A)Brand";v="24"' \
+  -H 'sec-ch-ua-mobile: ?0' \
+  -H 'sec-ch-ua-platform: "macOS"' \
+  -H 'sentry-trace: dca42df6346a41f8a7f1f1663f87eca7-9da839dac36fa253-0' \
+  --data-raw $'------WebKitFormBoundarygGxrSIBokgBahxiq\r\nContent-Disposition: form-data; name="file"; filename="badges/svg/Badge_02.svg"\r\nContent-Type: image/svg+xml\r\n\r\n\r\n------WebKitFormBoundarygGxrSIBokgBahxiq\r\nContent-Disposition: form-data; name="folder_id"\r\n\r\n332970414911\r\n------WebKitFormBoundarygGxrSIBokgBahxiq--\r\n'
