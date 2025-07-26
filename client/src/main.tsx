@@ -1,16 +1,21 @@
+import React from "react";
 import { createRoot } from "react-dom/client";
-import App from "./App";
 import "./index.css";
 
-// Minimal initialization to prevent blocking render
+// Ensure React is available globally before any components load
+(window as any).React = React;
+
+// Import SimpleApp instead to test basic functionality
+import SimpleApp from "./SimpleApp";
+
 const root = document.getElementById("root");
 
 if (!root) {
   throw new Error("Root element not found");
 }
 
-// Immediate render with no blocking operations
-createRoot(root).render(<App />);
+// Render simple app without problematic hooks
+createRoot(root).render(React.createElement(SimpleApp));
 
 // Mark as loaded and initialize optimizations
 document.body.classList.add('loaded');

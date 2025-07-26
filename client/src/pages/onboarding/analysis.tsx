@@ -1584,6 +1584,7 @@ export default function Analysis({
           </motion.div>
         </div>
       </div>
-    </div> {/* Replaced TooltipProvider to fix React hooks error */}
+    </div>
+    {/* Replaced TooltipProvider to fix React hooks error */}
   );
 }
