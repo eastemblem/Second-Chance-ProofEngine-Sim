@@ -2,121 +2,132 @@ import { storage } from "../storage";
 import { appLogger } from "./logger";
 
 /**
- * Database-driven folder mapping utility
- * Loads folder ID mappings from proof_vault table instead of hardcoded values
+ * 100% DATABASE-DRIVEN folder mapping utility - NO FALLBACKS OR CACHING
+ * All folder mappings must come from proof_vault table populated during onboarding
  */
 
-interface FolderMapping {
+interface DatabaseFolderMapping {
   categoryToFolderId: Record<string, string>;
   folderIdToCategory: Record<string, string>;
+  availableCategories: string[];
 }
 
-let cachedMapping: FolderMapping | null = null;
-let cacheTimestamp: number = 0;
-const CACHE_TTL = 5 * 60 * 1000; // 5 minutes
-
-// Per-founder caching to avoid conflicts between users
-const founderCacheMap = new Map<string, { mapping: FolderMapping; timestamp: number }>();
-
 /**
- * Load folder mappings from database
+ * Load folder mappings directly from database - NO CACHING
  * @param founderId - Current user's founder ID
- * @returns Promise with folder mapping objects
+ * @returns Promise with folder mapping or throws error if no data
  */
-export async function loadFolderMappingFromDatabase(founderId: string): Promise<FolderMapping> {
-  try {
-    // Check per-founder cache first
-    const cached = founderCacheMap.get(founderId);
-    const currentTime = Date.now();
-    
-    if (cached && (currentTime - cached.timestamp) < CACHE_TTL) {
-      appLogger.cache(`Using cached folder mapping for founder ${founderId}`);
-      return cached.mapping;
-    }
-    
-    appLogger.database('Loading folder mapping from database (100% dynamic)...');
-    
-    // Get user's ventures
-    const ventures = await storage.getVenturesByFounderId(founderId);
-    const latestVenture = ventures.length > 0 ? ventures[0] : null;
-    
-    if (!latestVenture) {
-      throw new Error('No venture found for founder');
-    }
-
-    // Get proof vault records
-    const proofVaultRecords = await storage.getProofVaultsByVentureId(latestVenture.ventureId);
-    
-    const categoryToFolderId: Record<string, string> = {};
-    const folderIdToCategory: Record<string, string> = {};
-    
-    appLogger.database('Found proof vault records:', proofVaultRecords.length);
-    
-    // Add database mappings
-    proofVaultRecords.forEach(pv => {
-      // Use correct database field names: folderName, subFolderId (these match the Drizzle schema)
-      if (pv.folderName && pv.subFolderId) {
-        categoryToFolderId[pv.folderName] = pv.subFolderId;
-        folderIdToCategory[pv.subFolderId] = getCategoryDisplayName(pv.folderName);
-        appLogger.database(`DB Mapping: ${pv.folderName} (${pv.subFolderId}) → ${getCategoryDisplayName(pv.folderName)}`);
-      }
-    });
-
-    // System is now 100% database-driven - no legacy mappings needed
-
-    const mapping: FolderMapping = {
-      categoryToFolderId,
-      folderIdToCategory
-    };
-
-    // Cache the result per founder
-    founderCacheMap.set(founderId, { mapping, timestamp: currentTime });
-    
-    appLogger.database('100% database-driven mapping loaded successfully!');
-    appLogger.database('categoryToFolderId:', categoryToFolderId);
-    appLogger.database('folderIdToCategory:', folderIdToCategory);
-    return mapping;
-    
-  } catch (error) {
-    appLogger.database('Failed to load folder mapping from database:', error);
-    
-    // Return current working folder IDs as fallback + ADD MISSING LEGACY FOLDER IDs
-    const fallbackMapping: FolderMapping = {
-      categoryToFolderId: {
-        '0_Overview': '332886218045',
-        '1_Problem_Proof': '332887480277', 
-        '2_Solution_Proof': '332887446170',
-        '3_Demand_Proof': '332885125206',
-        '4_Credibility_Proof': '332885857453',
-        '5_Commercial_Proof': '332887928503',
-        '6_Investor_Pack': '332885728761'
-      },
-      folderIdToCategory: {
-        // Current database folder IDs
-        '332886218045': 'Overview',
-        '332887480277': 'Problem Proofs',
-        '332887446170': 'Solution Proofs',
-        '332885125206': 'Demand Proofs',
-        '332885857453': 'Credibility Proofs',
-        '332887928503': 'Commercial Proofs',
-        '332885728761': 'Investor Pack',
-        // Fallback mappings only used if database completely fails
-      }
-    };
-    
-    appLogger.database('Using fallback folder mapping');
-    return fallbackMapping;
+export async function loadFolderMappingFromDatabase(founderId: string): Promise<DatabaseFolderMapping> {
+  appLogger.database('Loading folder mapping from database (NO CACHE, NO FALLBACK)', { founderId });
+  
+  // Get user's ventures
+  const ventures = await storage.getVenturesByFounderId(founderId);
+  if (!ventures || ventures.length === 0) {
+    throw new Error(`No ventures found for founder ${founderId}`);
   }
+
+  const latestVenture = ventures[0];
+  appLogger.database('Using venture for folder mapping', { ventureId: latestVenture.ventureId });
+
+  // Get proof vault records using correct database field names
+  const proofVaultRecords = await storage.getProofVaultsByVentureId(latestVenture.ventureId);
+  
+  if (proofVaultRecords.length === 0) {
+    throw new Error(`No proof vault entries found for venture ${latestVenture.ventureId}. Please complete onboarding to create folder structure.`);
+  }
+
+  const categoryToFolderId: Record<string, string> = {};
+  const folderIdToCategory: Record<string, string> = {};
+  const availableCategories: string[] = [];
+  
+  appLogger.database('Processing proof vault records', { count: proofVaultRecords.length });
+  
+  // Process database mappings using correct field names from schema
+  proofVaultRecords.forEach(pv => {
+    // Schema shows: folderName (varchar) and subFolderId (varchar) - use these exact names
+    if (pv.folderName && pv.subFolderId) {
+      categoryToFolderId[pv.folderName] = pv.subFolderId;
+      folderIdToCategory[pv.subFolderId] = getCategoryDisplayName(pv.folderName);
+      availableCategories.push(pv.folderName);
+      
+      appLogger.database('Mapped folder from database', { 
+        folderName: pv.folderName, 
+        subFolderId: pv.subFolderId,
+        displayName: getCategoryDisplayName(pv.folderName)
+      });
+    } else {
+      appLogger.database('Skipping incomplete proof vault record', { 
+        vaultId: pv.vaultId,
+        folderName: pv.folderName,
+        subFolderId: pv.subFolderId
+      });
+    }
+  });
+
+  if (Object.keys(categoryToFolderId).length === 0) {
+    throw new Error('No valid folder mappings found in proof_vault table');
+  }
+
+  const mapping: DatabaseFolderMapping = {
+    categoryToFolderId,
+    folderIdToCategory,
+    availableCategories: availableCategories.sort()
+  };
+
+  appLogger.database('Database folder mapping loaded successfully', { 
+    categoriesCount: availableCategories.length,
+    categories: availableCategories
+  });
+  
+  return mapping;
 }
 
 /**
- * Get category display name from folder name
+ * Get actual Box.com folder ID from category name
+ * @param categoryName - Category name from database (e.g., '0_Overview')
+ * @param founderId - Current user's founder ID
+ * @returns Promise with Box.com folder ID or throws error
  */
-function getCategoryDisplayName(folderName: string): string {
+export async function getFolderIdFromCategory(categoryName: string, founderId: string): Promise<string> {
+  const mapping = await loadFolderMappingFromDatabase(founderId);
+  
+  const folderId = mapping.categoryToFolderId[categoryName];
+  if (!folderId) {
+    throw new Error(`No folder ID found for category '${categoryName}'. Available categories: ${mapping.availableCategories.join(', ')}`);
+  }
+  
+  appLogger.database('Resolved category to folder ID', { categoryName, folderId });
+  return folderId;
+}
+
+/**
+ * Get category name from Box.com folder ID
+ * @param folderId - Box.com folder ID
+ * @param founderId - Current user's founder ID
+ * @returns Promise with category display name or throws error
+ */
+export async function getCategoryFromFolderIdDB(folderId: string, founderId: string): Promise<string> {
+  const mapping = await loadFolderMappingFromDatabase(founderId);
+  
+  const category = mapping.folderIdToCategory[folderId];
+  if (!category) {
+    throw new Error(`No category found for folder ID '${folderId}'`);
+  }
+  
+  appLogger.database('Resolved folder ID to category', { folderId, category });
+  return category;
+}
+
+/**
+ * Get display name for category
+ * @param folderName - Database folder name (e.g., '0_Overview')
+ * @returns Human-readable display name
+ */
+export function getCategoryDisplayName(folderName: string): string {
   const displayMap: Record<string, string> = {
     '0_Overview': 'Overview',
     '1_Problem_Proof': 'Problem Proofs',
-    '2_Solution_Proof': 'Solution Proofs',
+    '2_Solution_Proof': 'Solution Proofs', 
     '3_Demand_Proof': 'Demand Proofs',
     '4_Credibility_Proof': 'Credibility Proofs',
     '5_Commercial_Proof': 'Commercial Proofs',
@@ -127,61 +138,10 @@ function getCategoryDisplayName(folderName: string): string {
 }
 
 /**
- * Get category from folder ID using database mapping
- * @param folderId - Box.com folder ID
- * @param founderId - Current user's founder ID
- * @returns Promise with category name
+ * Clear folder mapping cache (legacy function for compatibility)
+ * @param founderId - Founder ID 
  */
-export async function getCategoryFromFolderIdDB(folderId: string, founderId: string): Promise<string> {
-  try {
-    const mapping = await loadFolderMappingFromDatabase(founderId);
-    const category = mapping.folderIdToCategory[folderId];
-    
-    if (category) {
-      appLogger.database(`Mapped folder ID '${folderId}' to category: ${category}`);
-      return category;
-    } else {
-      appLogger.database(`No mapping found for folder ID '${folderId}', using default: Overview`);
-      return 'Overview (default)';
-    }
-  } catch (error) {
-    appLogger.database('Error getting category from folder ID:', error);
-    return 'Overview (default)';
-  }
+export function clearFolderMappingCache(founderId?: string): void {
+  appLogger.database('Cache clear requested (NO-OP: using direct database queries)', { founderId });
+  // No-op since we're using direct database queries without caching
 }
-
-/**
- * Get folder ID from category using database mapping
- * @param category - Category name (e.g., '2_Solution_Proof')
- * @param founderId - Current user's founder ID
- * @returns Promise with Box.com folder ID
- */
-export async function getFolderIdFromCategoryDB(category: string, founderId: string): Promise<string> {
-  try {
-    const mapping = await loadFolderMappingFromDatabase(founderId);
-    const folderId = mapping.categoryToFolderId[category];
-    
-    if (folderId) {
-      appLogger.database(`Mapped category '${category}' to folder ID: ${folderId}`);
-      return folderId;
-    } else {
-      appLogger.database(`No mapping found for category '${category}', using Overview folder`);
-      return mapping.categoryToFolderId['0_Overview'] || '332886218045';
-    }
-  } catch (error) {
-    appLogger.database('Error getting folder ID from category:', error);
-    return '332886218045'; // Overview folder fallback
-  }
-}
-
-/**
- * Clear folder mapping cache (useful when vault structure changes)
- */
-export function clearFolderMappingCache(): void {
-  cachedMapping = null;
-  cacheTimestamp = 0;
-  appLogger.cache('Folder mapping cache cleared');
-}
-
-// Clear cache on startup to ensure fresh database mapping
-clearFolderMappingCache();

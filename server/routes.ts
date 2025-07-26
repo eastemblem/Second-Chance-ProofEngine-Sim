@@ -885,39 +885,15 @@ export async function registerRoutes(app: Express): Promise<Server> {
   return httpServer;
 }
 
-// 100% DATABASE-DRIVEN folder mapping - CONSOLIDATED IN SINGLE FILE
+// 100% DATABASE-DRIVEN folder mapping - USE EXISTING FOLDER-MAPPING UTILITY
 async function getCategoryFromFolderId(folderId: string, founderId?: string): Promise<string> {
   if (!founderId) {
     throw new Error("founderId required for database-driven folder mapping");
   }
   
   try {
-    const { storage } = await import('./storage');
-    const ventures = await storage.getVenturesByFounderId(founderId);
-    if (!ventures || ventures.length === 0) {
-      throw new Error(`No ventures found for founder ${founderId}`);
-    }
-
-    const latestVenture = ventures[0];
-    const proofVaultRecords = await storage.getProofVaultsByVentureId(latestVenture.ventureId);
-    
-    const targetFolder = proofVaultRecords.find(pv => pv.subFolderId === folderId);
-    if (!targetFolder?.folderName) {
-      throw new Error(`No category found for folder ID ${folderId}`);
-    }
-
-    // Return display name for category
-    const displayMap: Record<string, string> = {
-      '0_Overview': 'Overview',
-      '1_Problem_Proof': 'Problem Proofs',
-      '2_Solution_Proof': 'Solution Proofs', 
-      '3_Demand_Proof': 'Demand Proofs',
-      '4_Credibility_Proof': 'Credibility Proofs',
-      '5_Commercial_Proof': 'Commercial Proofs',
-      '6_Investor_Pack': 'Investor Pack'
-    };
-
-    return displayMap[targetFolder.folderName] || targetFolder.folderName;
+    const { getCategoryFromFolderIdDB } = await import('./utils/folder-mapping');
+    return await getCategoryFromFolderIdDB(folderId, founderId);
   } catch (error) {
     appLogger.database('❌ CRITICAL: Database folder mapping failed:', error);
     throw new Error(`Category not found for folder ${folderId}. Database-driven mapping required.`);
