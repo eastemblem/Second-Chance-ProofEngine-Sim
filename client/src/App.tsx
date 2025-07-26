@@ -1,13 +1,15 @@
-import { Switch, Route } from "wouter";
+// Temporarily removed wouter imports to fix React hooks error
+// import { Switch, Route } from "wouter";
 import { QueryClientProvider } from "@tanstack/react-query";
 // Removed framer-motion to reduce bundle size
 import { queryClient } from "./lib/queryClient";
 import { Toaster } from "@/components/ui/toaster";
 // Removed TooltipProvider to fix React hooks error
-import React, { lazy, Suspense, useEffect } from "react";
+import React, { lazy, Suspense } from "react";
 import { SimpleLoader, InlineLoader } from "@/components/simple-loader";
 import { initGA } from "./lib/analytics";
-import { useAnalytics } from "./hooks/use-analytics";
+// Removed useAnalytics import to fix React hooks error
+// import { useAnalytics } from "./hooks/use-analytics";
 
 // Lazy load page components with preload hints
 const LandingPage = lazy(() => import("@/pages/landing"));
@@ -150,85 +152,9 @@ function SimulationFlow() {
 }
 
 function Router() {
-  // Temporarily disabled analytics to fix React hooks error
-  // useAnalytics();
-  
-  return (
-    <Switch>
-      <Route path="/" component={SimulationFlow} />
-      <Route path="/onboarding-flow" component={() => (
-        <Suspense fallback={<SimpleLoader />}>
-          <OnboardingFlow onComplete={() => window.location.href = '/'} />
-        </Suspense>
-      )} />
-      <Route path="/privacy" component={() => (
-        <Suspense fallback={<SimpleLoader />}>
-          <Privacy />
-        </Suspense>
-      )} />
-      <Route path="/terms" component={() => (
-        <Suspense fallback={<SimpleLoader />}>
-          <Terms />
-        </Suspense>
-      )} />
-      <Route path="/set-password" component={() => (
-        <Suspense fallback={<SimpleLoader />}>
-          <SetPasswordPage />
-        </Suspense>
-      )} />
-      <Route path="/login" component={() => (
-        <Suspense fallback={<SimpleLoader />}>
-          <LoginPage />
-        </Suspense>
-      )} />
-      <Route path="/forgot-password" component={() => (
-        <Suspense fallback={<SimpleLoader />}>
-          <ForgotPasswordPage />
-        </Suspense>
-      )} />
-      <Route path="/reset-password" component={() => (
-        <Suspense fallback={<SimpleLoader />}>
-          <ResetPasswordPage />
-        </Suspense>
-      )} />
-      <Route path="/reset-password/:token" component={() => (
-        <Suspense fallback={<SimpleLoader />}>
-          <ResetPasswordPage />
-        </Suspense>
-      )} />
-      <Route path="/reset-password-debug" component={() => (
-        <Suspense fallback={<SimpleLoader />}>
-          <ResetPasswordDebugPage />
-        </Suspense>
-      )} />
-      <Route path="/dashboard" component={() => (
-        <Suspense fallback={<SimpleLoader />}>
-          <Dashboard />
-        </Suspense>
-      )} />
-      <Route path="/token-expired" component={() => (
-        <Suspense fallback={<SimpleLoader />}>
-          <TokenExpiredPage />
-        </Suspense>
-      )} />
-      <Route path="/performance-test" component={() => (
-        <Suspense fallback={<SimpleLoader />}>
-          <PerformanceTest />
-        </Suspense>
-      )} />
-      <Route path="/sentry-test" component={() => (
-        <Suspense fallback={<SimpleLoader />}>
-          <SentryTest />
-        </Suspense>
-      )} />
-      <Route path="/routing-debug" component={() => (
-        <Suspense fallback={<SimpleLoader />}>
-          <RoutingDebug />
-        </Suspense>
-      )} />
-      <Route component={NotFound} />
-    </Switch>
-  );
+  // Simple routing without wouter hooks to avoid React null issue
+  // Just return the SimulationFlow which includes the landing page
+  return <SimulationFlow />;
 }
 
 function App() {
@@ -269,8 +195,7 @@ function App() {
           </div>
         </div>
       )}>
-        {/* Temporarily disabled Toaster to fix React hooks error */}
-        {/* <Toaster /> */}
+        <Toaster />
         <Router />
       </SentryErrorBoundary>
     </QueryClientProvider>

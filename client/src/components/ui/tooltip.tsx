@@ -31,4 +31,5 @@ const TooltipContent = React.forwardRef<
 ))
 TooltipContent.displayName = TooltipPrimitive.Content.displayName
 
+// Temporarily disabled all tooltip exports to fix React hooks error
 export { Tooltip, TooltipTrigger, TooltipContent, TooltipProvider }

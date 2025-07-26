@@ -5,8 +5,8 @@ import "./index.css";
 // Ensure React is available globally before any components load
 (window as any).React = React;
 
-// Import SimpleApp instead to test basic functionality
-import SimpleApp from "./SimpleApp";
+// Import the full App back
+import App from "./App";
 
 const root = document.getElementById("root");
 
@@ -14,8 +14,8 @@ if (!root) {
   throw new Error("Root element not found");
 }
 
-// Render simple app without problematic hooks
-createRoot(root).render(React.createElement(SimpleApp));
+// Render full app with React hooks fix
+createRoot(root).render(React.createElement(App));
 
 // Mark as loaded and initialize optimizations
 document.body.classList.add('loaded');
