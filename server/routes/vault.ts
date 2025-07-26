@@ -165,7 +165,7 @@ router.post("/submit-for-scoring", asyncHandler(async (req, res) => {
 }));
 
 // Upload file to specific folder - 100% DATABASE-DRIVEN
-router.post("/upload-file", upload.single("file"), requireFields(['folder_id', 'founderId']), asyncHandler(async (req, res) => {
+router.post("/upload-file", upload.single("file"), requireFields(['folder_id']), asyncHandler(async (req, res) => {
   const { folder_id } = req.body;
   const file = req.file;
   const founderId = req.session?.founderId;
@@ -270,6 +270,7 @@ router.post("/upload-file", upload.single("file"), requireFields(['folder_id', '
       success: false, 
       error: errorMessage
     });
+  }
 }));
 
 // Create folders - 100% DATABASE-DRIVEN folder creation endpoint
@@ -413,7 +414,7 @@ router.post("/create-folder", requireFields(['folderName', 'folder_id']), asyncH
 }));
 
 // Multiple file upload endpoint
-router.post("/upload-multiple", upload.array('files', 20), requireFields(['founderId']), asyncHandler(async (req, res) => {
+router.post("/upload-multiple", upload.array('files', 20), asyncHandler(async (req, res) => {
   const founderId = req.session?.founderId;
   const files = req.files as Express.Multer.File[];
 
@@ -516,6 +517,7 @@ router.delete("/remove-file/:fileId", asyncHandler(async (req, res) => {
   } catch (error) {
     appLogger.business('Failed to remove file', { fileId, error });
     res.status(500).json({ error: "Failed to remove file" });
+  }
 }));
 
 export default router;
