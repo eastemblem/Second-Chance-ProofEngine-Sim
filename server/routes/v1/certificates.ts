@@ -1,5 +1,5 @@
 import { Router } from 'express';
-import { asyncHandler } from '../../utils/error-handler';
+import { asyncHandler } from '../middleware/error';
 import { generateCertificate, downloadCertificate, getCertificateStatus } from '../../routes/certificate';
 
 const router = Router();

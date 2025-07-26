@@ -1,21 +1,16 @@
-import React from "react";
 import { createRoot } from "react-dom/client";
+import App from "./App";
 import "./index.css";
 
-// Ensure React is available globally before any components load
-(window as any).React = React;
-
-// Import the full App back
-import App from "./App";
-
+// Minimal initialization to prevent blocking render
 const root = document.getElementById("root");
 
 if (!root) {
   throw new Error("Root element not found");
 }
 
-// Render full app with React hooks fix
-createRoot(root).render(React.createElement(App));
+// Immediate render with no blocking operations
+createRoot(root).render(<App />);
 
 // Mark as loaded and initialize optimizations
 document.body.classList.add('loaded');

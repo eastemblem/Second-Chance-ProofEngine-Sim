@@ -71,14 +71,6 @@ export const fileUploadSchema = z.object({
   category: z.string().min(1, "Category is required")
 });
 
-export const pitchDeckUploadSchema = z.object({
-  originalname: z.string().min(1, "Filename is required"),
-  mimetype: z.string().min(1, "File type is required"),
-  size: z.number().positive("File size must be positive"),
-  buffer: z.any().optional(),
-  path: z.string().optional()
-});
-
 export const folderCreateSchema = z.object({
   folderName: z.string().min(1, "Folder name is required"),
   parentCategory: z.string().min(1, "Parent category is required")

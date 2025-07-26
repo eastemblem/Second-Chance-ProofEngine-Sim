@@ -5,11 +5,7 @@ import * as TooltipPrimitive from "@radix-ui/react-tooltip"
 
 import { cn } from "@/lib/utils"
 
-// Completely disabled TooltipProvider to prevent React hooks errors
-const TooltipProvider = ({ children }: { children: React.ReactNode }) => {
-  // Return children directly without any wrapping
-  return children;
-}
+const TooltipProvider = TooltipPrimitive.Provider
 
 const Tooltip = TooltipPrimitive.Root
 
@@ -31,5 +27,4 @@ const TooltipContent = React.forwardRef<
 ))
 TooltipContent.displayName = TooltipPrimitive.Content.displayName
 
-// Temporarily disabled all tooltip exports to fix React hooks error
 export { Tooltip, TooltipTrigger, TooltipContent, TooltipProvider }

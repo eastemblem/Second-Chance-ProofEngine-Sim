@@ -1,26 +1,25 @@
 import { Router } from 'express';
 import dashboardRoutes from './dashboard';
 import vaultRoutes from './vault';
-// Onboarding uses the main session-based routes, not JWT-based ones
+import onboardingRoutes from './onboarding';
 import certificateRoutes from './certificates';
 import reportRoutes from './reports';
 import notificationRoutes from './notifications';
 import testRoutes from './test';
 import { getLeaderboard } from '../../routes/leaderboard';
-import { asyncHandler } from '../../utils/error-handler';
+import { asyncHandler } from '../middleware/error';
 import { appLogger } from '../../utils/logger';
 import { authenticateToken } from '../../middleware/token-auth';
 
 const router = Router();
 
-// ONBOARDING: Use main session-based routes (not JWT-based - users don't have accounts yet)
-
-// Apply JWT authentication to protected routes only
+// Apply proper JWT authentication with blacklist checking to all v1 routes globally
 router.use(authenticateToken);
 
-// Register JWT-protected v1 routes
+// Register all v1 routes (all protected by JWT)
 router.use('/dashboard', dashboardRoutes);
 router.use('/vault', vaultRoutes);
+router.use('/onboarding', onboardingRoutes);
 router.use('/certificate', certificateRoutes);
 router.use('/report', reportRoutes);
 router.use('/notification', notificationRoutes);

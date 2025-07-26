@@ -29,6 +29,7 @@ import { Separator } from "@/components/ui/separator";
 import {
   Tooltip,
   TooltipContent,
+  TooltipProvider,
   TooltipTrigger,
 } from "@/components/ui/tooltip";
 
@@ -619,7 +620,7 @@ export default function Analysis({
       apiTags.length > 0
         ? apiTags
         : ALL_PROOF_TAGS.filter(
-            (tag) => currentScore >= (tag.scoreThreshold || 0),
+            (tag) => currentScore >= tag.scoreThreshold,
           ).map((tag) => tag.name);
 
     const lockedTags: {
@@ -643,8 +644,8 @@ export default function Analysis({
           name: tag.name,
           emoji: tag.emoji,
           currentScore: currentScore,
-          neededScore: tag.scoreThreshold || 0,
-          pointsNeeded: Math.max(0, (tag.scoreThreshold || 0) - currentScore),
+          neededScore: tag.scoreThreshold,
+          pointsNeeded: Math.max(0, tag.scoreThreshold - currentScore),
         });
       }
     });
@@ -848,7 +849,7 @@ export default function Analysis({
   };
 
   return (
-    <div> {/* Replaced TooltipProvider to fix React hooks error */}
+    <TooltipProvider>
       <div className="min-h-screen py-12 relative">
         {/* Enhanced Celebration Animation */}
         {showCelebration && (
@@ -1584,7 +1585,6 @@ export default function Analysis({
           </motion.div>
         </div>
       </div>
-    </div>
-    {/* Replaced TooltipProvider to fix React hooks error */}
+    </TooltipProvider>
   );
 }
