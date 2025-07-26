@@ -9,7 +9,7 @@ import { cleanupUploadedFile } from "./utils/file-cleanup";
 import { onboardingService } from "./services/onboarding-service";
 import apiRoutes from "./routes/index";
 import authRoutes from "./routes/auth";
-import vaultRoutes from "./routes/vault-pure";
+// Removed separate vault routes import - consolidated into single file
 import { getLeaderboard, createLeaderboardEntry } from "./routes/leaderboard";
 import { generateCertificate, downloadCertificate, getCertificateStatus } from "./routes/certificate";
 import { generateReport } from "./routes/report";
@@ -878,24 +878,195 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Email routes
   app.use("/api/email", (await import("./routes/emailRoutes")).default);
   
-  // Pure database-driven vault routes
-  app.use("/api/vault", vaultRoutes);
+  // 100% DATABASE-DRIVEN VAULT UPLOAD - CONSOLIDATED IN SINGLE FILE
+  app.post('/api/vault/upload', requireFields(['founderId']), upload.single('file'), asyncHandler(async (req, res) => {
+    const { folder_id } = req.body;
+    const file = req.file;
+    const sessionId = getSessionId(req);
+    const founderId = req.session?.founderId;
+
+    if (!founderId) {
+      return res.status(401).json({ success: false, error: "Authentication required" });
+    }
+
+    if (!file) {
+      return res.status(400).json({ success: false, error: "No file provided" });
+    }
+
+    if (!folder_id) {
+      return res.status(400).json({ success: false, error: "folder_id is required" });
+    }
+
+    appLogger.business('Processing 100% database-driven file upload', { 
+      fileName: file.originalname, 
+      categoryName: folder_id,
+      founderId,
+      sessionId
+    });
+
+    try {
+      // Step 1: Get actual Box.com folder ID from database - NO FALLBACKS
+      let actualFolderId: string;
+      try {
+        const { storage } = await import("./storage");
+        const ventures = await storage.getVenturesByFounderId(founderId);
+        if (!ventures || ventures.length === 0) {
+          throw new Error(`No ventures found for founder ${founderId}`);
+        }
+
+        const latestVenture = ventures[0];
+        const proofVaultRecords = await storage.getProofVaultsByVentureId(latestVenture.ventureId);
+        
+        if (proofVaultRecords.length === 0) {
+          throw new Error(`No proof vault entries found. Please complete onboarding to create folder structure.`);
+        }
+
+        const targetFolder = proofVaultRecords.find(pv => pv.folderName === folder_id);
+        if (!targetFolder?.subFolderId) {
+          const availableCategories = proofVaultRecords
+            .filter(pv => pv.folderName && pv.subFolderId)
+            .map(pv => pv.folderName);
+          throw new Error(`Category '${folder_id}' not found. Available: ${availableCategories.join(', ')}`);
+        }
+
+        actualFolderId = targetFolder.subFolderId;
+        appLogger.business('Resolved category to folder ID from database', { 
+          categoryName: folder_id, 
+          actualFolderId,
+          founderId
+        });
+      } catch (error) {
+        const errorMessage = error instanceof Error ? error.message : String(error);
+        appLogger.business('Failed to resolve category to folder ID', { 
+          categoryName: folder_id, 
+          founderId,
+          error: errorMessage
+        });
+        
+        return res.status(400).json({ 
+          success: false, 
+          error: errorMessage
+        });
+      }
+
+      // Step 2: Upload to Box.com using resolved folder ID
+      const filePath = file.path;
+      const fileBuffer = fs.readFileSync(filePath);
+
+      const uploadResult = await vaultService.uploadFileToVault(
+        fileBuffer,
+        file.originalname,
+        actualFolderId,
+        sessionId
+      );
+
+      // Step 3: Update session with uploaded file
+      const sessionData = getSessionData(req);
+      const updatedFiles = [...(sessionData.uploadedFiles || []), uploadResult];
+      updateSessionData(req, { uploadedFiles: updatedFiles });
+
+      // Step 4: Track file upload in database
+      const { storage } = await import("./storage");
+      const ventures = await storage.getVenturesByFounderId(founderId);
+      const latestVenture = ventures[0];
+      
+      if (latestVenture) {
+        await storage.createDocumentUpload({
+          ventureId: latestVenture.ventureId,
+          fileName: uploadResult.name || file.originalname,
+          originalName: file.originalname,
+          filePath: filePath,
+          fileSize: file.size,
+          mimeType: file.mimetype,
+          uploadStatus: "completed",
+          processingStatus: "pending",
+          eastemblemFileId: uploadResult.id,
+          sharedUrl: uploadResult.url,
+          folderId: actualFolderId
+        });
+
+        appLogger.business('File upload completed successfully', { 
+          fileName: file.originalname,
+          uploadId: uploadResult.id,
+          category: folder_id,
+          folderId: actualFolderId
+        });
+      }
+
+      // Step 5: Cleanup uploaded file
+      cleanupUploadedFile(filePath);
+
+      res.json(createSuccessResponse({
+        file: {
+          id: uploadResult.id,
+          name: uploadResult.name,
+          url: uploadResult.url,
+          size: file.size,
+          category: folder_id,
+          folderId: actualFolderId
+        }
+      }));
+
+    } catch (error) {
+      const errorMessage = error instanceof Error ? error.message : String(error);
+      appLogger.business('File upload failed', { 
+        fileName: file.originalname,
+        categoryName: folder_id,
+        founderId,
+        error: errorMessage
+      });
+
+      // Cleanup uploaded file on error
+      if (file.path && fs.existsSync(file.path)) {
+        cleanupUploadedFile(file.path);
+      }
+
+      res.status(500).json({ 
+        success: false, 
+        error: `File upload failed: ${errorMessage}`
+      });
+    }
+  }));
 
   const httpServer = createServer(app);
   return httpServer;
 }
 
-// 100% DATABASE-DRIVEN folder mapping - NO FALLBACKS
+// 100% DATABASE-DRIVEN folder mapping - CONSOLIDATED IN SINGLE FILE
 async function getCategoryFromFolderId(folderId: string, founderId?: string): Promise<string> {
   if (!founderId) {
     throw new Error("founderId required for database-driven folder mapping");
   }
   
   try {
-    const { getCategoryFromFolderIdDB } = await import('./utils/folder-mapping-pure');
-    return await getCategoryFromFolderIdDB(folderId, founderId);
+    const { storage } = await import('./storage');
+    const ventures = await storage.getVenturesByFounderId(founderId);
+    if (!ventures || ventures.length === 0) {
+      throw new Error(`No ventures found for founder ${founderId}`);
+    }
+
+    const latestVenture = ventures[0];
+    const proofVaultRecords = await storage.getProofVaultsByVentureId(latestVenture.ventureId);
+    
+    const targetFolder = proofVaultRecords.find(pv => pv.subFolderId === folderId);
+    if (!targetFolder?.folderName) {
+      throw new Error(`No category found for folder ID ${folderId}`);
+    }
+
+    // Return display name for category
+    const displayMap: Record<string, string> = {
+      '0_Overview': 'Overview',
+      '1_Problem_Proof': 'Problem Proofs',
+      '2_Solution_Proof': 'Solution Proofs', 
+      '3_Demand_Proof': 'Demand Proofs',
+      '4_Credibility_Proof': 'Credibility Proofs',
+      '5_Commercial_Proof': 'Commercial Proofs',
+      '6_Investor_Pack': 'Investor Pack'
+    };
+
+    return displayMap[targetFolder.folderName] || targetFolder.folderName;
   } catch (error) {
-    appLogger.database('❌ CRITICAL: Pure database folder mapping failed:', error);
+    appLogger.database('❌ CRITICAL: Database folder mapping failed:', error);
     throw new Error(`Category not found for folder ${folderId}. Database-driven mapping required.`);
   }
 }

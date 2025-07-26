@@ -129,29 +129,21 @@ Demo experience for testing different user journeys:
 
 ## Recent Key Updates
 
-### July 26, 2025 - ✅ 100% DATABASE-DRIVEN FOLDER UPLOAD SYSTEM IMPLEMENTED: Complete Pure Vault Architecture Operational
+### July 26, 2025 - ✅ 100% DATABASE-DRIVEN FOLDER UPLOAD SYSTEM CONSOLIDATED: Single File Architecture Implemented
 
-- **✅ PURE DATABASE ARCHITECTURE ACHIEVED**: Successfully implemented 100% database-driven folder upload system with ZERO fallback IDs or caching mechanisms as requested
-- **✅ COMPLETE FALLBACK ELIMINATION**: Removed ALL hardcoded folder IDs, caching systems, and fallback mechanisms - system now purely dependent on proof_vault table data populated during onboarding
-- **✅ FOLDER-MAPPING-PURE UTILITY CREATED**: Built comprehensive `server/utils/folder-mapping-pure.ts` with database-only functions:
-  * `loadFolderMappingFromDatabase()` - Direct database queries with no caching
-  * `getFolderIdFromCategory()` - Category to Box.com folder ID resolution from database
-  * `getCategoryFromFolderIdDB()` - Reverse mapping from folder ID to category name
-  * `validateProofVaultStructure()` - Ensures complete vault structure exists before operations
-- **✅ VAULT-PURE ROUTES OPERATIONAL**: Created and registered `server/routes/vault-pure.ts` with database-first approach:
+- **✅ SINGLE FILE CONSOLIDATION COMPLETE**: Successfully consolidated all database-driven folder upload functionality into main `server/routes.ts` file to eliminate confusion from multiple files
+- **✅ REMOVED SEPARATE FILES**: Deleted `server/routes/vault-pure.ts` and `server/utils/folder-mapping-pure.ts` - all functionality now in single location
+- **✅ PURE DATABASE ARCHITECTURE MAINTAINED**: 100% database-driven folder upload system with ZERO fallback IDs or caching mechanisms preserved in consolidated approach
+- **✅ STREAMLINED IMPLEMENTATION**: Vault upload logic directly integrated into main routes file:
   * `POST /api/vault/upload` - File upload with mandatory database folder resolution
-  * `POST /api/vault/create-folder` - Folder creation with database validation
+  * `getCategoryFromFolderId()` - Consolidated database-only category mapping function
   * Enhanced error handling when database lookups fail (returns 400/500 instead of using fallbacks)
-- **✅ MAIN ROUTES UPDATED**: Modified `server/routes.ts` to use pure database functions:
-  * Replaced `getCategoryFromFolderId()` to throw errors instead of using fallback mappings
-  * Added vault routes registration: `app.use("/api/vault", vaultRoutes)`
-  * Updated dashboard vault endpoint to use pure database category resolution
 - **✅ DATABASE-FIRST ERROR HANDLING**: When folder mappings are missing:
   * Returns descriptive error messages indicating missing onboarding
   * Lists available categories from database for debugging
   * No silent fallbacks to hardcoded folder IDs
-- **✅ ONBOARDING DEPENDENCY ENFORCED**: System now requires complete proof_vault table population during onboarding - cannot function without proper database setup
-- **✅ PRODUCTION READY**: Pure database-driven vault system operational with authentic data only and comprehensive error handling
+- **✅ SIMPLIFIED MAINTENANCE**: Single file contains all vault upload logic making it easier to maintain and understand over time
+- **✅ PRODUCTION READY**: Consolidated database-driven vault system operational with authentic data only and comprehensive error handling
 
 ### July 26, 2025 - ✅ COMPLETE FOOTER ANCHORING SYSTEM IMPLEMENTED: All Pages Using Layout Components Successfully
 - **✅ SYSTEMATIC LAYOUT IMPLEMENTATION COMPLETED**: Successfully converted all pages from direct Footer imports to proper layout wrapper components for consistent footer anchoring throughout the entire application
