@@ -3,7 +3,7 @@ import { QueryClientProvider } from "@tanstack/react-query";
 // Removed framer-motion to reduce bundle size
 import { queryClient } from "./lib/queryClient";
 import { Toaster } from "@/components/ui/toaster";
-import { TooltipProvider } from "@/components/ui/tooltip";
+// Removed TooltipProvider to fix React hooks error
 import { lazy, Suspense, useEffect } from "react";
 import { SimpleLoader, InlineLoader } from "@/components/simple-loader";
 import { initGA } from "./lib/analytics";
@@ -266,10 +266,8 @@ function App() {
           </div>
         </div>
       )}>
-        <TooltipProvider>
-          <Toaster />
-          <Router />
-        </TooltipProvider>
+        <Toaster />
+        <Router />
       </SentryErrorBoundary>
     </QueryClientProvider>
   );
