@@ -619,8 +619,16 @@ export default function DashboardPage() {
         ));
       }, 300);
 
-      const response = await fetch('/api/vault/upload-file', {
+      // Get JWT token for authentication
+      const token = localStorage.getItem('auth_token');
+      const headers: Record<string, string> = {};
+      if (token) {
+        headers['Authorization'] = `Bearer ${token}`;
+      }
+
+      const response = await fetch('/api/v1/vault/upload-file', {
         method: 'POST',
+        headers,
         body: formData,
       });
 

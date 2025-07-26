@@ -178,6 +178,78 @@ router.post('/submit-for-scoring', asyncHandler(async (req, res) => {
   }, "Scoring workflow completed successfully"));
 }));
 
+// Upload file to specific folder - 100% DATABASE-DRIVEN (V1 JWT AUTHENTICATED)
+router.post('/upload-file', upload.single("file"), asyncHandler(async (req: AuthenticatedRequest, res: Response) => {
+  const { folder_id } = req.body;
+  const file = req.file;
+  const founderId = req.user?.founderId;
+
+  if (!founderId) {
+    return res.status(401).json({ success: false, error: "JWT authentication required for file upload" });
+  }
+
+  if (!file) {
+    throw new Error("File is required for upload");
+  }
+
+  console.log(`📁 V1 UPLOAD: Processing database-driven file upload for founder ${founderId}`);
+
+  const sessionId = getSessionId(req);
+  
+  try {
+    // Step 1: Get actual Box.com folder ID from database - NO FALLBACKS
+    const { getFolderIdFromCategory } = await import("../../utils/folder-mapping");
+    const actualFolderId = await getFolderIdFromCategory(folder_id, founderId);
+    
+    console.log(`📁 V1 UPLOAD: Resolved category "${folder_id}" to folder ID "${actualFolderId}"`);
+
+    // Step 2: Upload to Box.com using resolved folder ID
+    const fileBuffer = fs.readFileSync(file.path);
+    const uploadResult = await eastEmblemAPI.uploadFile(
+      fileBuffer,
+      file.originalname,
+      actualFolderId,
+      sessionId,
+      true // allowShare
+    );
+
+    // Step 3: Update session with uploaded file
+    const sessionData = getSessionData(req);
+    const updatedFiles = [...(sessionData.uploadedFiles || []), uploadResult];
+    updateSessionData(req, { uploadedFiles: updatedFiles });
+
+    // Step 4: Cleanup uploaded file
+    cleanupUploadedFile(file.path);
+
+    console.log(`✅ V1 UPLOAD: File "${file.originalname}" uploaded successfully to folder ${actualFolderId}`);
+
+    res.json(createSuccessResponse({
+      file: {
+        id: uploadResult.id,
+        name: uploadResult.name,
+        url: uploadResult.url,
+        size: file.size,
+        category: folder_id,
+        folderId: actualFolderId
+      }
+    }));
+
+  } catch (error) {
+    const errorMessage = error instanceof Error ? error.message : String(error);
+    console.error(`❌ V1 UPLOAD: Failed to resolve category to folder ID:`, error);
+    
+    // Cleanup uploaded file on error
+    if (file.path && fs.existsSync(file.path)) {
+      cleanupUploadedFile(file.path);
+    }
+
+    return res.status(400).json({ 
+      success: false, 
+      error: errorMessage
+    });
+  }
+}));
+
 // Create folder endpoint - Missing from v1 vault route
 router.post('/create-folder', upload.none(), asyncHandler(async (req, res) => {
   const { folderName, folder_id, ventureId } = req.body;

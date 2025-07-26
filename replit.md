@@ -129,6 +129,14 @@ Demo experience for testing different user journeys:
 
 ## Recent Key Updates
 
+### July 26, 2025 - ✅ FRONTEND UI-BACKEND API MISMATCH RESOLVED: V1 Authentication Integration Complete
+
+- **✅ CRITICAL API ENDPOINT MISMATCH FIXED**: Updated frontend from calling legacy `/api/vault/upload-file` to V1 endpoints `/api/v1/vault/upload-file`
+- **✅ V1 VAULT UPLOAD ENDPOINT CREATED**: Added missing `upload-file` endpoint to V1 vault routes with 100% database-driven folder mapping
+- **✅ JWT AUTHENTICATION INTEGRATION**: Frontend now includes JWT Authorization headers in upload requests from localStorage
+- **✅ AUTHENTICATION FLOW VERIFIED**: V1 endpoints properly validate JWT tokens and return 401 for invalid/missing tokens
+- **✅ 100% DATABASE-DRIVEN V1 APPROACH**: V1 vault routes use `getFolderIdFromCategory()` with no fallback mechanisms
+
 ### July 26, 2025 - ✅ COMPREHENSIVE VAULT.TS CLEANUP COMPLETED: 100% Database-Driven System with Zero Duplicate Code
 
 - **✅ EXTENSIVE DUPLICATE CODE ELIMINATION**: Successfully completed multiple rounds of comprehensive code cleanup in `server/routes/vault.ts`:
