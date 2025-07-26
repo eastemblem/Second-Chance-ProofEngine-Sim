@@ -5,7 +5,8 @@ import * as TooltipPrimitive from "@radix-ui/react-tooltip"
 
 import { cn } from "@/lib/utils"
 
-// const TooltipProvider = TooltipPrimitive.Provider // Disabled to fix React hooks error
+// Simple fallback component to prevent import errors
+const TooltipProvider = ({ children }: { children: React.ReactNode }) => <div>{children}</div>
 
 const Tooltip = TooltipPrimitive.Root
 
@@ -27,4 +28,4 @@ const TooltipContent = React.forwardRef<
 ))
 TooltipContent.displayName = TooltipPrimitive.Content.displayName
 
-export { Tooltip, TooltipTrigger, TooltipContent }
+export { Tooltip, TooltipTrigger, TooltipContent, TooltipProvider }
