@@ -29,7 +29,7 @@ import { Separator } from "@/components/ui/separator";
 import {
   Tooltip,
   TooltipContent,
-  TooltipProvider,
+  // TooltipProvider, // Removed to fix React hooks error
   TooltipTrigger,
 } from "@/components/ui/tooltip";
 
@@ -849,7 +849,7 @@ export default function Analysis({
   };
 
   return (
-    <TooltipProvider>
+    <div> {/* Replaced TooltipProvider to fix React hooks error */}
       <div className="min-h-screen py-12 relative">
         {/* Enhanced Celebration Animation */}
         {showCelebration && (
@@ -1585,6 +1585,6 @@ export default function Analysis({
           </motion.div>
         </div>
       </div>
-    </TooltipProvider>
+    </div> {/* Replaced TooltipProvider to fix React hooks error */}
   );
 }

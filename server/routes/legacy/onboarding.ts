@@ -60,10 +60,28 @@ router.post("/session/init", requireSession, asyncHandler(async (req, res) => {
 
   appLogger.business("Legacy onboarding session initialized:", sessionId);
 
+  // If session is in analysis step but missing scoring result, reset to appropriate step
+  let currentStep = session?.currentStep || "founder";
+  let stepData = session?.stepData || {};
+  
+  if (currentStep === "analysis" && !stepData.scoringResult) {
+    // Determine the correct step based on completed steps
+    const completedSteps = session?.completedSteps || [];
+    if (completedSteps.includes("founder") && completedSteps.includes("venture")) {
+      currentStep = "team";
+    } else if (completedSteps.includes("founder")) {
+      currentStep = "venture";
+    } else {
+      currentStep = "founder";
+    }
+    
+    appLogger.business("Reset session step from analysis to:", currentStep);
+  }
+
   res.json(createSuccessResponse({
     sessionId,
-    currentStep: session?.currentStep || "founder",
-    stepData: session?.stepData || {},
+    currentStep,
+    stepData,
     completedSteps: session?.completedSteps || [],
     isComplete: session?.isComplete || false,
   }));
@@ -78,10 +96,27 @@ router.get("/session/:sessionId", asyncHandler(async (req, res) => {
     return res.status(404).json({ success: false, error: "Session not found" });
   }
 
+  // Apply same logic for session status endpoint
+  let currentStep = session.currentStep;
+  let stepData = session.stepData;
+  
+  if (currentStep === "analysis" && !stepData?.scoringResult) {
+    const completedSteps = session.completedSteps || [];
+    if (completedSteps.includes("founder") && completedSteps.includes("venture")) {
+      currentStep = "team";
+    } else if (completedSteps.includes("founder")) {
+      currentStep = "venture";
+    } else {
+      currentStep = "founder";
+    }
+    
+    appLogger.business("Reset session step from analysis to:", currentStep);
+  }
+
   res.json(createSuccessResponse({
     sessionId,
-    currentStep: session.currentStep,
-    stepData: session.stepData,
+    currentStep,
+    stepData,
     completedSteps: session.completedSteps,
     isComplete: session.isComplete,
   }));
