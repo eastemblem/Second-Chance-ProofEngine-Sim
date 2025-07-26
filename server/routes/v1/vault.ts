@@ -1,6 +1,5 @@
 import { Router, Request, Response } from 'express';
-import { requireAuth, AuthenticatedRequest } from '../middleware/auth';
-import { asyncHandler } from '../middleware/error';
+import { asyncHandler } from '../../utils/error-handler';
 import { eastEmblemAPI } from '../../eastemblem-api';
 import { getSessionId, getSessionData, updateSessionData } from '../../utils/session-manager';
 import { createSuccessResponse } from '../../utils/error-handler';

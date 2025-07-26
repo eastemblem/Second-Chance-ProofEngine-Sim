@@ -1,405 +1,352 @@
-import express, { Request, Response } from 'express';
-import { z } from 'zod';
-import { eq, and } from 'drizzle-orm';
-import { db } from '../db';
-import { founder } from '@shared/schema';
+import { Router, Request, Response } from 'express';
+import bcrypt from 'bcryptjs';
+import jwt from 'jsonwebtoken';
+import { asyncHandler } from '../utils/error-handler';
 import { storage } from '../storage';
-import { 
-  validatePassword, 
-  hashPassword, 
-  comparePasswords, 
-  generateVerificationToken, 
-  generateTokenExpiry,
-  isTokenExpired 
-} from '../utils/auth';
-import { emailService } from '../services/emailService';
+import { insertUserSchema } from '@shared/schema';
+import { z } from 'zod';
 import { appLogger } from '../utils/logger';
 
-const router = express.Router();
+const router = Router();
 
-// Extend express session interface
-declare module 'express-session' {
-  interface SessionData {
-    founderId?: string;
-    email?: string;
-    isAuthenticated?: boolean;
+// Validation schemas
+const loginSchema = z.object({
+  email: z.string().email(),
+  password: z.string().min(6),
+});
+
+const registerSchema = insertUserSchema.extend({
+  password: z.string().min(6),
+});
+
+const JWT_SECRET = process.env.JWT_SECRET || 'fallback-secret-key';
+const JWT_EXPIRES_IN = '7d';
+
+// Set to track blacklisted tokens
+const blacklistedTokens = new Set<string>();
+
+// Helper function to generate JWT token
+function generateToken(user: any): string {
+  return jwt.sign(
+    {
+      founderId: user.id,
+      email: user.email,
+      username: user.username,
+      ventureId: user.ventureId,
+    },
+    JWT_SECRET,
+    { expiresIn: JWT_EXPIRES_IN }
+  );
+}
+
+// Helper function to verify JWT token
+function verifyToken(token: string): any {
+  try {
+    if (blacklistedTokens.has(token)) {
+      appLogger.auth('Token verification failed: Token blacklisted');
+      return null;
+    }
+    
+    const decoded = jwt.verify(token, JWT_SECRET);
+    appLogger.auth('Token verified successfully for user:', (decoded as any).founderId);
+    return decoded;
+  } catch (error) {
+    appLogger.auth('Token verification failed:', error.message);
+    return null;
   }
 }
 
-// Email verification endpoint - support both path and query parameter formats
-router.get('/verify-email/:token?', async (req: Request, res: Response) => {
-  try {
-    // Support both /verify-email/token and /verify-email?token=token formats
-    const token = req.params.token || req.query.token as string;
-    
-    if (!token) {
-      return res.status(400).json({ error: 'Verification token is required' });
-    }
-
-    // Find founder with matching token
-    const [founderRecord] = await db
-      .select()
-      .from(founder)
-      .where(eq(founder.verificationToken, token));
-
-    if (!founderRecord) {
-      return res.redirect('/set-password?error=invalid');
-    }
-
-    // Check if already verified
-    if (founderRecord.emailVerified) {
-      return res.redirect(`/set-password?error=already_verified&email=${encodeURIComponent(founderRecord.email)}`);
-    }
-
-    // Check if token is expired
-    if (founderRecord.tokenExpiresAt && isTokenExpired(founderRecord.tokenExpiresAt)) {
-      return res.redirect(`/set-password?error=expired&email=${encodeURIComponent(founderRecord.email)}`);
-    }
-
-    // Update founder record - mark email as verified
-    await db
-      .update(founder)
-      .set({
-        emailVerified: true,
-        verificationToken: null,
-        tokenExpiresAt: null,
-        updatedAt: new Date()
-      })
-      .where(eq(founder.founderId, founderRecord.founderId));
-
-    // Redirect to set password page with success message
-    res.redirect(`/set-password?verified=true&email=${encodeURIComponent(founderRecord.email)}`);
-  } catch (error) {
-    appLogger.auth('Email verification error:', { error: error instanceof Error ? error.message : String(error), token: req.params.token || req.query.token });
-    res.status(500).json({ error: 'Email verification failed' });
-  }
-});
-
-// Set password endpoint
-router.post('/set-password', async (req: Request, res: Response) => {
-  try {
-    const setPasswordSchema = z.object({
-      email: z.string().email(),
-      password: z.string().min(8)
+// Session-based login (legacy compatibility)
+router.post('/login', asyncHandler(async (req: Request, res: Response) => {
+  const validation = loginSchema.safeParse(req.body);
+  if (!validation.success) {
+    return res.status(400).json({
+      success: false,
+      error: 'Invalid input data',
+      details: validation.error.errors,
     });
+  }
 
-    const { email, password } = setPasswordSchema.parse(req.body);
+  const { email, password } = validation.data;
+  
+  appLogger.auth('Session login attempt for email:', email);
 
-    // Validate password strength
-    const passwordValidation = validatePassword(password);
-    if (!passwordValidation.isValid) {
-      return res.status(400).json({ 
-        error: 'Password validation failed',
-        details: passwordValidation.errors 
+  try {
+    // Get user from storage
+    const user = await storage.getUserByEmail(email);
+    if (!user) {
+      appLogger.auth('Session login failed: User not found for email:', email);
+      return res.status(401).json({
+        success: false,
+        error: 'Invalid credentials',
       });
-    }
-
-    // Find founder by email and ensure email is verified
-    const [founderRecord] = await db
-      .select()
-      .from(founder)
-      .where(and(
-        eq(founder.email, email),
-        eq(founder.emailVerified, true)
-      ));
-
-    if (!founderRecord) {
-      return res.status(400).json({ error: 'Email not found or not verified' });
-    }
-
-    // Hash password and update record
-    const hashedPassword = await hashPassword(password);
-    
-    await db
-      .update(founder)
-      .set({
-        passwordHash: hashedPassword,
-        updatedAt: new Date()
-      })
-      .where(eq(founder.founderId, founderRecord.founderId));
-
-    res.json({ success: true, message: 'Password set successfully' });
-  } catch (error) {
-    appLogger.auth('Set password error:', { error: error instanceof Error ? error.message : String(error), email: req.body.email });
-    if (error instanceof z.ZodError) {
-      return res.status(400).json({ error: 'Invalid input', details: error.errors });
-    }
-    res.status(500).json({ error: 'Failed to set password' });
-  }
-});
-
-// Login endpoint
-router.post('/login', async (req: Request, res: Response) => {
-  try {
-    const loginSchema = z.object({
-      email: z.string().email(),
-      password: z.string().min(1)
-    });
-
-    const { email, password } = loginSchema.parse(req.body);
-
-    // Find founder by email
-    const [founderRecord] = await db
-      .select()
-      .from(founder)
-      .where(eq(founder.email, email));
-
-    if (!founderRecord) {
-      return res.status(401).json({ error: 'Invalid email or password' });
-    }
-
-    // Check if email is verified
-    if (!founderRecord.emailVerified) {
-      return res.status(401).json({ error: 'Please verify your email first' });
-    }
-
-    // Check if password is set
-    if (!founderRecord.passwordHash) {
-      return res.status(401).json({ error: 'Please set your password first' });
     }
 
     // Verify password
-    const isValidPassword = await comparePasswords(password, founderRecord.passwordHash);
+    const isValidPassword = await bcrypt.compare(password, user.password);
     if (!isValidPassword) {
-      return res.status(401).json({ error: 'Invalid email or password' });
-    }
-
-    // Update last login time
-    await db
-      .update(founder)
-      .set({
-        lastLoginAt: new Date(),
-        updatedAt: new Date()
-      })
-      .where(eq(founder.founderId, founderRecord.founderId));
-
-    // Set session
-    req.session.founderId = founderRecord.founderId;
-    req.session.email = founderRecord.email;
-    req.session.isAuthenticated = true;
-
-    res.json({ 
-      success: true, 
-      message: 'Login successful',
-      founder: {
-        founderId: founderRecord.founderId,
-        fullName: founderRecord.fullName,
-        email: founderRecord.email
-      }
-    });
-  } catch (error) {
-    appLogger.auth('Login error:', { error: error instanceof Error ? error.message : String(error), email: req.body.email });
-    if (error instanceof z.ZodError) {
-      return res.status(400).json({ error: 'Invalid input', details: error.errors });
-    }
-    res.status(500).json({ error: 'Login failed' });
-  }
-});
-
-// Logout endpoint
-router.post('/logout', (req: Request, res: Response) => {
-  req.session.destroy((err) => {
-    if (err) {
-      appLogger.auth('Logout error:', { error: err instanceof Error ? err.message : String(err), sessionId: req.sessionID });
-      return res.status(500).json({ error: 'Logout failed' });
-    }
-    res.json({ success: true, message: 'Logout successful' });
-  });
-});
-
-// Get current user endpoint with latest venture
-router.get('/me', async (req: Request, res: Response) => {
-  try {
-    if (!req.session.isAuthenticated || !req.session.founderId) {
-      return res.status(401).json({ error: 'Not authenticated' });
-    }
-
-    const founderId = req.session.founderId;
-
-    // Get founder details
-    const founderRecord = await storage.getFounder(founderId);
-    if (!founderRecord) {
-      return res.status(404).json({ error: 'Founder not found' });
-    }
-
-    // Get founder's latest venture
-    const ventures = await storage.getFounderVentures(founderId);
-    const latestVenture = ventures.length > 0 ? ventures[ventures.length - 1] : null;
-
-    // Return founder data with latest venture
-    const { passwordHash, verificationToken, tokenExpiresAt, ...safeFounder } = founderRecord;
-    
-    res.json({
-      ...safeFounder,
-      isAuthenticated: true,
-      venture: latestVenture,
-      totalVentures: ventures.length
-    });
-  } catch (error) {
-    appLogger.auth('Get user data error:', { error: error instanceof Error ? error.message : String(error), founderId: req.session.founderId });
-    res.status(500).json({ error: 'Failed to retrieve user data' });
-  }
-});
-
-// Forgot password endpoint - generates reset token and sends email
-router.post('/forgot-password', async (req: Request, res: Response) => {
-  try {
-    const forgotPasswordSchema = z.object({
-      email: z.string().email()
-    });
-
-    const { email } = forgotPasswordSchema.parse(req.body);
-
-    // Find founder by email
-    const [founderRecord] = await db
-      .select()
-      .from(founder)
-      .where(eq(founder.email, email));
-
-    // Don't reveal if email exists or not for security
-    if (!founderRecord) {
-      return res.json({ 
-        success: true, 
-        message: 'If an account with this email exists, you will receive a password reset link shortly.' 
+      appLogger.auth('Session login failed: Invalid password for email:', email);
+      return res.status(401).json({
+        success: false,
+        error: 'Invalid credentials',
       });
     }
 
-    // Generate reset token and expiry
-    const resetToken = generateVerificationToken();
-    const tokenExpiry = generateTokenExpiry();
+    // Create session
+    (req.session as any).user = {
+      id: user.id,
+      email: user.email,
+      username: user.username,
+      ventureId: user.ventureId,
+    };
 
-    // Update founder with reset token
-    await db
-      .update(founder)
-      .set({
-        verificationToken: resetToken,
-        tokenExpiresAt: tokenExpiry,
-        updatedAt: new Date()
-      })
-      .where(eq(founder.founderId, founderRecord.founderId));
+    appLogger.auth('Session login successful for user:', user.id);
 
-    // Send password reset email
-    try {
-      await emailService.sendPasswordResetEmail(
-        founderRecord.email,
-        founderRecord.fullName,
-        resetToken
-      );
-      appLogger.email(`Password reset email sent to ${founderRecord.email}`, { email: founderRecord.email });
-    } catch (emailError) {
-      appLogger.email('Failed to send password reset email:', { error: emailError instanceof Error ? emailError.message : String(emailError), email: founderRecord.email });
-      // Continue without failing the request - user won't know email failed
-    }
-
-    res.json({ 
-      success: true, 
-      message: 'If an account with this email exists, you will receive a password reset link shortly.' 
+    res.json({
+      success: true,
+      data: {
+        user: {
+          id: user.id,
+          email: user.email,
+          username: user.username,
+          ventureId: user.ventureId,
+        },
+      },
     });
   } catch (error) {
-    appLogger.auth('Forgot password error:', { error: error instanceof Error ? error.message : String(error), email: req.body.email });
-    if (error instanceof z.ZodError) {
-      return res.status(400).json({ error: 'Invalid email format', details: error.errors });
-    }
-    res.status(500).json({ error: 'Failed to process password reset request' });
+    appLogger.auth('Session login error:', error.message);
+    res.status(500).json({
+      success: false,
+      error: 'Login failed',
+    });
   }
-});
+}));
 
-// Reset password endpoint - validates token and redirects to frontend (GET)
-router.get('/reset-password/:token', async (req: Request, res: Response) => {
+// JWT-based login
+router.post('/token/login', asyncHandler(async (req: Request, res: Response) => {
+  const validation = loginSchema.safeParse(req.body);
+  if (!validation.success) {
+    return res.status(400).json({
+      success: false,
+      error: 'Invalid input data',
+      details: validation.error.errors,
+    });
+  }
+
+  const { email, password } = validation.data;
+  
+  appLogger.auth('JWT login attempt for email:', email);
+
   try {
-    const { token } = req.params;
-    
-    if (!token) {
-      return res.redirect('/forgot-password?error=invalid');
+    // Get user from storage
+    const user = await storage.getUserByEmail(email);
+    if (!user) {
+      appLogger.auth('JWT login failed: User not found for email:', email);
+      return res.status(401).json({
+        success: false,
+        error: 'Invalid credentials',
+      });
     }
 
-    // Find founder with matching reset token
-    const [founderRecord] = await db
-      .select()
-      .from(founder)
-      .where(eq(founder.verificationToken, token));
-
-    if (!founderRecord) {
-      return res.redirect('/forgot-password?error=invalid');
+    // Verify password
+    const isValidPassword = await bcrypt.compare(password, user.password);
+    if (!isValidPassword) {
+      appLogger.auth('JWT login failed: Invalid password for email:', email);
+      return res.status(401).json({
+        success: false,
+        error: 'Invalid credentials',
+      });
     }
 
-    // Check if token is expired
-    if (founderRecord.tokenExpiresAt && isTokenExpired(founderRecord.tokenExpiresAt)) {
-      return res.redirect(`/forgot-password?error=expired&email=${encodeURIComponent(founderRecord.email)}`);
-    }
+    // Generate JWT token
+    const token = generateToken(user);
 
-    // Don't clear token here - save it for the POST request
-    // Redirect to reset password page
-    res.redirect(`/reset-password/${token}`);
+    appLogger.auth('JWT login successful for user:', user.id);
+
+    // Set secure cookie (optional additional security)
+    res.cookie('authToken', token, {
+      httpOnly: true,
+      secure: process.env.NODE_ENV === 'production',
+      maxAge: 7 * 24 * 60 * 60 * 1000, // 7 days
+    });
+
+    res.json({
+      success: true,
+      data: {
+        token,
+        user: {
+          id: user.id,
+          email: user.email,
+          username: user.username,
+          ventureId: user.ventureId,
+        },
+      },
+    });
   } catch (error) {
-    appLogger.auth('Reset password GET error:', { error: error instanceof Error ? error.message : String(error), token: req.params.token });
-    res.redirect('/forgot-password?error=invalid');
+    appLogger.auth('JWT login error:', error.message);
+    res.status(500).json({
+      success: false,
+      error: 'Login failed',
+    });
   }
-});
+}));
 
-// Reset password endpoint - handles password update form submission (POST)
-router.post('/reset-password/:token', async (req: Request, res: Response) => {
+// Register endpoint
+router.post('/register', asyncHandler(async (req: Request, res: Response) => {
+  const validation = registerSchema.safeParse(req.body);
+  if (!validation.success) {
+    return res.status(400).json({
+      success: false,
+      error: 'Invalid input data',
+      details: validation.error.errors,
+    });
+  }
+
+  const userData = validation.data;
+  
+  appLogger.auth('Registration attempt for email:', userData.email);
+
   try {
-    const { token } = req.params;
-    
-    const resetPasswordSchema = z.object({
-      password: z.string().min(8)
+    // Check if user already exists
+    const existingUser = await storage.getUserByEmail(userData.email);
+    if (existingUser) {
+      appLogger.auth('Registration failed: Email already exists:', userData.email);
+      return res.status(409).json({
+        success: false,
+        error: 'Email already registered',
+      });
+    }
+
+    // Hash password
+    const hashedPassword = await bcrypt.hash(userData.password, 12);
+
+    // Create user
+    const newUser = await storage.createUser({
+      ...userData,
+      password: hashedPassword,
     });
 
-    const { password } = resetPasswordSchema.parse(req.body);
-    
-    if (!token) {
-      return res.status(400).json({ error: 'Invalid reset token' });
-    }
+    appLogger.auth('Registration successful for user:', newUser.id);
 
-    // Find founder with matching reset token
-    const [founderRecord] = await db
-      .select()
-      .from(founder)
-      .where(eq(founder.verificationToken, token));
+    // Generate JWT token for immediate login
+    const token = generateToken(newUser);
 
-    if (!founderRecord) {
-      return res.status(400).json({ error: 'Invalid or expired reset token' });
-    }
-
-    // Check if token is expired
-    if (founderRecord.tokenExpiresAt && isTokenExpired(founderRecord.tokenExpiresAt)) {
-      return res.status(400).json({ error: 'Reset token has expired' });
-    }
-
-    // Hash the new password
-    const passwordHash = await hashPassword(password);
-
-    // Update founder with new password and clear reset token
-    await db
-      .update(founder)
-      .set({
-        passwordHash,
-        verificationToken: null,
-        tokenExpiresAt: null,
-        updatedAt: new Date()
-      })
-      .where(eq(founder.founderId, founderRecord.founderId));
-
-    res.json({ 
-      success: true, 
-      message: 'Password reset successfully' 
+    res.status(201).json({
+      success: true,
+      data: {
+        token,
+        user: {
+          id: newUser.id,
+          email: newUser.email,
+          username: newUser.username,
+          ventureId: newUser.ventureId,
+        },
+      },
     });
   } catch (error) {
-    appLogger.auth('Reset password POST error:', { error: error instanceof Error ? error.message : String(error), token: req.params.token });
-    if (error instanceof z.ZodError) {
-      return res.status(400).json({ error: 'Invalid input', details: error.errors });
+    appLogger.auth('Registration error:', error.message);
+    res.status(500).json({
+      success: false,
+      error: 'Registration failed',
+    });
+  }
+}));
+
+// Session logout
+router.post('/logout', asyncHandler(async (req: Request, res: Response) => {
+  const user = (req.session as any)?.user;
+  
+  if (user) {
+    appLogger.auth('Session logout for user:', user.id);
+  }
+
+  req.session.destroy((err) => {
+    if (err) {
+      appLogger.auth('Session logout error:', err.message);
+      return res.status(500).json({
+        success: false,
+        error: 'Logout failed',
+      });
     }
-    res.status(500).json({ error: 'Failed to reset password' });
-  }
-});
 
-// Middleware to check authentication
-export function requireAuth(req: Request, res: Response, next: any) {
-  if (!req.session.isAuthenticated || !req.session.founderId) {
-    return res.status(401).json({ error: 'Authentication required' });
-  }
-  next();
-}
+    res.clearCookie('connect.sid');
+    res.json({
+      success: true,
+      message: 'Logged out successfully',
+    });
+  });
+}));
 
+// JWT logout (blacklist token)
+router.post('/token/logout', asyncHandler(async (req: Request, res: Response) => {
+  const authHeader = req.headers.authorization;
+  const token = authHeader && authHeader.split(' ')[1];
+
+  if (token) {
+    // Add token to blacklist
+    blacklistedTokens.add(token);
+    appLogger.auth('JWT token blacklisted for logout');
+    
+    // Clean up old blacklisted tokens periodically (optional)
+    if (blacklistedTokens.size > 1000) {
+      blacklistedTokens.clear();
+      appLogger.auth('Blacklisted tokens cleared for memory management');
+    }
+  }
+
+  res.clearCookie('authToken');
+  res.json({
+    success: true,
+    message: 'Logged out successfully',
+  });
+}));
+
+// Token verification endpoint
+router.get('/token/verify', asyncHandler(async (req: Request, res: Response) => {
+  const authHeader = req.headers.authorization;
+  const token = authHeader && authHeader.split(' ')[1];
+
+  if (!token) {
+    return res.status(401).json({
+      success: false,
+      error: 'No token provided',
+    });
+  }
+
+  const decoded = verifyToken(token);
+  if (!decoded) {
+    return res.status(401).json({
+      success: false,
+      error: 'Invalid or expired token',
+    });
+  }
+
+  res.json({
+    success: true,
+    data: {
+      user: decoded,
+      valid: true,
+    },
+  });
+}));
+
+// Get current user (session-based)
+router.get('/user', asyncHandler(async (req: Request, res: Response) => {
+  const user = (req.session as any)?.user;
+  
+  if (!user) {
+    return res.status(401).json({
+      success: false,
+      error: 'Not authenticated',
+    });
+  }
+
+  res.json({
+    success: true,
+    data: { user },
+  });
+}));
+
+// Export utilities for use in middleware
+export { generateToken, verifyToken, blacklistedTokens };
 export default router;

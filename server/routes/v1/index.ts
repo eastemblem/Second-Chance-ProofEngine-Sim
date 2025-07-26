@@ -7,7 +7,7 @@ import reportRoutes from './reports';
 import notificationRoutes from './notifications';
 import testRoutes from './test';
 import { getLeaderboard } from '../../routes/leaderboard';
-import { asyncHandler } from '../middleware/error';
+import { asyncHandler } from '../../utils/error-handler';
 import { appLogger } from '../../utils/logger';
 import { authenticateToken } from '../../middleware/token-auth';
 

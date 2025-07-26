@@ -54,7 +54,7 @@ if (process.env.NEW_RELIC_LICENSE_KEY) {
 import express, { type Request, Response, NextFunction } from "express";
 import session from "express-session";
 import cookieParser from "cookie-parser";
-import { registerRoutes } from "./routes-refactored";
+import { registerRoutes } from "./routes";
 import { setupVite, serveStatic, log } from "./vite";
 import { errorHandler } from "./utils/error-handler";
 import { schedulePeriodicCleanup } from "./utils/file-cleanup";
