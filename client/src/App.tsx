@@ -4,7 +4,7 @@ import { QueryClientProvider } from "@tanstack/react-query";
 import { queryClient } from "./lib/queryClient";
 import { Toaster } from "@/components/ui/toaster";
 // Removed TooltipProvider to fix React hooks error
-import { lazy, Suspense, useEffect } from "react";
+import React, { lazy, Suspense, useEffect } from "react";
 import { SimpleLoader, InlineLoader } from "@/components/simple-loader";
 import { initGA } from "./lib/analytics";
 import { useAnalytics } from "./hooks/use-analytics";

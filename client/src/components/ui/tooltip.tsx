@@ -5,8 +5,10 @@ import * as TooltipPrimitive from "@radix-ui/react-tooltip"
 
 import { cn } from "@/lib/utils"
 
-// Simple fallback component to prevent import errors
-const TooltipProvider = ({ children }: { children: React.ReactNode }) => <div>{children}</div>
+// Simple fallback component to prevent import errors - ensuring React is available
+const TooltipProvider = ({ children }: { children: React.ReactNode }) => {
+  return React.createElement('div', null, children);
+}
 
 const Tooltip = TooltipPrimitive.Root
 

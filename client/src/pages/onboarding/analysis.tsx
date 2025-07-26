@@ -619,7 +619,7 @@ export default function Analysis({
       apiTags.length > 0
         ? apiTags
         : ALL_PROOF_TAGS.filter(
-            (tag) => currentScore >= tag.scoreThreshold,
+            (tag) => currentScore >= (tag.scoreThreshold || 0),
           ).map((tag) => tag.name);
 
     const lockedTags: {
@@ -643,8 +643,8 @@ export default function Analysis({
           name: tag.name,
           emoji: tag.emoji,
           currentScore: currentScore,
-          neededScore: tag.scoreThreshold,
-          pointsNeeded: Math.max(0, tag.scoreThreshold - currentScore),
+          neededScore: tag.scoreThreshold || 0,
+          pointsNeeded: Math.max(0, (tag.scoreThreshold || 0) - currentScore),
         });
       }
     });
