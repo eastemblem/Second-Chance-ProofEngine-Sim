@@ -58,6 +58,10 @@ router.get('/validation', asyncHandler(async (req: Request, res: Response) => {
       }
     }
 
+    // FIXED: Return the actual certificate and report URLs from database (these are the real URLs)
+    const certificateUrl = latestVenture?.certificateUrl || latestVenture?.certificate_url || null;
+    const reportUrl = latestVenture?.reportUrl || latestVenture?.report_url || null;
+
     const validationData = {
       proofScore: currentScore,
       proofTagsUnlocked: proofTagsUnlocked,
@@ -69,8 +73,8 @@ router.get('/validation', asyncHandler(async (req: Request, res: Response) => {
       status: currentScore >= 90 ? 'Deal Room Ready' : currentScore >= 70 ? 'Investor Ready' : 'Building Validation',
       investorReady: currentScore >= 70,
       dealRoomAccess: currentScore >= 90,
-      certificateUrl: latestVenture?.certificateUrl || latestVenture?.certificate_url,
-      reportUrl: latestVenture?.reportUrl || latestVenture?.report_url
+      certificateUrl,
+      reportUrl
     };
 
     // FIXED: Calculate actual files uploaded for this venture
