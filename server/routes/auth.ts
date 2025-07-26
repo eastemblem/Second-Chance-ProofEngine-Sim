@@ -3,7 +3,11 @@ import bcrypt from 'bcryptjs';
 import jwt from 'jsonwebtoken';
 import { asyncHandler } from '../utils/error-handler';
 import { storage } from '../storage';
-import { insertUserSchema } from '@shared/schema';
+import { createInsertSchema } from 'drizzle-zod';
+import { founder } from '@shared/schema';
+
+// Create user insert schema
+const insertUserSchema = createInsertSchema(founder);
 import { z } from 'zod';
 import { appLogger } from '../utils/logger';
 

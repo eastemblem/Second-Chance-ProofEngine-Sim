@@ -55,15 +55,6 @@ export function validateRequest(schema: {
   };
 }
 
-// File upload validation schema
-export const fileUploadSchema = z.object({
-  originalname: z.string().min(1, "Filename is required"),
-  mimetype: z.string().min(1, "File type is required"),
-  size: z.number().positive("File size must be positive"),
-  buffer: z.any().optional(),
-  path: z.string().optional()
-});
-
 // Authentication validation middleware
 export function requireAuth(req: Request, res: Response, next: NextFunction) {
   const founderId = req.session?.founderId;
@@ -78,6 +69,14 @@ export function requireAuth(req: Request, res: Response, next: NextFunction) {
 // File upload validation schemas
 export const fileUploadSchema = z.object({
   category: z.string().min(1, "Category is required")
+});
+
+export const pitchDeckUploadSchema = z.object({
+  originalname: z.string().min(1, "Filename is required"),
+  mimetype: z.string().min(1, "File type is required"),
+  size: z.number().positive("File size must be positive"),
+  buffer: z.any().optional(),
+  path: z.string().optional()
 });
 
 export const folderCreateSchema = z.object({
