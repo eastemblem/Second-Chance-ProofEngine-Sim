@@ -47,3 +47,22 @@ Access the performance test UI at `/performance-test` in the application.
 2. Clean up temporary files after test runs
 3. Document any new test files or significant changes
 4. Use the fixtures directory for reusable test data
+## Server Test Files (Recently Moved)
+
+### Monitoring and Testing Routes
+- `tests/server/routes/monitoring/cache-monitor.ts` - Cache performance monitoring
+- `tests/server/routes/monitoring/performance.ts` - LRU cache performance testing  
+- `tests/server/routes/sentry-test.ts` - Sentry error tracking testing
+- `tests/server/routes/v1/test.ts` - V1 API test endpoints
+
+### Monitoring Services
+- `tests/server/monitoring/newrelic-test.ts` - NewRelic connectivity testing
+
+### Backup Files
+- `tests/server/backup/routes.ts.backup` - Backup of main routes file
+- `tests/server/backup/dashboard.ts.backup` - Backup of dashboard routes
+
+### Templates
+- `tests/server/templates/certificate-template-OLD.pdf` - Legacy certificate template
+
+All test files moved from server/ to tests/ directory for better organization.

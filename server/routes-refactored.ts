@@ -18,7 +18,6 @@ import dashboardRoutes from "./routes/dashboard";
 import vaultRoutes from "./routes/vault";
 import v1ApiRoutes from "./routes/v1";
 import healthRoutes from "./routes/health";
-import sentryTestRoutes from "./routes/sentry-test";
 
 // Legacy route imports (preserved during transition)
 import apiRoutes from "./routes/index";
@@ -55,11 +54,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
   // Core feature routes (new modular structure)
   app.use('/api/dashboard', dashboardRoutes);
-  
-  // Sentry testing routes (development/testing)
-  app.use(sentryTestRoutes);
   app.use('/api/vault', vaultRoutes);
   // Note: Onboarding routes now handled exclusively by V1 API (/api/v1/onboarding)
+  // Note: Test routes (sentry-test, cache-monitor, performance) moved to tests/ directory
   
   // Health and monitoring routes
   app.use('/api/health', healthRoutes);
