@@ -16,7 +16,6 @@ import { newRelicMiddleware, trackBusinessMetrics, configureNewRelic } from "./m
 // Modular route imports
 import dashboardRoutes from "./routes/dashboard";
 import vaultRoutes from "./routes/vault";
-import onboardingRoutes from "./routes/onboarding";
 import v1ApiRoutes from "./routes/v1";
 import healthRoutes from "./routes/health";
 import sentryTestRoutes from "./routes/sentry-test";
@@ -60,7 +59,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Sentry testing routes (development/testing)
   app.use(sentryTestRoutes);
   app.use('/api/vault', vaultRoutes);
-  app.use('/api/onboarding', onboardingRoutes);
+  // Note: Onboarding routes now handled exclusively by V1 API (/api/v1/onboarding)
   
   // Health and monitoring routes
   app.use('/api/health', healthRoutes);
