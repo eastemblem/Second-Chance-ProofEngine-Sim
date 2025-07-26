@@ -101,7 +101,7 @@ export default function TokenExpiredPage() {
   };
 
   return (
-    <div className="min-h-screen flex flex-col">
+    <AuthLayout>
       <div className="flex-1 bg-gradient-to-br from-background via-card to-background px-4 py-8">
         <div className="max-w-md mx-auto">
           {/* Header */}
@@ -177,7 +177,6 @@ export default function TokenExpiredPage() {
           </div>
         </div>
       </div>
-      
     </AuthLayout>
   );
 }

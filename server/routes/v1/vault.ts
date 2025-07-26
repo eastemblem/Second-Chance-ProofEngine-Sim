@@ -30,13 +30,21 @@ const upload = multer({
   fileFilter: (req, file, cb) => {
     const allowedTypes = [
       "application/pdf",
-      "application/vnd.ms-powerpoint",
+      "application/vnd.ms-powerpoint", 
       "application/vnd.openxmlformats-officedocument.presentationml.presentation",
+      "image/png",
+      "image/jpeg",
+      "image/jpg",
+      "image/gif",
+      "image/webp",
+      "application/msword",
+      "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
+      "text/plain"
     ];
     if (allowedTypes.includes(file.mimetype)) {
       cb(null, true);
     } else {
-      cb(new Error("Invalid file type. Only PDF, PPT, and PPTX files are allowed."));
+      cb(new Error(`Invalid file type: ${file.mimetype}. Allowed types: PDF, PPT, PPTX, images, Word documents, and text files.`));
     }
   },
 });
