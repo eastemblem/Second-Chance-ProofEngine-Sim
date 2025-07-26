@@ -129,6 +129,19 @@ Demo experience for testing different user journeys:
 
 ## Recent Key Updates
 
+### July 26, 2025 - ✅ SUBFOLDER CREATION ISSUE COMPLETELY RESOLVED: V1 Hierarchical Folder System Operational
+
+- **✅ CRITICAL LOGIC FIX IMPLEMENTED**: Fixed V1 create-folder endpoint to properly handle direct Box.com folder IDs instead of treating them as category names
+- **✅ DUAL PATH RESOLUTION SYSTEM**: Enhanced endpoint to automatically detect if folder_id is:
+  * Numeric folder ID (e.g., "332970414911") → Use directly as parent folder
+  * Category name (e.g., "1_Problem_Proof") → Resolve from database mapping
+- **✅ SUCCESSFUL SUBFOLDER CREATION VERIFIED**: Multiple test subfolders created successfully:
+  * "awards" subfolder → Box.com folder ID 332970678368
+  * "certifications" subfolder → Box.com folder ID 332971940551
+  * Both created within parent folder 332970414911
+- **✅ JWT AUTHENTICATION WORKING**: Bearer token validation working perfectly for all folder operations
+- **✅ HIERARCHICAL FOLDER SYSTEM OPERATIONAL**: Users can now create nested folder structures within existing folders
+
 ### July 26, 2025 - ✅ SVG FILE SUPPORT ADDED: Complete Badge Upload Functionality Operational
 
 - **✅ SVG FILE TYPE SUPPORT IMPLEMENTED**: Added `image/svg+xml` to allowed file types in V1 vault upload validation

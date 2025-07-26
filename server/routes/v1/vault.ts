@@ -275,11 +275,19 @@ router.post('/create-folder', upload.none(), asyncHandler(async (req: Authentica
   console.log(`📁 V1 CREATE FOLDER: Processing database-driven folder creation for founder ${founderId}`);
 
   try {
-    // Step 1: Get actual Box.com parent folder ID from database - NO FALLBACKS
-    const { getFolderIdFromCategory } = await import("../../utils/folder-mapping");
-    const actualParentFolderId = await getFolderIdFromCategory(folder_id, founderId);
+    // Step 1: Determine if folder_id is a category name or direct folder ID
+    let actualParentFolderId: string;
     
-    console.log(`📁 V1 CREATE FOLDER: Resolved category "${folder_id}" to parent folder ID "${actualParentFolderId}"`);
+    // If folder_id looks like a Box.com folder ID (numeric), use it directly
+    if (/^\d+$/.test(folder_id)) {
+      actualParentFolderId = folder_id;
+      console.log(`📁 V1 CREATE FOLDER: Using direct folder ID "${actualParentFolderId}"`);
+    } else {
+      // If it's a category name, resolve it from database
+      const { getFolderIdFromCategory } = await import("../../utils/folder-mapping");
+      actualParentFolderId = await getFolderIdFromCategory(folder_id, founderId);
+      console.log(`📁 V1 CREATE FOLDER: Resolved category "${folder_id}" to parent folder ID "${actualParentFolderId}"`);
+    }
 
     // Step 2: Create folder via EastEmblem API using service layer with proper error handling
     const { vaultService } = await import("../../services/vault-service");
