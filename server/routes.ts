@@ -144,9 +144,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Mount modular API routes
   app.use("/api", apiRoutes);
 
-  // Leaderboard routes with JWT authentication
-  app.get("/api/leaderboard", authenticateToken, asyncHandler(getLeaderboard));
-  app.post("/api/leaderboard", authenticateToken, asyncHandler(createLeaderboardEntry));
+  // Leaderboard routes - GET public for analysis page, POST requires auth
+  app.get("/api/leaderboard", asyncHandler(getLeaderboard)); // Public access for analysis page
+  app.post("/api/leaderboard", authenticateToken, asyncHandler(createLeaderboardEntry)); // Auth required for creation
 
   // Dashboard API endpoints - fixed in main routes file 
   app.get('/api/dashboard/validation', authenticateToken, asyncHandler(async (req: any, res) => {

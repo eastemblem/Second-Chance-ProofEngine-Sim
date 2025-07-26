@@ -28,6 +28,18 @@ export function Leaderboard({ currentVentureName }: LeaderboardProps) {
   const { data, isLoading, error } = useQuery<LeaderboardResponse>({
     queryKey: ['/api/leaderboard'],
     staleTime: 1000 * 60 * 5, // 5 minutes
+    queryFn: async () => {
+      // Use non-versioned endpoint for unauthenticated access
+      const response = await fetch('/api/leaderboard', {
+        credentials: 'include',
+      });
+      
+      if (!response.ok) {
+        throw new Error(`${response.status}: ${response.statusText}`);
+      }
+      
+      return response.json();
+    },
   });
 
   if (isLoading) {
