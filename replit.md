@@ -129,6 +129,13 @@ Demo experience for testing different user journeys:
 
 ## Recent Key Updates
 
+### July 26, 2025 - ✅ DUPLICATE V1 FOLDER STRUCTURE CLEANUP: Routing Conflicts Resolved
+- **✅ DUPLICATE FOLDER ISSUE IDENTIFIED**: Found two conflicting v1 folder structures causing potential routing conflicts
+- **✅ CLEANUP COMPLETED**: Removed unused `server/routes/api/v1/` folder (3 files) and kept active `server/routes/v1/` folder (8 files)
+- **✅ ROUTING VERIFIED**: Confirmed all applications use the correct `./routes/v1` structure with comprehensive JWT authentication
+- **✅ STRUCTURE SIMPLIFIED**: Clean single v1 route structure now in place without duplicates
+- **✅ PRODUCTION READY**: No routing conflicts, all v1 endpoints operational through single folder structure
+
 ### July 26, 2025 - ✅ CERTIFICATE AND REPORT URL ISSUE FIXED: Authentic Database URLs Now Returned
 - **✅ CERTIFICATE/REPORT URL ISSUE RESOLVED**: Fixed dashboard returning placeholder/generation endpoints instead of actual URLs
 - **✅ ROOT CAUSE IDENTIFIED**: Dashboard was incorrectly flagging authentic database URLs as "placeholder" URLs and replacing them with fallback endpoints
