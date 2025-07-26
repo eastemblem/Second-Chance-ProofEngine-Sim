@@ -76,18 +76,25 @@ export default function ScoringPage({
 
   // Query ProofVault session data
   const { data: sessionData } = useQuery<SessionResponse>({
-    queryKey: ['/api/vault/session'],
+    queryKey: ['/api/v1/vault/session'],
     refetchInterval: isAnalyzing ? 2000 : false,
   });
 
   // Submit for scoring mutation
   const submitForScoring = useMutation({
     mutationFn: async () => {
-      const response = await fetch('/api/vault/submit-for-scoring', {
+      // Get JWT token for authentication
+      const token = localStorage.getItem('auth_token');
+      const headers: Record<string, string> = {
+        'Content-Type': 'application/json',
+      };
+      if (token) {
+        headers['Authorization'] = `Bearer ${token}`;
+      }
+
+      const response = await fetch('/api/v1/vault/submit-for-scoring', {
         method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
+        headers,
         body: JSON.stringify({})
       });
       
@@ -100,7 +107,7 @@ export default function ScoringPage({
     onSuccess: (data) => {
       const score = data.data?.proofScore || data.proofScore || 0;
       setProofScore(score);
-      queryClient.invalidateQueries({ queryKey: ['/api/vault/session'] });
+      queryClient.invalidateQueries({ queryKey: ['/api/v1/vault/session'] });
       toast({
         title: "Scoring Complete",
         description: "Your pitch deck has been analyzed successfully"

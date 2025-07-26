@@ -35,8 +35,16 @@ export default function FileUpload({
     formData.append("file", file);
     console.log("Uploading file:", file);
 
-    const response = await fetch("/api/vault/upload-only", {
+    // Get JWT token for authentication
+    const token = localStorage.getItem('auth_token');
+    const headers: Record<string, string> = {};
+    if (token) {
+      headers['Authorization'] = `Bearer ${token}`;
+    }
+
+    const response = await fetch("/api/v1/vault/upload-only", {
       method: "POST",
+      headers,
       body: formData,
     });
 
