@@ -163,34 +163,40 @@ router.get('/vault', asyncHandler(async (req: Request, res: Response) => {
           return 'Overview';
         }
         
-        // CRITICAL FIX: First check if current folder is already a main category folder
-        const directCategory = await getCategoryFromFolderId(folderId, founderId);
-        if (directCategory !== 'Overview (default)') {
-          // This IS a main category folder, use it directly
-          console.log(`📁 File ${file.fileName} in main category folder ${folderId} → ${directCategory}`);
-          return directCategory;
-        }
+        // CRITICAL FIX: Use direct mapping lookup from database instead of getCategoryFromFolderId
+        // Check if this folder ID is directly mapped in our folderMappings (main category folders)
+        const directMapping = folderMappings.find(mapping => mapping.subFolderId === folderId);
         
-        // Step 2: Check if this folder ID exists as a subfolder in proof_vault
-        const subfolderMapping = folderMappings.find(mapping => mapping.subFolderId === folderId);
-        
-        if (subfolderMapping) {
-          // Check if parent is a main category folder
-          const parentCategory = await getCategoryFromFolderId(subfolderMapping.parentFolderId, founderId);
-          if (parentCategory !== 'Overview (default)') {
-            // Parent is a main category folder - use it
-            console.log(`📁 File ${file.fileName} in subfolder ${folderId} → parent category: ${parentCategory} (depth ${depth})`);
-            return parentCategory;
-          } else {
-            // Parent is also a subfolder, continue recursion
-            console.log(`📁 Nested subfolder: ${folderId} → parent ${subfolderMapping.parentFolderId} (depth ${depth})`);
-            return await findCorrectParentCategory(subfolderMapping.parentFolderId, depth + 1);
+        if (directMapping) {
+          // Get the display name for this folder
+          const { getCategoryDisplayName } = await import('../../utils/folder-mapping');
+          const categoryName = getCategoryDisplayName(directMapping.folderName);
+          
+          // Check if this is a main category folder (has underscore indicating main category)
+          if (directMapping.folderName.includes('_') && directMapping.folderName.match(/^\d+_/)) {
+            console.log(`📁 File ${file.fileName} in main category folder ${folderId} → ${categoryName}`);
+            return categoryName;
           }
-        } else {
-          // Fallback to Overview if no mapping found
-          console.log(`📁 File ${file.fileName} no mapping found for ${folderId} → Overview fallback`);
-          return 'Overview (default)';
+          
+          // This is a subfolder, check its parent
+          if (directMapping.parentFolderId && directMapping.parentFolderId !== folderId) {
+            console.log(`📁 File ${file.fileName} in subfolder ${folderId} → checking parent ${directMapping.parentFolderId} (depth ${depth})`);
+            return await findCorrectParentCategory(directMapping.parentFolderId, depth + 1);
+          }
         }
+        
+        // Step 2: Check if this folder exists as a subfolder in other mappings
+        const subfolderMapping = folderMappings.find(mapping => mapping.subFolderId === folderId && !mapping.folderName.match(/^\d+_/));
+        
+        if (subfolderMapping && subfolderMapping.parentFolderId) {
+          // This is a subfolder, find its parent category
+          console.log(`📁 Nested subfolder: ${folderId} → parent ${subfolderMapping.parentFolderId} (depth ${depth})`);
+          return await findCorrectParentCategory(subfolderMapping.parentFolderId, depth + 1);
+        }
+        
+        // Fallback to Overview if no mapping found
+        console.log(`📁 File ${file.fileName} no mapping found for ${folderId} → Overview fallback`);
+        return 'Overview';
       };
       
       category = await findCorrectParentCategory(file.folderId || '332886218045');
