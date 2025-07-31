@@ -77,18 +77,12 @@ router.get('/validation', asyncHandler(async (req: Request, res: Response) => {
       reportUrl
     };
 
-    // FIXED: Calculate actual files uploaded for this venture
-    const { db } = await import('../../db');
-    const { documentUpload } = await import('@shared/schema');
-    const { eq } = await import('drizzle-orm');
-    
-    const fileCount = await db.select()
-      .from(documentUpload)
-      .where(eq(documentUpload.ventureId, dashboardData.venture.ventureId));
-    
-    validationData.filesUploaded = fileCount.length;
+    // Get files count from storage service
+    const { storage } = await import('../../storage');
+    const totalFiles = await storage.getDocumentUploadCountByVenture(dashboardData.venture.ventureId);
+    validationData.filesUploaded = totalFiles;
 
-    appLogger.api(`FIXED: Returning validation data for ${founderData?.fullName}, score: ${currentScore}, files: ${fileCount.length}`);
+    appLogger.api(`FIXED: Returning validation data for ${founderData?.fullName}, score: ${currentScore}, files: ${totalFiles}`);
     res.json(validationData);
   } catch (error) {
     appLogger.api("FIXED: Dashboard validation error:", error);
@@ -110,78 +104,45 @@ router.get('/vault', asyncHandler(async (req: Request, res: Response) => {
       return res.status(404).json({ error: "Venture not found" });
     }
 
-    // SOLUTION 1: SINGLE JOIN QUERY - Eliminate N+1 queries
+    // Get file counts by category for vault statistics only
+    const { storage } = await import('../../storage');
+    const totalFiles = await storage.getDocumentUploadCountByVenture(dashboardData.venture.ventureId);
+    
+    // Get file counts by category using database-driven approach
     const { db } = await import('../../db');
     const { documentUpload, proofVault } = await import('@shared/schema');
-    const { eq, desc } = await import('drizzle-orm');
-
-    // Single optimized query with JOIN to get files + categories together
-    const filesWithCategories = await db
+    const { eq, sql } = await import('drizzle-orm');
+    
+    const fileCounts = { overview: 0, problemProof: 0, solutionProof: 0, demandProof: 0, credibilityProof: 0, commercialProof: 0, investorPack: 0 };
+    
+    // Get file counts by joining with proof vault for categorization (counts only, no file data)
+    const fileCountsQuery = await db
       .select({
-        // File data
-        uploadId: documentUpload.uploadId,
-        fileName: documentUpload.fileName,
-        originalName: documentUpload.originalName,
         folderId: documentUpload.folderId,
-        createdAt: documentUpload.createdAt,
-        fileSize: documentUpload.fileSize,
-        sharedUrl: documentUpload.sharedUrl,
-        mimeType: documentUpload.mimeType,
-        // Category data from proof_vault
         folderName: proofVault.folderName,
-        parentFolderId: proofVault.parentFolderId
+        count: sql<number>`count(*)::int`
       })
       .from(documentUpload)
       .leftJoin(proofVault, eq(proofVault.subFolderId, documentUpload.folderId))
       .where(eq(documentUpload.ventureId, dashboardData.venture.ventureId))
-      .orderBy(desc(documentUpload.createdAt));
-
-    appLogger.api(`SOLUTION 1: Retrieved ${filesWithCategories.length} files with single JOIN query`);
+      .groupBy(documentUpload.folderId, proofVault.folderName);
     
-    // Get all folder mappings for this venture to support pattern matching
-    const folderMappings = await db.select({
-      subFolderId: proofVault.subFolderId,
-      folderName: proofVault.folderName,
-      parentFolderId: proofVault.parentFolderId
-    })
-    .from(proofVault)
-    .where(eq(proofVault.ventureId, dashboardData.venture.ventureId));
-    
-    appLogger.api(`SOLUTION 3: Using folder name pattern matching for ${folderMappings.length} folders - NO hardcoded IDs`);
-    
-    // Format files for frontend display - using pattern-based categorization
-    const formattedFiles = filesWithCategories.map((fileData) => ({
-      id: fileData.uploadId,
-      name: fileData.fileName || fileData.originalName || 'Unknown File',
-      category: getCategoryFromFolderPattern(fileData.folderName, fileData.folderId || '', fileData.parentFolderId, folderMappings),
-      uploadDate: fileData.createdAt?.toISOString() || new Date().toISOString(),
-      size: formatFileSize(fileData.fileSize || 0),
-      downloadUrl: fileData.sharedUrl || '',
-      type: fileData.mimeType || 'application/pdf'
-    }));
-
-    // SOLUTION 1: OPTIMIZED FILE COUNTING - Use data from JOIN query
-    // We already have category data from the JOIN, no need for additional queries
-    
-    // SOLUTION 1: OPTIMIZED FILE COUNTING - Count directly from formatted files
-    const fileCounts = { overview: 0, problemProof: 0, solutionProof: 0, demandProof: 0, credibilityProof: 0, commercialProof: 0, investorPack: 0 };
-    
-    // Count files by category - synchronous processing using already resolved categories
-    for (const file of formattedFiles) {
-      switch (file.category) {
-        case 'Overview': fileCounts.overview++; break;
-        case 'Problem Proofs': fileCounts.problemProof++; break;
-        case 'Solution Proofs': fileCounts.solutionProof++; break;
-        case 'Demand Proofs': fileCounts.demandProof++; break;
-        case 'Credibility Proofs': fileCounts.credibilityProof++; break;
-        case 'Commercial Proofs': fileCounts.commercialProof++; break;
-        case 'Investor Pack': fileCounts.investorPack++; break;
-        default: fileCounts.overview++; // Fallback to overview
+    // Categorize file counts based on folder names
+    for (const result of fileCountsQuery) {
+      const category = getCategoryFromFolderName(result.folderName || '');
+      switch (category) {
+        case 'overview': fileCounts.overview += result.count; break;
+        case 'problem_proof': fileCounts.problemProof += result.count; break;
+        case 'solution_proof': fileCounts.solutionProof += result.count; break;
+        case 'demand_proof': fileCounts.demandProof += result.count; break;
+        case 'credibility_proof': fileCounts.credibilityProof += result.count; break;
+        case 'commercial_proof': fileCounts.commercialProof += result.count; break;
+        case 'investor_pack': fileCounts.investorPack += result.count; break;
+        default: fileCounts.overview += result.count;
       }
     }
     
-    appLogger.api(`SOLUTION 1: File counts - Overview: ${fileCounts.overview}, Problem: ${fileCounts.problemProof}, Solution: ${fileCounts.solutionProof}, Demand: ${fileCounts.demandProof}, Credibility: ${fileCounts.credibilityProof}, Commercial: ${fileCounts.commercialProof}, Investor: ${fileCounts.investorPack}`);
-    // SOLUTION 1: File counting is now done above using formatted files - no complex logic needed
+    appLogger.api(`Vault counts - Overview: ${fileCounts.overview}, Problem: ${fileCounts.problemProof}, Solution: ${fileCounts.solutionProof}, Demand: ${fileCounts.demandProof}, Credibility: ${fileCounts.credibilityProof}, Commercial: ${fileCounts.commercialProof}, Investor: ${fileCounts.investorPack}`);
 
     const vaultData = {
       overviewCount: fileCounts.overview,
@@ -191,10 +152,9 @@ router.get('/vault', asyncHandler(async (req: Request, res: Response) => {
       credibilityProofCount: fileCounts.credibilityProof,
       commercialProofCount: fileCounts.commercialProof,
       investorPackCount: fileCounts.investorPack,
-      totalFiles: formattedFiles.length,
+      totalFiles: totalFiles,
       ventureId: dashboardData.venture.ventureId,
       ventureName: dashboardData.venture.name,
-      files: formattedFiles, // REAL FILES from database
       folders: [ // FIXED: Add folder structure to match frontend interface
         { name: "0_Overview", displayName: "Overview", count: fileCounts.overview },
         { name: "1_Problem_Proof", displayName: "Problem Proofs", count: fileCounts.problemProof },
@@ -410,6 +370,21 @@ function getCategoryFromFolderPattern(
   
   // Default fallback
   return 'Overview';
+}
+
+// Helper function to get category from folder name
+function getCategoryFromFolderName(folderName: string): string {
+  const normalizedName = folderName.toLowerCase();
+  
+  if (normalizedName.includes('overview') || normalizedName.includes('0_')) return 'overview';
+  if (normalizedName.includes('problem') || normalizedName.includes('1_')) return 'problem_proof';
+  if (normalizedName.includes('solution') || normalizedName.includes('2_')) return 'solution_proof';
+  if (normalizedName.includes('demand') || normalizedName.includes('3_')) return 'demand_proof';
+  if (normalizedName.includes('credibility') || normalizedName.includes('4_')) return 'credibility_proof';
+  if (normalizedName.includes('commercial') || normalizedName.includes('5_')) return 'commercial_proof';
+  if (normalizedName.includes('investor') || normalizedName.includes('6_')) return 'investor_pack';
+  
+  return 'overview';
 }
 
 // Helper function: Convert folder name patterns to category names
