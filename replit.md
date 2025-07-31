@@ -186,6 +186,7 @@ Demo experience for testing different user journeys:
   * Synchronous categorization processing instead of recursive async logic
 - **✅ DATABASE-DRIVEN ACCURACY**: Uses authentic proof_vault table data for category resolution with proper parent folder ID hierarchies
 - **✅ PRODUCTION READY**: Complete optimization operational with both performance gains and data accuracy achieved
+- **✅ HARDCODED FOLDER IDS EXPLAINED**: Documented why hardcoded Box.com folder IDs are necessary for production system - represent actual cloud storage structure and enable accurate subfolder categorization until database schema migration adds category_type field
 
 ### July 31, 2025 - ✅ ENHANCED FILE ICONS SYSTEM IMPLEMENTED: Visual File Type Recognition in ProofVault
 
