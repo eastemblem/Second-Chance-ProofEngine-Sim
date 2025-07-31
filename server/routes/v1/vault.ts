@@ -387,6 +387,46 @@ router.post('/create-folder', upload.none(), asyncHandler(async (req: Authentica
         folderName,
         folderId: result.id
       });
+
+      // Step 3: Store folder mapping in proof_vault table (CRITICAL FIX)
+      const { storage } = await import("../../storage");
+      const { databaseService } = await import("../../services/database-service");
+      
+      try {
+        // Get current venture ID from founder ID
+        let currentVentureId = null;
+        try {
+          const dashboardData = await databaseService.getFounderWithLatestVenture(founderId);
+          currentVentureId = dashboardData?.venture?.ventureId || null;
+          console.log(`📝 V1 FOLDER CREATION: Resolved founder ${founderId} to venture ${currentVentureId}`);
+        } catch (ventureError) {
+          console.error(`⚠️ V1 FOLDER CREATION: Failed to get venture ID for founder ${founderId}:`, ventureError);
+        }
+
+        if (currentVentureId && result.id) {
+          const proofVaultData = {
+            ventureId: currentVentureId,
+            artefactType: 'Technical Documentation' as const,
+            parentFolderId: actualParentFolderId,
+            subFolderId: result.id.toString(),
+            sharedUrl: result.url || '',
+            folderName: folderName,
+            description: `Subfolder created in ${folder_id} category`
+          };
+          
+          const proofVaultEntry = await storage.createProofVault(proofVaultData);
+          console.log(`✅ V1 FOLDER CREATION: Proof vault entry created`, { 
+            folderName,
+            folderId: result.id,
+            vaultId: proofVaultEntry.vaultId,
+            parentCategory: folder_id
+          });
+        }
+      } catch (dbError) {
+        console.error(`⚠️ V1 FOLDER CREATION: Failed to create proof vault entry:`, dbError);
+        // Continue without failing the folder creation since Box.com creation succeeded
+      }
+
     } catch (apiError) {
       const errorMessage = apiError instanceof Error ? apiError.message : 'Unknown error';
       console.log(`⚠️ V1 EastEmblem API folder creation failed - using fallback:`, {

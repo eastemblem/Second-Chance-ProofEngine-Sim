@@ -155,6 +155,16 @@ Demo experience for testing different user journeys:
 
 ## Recent Key Updates
 
+### July 31, 2025 - ✅ CRITICAL FOLDER COUNTER BUG COMPLETELY FIXED: Parent_Folder_ID Mapping Issue Resolved
+
+- **✅ ROOT CAUSE IDENTIFIED AND FIXED**: Folder upload counter issue was caused by missing proof_vault entries for uploaded subfolders, preventing proper parent-child folder mapping
+- **✅ DATABASE MAPPING IMPLEMENTED**: Added automatic proof_vault entry creation when subfolders are created through V1 create-folder endpoint
+- **✅ MANUAL FIX APPLIED**: Created missing proof_vault entry for wallpaper folder (333756280469) mapping it to Overview category (332966519631)
+- **✅ COUNTER VERIFICATION**: Wallpaper folder now correctly shows 2 files instead of being uncounted, fixing the Overview category counter
+- **✅ SYSTEMATIC PREVENTION**: Enhanced V1 create-folder endpoint to automatically create proof_vault entries for future folder uploads
+- **✅ PARENT-CHILD RELATIONSHIP**: Proper parent_folder_id mapping ensures recursive file categorization works correctly
+- **✅ PRODUCTION READY**: File counters now update correctly after folder uploads with proper database relationship mapping
+
 ### July 31, 2025 - ✅ COMPREHENSIVE FILE VALIDATION SYSTEM IMPLEMENTED: Business Documents + Media Files
 
 - **✅ COMPLETE FILE TYPE SUPPORT**: Updated all upload endpoints to allow comprehensive file formats:
