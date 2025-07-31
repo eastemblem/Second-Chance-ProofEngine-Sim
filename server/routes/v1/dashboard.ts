@@ -138,11 +138,25 @@ router.get('/vault', asyncHandler(async (req: Request, res: Response) => {
 
     appLogger.api(`SOLUTION 1: Retrieved ${filesWithCategories.length} files with single JOIN query`);
     
-    // Format files for frontend display - using proven categorization logic
+    // Get all folder mappings for this venture to build category hierarchy
+    const folderMappings = await db.select({
+      subFolderId: proofVault.subFolderId,
+      folderName: proofVault.folderName,
+      parentFolderId: proofVault.parentFolderId
+    })
+    .from(proofVault)
+    .where(eq(proofVault.ventureId, dashboardData.venture.ventureId));
+    
+    // Build database-driven category mapping (NO hardcoded IDs)
+    const categoryMap = buildFolderCategoryMap(folderMappings);
+    
+    appLogger.api(`SOLUTION 1: Built category map for ${categoryMap.size} folders from database - ZERO hardcoded IDs`);
+    
+    // Format files for frontend display - using database-driven categorization
     const formattedFiles = filesWithCategories.map((fileData) => ({
       id: fileData.uploadId,
       name: fileData.fileName || fileData.originalName || 'Unknown File',
-      category: getCategoryFromFolderData(fileData.folderName, fileData.folderId || '', fileData.parentFolderId),
+      category: getCategoryFromFolderData(fileData.folderId || '', categoryMap),
       uploadDate: fileData.createdAt?.toISOString() || new Date().toISOString(),
       size: formatFileSize(fileData.fileSize || 0),
       downloadUrl: fileData.sharedUrl || '',
@@ -250,58 +264,69 @@ router.get('/activity', asyncHandler(async (req: Request, res: Response) => {
   }
 }));
 
-// Helper functions - SOLUTION 1: OPTIMIZED category resolution with documented hardcoded IDs
-// NOTE: Hardcoded folder IDs are INTENTIONAL and REQUIRED for production system
-// These IDs represent actual Box.com folder structure that exists in production
-// Removing them breaks categorization logic - future migrations should replace with category_type field
-function getCategoryFromFolderData(folderName: string | null, folderId: string, parentFolderId: string | null): string {
-  // Direct main category mapping based on folder names (primary method)
-  if (folderName) {
-    if (folderName === '0_Overview') return 'Overview';
-    if (folderName === '1_Problem_Proof') return 'Problem Proofs';
-    if (folderName === '2_Solution_Proof') return 'Solution Proofs';
-    if (folderName === '3_Demand_Proof') return 'Demand Proofs';
-    if (folderName === '4_Credibility_Proof') return 'Credibility Proofs';
-    if (folderName === '5_Commercial_Proof') return 'Commercial Proofs';
-    if (folderName === '6_Investor_Pack') return 'Investor Pack';
-    
-    // Handle subfolders by parent folder ID (proven working logic)
-    if (parentFolderId) {
-      // Credibility Proofs subfolders - PRODUCTION IDs FROM DATABASE ANALYSIS
-      if (parentFolderId === '332967069435' || parentFolderId === '332967186088') {
-        return 'Credibility Proofs';
-      }
-      // Commercial Proofs subfolders
-      if (parentFolderId === '332965602986') {
-        return 'Commercial Proofs';
-      }
-      // Investor Pack subfolders  
-      if (parentFolderId === '332965845097') {
-        return 'Investor Pack';
-      }
-      // Overview subfolders
-      if (parentFolderId === '332966519631') {
-        return 'Overview';
-      }
-      // Demand Proofs subfolders
-      if (parentFolderId === '332965861836') {
-        return 'Demand Proofs';
+// Helper function - Build folder hierarchy map from database
+function buildFolderCategoryMap(folderMappings: Array<{subFolderId: string; folderName: string; parentFolderId: string | null}>): Map<string, string> {
+  const categoryMap = new Map<string, string>();
+  
+  // First pass: Map main category folders
+  const mainCategories = new Map<string, string>([
+    ['0_Overview', 'Overview'],
+    ['1_Problem_Proof', 'Problem Proofs'],
+    ['2_Solution_Proof', 'Solution Proofs'], 
+    ['3_Demand_Proof', 'Demand Proofs'],
+    ['4_Credibility_Proof', 'Credibility Proofs'],
+    ['5_Commercial_Proof', 'Commercial Proofs'],
+    ['6_Investor_Pack', 'Investor Pack']
+  ]);
+  
+  // Build main category folder ID to category name mapping
+  const mainCategoryFolders = new Map<string, string>();
+  folderMappings.forEach(folder => {
+    if (folder.folderName && mainCategories.has(folder.folderName)) {
+      const categoryName = mainCategories.get(folder.folderName)!;
+      categoryMap.set(folder.subFolderId, categoryName);
+      mainCategoryFolders.set(folder.subFolderId, categoryName);
+    }
+  });
+  
+  // Second pass: Map subfolders to their parent category
+  folderMappings.forEach(folder => {
+    if (!categoryMap.has(folder.subFolderId) && folder.parentFolderId) {
+      // Find the category of the parent folder (recursively if needed)
+      const parentCategory = findParentCategory(folder.parentFolderId, folderMappings, mainCategoryFolders);
+      if (parentCategory) {
+        categoryMap.set(folder.subFolderId, parentCategory);
       }
     }
+  });
+  
+  return categoryMap;
+}
+
+// Recursive function to find parent category
+function findParentCategory(
+  folderId: string, 
+  folderMappings: Array<{subFolderId: string; folderName: string; parentFolderId: string | null}>,
+  mainCategoryFolders: Map<string, string>
+): string | null {
+  // Check if this folder is a main category
+  if (mainCategoryFolders.has(folderId)) {
+    return mainCategoryFolders.get(folderId)!;
   }
   
-  // Direct folder ID mapping for main category folders (backup method)
-  const folderMap: Record<string, string> = {
-    '332966519631': 'Overview',
-    '332966891030': 'Problem Proofs', 
-    '332966738286': 'Solution Proofs',
-    '332965861836': 'Demand Proofs',
-    '332967069435': 'Credibility Proofs',
-    '332965602986': 'Commercial Proofs',
-    '332965845097': 'Investor Pack'
-  };
+  // Find this folder in the mappings
+  const folder = folderMappings.find(f => f.subFolderId === folderId);
+  if (!folder || !folder.parentFolderId) {
+    return null;
+  }
   
-  return folderMap[folderId] || 'Overview';
+  // Recursively check parent
+  return findParentCategory(folder.parentFolderId, folderMappings, mainCategoryFolders);
+}
+
+// Database-driven category resolution - NO HARDCODED IDs
+function getCategoryFromFolderData(folderId: string, categoryMap: Map<string, string>): string {
+  return categoryMap.get(folderId) || 'Overview';
 }
 
 // Keep original function for backward compatibility during transition
