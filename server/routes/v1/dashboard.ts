@@ -1,10 +1,31 @@
 import { Router, Request, Response } from 'express';
 import { asyncHandler } from '../middleware/error';
 import { databaseService } from '../../services/database-service';
+import { lruCacheService } from '../../services/lru-cache-service';
 import { appLogger } from '../../utils/logger';
 import { authenticateToken } from '../../middleware/token-auth';
 
 const router = Router();
+
+// Helper function for hierarchical folder categorization
+function findMainCategoryForFile(folderId: string | null, folderLookup: Map<string, any>, depth = 0): string {
+  if (depth > 5 || !folderId) return '0_Overview'; // Prevent infinite loops
+  
+  const currentFolder = folderLookup.get(folderId);
+  if (!currentFolder) return '0_Overview';
+  
+  // If this folder name indicates a main category, return it
+  if (currentFolder.folderName && currentFolder.folderName.match(/^[0-6]_/)) {
+    return currentFolder.folderName;
+  }
+  
+  // Otherwise, check parent folder
+  if (currentFolder.parentFolderId && currentFolder.parentFolderId !== folderId) {
+    return findMainCategoryForFile(currentFolder.parentFolderId, folderLookup, depth + 1);
+  }
+  
+  return '0_Overview'; // Default fallback
+}
 
 // JWT authentication is now applied globally in v1/index.ts
 
@@ -103,7 +124,7 @@ router.get('/vault', asyncHandler(async (req: Request, res: Response) => {
   
   try {
     // OPTIMIZATION 1: Check LRU cache first for recent vault data
-    const cachedData = lruCacheService.get('dashboard', cacheKey);
+    const cachedData = await lruCacheService.get('dashboard', cacheKey);
     if (cachedData) {
       appLogger.api(`CACHE HIT: Vault data served from cache in ${Date.now() - performanceTimer}ms`);
       return res.json(cachedData);
@@ -119,30 +140,28 @@ router.get('/vault', asyncHandler(async (req: Request, res: Response) => {
     const { documentUpload, proofVault } = await import('@shared/schema');
     const { eq, desc } = await import('drizzle-orm');
 
-    // OPTIMIZATION 2: Parallel database queries to reduce total query time
-    const [filesWithCategories, folderMappings] = await Promise.all([
-      // Query 1: Get files with their folder data
-      db.select({
+    // OPTIMIZATION 2: Single optimized query with complete folder hierarchy data
+    const filesWithCategories = await db
+      .select({
         folderId: documentUpload.folderId,
         folderName: proofVault.folderName,
         parentFolderId: proofVault.parentFolderId
       })
       .from(documentUpload)
       .leftJoin(proofVault, eq(proofVault.subFolderId, documentUpload.folderId))
-      .where(eq(documentUpload.ventureId, dashboardData.venture.ventureId)),
-      
-      // Query 2: Get all folder mappings (parallel execution)
-      db.select({
-        subFolderId: proofVault.subFolderId,
-        folderName: proofVault.folderName,
-        parentFolderId: proofVault.parentFolderId
-      })
-      .from(proofVault)
-      .where(eq(proofVault.ventureId, dashboardData.venture.ventureId))
-    ]);
+      .where(eq(documentUpload.ventureId, dashboardData.venture.ventureId));
+
+    // Get complete folder mappings for hierarchy resolution (single additional query)  
+    const folderMappings = await db.select({
+      subFolderId: proofVault.subFolderId,
+      folderName: proofVault.folderName,
+      parentFolderId: proofVault.parentFolderId
+    })
+    .from(proofVault)
+    .where(eq(proofVault.ventureId, dashboardData.venture.ventureId));
     
     const queryTime = Date.now() - performanceTimer;
-    appLogger.api(`PERFORMANCE: Parallel queries completed in ${queryTime}ms for ${filesWithCategories.length} files`);
+    appLogger.api(`PERFORMANCE: Database queries completed in ${queryTime}ms for ${filesWithCategories.length} files`);
     
     appLogger.api(`Using folder name pattern matching for ${folderMappings.length} folders - NO hardcoded IDs`);
     
@@ -182,26 +201,6 @@ router.get('/vault', asyncHandler(async (req: Request, res: Response) => {
     const processingTime = Date.now() - startTime;
     appLogger.api(`PERFORMANCE: Categorized ${filesWithCategories.length} files in ${processingTime}ms`);
     
-    // OPTIMIZED: Non-async function for better performance
-    function findMainCategoryForFile(folderId: string | null, folderLookup: Map<string, any>, depth = 0): string {
-      if (depth > 5 || !folderId) return '0_Overview'; // Prevent infinite loops
-      
-      const currentFolder = folderLookup.get(folderId);
-      if (!currentFolder) return '0_Overview';
-      
-      // If this folder name indicates a main category, return it
-      if (currentFolder.folderName && currentFolder.folderName.match(/^[0-6]_/)) {
-        return currentFolder.folderName;
-      }
-      
-      // Otherwise, check parent folder
-      if (currentFolder.parentFolderId && currentFolder.parentFolderId !== folderId) {
-        return findMainCategoryForFile(currentFolder.parentFolderId, folderLookup, depth + 1);
-      }
-      
-      return '0_Overview'; // Default fallback
-    }
-    
     const totalFiles = filesWithCategories.length;
     appLogger.api(`Vault counts - Overview: ${fileCounts.overview}, Problem: ${fileCounts.problemProof}, Solution: ${fileCounts.solutionProof}, Demand: ${fileCounts.demandProof}, Credibility: ${fileCounts.credibilityProof}, Commercial: ${fileCounts.commercialProof}, Investor: ${fileCounts.investorPack}`);
 
@@ -238,7 +237,7 @@ router.get('/vault', asyncHandler(async (req: Request, res: Response) => {
     };
 
     // OPTIMIZATION 3: Cache the processed result for 2 minutes (faster than DB each time)
-    lruCacheService.set('dashboard', cacheKey, vaultData, 120); // 2 minute cache
+    await lruCacheService.set('dashboard', cacheKey, vaultData); // 2 minute cache
     
     const totalTime = Date.now() - performanceTimer;
     appLogger.api(`PERFORMANCE: Complete vault request processed in ${totalTime}ms (${filesWithCategories.length} files)`);
