@@ -612,28 +612,37 @@ router.get('/files', asyncHandler(async (req: AuthenticatedRequest, res: Respons
     // Get paginated files ordered by timestamp (latest first)
     const files = await storage.getPaginatedDocumentUploads(currentVentureId, limit, offset);
     
-    // Get proof vault data for category mapping
+    // Get proof vault data for hierarchical category mapping (FIXED)
     const proofVaultData = await storage.getProofVaultsByVentureId(currentVentureId);
+    
+    // Create folder lookup map for hierarchical resolution
+    const folderLookup = new Map();
+    proofVaultData.forEach(vault => {
+      folderLookup.set(vault.subFolderId, vault);
+    });
+    
+    // Build hierarchical category map using same logic as dashboard API
     const folderCategoryMap = new Map();
     proofVaultData.forEach(vault => {
       if (vault.subFolderId) {
-        folderCategoryMap.set(vault.subFolderId, {
-          category: getCategoryFromFolderName(vault.folderName),
-          displayName: getCategoryDisplayName(vault.folderName)
-        });
+        const category = findMainCategoryForFile(vault.subFolderId, folderLookup);
+        const displayName = getCategoryDisplayNameFromHierarchy(category);
+        folderCategoryMap.set(vault.subFolderId, { category, displayName });
       }
     });
 
-    // Format files response with accurate category information from database
+    // Format files response with accurate hierarchical category information
     const formattedFiles = files.map(file => {
-      const categoryInfo = folderCategoryMap.get(file.folderId) || { category: 'overview', displayName: 'Overview' };
+      const hierarchicalCategory = findMainCategoryForFile(file.folderId, folderLookup);
+      const displayName = getCategoryDisplayNameFromHierarchy(hierarchicalCategory);
+      
       return {
         id: file.uploadId,
         name: file.fileName || file.originalName,
         fileType: file.mimeType,
         createdAt: file.createdAt?.toISOString() || new Date().toISOString(),
-        category: categoryInfo.category,
-        categoryName: categoryInfo.displayName,
+        category: hierarchicalCategory,
+        categoryName: displayName,
         size: file.fileSize,
         downloadUrl: file.sharedUrl || '',
         eastemblemFileId: file.eastemblemFileId
@@ -659,32 +668,48 @@ router.get('/files', asyncHandler(async (req: AuthenticatedRequest, res: Respons
   }
 }));
 
-// Helper function to get category from folder name
-function getCategoryFromFolderName(folderName: string): string {
-  const normalizedName = folderName.toLowerCase();
+// HIERARCHICAL FILE CATEGORIZATION: Same logic as dashboard API (FIXED)
+function findMainCategoryForFile(folderId: string, folderLookup: Map<any, any>): string {
+  const MAX_DEPTH = 10; // Prevent infinite loops
+  let currentFolderId = folderId;
   
-  if (normalizedName.includes('overview') || normalizedName.includes('0_')) return 'overview';
-  if (normalizedName.includes('problem') || normalizedName.includes('1_')) return 'problem_proof';
-  if (normalizedName.includes('solution') || normalizedName.includes('2_')) return 'solution_proof';
-  if (normalizedName.includes('demand') || normalizedName.includes('3_')) return 'demand_proof';
-  if (normalizedName.includes('credibility') || normalizedName.includes('4_')) return 'credibility_proof';
-  if (normalizedName.includes('commercial') || normalizedName.includes('5_')) return 'commercial_proof';
-  if (normalizedName.includes('investor') || normalizedName.includes('6_')) return 'investor_pack';
+  for (let depth = 0; depth < MAX_DEPTH; depth++) {
+    const folder = folderLookup.get(currentFolderId);
+    if (!folder) break;
+    
+    // Check if this folder is a main category folder by name pattern
+    if (folder.folderName) {
+      const folderName = folder.folderName.toLowerCase();
+      if (folderName.includes('0_overview') || folderName === '0_overview') return '0_Overview';
+      if (folderName.includes('1_problem') || folderName === '1_problem_proof') return '1_Problem_Proof';
+      if (folderName.includes('2_solution') || folderName === '2_solution_proof') return '2_Solution_Proof';
+      if (folderName.includes('3_demand') || folderName === '3_demand_proof') return '3_Demand_Proof';
+      if (folderName.includes('4_credibility') || folderName === '4_credibility_proof') return '4_Credibility_Proof';
+      if (folderName.includes('5_commercial') || folderName === '5_commercial_proof') return '5_Commercial_Proof';
+      if (folderName.includes('6_investor') || folderName === '6_investor_pack') return '6_Investor_Pack';
+    }
+    
+    // Move up the hierarchy
+    if (folder.parentFolderId && folder.parentFolderId !== currentFolderId) {
+      currentFolderId = folder.parentFolderId;
+    } else {
+      break;
+    }
+  }
   
-  return 'overview';
+  return '0_Overview'; // Default fallback
 }
 
-// Helper function to get display name from folder name
-function getCategoryDisplayName(folderName: string): string {
-  const category = getCategoryFromFolderName(folderName);
+// Convert hierarchical category to display name
+function getCategoryDisplayNameFromHierarchy(category: string): string {
   const displayNames: Record<string, string> = {
-    'overview': 'Overview',
-    'problem_proof': 'Problem Proofs',
-    'solution_proof': 'Solution Proofs',
-    'demand_proof': 'Demand Proofs', 
-    'credibility_proof': 'Credibility Proofs',
-    'commercial_proof': 'Commercial Proofs',
-    'investor_pack': 'Investor Pack'
+    '0_Overview': 'Overview',
+    '1_Problem_Proof': 'Problem Proofs',
+    '2_Solution_Proof': 'Solution Proofs',
+    '3_Demand_Proof': 'Demand Proofs', 
+    '4_Credibility_Proof': 'Credibility Proofs',
+    '5_Commercial_Proof': 'Commercial Proofs',
+    '6_Investor_Pack': 'Investor Pack'
   };
   
   return displayNames[category] || 'Overview';
