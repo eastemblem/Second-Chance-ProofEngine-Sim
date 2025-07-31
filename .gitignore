@@ -9,6 +9,9 @@ uploads/
 # User-uploaded attachments and test files
 attached_assets/
 
+# Test files and temporary artifacts
+tests/
+
 # Winston log files
 logs/
 *.log
