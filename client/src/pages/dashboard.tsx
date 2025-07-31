@@ -32,7 +32,17 @@ import {
   X,
   AlertCircle,
   Building,
-  Navigation
+  Navigation,
+  FileImage,
+  FileVideo,
+  FileAudio,
+  FileSpreadsheet,
+  Presentation,
+  File,
+  Image,
+  Video,
+  Music,
+  FileArchive
 } from "lucide-react";
 import Navbar from "@/components/navbar";
 import { DashboardLayout } from "@/components/layout";
@@ -92,8 +102,6 @@ interface ValidationData {
   reportUrl?: string;
   investorReady?: boolean;
   dealRoomAccess?: boolean;
-  investorReady?: boolean;
-  dealRoomAccess?: boolean;
 }
 
 interface ActivityItem {
@@ -133,6 +141,68 @@ export default function DashboardPage() {
   const [showFailedFiles, setShowFailedFiles] = useState(false);
   const [, setLocation] = useLocation();
   const { toast } = useToast();
+
+  // Get appropriate file icon based on file type
+  const getFileIcon = (fileName: string, mimeType?: string) => {
+    const extension = fileName.split('.').pop()?.toLowerCase();
+    const iconClass = "w-5 h-5";
+    
+    // PDF files
+    if (extension === 'pdf' || mimeType?.includes('pdf')) {
+      return <FileText className={`${iconClass} text-red-400`} />;
+    }
+    
+    // Image files
+    if (['jpg', 'jpeg', 'png', 'gif', 'bmp', 'svg', 'webp', 'tiff', 'tif'].includes(extension || '') || 
+        mimeType?.startsWith('image/')) {
+      return <FileImage className={`${iconClass} text-green-400`} />;
+    }
+    
+    // Video files
+    if (['mp4', 'mov', 'avi', 'webm', '3gp', 'flv', 'wmv'].includes(extension || '') || 
+        mimeType?.startsWith('video/')) {
+      return <FileVideo className={`${iconClass} text-blue-400`} />;
+    }
+    
+    // Audio files
+    if (['mp3', 'wav', 'ogg', 'aac', 'm4a'].includes(extension || '') || 
+        mimeType?.startsWith('audio/')) {
+      return <FileAudio className={`${iconClass} text-purple-400`} />;
+    }
+    
+    // Spreadsheet files
+    if (['xls', 'xlsx', 'csv', 'ods', 'xlsb', 'xlsm', 'xltx'].includes(extension || '') || 
+        mimeType?.includes('spreadsheet') || mimeType?.includes('excel')) {
+      return <FileSpreadsheet className={`${iconClass} text-emerald-400`} />;
+    }
+    
+    // Presentation files
+    if (['ppt', 'pptx', 'ppsx'].includes(extension || '') || 
+        mimeType?.includes('presentation') || mimeType?.includes('powerpoint')) {
+      return <Presentation className={`${iconClass} text-orange-400`} />;
+    }
+    
+    // Document files
+    if (['doc', 'docx', 'rtf', 'odt'].includes(extension || '') || 
+        mimeType?.includes('document') || mimeType?.includes('word')) {
+      return <FileText className={`${iconClass} text-blue-500`} />;
+    }
+    
+    // Archive files
+    if (['zip', 'rar', '7z', 'tar', 'gz'].includes(extension || '') || 
+        mimeType?.includes('zip') || mimeType?.includes('archive')) {
+      return <FileArchive className={`${iconClass} text-yellow-400`} />;
+    }
+    
+    // Text files
+    if (['txt', 'md', 'xml', 'json'].includes(extension || '') || 
+        mimeType?.startsWith('text/')) {
+      return <FileText className={`${iconClass} text-gray-400`} />;
+    }
+    
+    // Default file icon
+    return <File className={`${iconClass} text-gray-400`} />;
+  };
 
   useEffect(() => {
     // Load auth check immediately and load dashboard data for better UX
@@ -1298,31 +1368,52 @@ export default function DashboardPage() {
                       <div className="p-4 space-y-3">
                         {proofVaultData?.files?.length ? (
                           proofVaultData.files.map((file) => (
-                            <div key={file.id} className="flex items-center justify-between p-3 bg-gray-800 rounded-lg hover:bg-gray-750 transition-colors">
+                            <div key={file.id} className="flex items-center justify-between p-3 bg-gray-800 rounded-lg hover:bg-gray-750 transition-all duration-200 hover:shadow-lg border border-gray-700/50 hover:border-gray-600/50">
                               <div className="flex items-center gap-3">
-                                <FileText className="w-5 h-5 text-gray-400" />
+                                {getFileIcon(file.name, file.type)}
                                 <div>
-                                  <p className="text-white font-medium">{file.name}</p>
+                                  <p className="text-white font-medium truncate max-w-xs">{file.name}</p>
                                   <p className="text-gray-400 text-sm">{file.category} • {file.size} • {formatTimeAgo(file.uploadDate)}</p>
                                 </div>
                               </div>
-                              <div className="flex items-center gap-2">
-                                <Button variant="ghost" size="sm" onClick={() => window.open(file.downloadUrl, '_blank')}>
+                              <div className="flex items-center gap-1">
+                                <Button 
+                                  variant="ghost" 
+                                  size="sm" 
+                                  onClick={() => window.open(file.downloadUrl, '_blank')}
+                                  className="text-gray-400 hover:text-blue-400 hover:bg-blue-400/10"
+                                  title="Preview file"
+                                >
                                   <Eye className="w-4 h-4" />
                                 </Button>
-                                <Button variant="ghost" size="sm" onClick={() => window.open(file.downloadUrl, '_blank')}>
+                                <Button 
+                                  variant="ghost" 
+                                  size="sm" 
+                                  onClick={() => window.open(file.downloadUrl, '_blank')}
+                                  className="text-gray-400 hover:text-green-400 hover:bg-green-400/10"
+                                  title="Download file"
+                                >
                                   <Download className="w-4 h-4" />
                                 </Button>
-                                <Button variant="ghost" size="sm" onClick={() => handleFileRemove(file.id)} className="text-red-400 hover:text-red-300">
+                                <Button 
+                                  variant="ghost" 
+                                  size="sm" 
+                                  onClick={() => handleFileRemove(file.id)} 
+                                  className="text-gray-400 hover:text-red-400 hover:bg-red-400/10"
+                                  title="Remove file"
+                                >
                                   <Trash2 className="w-4 h-4" />
                                 </Button>
                               </div>
                             </div>
                           ))
                         ) : (
-                          <div className="text-center py-8 text-gray-400">
-                            <FileText className="w-12 h-12 mx-auto mb-3 opacity-50" />
-                            <p>No files uploaded yet</p>
+                          <div className="text-center py-12 text-gray-400">
+                            <div className="bg-gray-800/50 rounded-full w-20 h-20 flex items-center justify-center mx-auto mb-4">
+                              <FolderOpen className="w-10 h-10 opacity-50" />
+                            </div>
+                            <p className="text-lg font-medium mb-2">No files uploaded yet</p>
+                            <p className="text-sm text-gray-500">Upload your first documents to get started</p>
                           </div>
                         )}
                       </div>
