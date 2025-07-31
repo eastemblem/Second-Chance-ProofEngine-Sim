@@ -15,3 +15,14 @@ tests/
 # Winston log files
 logs/
 *.log
+
+# Scripts and development artifacts
+newrelic_agent.log
+
+# Environment and temporary files
+.env.local
+.env.development.local
+.env.test.local
+.env.production.local
+*.tmp
+*.temp
