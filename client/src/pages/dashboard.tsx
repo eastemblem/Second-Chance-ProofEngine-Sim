@@ -169,20 +169,9 @@ export default function DashboardPage() {
     const extension = fileName.split('.').pop()?.toLowerCase();
     const iconClass = "w-5 h-5";
     
-    // Debug: Log file info (will remove later)
-    console.log(`🔍 File icon for: ${fileName}, extension: ${extension}, mimeType: ${mimeType}`);
-    
     // PDF files
     if (extension === 'pdf' || mimeType?.includes('pdf')) {
-      console.log(`📄 Using RED PDF icon for: ${fileName}`);
       return <FileText className={`${iconClass} text-red-400`} />;
-    }
-    
-    // Image files
-    if (['jpg', 'jpeg', 'png', 'gif', 'bmp', 'svg', 'webp', 'tiff', 'tif'].includes(extension || '') || 
-        mimeType?.startsWith('image/')) {
-      console.log(`🖼️ Using GREEN IMAGE icon for: ${fileName}`);
-      return <FileImage className={`${iconClass} text-green-400`} />;
     }
     
     // Image files
@@ -241,7 +230,8 @@ export default function DashboardPage() {
     // Load auth check immediately and load dashboard data for better UX
     checkAuthStatus();
     
-    // Load dashboard data immediately for recent activity and file counts
+    // Load dashboard data immediately for vault and leaderboard
+    // Activity data is now handled by usePaginatedActivities hook
     loadDashboardData();
   }, []);
 
@@ -325,8 +315,8 @@ export default function DashboardPage() {
         checkDocumentReadiness(validation);
       }
 
-      // Load secondary data in parallel - activity with higher priority - USE V1 APIS with JWT
-      const [vaultResponse, activityResponse, leaderboardResponse] = await Promise.all([
+      // Load secondary data in parallel - USE V1 APIS with JWT
+      const [vaultResponse, leaderboardResponse] = await Promise.all([
         fetch('/api/v1/dashboard/vault', {
           credentials: 'include',
           headers: { 
@@ -334,8 +324,6 @@ export default function DashboardPage() {
             ...authHeaders
           } as HeadersInit
         }),
-        // Activity is now handled by usePaginatedActivities hook - no need to fetch here
-        Promise.resolve({ ok: false }),
         fetch('/api/v1/leaderboard?limit=5', {
           credentials: 'include',
           headers: { 
@@ -349,8 +337,6 @@ export default function DashboardPage() {
         const vault = await vaultResponse.json();
         setProofVaultData(vault);
       }
-
-      // Activity is now handled by usePaginatedActivities hook
 
       if (leaderboardResponse.ok) {
         const leaderboard = await leaderboardResponse.json();
@@ -373,16 +359,11 @@ export default function DashboardPage() {
         return;
       }
       
-      // For other errors, show empty state but don't show dummy data
-      setValidationData(null);
-      setProofVaultData(null);
-      setLeaderboardData([]);
+      // For other errors, show warning but don't block the dashboard entirely
+      // Activity data is handled by the paginated hook, so don't clear other data
+      console.warn('Some dashboard data failed to load:', errorMessage);
       
-      toast({
-        title: "Data Load Error",
-        description: "Unable to load dashboard data. Please refresh the page.",
-        variant: "destructive",
-      });
+      // Don't show error toast if basic data is loading - paginated activity hook handles its own errors
     }
   };
 
