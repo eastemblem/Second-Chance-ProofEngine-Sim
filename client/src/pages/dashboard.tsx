@@ -8,6 +8,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { useToast } from "@/hooks/use-toast";
 import { usePaginatedActivities } from "@/hooks/use-paginated-activities";
+import { usePaginatedFiles } from "@/hooks/use-paginated-files";
 import { 
   Download, 
   Upload, 
@@ -137,6 +138,16 @@ export default function DashboardPage() {
     hasMore,
     isLoadingMore
   } = usePaginatedActivities();
+
+  // Pagination for files
+  const { 
+    files: paginatedFiles, 
+    totalFiles, 
+    isLoading: filesLoading, 
+    isLoadingMore: filesLoadingMore, 
+    loadMore: loadMoreFiles, 
+    hasMore: hasMoreFiles 
+  } = usePaginatedFiles();
   
   const activityContainerRef = useRef<HTMLDivElement>(null);
   const [leaderboardData, setLeaderboardData] = useState<LeaderboardEntry[]>([]);
@@ -161,6 +172,17 @@ export default function DashboardPage() {
     // Load more when user scrolls to within 100px of bottom
     if (scrollHeight - scrollTop - clientHeight < 100 && hasMore && !isLoadingMore) {
       loadMore();
+    }
+  };
+
+  // Handle scroll-based pagination for files
+  const handleFilesScroll = (e: React.UIEvent<HTMLDivElement>) => {
+    const container = e.currentTarget;
+    const { scrollTop, scrollHeight, clientHeight } = container;
+    
+    // Load more when user scrolls to within 100px of bottom
+    if (scrollHeight - scrollTop - clientHeight < 100 && hasMoreFiles && !filesLoadingMore) {
+      loadMoreFiles();
     }
   };
 
@@ -1191,6 +1213,17 @@ export default function DashboardPage() {
     return activityTime.toLocaleDateString();
   };
 
+  // Format file size helper function
+  const formatFileSize = (bytes: number): string => {
+    if (bytes === 0) return '0 B';
+    
+    const k = 1024;
+    const sizes = ['B', 'KB', 'MB', 'GB'];
+    const i = Math.floor(Math.log(bytes) / Math.log(k));
+    
+    return parseFloat((bytes / Math.pow(k, i)).toFixed(1)) + ' ' + sizes[i];
+  };
+
   if (isLoading || !user) {
     return <DashboardLoadingSkeleton />;
   }
@@ -1396,16 +1429,28 @@ export default function DashboardPage() {
 
                   <TabsContent value="files" className="mt-6">
                     {/* Fixed height container with scrolling - sized for ~10 files */}
-                    <div className="h-96 overflow-y-auto border border-gray-700 rounded-lg bg-gray-900/50">
+                    <div className="h-96 overflow-y-auto border border-gray-700 rounded-lg bg-gray-900/50" onScroll={handleFilesScroll}>
                       <div className="p-4 space-y-3">
-                        {proofVaultData?.files?.length ? (
-                          proofVaultData.files.map((file) => (
+                        {filesLoading ? (
+                          <div className="text-center py-12 text-gray-400">
+                            <div className="animate-spin w-8 h-8 border-4 border-primary border-t-transparent rounded-full mx-auto mb-4" />
+                            <p className="text-lg font-medium mb-2">Loading recent files...</p>
+                          </div>
+                        ) : paginatedFiles?.length ? (
+                          paginatedFiles.map((file) => (
                             <div key={file.id} className="flex items-center justify-between p-3 bg-gray-800 rounded-lg hover:bg-gray-750 transition-all duration-200 hover:shadow-lg border border-gray-700/50 hover:border-gray-600/50">
                               <div className="flex items-center gap-3">
-                                {getFileIcon(file.name, file.type)}
+                                {getFileIcon(file.name, file.fileType)}
                                 <div>
                                   <p className="text-white font-medium truncate max-w-xs">{file.name}</p>
-                                  <p className="text-gray-400 text-sm">{file.category} • {file.size} • {formatTimeAgo(file.uploadDate)}</p>
+                                  <div className="flex items-center gap-2">
+                                    <span className="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-blue-500/20 text-blue-300 border border-blue-500/30">
+                                      {file.categoryName}
+                                    </span>
+                                    <span className="text-gray-400 text-sm">
+                                      {file.size ? formatFileSize(file.size) : ''} • {formatTimeAgo(file.createdAt)}
+                                    </span>
+                                  </div>
                                 </div>
                               </div>
                               <div className="flex items-center gap-1">
@@ -1448,13 +1493,22 @@ export default function DashboardPage() {
                             <p className="text-sm text-gray-500">Upload your first documents to get started</p>
                           </div>
                         )}
+                        
+                        {/* Loading more indicator */}
+                        {filesLoadingMore && (
+                          <div className="text-center py-4">
+                            <div className="animate-spin w-6 h-6 border-4 border-primary border-t-transparent rounded-full mx-auto mb-2" />
+                            <p className="text-gray-400 text-sm">Loading more files...</p>
+                          </div>
+                        )}
                       </div>
                       
                       {/* File count indicator at bottom */}
-                      {proofVaultData?.files?.length ? (
+                      {paginatedFiles?.length ? (
                         <div className="sticky bottom-0 bg-gray-800/90 backdrop-blur-sm border-t border-gray-700 px-4 py-2">
                           <p className="text-xs text-gray-400 text-center">
-                            {proofVaultData.files.length} file{proofVaultData.files.length !== 1 ? 's' : ''} • Scroll for more
+                            {paginatedFiles.length} of {totalFiles} files loaded
+                            {hasMoreFiles ? ' • Scroll for more' : ' • All files loaded'}
                           </p>
                         </div>
                       ) : null}

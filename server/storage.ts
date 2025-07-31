@@ -42,6 +42,8 @@ export interface IStorage {
   // Document Upload methods
   getDocumentUpload(id: string): Promise<DocumentUpload | undefined>;
   getDocumentUploadsByVentureId(ventureId: string): Promise<DocumentUpload[]>;
+  getPaginatedDocumentUploads(ventureId: string, limit: number, offset: number): Promise<DocumentUpload[]>;
+  getDocumentUploadCountByVenture(ventureId: string): Promise<number>;
   createDocumentUpload(document: InsertDocumentUpload): Promise<DocumentUpload>;
   updateDocumentUpload(id: string, document: Partial<InsertDocumentUpload>): Promise<DocumentUpload>;
   deleteDocumentUpload(id: string): Promise<void>;
@@ -178,33 +180,7 @@ export class DatabaseStorage implements IStorage {
     await db.delete(proofVault).where(eq(proofVault.vaultId, id));
   }
 
-  // Document Upload methods
-  async getDocumentUpload(id: string): Promise<DocumentUpload | undefined> {
-    const [documentRecord] = await db.select().from(documentUpload).where(eq(documentUpload.uploadId, id));
-    return documentRecord;
-  }
 
-  async getDocumentUploadsByVentureId(ventureId: string): Promise<DocumentUpload[]> {
-    return db.select().from(documentUpload).where(eq(documentUpload.ventureId, ventureId)).orderBy(desc(documentUpload.createdAt));
-  }
-
-  async createDocumentUpload(insertDocument: InsertDocumentUpload): Promise<DocumentUpload> {
-    const [documentRecord] = await db.insert(documentUpload).values(insertDocument).returning();
-    return documentRecord;
-  }
-
-  async updateDocumentUpload(id: string, updateDocument: Partial<InsertDocumentUpload>): Promise<DocumentUpload> {
-    const [documentRecord] = await db
-      .update(documentUpload)
-      .set(updateDocument)
-      .where(eq(documentUpload.uploadId, id))
-      .returning();
-    return documentRecord;
-  }
-
-  async deleteDocumentUpload(id: string): Promise<void> {
-    await db.delete(documentUpload).where(eq(documentUpload.uploadId, id));
-  }
 
   // Evaluation methods
   async getEvaluation(id: string): Promise<Evaluation | undefined> {
@@ -238,6 +214,49 @@ export class DatabaseStorage implements IStorage {
       .orderBy(desc(evaluation.evaluationDate))
       .limit(1);
     return evaluationRecord;
+  }
+
+  // Document Upload methods
+  async getDocumentUpload(id: string): Promise<DocumentUpload | undefined> {
+    const [documentRecord] = await db.select().from(documentUpload).where(eq(documentUpload.uploadId, id));
+    return documentRecord;
+  }
+
+  async getDocumentUploadsByVentureId(ventureId: string): Promise<DocumentUpload[]> {
+    return db.select()
+      .from(documentUpload)
+      .where(eq(documentUpload.ventureId, ventureId))
+      .orderBy(desc(documentUpload.createdAt));
+  }
+
+  async getPaginatedDocumentUploads(ventureId: string, limit: number, offset: number): Promise<DocumentUpload[]> {
+    return db.select()
+      .from(documentUpload)
+      .where(eq(documentUpload.ventureId, ventureId))
+      .orderBy(desc(documentUpload.createdAt))
+      .limit(limit)
+      .offset(offset);
+  }
+
+  async getDocumentUploadCountByVenture(ventureId: string): Promise<number> {
+    const result = await db.select({ count: documentUpload.uploadId })
+      .from(documentUpload)
+      .where(eq(documentUpload.ventureId, ventureId));
+    return result.length;
+  }
+
+  async createDocumentUpload(insertDocument: InsertDocumentUpload): Promise<DocumentUpload> {
+    const [documentRecord] = await db.insert(documentUpload).values(insertDocument).returning();
+    return documentRecord;
+  }
+
+  async updateDocumentUpload(id: string, updateDocument: Partial<InsertDocumentUpload>): Promise<DocumentUpload> {
+    const [documentRecord] = await db.update(documentUpload).set(updateDocument).where(eq(documentUpload.uploadId, id)).returning();
+    return documentRecord;
+  }
+
+  async deleteDocumentUpload(id: string): Promise<void> {
+    await db.delete(documentUpload).where(eq(documentUpload.uploadId, id));
   }
 
   // Leaderboard methods

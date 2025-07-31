@@ -580,4 +580,109 @@ router.post('/upload-file-direct', upload.single("file"), asyncHandler(async (re
   }
 }));
 
+// Get paginated files endpoint - JWT AUTHENTICATED
+router.get('/files', asyncHandler(async (req: AuthenticatedRequest, res: Response) => {
+  const founderId = req.user?.founderId;
+  const page = parseInt(req.query.page as string) || 1;
+  const limit = parseInt(req.query.limit as string) || 10;
+  const offset = (page - 1) * limit;
+  
+  if (!founderId) {
+    return res.status(401).json({ error: "Authentication required" });
+  }
+  
+  console.log(`📡 FILES PAGINATION: Fetching files - page: ${page}, limit: ${limit}, offset: ${offset}`);
+  
+  try {
+    const { storage } = await import("../../storage");
+    const { databaseService } = await import("../../services/database-service");
+    
+    // Get current venture ID from founder ID
+    const dashboardData = await databaseService.getFounderWithLatestVenture(founderId);
+    const currentVentureId = dashboardData?.venture?.ventureId;
+    
+    if (!currentVentureId) {
+      return res.status(404).json({ error: "No venture found for this founder" });
+    }
+    
+    // Get total count for pagination metadata
+    const totalFiles = await storage.getDocumentUploadCountByVenture(currentVentureId);
+    const totalPages = Math.ceil(totalFiles / limit);
+    
+    // Get paginated files ordered by timestamp (latest first)
+    const files = await storage.getPaginatedDocumentUploads(currentVentureId, limit, offset);
+    
+    // Format files response with category information
+    const formattedFiles = files.map(file => ({
+      id: file.uploadId,
+      name: file.fileName || file.originalName,
+      fileType: file.mimeType,
+      createdAt: file.createdAt?.toISOString() || new Date().toISOString(),
+      category: getCategoryFromFolderId(file.folderId),
+      categoryName: getCategoryDisplayName(file.folderId),
+      size: file.fileSize,
+      downloadUrl: file.sharedUrl || '',
+      eastemblemFileId: file.eastemblemFileId
+    }));
+    
+    console.log(`📡 FILES PAGINATION: Returning ${formattedFiles.length} files (page ${page}/${totalPages})`);
+    
+    res.json({
+      files: formattedFiles,
+      pagination: {
+        currentPage: page,
+        totalPages,
+        totalFiles,
+        hasMore: page < totalPages,
+        limit
+      }
+    });
+    
+  } catch (error) {
+    console.error("Files pagination error:", error);
+    res.status(500).json({ error: "Failed to load files" });
+  }
+}));
+
+// Helper function to get category from folder ID
+function getCategoryFromFolderId(folderId: string | null): string {
+  // This is a simplified mapping - could be enhanced with database lookup
+  if (!folderId) return 'overview';
+  
+  // Pattern matching for common folder structures
+  const categoryPatterns = {
+    'overview': /0_overview|overview/i,
+    'problem_proof': /1_problem|problem/i,
+    'solution_proof': /2_solution|solution/i,
+    'demand_proof': /3_demand|demand/i,
+    'credibility_proof': /4_credibility|credibility/i,
+    'commercial_proof': /5_commercial|commercial/i,
+    'investor_pack': /6_investor|investor/i
+  };
+  
+  for (const [category, pattern] of Object.entries(categoryPatterns)) {
+    if (pattern.test(folderId)) {
+      return category;
+    }
+  }
+  
+  return 'overview'; // Default fallback
+}
+
+// Helper function to get category display name
+function getCategoryDisplayName(folderId: string | null): string {
+  const category = getCategoryFromFolderId(folderId);
+  const displayNames = {
+    'overview': 'Overview',
+    'problem_proof': 'Problem Proofs',
+    'solution_proof': 'Solution Proofs', 
+    'demand_proof': 'Demand Proofs',
+    'credibility_proof': 'Credibility Proofs',
+    'commercial_proof': 'Commercial Proofs',
+    'investor_pack': 'Investor Pack'
+  };
+  
+  return displayNames[category as keyof typeof displayNames] || 'Overview';
+}
+
 export default router;
