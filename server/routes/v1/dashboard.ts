@@ -138,12 +138,22 @@ router.get('/vault', asyncHandler(async (req: Request, res: Response) => {
 
     appLogger.api(`SOLUTION 1: Retrieved ${filesWithCategories.length} files with single JOIN query`);
     
-    // EMERGENCY FALLBACK: Use working hardcoded approach until recursion fixed
-    // TODO: Implement proper non-recursive categorization after fixing data issues
+    // Get all folder mappings for this venture to support pattern matching
+    const folderMappings = await db.select({
+      subFolderId: proofVault.subFolderId,
+      folderName: proofVault.folderName,
+      parentFolderId: proofVault.parentFolderId
+    })
+    .from(proofVault)
+    .where(eq(proofVault.ventureId, dashboardData.venture.ventureId));
+    
+    appLogger.api(`SOLUTION 3: Using folder name pattern matching for ${folderMappings.length} folders - NO hardcoded IDs`);
+    
+    // Format files for frontend display - using pattern-based categorization
     const formattedFiles = filesWithCategories.map((fileData) => ({
       id: fileData.uploadId,
       name: fileData.fileName || fileData.originalName || 'Unknown File',
-      category: getEmergencyCategoryFromFolderData(fileData.folderName, fileData.folderId || '', fileData.parentFolderId),
+      category: getCategoryFromFolderPattern(fileData.folderName, fileData.folderId || '', fileData.parentFolderId, folderMappings),
       uploadDate: fileData.createdAt?.toISOString() || new Date().toISOString(),
       size: formatFileSize(fileData.fileSize || 0),
       downloadUrl: fileData.sharedUrl || '',
@@ -323,56 +333,69 @@ function buildFolderCategoryMap(folderMappings: Array<{subFolderId: string; fold
   return categoryMap;
 }
 
-// EMERGENCY: Simple hardcoded categorization to prevent recursion errors
-// This restores the working solution until database circular references are fixed
-function getEmergencyCategoryFromFolderData(folderName: string | null, folderId: string, parentFolderId: string | null): string {
-  // Direct main category mapping based on folder names (primary method)
+// SOLUTION 3: Pattern-based categorization - NO hardcoded folder IDs, NO recursion risk
+function getCategoryFromFolderPattern(
+  folderName: string | null, 
+  folderId: string, 
+  parentFolderId: string | null,
+  folderMappings: Array<{subFolderId: string; folderName: string; parentFolderId: string | null}>
+): string {
+  // Step 1: Direct main category pattern matching (primary method)
   if (folderName) {
-    if (folderName === '0_Overview') return 'Overview';
-    if (folderName === '1_Problem_Proof') return 'Problem Proofs';
-    if (folderName === '2_Solution_Proof') return 'Solution Proofs';
-    if (folderName === '3_Demand_Proof') return 'Demand Proofs';
-    if (folderName === '4_Credibility_Proof') return 'Credibility Proofs';
-    if (folderName === '5_Commercial_Proof') return 'Commercial Proofs';
-    if (folderName === '6_Investor_Pack') return 'Investor Pack';
-    
-    // Handle subfolders by parent folder ID (proven working logic)
-    if (parentFolderId) {
-      // Credibility Proofs subfolders - PRODUCTION IDs FROM DATABASE ANALYSIS
-      if (parentFolderId === '332967069435' || parentFolderId === '332967186088') {
-        return 'Credibility Proofs';
-      }
-      // Commercial Proofs subfolders
-      if (parentFolderId === '332965602986') {
-        return 'Commercial Proofs';
-      }
-      // Investor Pack subfolders  
-      if (parentFolderId === '332965845097') {
-        return 'Investor Pack';
-      }
-      // Overview subfolders
-      if (parentFolderId === '332966519631') {
-        return 'Overview';
-      }
-      // Demand Proofs subfolders
-      if (parentFolderId === '332965861836') {
-        return 'Demand Proofs';
-      }
+    const categoryMap = getCategoryFromPatternName(folderName);
+    if (categoryMap) return categoryMap;
+  }
+  
+  // Step 2: Check parent folder pattern (for subfolders)
+  if (parentFolderId) {
+    const parentFolder = folderMappings.find(f => f.subFolderId === parentFolderId);
+    if (parentFolder?.folderName) {
+      const parentCategory = getCategoryFromPatternName(parentFolder.folderName);
+      if (parentCategory) return parentCategory;
     }
   }
   
-  // Direct folder ID mapping for main category folders (backup method)
-  const folderMap: Record<string, string> = {
-    '332966519631': 'Overview',
-    '332966891030': 'Problem Proofs', 
-    '332966738286': 'Solution Proofs',
-    '332965861836': 'Demand Proofs',
-    '332967069435': 'Credibility Proofs',
-    '332965602986': 'Commercial Proofs',
-    '332965845097': 'Investor Pack'
+  // Step 3: Iterative traversal up hierarchy (safe, non-recursive)
+  let currentFolderId = parentFolderId;
+  let iterations = 0;
+  const maxIterations = 5; // Prevent infinite loops
+  
+  while (currentFolderId && iterations < maxIterations) {
+    const currentFolder = folderMappings.find(f => f.subFolderId === currentFolderId);
+    if (!currentFolder) break;
+    
+    // Check if current folder matches a main category pattern
+    if (currentFolder.folderName) {
+      const category = getCategoryFromPatternName(currentFolder.folderName);
+      if (category) return category;
+    }
+    
+    // Move up to parent (break circular references)
+    if (currentFolder.parentFolderId === currentFolderId) {
+      break; // Prevent self-referencing loops
+    }
+    
+    currentFolderId = currentFolder.parentFolderId;
+    iterations++;
+  }
+  
+  // Default fallback
+  return 'Overview';
+}
+
+// Helper function: Convert folder name patterns to category names
+function getCategoryFromPatternName(folderName: string): string | null {
+  const patterns: Record<string, string> = {
+    '0_Overview': 'Overview',
+    '1_Problem_Proof': 'Problem Proofs',
+    '2_Solution_Proof': 'Solution Proofs',
+    '3_Demand_Proof': 'Demand Proofs',
+    '4_Credibility_Proof': 'Credibility Proofs',
+    '5_Commercial_Proof': 'Commercial Proofs',
+    '6_Investor_Pack': 'Investor Pack'
   };
   
-  return folderMap[folderId] || 'Overview';
+  return patterns[folderName] || null;
 }
 
 // Keep original function for backward compatibility during transition
