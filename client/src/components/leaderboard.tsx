@@ -1,7 +1,7 @@
 // Removed Card import since we're not using card wrapper anymore
 import { useQuery } from "@tanstack/react-query";
 import { motion } from "framer-motion";
-import { Trophy, Medal } from "lucide-react";
+import { Trophy, Medal, TrendingUp } from "lucide-react";
 
 interface LeaderboardEntry {
   ventureName: string;
@@ -80,7 +80,8 @@ export function Leaderboard({ currentVentureName }: LeaderboardProps) {
           Leaderboard
         </h3>
         <div className="text-center py-8 text-muted-foreground">
-          <p>Unable to load leaderboard data</p>
+          <TrendingUp className="mx-auto h-12 w-12 mb-4 opacity-50" />
+          <p>Rankings will be available shortly</p>
         </div>
       </div>
     );

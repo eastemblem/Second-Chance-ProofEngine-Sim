@@ -319,6 +319,7 @@ export default function DashboardPage() {
         checkDocumentReadiness(validation);
       } else {
         console.error('❌ Validation API failed:', validationResponse.status, validationResponse.statusText);
+        // Don't throw error - let other data load
       }
 
       // Load secondary data in parallel - USE V1 APIS with JWT
@@ -345,6 +346,7 @@ export default function DashboardPage() {
         setProofVaultData(vault);
       } else {
         console.error('❌ Vault API failed:', vaultResponse.status, vaultResponse.statusText);
+        // Don't throw error - let other data load
       }
 
       if (leaderboardResponse.ok) {
@@ -355,12 +357,26 @@ export default function DashboardPage() {
         }
       } else {
         console.error('❌ Leaderboard API failed:', leaderboardResponse.status, leaderboardResponse.statusText);
+        // Don't throw error - let other data load
       }
       
       console.log('✅ Dashboard data loading completed successfully');
+      setIsLoading(false); // Ensure loading state is cleared
     } catch (error: unknown) {
       console.error('❌ Dashboard data load error:', error);
       const errorMessage = error instanceof Error ? error.message : String(error);
+      
+      // Check if it's actually a network or fetch error
+      if (error instanceof TypeError && error.message.includes('fetch')) {
+        console.error('🌐 Network error detected:', error.message);
+        toast({
+          title: "Network Error",
+          description: "Unable to connect to server. Please check your connection.",
+          variant: "destructive",
+        });
+        setIsLoading(false);
+        return;
+      }
       
       // If authentication fails, redirect to login instead of showing dummy data
       if (errorMessage.includes('401') || errorMessage.includes('Unauthorized') || errorMessage.includes('Not authenticated')) {
@@ -375,14 +391,8 @@ export default function DashboardPage() {
         return;
       }
       
-      // For other errors, show warning but don't block the dashboard entirely
-      console.warn('⚠️ Some dashboard data failed to load:', errorMessage);
-      
-      toast({
-        title: "Data Loading Issue",
-        description: "Some dashboard data couldn't load. Activity data will load separately.",
-        variant: "default",
-      });
+      // For other errors, don't show toast - data might still load partially
+      console.warn('⚠️ Some dashboard data failed to load, but continuing:', errorMessage);
       
       // Set loading to false to prevent infinite loading state
       setIsLoading(false);
