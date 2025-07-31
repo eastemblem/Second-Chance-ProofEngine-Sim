@@ -155,6 +155,17 @@ Demo experience for testing different user journeys:
 
 ## Recent Key Updates
 
+### July 31, 2025 - ✅ CRITICAL FILE COUNTER BUG COMPLETELY FIXED: VentureId Mapping Issue Resolved
+
+- **✅ ROOT CAUSE IDENTIFIED AND FIXED**: File counters not updating due to ventureId being null in document_upload table during V1 JWT-authenticated uploads
+- **✅ VENTURE ID RESOLUTION IMPLEMENTED**: Added database lookup to resolve founderId to current ventureId during file uploads in both `/upload-file` and `/upload-file-direct` endpoints
+- **✅ DATABASE SERVICE INTEGRATION**: Using `databaseService.getFounderWithLatestVenture()` to get current venture ID from JWT token's founderId
+- **✅ COUNTER LOGIC PRESERVED**: No changes to existing recursive categorization logic - only fixed the data source issue
+- **✅ COMPREHENSIVE FIX APPLIED**: Both single file upload and direct folder upload endpoints now properly map ventureId
+- **✅ AUTHENTICATION FLOW MAINTAINED**: JWT authentication workflow unchanged - only added venture ID resolution step
+- **✅ ERROR HANDLING ENHANCED**: Graceful fallback if venture ID resolution fails, with detailed logging for debugging
+- **✅ PRODUCTION READY**: File counters will now update correctly after uploads as files are properly associated with ventures in database
+
 ### July 26, 2025 - ✅ DATABASE INTEGRATION ISSUE COMPLETELY RESOLVED: V1 Upload Endpoints Now Store Database Records
 
 - **✅ CRITICAL DATABASE BUG FIXED**: V1 upload endpoints now successfully store records in both `document_upload` and `proof_vault` tables after Box.com uploads

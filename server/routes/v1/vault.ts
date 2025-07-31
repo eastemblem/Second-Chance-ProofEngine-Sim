@@ -224,12 +224,24 @@ router.post('/upload-file', upload.single("file"), asyncHandler(async (req: Auth
       true // allowShare
     );
 
-    // Step 3: Store upload in database
+    // Step 3: Get venture ID from founder ID and store upload in database
     const { storage } = await import("../../storage");
+    const { databaseService } = await import("../../services/database-service");
+    
     try {
+      // CRITICAL FIX: Get current venture ID from founder ID
+      let currentVentureId = null;
+      try {
+        const dashboardData = await databaseService.getFounderWithLatestVenture(founderId);
+        currentVentureId = dashboardData?.venture?.ventureId || null;
+        console.log(`📝 V1 UPLOAD: Resolved founder ${founderId} to venture ${currentVentureId}`);
+      } catch (ventureError) {
+        console.error(`⚠️ V1 UPLOAD: Failed to get venture ID for founder ${founderId}:`, ventureError);
+      }
+
       const uploadRecord = await storage.createDocumentUpload({
         sessionId: null, // V1 uploads don't require session reference
-        ventureId: req.user?.ventureId || null,
+        ventureId: currentVentureId, // FIXED: Use resolved venture ID instead of null
         fileName: file.originalname,
         originalName: file.originalname,
         filePath: file.path,
@@ -241,9 +253,9 @@ router.post('/upload-file', upload.single("file"), asyncHandler(async (req: Auth
         sharedUrl: uploadResult.url,
         folderId: actualFolderId
       });
-      console.log(`📝 V1 UPLOAD: Database record created with ID ${uploadRecord.uploadId}`);
+      console.log(`✅ V1 UPLOAD: Database record created with ID ${uploadRecord.uploadId} for venture ${currentVentureId}`);
     } catch (dbError) {
-      console.error(`⚠️ V1 UPLOAD: Database storage failed:`, dbError);
+      console.error(`❌ V1 UPLOAD: Database storage failed:`, dbError);
       // Continue without failing the upload since Box.com upload succeeded
     }
 
@@ -398,12 +410,24 @@ router.post('/upload-file-direct', upload.single("file"), asyncHandler(async (re
     const updatedFiles = [...(sessionData.uploadedFiles || []), uploadResult];
     updateSessionData(req, { uploadedFiles: updatedFiles });
 
-    // Store upload in database
+    // Get venture ID from founder ID and store upload in database
     const { storage } = await import("../../storage");
+    const { databaseService } = await import("../../services/database-service");
+    
     try {
+      // CRITICAL FIX: Get current venture ID from founder ID
+      let currentVentureId = null;
+      try {
+        const dashboardData = await databaseService.getFounderWithLatestVenture(founderId);
+        currentVentureId = dashboardData?.venture?.ventureId || null;
+        console.log(`📝 V1 DIRECT UPLOAD: Resolved founder ${founderId} to venture ${currentVentureId}`);
+      } catch (ventureError) {
+        console.error(`⚠️ V1 DIRECT UPLOAD: Failed to get venture ID for founder ${founderId}:`, ventureError);
+      }
+
       const uploadRecord = await storage.createDocumentUpload({
         sessionId: null, // V1 uploads don't require session reference
-        ventureId: req.user?.ventureId || null,
+        ventureId: currentVentureId, // FIXED: Use resolved venture ID instead of null
         fileName: file.originalname,
         originalName: file.originalname,
         filePath: file.path,
@@ -415,9 +439,9 @@ router.post('/upload-file-direct', upload.single("file"), asyncHandler(async (re
         sharedUrl: uploadResult.url,
         folderId: folder_id
       });
-      console.log(`📝 V1 DIRECT UPLOAD: Database record created with ID ${uploadRecord.uploadId}`);
+      console.log(`✅ V1 DIRECT UPLOAD: Database record created with ID ${uploadRecord.uploadId} for venture ${currentVentureId}`);
     } catch (dbError) {
-      console.error(`⚠️ V1 DIRECT UPLOAD: Database storage failed:`, dbError);
+      console.error(`❌ V1 DIRECT UPLOAD: Database storage failed:`, dbError);
       // Continue without failing the upload since Box.com upload succeeded
     }
 
