@@ -1433,90 +1433,122 @@ export default function DashboardPage() {
                   </TabsContent>
 
                   <TabsContent value="files" className="mt-6">
-                    {/* Fixed height container with scrolling - sized for ~10 files */}
-                    <div className="h-96 overflow-y-auto border border-gray-700 rounded-lg bg-gray-900/50" onScroll={handleFilesScroll}>
-                      <div className="p-4 space-y-3">
-                        {filesLoading ? (
-                          <div className="text-center py-12 text-gray-400">
-                            <div className="animate-spin w-8 h-8 border-4 border-primary border-t-transparent rounded-full mx-auto mb-4" />
-                            <p className="text-lg font-medium mb-2">Loading recent files...</p>
+                    {/* Fixed height container with scrolling - using same design as activity section */}
+                    <div 
+                      className="space-y-3 max-h-80 overflow-y-auto"
+                      onScroll={handleFilesScroll}
+                    >
+                      {filesLoading && paginatedFiles?.length === 0 ? (
+                        <div className="flex items-center justify-center py-8">
+                          <div className="text-center text-gray-400">
+                            <RefreshCw className="w-6 h-6 mx-auto mb-2 animate-spin opacity-50" />
+                            <p className="text-sm">Loading files...</p>
                           </div>
-                        ) : paginatedFiles?.length ? (
-                          paginatedFiles.map((file) => (
-                            <div key={file.id} className="flex items-center justify-between p-3 bg-gray-800 rounded-lg hover:bg-gray-750 transition-all duration-200 hover:shadow-lg border border-gray-700/50 hover:border-gray-600/50">
-                              <div className="flex items-center gap-3">
-                                {getFileIcon(file.name, file.fileType)}
-                                <div>
-                                  <p className="text-white font-medium truncate max-w-xs">{file.name}</p>
-                                  <div className="flex items-center gap-2">
-                                    <span className="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-blue-500/20 text-blue-300 border border-blue-500/30">
-                                      {file.categoryName}
-                                    </span>
-                                    <span className="text-gray-400 text-sm">
-                                      {file.size ? formatFileSize(file.size) : ''} • {formatTimeAgo(file.createdAt)}
-                                    </span>
-                                  </div>
+                        </div>
+                      ) : paginatedFiles?.length ? (
+                        paginatedFiles.map((file) => {
+                          // Get file category color based on categoryName
+                          const getCategoryColor = (categoryName: string) => {
+                            const categoryColors = {
+                              'Overview': 'gray',
+                              'Problem Proofs': 'blue',
+                              'Solution Proofs': 'green',
+                              'Demand Proofs': 'orange',
+                              'Credibility Proofs': 'red',
+                              'Commercial Proofs': 'teal',
+                              'Investor Pack': 'purple'
+                            };
+                            return categoryColors[categoryName as keyof typeof categoryColors] || 'gray';
+                          };
+                          
+                          const categoryColor = getCategoryColor(file.categoryName || 'Overview');
+                          
+                          const colorClasses = {
+                            gray: "text-gray-400 bg-gray-400/20 border-gray-400/30",
+                            blue: "text-blue-400 bg-blue-400/20 border-blue-400/30",
+                            green: "text-green-400 bg-green-400/20 border-green-400/30",
+                            orange: "text-orange-400 bg-orange-400/20 border-orange-400/30",
+                            red: "text-red-400 bg-red-400/20 border-red-400/30",
+                            teal: "text-teal-400 bg-teal-400/20 border-teal-400/30",
+                            purple: "text-purple-400 bg-purple-400/20 border-purple-400/30"
+                          };
+                          
+                          const colorClass = colorClasses[categoryColor as keyof typeof colorClasses] || colorClasses.gray;
+                          
+                          return (
+                            <div key={file.id} className="group relative overflow-hidden rounded-lg bg-gradient-to-br from-gray-800/30 to-gray-900/50 border border-gray-700/50 p-3 hover:border-gray-600/70 transition-all duration-300">
+                              <div className="absolute inset-0 bg-gradient-to-br from-gray-700/5 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
+                              <div className="relative flex items-start gap-3">
+                                <div className={`p-2 rounded-lg border ${colorClass}`}>
+                                  {getFileIcon(file.name, file.fileType)}
+                                </div>
+                                <div className="flex-1 min-w-0">
+                                  <p className="text-white text-sm font-medium truncate">{file.name}</p>
+                                  <p className="text-gray-400 text-xs truncate">
+                                    {file.categoryName} • {file.size ? formatFileSize(file.size) : 'Unknown size'}
+                                  </p>
+                                  <p className="text-gray-500 text-xs mt-1">{formatTimeAgo(file.createdAt)}</p>
+                                </div>
+                                <div className="flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity duration-300">
+                                  <Button 
+                                    size="sm" 
+                                    variant="ghost" 
+                                    onClick={() => window.open(file.downloadUrl, '_blank')}
+                                    className="text-gray-400 hover:text-blue-400 h-8 w-8 p-0"
+                                    title="Preview file"
+                                  >
+                                    <Eye className="w-4 h-4" />
+                                  </Button>
+                                  <Button 
+                                    size="sm" 
+                                    variant="ghost" 
+                                    onClick={() => window.open(file.downloadUrl, '_blank')}
+                                    className="text-gray-400 hover:text-green-400 h-8 w-8 p-0"
+                                    title="Download file"
+                                  >
+                                    <Download className="w-4 h-4" />
+                                  </Button>
+                                  <Button 
+                                    size="sm" 
+                                    variant="ghost" 
+                                    onClick={() => handleFileRemove(file.id)} 
+                                    className="text-gray-400 hover:text-red-400 h-8 w-8 p-0"
+                                    title="Remove file"
+                                  >
+                                    <Trash2 className="w-4 h-4" />
+                                  </Button>
                                 </div>
                               </div>
-                              <div className="flex items-center gap-1">
-                                <Button 
-                                  variant="ghost" 
-                                  size="sm" 
-                                  onClick={() => window.open(file.downloadUrl, '_blank')}
-                                  className="text-gray-400 hover:text-blue-400 hover:bg-blue-400/10"
-                                  title="Preview file"
-                                >
-                                  <Eye className="w-4 h-4" />
-                                </Button>
-                                <Button 
-                                  variant="ghost" 
-                                  size="sm" 
-                                  onClick={() => window.open(file.downloadUrl, '_blank')}
-                                  className="text-gray-400 hover:text-green-400 hover:bg-green-400/10"
-                                  title="Download file"
-                                >
-                                  <Download className="w-4 h-4" />
-                                </Button>
-                                <Button 
-                                  variant="ghost" 
-                                  size="sm" 
-                                  onClick={() => handleFileRemove(file.id)} 
-                                  className="text-gray-400 hover:text-red-400 hover:bg-red-400/10"
-                                  title="Remove file"
-                                >
-                                  <Trash2 className="w-4 h-4" />
-                                </Button>
-                              </div>
                             </div>
-                          ))
-                        ) : (
-                          <div className="text-center py-12 text-gray-400">
-                            <div className="bg-gray-800/50 rounded-full w-20 h-20 flex items-center justify-center mx-auto mb-4">
-                              <FolderOpen className="w-10 h-10 opacity-50" />
-                            </div>
-                            <p className="text-lg font-medium mb-2">No files uploaded yet</p>
-                            <p className="text-sm text-gray-500">Upload your first documents to get started</p>
+                          );
+                        })
+                      ) : (
+                        <div className="flex items-center justify-center py-8">
+                          <div className="text-center text-gray-400">
+                            <FolderOpen className="w-8 h-8 mx-auto mb-2 opacity-50" />
+                            <p className="text-sm">No files uploaded yet</p>
                           </div>
-                        )}
-                        
-                        {/* Loading more indicator */}
-                        {filesLoadingMore && (
-                          <div className="text-center py-4">
-                            <div className="animate-spin w-6 h-6 border-4 border-primary border-t-transparent rounded-full mx-auto mb-2" />
-                            <p className="text-gray-400 text-sm">Loading more files...</p>
-                          </div>
-                        )}
-                      </div>
+                        </div>
+                      )}
                       
-                      {/* File count indicator at bottom */}
-                      {paginatedFiles?.length ? (
-                        <div className="sticky bottom-0 bg-gray-800/90 backdrop-blur-sm border-t border-gray-700 px-4 py-2">
-                          <p className="text-xs text-gray-400 text-center">
-                            {paginatedFiles.length} of {totalFiles} files loaded
-                            {hasMoreFiles ? ' • Scroll for more' : ' • All files loaded'}
+                      {/* Loading indicator for pagination */}
+                      {filesLoadingMore && (
+                        <div className="flex items-center justify-center py-4">
+                          <div className="text-center text-gray-400">
+                            <RefreshCw className="w-5 h-5 mx-auto mb-1 animate-spin opacity-50" />
+                            <p className="text-xs">Loading more files...</p>
+                          </div>
+                        </div>
+                      )}
+                      
+                      {/* End of files indicator */}
+                      {!hasMoreFiles && paginatedFiles && paginatedFiles.length > 0 && (
+                        <div className="text-center py-2">
+                          <p className="text-xs text-gray-500">
+                            {totalFiles > 0 ? `All ${totalFiles} files loaded` : 'End of files'}
                           </p>
                         </div>
-                      ) : null}
+                      )}
                     </div>
                   </TabsContent>
 
