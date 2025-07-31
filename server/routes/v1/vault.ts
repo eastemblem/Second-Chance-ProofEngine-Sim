@@ -612,18 +612,33 @@ router.get('/files', asyncHandler(async (req: AuthenticatedRequest, res: Respons
     // Get paginated files ordered by timestamp (latest first)
     const files = await storage.getPaginatedDocumentUploads(currentVentureId, limit, offset);
     
-    // Format files response with category information
-    const formattedFiles = files.map(file => ({
-      id: file.uploadId,
-      name: file.fileName || file.originalName,
-      fileType: file.mimeType,
-      createdAt: file.createdAt?.toISOString() || new Date().toISOString(),
-      category: getCategoryFromFolderId(file.folderId),
-      categoryName: getCategoryDisplayName(file.folderId),
-      size: file.fileSize,
-      downloadUrl: file.sharedUrl || '',
-      eastemblemFileId: file.eastemblemFileId
-    }));
+    // Get proof vault data for category mapping
+    const proofVaultData = await storage.getProofVaultsByVentureId(currentVentureId);
+    const folderCategoryMap = new Map();
+    proofVaultData.forEach(vault => {
+      if (vault.subFolderId) {
+        folderCategoryMap.set(vault.subFolderId, {
+          category: getCategoryFromFolderName(vault.folderName),
+          displayName: getCategoryDisplayName(vault.folderName)
+        });
+      }
+    });
+
+    // Format files response with accurate category information from database
+    const formattedFiles = files.map(file => {
+      const categoryInfo = folderCategoryMap.get(file.folderId) || { category: 'overview', displayName: 'Overview' };
+      return {
+        id: file.uploadId,
+        name: file.fileName || file.originalName,
+        fileType: file.mimeType,
+        createdAt: file.createdAt?.toISOString() || new Date().toISOString(),
+        category: categoryInfo.category,
+        categoryName: categoryInfo.displayName,
+        size: file.fileSize,
+        downloadUrl: file.sharedUrl || '',
+        eastemblemFileId: file.eastemblemFileId
+      };
+    });
     
     console.log(`📡 FILES PAGINATION: Returning ${formattedFiles.length} files (page ${page}/${totalPages})`);
     
@@ -644,45 +659,37 @@ router.get('/files', asyncHandler(async (req: AuthenticatedRequest, res: Respons
   }
 }));
 
-// Helper function to get category from folder ID
-function getCategoryFromFolderId(folderId: string | null): string {
-  // This is a simplified mapping - could be enhanced with database lookup
-  if (!folderId) return 'overview';
+// Helper function to get category from folder name
+function getCategoryFromFolderName(folderName: string): string {
+  const normalizedName = folderName.toLowerCase();
   
-  // Pattern matching for common folder structures
-  const categoryPatterns = {
-    'overview': /0_overview|overview/i,
-    'problem_proof': /1_problem|problem/i,
-    'solution_proof': /2_solution|solution/i,
-    'demand_proof': /3_demand|demand/i,
-    'credibility_proof': /4_credibility|credibility/i,
-    'commercial_proof': /5_commercial|commercial/i,
-    'investor_pack': /6_investor|investor/i
-  };
+  if (normalizedName.includes('overview') || normalizedName.includes('0_')) return 'overview';
+  if (normalizedName.includes('problem') || normalizedName.includes('1_')) return 'problem_proof';
+  if (normalizedName.includes('solution') || normalizedName.includes('2_')) return 'solution_proof';
+  if (normalizedName.includes('demand') || normalizedName.includes('3_')) return 'demand_proof';
+  if (normalizedName.includes('credibility') || normalizedName.includes('4_')) return 'credibility_proof';
+  if (normalizedName.includes('commercial') || normalizedName.includes('5_')) return 'commercial_proof';
+  if (normalizedName.includes('investor') || normalizedName.includes('6_')) return 'investor_pack';
   
-  for (const [category, pattern] of Object.entries(categoryPatterns)) {
-    if (pattern.test(folderId)) {
-      return category;
-    }
-  }
-  
-  return 'overview'; // Default fallback
+  return 'overview';
 }
 
-// Helper function to get category display name
-function getCategoryDisplayName(folderId: string | null): string {
-  const category = getCategoryFromFolderId(folderId);
-  const displayNames = {
+// Helper function to get display name from folder name
+function getCategoryDisplayName(folderName: string): string {
+  const category = getCategoryFromFolderName(folderName);
+  const displayNames: Record<string, string> = {
     'overview': 'Overview',
     'problem_proof': 'Problem Proofs',
-    'solution_proof': 'Solution Proofs', 
-    'demand_proof': 'Demand Proofs',
+    'solution_proof': 'Solution Proofs',
+    'demand_proof': 'Demand Proofs', 
     'credibility_proof': 'Credibility Proofs',
     'commercial_proof': 'Commercial Proofs',
     'investor_pack': 'Investor Pack'
   };
   
-  return displayNames[category as keyof typeof displayNames] || 'Overview';
+  return displayNames[category] || 'Overview';
 }
+
+
 
 export default router;
