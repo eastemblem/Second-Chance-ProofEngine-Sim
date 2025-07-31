@@ -13,6 +13,12 @@ Preferred communication style: Simple, everyday language.
 - This approach reduces unnecessary work and produces better outputs by understanding requirements fully
 - Continue this pattern throughout entire conversation
 
+**Cache Management Requirements**:
+- Always clear build cache when UI files change to ensure changes are immediately visible
+- Use `rm -rf dist .vite && npm run build` or run `./clear-cache.sh` script
+- Restart workflow after cache clearing for UI changes to take effect
+- This is critical for frontend development workflow
+
 ## System Architecture
 
 ### Frontend Architecture
