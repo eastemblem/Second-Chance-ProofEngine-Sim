@@ -104,44 +104,53 @@ router.get('/vault', asyncHandler(async (req: Request, res: Response) => {
       return res.status(404).json({ error: "Venture not found" });
     }
 
-    // Get file counts by category for vault statistics only
-    const { storage } = await import('../../storage');
-    const totalFiles = await storage.getDocumentUploadCountByVenture(dashboardData.venture.ventureId);
-    
-    // Get file counts by category using database-driven approach
+    // Get file counts by category using the same proven logic as before (but without returning files)
     const { db } = await import('../../db');
     const { documentUpload, proofVault } = await import('@shared/schema');
-    const { eq, sql } = await import('drizzle-orm');
-    
-    const fileCounts = { overview: 0, problemProof: 0, solutionProof: 0, demandProof: 0, credibilityProof: 0, commercialProof: 0, investorPack: 0 };
-    
-    // Get file counts by joining with proof vault for categorization (counts only, no file data)
-    const fileCountsQuery = await db
+    const { eq, desc } = await import('drizzle-orm');
+
+    // Single optimized query with JOIN to get files + categories together (for counting only)
+    const filesWithCategories = await db
       .select({
         folderId: documentUpload.folderId,
         folderName: proofVault.folderName,
-        count: sql<number>`count(*)::int`
+        parentFolderId: proofVault.parentFolderId
       })
       .from(documentUpload)
       .leftJoin(proofVault, eq(proofVault.subFolderId, documentUpload.folderId))
       .where(eq(documentUpload.ventureId, dashboardData.venture.ventureId))
-      .groupBy(documentUpload.folderId, proofVault.folderName);
+      .orderBy(desc(documentUpload.createdAt));
+
+    // Get all folder mappings for this venture to support pattern matching
+    const folderMappings = await db.select({
+      subFolderId: proofVault.subFolderId,
+      folderName: proofVault.folderName,
+      parentFolderId: proofVault.parentFolderId
+    })
+    .from(proofVault)
+    .where(eq(proofVault.ventureId, dashboardData.venture.ventureId));
     
-    // Categorize file counts based on folder names
-    for (const result of fileCountsQuery) {
-      const category = getCategoryFromFolderName(result.folderName || '');
+    appLogger.api(`Using folder name pattern matching for ${folderMappings.length} folders - NO hardcoded IDs`);
+    
+    // Count files by category using the same categorization logic (but without file data)
+    const fileCounts = { overview: 0, problemProof: 0, solutionProof: 0, demandProof: 0, credibilityProof: 0, commercialProof: 0, investorPack: 0 };
+    
+    // Use the same proven categorization logic for counting
+    for (const fileData of filesWithCategories) {
+      const category = getCategoryFromFolderPattern(fileData.folderName, fileData.folderId || '', fileData.parentFolderId, folderMappings);
       switch (category) {
-        case 'overview': fileCounts.overview += result.count; break;
-        case 'problem_proof': fileCounts.problemProof += result.count; break;
-        case 'solution_proof': fileCounts.solutionProof += result.count; break;
-        case 'demand_proof': fileCounts.demandProof += result.count; break;
-        case 'credibility_proof': fileCounts.credibilityProof += result.count; break;
-        case 'commercial_proof': fileCounts.commercialProof += result.count; break;
-        case 'investor_pack': fileCounts.investorPack += result.count; break;
-        default: fileCounts.overview += result.count;
+        case 'Overview': fileCounts.overview++; break;
+        case 'Problem Proofs': fileCounts.problemProof++; break;
+        case 'Solution Proofs': fileCounts.solutionProof++; break;
+        case 'Demand Proofs': fileCounts.demandProof++; break;
+        case 'Credibility Proofs': fileCounts.credibilityProof++; break;
+        case 'Commercial Proofs': fileCounts.commercialProof++; break;
+        case 'Investor Pack': fileCounts.investorPack++; break;
+        default: fileCounts.overview++; // Fallback to overview
       }
     }
     
+    const totalFiles = filesWithCategories.length;
     appLogger.api(`Vault counts - Overview: ${fileCounts.overview}, Problem: ${fileCounts.problemProof}, Solution: ${fileCounts.solutionProof}, Demand: ${fileCounts.demandProof}, Credibility: ${fileCounts.credibilityProof}, Commercial: ${fileCounts.commercialProof}, Investor: ${fileCounts.investorPack}`);
 
     const vaultData = {
@@ -249,6 +258,58 @@ router.get('/activity', asyncHandler(async (req: Request, res: Response) => {
     res.status(500).json({ error: "Failed to load activity data" });
   }
 }));
+
+// Pattern matching categorization function (same as proven working version)
+function getCategoryFromFolderPattern(
+  folderName: string | null, 
+  folderId: string, 
+  parentFolderId: string | null,
+  folderMappings: Array<{subFolderId: string; folderName: string; parentFolderId: string | null}>
+): string {
+  // Direct pattern matching first
+  if (folderName) {
+    if (folderName.includes('0_Overview') || folderName.includes('Overview')) return 'Overview';
+    if (folderName.includes('1_Problem') || folderName.includes('Problem')) return 'Problem Proofs';
+    if (folderName.includes('2_Solution') || folderName.includes('Solution')) return 'Solution Proofs';
+    if (folderName.includes('3_Demand') || folderName.includes('Demand')) return 'Demand Proofs';
+    if (folderName.includes('4_Credibility') || folderName.includes('Credibility')) return 'Credibility Proofs';
+    if (folderName.includes('5_Commercial') || folderName.includes('Commercial')) return 'Commercial Proofs';
+    if (folderName.includes('6_Investor') || folderName.includes('Investor')) return 'Investor Pack';
+  }
+  
+  // Iterative parent folder traversal (no recursion to avoid stack overflow)
+  let currentFolderId = parentFolderId;
+  let iterations = 0;
+  const maxIterations = 10; // Prevent infinite loops
+  
+  while (currentFolderId && iterations < maxIterations) {
+    iterations++;
+    
+    // Skip circular references
+    if (currentFolderId === folderId) {
+      break;
+    }
+    
+    const parentFolder = folderMappings.find(f => f.subFolderId === currentFolderId);
+    if (!parentFolder) break;
+    
+    const parentName = parentFolder.folderName;
+    if (parentName) {
+      if (parentName.includes('0_Overview') || parentName.includes('Overview')) return 'Overview';
+      if (parentName.includes('1_Problem') || parentName.includes('Problem')) return 'Problem Proofs';
+      if (parentName.includes('2_Solution') || parentName.includes('Solution')) return 'Solution Proofs';
+      if (parentName.includes('3_Demand') || parentName.includes('Demand')) return 'Demand Proofs';
+      if (parentName.includes('4_Credibility') || parentName.includes('Credibility')) return 'Credibility Proofs';
+      if (parentName.includes('5_Commercial') || parentName.includes('Commercial')) return 'Commercial Proofs';
+      if (parentName.includes('6_Investor') || parentName.includes('Investor')) return 'Investor Pack';
+    }
+    
+    // Move to next parent
+    currentFolderId = parentFolder.parentFolderId;
+  }
+  
+  return 'Overview'; // Default fallback
+}
 
 // ROBUST: Non-recursive folder hierarchy map - NO STACK OVERFLOW RISK
 function buildFolderCategoryMap(folderMappings: Array<{subFolderId: string; folderName: string; parentFolderId: string | null}>): Map<string, string> {
