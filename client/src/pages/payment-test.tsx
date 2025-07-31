@@ -6,8 +6,9 @@ import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Textarea } from "@/components/ui/textarea";
 import { useToast } from "@/hooks/use-toast";
-import { AlertCircle, CheckCircle, CreditCard, Loader2 } from "lucide-react";
+import { AlertCircle, CheckCircle, CreditCard, Loader2, User, Lock } from "lucide-react";
 import { apiRequest } from "@/lib/queryClient";
+import { useTokenAuth } from "@/hooks/use-token-auth";
 
 interface PaymentTransaction {
   id: string;
@@ -23,11 +24,16 @@ interface PaymentTransaction {
 
 export default function PaymentTestPage() {
   const { toast } = useToast();
+  const { isAuthenticated, user, loginMutation } = useTokenAuth();
   const [isCreating, setIsCreating] = useState(false);
   const [isChecking, setIsChecking] = useState(false);
   const [paymentUrl, setPaymentUrl] = useState("");
   const [orderReference, setOrderReference] = useState("");
   const [paymentStatus, setPaymentStatus] = useState<PaymentTransaction | null>(null);
+  
+  // Login form for quick auth
+  const [loginEmail, setLoginEmail] = useState("test@example.com");
+  const [loginPassword, setLoginPassword] = useState("password123");
   
   // Form data
   const [amount, setAmount] = useState("100.00");
@@ -35,7 +41,23 @@ export default function PaymentTestPage() {
   const [description, setDescription] = useState("Second Chance Premium Subscription Test");
   const [planType, setPlanType] = useState("premium");
 
+  const handleQuickLogin = async () => {
+    loginMutation.mutate({
+      email: loginEmail,
+      password: loginPassword,
+    });
+  };
+
   const createPayment = async () => {
+    if (!isAuthenticated) {
+      toast({
+        title: "Authentication Required",
+        description: "Please log in first to test payments",
+        variant: "destructive",
+      });
+      return;
+    }
+
     setIsCreating(true);
     try {
       const response = await apiRequest("POST", "/api/v1/payments/create", {
@@ -134,6 +156,78 @@ export default function PaymentTestPage() {
     }
   };
 
+  // Show login form if not authenticated
+  if (!isAuthenticated) {
+    return (
+      <div className="container mx-auto p-6 max-w-2xl">
+        <div className="mb-8 text-center">
+          <h1 className="text-3xl font-bold text-gray-900">Payment Gateway Test</h1>
+          <p className="text-gray-600 mt-2">
+            Authentication required to test the payment system
+          </p>
+        </div>
+
+        <Card>
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2">
+              <User className="h-5 w-5" />
+              Quick Login for Testing
+            </CardTitle>
+            <CardDescription>
+              Log in to access the payment testing interface
+            </CardDescription>
+          </CardHeader>
+          <CardContent className="space-y-4">
+            <div className="grid gap-2">
+              <Label htmlFor="email">Email</Label>
+              <Input
+                id="email"
+                type="email"
+                value={loginEmail}
+                onChange={(e) => setLoginEmail(e.target.value)}
+                placeholder="Enter your email"
+              />
+            </div>
+
+            <div className="grid gap-2">
+              <Label htmlFor="password">Password</Label>
+              <Input
+                id="password"
+                type="password"
+                value={loginPassword}
+                onChange={(e) => setLoginPassword(e.target.value)}
+                placeholder="Enter your password"
+              />
+            </div>
+
+            <Button
+              onClick={handleQuickLogin}
+              disabled={loginMutation.isPending}
+              className="w-full"
+            >
+              {loginMutation.isPending ? (
+                <>
+                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                  Logging in...
+                </>
+              ) : (
+                <>
+                  <Lock className="mr-2 h-4 w-4" />
+                  Login to Test Payments
+                </>
+              )}
+            </Button>
+
+            <div className="text-center text-sm text-gray-500 mt-4">
+              <p>Don't have an account? <a href="/auth-token-page" className="text-blue-600 hover:underline">Register here</a></p>
+              <p className="mt-2">Or use the login page: <a href="/login" className="text-blue-600 hover:underline">/login</a></p>
+            </div>
+          </CardContent>
+        </Card>
+      </div>
+    );
+  }
+
   return (
     <div className="container mx-auto p-6 max-w-4xl">
       <div className="mb-8">
@@ -141,6 +235,11 @@ export default function PaymentTestPage() {
         <p className="text-gray-600 mt-2">
           Test the generic payment system with Telr gateway integration
         </p>
+        {user && (
+          <p className="text-sm text-green-600 mt-1">
+            ✅ Logged in as: {user.fullName} ({user.email})
+          </p>
+        )}
       </div>
 
       <div className="grid gap-6 md:grid-cols-2">

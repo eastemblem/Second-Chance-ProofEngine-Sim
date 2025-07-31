@@ -43,6 +43,7 @@ import { useSimulation } from "@/hooks/use-simulation";
 import { useAuthCheck } from "@/hooks/use-auth-check";
 import NotFound from "@/pages/not-found";
 import { initSentry, SentryErrorBoundary } from "./lib/sentry";
+import { TokenAuthProvider } from "@/hooks/use-token-auth";
 
 // Initialize preloading after component definition
 preloadComponents();
@@ -250,7 +251,8 @@ function App() {
 
   return (
     <QueryClientProvider client={queryClient}>
-      <SentryErrorBoundary fallback={({ error, resetError }) => {
+      <TokenAuthProvider>
+        <SentryErrorBoundary fallback={({ error, resetError }) => {
         // Check if this is an authentication-related error
         const isAuthError = error?.message?.includes('vault/session') || 
                            error?.message?.includes('authentication') ||
@@ -321,6 +323,7 @@ function App() {
           <Router />
         </TooltipProvider>
       </SentryErrorBoundary>
+      </TokenAuthProvider>
     </QueryClientProvider>
   );
 }
