@@ -268,26 +268,44 @@ router.get('/activity', asyncHandler(async (req: Request, res: Response) => {
   }
 }));
 
-// EXACT SAME categorization logic as files API (that works correctly)
+// FIXED: Proper hierarchical categorization logic with parent folder traversal  
 function getCategoryFromFolderNameSimple(
   folderName: string | null, 
   parentFolderId: string | null,
   folderMappings: Array<{subFolderId: string; folderName: string; parentFolderId: string | null}>
 ): string {
-  // Direct pattern matching first - using same logic as files API
+  // Direct pattern matching first
   if (folderName) {
-    const category = getCategoryFromFolderNameWorking(folderName);
     const displayName = getCategoryDisplayNameWorking(folderName);
-    return displayName;
+    // If it's already a main category, return it
+    if (displayName !== 'Overview' || folderName.toLowerCase().includes('overview') || folderName.includes('0_')) {
+      return displayName;
+    }
   }
   
-  // Check parent folder if available
+  // If not a main category or no folder name, traverse parent hierarchy
   if (parentFolderId) {
-    const parentFolder = folderMappings.find(f => f.subFolderId === parentFolderId);
-    if (parentFolder?.folderName) {
-      const category = getCategoryFromFolderNameWorking(parentFolder.folderName);
-      const displayName = getCategoryDisplayNameWorking(parentFolder.folderName);
-      return displayName;
+    let currentFolderId = parentFolderId;
+    let iterations = 0;
+    const maxIterations = 5; // Prevent infinite loops
+    
+    while (currentFolderId && iterations < maxIterations) {
+      iterations++;
+      
+      const parentFolder = folderMappings.find(f => f.subFolderId === currentFolderId);
+      if (!parentFolder) break;
+      
+      const parentName = parentFolder.folderName;
+      if (parentName) {
+        const displayName = getCategoryDisplayNameWorking(parentName);
+        // If we found a main category folder, return it
+        if (displayName !== 'Overview' || parentName.toLowerCase().includes('overview') || parentName.includes('0_')) {
+          return displayName;
+        }
+      }
+      
+      // Move to next parent level
+      currentFolderId = parentFolder.parentFolderId;
     }
   }
   
