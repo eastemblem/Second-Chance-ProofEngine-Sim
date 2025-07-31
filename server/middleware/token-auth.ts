@@ -13,17 +13,21 @@ const blacklistedTokens = new Set<string>();
 // Clean up expired tokens from blacklist every hour
 setInterval(() => {
   const now = Date.now() / 1000;
-  for (const token of blacklistedTokens) {
+  const tokensToDelete: string[] = [];
+  
+  blacklistedTokens.forEach(token => {
     try {
       const decoded = jwt.decode(token) as any;
       if (decoded && decoded.exp && decoded.exp < now) {
-        blacklistedTokens.delete(token);
+        tokensToDelete.push(token);
       }
     } catch (error) {
       // If token can't be decoded, remove it
-      blacklistedTokens.delete(token);
+      tokensToDelete.push(token);
     }
-  }
+  });
+  
+  tokensToDelete.forEach(token => blacklistedTokens.delete(token));
 }, 60 * 60 * 1000); // 1 hour
 
 export interface AuthToken {

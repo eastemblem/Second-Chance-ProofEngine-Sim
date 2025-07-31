@@ -3,6 +3,8 @@ import foundersRouter from "./founders";
 import venturesRouter from "./ventures";
 import onboardingRouter from "./onboarding";
 import vaultRouter from "./vault";
+import paymentsRouter from "./v1/payments";
+import webhooksRouter from "./v1/webhooks";
 import { createRequire } from 'module';
 
 const require = createRequire(import.meta.url);
@@ -48,5 +50,9 @@ router.use("/founders", foundersRouter);
 router.use("/ventures", venturesRouter);
 router.use("/onboarding", onboardingRouter);
 router.use("/vault", vaultRouter);
+
+// V1 API routes
+router.use("/v1/payments", paymentsRouter);
+router.use("/v1/webhooks", webhooksRouter);
 
 export default router;

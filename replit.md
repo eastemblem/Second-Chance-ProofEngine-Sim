@@ -38,6 +38,7 @@ Preferred communication style: Simple, everyday language.
 - **API Integration**: Custom EastEmblem API client
 - **Route Architecture**: Modular, domain-based structure with standardized middleware and V1 API versioning.
 - **Performance Monitoring**: Request tracking, memory monitoring, query optimization.
+- **Payment System**: Generic payment gateway abstraction layer with factory pattern supporting multiple providers (currently Telr implemented).
 
 ### Database Architecture
 - **ORM**: Drizzle ORM with PostgreSQL dialect
@@ -51,7 +52,8 @@ Preferred communication style: Simple, everyday language.
 - **ProofVault Integration**: Document management with AI-powered pitch deck analysis, structured folder creation, and handling of single/multiple file/folder uploads (preserving hierarchy).
 - **Email Communication System**: 11 responsive HTML email templates for user engagement and automated notifications.
 - **Simulation Engine**: Demo experience for testing user journeys with dynamic score generation.
-- **Activity Tracking**: Real-time logging of user actions (authentication, file uploads, onboarding).
+- **Activity Tracking**: Real-time logging of user actions (authentication, file uploads, onboarding, payments).
+- **Payment Gateway System**: Generic payment architecture supporting multiple providers with comprehensive transaction management, subscription handling, and webhook processing.
 
 ## External Dependencies
 
@@ -76,3 +78,4 @@ Preferred communication style: Simple, everyday language.
 - **Replit**: Development and deployment platform.
 - **Sentry**: Error tracking system.
 - **NewRelic**: Performance monitoring.
+- **Telr Payment Gateway**: Primary payment processor with comprehensive transaction management.

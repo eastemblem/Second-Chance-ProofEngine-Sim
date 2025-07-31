@@ -1,4 +1,4 @@
-import { founder, venture, teamMember, proofVault, leaderboard, evaluation, documentUpload, userActivity, type Founder, type InsertFounder, type Venture, type InsertVenture, type TeamMember, type InsertTeamMember, type ProofVault, type InsertProofVault, type Leaderboard, type InsertLeaderboard, type Evaluation, type InsertEvaluation, type DocumentUpload, type InsertDocumentUpload, type UserActivity, type InsertUserActivity } from "@shared/schema";
+import { founder, venture, teamMember, proofVault, leaderboard, evaluation, documentUpload, userActivity, paymentTransactions, userSubscriptions, paymentLogs, type Founder, type InsertFounder, type Venture, type InsertVenture, type TeamMember, type InsertTeamMember, type ProofVault, type InsertProofVault, type Leaderboard, type InsertLeaderboard, type Evaluation, type InsertEvaluation, type DocumentUpload, type InsertDocumentUpload, type UserActivity, type InsertUserActivity, type PaymentTransaction, type InsertPaymentTransaction, type UserSubscription, type InsertUserSubscription, type PaymentLog, type InsertPaymentLog } from "@shared/schema";
 import { db } from "./db";
 import { eq, desc, and } from "drizzle-orm";
 
@@ -53,6 +53,24 @@ export interface IStorage {
   getUserActivities(founderId: string, limit?: number, activityType?: string): Promise<UserActivity[]>;
   createUserActivity(activity: InsertUserActivity): Promise<UserActivity>;
   deleteUserActivity(id: string): Promise<void>;
+
+  // Payment Transaction methods
+  getPaymentTransaction(id: string): Promise<PaymentTransaction | undefined>;
+  getPaymentTransactionByOrderRef(orderRef: string): Promise<PaymentTransaction | undefined>;
+  getPaymentTransactions(founderId: string): Promise<PaymentTransaction[]>;
+  createPaymentTransaction(transaction: InsertPaymentTransaction): Promise<PaymentTransaction>;
+  updatePaymentTransaction(id: string, transaction: Partial<InsertPaymentTransaction>): Promise<PaymentTransaction>;
+
+  // User Subscription methods
+  getUserSubscription(id: string): Promise<UserSubscription | undefined>;
+  getUserSubscriptions(founderId: string): Promise<UserSubscription[]>;
+  createUserSubscription(subscription: InsertUserSubscription): Promise<UserSubscription>;
+  updateUserSubscription(id: string, subscription: Partial<InsertUserSubscription>): Promise<UserSubscription>;
+
+  // Payment Log methods
+  getPaymentLog(id: string): Promise<PaymentLog | undefined>;
+  getPaymentLogs(transactionId: string): Promise<PaymentLog[]>;
+  createPaymentLog(log: InsertPaymentLog): Promise<PaymentLog>;
 }
 
 export class DatabaseStorage implements IStorage {
@@ -311,6 +329,81 @@ export class DatabaseStorage implements IStorage {
 
   async deleteUserActivity(id: string): Promise<void> {
     await db.delete(userActivity).where(eq(userActivity.activityId, id));
+  }
+
+  // Payment Transaction methods
+  async getPaymentTransaction(id: string): Promise<PaymentTransaction | undefined> {
+    const [transactionRecord] = await db.select().from(paymentTransactions).where(eq(paymentTransactions.id, id));
+    return transactionRecord;
+  }
+
+  async getPaymentTransactionByOrderRef(orderRef: string): Promise<PaymentTransaction | undefined> {
+    const [transactionRecord] = await db.select().from(paymentTransactions).where(eq(paymentTransactions.orderReference, orderRef));
+    return transactionRecord;
+  }
+
+  async getPaymentTransactions(founderId: string): Promise<PaymentTransaction[]> {
+    return db.select()
+      .from(paymentTransactions)
+      .where(eq(paymentTransactions.founderId, founderId))
+      .orderBy(desc(paymentTransactions.createdAt));
+  }
+
+  async createPaymentTransaction(transaction: InsertPaymentTransaction): Promise<PaymentTransaction> {
+    const [transactionRecord] = await db.insert(paymentTransactions).values(transaction).returning();
+    return transactionRecord;
+  }
+
+  async updatePaymentTransaction(id: string, transaction: Partial<InsertPaymentTransaction>): Promise<PaymentTransaction> {
+    const [transactionRecord] = await db.update(paymentTransactions).set({
+      ...transaction,
+      updatedAt: new Date()
+    }).where(eq(paymentTransactions.id, id)).returning();
+    return transactionRecord;
+  }
+
+  // User Subscription methods
+  async getUserSubscription(id: string): Promise<UserSubscription | undefined> {
+    const [subscriptionRecord] = await db.select().from(userSubscriptions).where(eq(userSubscriptions.id, id));
+    return subscriptionRecord;
+  }
+
+  async getUserSubscriptions(founderId: string): Promise<UserSubscription[]> {
+    return db.select()
+      .from(userSubscriptions)
+      .where(eq(userSubscriptions.founderId, founderId))
+      .orderBy(desc(userSubscriptions.createdAt));
+  }
+
+  async createUserSubscription(subscription: InsertUserSubscription): Promise<UserSubscription> {
+    const [subscriptionRecord] = await db.insert(userSubscriptions).values(subscription).returning();
+    return subscriptionRecord;
+  }
+
+  async updateUserSubscription(id: string, subscription: Partial<InsertUserSubscription>): Promise<UserSubscription> {
+    const [subscriptionRecord] = await db.update(userSubscriptions).set({
+      ...subscription,
+      updatedAt: new Date()
+    }).where(eq(userSubscriptions.id, id)).returning();
+    return subscriptionRecord;
+  }
+
+  // Payment Log methods
+  async getPaymentLog(id: string): Promise<PaymentLog | undefined> {
+    const [logRecord] = await db.select().from(paymentLogs).where(eq(paymentLogs.id, id));
+    return logRecord;
+  }
+
+  async getPaymentLogs(transactionId: string): Promise<PaymentLog[]> {
+    return db.select()
+      .from(paymentLogs)
+      .where(eq(paymentLogs.transactionId, transactionId))
+      .orderBy(desc(paymentLogs.createdAt));
+  }
+
+  async createPaymentLog(log: InsertPaymentLog): Promise<PaymentLog> {
+    const [logRecord] = await db.insert(paymentLogs).values(log).returning();
+    return logRecord;
   }
 }
 

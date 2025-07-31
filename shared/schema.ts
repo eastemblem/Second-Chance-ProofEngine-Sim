@@ -152,6 +152,12 @@ export const documentUpload = pgTable("document_upload", {
   createdAt: timestamp("created_at").defaultNow().notNull(),
 });
 
+// Payment gateway enums
+export const paymentGatewayEnum = pgEnum('payment_gateway', ['telr', 'stripe', 'paypal']);
+export const paymentStatusEnum = pgEnum('payment_status', ['pending', 'completed', 'failed', 'cancelled', 'expired']);
+export const subscriptionStatusEnum = pgEnum('subscription_status', ['active', 'inactive', 'expired', 'cancelled']);
+export const subscriptionPlanEnum = pgEnum('subscription_plan', ['basic', 'premium', 'enterprise']);
+
 // Activity types enum for better type safety
 export const activityTypeEnum = pgEnum('activity_type', [
   'account',        // Account creation, verification, login
@@ -160,6 +166,7 @@ export const activityTypeEnum = pgEnum('activity_type', [
   'evaluation',     // ProofScore activities
   'authentication', // Login, logout, password changes
   'navigation',     // Page visits, feature usage
+  'payment',        // Payment activities
   'system'         // System events, notifications
 ]);
 
@@ -178,6 +185,61 @@ export const userActivity = pgTable("user_activity", {
   entityType: varchar("entity_type", { length: 50 }), // Type of entity ('file', 'venture', 'evaluation')
   ipAddress: varchar("ip_address", { length: 45 }), // IPv4/IPv6 address
   userAgent: text("user_agent"), // Browser/device information
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+});
+
+// Payment gateway configurations
+export const paymentGateways = pgTable("payment_gateways", {
+  id: uuid("id").primaryKey().defaultRandom(),
+  providerName: paymentGatewayEnum("provider_name").notNull(),
+  isActive: boolean("is_active").notNull().default(true),
+  configuration: jsonb("configuration").notNull(),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+  updatedAt: timestamp("updated_at").defaultNow().notNull(),
+});
+
+// Generic payment transactions table
+export const paymentTransactions = pgTable("payment_transactions", {
+  id: uuid("id").primaryKey().defaultRandom(),
+  founderId: uuid("founder_id").references(() => founder.founderId).notNull(),
+  gatewayProvider: paymentGatewayEnum("gateway_provider").notNull(),
+  gatewayTransactionId: varchar("gateway_transaction_id", { length: 255 }),
+  orderReference: varchar("order_reference", { length: 255 }).notNull().unique(),
+  amount: decimal("amount", { precision: 10, scale: 2 }).notNull(),
+  currency: varchar("currency", { length: 3 }).notNull().default("AED"),
+  status: paymentStatusEnum("status").notNull().default("pending"),
+  gatewayStatus: varchar("gateway_status", { length: 50 }),
+  description: text("description"),
+  paymentUrl: text("payment_url"),
+  expiresAt: timestamp("expires_at"),
+  gatewayResponse: jsonb("gateway_response"),
+  metadata: jsonb("metadata"),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+  updatedAt: timestamp("updated_at").defaultNow().notNull(),
+});
+
+// User subscriptions table
+export const userSubscriptions = pgTable("user_subscriptions", {
+  id: uuid("id").primaryKey().defaultRandom(),
+  founderId: uuid("founder_id").references(() => founder.founderId).notNull(),
+  paymentTransactionId: uuid("payment_transaction_id").references(() => paymentTransactions.id),
+  planType: subscriptionPlanEnum("plan_type").notNull(),
+  status: subscriptionStatusEnum("status").notNull().default("inactive"),
+  gatewayProvider: paymentGatewayEnum("gateway_provider").notNull(),
+  startsAt: timestamp("starts_at"),
+  expiresAt: timestamp("expires_at"),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+  updatedAt: timestamp("updated_at").defaultNow().notNull(),
+});
+
+// Payment logs for audit trail
+export const paymentLogs = pgTable("payment_logs", {
+  id: uuid("id").primaryKey().defaultRandom(),
+  transactionId: uuid("transaction_id").references(() => paymentTransactions.id).notNull(),
+  gatewayProvider: paymentGatewayEnum("gateway_provider").notNull(),
+  action: varchar("action", { length: 100 }).notNull(),
+  requestData: jsonb("request_data"),
+  responseData: jsonb("response_data"),
   createdAt: timestamp("created_at").defaultNow().notNull(),
 });
 
@@ -201,6 +263,8 @@ export const leaderboard = pgTable("leaderboard", {
 // Relations
 export const founderRelations = relations(founder, ({ many }) => ({
   ventures: many(venture),
+  paymentTransactions: many(paymentTransactions),
+  subscriptions: many(userSubscriptions),
 }));
 
 export const ventureRelations = relations(venture, ({ one, many }) => ({
@@ -262,6 +326,37 @@ export const leaderboardRelations = relations(leaderboard, ({ one }) => ({
   }),
 }));
 
+// Payment relations
+export const paymentTransactionRelations = relations(paymentTransactions, ({ one, many }) => ({
+  founder: one(founder, {
+    fields: [paymentTransactions.founderId],
+    references: [founder.founderId],
+  }),
+  subscription: one(userSubscriptions, {
+    fields: [paymentTransactions.id],
+    references: [userSubscriptions.paymentTransactionId],
+  }),
+  logs: many(paymentLogs),
+}));
+
+export const userSubscriptionRelations = relations(userSubscriptions, ({ one }) => ({
+  founder: one(founder, {
+    fields: [userSubscriptions.founderId],
+    references: [founder.founderId],
+  }),
+  paymentTransaction: one(paymentTransactions, {
+    fields: [userSubscriptions.paymentTransactionId],
+    references: [paymentTransactions.id],
+  }),
+}));
+
+export const paymentLogRelations = relations(paymentLogs, ({ one }) => ({
+  transaction: one(paymentTransactions, {
+    fields: [paymentLogs.transactionId],
+    references: [paymentTransactions.id],
+  }),
+}));
+
 // Export types
 export type Founder = typeof founder.$inferSelect;
 export type InsertFounder = typeof founder.$inferInsert;
@@ -282,9 +377,19 @@ export type InsertDocumentUpload = typeof documentUpload.$inferInsert;
 export type UserActivity = typeof userActivity.$inferSelect;
 export type InsertUserActivity = typeof userActivity.$inferInsert;
 
+// Payment types
+export type PaymentGateway = typeof paymentGateways.$inferSelect;
+export type InsertPaymentGateway = typeof paymentGateways.$inferInsert;
+export type PaymentTransaction = typeof paymentTransactions.$inferSelect;
+export type InsertPaymentTransaction = typeof paymentTransactions.$inferInsert;
+export type UserSubscription = typeof userSubscriptions.$inferSelect;
+export type InsertUserSubscription = typeof userSubscriptions.$inferInsert;
+export type PaymentLog = typeof paymentLogs.$inferSelect;
+export type InsertPaymentLog = typeof paymentLogs.$inferInsert;
+
 // Activity insert schema for validation
 export const insertUserActivitySchema = createInsertSchema(userActivity, {
-  activityType: z.enum(['account', 'venture', 'document', 'evaluation', 'authentication', 'navigation', 'system']),
+  activityType: z.enum(['account', 'venture', 'document', 'evaluation', 'authentication', 'navigation', 'payment', 'system']),
   action: z.string().min(1).max(100),
   title: z.string().min(1).max(255),
   description: z.string().optional(),
@@ -295,6 +400,35 @@ export const insertUserActivitySchema = createInsertSchema(userActivity, {
   userAgent: z.string().optional(),
 }).omit({
   activityId: true,
+  createdAt: true,
+});
+
+// Payment Zod schemas
+export const insertPaymentTransactionSchema = createInsertSchema(paymentTransactions, {
+  amount: z.string().regex(/^\d+(\.\d{1,2})?$/, "Invalid amount format"),
+  currency: z.string().length(3, "Currency must be 3 characters"),
+  description: z.string().optional(),
+  metadata: z.any().optional(),
+}).omit({
+  id: true,
+  createdAt: true,
+  updatedAt: true,
+});
+
+export const insertUserSubscriptionSchema = createInsertSchema(userSubscriptions, {
+  planType: z.enum(['basic', 'premium', 'enterprise']),
+}).omit({
+  id: true,
+  createdAt: true,
+  updatedAt: true,
+});
+
+export const insertPaymentLogSchema = createInsertSchema(paymentLogs, {
+  action: z.string().min(1).max(100),
+  requestData: z.any().optional(),
+  responseData: z.any().optional(),
+}).omit({
+  id: true,
   createdAt: true,
 });
 export type Leaderboard = typeof leaderboard.$inferSelect;
