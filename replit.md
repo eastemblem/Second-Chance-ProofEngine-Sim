@@ -64,6 +64,32 @@ Document management and analysis system:
 - File upload handling with validation and processing
 - Integration with external analysis APIs
 
+#### File Upload System
+**Single/Multiple File Upload Workflow:**
+- User-initiated through "Choose Files" button or drag-and-drop interface
+- Supports PDF, PPT, PPTX, DOC, DOCX, images (JPG, JPEG, PNG), and other document types
+- Sequential processing (one file at a time) for stability and progress tracking
+- JWT authentication required for all uploads via `/api/v1/vault/upload-file`
+- Dynamic category selection from 7 ProofVault categories (Overview, Problem Proofs, etc.)
+- Real-time progress indicators with individual file status tracking
+- Database integration creates records in both `document_upload` and `proof_vault` tables
+- Box.com cloud storage integration via EastEmblem API
+- Database-driven folder resolution (category names → Box.com folder IDs)
+
+#### Folder Upload System  
+**Hierarchical Folder Upload Workflow:**
+- User-initiated through "Upload Folder" button with folder selection
+- Complete folder structure analysis using `webkitRelativePath` parsing
+- Preserves original directory hierarchy during upload process
+- Four-phase processing: Analyze → Create Folders → Map IDs → Upload Files
+- Root folder creation in selected ProofVault category
+- Sequential subfolder creation maintaining parent-child relationships
+- ID mapping system tracks folder paths to Box.com folder IDs
+- Organized file placement based on original folder structure
+- Fallback handling for folder creation failures (uses category folder)
+- Detailed progress tracking with status messages for each phase
+- Error handling with retry functionality for failed uploads
+
 ### Email Communication System
 Comprehensive email template system for user engagement:
 - 11 responsive HTML email templates with consistent branding
