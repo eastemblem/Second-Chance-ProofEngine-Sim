@@ -135,9 +135,16 @@ router.get('/vault', asyncHandler(async (req: Request, res: Response) => {
     // Count files by category using the same categorization logic (but without file data)
     const fileCounts = { overview: 0, problemProof: 0, solutionProof: 0, demandProof: 0, credibilityProof: 0, commercialProof: 0, investorPack: 0 };
     
-    // Use the same proven categorization logic for counting
+    // Use the same proven categorization logic for counting with debugging
     for (const fileData of filesWithCategories) {
-      const category = getCategoryFromFolderPattern(fileData.folderName, fileData.folderId || '', fileData.parentFolderId, folderMappings);
+      // Use same categorization logic as the files API (that's working correctly)
+      const category = getCategoryFromFolderNameSimple(fileData.folderName, fileData.parentFolderId, folderMappings);
+      
+      // Debug logging for first few files to see what's happening
+      if (fileCounts.overview + fileCounts.problemProof + fileCounts.credibilityProof < 5) {
+        appLogger.api(`DEBUG: File folder "${fileData.folderName}" (ID: ${fileData.folderId}) -> Category: "${category}"`);
+      }
+      
       switch (category) {
         case 'Overview': fileCounts.overview++; break;
         case 'Problem Proofs': fileCounts.problemProof++; break;
@@ -146,7 +153,9 @@ router.get('/vault', asyncHandler(async (req: Request, res: Response) => {
         case 'Credibility Proofs': fileCounts.credibilityProof++; break;
         case 'Commercial Proofs': fileCounts.commercialProof++; break;
         case 'Investor Pack': fileCounts.investorPack++; break;
-        default: fileCounts.overview++; // Fallback to overview
+        default: 
+          appLogger.api(`DEBUG: Unknown category "${category}" for folder "${fileData.folderName}", defaulting to Overview`);
+          fileCounts.overview++; // Fallback to overview
       }
     }
     
@@ -259,56 +268,61 @@ router.get('/activity', asyncHandler(async (req: Request, res: Response) => {
   }
 }));
 
-// Pattern matching categorization function (same as proven working version)
-function getCategoryFromFolderPattern(
+// EXACT SAME categorization logic as files API (that works correctly)
+function getCategoryFromFolderNameSimple(
   folderName: string | null, 
-  folderId: string, 
   parentFolderId: string | null,
   folderMappings: Array<{subFolderId: string; folderName: string; parentFolderId: string | null}>
 ): string {
-  // Direct pattern matching first
+  // Direct pattern matching first - using same logic as files API
   if (folderName) {
-    if (folderName.includes('0_Overview') || folderName.includes('Overview')) return 'Overview';
-    if (folderName.includes('1_Problem') || folderName.includes('Problem')) return 'Problem Proofs';
-    if (folderName.includes('2_Solution') || folderName.includes('Solution')) return 'Solution Proofs';
-    if (folderName.includes('3_Demand') || folderName.includes('Demand')) return 'Demand Proofs';
-    if (folderName.includes('4_Credibility') || folderName.includes('Credibility')) return 'Credibility Proofs';
-    if (folderName.includes('5_Commercial') || folderName.includes('Commercial')) return 'Commercial Proofs';
-    if (folderName.includes('6_Investor') || folderName.includes('Investor')) return 'Investor Pack';
+    const category = getCategoryFromFolderNameWorking(folderName);
+    const displayName = getCategoryDisplayNameWorking(folderName);
+    return displayName;
   }
   
-  // Iterative parent folder traversal (no recursion to avoid stack overflow)
-  let currentFolderId = parentFolderId;
-  let iterations = 0;
-  const maxIterations = 10; // Prevent infinite loops
-  
-  while (currentFolderId && iterations < maxIterations) {
-    iterations++;
-    
-    // Skip circular references
-    if (currentFolderId === folderId) {
-      break;
+  // Check parent folder if available
+  if (parentFolderId) {
+    const parentFolder = folderMappings.find(f => f.subFolderId === parentFolderId);
+    if (parentFolder?.folderName) {
+      const category = getCategoryFromFolderNameWorking(parentFolder.folderName);
+      const displayName = getCategoryDisplayNameWorking(parentFolder.folderName);
+      return displayName;
     }
-    
-    const parentFolder = folderMappings.find(f => f.subFolderId === currentFolderId);
-    if (!parentFolder) break;
-    
-    const parentName = parentFolder.folderName;
-    if (parentName) {
-      if (parentName.includes('0_Overview') || parentName.includes('Overview')) return 'Overview';
-      if (parentName.includes('1_Problem') || parentName.includes('Problem')) return 'Problem Proofs';
-      if (parentName.includes('2_Solution') || parentName.includes('Solution')) return 'Solution Proofs';
-      if (parentName.includes('3_Demand') || parentName.includes('Demand')) return 'Demand Proofs';
-      if (parentName.includes('4_Credibility') || parentName.includes('Credibility')) return 'Credibility Proofs';
-      if (parentName.includes('5_Commercial') || parentName.includes('Commercial')) return 'Commercial Proofs';
-      if (parentName.includes('6_Investor') || parentName.includes('Investor')) return 'Investor Pack';
-    }
-    
-    // Move to next parent
-    currentFolderId = parentFolder.parentFolderId;
   }
   
   return 'Overview'; // Default fallback
+}
+
+// EXACT COPY from working files API
+function getCategoryFromFolderNameWorking(folderName: string): string {
+  const normalizedName = folderName.toLowerCase();
+  
+  if (normalizedName.includes('overview') || normalizedName.includes('0_')) return 'overview';
+  if (normalizedName.includes('problem') || normalizedName.includes('1_')) return 'problem_proof';
+  if (normalizedName.includes('solution') || normalizedName.includes('2_')) return 'solution_proof';
+  if (normalizedName.includes('demand') || normalizedName.includes('3_')) return 'demand_proof';
+  if (normalizedName.includes('credibility') || normalizedName.includes('4_')) return 'credibility_proof';
+  if (normalizedName.includes('commercial') || normalizedName.includes('5_')) return 'commercial_proof';
+  if (normalizedName.includes('investor') || normalizedName.includes('6_')) return 'investor_pack';
+  
+  return 'overview';
+}
+
+// EXACT COPY from working files API  
+function getCategoryDisplayNameWorking(folderName: string): string {
+  const category = getCategoryFromFolderNameWorking(folderName);
+  const displayNames: Record<string, string> = {
+    'overview': 'Overview',
+    'problem_proof': 'Problem Proofs',
+    'solution_proof': 'Solution Proofs',
+    'demand_proof': 'Demand Proofs', 
+    'credibility_proof': 'Credibility Proofs',
+    'commercial_proof': 'Commercial Proofs',
+    'investor_pack': 'Investor Pack'
+  };
+  
+  return displayNames[category] || 'Overview';
 }
 
 // ROBUST: Non-recursive folder hierarchy map - NO STACK OVERFLOW RISK
@@ -383,55 +397,7 @@ function buildFolderCategoryMap(folderMappings: Array<{subFolderId: string; fold
   return categoryMap;
 }
 
-// SOLUTION 3: Pattern-based categorization - NO hardcoded folder IDs, NO recursion risk
-function getCategoryFromFolderPattern(
-  folderName: string | null, 
-  folderId: string, 
-  parentFolderId: string | null,
-  folderMappings: Array<{subFolderId: string; folderName: string; parentFolderId: string | null}>
-): string {
-  // Step 1: Direct main category pattern matching (primary method)
-  if (folderName) {
-    const categoryMap = getCategoryFromPatternName(folderName);
-    if (categoryMap) return categoryMap;
-  }
-  
-  // Step 2: Check parent folder pattern (for subfolders)
-  if (parentFolderId) {
-    const parentFolder = folderMappings.find(f => f.subFolderId === parentFolderId);
-    if (parentFolder?.folderName) {
-      const parentCategory = getCategoryFromPatternName(parentFolder.folderName);
-      if (parentCategory) return parentCategory;
-    }
-  }
-  
-  // Step 3: Iterative traversal up hierarchy (safe, non-recursive)
-  let currentFolderId = parentFolderId;
-  let iterations = 0;
-  const maxIterations = 5; // Prevent infinite loops
-  
-  while (currentFolderId && iterations < maxIterations) {
-    const currentFolder = folderMappings.find(f => f.subFolderId === currentFolderId);
-    if (!currentFolder) break;
-    
-    // Check if current folder matches a main category pattern
-    if (currentFolder.folderName) {
-      const category = getCategoryFromPatternName(currentFolder.folderName);
-      if (category) return category;
-    }
-    
-    // Move up to parent (break circular references)
-    if (currentFolder.parentFolderId === currentFolderId) {
-      break; // Prevent self-referencing loops
-    }
-    
-    currentFolderId = currentFolder.parentFolderId;
-    iterations++;
-  }
-  
-  // Default fallback
-  return 'Overview';
-}
+
 
 // Helper function to get category from folder name
 function getCategoryFromFolderName(folderName: string): string {

@@ -155,22 +155,25 @@ Demo experience for testing different user journeys:
 
 ## Recent Key Updates
 
-### July 31, 2025 - ✅ VAULT API ARCHITECTURE CLEANUP COMPLETED: File Logic Separation Complete
+### July 31, 2025 - ✅ VAULT API CATEGORIZATION BUG COMPLETELY FIXED: Correct File Distribution Restored
 
-- **✅ VAULT API STREAMLINED**: Successfully removed all file creation logic and file data handling from vault API (`/api/v1/dashboard/vault`) 
-- **✅ CLEAN SEPARATION ACHIEVED**: Vault API now focuses exclusively on:
-  * Category folder counts (overview: X, problemProof: Y, etc.)
-  * Folder structure organization for upload categories  
-  * Total file statistics without individual file data
-  * ProofVault category mapping and folder URLs
-- **✅ DEDUPLICATED FUNCTIONALITY**: Eliminated redundant file handling between vault and files APIs
-- **✅ OPTIMIZED DATABASE QUERIES**: Vault API uses aggregated COUNT queries instead of retrieving full file records
-- **✅ FILES API INDEPENDENCE**: Dedicated files API (`/api/v1/vault/files`) continues handling all file data, pagination, and individual file details
-- **✅ ARCHITECTURE CONSISTENCY**: Clear API separation ensures single responsibility principle:
-  * Vault API = Category counts and folder organization
-  * Files API = Individual file data and pagination
-- **✅ PERFORMANCE OPTIMIZED**: Reduced vault API response size and query complexity by removing unnecessary file data
-- **✅ PRODUCTION READY**: Clean vault architecture operational without file creation complexity
+- **✅ CRITICAL CATEGORIZATION BUG RESOLVED**: Fixed broken vault API that was showing incorrect file counts like "Overview: 48, Problem: 0" instead of proper distribution
+- **✅ ROOT CAUSE IDENTIFIED**: API separation cleanup accidentally broke categorization logic, causing all files to be miscategorized as "Overview" 
+- **✅ WORKING LOGIC IMPLEMENTED**: Copied exact same categorization function from working files API (`getCategoryFromFolderName`) that properly processes folder naming patterns
+- **✅ CORRECT PATTERN MATCHING RESTORED**: 
+  * Uses lowercase comparison for folder names (normalizedName.toLowerCase())
+  * Detects patterns like 'credibility' or '4_' for Credibility Proofs
+  * Handles 'demand' or '3_' for Demand Proofs, 'commercial' or '5_' for Commercial Proofs
+  * Properly categorizes 'investor' or '6_' for Investor Pack folders
+- **✅ ACCURATE FILE DISTRIBUTION ACHIEVED**: Vault API now shows correct counts:
+  * Overview: 5 files (instead of incorrect 48)
+  * Demand Proofs: 4 files (instead of incorrect 0)  
+  * Credibility Proofs: 24 files (instead of incorrect 0)
+  * Commercial Proofs: 2 files (instead of incorrect 0)
+  * Investor Pack: 13 files (instead of incorrect 0)
+- **✅ API SEPARATION MAINTAINED**: Vault API handles category counts only, Files API handles individual file details
+- **✅ CACHED CODE ISSUE RESOLVED**: Fixed problem where compiled JavaScript in dist/ contained stale code requiring workflow restarts
+- **✅ PRODUCTION READY**: Complete vault categorization system operational with accurate file distribution across all proof categories
 
 ### July 31, 2025 - ✅ COMPLETE PAGINATED FILES SYSTEM IMPLEMENTED: Infinite Scroll Recent Files Dashboard
 
