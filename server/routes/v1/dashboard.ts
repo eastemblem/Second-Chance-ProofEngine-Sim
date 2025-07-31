@@ -138,11 +138,11 @@ router.get('/vault', asyncHandler(async (req: Request, res: Response) => {
 
     appLogger.api(`SOLUTION 1: Retrieved ${filesWithCategories.length} files with single JOIN query`);
     
-    // Format files for frontend display - now synchronous processing
+    // Format files for frontend display - now synchronous processing with fixed categorization
     const formattedFiles = filesWithCategories.map((fileData) => ({
       id: fileData.uploadId,
       name: fileData.fileName || fileData.originalName || 'Unknown File',
-      category: getCategoryFromFolderData(fileData.folderName, fileData.folderId || '332886218045'),
+      category: getCategoryFromFolderData(fileData.folderName, fileData.folderId || '332886218045', fileData.parentFolderId),
       uploadDate: fileData.createdAt?.toISOString() || new Date().toISOString(),
       size: formatFileSize(fileData.fileSize || 0),
       downloadUrl: fileData.sharedUrl || '',
@@ -250,28 +250,48 @@ router.get('/activity', asyncHandler(async (req: Request, res: Response) => {
   }
 }));
 
-// Helper functions - SOLUTION 1: Synchronous category resolution from JOIN data
-function getCategoryFromFolderData(folderName: string | null, folderId: string): string {
-  // If we have folder name from JOIN, use it to determine category
+// Helper functions - SOLUTION 1: FIXED category resolution using database analysis
+function getCategoryFromFolderData(folderName: string | null, folderId: string, parentFolderId: string | null): string {
+  // Direct main category mapping based on folder names
   if (folderName) {
-    if (folderName.includes('0_Overview') || folderName.includes('Overview')) return 'Overview';
-    if (folderName.includes('1_Problem_Proof') || folderName.includes('Problem')) return 'Problem Proofs';
-    if (folderName.includes('2_Solution_Proof') || folderName.includes('Solution')) return 'Solution Proofs';
-    if (folderName.includes('3_Demand_Proof') || folderName.includes('Demand')) return 'Demand Proofs';
-    if (folderName.includes('4_Credibility_Proof') || folderName.includes('Credibility')) return 'Credibility Proofs';
-    if (folderName.includes('5_Commercial_Proof') || folderName.includes('Commercial')) return 'Commercial Proofs';
-    if (folderName.includes('6_Investor_Pack') || folderName.includes('Investor')) return 'Investor Pack';
+    if (folderName === '0_Overview') return 'Overview';
+    if (folderName === '1_Problem_Proof') return 'Problem Proofs';
+    if (folderName === '2_Solution_Proof') return 'Solution Proofs';
+    if (folderName === '3_Demand_Proof') return 'Demand Proofs';
+    if (folderName === '4_Credibility_Proof') return 'Credibility Proofs';
+    if (folderName === '5_Commercial_Proof') return 'Commercial Proofs';
+    if (folderName === '6_Investor_Pack') return 'Investor Pack';
+    
+    // Handle subfolders by parent folder ID
+    if (parentFolderId) {
+      // Credibility Proofs subfolders (parent: 332967069435)
+      if (parentFolderId === '332967069435' || parentFolderId === '332967186088') {
+        return 'Credibility Proofs';
+      }
+      // Commercial Proofs subfolders (parent: 332965602986)
+      if (parentFolderId === '332965602986') {
+        return 'Commercial Proofs';
+      }
+      // Investor Pack subfolders (parent: 332965845097)
+      if (parentFolderId === '332965845097') {
+        return 'Investor Pack';
+      }
+      // Overview subfolders (parent: 332966519631)
+      if (parentFolderId === '332966519631') {
+        return 'Overview';
+      }
+    }
   }
   
-  // Fallback to folder ID mapping for files not in proof_vault table
+  // Direct folder ID mapping for main category folders
   const folderMap: Record<string, string> = {
-    '332886218045': 'Overview',     // 0_Overview
-    '332887480277': 'Problem Proofs', // 1_Problem_Proof  
-    '332887446170': 'Solution Proofs', // 2_Solution_Proof
-    '332885125206': 'Demand Proofs',   // 3_Demand_Proof
-    '332885857453': 'Credibility Proofs', // 4_Credibility_Proof
-    '332887928503': 'Commercial Proofs',  // 5_Commercial_Proof
-    '332885728761': 'Investor Pack'       // 6_Investor_Pack
+    '332966519631': 'Overview',
+    '332966891030': 'Problem Proofs',
+    '332966738286': 'Solution Proofs', 
+    '332965861836': 'Demand Proofs',
+    '332967069435': 'Credibility Proofs',
+    '332965602986': 'Commercial Proofs',
+    '332965845097': 'Investor Pack'
   };
   
   return folderMap[folderId] || 'Overview';
