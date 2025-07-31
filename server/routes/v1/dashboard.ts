@@ -110,225 +110,67 @@ router.get('/vault', asyncHandler(async (req: Request, res: Response) => {
       return res.status(404).json({ error: "Venture not found" });
     }
 
-    // RETRIEVE ACTUAL FILES FROM DATABASE
+    // SOLUTION 1: SINGLE JOIN QUERY - Eliminate N+1 queries
     const { db } = await import('../../db');
-    const { documentUpload } = await import('@shared/schema');
-    const { eq } = await import('drizzle-orm');
+    const { documentUpload, proofVault } = await import('@shared/schema');
+    const { eq, desc } = await import('drizzle-orm');
 
-    // Get all files for this venture ordered by upload time (most recent first)
-    const { desc } = await import('drizzle-orm');
-    const files = await db.select().from(documentUpload)
+    // Single optimized query with JOIN to get files + categories together
+    const filesWithCategories = await db
+      .select({
+        // File data
+        uploadId: documentUpload.uploadId,
+        fileName: documentUpload.fileName,
+        originalName: documentUpload.originalName,
+        folderId: documentUpload.folderId,
+        createdAt: documentUpload.createdAt,
+        fileSize: documentUpload.fileSize,
+        sharedUrl: documentUpload.sharedUrl,
+        mimeType: documentUpload.mimeType,
+        // Category data from proof_vault
+        folderName: proofVault.folderName,
+        parentFolderId: proofVault.parentFolderId
+      })
+      .from(documentUpload)
+      .leftJoin(proofVault, eq(proofVault.subFolderId, documentUpload.folderId))
       .where(eq(documentUpload.ventureId, dashboardData.venture.ventureId))
       .orderBy(desc(documentUpload.createdAt));
-    
-    // Format files for frontend display - need to use async mapping
-    const formattedFiles = await Promise.all(files.map(async (file) => ({
-      id: file.uploadId,
-      name: file.fileName || file.originalName || 'Unknown File',
-      category: await getCategoryFromFolderId(file.folderId || '332886218045', founderId), // Default to Overview folder
-      uploadDate: file.createdAt?.toISOString() || new Date().toISOString(),
-      size: formatFileSize(file.fileSize || 0),
-      downloadUrl: file.sharedUrl || '',
-      type: file.mimeType || 'application/pdf'
-    })));
 
-    // ENHANCED FILE COUNTING: Count files including those in subfolders
-    const { proofVault } = await import('@shared/schema');
+    appLogger.api(`SOLUTION 1: Retrieved ${filesWithCategories.length} files with single JOIN query`);
     
-    // Get all proof vault folder mappings for this venture
-    const folderMappings = await db.select().from(proofVault)
-      .where(eq(proofVault.ventureId, dashboardData.venture.ventureId));
-    
-    // Create mapping from subFolderId to parent category
-    const subfolderToParentMap: Record<string, string> = {};
-    for (const mapping of folderMappings) {
-      // Use correct Drizzle field names
-      const parentCategory = await getCategoryFromFolderId(mapping.parentFolderId, founderId);
-      subfolderToParentMap[mapping.subFolderId] = parentCategory;
-      console.log(`📂 Subfolder mapping: ${mapping.subFolderId} → ${parentCategory} (parent: ${mapping.parentFolderId})`);
-    }
+    // Format files for frontend display - now synchronous processing
+    const formattedFiles = filesWithCategories.map((fileData) => ({
+      id: fileData.uploadId,
+      name: fileData.fileName || fileData.originalName || 'Unknown File',
+      category: getCategoryFromFolderData(fileData.folderName, fileData.folderId || '332886218045'),
+      uploadDate: fileData.createdAt?.toISOString() || new Date().toISOString(),
+      size: formatFileSize(fileData.fileSize || 0),
+      downloadUrl: fileData.sharedUrl || '',
+      type: fileData.mimeType || 'application/pdf'
+    }));
 
-    // DATABASE-FIRST APPROACH: Count files by category using recursive subfolder traversal
+    // SOLUTION 1: OPTIMIZED FILE COUNTING - Use data from JOIN query
+    // We already have category data from the JOIN, no need for additional queries
+    
+    // SOLUTION 1: OPTIMIZED FILE COUNTING - Count directly from formatted files
     const fileCounts = { overview: 0, problemProof: 0, solutionProof: 0, demandProof: 0, credibilityProof: 0, commercialProof: 0, investorPack: 0 };
     
-    // Process files individually with async categorization
-    for (const file of files) {
-      let category;
-      
-      // RECURSIVE LOGIC: Find correct parent category for nested subfolders
-      const findCorrectParentCategory = async (folderId: string, depth = 0): Promise<string> => {
-        // Prevent infinite loops
-        if (depth > 10) {
-          console.warn(`⚠️ Maximum depth reached for folder ${folderId}`);
-          return 'Overview';
-        }
-        
-        // CRITICAL FIX: Use direct mapping lookup from database instead of getCategoryFromFolderId
-        // Check if this folder ID is directly mapped in our folderMappings (main category folders)
-        const directMapping = folderMappings.find(mapping => mapping.subFolderId === folderId);
-        
-        if (directMapping) {
-          // Get the display name for this folder
-          const { getCategoryDisplayName } = await import('../../utils/folder-mapping');
-          const categoryName = getCategoryDisplayName(directMapping.folderName);
-          
-          // Check if this is a main category folder (has underscore indicating main category)
-          if (directMapping.folderName.includes('_') && directMapping.folderName.match(/^\d+_/)) {
-            console.log(`📁 File ${file.fileName} in main category folder ${folderId} → ${categoryName}`);
-            return categoryName;
-          }
-          
-          // This is a subfolder, check its parent
-          if (directMapping.parentFolderId && directMapping.parentFolderId !== folderId) {
-            console.log(`📁 File ${file.fileName} in subfolder ${folderId} → checking parent ${directMapping.parentFolderId} (depth ${depth})`);
-            return await findCorrectParentCategory(directMapping.parentFolderId, depth + 1);
-          }
-        }
-        
-        // Step 2: Check if this folder exists as a subfolder in other mappings
-        const subfolderMapping = folderMappings.find(mapping => mapping.subFolderId === folderId && !mapping.folderName.match(/^\d+_/));
-        
-        if (subfolderMapping && subfolderMapping.parentFolderId) {
-          // This is a subfolder, find its parent category
-          console.log(`📁 Nested subfolder: ${folderId} → parent ${subfolderMapping.parentFolderId} (depth ${depth})`);
-          return await findCorrectParentCategory(subfolderMapping.parentFolderId, depth + 1);
-        }
-        
-        // Step 3: CRITICAL FIX - Check if this is a newly created folder by looking for parent references
-        // When a folder is created under a main category, it might not be in proof_vault yet but files reference it
-        const parentReference = folderMappings.find(mapping => mapping.parentFolderId === folderId);
-        if (parentReference && parentReference.folderName && !parentReference.folderName.match(/^\d+_/)) {
-          // This folder is referenced as a parent by subfolders - it might be a category folder
-          // Check if we can find the main category by looking at the subfolder's parent structure
-          const categoryFromSubfolder = folderMappings.find(mapping => 
-            mapping.subFolderId === parentReference.parentFolderId && 
-            mapping.folderName.match(/^\d+_/)
-          );
-          
-          if (categoryFromSubfolder) {
-            const { getCategoryDisplayName } = await import('../../utils/folder-mapping');
-            const categoryName = getCategoryDisplayName(categoryFromSubfolder.folderName);
-            console.log(`📁 File ${file.fileName} in newly created folder ${folderId} → traced to main category: ${categoryName}`);
-            return categoryName;
-          }
-        }
-        
-        // Step 4: ENHANCED FALLBACK - Check via EastEmblem API for newly created folders
-        try {
-          const { eastEmblemAPI } = await import('../../eastemblem-api');
-          if (eastEmblemAPI.isConfigured()) {
-            // Get folder info from EastEmblem API to trace parent hierarchy
-            const folderDetails = await eastEmblemAPI.getFolderDetails(folderId);
-            
-            if (folderDetails && folderDetails.parent && folderDetails.parent.id) {
-              console.log(`📁 File ${file.fileName} in API-traced folder ${folderId} → checking parent ${folderDetails.parent.id} (depth ${depth})`);
-              return await findCorrectParentCategory(folderDetails.parent.id, depth + 1);
-            }
-          }
-        } catch (apiError) {
-          console.log(`⚠️ EastEmblem API trace failed for folder ${folderId}:`, apiError);
-        }
-        
-        // Step 5: PATTERN MATCHING FALLBACK - Use known subfolder patterns
-        const anyReference = folderMappings.find(mapping => 
-          mapping.parentFolderId === folderId || 
-          mapping.subFolderId === folderId
-        );
-        
-        if (anyReference) {
-          // Try to find main category by examining the reference pattern
-          if (anyReference.folderName === 'badges' || anyReference.folderName === 'awards' || 
-              anyReference.folderName === 'png' || anyReference.folderName === 'svg') {
-            
-            // Check if the parentFolderId is a main category reference
-            const parentCategoryMapping = folderMappings.find(mapping => 
-              mapping.folderName === anyReference.parentFolderId && 
-              mapping.folderName.match(/^\d+_/)
-            );
-            
-            if (parentCategoryMapping) {
-              const { getCategoryDisplayName } = await import('../../utils/folder-mapping');
-              const categoryName = getCategoryDisplayName(parentCategoryMapping.folderName);
-              console.log(`📁 File ${file.fileName} in subfolder ${folderId} → mapped via pattern to: ${categoryName}`);
-              return categoryName;
-            }
-            
-            // CRITICAL FIX: If parentFolderId is a category name string like "2_Solution_Proof", map it directly
-            if (anyReference.parentFolderId && anyReference.parentFolderId.match(/^\d+_/)) {
-              const { getCategoryDisplayName } = await import('../../utils/folder-mapping');
-              const categoryName = getCategoryDisplayName(anyReference.parentFolderId);
-              console.log(`📁 File ${file.fileName} in subfolder ${folderId} → direct parent category: ${categoryName}`);
-              return categoryName;
-            }
-          }
-        }
-        
-        // Step 6: LAST RESORT INFERENCE - For completely untracked folders, check file upload context
-        // This handles the case where badges/awards folders are created under Solution Proofs but get new Box IDs
-        if (depth === 0) {
-          // This is the original file folder, not a recursive call
-          // Check if any other files in similar folders have been categorized
-          const similarFilePatterns = files.filter(f => 
-            f.folderId === folderId && 
-            (f.fileName?.includes('Badge') || f.fileName?.includes('Award') || 
-             f.fileName?.includes('badge') || f.fileName?.includes('award') ||
-             f.fileName?.includes('.svg') || f.fileName?.includes('.png'))
-          );
-          
-          if (similarFilePatterns.length > 0) {
-            // This looks like a badges/awards folder based on file names
-            // Check if this user has uploaded to Solution Proofs recently
-            const recentSolutionUploads = files.filter(f => 
-              f.createdAt && new Date(f.createdAt) > new Date(Date.now() - 24 * 60 * 60 * 1000) // Last 24 hours
-            );
-            
-            if (recentSolutionUploads.length > 10) { // Many recent uploads suggests folder upload
-              console.log(`📁 File ${file.fileName} in untracked folder ${folderId} → inferred as Solution Proofs based on badge/award pattern and recent upload activity`);
-              return 'Solution Proofs';
-            }
-          }
-        }
-        
-        // Step 7: SPECIFIC BADGE FOLDER FIX - Handle known subfolder patterns with string parent references
-        // Looking for folders where parentFolderId is a string like "1_Problem_Proof" or "2_Solution_Proof" 
-        const stringParentMapping = folderMappings.find(mapping => 
-          (mapping.folderName === 'badges' || mapping.folderName === 'awards' || 
-           mapping.folderName === 'png' || mapping.folderName === 'svg') &&
-          mapping.parentFolderId && 
-          typeof mapping.parentFolderId === 'string' &&
-          mapping.parentFolderId.match(/^\d+_/)
-        );
-        
-        if (stringParentMapping) {
-          // Found a subfolder with string parent reference - use it directly
-          const { getCategoryDisplayName } = await import('../../utils/folder-mapping');
-          const categoryName = getCategoryDisplayName(stringParentMapping.parentFolderId);
-          console.log(`📁 File ${file.fileName} in untracked folder ${folderId} → inferred from string parent "${stringParentMapping.parentFolderId}": ${categoryName}`);
-          return categoryName;
-        }
-        
-        // Final fallback to Overview if no mapping found
-        console.log(`📁 File ${file.fileName} no mapping found for ${folderId} → Overview fallback`);
-        return 'Overview';
-      };
-      
-      category = await findCorrectParentCategory(file.folderId || '332886218045');
-      
-      switch(category) {
-        case 'Overview':
-        case 'Overview (default)': fileCounts.overview++; break;
+    // Count files by category - synchronous processing using already resolved categories
+    for (const file of formattedFiles) {
+      switch (file.category) {
+        case 'Overview': fileCounts.overview++; break;
         case 'Problem Proofs': fileCounts.problemProof++; break;
         case 'Solution Proofs': fileCounts.solutionProof++; break;
         case 'Demand Proofs': fileCounts.demandProof++; break;
         case 'Credibility Proofs': fileCounts.credibilityProof++; break;
         case 'Commercial Proofs': fileCounts.commercialProof++; break;
         case 'Investor Pack': fileCounts.investorPack++; break;
-        default: 
-          console.warn(`⚠️ Unknown category: ${category} for file ${file.fileName}`);
-          fileCounts.overview++;
-          break;
+        default: fileCounts.overview++; // Fallback to overview
       }
     }
+    
+    appLogger.api(`SOLUTION 1: File counts - Overview: ${fileCounts.overview}, Problem: ${fileCounts.problemProof}, Solution: ${fileCounts.solutionProof}, Demand: ${fileCounts.demandProof}, Credibility: ${fileCounts.credibilityProof}, Commercial: ${fileCounts.commercialProof}, Investor: ${fileCounts.investorPack}`);
+    // SOLUTION 1: File counting is now done above using formatted files - no complex logic needed
 
     const vaultData = {
       overviewCount: fileCounts.overview,
@@ -338,7 +180,7 @@ router.get('/vault', asyncHandler(async (req: Request, res: Response) => {
       credibilityProofCount: fileCounts.credibilityProof,
       commercialProofCount: fileCounts.commercialProof,
       investorPackCount: fileCounts.investorPack,
-      totalFiles: files.length,
+      totalFiles: formattedFiles.length,
       ventureId: dashboardData.venture.ventureId,
       ventureName: dashboardData.venture.name,
       files: formattedFiles, // REAL FILES from database
@@ -408,7 +250,34 @@ router.get('/activity', asyncHandler(async (req: Request, res: Response) => {
   }
 }));
 
-// Helper functions - using database-driven folder mapping
+// Helper functions - SOLUTION 1: Synchronous category resolution from JOIN data
+function getCategoryFromFolderData(folderName: string | null, folderId: string): string {
+  // If we have folder name from JOIN, use it to determine category
+  if (folderName) {
+    if (folderName.includes('0_Overview') || folderName.includes('Overview')) return 'Overview';
+    if (folderName.includes('1_Problem_Proof') || folderName.includes('Problem')) return 'Problem Proofs';
+    if (folderName.includes('2_Solution_Proof') || folderName.includes('Solution')) return 'Solution Proofs';
+    if (folderName.includes('3_Demand_Proof') || folderName.includes('Demand')) return 'Demand Proofs';
+    if (folderName.includes('4_Credibility_Proof') || folderName.includes('Credibility')) return 'Credibility Proofs';
+    if (folderName.includes('5_Commercial_Proof') || folderName.includes('Commercial')) return 'Commercial Proofs';
+    if (folderName.includes('6_Investor_Pack') || folderName.includes('Investor')) return 'Investor Pack';
+  }
+  
+  // Fallback to folder ID mapping for files not in proof_vault table
+  const folderMap: Record<string, string> = {
+    '332886218045': 'Overview',     // 0_Overview
+    '332887480277': 'Problem Proofs', // 1_Problem_Proof  
+    '332887446170': 'Solution Proofs', // 2_Solution_Proof
+    '332885125206': 'Demand Proofs',   // 3_Demand_Proof
+    '332885857453': 'Credibility Proofs', // 4_Credibility_Proof
+    '332887928503': 'Commercial Proofs',  // 5_Commercial_Proof
+    '332885728761': 'Investor Pack'       // 6_Investor_Pack
+  };
+  
+  return folderMap[folderId] || 'Overview';
+}
+
+// Keep original function for backward compatibility during transition
 async function getCategoryFromFolderId(folderId: string, founderId?: string): Promise<string> {
   if (founderId) {
     try {
