@@ -252,8 +252,9 @@ export default function DashboardPage() {
     // Load auth check immediately and load dashboard data for better UX
     checkAuthStatus();
     
-    // Load dashboard data immediately for vault and leaderboard
-    // Activity data is now handled by usePaginatedActivities hook
+    // Load dashboard data immediately for validation, vault counts, and leaderboard
+    // Activity data is handled by usePaginatedActivities hook
+    // File data is handled by usePaginatedFiles hook
     loadDashboardData();
   }, []);
 
@@ -364,8 +365,12 @@ export default function DashboardPage() {
 
       if (vaultResponse.ok) {
         const vault = await vaultResponse.json();
-        console.log('✅ Vault data loaded successfully:', vault);
-        setProofVaultData(vault);
+        console.log('✅ Vault counts loaded successfully');
+        // Only store the counts, not the files array - files are now handled by usePaginatedFiles hook
+        setProofVaultData({
+          ...vault,
+          files: [] // Clear files array since we use paginated files hook instead
+        });
       } else {
         console.error('❌ Vault API failed:', vaultResponse.status, vaultResponse.statusText);
         // Don't throw error - let other data load
