@@ -1475,25 +1475,36 @@ export default function DashboardPage() {
                           
                           const colorClass = colorClasses[categoryColor as keyof typeof colorClasses] || colorClasses.gray;
                           
-                          // Special highlighting for Demand Proofs
-                          const isDemandProof = file.categoryName === 'Demand Proofs';
-                          const highlightClass = isDemandProof 
-                            ? "bg-gradient-to-br from-orange-500/20 to-amber-600/30 border-orange-500/50 hover:border-orange-400/70" 
-                            : "bg-gradient-to-br from-gray-800/30 to-gray-900/50 border border-gray-700/50 hover:border-gray-600/70";
+                          // Helper function to get category highlight class
+                          const getCategoryHighlightClass = (categoryName: string) => {
+                            const categoryHighlights = {
+                              'Overview': 'text-gray-400 font-medium',
+                              'Problem Proofs': 'text-blue-400 font-medium',
+                              'Solution Proofs': 'text-green-400 font-medium',
+                              'Demand Proofs': 'bg-gradient-to-r from-orange-400 to-amber-400 bg-clip-text text-transparent font-semibold',
+                              'Credibility Proofs': 'text-red-400 font-medium',
+                              'Commercial Proofs': 'text-teal-400 font-medium',
+                              'Investor Pack': 'text-purple-400 font-medium'
+                            };
+                            return categoryHighlights[categoryName as keyof typeof categoryHighlights] || 'text-gray-400 font-medium';
+                          };
                           
                           return (
-                            <div key={file.id} className={`group relative overflow-hidden rounded-lg ${highlightClass} p-3 transition-all duration-300`}>
+                            <div key={file.id} className="group relative overflow-hidden rounded-lg bg-gradient-to-br from-gray-800/30 to-gray-900/50 border border-gray-700/50 hover:border-gray-600/70 p-3 transition-all duration-300">
                               <div className="absolute inset-0 bg-gradient-to-br from-gray-700/5 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
                               <div className="relative flex items-center gap-3">
                                 <div className={`p-2 rounded-lg border ${colorClass}`}>
                                   {getFileIcon(file.name, file.fileType)}
                                 </div>
                                 <div className="flex-1 min-w-0">
-                                  <p className={`text-sm font-medium truncate ${isDemandProof ? 'bg-gradient-to-r from-orange-400 to-amber-400 bg-clip-text text-transparent' : 'bg-gradient-to-r from-blue-400 to-purple-400 bg-clip-text text-transparent'}`}>
+                                  <p className="text-sm font-medium truncate bg-gradient-to-r from-blue-400 to-purple-400 bg-clip-text text-transparent">
                                     {file.name}
                                   </p>
-                                  <p className="text-gray-400 text-xs truncate">
-                                    {file.categoryName} • {file.size ? formatFileSize(file.size) : 'Unknown size'} • {formatTimeAgo(file.createdAt)}
+                                  <p className="text-xs truncate">
+                                    <span className={getCategoryHighlightClass(file.categoryName || 'Overview')}>
+                                      {file.categoryName}
+                                    </span>
+                                    <span className="text-gray-400"> • {file.size ? formatFileSize(file.size) : 'Unknown size'} • {formatTimeAgo(file.createdAt)}</span>
                                   </p>
                                 </div>
                                 <div className="flex items-center gap-1">
