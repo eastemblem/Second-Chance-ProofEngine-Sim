@@ -194,7 +194,120 @@ router.get('/vault', asyncHandler(async (req: Request, res: Response) => {
           return await findCorrectParentCategory(subfolderMapping.parentFolderId, depth + 1);
         }
         
-        // Fallback to Overview if no mapping found
+        // Step 3: CRITICAL FIX - Check if this is a newly created folder by looking for parent references
+        // When a folder is created under a main category, it might not be in proof_vault yet but files reference it
+        const parentReference = folderMappings.find(mapping => mapping.parentFolderId === folderId);
+        if (parentReference && parentReference.folderName && !parentReference.folderName.match(/^\d+_/)) {
+          // This folder is referenced as a parent by subfolders - it might be a category folder
+          // Check if we can find the main category by looking at the subfolder's parent structure
+          const categoryFromSubfolder = folderMappings.find(mapping => 
+            mapping.subFolderId === parentReference.parentFolderId && 
+            mapping.folderName.match(/^\d+_/)
+          );
+          
+          if (categoryFromSubfolder) {
+            const { getCategoryDisplayName } = await import('../../utils/folder-mapping');
+            const categoryName = getCategoryDisplayName(categoryFromSubfolder.folderName);
+            console.log(`📁 File ${file.fileName} in newly created folder ${folderId} → traced to main category: ${categoryName}`);
+            return categoryName;
+          }
+        }
+        
+        // Step 4: ENHANCED FALLBACK - Check via EastEmblem API for newly created folders
+        try {
+          const { eastEmblemAPI } = await import('../../eastemblem-api');
+          if (eastEmblemAPI.isConfigured()) {
+            // Get folder info from EastEmblem API to trace parent hierarchy
+            const folderDetails = await eastEmblemAPI.getFolderDetails(folderId);
+            
+            if (folderDetails && folderDetails.parent && folderDetails.parent.id) {
+              console.log(`📁 File ${file.fileName} in API-traced folder ${folderId} → checking parent ${folderDetails.parent.id} (depth ${depth})`);
+              return await findCorrectParentCategory(folderDetails.parent.id, depth + 1);
+            }
+          }
+        } catch (apiError) {
+          console.log(`⚠️ EastEmblem API trace failed for folder ${folderId}:`, apiError);
+        }
+        
+        // Step 5: PATTERN MATCHING FALLBACK - Use known subfolder patterns
+        const anyReference = folderMappings.find(mapping => 
+          mapping.parentFolderId === folderId || 
+          mapping.subFolderId === folderId
+        );
+        
+        if (anyReference) {
+          // Try to find main category by examining the reference pattern
+          if (anyReference.folderName === 'badges' || anyReference.folderName === 'awards' || 
+              anyReference.folderName === 'png' || anyReference.folderName === 'svg') {
+            
+            // Check if the parentFolderId is a main category reference
+            const parentCategoryMapping = folderMappings.find(mapping => 
+              mapping.folderName === anyReference.parentFolderId && 
+              mapping.folderName.match(/^\d+_/)
+            );
+            
+            if (parentCategoryMapping) {
+              const { getCategoryDisplayName } = await import('../../utils/folder-mapping');
+              const categoryName = getCategoryDisplayName(parentCategoryMapping.folderName);
+              console.log(`📁 File ${file.fileName} in subfolder ${folderId} → mapped via pattern to: ${categoryName}`);
+              return categoryName;
+            }
+            
+            // CRITICAL FIX: If parentFolderId is a category name string like "2_Solution_Proof", map it directly
+            if (anyReference.parentFolderId && anyReference.parentFolderId.match(/^\d+_/)) {
+              const { getCategoryDisplayName } = await import('../../utils/folder-mapping');
+              const categoryName = getCategoryDisplayName(anyReference.parentFolderId);
+              console.log(`📁 File ${file.fileName} in subfolder ${folderId} → direct parent category: ${categoryName}`);
+              return categoryName;
+            }
+          }
+        }
+        
+        // Step 6: LAST RESORT INFERENCE - For completely untracked folders, check file upload context
+        // This handles the case where badges/awards folders are created under Solution Proofs but get new Box IDs
+        if (depth === 0) {
+          // This is the original file folder, not a recursive call
+          // Check if any other files in similar folders have been categorized
+          const similarFilePatterns = files.filter(f => 
+            f.folderId === folderId && 
+            (f.fileName?.includes('Badge') || f.fileName?.includes('Award') || 
+             f.fileName?.includes('badge') || f.fileName?.includes('award') ||
+             f.fileName?.includes('.svg') || f.fileName?.includes('.png'))
+          );
+          
+          if (similarFilePatterns.length > 0) {
+            // This looks like a badges/awards folder based on file names
+            // Check if this user has uploaded to Solution Proofs recently
+            const recentSolutionUploads = files.filter(f => 
+              f.createdAt && new Date(f.createdAt) > new Date(Date.now() - 24 * 60 * 60 * 1000) // Last 24 hours
+            );
+            
+            if (recentSolutionUploads.length > 10) { // Many recent uploads suggests folder upload
+              console.log(`📁 File ${file.fileName} in untracked folder ${folderId} → inferred as Solution Proofs based on badge/award pattern and recent upload activity`);
+              return 'Solution Proofs';
+            }
+          }
+        }
+        
+        // Step 7: SPECIFIC BADGE FOLDER FIX - Handle known subfolder patterns with string parent references
+        // Looking for folders where parentFolderId is a string like "1_Problem_Proof" or "2_Solution_Proof" 
+        const stringParentMapping = folderMappings.find(mapping => 
+          (mapping.folderName === 'badges' || mapping.folderName === 'awards' || 
+           mapping.folderName === 'png' || mapping.folderName === 'svg') &&
+          mapping.parentFolderId && 
+          typeof mapping.parentFolderId === 'string' &&
+          mapping.parentFolderId.match(/^\d+_/)
+        );
+        
+        if (stringParentMapping) {
+          // Found a subfolder with string parent reference - use it directly
+          const { getCategoryDisplayName } = await import('../../utils/folder-mapping');
+          const categoryName = getCategoryDisplayName(stringParentMapping.parentFolderId);
+          console.log(`📁 File ${file.fileName} in untracked folder ${folderId} → inferred from string parent "${stringParentMapping.parentFolderId}": ${categoryName}`);
+          return categoryName;
+        }
+        
+        // Final fallback to Overview if no mapping found
         console.log(`📁 File ${file.fileName} no mapping found for ${folderId} → Overview fallback`);
         return 'Overview';
       };
