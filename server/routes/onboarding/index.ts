@@ -4,6 +4,7 @@ import path from "path";
 import fs from "fs";
 import { asyncHandler, createSuccessResponse } from "../../utils/error-handler";
 import { onboardingService } from "../../services/onboarding-service";
+import { ActivityService } from "../../services/activity-service";
 import { eastEmblemAPI } from "../../eastemblem-api";
 import { getSessionId, getSessionData, updateSessionData } from "../../utils/session-manager";
 import { cleanupUploadedFile } from "../../utils/file-cleanup";
@@ -70,6 +71,20 @@ router.post("/founder", asyncHandler(async (req, res) => {
         ventureId: result.ventureId
       }
     });
+
+    // Log founder creation activity
+    const context = ActivityService.getContextFromRequest(req);
+    await ActivityService.logAccountActivity(
+      { ...context, founderId: result.founderId, ventureId: result.ventureId },
+      'signup',
+      'Founder profile created',
+      `Founder ${founderData.fullName} created profile during onboarding`,
+      {
+        founderId: result.founderId,
+        email: founderData.email,
+        sessionId
+      }
+    );
 
     console.log(`✅ ONBOARDING: Founder data processed successfully`, {
       founderId: result.founderId,

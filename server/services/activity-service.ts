@@ -14,12 +14,17 @@ export interface ActivityContext {
 export class ActivityService {
   
   /**
-   * Extract activity context from Express request
+   * Extract activity context from Express request (supports both JWT and session auth)
    */
   static getContextFromRequest(req: Request): ActivityContext {
+    // Try JWT authentication first (V1 endpoints)
+    const jwtUser = (req as any).user;
+    const founderId = jwtUser?.founderId || req.session?.founderId;
+    
     return {
-      founderId: req.session?.founderId,
-      sessionId: req.sessionID,
+      founderId,
+      ventureId: jwtUser?.ventureId || req.session?.ventureId,
+      sessionId: req.sessionID || 'jwt-session',
       ipAddress: req.ip || req.connection.remoteAddress,
       userAgent: req.get('User-Agent')
     };

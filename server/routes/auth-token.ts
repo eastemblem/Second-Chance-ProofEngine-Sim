@@ -12,6 +12,7 @@ import {
 } from '../middleware/token-auth';
 import { asyncHandler, createSuccessResponse, createErrorResponse } from '../utils/error-handler';
 import { appLogger } from '../utils/logger';
+import { ActivityService } from '../services/activity-service';
 
 const router = express.Router();
 
@@ -90,6 +91,36 @@ router.post('/register', asyncHandler(async (req, res) => {
       maxAge: 7 * 24 * 60 * 60 * 1000, // 7 days
       sameSite: 'strict'
     });
+
+    // Log account registration activity
+    const context = ActivityService.getContextFromRequest(req);
+    await ActivityService.logAccountActivity(
+      { ...context, founderId: founder.founderId, ventureId: venture?.ventureId },
+      'signup',
+      'Account created successfully',
+      `New founder account created for ${fullName}`,
+      { 
+        founderId: founder.founderId,
+        email: founder.email,
+        hasVenture: !!venture
+      }
+    );
+
+    // Log venture creation activity if venture was created
+    if (venture) {
+      await ActivityService.logVentureActivity(
+        { ...context, founderId: founder.founderId },
+        'create',
+        `Created venture "${venture.name}"`,
+        venture.ventureId,
+        `Venture setup completed in ${venture.industry} industry`,
+        {
+          ventureId: venture.ventureId,
+          industry: venture.industry,
+          geography: venture.geography
+        }
+      );
+    }
 
     appLogger.auth(`✅ User registered and authenticated: ${email}`, { founderId: founder.founderId });
     res.json(authResponse);
@@ -171,6 +202,21 @@ router.post('/login', asyncHandler(async (req, res) => {
       sameSite: 'strict'
     });
 
+    // Log authentication activity
+    const context = ActivityService.getContextFromRequest(req);
+    await ActivityService.logAuthActivity(
+      { ...context, founderId: founder.founderId, ventureId: primaryVenture?.ventureId },
+      'login',
+      'User logged in successfully',
+      `Successful login from ${context.ipAddress}`,
+      {
+        founderId: founder.founderId,
+        email: founder.email,
+        hasVenture: !!primaryVenture,
+        loginTime: new Date().toISOString()
+      }
+    );
+
     appLogger.auth(`✅ User logged in: ${email}`, { founderId: founder.founderId, email });
     res.json(authResponse);
 
@@ -189,6 +235,29 @@ router.post('/logout', asyncHandler(async (req, res) => {
   if (token) {
     // Import invalidateToken function
     const { invalidateToken } = await import('../middleware/token-auth');
+    
+    // Try to extract founderId from token for activity logging
+    let founderId = null;
+    try {
+      const { verifyAuthToken } = await import('../middleware/token-auth');
+      const decoded = verifyAuthToken(token);
+      founderId = decoded?.founderId;
+    } catch (error) {
+      // Token might be expired, but we can still log logout attempt
+    }
+    
+    // Log logout activity
+    const context = ActivityService.getContextFromRequest(req);
+    await ActivityService.logAuthActivity(
+      { ...context, founderId },
+      'logout',
+      'User logged out successfully',
+      `Logout from ${context.ipAddress}`,
+      {
+        founderId,
+        logoutTime: new Date().toISOString()
+      }
+    );
     
     // Add token to blacklist
     invalidateToken(token);

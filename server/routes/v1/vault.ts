@@ -5,6 +5,7 @@ import { eastEmblemAPI } from '../../eastemblem-api';
 import { getSessionId, getSessionData, updateSessionData } from '../../utils/session-manager';
 import { createSuccessResponse } from '../../utils/error-handler';
 import { cleanupUploadedFile } from '../../utils/file-cleanup';
+import { ActivityService } from '../../services/activity-service';
 import multer from 'multer';
 import path from 'path';
 import fs from 'fs';
@@ -311,7 +312,23 @@ router.post('/upload-file', upload.single("file"), asyncHandler(async (req: Auth
     const updatedFiles = [...(sessionData.uploadedFiles || []), uploadResult];
     updateSessionData(req, { uploadedFiles: updatedFiles });
 
-    // Step 5: Cleanup uploaded file
+    // Step 5: Log file upload activity
+    const context = ActivityService.getContextFromRequest(req);
+    await ActivityService.logDocumentActivity(
+      { ...context, founderId, ventureId: currentVentureId },
+      'upload',
+      `Uploaded ${file.originalname}`,
+      uploadResult.id,
+      file.originalname,
+      folder_id,
+      {
+        fileSize: file.size,
+        folderId: actualFolderId,
+        fileId: uploadResult.id
+      }
+    );
+
+    // Step 6: Cleanup uploaded file
     cleanupUploadedFile(file.path);
 
     console.log(`✅ V1 UPLOAD: File "${file.originalname}" uploaded successfully to folder ${actualFolderId}`);

@@ -1,5 +1,6 @@
 import { Request } from "express";
 import { storage } from "../storage";
+import { ActivityService } from "./activity-service";
 import { eastEmblemAPI, type EmailNotificationData } from "../eastemblem-api";
 import { getSessionId, getSessionData, updateSessionData } from "../utils/session-manager";
 import { db } from "../db";
@@ -228,6 +229,21 @@ export class OnboardingService {
       console.log("Creating venture with data:", JSON.stringify(ventureForDb, null, 2));
       venture = await storage.createVenture(ventureForDb);
       console.log("✓ Venture created successfully:", venture.ventureId);
+      
+      // Log venture creation activity
+      await ActivityService.logVentureActivity(
+        { founderId, ventureId: venture.ventureId },
+        'create',
+        'Venture profile created',
+        venture.ventureId,
+        `Created venture "${venture.name}" in ${venture.industry} industry`,
+        {
+          ventureName: venture.name,
+          industry: venture.industry,
+          geography: venture.geography,
+          sessionId
+        }
+      );
     } catch (error) {
       console.error("❌ Failed to create venture:", error);
       throw new Error(`Failed to create venture: ${error instanceof Error ? error.message : 'Unknown error'}`);

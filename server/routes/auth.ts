@@ -14,6 +14,7 @@ import {
 } from '../utils/auth';
 import { emailService } from '../services/emailService';
 import { appLogger } from '../utils/logger';
+import { ActivityService } from '../services/activity-service';
 
 const router = express.Router();
 
@@ -117,6 +118,20 @@ router.post('/set-password', async (req: Request, res: Response) => {
         updatedAt: new Date()
       })
       .where(eq(founder.founderId, founderRecord.founderId));
+
+    // Log password set activity
+    const context = ActivityService.getContextFromRequest(req);
+    await ActivityService.logAccountActivity(
+      { ...context, founderId: founderRecord.founderId },
+      'profile_update',
+      'Password set during onboarding',
+      `Password set for ${founderRecord.email} after email verification`,
+      {
+        founderId: founderRecord.founderId,
+        email: founderRecord.email,
+        onboarding: true
+      }
+    );
 
     res.json({ success: true, message: 'Password set successfully' });
   } catch (error) {
@@ -380,6 +395,20 @@ router.post('/reset-password/:token', async (req: Request, res: Response) => {
         updatedAt: new Date()
       })
       .where(eq(founder.founderId, founderRecord.founderId));
+
+    // Log password reset activity
+    const context = ActivityService.getContextFromRequest(req);
+    await ActivityService.logAccountActivity(
+      { ...context, founderId: founderRecord.founderId },
+      'profile_update',
+      'Password reset completed',
+      `Password successfully reset for ${founderRecord.email}`,
+      {
+        founderId: founderRecord.founderId,
+        email: founderRecord.email,
+        resetMethod: 'token'
+      }
+    );
 
     res.json({ 
       success: true, 
