@@ -1483,11 +1483,12 @@ export default function DashboardPage() {
                                   {getFileIcon(file.name, file.fileType)}
                                 </div>
                                 <div className="flex-1 min-w-0">
-                                  <p className="text-white text-sm font-medium truncate">{file.name}</p>
-                                  <p className="text-gray-400 text-xs truncate">
-                                    {file.categoryName} • {file.size ? formatFileSize(file.size) : 'Unknown size'}
+                                  <p className="text-white text-sm font-medium truncate bg-gradient-to-r from-blue-400 to-purple-400 bg-clip-text text-transparent">
+                                    {file.name}
                                   </p>
-                                  <p className="text-gray-500 text-xs mt-1">{formatTimeAgo(file.createdAt)}</p>
+                                  <p className="text-gray-400 text-xs truncate">
+                                    {file.categoryName} • {file.size ? formatFileSize(file.size) : 'Unknown size'} • {formatTimeAgo(file.createdAt)}
+                                  </p>
                                 </div>
                                 <div className="flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity duration-300">
                                   <Button 
