@@ -18,7 +18,7 @@ import {
   TrendingUp,
   FolderOpen,
   Plus,
-  Trash2,
+
   Eye,
   CheckCircle,
   Clock,
@@ -1127,30 +1127,7 @@ export default function DashboardPage() {
     }
   };
 
-  const handleFileRemove = async (fileId: string) => {
-    try {
-      const response = await fetch(`/api/vault/remove-file/${fileId}`, {
-        method: 'DELETE',
-      });
 
-      if (response.ok) {
-        toast({
-          title: "File Removed",
-          description: "File has been removed successfully.",
-        });
-        loadDashboardData(true); // Force refresh after file removal
-      } else {
-        throw new Error('Remove failed');
-      }
-    } catch (error) {
-      console.error('File remove error:', error);
-      toast({
-        title: "Remove Error",
-        description: "Failed to remove file. Please try again.",
-        variant: "destructive",
-      });
-    }
-  };
 
   const handleLogout = async () => {
     try {
@@ -1525,15 +1502,6 @@ export default function DashboardPage() {
                                     title="Download file"
                                   >
                                     <Download className="w-4 h-4" />
-                                  </Button>
-                                  <Button 
-                                    size="sm" 
-                                    variant="ghost" 
-                                    onClick={() => handleFileRemove(file.id)} 
-                                    className="text-gray-400 hover:text-red-400 h-8 w-8 p-0"
-                                    title="Remove file"
-                                  >
-                                    <Trash2 className="w-4 h-4" />
                                   </Button>
                                 </div>
                               </div>
