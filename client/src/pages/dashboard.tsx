@@ -147,9 +147,20 @@ export default function DashboardPage() {
     const extension = fileName.split('.').pop()?.toLowerCase();
     const iconClass = "w-5 h-5";
     
+    // Debug: Log file info (will remove later)
+    console.log(`🔍 File icon for: ${fileName}, extension: ${extension}, mimeType: ${mimeType}`);
+    
     // PDF files
     if (extension === 'pdf' || mimeType?.includes('pdf')) {
+      console.log(`📄 Using RED PDF icon for: ${fileName}`);
       return <FileText className={`${iconClass} text-red-400`} />;
+    }
+    
+    // Image files
+    if (['jpg', 'jpeg', 'png', 'gif', 'bmp', 'svg', 'webp', 'tiff', 'tif'].includes(extension || '') || 
+        mimeType?.startsWith('image/')) {
+      console.log(`🖼️ Using GREEN IMAGE icon for: ${fileName}`);
+      return <FileImage className={`${iconClass} text-green-400`} />;
     }
     
     // Image files
