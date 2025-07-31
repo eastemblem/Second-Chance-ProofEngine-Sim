@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { useLocation } from "wouter";
 import { Button } from "@/components/ui/button";
 import { trackEvent } from "@/lib/analytics";
@@ -7,6 +7,7 @@ import { Progress } from "@/components/ui/progress";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { useToast } from "@/hooks/use-toast";
+import { usePaginatedActivities } from "@/hooks/use-paginated-activities";
 import { 
   Download, 
   Upload, 
@@ -127,7 +128,17 @@ export default function DashboardPage() {
   const [isLoading, setIsLoading] = useState(true);
   const [validationData, setValidationData] = useState<ValidationData | null>(null);
   const [proofVaultData, setProofVaultData] = useState<ProofVaultData | null>(null);
-  const [recentActivity, setRecentActivity] = useState<ActivityItem[]>([]);
+  // Replace recentActivity state with paginated hook
+  const {
+    activities: recentActivity,
+    totalActivities,
+    isLoading: isActivitiesLoading,
+    loadMore,
+    hasMore,
+    isLoadingMore
+  } = usePaginatedActivities();
+  
+  const activityContainerRef = useRef<HTMLDivElement>(null);
   const [leaderboardData, setLeaderboardData] = useState<LeaderboardEntry[]>([]);
   const [activeTab, setActiveTab] = useState("overview");
   const [selectedFolder, setSelectedFolder] = useState<string>("0_Overview");
@@ -141,6 +152,17 @@ export default function DashboardPage() {
   const [showFailedFiles, setShowFailedFiles] = useState(false);
   const [, setLocation] = useLocation();
   const { toast } = useToast();
+
+  // Handle scroll-based pagination for activities
+  const handleActivityScroll = (e: React.UIEvent<HTMLDivElement>) => {
+    const container = e.currentTarget;
+    const { scrollTop, scrollHeight, clientHeight } = container;
+    
+    // Load more when user scrolls to within 100px of bottom
+    if (scrollHeight - scrollTop - clientHeight < 100 && hasMore && !isLoadingMore) {
+      loadMore();
+    }
+  };
 
   // Get appropriate file icon based on file type
   const getFileIcon = (fileName: string, mimeType?: string) => {
@@ -312,13 +334,8 @@ export default function DashboardPage() {
             ...authHeaders
           } as HeadersInit
         }),
-        fetch('/api/v1/dashboard/activity', {
-          credentials: 'include',
-          headers: { 
-            ...(forceRefresh ? headers : { 'Cache-Control': 'max-age=120' }),
-            ...authHeaders
-          } as HeadersInit
-        }),
+        // Activity is now handled by usePaginatedActivities hook - no need to fetch here
+        Promise.resolve({ ok: false }),
         fetch('/api/v1/leaderboard?limit=5', {
           credentials: 'include',
           headers: { 
@@ -333,15 +350,7 @@ export default function DashboardPage() {
         setProofVaultData(vault);
       }
 
-      if (activityResponse.ok) {
-        const activity = await activityResponse.json();
-        // Use real timestamps from server or create realistic ones
-        const updatedActivity = activity.map((item: ActivityItem, index: number) => ({
-          ...item,
-          timestamp: item.timestamp || new Date(Date.now() - (index + 1) * 5 * 60 * 1000).toISOString()
-        }));
-        setRecentActivity(updatedActivity);
-      }
+      // Activity is now handled by usePaginatedActivities hook
 
       if (leaderboardResponse.ok) {
         const leaderboard = await leaderboardResponse.json();
@@ -367,7 +376,6 @@ export default function DashboardPage() {
       // For other errors, show empty state but don't show dummy data
       setValidationData(null);
       setProofVaultData(null);
-      setRecentActivity([]);
       setLeaderboardData([]);
       
       toast({
@@ -1930,8 +1938,19 @@ export default function DashboardPage() {
                 </CardDescription>
               </CardHeader>
               <CardContent>
-                <div className="space-y-3 max-h-80 overflow-y-auto">
-                  {recentActivity.length > 0 ? (
+                <div 
+                  ref={activityContainerRef}
+                  className="space-y-3 max-h-80 overflow-y-auto"
+                  onScroll={handleActivityScroll}
+                >
+                  {isActivitiesLoading && recentActivity.length === 0 ? (
+                    <div className="flex items-center justify-center py-8">
+                      <div className="text-center text-gray-400">
+                        <RefreshCw className="w-6 h-6 mx-auto mb-2 animate-spin opacity-50" />
+                        <p className="text-sm">Loading activities...</p>
+                      </div>
+                    </div>
+                  ) : recentActivity.length > 0 ? (
                     recentActivity.map((activity) => {
                       const timeAgo = formatTimeAgo(activity.timestamp);
                       
@@ -1990,6 +2009,25 @@ export default function DashboardPage() {
                         <Clock className="w-8 h-8 mx-auto mb-2 opacity-50" />
                         <p className="text-sm">No recent activity</p>
                       </div>
+                    </div>
+                  )}
+                  
+                  {/* Loading indicator for pagination */}
+                  {isLoadingMore && (
+                    <div className="flex items-center justify-center py-4">
+                      <div className="text-center text-gray-400">
+                        <RefreshCw className="w-5 h-5 mx-auto mb-1 animate-spin opacity-50" />
+                        <p className="text-xs">Loading more activities...</p>
+                      </div>
+                    </div>
+                  )}
+                  
+                  {/* End of activities indicator */}
+                  {!hasMore && recentActivity.length > 0 && (
+                    <div className="text-center py-2">
+                      <p className="text-xs text-gray-500">
+                        {totalActivities > 0 ? `All ${totalActivities} activities loaded` : 'End of activities'}
+                      </p>
                     </div>
                   )}
                 </div>

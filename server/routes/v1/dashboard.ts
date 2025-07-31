@@ -223,7 +223,7 @@ router.get('/vault', asyncHandler(async (req: Request, res: Response) => {
   }
 }));
 
-// Dashboard activity endpoint - JWT AUTHENTICATED
+// Dashboard activity endpoint - JWT AUTHENTICATED with pagination
 router.get('/activity', asyncHandler(async (req: Request, res: Response) => {
   const founderId = (req as any).user?.founderId;
   
@@ -236,12 +236,29 @@ router.get('/activity', asyncHandler(async (req: Request, res: Response) => {
     const { userActivity } = await import('@shared/schema');
     const { eq, desc } = await import('drizzle-orm');
 
-    // OPTIMIZATION: Return last 15 activities only for faster response time
+    // PAGINATION: Parse query parameters
+    const page = parseInt(req.query.page as string) || 1;
+    const limit = parseInt(req.query.limit as string) || 10;
+    const offset = (page - 1) * limit;
+
+    appLogger.api(`PAGINATION: Fetching activities - page: ${page}, limit: ${limit}, offset: ${offset}`);
+
+    // Get activities with pagination
     const activities = await db.select()
       .from(userActivity)
       .where(eq(userActivity.founderId, founderId))
       .orderBy(desc(userActivity.createdAt))
-      .limit(15); // Increased from 10 to 15 for better user experience
+      .limit(limit)
+      .offset(offset);
+
+    // Get total count for pagination metadata
+    const totalCountResult = await db.select({ count: userActivity.activityId })
+      .from(userActivity)
+      .where(eq(userActivity.founderId, founderId));
+    
+    const totalActivities = totalCountResult.length;
+    const totalPages = Math.ceil(totalActivities / limit);
+    const hasMore = page < totalPages;
 
     // Format activities for frontend display
     const formattedActivities = activities.map(activity => ({
@@ -254,8 +271,19 @@ router.get('/activity', asyncHandler(async (req: Request, res: Response) => {
       color: getActivityColor(activity.activityType)
     }));
 
-    appLogger.api(`OPTIMIZATION: Returning ${formattedActivities.length} recent activities (limited for performance)`);
-    res.json(formattedActivities);
+    const response = {
+      activities: formattedActivities,
+      pagination: {
+        currentPage: page,
+        totalPages: totalPages,
+        totalActivities: totalActivities,
+        hasMore: hasMore,
+        limit: limit
+      }
+    };
+
+    appLogger.api(`PAGINATION: Returning ${formattedActivities.length} activities (page ${page}/${totalPages})`);
+    res.json(response);
   } catch (error) {
     console.error("Dashboard activity error:", error);
     res.status(500).json({ error: "Failed to load activity data" });
