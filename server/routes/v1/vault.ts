@@ -29,25 +29,52 @@ const upload = multer({
   limits: { fileSize: 10 * 1024 * 1024 },
   fileFilter: (req, file, cb) => {
     const allowedTypes = [
+      // PDF files
       "application/pdf",
-      "application/vnd.ms-powerpoint", 
-      "application/vnd.openxmlformats-officedocument.presentationml.presentation",
+      
+      // MS Office files: DOCX, DOC, XLSX, XLS, PPT, PPTX
+      "application/msword", // DOC
+      "application/vnd.openxmlformats-officedocument.wordprocessingml.document", // DOCX
+      "application/vnd.ms-excel", // XLS
+      "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet", // XLSX
+      "application/vnd.ms-powerpoint", // PPT
+      "application/vnd.openxmlformats-officedocument.presentationml.presentation", // PPTX
+      
+      // Image formats: BMP, PNG, JPG, JPEG, GIF, TIF, TIFF
+      "image/bmp",
       "image/png",
       "image/jpeg",
       "image/jpg",
       "image/gif",
-      "image/webp",
-      "image/svg+xml",
-      "application/msword",
-      "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
-      "text/plain",
-      "application/json",
-      "application/octet-stream"
+      "image/tiff",
+      "image/tif",
+      
+      // Other popular formats
+      "text/plain", // TXT
+      "application/vnd.oasis.opendocument.spreadsheet", // ODS
+      "application/vnd.openxmlformats-officedocument.spreadsheetml.template", // XLTX
+      "text/csv", // CSV
+      "application/vnd.ms-excel.sheet.binary.macroEnabled.12", // XLSB
+      "application/vnd.ms-excel.sheet.macroEnabled.12", // XLSM
+      "application/xml", // XML
+      "text/xml", // XML alternative
+      "message/rfc822", // EML
+      "application/vnd.ms-project", // MPP
+      "application/vnd.ms-outlook", // MSG
+      "application/rtf", // RTF
+      "application/vnd.oasis.opendocument.text", // ODT
+      "application/vnd.openxmlformats-officedocument.presentationml.slideshow", // PPSX
+      "application/vnd.visio", // VSD
+      "application/vnd.ms-visio.drawing", // VSDX
+      "application/vnd.ms-xpsdocument", // XPS
+      "application/x-autocad", // DWG
+      "image/vnd.dwg", // DWG alternative
+      "application/x-dwf" // DWF
     ];
     if (allowedTypes.includes(file.mimetype)) {
       cb(null, true);
     } else {
-      cb(new Error(`Invalid file type: ${file.mimetype}. Allowed types: PDF, PPT, PPTX, images (PNG, JPEG, GIF, WebP, SVG), Word documents, and text files.`));
+      cb(new Error(`File type ${file.mimetype} is not supported. Please upload PDF, MS Office documents (DOC, DOCX, XLS, XLSX, PPT, PPTX), images (PNG, JPG, JPEG, BMP, GIF, TIF, TIFF), or other business documents (TXT, CSV, XML, RTF, etc.).`));
     }
   },
 });
