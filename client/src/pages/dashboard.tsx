@@ -1192,7 +1192,7 @@ export default function DashboardPage() {
                         <Award className="w-5 h-5 text-green-400" />
                       </div>
                       <div className="flex-1">
-                        <h4 className="text-green-300 font-semibold text-sm mb-2">Excellent! {validationData.status}.</h4>
+                        <h4 className="text-green-300 font-semibold text-sm mb-2">Excellent! You are {validationData.status}.</h4>
                         <p className="text-gray-300 text-sm">
                           To access the Deal Room and Pass Due Diligence, please upload your Data Room into the Proof Vault.
                         </p>
