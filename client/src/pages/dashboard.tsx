@@ -1476,7 +1476,7 @@ export default function DashboardPage() {
                             <input
                               type="file"
                               multiple
-                              accept=".pdf,.doc,.docx,.xls,.xlsx,.ppt,.pptx,.bmp,.png,.jpg,.jpeg,.gif,.tif,.tiff,.txt,.ods,.xltx,.csv,.xlsb,.xlsm,.xml,.eml,.mpp,.msg,.rtf,.odt,.ppsx,.vsd,.vsdx,.xps,.dwg,.dwf"
+                              accept=".pdf,.doc,.docx,.xls,.xlsx,.ppt,.pptx,.bmp,.png,.jpg,.jpeg,.gif,.tif,.tiff,.svg,.webp,.mp4,.mov,.avi,.webm,.3gp,.flv,.wmv,.mp3,.wav,.ogg,.aac,.m4a,.txt,.ods,.xltx,.csv,.xlsb,.xlsm,.xml,.eml,.mpp,.msg,.rtf,.odt,.ppsx,.vsd,.vsdx,.xps,.dwg,.dwf"
                               className="hidden"
                               id="file-upload"
                               onChange={async (e) => {

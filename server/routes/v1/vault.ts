@@ -40,7 +40,7 @@ const upload = multer({
       "application/vnd.ms-powerpoint", // PPT
       "application/vnd.openxmlformats-officedocument.presentationml.presentation", // PPTX
       
-      // Image formats: BMP, PNG, JPG, JPEG, GIF, TIF, TIFF
+      // Image formats: BMP, PNG, JPG, JPEG, GIF, TIF, TIFF, SVG, WebP
       "image/bmp",
       "image/png",
       "image/jpeg",
@@ -48,6 +48,26 @@ const upload = multer({
       "image/gif",
       "image/tiff",
       "image/tif",
+      "image/svg+xml",
+      "image/webp",
+      
+      // Video formats
+      "video/mp4",
+      "video/mpeg",
+      "video/quicktime",
+      "video/x-msvideo", // AVI
+      "video/webm",
+      "video/3gpp",
+      "video/x-flv",
+      "video/x-ms-wmv",
+      
+      // Audio formats
+      "audio/mpeg", // MP3
+      "audio/wav",
+      "audio/ogg",
+      "audio/aac",
+      "audio/x-m4a",
+      "audio/mp4",
       
       // Other popular formats
       "text/plain", // TXT
@@ -74,7 +94,7 @@ const upload = multer({
     if (allowedTypes.includes(file.mimetype)) {
       cb(null, true);
     } else {
-      cb(new Error(`File type ${file.mimetype} is not supported. Please upload PDF, MS Office documents (DOC, DOCX, XLS, XLSX, PPT, PPTX), images (PNG, JPG, JPEG, BMP, GIF, TIF, TIFF), or other business documents (TXT, CSV, XML, RTF, etc.).`));
+      cb(new Error(`File type ${file.mimetype} is not supported. Please upload PDF, MS Office documents (DOC, DOCX, XLS, XLSX, PPT, PPTX), images (PNG, JPG, JPEG, BMP, GIF, TIF, TIFF, SVG, WebP), videos (MP4, MOV, AVI, WebM), audio (MP3, WAV, AAC), or other business documents (TXT, CSV, XML, RTF, etc.).`));
     }
   },
 });

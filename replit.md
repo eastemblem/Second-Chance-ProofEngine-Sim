@@ -155,19 +155,21 @@ Demo experience for testing different user journeys:
 
 ## Recent Key Updates
 
-### July 31, 2025 - ✅ COMPREHENSIVE FILE VALIDATION SYSTEM IMPLEMENTED: Business Documents Only
+### July 31, 2025 - ✅ COMPREHENSIVE FILE VALIDATION SYSTEM IMPLEMENTED: Business Documents + Media Files
 
-- **✅ COMPLETE FILE TYPE RESTRICTION**: Updated all upload endpoints to only allow specific business document formats:
+- **✅ COMPLETE FILE TYPE SUPPORT**: Updated all upload endpoints to allow comprehensive file formats:
   * PDF files
   * MS Office files: DOC, DOCX, XLS, XLSX, PPT, PPTX, BMP
-  * Image formats: PNG, JPG, JPEG, GIF, TIF, TIFF
+  * Image formats: PNG, JPG, JPEG, GIF, TIF, TIFF, SVG, WebP
+  * Video formats: MP4, MOV, AVI, WebM, 3GP, FLV, WMV
+  * Audio formats: MP3, WAV, OGG, AAC, M4A
   * Other business formats: TXT, ODS, XLTX, CSV, XLSB, XLSM, XML, EML, MPP, MSG, RTF, ODT, PPSX, VSD, VSDX, XPS, DWG, DWF
 - **✅ COMPREHENSIVE ENDPOINT COVERAGE**: File validation applied across all upload routes:
   * `server/routes/vault.ts` - Main vault upload routes
   * `server/routes/v1/vault.ts` - V1 JWT-authenticated vault routes  
   * `server/routes/vault/index.ts` - Modular vault upload endpoints
   * `client/src/pages/dashboard.tsx` - Frontend file input accept attributes
-- **✅ ELIMINATED UNAUTHORIZED FORMATS**: Removed support for videos, audio, archives, and other non-business file types
+- **✅ COMPREHENSIVE MEDIA SUPPORT**: Added support for video and audio files alongside business documents
 - **✅ ENHANCED ERROR MESSAGES**: Clear validation messages explaining allowed file types for better user experience
 - **✅ CLIENT-SIDE VALIDATION**: Updated HTML file input accept attributes to match server-side validation
 - **✅ PRODUCTION READY**: Complete file upload security implemented preventing upload of inappropriate file types
