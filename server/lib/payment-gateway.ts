@@ -108,7 +108,7 @@ class TelrGateway extends PaymentGateway {
       method: 'create',
       store: parseInt(this.storeId!),
       authkey: this.authKey,
-      framed: 0, // Full screen payment page
+      framed: 0, // Full screen payment page - hosted page solution
       order: {
         cartid: orderData.orderId,
         test: process.env.NODE_ENV === 'development' ? '1' : '0',
@@ -116,7 +116,11 @@ class TelrGateway extends PaymentGateway {
         currency: orderData.currency,
         description: orderData.description
       },
-      return: orderData.returnUrls,
+      return: {
+        authorised: orderData.returnUrls.authorised,
+        declined: orderData.returnUrls.declined,
+        cancelled: orderData.returnUrls.cancelled
+      },
       ...(orderData.customerData && { customer: orderData.customerData }),
       ...(orderData.metadata && {
         extra: {
@@ -214,28 +218,31 @@ class TelrGateway extends PaymentGateway {
   }
 
   async processWebhook(payload: any, signature?: string): Promise<WebhookResponse> {
-    // Telr doesn't use signature validation in the same way as other providers
-    // The webhook payload contains the order reference and status information
+    // Telr webhook processing for hosted payment page callbacks
     
     try {
-      // Extract status from webhook payload
-      // Telr webhook format may vary, this is a basic implementation
-      const orderRef = payload.OrderRef || payload.order?.ref;
+      // Telr sends callback data via POST or GET with order information
+      const orderRef = payload.order_ref || payload.cartid || payload.OrderRef;
       let status: WebhookResponse['status'] = 'pending';
       
-      if (payload.STATUS === '9') {
+      // Telr status mapping for hosted page callbacks
+      const telrStatus = payload.status || payload.STATUS;
+      
+      if (telrStatus === 'A' || telrStatus === '3' || telrStatus === 'paid') {
         status = 'completed';
-      } else if (payload.STATUS === '1') {
+      } else if (telrStatus === 'C' || telrStatus === '1' || telrStatus === 'cancelled') {
         status = 'cancelled';
-      } else if (payload.STATUS === '2') {
+      } else if (telrStatus === 'E' || telrStatus === '2' || telrStatus === 'failed') {
         status = 'failed';
+      } else if (telrStatus === 'H' || telrStatus === '0' || telrStatus === 'pending') {
+        status = 'pending';
       }
 
       return {
         success: true,
         orderReference: orderRef,
         status,
-        transactionId: payload.PAYID,
+        transactionId: payload.tranref || payload.transaction_ref || payload.PAYID,
         gatewayResponse: payload
       };
     } catch (error) {
@@ -244,9 +251,22 @@ class TelrGateway extends PaymentGateway {
   }
 
   validateWebhook(payload: any, signature?: string): boolean {
-    // Telr webhook validation
-    // For now, we'll do basic validation - in production, you might want to add IP whitelisting
-    return payload && (payload.OrderRef || payload.order?.ref);
+    // Telr webhook validation for hosted page callbacks
+    // Basic validation - in production, add IP whitelisting for Telr's callback IPs
+    const hasOrderRef = payload && (
+      payload.order_ref || 
+      payload.cartid || 
+      payload.OrderRef ||
+      payload.order?.ref
+    );
+    
+    const hasStatus = payload && (
+      payload.status ||
+      payload.STATUS ||
+      payload.order?.status
+    );
+    
+    return !!(hasOrderRef && hasStatus);
   }
 }
 

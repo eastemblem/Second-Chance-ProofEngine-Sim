@@ -411,12 +411,18 @@ export default function PaymentTestPage() {
         </CardHeader>
         <CardContent>
           <div className="prose prose-sm max-w-none">
-            <h4>How to test the payment system:</h4>
+            <h4>How to test the hosted payment system:</h4>
             <ol>
               <li>Fill in the payment details and click "Create Payment"</li>
               <li>A payment URL will be generated - click "Open Payment Page"</li>
-              <li>Complete or cancel the payment on Telr's page</li>
-              <li>Return here and click "Check Payment Status" to see the result</li>
+              <li>Complete, cancel, or fail the payment on Telr's hosted page</li>
+              <li>You'll be automatically redirected to the appropriate status page:</li>
+              <ul className="ml-4 mt-2">
+                <li>• <strong>Success:</strong> /payment/success (for completed payments)</li>
+                <li>• <strong>Failed:</strong> /payment/failed (for declined payments)</li>
+                <li>• <strong>Cancelled:</strong> /payment/cancelled (for user cancellations)</li>
+                <li>• <strong>Error:</strong> /payment/error (for processing errors)</li>
+              </ul>
             </ol>
             
             <h4>Supported Gateways:</h4>

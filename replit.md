@@ -53,7 +53,7 @@ Preferred communication style: Simple, everyday language.
 - **Email Communication System**: 11 responsive HTML email templates for user engagement and automated notifications.
 - **Simulation Engine**: Demo experience for testing user journeys with dynamic score generation.
 - **Activity Tracking**: Real-time logging of user actions (authentication, file uploads, onboarding, payments).
-- **Payment Gateway System**: Generic payment architecture supporting multiple providers with comprehensive transaction management, subscription handling, and webhook processing.
+- **Payment Gateway System**: Generic payment architecture supporting multiple providers with hosted payment page solution, comprehensive transaction management, webhook/callback processing, and automated status page redirects.
 
 ## External Dependencies
 
@@ -78,4 +78,4 @@ Preferred communication style: Simple, everyday language.
 - **Replit**: Development and deployment platform.
 - **Sentry**: Error tracking system.
 - **NewRelic**: Performance monitoring.
-- **Telr Payment Gateway**: Primary payment processor with comprehensive transaction management.
+- **Telr Payment Gateway**: Primary payment processor with hosted payment page solution, webhook verification, and automated callback handling.

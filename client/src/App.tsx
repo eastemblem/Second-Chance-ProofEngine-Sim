@@ -34,6 +34,10 @@ const SentryTest = lazy(() => import("@/pages/sentry-test"));
 const RoutingDebug = lazy(() => import("@/pages/routing-debug"));
 const SimpleResetPassword = lazy(() => import("@/pages/simple-reset-password"));
 const PaymentTestPage = lazy(() => import("@/pages/payment-test"));
+const PaymentSuccessPage = lazy(() => import("@/pages/payment-success"));
+const PaymentFailedPage = lazy(() => import("@/pages/payment-failed"));
+const PaymentCancelledPage = lazy(() => import("@/pages/payment-cancelled"));
+const PaymentErrorPage = lazy(() => import("@/pages/payment-error"));
 
 // Disable preloading to reduce initial bundle size and blocking
 const preloadComponents = () => {
@@ -228,6 +232,26 @@ function Router() {
       <Route path="/payment-test" component={() => (
         <Suspense fallback={<SimpleLoader />}>
           <PaymentTestPage />
+        </Suspense>
+      )} />
+      <Route path="/payment/success" component={() => (
+        <Suspense fallback={<SimpleLoader />}>
+          <PaymentSuccessPage />
+        </Suspense>
+      )} />
+      <Route path="/payment/failed" component={() => (
+        <Suspense fallback={<SimpleLoader />}>
+          <PaymentFailedPage />
+        </Suspense>
+      )} />
+      <Route path="/payment/cancelled" component={() => (
+        <Suspense fallback={<SimpleLoader />}>
+          <PaymentCancelledPage />
+        </Suspense>
+      )} />
+      <Route path="/payment/error" component={() => (
+        <Suspense fallback={<SimpleLoader />}>
+          <PaymentErrorPage />
         </Suspense>
       )} />
       <Route component={NotFound} />

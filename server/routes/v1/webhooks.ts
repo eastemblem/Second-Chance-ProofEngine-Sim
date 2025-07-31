@@ -4,10 +4,10 @@ import winston from "winston";
 
 const router = Router();
 
-// Webhook handler for Telr payment notifications
+// Webhook handler for Telr payment notifications (POST)
 router.post("/telr", async (req, res) => {
   try {
-    winston.info("Telr webhook received", {
+    winston.info("Telr webhook received (POST)", {
       body: req.body,
       headers: req.headers,
       service: "second-chance-api",
@@ -48,6 +48,64 @@ router.post("/telr", async (req, res) => {
     });
     
     res.status(500).json({ error: "Internal server error" });
+  }
+});
+
+// Callback handler for Telr hosted page callbacks (GET)
+router.get("/telr", async (req, res) => {
+  try {
+    winston.info("Telr callback received (GET)", {
+      query: req.query,
+      headers: req.headers,
+      service: "second-chance-api",
+      category: "webhook"
+    });
+
+    // Process the callback data
+    const result = await paymentService.handleWebhook('telr', req.query);
+    
+    if (!result.success) {
+      winston.error("Telr callback processing failed", {
+        error: result.error,
+        query: req.query,
+        service: "second-chance-api",
+        category: "webhook"
+      });
+      
+      // For callback failures, redirect to error page
+      return res.redirect(`${process.env.FRONTEND_URL || 'http://localhost:5000'}/payment/error?error=${encodeURIComponent(result.error || 'Processing failed')}`);
+    }
+
+    winston.info("Telr callback processed successfully", {
+      processed: result.processed,
+      service: "second-chance-api",
+      category: "webhook"
+    });
+
+    // For successful callback, redirect to appropriate status page
+    const processedData = result.processed;
+    const status = processedData?.status || 'pending'; 
+    const orderRef = processedData?.orderReference || 'unknown';
+    
+    if (status === 'completed') {
+      res.redirect(`${process.env.FRONTEND_URL || 'http://localhost:5000'}/payment/success?ref=${orderRef}`);
+    } else if (status === 'failed') {
+      res.redirect(`${process.env.FRONTEND_URL || 'http://localhost:5000'}/payment/failed?ref=${orderRef}`);
+    } else if (status === 'cancelled') {
+      res.redirect(`${process.env.FRONTEND_URL || 'http://localhost:5000'}/payment/cancelled?ref=${orderRef}`);
+    } else {
+      res.redirect(`${process.env.FRONTEND_URL || 'http://localhost:5000'}/payment/pending?ref=${orderRef}`);
+    }
+
+  } catch (error) {
+    winston.error("Telr callback error", {
+      error: error instanceof Error ? error.message : 'Unknown error',
+      query: req.query,
+      service: "second-chance-api",
+      category: "webhook"
+    });
+    
+    res.redirect(`${process.env.FRONTEND_URL || 'http://localhost:5000'}/payment/error?error=${encodeURIComponent('Processing error')}`);
   }
 });
 
