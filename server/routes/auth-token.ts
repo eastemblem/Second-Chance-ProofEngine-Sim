@@ -249,7 +249,7 @@ router.post('/logout', asyncHandler(async (req, res) => {
     // Log logout activity
     const context = ActivityService.getContextFromRequest(req);
     await ActivityService.logAuthActivity(
-      { ...context, founderId },
+      { ...context, founderId: founderId || undefined },
       'logout',
       'User logged out successfully',
       `Logout from ${context.ipAddress}`,

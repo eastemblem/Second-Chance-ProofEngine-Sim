@@ -39,6 +39,7 @@ const preloadComponents = () => {
   // Disabled to improve LCP performance
 };
 import { useSimulation } from "@/hooks/use-simulation";
+import { useAuthCheck } from "@/hooks/use-auth-check";
 import NotFound from "@/pages/not-found";
 import { initSentry, SentryErrorBoundary } from "./lib/sentry";
 
@@ -53,6 +54,8 @@ function SimulationFlow() {
     startAnalysis, 
     resetSimulation 
   } = useSimulation();
+  
+  const { isAuthenticated } = useAuthCheck();
 
   // Track page views when routes change
   useAnalytics();
@@ -241,31 +244,72 @@ function App() {
 
   return (
     <QueryClientProvider client={queryClient}>
-      <SentryErrorBoundary fallback={({ error, resetError }) => (
-        <div className="min-h-screen flex items-center justify-center bg-gray-50">
-          <div className="max-w-md w-full bg-white rounded-lg shadow-lg p-8 text-center">
-            <div className="text-red-500 text-6xl mb-4">⚠️</div>
-            <h1 className="text-2xl font-bold text-gray-900 mb-4">Something went wrong</h1>
-            <p className="text-gray-600 mb-6">
-              An unexpected error occurred. Our team has been notified and is working on a fix.
-            </p>
-            <div className="space-y-3">
-              <button 
-                onClick={resetError}
-                className="w-full bg-primary text-primary-foreground px-4 py-2 rounded-md hover:bg-primary/90 transition-colors"
-              >
-                Try Again
-              </button>
-              <button 
-                onClick={() => window.location.reload()}
-                className="w-full bg-gray-200 text-gray-800 px-4 py-2 rounded-md hover:bg-gray-300 transition-colors"
-              >
-                Reload Page
-              </button>
+      <SentryErrorBoundary fallback={({ error, resetError }) => {
+        // Check if this is an authentication-related error
+        const isAuthError = error?.message?.includes('vault/session') || 
+                           error?.message?.includes('authentication') ||
+                           error?.message?.includes('token') ||
+                           error?.message?.includes('401');
+        
+        if (isAuthError) {
+          // Clear any stale auth data and redirect to clean landing
+          localStorage.removeItem('auth_token');
+          localStorage.removeItem('auth_user');
+          
+          return (
+            <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-background via-card to-background">
+              <div className="max-w-md w-full bg-card rounded-lg shadow-lg p-8 text-center border">
+                <div className="text-primary text-6xl mb-4">🔐</div>
+                <h1 className="text-2xl font-bold text-foreground mb-4">Session Expired</h1>
+                <p className="text-muted-foreground mb-6">
+                  Your session has expired. Please refresh the page to continue.
+                </p>
+                <div className="space-y-3">
+                  <button 
+                    onClick={() => window.location.href = '/'}
+                    className="w-full bg-primary text-primary-foreground px-4 py-2 rounded-md hover:bg-primary/90 transition-colors"
+                  >
+                    Go to Homepage
+                  </button>
+                  <button 
+                    onClick={() => window.location.href = '/login'}
+                    className="w-full bg-secondary text-secondary-foreground px-4 py-2 rounded-md hover:bg-secondary/90 transition-colors"
+                  >
+                    Sign In
+                  </button>
+                </div>
+              </div>
+            </div>
+          );
+        }
+        
+        // Generic error fallback
+        return (
+          <div className="min-h-screen flex items-center justify-center bg-gray-50">
+            <div className="max-w-md w-full bg-white rounded-lg shadow-lg p-8 text-center">
+              <div className="text-red-500 text-6xl mb-4">⚠️</div>
+              <h1 className="text-2xl font-bold text-gray-900 mb-4">Something went wrong</h1>
+              <p className="text-gray-600 mb-6">
+                An unexpected error occurred. Our team has been notified and is working on a fix.
+              </p>
+              <div className="space-y-3">
+                <button 
+                  onClick={resetError}
+                  className="w-full bg-primary text-primary-foreground px-4 py-2 rounded-md hover:bg-primary/90 transition-colors"
+                >
+                  Try Again
+                </button>
+                <button 
+                  onClick={() => window.location.reload()}
+                  className="w-full bg-gray-200 text-gray-800 px-4 py-2 rounded-md hover:bg-gray-300 transition-colors"
+                >
+                  Reload Page
+                </button>
+              </div>
             </div>
           </div>
-        </div>
-      )}>
+        );
+      }}>
         <TooltipProvider>
           <Toaster />
           <Router />

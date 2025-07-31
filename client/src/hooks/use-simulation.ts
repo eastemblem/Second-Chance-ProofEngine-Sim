@@ -25,10 +25,21 @@ export function useSimulation() {
     setState(prev => ({ ...prev, isAnalyzing: true, analysisProgress: 0 }));
     
     try {
+      // Check if user is authenticated before making API calls
+      const token = localStorage.getItem('auth_token');
+      if (!token) {
+        throw new Error('User not authenticated');
+      }
+      
       // Check ProofVault session for real data
       setState(prev => ({ ...prev, analysisProgress: 20 }));
       
-      const sessionData = await fetch('/api/vault/session').then(res => res.json());
+      const sessionData = await fetch('/api/vault/session', {
+        headers: {
+          'Authorization': `Bearer ${token}`,
+          'Content-Type': 'application/json'
+        }
+      }).then(res => res.json());
       setState(prev => ({ ...prev, analysisProgress: 60 }));
       
       if (sessionData.success && sessionData.data?.folderStructure) {
