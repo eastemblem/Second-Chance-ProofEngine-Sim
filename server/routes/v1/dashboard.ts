@@ -132,31 +132,56 @@ router.get('/vault', asyncHandler(async (req: Request, res: Response) => {
     
     appLogger.api(`Using folder name pattern matching for ${folderMappings.length} folders - NO hardcoded IDs`);
     
-    // Count files by category using the same categorization logic (but without file data)
+    // WORKING CATEGORIZATION LOGIC: Process files using hierarchical folder traversal
     const fileCounts = { overview: 0, problemProof: 0, solutionProof: 0, demandProof: 0, credibilityProof: 0, commercialProof: 0, investorPack: 0 };
     
-    // Use the same proven categorization logic for counting with debugging
+    // Create a lookup map for faster folder resolution
+    const folderLookup = new Map();
+    folderMappings.forEach(folder => {
+      folderLookup.set(folder.subFolderId, folder);
+    });
+    
+    // Process each file with hierarchical category resolution
     for (const fileData of filesWithCategories) {
-      // Use same categorization logic as the files API (that's working correctly)
-      const category = getCategoryFromFolderNameSimple(fileData.folderName, fileData.parentFolderId, folderMappings);
+      const category = await findMainCategoryForFile(fileData.folderId, folderLookup);
       
-      // Debug logging for first few files to see what's happening
-      if (fileCounts.overview + fileCounts.problemProof + fileCounts.credibilityProof < 5) {
-        appLogger.api(`DEBUG: File folder "${fileData.folderName}" (ID: ${fileData.folderId}) -> Category: "${category}"`);
+      // Debug logging for first few files to verify correct categorization
+      if (fileCounts.overview + fileCounts.problemProof + fileCounts.credibilityProof < 10) {
+        appLogger.api(`DEBUG: File in folder ${fileData.folderId} (${fileData.folderName}) -> Category: "${category}"`);
       }
       
       switch (category) {
-        case 'Overview': fileCounts.overview++; break;
-        case 'Problem Proofs': fileCounts.problemProof++; break;
-        case 'Solution Proofs': fileCounts.solutionProof++; break;
-        case 'Demand Proofs': fileCounts.demandProof++; break;
-        case 'Credibility Proofs': fileCounts.credibilityProof++; break;
-        case 'Commercial Proofs': fileCounts.commercialProof++; break;
-        case 'Investor Pack': fileCounts.investorPack++; break;
+        case '0_Overview': fileCounts.overview++; break;
+        case '1_Problem_Proof': fileCounts.problemProof++; break;
+        case '2_Solution_Proof': fileCounts.solutionProof++; break;
+        case '3_Demand_Proof': fileCounts.demandProof++; break;
+        case '4_Credibility_Proof': fileCounts.credibilityProof++; break;
+        case '5_Commercial_Proof': fileCounts.commercialProof++; break;
+        case '6_Investor_Pack': fileCounts.investorPack++; break;
         default: 
-          appLogger.api(`DEBUG: Unknown category "${category}" for folder "${fileData.folderName}", defaulting to Overview`);
+          appLogger.api(`DEBUG: Unknown category "${category}" for folder ${fileData.folderId}, defaulting to Overview`);
           fileCounts.overview++; // Fallback to overview
       }
+    }
+    
+    // Helper function to find main category through parent traversal
+    async function findMainCategoryForFile(folderId: string | null, folderLookup: Map<string, any>, depth = 0): Promise<string> {
+      if (depth > 5 || !folderId) return '0_Overview'; // Prevent infinite loops
+      
+      const currentFolder = folderLookup.get(folderId);
+      if (!currentFolder) return '0_Overview';
+      
+      // If this folder name indicates a main category, return it
+      if (currentFolder.folderName && currentFolder.folderName.match(/^[0-6]_/)) {
+        return currentFolder.folderName;
+      }
+      
+      // Otherwise, check parent folder
+      if (currentFolder.parentFolderId && currentFolder.parentFolderId !== folderId) {
+        return findMainCategoryForFile(currentFolder.parentFolderId, folderLookup, depth + 1);
+      }
+      
+      return '0_Overview'; // Default fallback
     }
     
     const totalFiles = filesWithCategories.length;
@@ -268,49 +293,7 @@ router.get('/activity', asyncHandler(async (req: Request, res: Response) => {
   }
 }));
 
-// FIXED: Proper hierarchical categorization logic with parent folder traversal  
-function getCategoryFromFolderNameSimple(
-  folderName: string | null, 
-  parentFolderId: string | null,
-  folderMappings: Array<{subFolderId: string; folderName: string; parentFolderId: string | null}>
-): string {
-  // Direct pattern matching first
-  if (folderName) {
-    const displayName = getCategoryDisplayNameWorking(folderName);
-    // If it's already a main category, return it
-    if (displayName !== 'Overview' || folderName.toLowerCase().includes('overview') || folderName.includes('0_')) {
-      return displayName;
-    }
-  }
-  
-  // If not a main category or no folder name, traverse parent hierarchy
-  if (parentFolderId) {
-    let currentFolderId = parentFolderId;
-    let iterations = 0;
-    const maxIterations = 5; // Prevent infinite loops
-    
-    while (currentFolderId && iterations < maxIterations) {
-      iterations++;
-      
-      const parentFolder = folderMappings.find(f => f.subFolderId === currentFolderId);
-      if (!parentFolder) break;
-      
-      const parentName = parentFolder.folderName;
-      if (parentName) {
-        const displayName = getCategoryDisplayNameWorking(parentName);
-        // If we found a main category folder, return it
-        if (displayName !== 'Overview' || parentName.toLowerCase().includes('overview') || parentName.includes('0_')) {
-          return displayName;
-        }
-      }
-      
-      // Move to next parent level
-      currentFolderId = parentFolder.parentFolderId;
-    }
-  }
-  
-  return 'Overview'; // Default fallback
-}
+// Removed unused function - using new hierarchical approach instead
 
 // EXACT COPY from working files API
 function getCategoryFromFolderNameWorking(folderName: string): string {
