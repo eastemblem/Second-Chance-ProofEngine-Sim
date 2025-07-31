@@ -236,12 +236,12 @@ router.get('/activity', asyncHandler(async (req: Request, res: Response) => {
     const { userActivity } = await import('@shared/schema');
     const { eq, desc } = await import('drizzle-orm');
 
-    // Get real activity data from database
+    // OPTIMIZATION: Return last 15 activities only for faster response time
     const activities = await db.select()
       .from(userActivity)
       .where(eq(userActivity.founderId, founderId))
       .orderBy(desc(userActivity.createdAt))
-      .limit(10);
+      .limit(15); // Increased from 10 to 15 for better user experience
 
     // Format activities for frontend display
     const formattedActivities = activities.map(activity => ({
@@ -254,6 +254,7 @@ router.get('/activity', asyncHandler(async (req: Request, res: Response) => {
       color: getActivityColor(activity.activityType)
     }));
 
+    appLogger.api(`OPTIMIZATION: Returning ${formattedActivities.length} recent activities (limited for performance)`);
     res.json(formattedActivities);
   } catch (error) {
     console.error("Dashboard activity error:", error);

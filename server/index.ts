@@ -54,6 +54,7 @@ if (process.env.NEW_RELIC_LICENSE_KEY) {
 import express, { type Request, Response, NextFunction } from "express";
 import session from "express-session";
 import cookieParser from "cookie-parser";
+import compression from "compression";
 import { registerRoutes } from "./routes-refactored";
 import { setupVite, serveStatic, log } from "./vite";
 import { errorHandler } from "./utils/error-handler";
@@ -62,6 +63,22 @@ import path from "path";
 import { appLogger } from "./utils/logger";
 
 const app = express();
+
+// OPTIMIZATION: Enable GZIP compression for all API responses
+app.use(compression({
+  // Compress all responses
+  filter: (req: Request, res: Response) => {
+    // Don't compress responses that are already compressed
+    if (req.headers['x-no-compression']) {
+      return false;
+    }
+    return compression.filter(req, res);
+  },
+  // Compression level (6 is default, good balance of speed/compression)
+  level: 6,
+  // Compress responses over 1KB
+  threshold: 1024
+}));
 
 // Add Sentry request handler (must be before all other handlers)
 if (sentry && process.env.SENTRY_DSN) {
