@@ -38,13 +38,23 @@ export function usePaginatedActivities() {
   } = useInfiniteQuery<ActivityResponse>({
     queryKey: ['/api/v1/dashboard/activity'],
     queryFn: async ({ pageParam = 1 }) => {
-      const response = await apiRequest('GET', `/api/v1/dashboard/activity?page=${pageParam}&limit=10`);
-      return response.json();
+      try {
+        const response = await apiRequest('GET', `/api/v1/dashboard/activity?page=${pageParam}&limit=10`);
+        if (!response.ok) {
+          throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+        }
+        return response.json();
+      } catch (error) {
+        console.error('Activity fetch error:', error);
+        throw error;
+      }
     },
     getNextPageParam: (lastPage) => {
       return lastPage.pagination.hasMore ? lastPage.pagination.currentPage + 1 : undefined;
     },
     initialPageParam: 1,
+    retry: 3,
+    retryDelay: 1000,
   });
 
   // Flatten all activities from all pages

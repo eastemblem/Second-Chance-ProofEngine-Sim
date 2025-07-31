@@ -289,6 +289,8 @@ export default function DashboardPage() {
   };
 
   const loadDashboardData = async (forceRefresh = false) => {
+    console.log('🔄 Starting dashboard data load...', { forceRefresh });
+    
     try {
       // Prepare headers - skip cache when forcing refresh
       const headers = forceRefresh ? {
@@ -301,6 +303,7 @@ export default function DashboardPage() {
 
       // Load critical data first (validation) for faster LCP - USE V1 API with JWT
       const token = localStorage.getItem('auth_token');
+      console.log('🔐 Using auth token:', token ? `${token.substring(0, 20)}...` : 'NO TOKEN');
       const authHeaders: Record<string, string> = token ? { 'Authorization': `Bearer ${token}` } : {};
       
       const validationResponse = await fetch('/api/v1/dashboard/validation', {
@@ -309,10 +312,13 @@ export default function DashboardPage() {
       });
       if (validationResponse.ok) {
         const validation = await validationResponse.json();
+        console.log('✅ Validation data loaded successfully:', validation);
         setValidationData(validation);
         
         // Check for newly available documents and show toast notifications
         checkDocumentReadiness(validation);
+      } else {
+        console.error('❌ Validation API failed:', validationResponse.status, validationResponse.statusText);
       }
 
       // Load secondary data in parallel - USE V1 APIS with JWT
@@ -335,24 +341,34 @@ export default function DashboardPage() {
 
       if (vaultResponse.ok) {
         const vault = await vaultResponse.json();
+        console.log('✅ Vault data loaded successfully:', vault);
         setProofVaultData(vault);
+      } else {
+        console.error('❌ Vault API failed:', vaultResponse.status, vaultResponse.statusText);
       }
 
       if (leaderboardResponse.ok) {
         const leaderboard = await leaderboardResponse.json();
+        console.log('✅ Leaderboard data loaded successfully:', leaderboard);
         if (leaderboard.success && leaderboard.data) {
           setLeaderboardData(leaderboard.data);
         }
+      } else {
+        console.error('❌ Leaderboard API failed:', leaderboardResponse.status, leaderboardResponse.statusText);
       }
+      
+      console.log('✅ Dashboard data loading completed successfully');
     } catch (error: unknown) {
-      console.error('Dashboard data load error:', error);
+      console.error('❌ Dashboard data load error:', error);
       const errorMessage = error instanceof Error ? error.message : String(error);
       
       // If authentication fails, redirect to login instead of showing dummy data
       if (errorMessage.includes('401') || errorMessage.includes('Unauthorized') || errorMessage.includes('Not authenticated')) {
+        console.log('🔐 Authentication failed, clearing token and redirecting to login');
+        localStorage.removeItem('auth_token');
         toast({
-          title: "Authentication Required",
-          description: "Please log in to access your dashboard.",
+          title: "Session Expired",
+          description: "Please log in again to access your dashboard.",
           variant: "destructive",
         });
         setLocation('/login');
@@ -360,10 +376,16 @@ export default function DashboardPage() {
       }
       
       // For other errors, show warning but don't block the dashboard entirely
-      // Activity data is handled by the paginated hook, so don't clear other data
-      console.warn('Some dashboard data failed to load:', errorMessage);
+      console.warn('⚠️ Some dashboard data failed to load:', errorMessage);
       
-      // Don't show error toast if basic data is loading - paginated activity hook handles its own errors
+      toast({
+        title: "Data Loading Issue",
+        description: "Some dashboard data couldn't load. Activity data will load separately.",
+        variant: "default",
+      });
+      
+      // Set loading to false to prevent infinite loading state
+      setIsLoading(false);
     }
   };
 

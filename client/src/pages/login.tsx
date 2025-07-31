@@ -71,6 +71,7 @@ export default function LoginPage() {
     setIsLoading(true);
 
     try {
+      console.log('🔐 Attempting login with email:', email);
       const response = await fetch('/api/auth-token/login', {
         method: 'POST',
         credentials: 'include',
@@ -84,6 +85,7 @@ export default function LoginPage() {
       });
 
       const data = await response.json();
+      console.log('🔐 Login response:', { ok: response.ok, status: response.status, hasToken: !!data.token });
 
       if (response.ok && data.success) {
         // Track successful login event
@@ -93,8 +95,11 @@ export default function LoginPage() {
         localStorage.clear();
         
         if (data.token) {
+          console.log('🔐 Storing token:', data.token.substring(0, 20) + '...');
           localStorage.setItem('auth_token', data.token);
           localStorage.setItem('auth_user', JSON.stringify(data.founder));
+        } else {
+          console.error('❌ No token received in login response');
         }
         
         toast({
