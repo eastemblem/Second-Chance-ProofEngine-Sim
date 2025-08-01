@@ -69,8 +69,8 @@ export default function PaymentOnboarding({ sessionData, onNext, onSkip, onPrev,
         const statusResponse = await apiRequest('GET', `/api/payment/status/${paymentId}`);
         const statusData = await statusResponse.json();
         
-        if (statusData.success && statusData.transaction) {
-          const { status } = statusData.transaction;
+        if (statusData.success) {
+          const status = statusData.status; // Session-based API returns status directly
           
           if (status === 'completed') {
             clearInterval(pollInterval);
