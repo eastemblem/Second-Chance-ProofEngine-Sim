@@ -3,17 +3,28 @@
 ## Overview
 Second Chance is a startup validation platform designed to assess investment readiness. It leverages AI-powered document analysis and a structured scoring framework to provide actionable insights and personalized pathways for founders. The platform aims to revolutionize how entrepreneurs validate their ventures, offering comprehensive analysis to improve their chances of success and attract investment.
 
-## User Preferences
-Preferred communication style: Simple, everyday language.
+## User Preferences & Communication
 
-**Development Communication Pattern**:
+### Communication Style
+- **Primary Style**: Simple, everyday language
+- **Technical Level**: Non-technical user - avoid code details and technical jargon
+- **Response Format**: Calm, supportive tone with measured, professional language
+- **Documentation**: Focus on outcomes and impacts rather than implementation details
+
+### Development Communication Pattern
 - Apply question-first approach to all technical development tasks
 - Before implementing any feature or fix, ask relevant counter-questions to gather context
 - Only proceed after asking "Do you want me to ask more questions, or should I proceed with the answer?"
 - This approach reduces unnecessary work and produces better outputs by understanding requirements fully
 - Continue this pattern throughout entire conversation
 
-**Cache Management Requirements**:
+### Agent Memory Optimization (Updated: 2025-08-01)
+- **Context Management**: Use targeted file searches and focused information sharing
+- **Session Continuity**: Document decisions and progress in this file for future sessions
+- **Concurrent Operations**: Execute multiple tools simultaneously to reduce back-and-forth
+- **Documentation Priority**: Update this file with architectural changes and user preferences immediately
+
+### Cache Management Requirements
 - Always clear build cache when UI files change to ensure changes are immediately visible
 - Use `rm -rf dist .vite && npm run build` or run `./clear-cache.sh` script
 - Restart workflow after cache clearing for UI changes to take effect
@@ -79,3 +90,44 @@ Preferred communication style: Simple, everyday language.
 - **Sentry**: Error tracking system.
 - **NewRelic**: Performance monitoring.
 - **Telr Payment Gateway**: Primary payment processor with hosted payment page solution, webhook verification, and automated callback handling.
+
+## Recent Project Context & Memory
+
+### Current Status (Updated: 2025-08-01)
+- **Application Health**: Server fully functional on port 5000, all endpoints operational
+- **Secrets Audit Completed**: Identified 7 unused secrets for potential cleanup
+- **Architecture**: EastEmblem API proxy eliminates need for direct Box SDK integration
+- **Payment System**: Score-based payment integration planned for analysis page ($100 packages)
+- **Data Utilization**: 85% of rich scoring API data still unused - opportunity for enhancement
+
+### Unused Secrets Analysis (2025-08-01)
+**Safe to Remove (7 total):**
+- `LOGO_URL` - Never referenced in codebase
+- `NEW_RELIC_APP_NAME` - Has hardcoded fallback value
+- `BOX_PUBLIC_KEY_ID` - Not needed due to EastEmblem proxy
+- `BOX_PRIVATE_KEY` - Not needed due to EastEmblem proxy  
+- `BOX_ENTERPRISE_ID` - Not needed due to EastEmblem proxy
+- `BOX_PASSPHRASE` - Not needed due to EastEmblem proxy
+- `BOX_PRIVATE_KEY_BASE64` - Not needed due to EastEmblem proxy
+
+**Impact Assessment**: Minimal to zero codebase impact from removal
+
+### Architecture Decisions
+- **Box Integration**: Using EastEmblem API as Box.com proxy instead of direct Box SDK
+- **Payment Gateway**: Generic factory pattern with Telr implementation
+- **Monitoring**: Dual system (Sentry + NewRelic) with graceful fallbacks
+- **Authentication**: JWT-based with session management
+- **File Management**: ProofVault integration through EastEmblem proxy
+
+### Development Patterns
+- **Error Handling**: Comprehensive error boundaries and graceful degradation
+- **Performance**: 3-phase optimization completed (75% load time reduction)
+- **Database**: Drizzle ORM with PostgreSQL, migration via `npm run db:push`
+- **Frontend**: React Query for state management, shadcn/ui components
+- **Build System**: Vite frontend, esbuild server, no Docker/containers
+
+### Next Priorities
+- Score-based payment integration on analysis page
+- Utilization of unused scoring API data (venture context, team analysis, traction signals)
+- Payment section implementation with Telr hosted page flow
+- Enhanced user experience based on ProofScore results
