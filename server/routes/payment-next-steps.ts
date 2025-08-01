@@ -4,6 +4,10 @@ import { ActivityService } from "../services/activity-service";
 import { OnboardingService } from "../services/onboarding-service";
 import { PaymentService } from "../services/payment-service";
 import { storage } from "../storage";
+import { PaymentStatusMapper } from "../lib/payment-status-mapper";
+import { PaymentErrorHandler } from "../lib/error-handler";
+import { SecurityUtils } from "../lib/security-utils";
+import { sessionPaymentRateLimit, paymentStatusRateLimit, webhookRateLimit } from "../middleware/rate-limiter";
 
 const router = Router();
 
@@ -27,16 +31,27 @@ const paymentService = new PaymentService();
  * POST /api/payment/create-next-steps (session-based)
  * POST /api/v1/payment/create-next-steps (JWT-based, future dashboard use)
  */
-router.post("/create-next-steps-session", async (req: Request, res: Response) => {
+router.post("/create-next-steps-session", sessionPaymentRateLimit, async (req: Request, res: Response) => {
   try {
     const { sessionId, ventureName, proofScore, amount, packageType }: NextStepsPaymentRequest = req.body;
 
-    // Validate request
+    // Enhanced validation with security checks
     if (!sessionId || !ventureName || typeof proofScore !== 'number' || !amount || !packageType) {
-      return res.status(400).json({
-        success: false,
-        message: "Missing required fields: sessionId, ventureName, proofScore, amount, packageType"
-      });
+      throw PaymentErrorHandler.validationError("Missing required fields", { sessionId, ventureName, proofScore, amount, packageType });
+    }
+
+    // Sanitize and validate inputs
+    const sanitizedVentureName = SecurityUtils.sanitizeString(ventureName, 100);
+    if (!sanitizedVentureName) {
+      throw PaymentErrorHandler.validationError("ventureName", ventureName);
+    }
+
+    if (amount <= 0 || amount > 10000) {
+      throw PaymentErrorHandler.validationError("amount", `Amount must be between 0 and 10000, got ${amount}`);
+    }
+
+    if (!['foundation', 'investment_ready'].includes(packageType)) {
+      throw PaymentErrorHandler.validationError("packageType", packageType);
     }
 
     // Convert USD to AED for Telr (approximate conversion: $100 USD = 367 AED)
@@ -106,10 +121,11 @@ router.post("/create-next-steps-session", async (req: Request, res: Response) =>
       });
     }
     
-    // Extract founderId from session data
-    const founderId = session.stepData?.founderId || 
-                     session.stepData?.founder?.founderId || 
-                     session.stepData?.founder?.id;
+    // Extract founderId from session data with proper type checking
+    const stepData = session.stepData as any;
+    const founderId = stepData?.founderId || 
+                     stepData?.founder?.founderId || 
+                     stepData?.founder?.id;
     
     if (!founderId) {
       return res.status(400).json({
@@ -193,10 +209,7 @@ router.post("/create-next-steps-session", async (req: Request, res: Response) =>
 
   } catch (error) {
     console.error("Error creating Next Steps payment:", error);
-    return res.status(500).json({
-      success: false,
-      message: "Failed to create payment. Please try again."
-    });
+    PaymentErrorHandler.handleError(error, req, res, 'create-payment');
   }
 });
 
@@ -205,7 +218,7 @@ router.post("/create-next-steps-session", async (req: Request, res: Response) =>
  * GET /api/payment/status/:paymentId (session-based)
  * GET /api/v1/payment/status/:paymentId (JWT-based, future dashboard use)
  */
-router.get("/status/:paymentId", async (req: Request, res: Response) => {
+router.get("/status/:paymentId", paymentStatusRateLimit, async (req: Request, res: Response) => {
   try {
     const { paymentId } = req.params;
 
@@ -325,19 +338,23 @@ router.get("/test-telr-status/:orderRef", async (req: Request, res: Response) =>
  * POST /api/payment/webhook/next-steps (session-based)
  * POST /api/v1/payment/webhook/next-steps (JWT-based, future dashboard use)
  */
-router.post("/webhook/next-steps", async (req: Request, res: Response) => {
+router.post("/webhook/next-steps", webhookRateLimit, async (req: Request, res: Response) => {
   try {
     console.log("Received Telr webhook for Next Steps:", req.body);
 
     const webhookData = req.body;
     
-    // Verify webhook signature (if configured)
+    // Enhanced webhook security verification
+    const clientIP = SecurityUtils.getClientIP(req);
+    const signature = req.headers['x-telr-signature'] as string;
+    
+    console.log(`Webhook from IP: ${clientIP}, Signature: ${signature ? 'Present' : 'Missing'}`);
+    
     if (process.env.TELR_WEBHOOK_SECRET) {
-      const signature = req.headers['x-telr-signature'] as string;
       const gateway = PaymentGatewayFactory.create('telr');
       if (!gateway.validateWebhook(webhookData, signature)) {
-        console.error("Invalid webhook signature");
-        return res.status(401).json({ success: false, message: "Invalid signature" });
+        console.error(`Invalid webhook signature from IP: ${clientIP}`);
+        throw PaymentErrorHandler.webhookError("Invalid signature");
       }
     }
 
@@ -351,7 +368,7 @@ router.post("/webhook/next-steps", async (req: Request, res: Response) => {
     }
 
     // Get transaction from database using PaymentService
-    const paymentStatusResult = await paymentService.getPaymentStatus(paymentId);
+    const paymentStatusResult = await paymentService.checkPaymentStatus(paymentId);
 
     if (!paymentStatusResult.success || !paymentStatusResult.transaction) {
       console.error(`Payment transaction not found for webhook: ${paymentId}`);
@@ -364,23 +381,8 @@ router.post("/webhook/next-steps", async (req: Request, res: Response) => {
     const transaction = paymentStatusResult.transaction;
     const metadata = transaction.metadata as any;
 
-    // Map Telr status to our status
-    let newStatus: PaymentStatus = 'pending';
-    switch (status?.toLowerCase()) {
-      case 'authorised':
-      case 'paid':
-        newStatus = 'completed';
-        break;
-      case 'declined':
-      case 'failed':
-        newStatus = 'failed';
-        break;
-      case 'cancelled':
-        newStatus = 'cancelled';
-        break;
-      default:
-        newStatus = 'pending';
-    }
+    // Map Telr status using centralized mapper
+    const newStatus = PaymentStatusMapper.mapTelrWebhookStatus(status);
 
     // Update transaction status in database
     await paymentService.updatePaymentStatus(paymentId, newStatus);
@@ -440,16 +442,17 @@ router.get("/history/:sessionId", async (req: Request, res: Response) => {
     }
 
     // Find all payments for this session from database
-    const sessionPayments = await paymentService.getPaymentsBySessionId(sessionId);
+    const sessionPayments = await storage.getPaymentTransactionsBySessionId(sessionId);
     
-    if (!sessionPayments.success) {
-      return res.status(500).json({
-        success: false,
-        message: sessionPayments.error || "Failed to retrieve payment history"
+    if (!sessionPayments || sessionPayments.length === 0) {
+      return res.json({
+        success: true,
+        payments: [],
+        total: 0
       });
     }
 
-    const formattedPayments = sessionPayments.payments?.map(transaction => {
+    const formattedPayments = sessionPayments.map((transaction: any) => {
       const metadata = transaction.metadata as any;
       return {
         paymentId: transaction.orderReference,
@@ -459,7 +462,7 @@ router.get("/history/:sessionId", async (req: Request, res: Response) => {
         createdAt: transaction.createdAt,
         updatedAt: transaction.updatedAt
       };
-    }) || [];
+    });
 
     return res.json({
       success: true,
@@ -495,49 +498,40 @@ router.get("/callback/telr", async (req: Request, res: Response) => {
       return res.redirect(`${process.env.FRONTEND_URL || 'http://localhost:5000'}/payment/error?error=missing_payment_id`);
     }
 
-    // Find the payment transaction
-    const transaction = paymentTransactions.get(paymentId);
-    if (!transaction) {
+    // Find the payment transaction from database
+    const dbTransaction = await storage.getPaymentTransactionByOrderRef(paymentId);
+    if (!dbTransaction) {
       console.error("Payment transaction not found:", paymentId);
       return res.redirect(`${process.env.FRONTEND_URL || 'http://localhost:5000'}/payment/error?error=payment_not_found`);
     }
 
-    // Update transaction status
-    let newStatus: PaymentStatus = status === 'completed' ? 'completed' : 
-                                   status === 'failed' ? 'failed' : 
-                                   status === 'cancelled' ? 'cancelled' : 'pending';
+    // Update transaction status using centralized status mapper
+    const newStatus = PaymentStatusMapper.mapTelrWebhookStatus(status);
 
-    transaction.status = newStatus;
-    transaction.updatedAt = new Date();
-    paymentTransactions.set(paymentId, transaction);
-
-    // Also update database if transaction exists there
+    // Update database transaction
     try {
-      const dbTransaction = await storage.getPaymentTransactionByOrderRef(paymentId);
-      if (dbTransaction) {
-        await storage.updatePaymentTransaction(dbTransaction.id, {
-          status: newStatus,
-          gatewayStatus: status,
-          gatewayResponse: { callbackData: req.query }
-        });
+      await storage.updatePaymentTransaction(dbTransaction.id, {
+        status: newStatus,
+        gatewayStatus: status,
+        gatewayResponse: { callbackData: req.query }
+      });
 
-        // Log callback to payment_logs
-        await storage.createPaymentLog({
-          transactionId: paymentId,
-          gatewayProvider: 'telr',
-          action: 'session_callback_received',
-          requestData: { 
-            callbackStatus: status,
-            paymentId,
-            newStatus 
-          }
-        });
+      // Log callback to payment_logs
+      await storage.createPaymentLog({
+        transactionId: paymentId,
+        gatewayProvider: 'telr',
+        action: 'session_callback_received',
+        requestData: { 
+          callbackStatus: status,
+          paymentId,
+          newStatus 
+        }
+      });
 
-        console.log('✅ Database transaction updated via callback:', paymentId);
-      }
+      console.log('✅ Database transaction updated via callback:', paymentId);
     } catch (dbError) {
       console.error('❌ Failed to update database transaction via callback:', dbError);
-      // Continue anyway - in-memory update succeeded
+      return res.redirect(`${process.env.FRONTEND_URL || 'http://localhost:5000'}/payment/error?error=database_error`);
     }
 
     console.log("Payment status updated via callback:", {

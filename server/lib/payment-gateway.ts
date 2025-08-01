@@ -1,4 +1,6 @@
 import { z } from 'zod';
+import { SecurityUtils } from './security-utils';
+import { PaymentStatusMapper, type PaymentStatus } from './payment-status-mapper';
 
 // Payment gateway interfaces
 export interface CustomerData {
@@ -47,7 +49,7 @@ export interface PaymentOrderResponse {
 
 export interface PaymentStatusResponse {
   success: boolean;
-  status: 'pending' | 'completed' | 'failed' | 'cancelled' | 'expired';
+  status: PaymentStatus;
   gatewayStatus?: string;
   transactionId?: string;
   amount?: number;
@@ -58,7 +60,7 @@ export interface PaymentStatusResponse {
 export interface WebhookResponse {
   success: boolean;
   orderReference: string;
-  status: 'pending' | 'completed' | 'failed' | 'cancelled' | 'expired';
+  status: PaymentStatus;
   transactionId?: string;
   gatewayResponse: any;
 }
@@ -121,7 +123,7 @@ class TelrGateway extends PaymentGateway {
         declined: orderData.returnUrls.declined,
         cancelled: orderData.returnUrls.cancelled
       },
-      ...(orderData.customerData && { customer: orderData.customerData }),
+      ...(orderData.customerData && { customer: SecurityUtils.sanitizeCustomerData(orderData.customerData) }),
       ...(orderData.metadata && {
         extra: {
           gateway: 'telr',
@@ -206,22 +208,13 @@ class TelrGateway extends PaymentGateway {
         };
       }
 
-      // Map Telr status codes to our generic status
-      let status: PaymentStatusResponse['status'] = 'pending';
+      // Map Telr status codes to our generic status using centralized mapper
       const statusCode = result.order?.status?.code;
       const statusText = result.order?.status?.text;
       
       console.log(`Telr order status - Code: ${statusCode}, Text: ${statusText}`);
       
-      if (statusCode === 3 || statusText === 'Paid') {
-        status = 'completed';
-      } else if (statusCode === 1 || statusText === 'Pending') {
-        status = 'pending';
-      } else if (statusCode === 2 || statusText === 'Declined') {
-        status = 'failed';
-      } else if (statusCode === 0 || statusText === 'Cancelled') {
-        status = 'cancelled';
-      }
+      const status = PaymentStatusMapper.mapTelrApiStatus(statusCode, statusText);
 
       console.log(`Mapped status: ${status}`);
 
@@ -246,18 +239,12 @@ class TelrGateway extends PaymentGateway {
     try {
       // Telr sends callback data via POST or GET with order information
       const orderRef = payload.order_ref || payload.cartid || payload.OrderRef;
-      let status: WebhookResponse['status'] = 'pending';
       
-      // Telr status mapping for hosted page callbacks
+      // Telr status mapping for hosted page callbacks using centralized mapper
       const telrStatus = payload.status || payload.STATUS;
+      const status = PaymentStatusMapper.mapTelrWebhookStatus(telrStatus);
       
-      if (telrStatus === 'A' || telrStatus === '3' || telrStatus === 'paid') {
-        status = 'completed';
-      } else if (telrStatus === 'C' || telrStatus === '1' || telrStatus === 'cancelled') {
-        status = 'cancelled';
-      } else if (telrStatus === 'E' || telrStatus === '2' || telrStatus === 'failed') {
-        status = 'failed';
-      } else if (telrStatus === 'H' || telrStatus === '0' || telrStatus === 'pending') {
+      if (telrStatus === 'H' || telrStatus === '0' || telrStatus === 'pending') {
         status = 'pending';
       }
 
@@ -274,22 +261,27 @@ class TelrGateway extends PaymentGateway {
   }
 
   validateWebhook(payload: any, signature?: string): boolean {
-    // Telr webhook validation for hosted page callbacks
-    // Basic validation - in production, add IP whitelisting for Telr's callback IPs
-    const hasOrderRef = payload && (
-      payload.order_ref || 
-      payload.cartid || 
-      payload.OrderRef ||
-      payload.order?.ref
-    );
+    // Enhanced webhook validation with signature verification
+    if (!signature || !process.env.TELR_WEBHOOK_SECRET) {
+      console.warn('Webhook signature validation skipped - no signature or secret configured');
+      // Fall back to basic validation for backward compatibility
+      const hasOrderRef = payload && (
+        payload.order_ref || 
+        payload.cartid || 
+        payload.OrderRef ||
+        payload.order?.ref
+      );
+      
+      const hasStatus = payload && (
+        payload.status ||
+        payload.STATUS ||
+        payload.order?.status
+      );
+      
+      return !!(hasOrderRef && hasStatus);
+    }
     
-    const hasStatus = payload && (
-      payload.status ||
-      payload.STATUS ||
-      payload.order?.status
-    );
-    
-    return !!(hasOrderRef && hasStatus);
+    return SecurityUtils.verifyTelrWebhookSignature(payload, signature, process.env.TELR_WEBHOOK_SECRET);
   }
 }
 

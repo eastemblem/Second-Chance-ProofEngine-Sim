@@ -3,6 +3,7 @@ import { motion } from "framer-motion";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
+import { MobilePaymentModal } from "@/components/ui/mobile-payment-modal";
 import { 
   BookOpen, 
   TrendingUp, 
@@ -43,6 +44,8 @@ export default function PaymentOnboarding({ sessionData, onNext, onSkip, onPrev,
   const { toast } = useToast();
   const [paymentStatus, setPaymentStatus] = useState<PaymentStatus>({ status: 'idle' });
   const [isPolling, setIsPolling] = useState(false);
+  const [showMobileModal, setShowMobileModal] = useState(false);
+  const [isMobileDevice, setIsMobileDevice] = useState(false);
   
   // Extract data from session - early payment doesn't have analysis data yet
   const analysisData = sessionData?.stepData?.processing || {};
@@ -237,6 +240,79 @@ export default function PaymentOnboarding({ sessionData, onNext, onSkip, onPrev,
     ]
   };
 
+  // Helper function for manual payment status checking
+  const checkPaymentStatus = async (paymentId: string) => {
+    try {
+      console.log('Manual payment status check for:', paymentId);
+      const statusResponse = await apiRequest('GET', `/api/payment/status/${paymentId}`);
+      const statusData = await statusResponse.json();
+      
+      if (statusData.success) {
+        const status = statusData.status;
+        console.log('Manual status check result:', status);
+        
+        if (status === 'completed') {
+          setPaymentStatus({
+            status: 'success',
+            message: 'Payment completed successfully!',
+            paymentId: paymentId
+          });
+          
+          toast({
+            title: "Payment Successful! 🎉",
+            description: "Your package has been activated.",
+            variant: "default",
+          });
+          
+          // Close mobile modal if open
+          setShowMobileModal(false);
+          
+          // Auto-advance after successful payment
+          setTimeout(() => {
+            onNext();
+          }, 2000);
+          
+        } else if (status === 'failed') {
+          setPaymentStatus({
+            status: 'failed',
+            message: 'Payment was declined. Please try again.',
+            paymentId: paymentId
+          });
+          setShowMobileModal(false);
+          
+        } else if (status === 'cancelled') {
+          setPaymentStatus({
+            status: 'cancelled',
+            message: 'Payment was cancelled.',
+            paymentId: paymentId
+          });
+          setShowMobileModal(false);
+        }
+      }
+    } catch (error) {
+      console.error('Manual payment status check failed:', error);
+      toast({
+        title: "Status Check Failed",
+        description: "Unable to check payment status. Please try again.",
+        variant: "destructive",
+      });
+    }
+  };
+
+  // Check for mobile device
+  useEffect(() => {
+    const checkMobile = () => {
+      const userAgent = navigator.userAgent.toLowerCase();
+      const isMobile = /android|iphone|ipad|ipod|blackberry|iemobile|opera mini/.test(userAgent);
+      const isSmallScreen = window.innerWidth <= 768;
+      setIsMobileDevice(isMobile || isSmallScreen);
+    };
+    
+    checkMobile();
+    window.addEventListener('resize', checkMobile);
+    return () => window.removeEventListener('resize', checkMobile);
+  }, []);
+
   const handlePurchasePackage = async () => {
     setPaymentStatus({ status: 'generating', message: 'Preparing your payment...' });
     
@@ -265,19 +341,29 @@ export default function PaymentOnboarding({ sessionData, onNext, onSkip, onPrev,
           paymentId: paymentData.paymentId
         });
         
-        // Open Telr payment page in new tab
+        // Enhanced payment flow based on device type
         setTimeout(() => {
-          window.open(paymentData.telrUrl, '_blank', 'noopener,noreferrer');
+          if (isMobileDevice) {
+            // Mobile flow: show modal with payment button
+            setShowMobileModal(true);
+            setPaymentStatus({ 
+              status: 'waiting', 
+              message: 'Tap "Complete Payment" above to continue securely.',
+              telrUrl: paymentData.telrUrl,
+              paymentId: paymentData.paymentId
+            });
+          } else {
+            // Desktop flow: open in new tab
+            window.open(paymentData.telrUrl, '_blank', 'noopener,noreferrer');
+            setPaymentStatus({ 
+              status: 'waiting', 
+              message: 'Please complete your payment in the new tab. We\'ll check for updates automatically.',
+              telrUrl: paymentData.telrUrl,
+              paymentId: paymentData.paymentId
+            });
+          }
           
-          // Start waiting for payment completion
-          setPaymentStatus({ 
-            status: 'waiting', 
-            message: 'Please complete your payment in the new tab. We\'ll check for updates automatically.',
-            telrUrl: paymentData.telrUrl,
-            paymentId: paymentData.paymentId
-          });
-          
-          // Start polling for payment status
+          // Start polling for payment status for both flows
           startPaymentStatusPolling(paymentData.paymentId);
         }, 1500);
         
@@ -584,6 +670,28 @@ export default function PaymentOnboarding({ sessionData, onNext, onSkip, onPrev,
           </div>
         </motion.div>
       </div>
+      
+      {/* Mobile Payment Modal */}
+      {showMobileModal && paymentStatus.telrUrl && paymentStatus.paymentId && (
+        <MobilePaymentModal
+          isOpen={showMobileModal}
+          onClose={() => setShowMobileModal(false)}
+          paymentUrl={paymentStatus.telrUrl}
+          paymentId={paymentStatus.paymentId}
+          packageType={packageData.type}
+          amount={`$${packageData.price}`}
+          onStatusCheck={async () => {
+            // Manual status check for mobile users
+            if (paymentStatus.paymentId) {
+              await checkPaymentStatus(paymentStatus.paymentId);
+            }
+          }}
+          currentStatus={paymentStatus.status === 'waiting' ? 'pending' : 
+                        paymentStatus.status === 'success' ? 'completed' :
+                        paymentStatus.status === 'failed' ? 'failed' : 'processing'}
+          statusMessage={paymentStatus.message}
+        />
+      )}
     </div>
   );
 }

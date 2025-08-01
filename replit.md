@@ -1,10 +1,9 @@
 # Second Chance - ProofScaling Validation Platform
 
 ## Overview
-Second Chance is a startup validation platform designed to assess investment readiness. It leverages AI-powered document analysis and a structured scoring framework to provide actionable insights and personalized pathways for founders. The platform aims to revolutionize how entrepreneurs validate their ventures, offering comprehensive analysis to improve their chances of success and attract investment.
+Second Chance is a startup validation platform that assesses investment readiness. It uses AI-powered document analysis and a structured scoring framework to provide insights and personalized pathways for founders. The platform aims to help entrepreneurs validate their ventures, improve their chances of success, and attract investment.
 
-## User Preferences & Communication
-
+## User Preferences
 ### Communication Style
 - **Primary Style**: Simple, everyday language
 - **Technical Level**: Non-technical user - avoid code details and technical jargon
@@ -18,7 +17,7 @@ Second Chance is a startup validation platform designed to assess investment rea
 - This approach reduces unnecessary work and produces better outputs by understanding requirements fully
 - Continue this pattern throughout entire conversation
 
-### Agent Memory Optimization (Updated: 2025-08-01)
+### Agent Memory Optimization
 - **Context Management**: Use targeted file searches and focused information sharing
 - **Session Continuity**: Document decisions and progress in this file for future sessions
 - **Concurrent Operations**: Execute multiple tools simultaneously to reduce back-and-forth
@@ -49,7 +48,7 @@ Second Chance is a startup validation platform designed to assess investment rea
 - **API Integration**: Custom EastEmblem API client
 - **Route Architecture**: Modular, domain-based structure with standardized middleware and V1 API versioning.
 - **Performance Monitoring**: Request tracking, memory monitoring, query optimization.
-- **Payment System**: Generic payment gateway abstraction layer with factory pattern supporting multiple providers (currently Telr implemented).
+- **Payment System**: Generic payment gateway abstraction layer with factory pattern supporting multiple providers.
 
 ### Database Architecture
 - **ORM**: Drizzle ORM with PostgreSQL dialect
@@ -58,7 +57,7 @@ Second Chance is a startup validation platform designed to assess investment rea
 - **Connection**: Connection pooling with @neondatabase/serverless.
 
 ### Key Features
-- **Onboarding Flow**: Complete multi-step wizard (Founder, Venture, Team, Document Upload, Analysis Results, Payment) with back navigation and session-based payment integration.
+- **Onboarding Flow**: Multi-step wizard (Founder, Venture, Team, Document Upload, Analysis Results, Payment) with back navigation and session-based payment integration.
 - **ProofScore System**: Comprehensive 5-dimension scoring (Desirability, Feasibility, Viability, Traction, Readiness), each max 20 points.
 - **Pathway Recommendations**: Personalized development pathways based on ProofScore (ProofScaling course <70, investor matching ≥80).
 - **ProofVault Integration**: Document management with AI-powered pitch deck analysis, structured folder creation, and handling of single/multiple file/folder uploads (preserving hierarchy).
@@ -66,6 +65,20 @@ Second Chance is a startup validation platform designed to assess investment rea
 - **Simulation Engine**: Demo experience for testing user journeys with dynamic score generation.
 - **Activity Tracking**: Real-time logging of user actions (authentication, file uploads, onboarding, payments).
 - **Payment Gateway System**: Generic payment architecture supporting multiple providers with hosted payment page solution, comprehensive transaction management, webhook/callback processing, and automated status page redirects.
+
+### Architecture Decisions
+- **Box Integration**: Using EastEmblem API as Box.com proxy instead of direct Box SDK.
+- **Payment Gateway**: Generic factory pattern with Telr implementation.
+- **Monitoring**: Dual system (Sentry + NewRelic) with graceful fallbacks.
+- **Authentication**: JWT-based with session management.
+- **File Management**: ProofVault integration through EastEmblem proxy.
+- **Cache Invalidation**: Event-driven invalidation for V1 routes only (file uploads, folder creation, activity logging, onboarding).
+
+### Security Implementations
+- **Environment Protection Strategy**: Complete isolation of development resources from production.
+- **Frontend Security**: Test routes conditionally rendered using `import.meta.env.MODE === 'development'`.
+- **Backend Security**: Test endpoints protected with `process.env.NODE_ENV !== 'production'` guards.
+- **Security Infrastructure**: Environment protection middleware created for systematic protection of sensitive endpoints.
 
 ## External Dependencies
 
@@ -91,93 +104,3 @@ Second Chance is a startup validation platform designed to assess investment rea
 - **Sentry**: Error tracking system.
 - **NewRelic**: Performance monitoring.
 - **Telr Payment Gateway**: Primary payment processor with hosted payment page solution, webhook verification, and automated callback handling.
-
-## Recent Project Context & Memory
-
-### Current Status (Updated: 2025-08-01 19:08 - Database Integration Complete)
-- **Application Health**: ✅ **REBUILT & RUNNING** - Server fully functional on port 5000, fresh build deployed with payment optimizations
-- **Onboarding Flow with Payment**: ✅ **COMPLETED** - Added payment step back to onboarding flow using session-based `/api/payment/create-next-steps-session` endpoint
-- **Cache Invalidation System**: Comprehensive cache invalidation implemented for V1 routes only
-- **Activity Logging System**: V1 upload and folder creation endpoints now log activities for real-time dashboard updates
-- **Architecture**: EastEmblem API proxy eliminates need for direct Box SDK integration
-- **Payment System**: ✅ **DUAL AUTHENTICATION ARCHITECTURE COMPLETED** - Session-based payment routes (`/api/payment/*`) for onboarding flow, JWT-protected routes (`/api/v1/payment/*`) preserved for future dashboard payments
-- **Browser Caching Issue**: ✅ **RESOLVED** - Root cause was automatic URL conversion in queryClient.ts that converted all `/api/` requests to `/api/v1/`, bypassed with payment route exemption
-- **Telr Currency Configuration**: ✅ **RESOLVED** - "E05:Transaction cost or currency not valid" error resolved by switching from USD to AED currency with proper conversion ($100 USD = 367 AED)
-- **Authentication Flow**: ✅ **WORKING** - Onboarding payment flow now uses session-based authentication correctly, V1 routes preserved for future dashboard functionality
-- **Payment Storage**: ✅ **DATABASE SINGLE SOURCE OF TRUTH** - Payment transactions fully integrated with database, temporary founder creation for session-based payments, complete elimination of in-memory storage dependencies
-- **Payment UX Enhancement**: ✅ **NEW TAB FLOW IMPLEMENTED** - Telr opens in new tab, payment status polling every 10s, users remain on onboarding page with real-time status updates
-- **Payment Flow Optimization**: ✅ **MOVED TO STEP 2** - Payment now occurs after founder details (step 2) instead of step 7 for faster testing, shows early access Foundation package
-- **Payment Verification Fix**: ✅ **CALLBACK SYSTEM IMPLEMENTED** - Fixed Telr callback handling with session-based `/api/payment/callback/telr` endpoint for proper payment status updates
-- **Polling Detection Fix**: ✅ **DATA STRUCTURE MISMATCH RESOLVED** - Fixed onboarding payment polling to read `statusData.status` instead of `statusData.transaction.status` for session-based payments
-- **Error Handling Enhancement**: ✅ **404 POLLING GRACEFUL STOP** - Added proper error handling to stop polling when payment not found (e.g., after server restart)
-- **Tab Focus Detection**: ✅ **AUTOMATIC PAYMENT DETECTION** - Added window focus listener to automatically check payment status when user returns to onboarding tab after payment
-- **Manual Refresh Feature**: ✅ **USER-TRIGGERED STATUS CHECK** - Added "Check Payment Status" button in waiting state for users experiencing polling delays or timing issues
-- **Database Integration Complete**: ✅ **SINGLE SOURCE OF TRUTH ACHIEVED** - Payment initialization, logging, and status checks now use database exclusively, eliminated all in-memory storage dependencies, requires proper onboarding completion
-- **Telr URL Fix**: ✅ **RETURN URL FORMAT RESOLVED** - Fixed double protocol issue in Telr return URLs by properly handling FRONTEND_URL environment variable that already contains protocol
-- **Payment Status Sync**: ✅ **LIVE STATUS CHECK IMPLEMENTED** - Enhanced payment status endpoint to always check live status with Telr gateway instead of relying on cached database status, preventing status discrepancies
-- **Telr API Integration**: ✅ **OFFICIAL ENDPOINT IMPLEMENTED** - Updated to use Telr's official order.json endpoint with comprehensive logging and removed PaymentService caching to ensure real-time status verification
-- **Status Mapping Fix**: ✅ **TELR STATUS CODES CORRECTED** - Fixed incorrect mapping where Telr status code 1 ("Pending") was being mapped to "cancelled" instead of "pending", resolving frontend status discrepancies
-- **Data Utilization**: 85% of rich scoring API data still unused - opportunity for enhancement
-- **Production Security**: Environment-based protection implemented for test endpoints and debug routes
-
-### Unused Secrets Analysis (2025-08-01)
-**Safe to Remove (7 total):**
-- `LOGO_URL` - Never referenced in codebase
-- `NEW_RELIC_APP_NAME` - Has hardcoded fallback value
-- `BOX_PUBLIC_KEY_ID` - Not needed due to EastEmblem proxy
-- `BOX_PRIVATE_KEY` - Not needed due to EastEmblem proxy  
-- `BOX_ENTERPRISE_ID` - Not needed due to EastEmblem proxy
-- `BOX_PASSPHRASE` - Not needed due to EastEmblem proxy
-- `BOX_PRIVATE_KEY_BASE64` - Not needed due to EastEmblem proxy
-
-**Impact Assessment**: Minimal to zero codebase impact from removal
-
-### Architecture Decisions
-- **Box Integration**: Using EastEmblem API as Box.com proxy instead of direct Box SDK
-- **Payment Gateway**: Generic factory pattern with Telr implementation
-- **Monitoring**: Dual system (Sentry + NewRelic) with graceful fallbacks
-- **Authentication**: JWT-based with session management
-- **File Management**: ProofVault integration through EastEmblem proxy
-- **Cache Invalidation**: Event-driven invalidation for V1 routes only (file uploads, folder creation, activity logging, onboarding)
-
-### Development Patterns
-- **Error Handling**: Comprehensive error boundaries and graceful degradation
-- **Performance**: 3-phase optimization completed (75% load time reduction)
-- **Database**: Drizzle ORM with PostgreSQL, migration via `npm run db:push`
-- **Frontend**: React Query for state management, shadcn/ui components
-- **Build System**: Vite frontend, esbuild server, no Docker/containers
-
-### Next Priorities
-- Score-based payment integration on analysis page
-- Utilization of unused scoring API data (venture context, team analysis, traction signals)
-- Payment section implementation with Telr hosted page flow
-- Enhanced user experience based on ProofScore results
-
-### Security Implementations (Updated: 2025-08-01)
-**Environment Protection Strategy**: Complete isolation of development resources from production
-**Frontend Security**: Test routes (sentry-test, performance-test, routing-debug, payment-test, reset-password-debug) conditionally rendered using `import.meta.env.MODE === 'development'`
-**Backend Security**: Test endpoints (/api/newrelic-test, /api/onboarding/trigger-email-flow) protected with `process.env.NODE_ENV !== 'production'` guards
-**Security Infrastructure**: Environment protection middleware created for systematic protection of sensitive endpoints
-**Production Readiness**: Platform secured against accidental exposure of development tools and system internals in production deployment
-
-### Cache Invalidation Implementation (2025-08-01)
-**Scope**: V1 routes only (user preference for targeted implementation)
-**Strategy**: Event-driven cache invalidation with graceful error handling
-
-**Cache Invalidation Triggers:**
-- **File Upload** (V1 vault upload, direct upload) → Logs activity + Invalidates `vault_{founderId}` + `activity_{founderId}`
-- **Folder Creation** (V1 vault create-folder) → Logs activity + Invalidates `vault_{founderId}`  
-- **Activity Logging** (ActivityService) → Invalidates `activity_{founderId}`
-- **Founder Creation** (V1 onboarding) → Invalidates `founder_{founderId}`
-- **Venture Creation** (V1 onboarding) → Invalidates `founder_{founderId}` + `venture_{ventureId}` + `vault_{founderId}`
-
-**Activity Logging Integration:**
-- **V1 File Upload** → Creates "file_uploaded" activity with file details
-- **V1 Direct Upload** → Creates "file_uploaded" activity with folder information
-- **V1 Folder Creation** → Creates "folder_created" activity with category context
-
-**Implementation Details:**
-- Graceful error handling (cache failures don't break core functionality)
-- LRU + KV cache dual invalidation
-- Console logging for cache operations
-- Activity-driven cache updates ensure real-time data freshness

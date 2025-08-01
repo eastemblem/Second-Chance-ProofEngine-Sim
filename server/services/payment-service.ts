@@ -181,7 +181,9 @@ export class PaymentService {
         await this.logPaymentAction(transaction.id, transaction.gatewayProvider, 'status_updated', statusResult.gatewayResponse);
 
         // Create subscription if payment completed
-        if (statusResult.status === 'completed' && transaction.metadata && 'planType' in transaction.metadata) {
+        if (statusResult.status === 'completed' && transaction.metadata && 
+            typeof transaction.metadata === 'object' && transaction.metadata !== null && 
+            'planType' in transaction.metadata) {
           await this.createSubscription(transaction.founderId, transaction.id, transaction.metadata.planType as string, transaction.gatewayProvider);
         }
 
@@ -253,7 +255,9 @@ export class PaymentService {
         await this.logPaymentAction(transaction.id, provider as any, 'webhook_received', webhookResult.gatewayResponse);
 
         // Create subscription if payment completed
-        if (webhookResult.status === 'completed' && transaction.metadata && 'planType' in transaction.metadata) {
+        if (webhookResult.status === 'completed' && transaction.metadata && 
+            typeof transaction.metadata === 'object' && transaction.metadata !== null && 
+            'planType' in transaction.metadata) {
           await this.createSubscription(transaction.founderId, transaction.id, transaction.metadata.planType as string, provider as any);
         }
       }
