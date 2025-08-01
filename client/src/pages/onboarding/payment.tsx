@@ -130,6 +130,7 @@ export default function PaymentOnboarding({ sessionData, onNext, onSkip, onPrev,
             message: 'Still waiting for payment completion. The page will update automatically once payment is processed.',
             paymentId
           });
+          console.log('Payment polling stopped after max attempts');
         }
         
       } catch (error) {
@@ -149,6 +150,40 @@ export default function PaymentOnboarding({ sessionData, onNext, onSkip, onPrev,
       setIsPolling(false);
     };
   }, []);
+
+  // Check payment status when tab regains focus
+  useEffect(() => {
+    const handleFocus = async () => {
+      if (paymentStatus.status === 'processing' && paymentStatus.paymentId) {
+        console.log('Tab regained focus, checking payment status immediately');
+        try {
+          const statusResponse = await apiRequest('GET', `/api/payment/status/${paymentStatus.paymentId}`);
+          const statusData = await statusResponse.json();
+          
+          if (statusData.success && statusData.status === 'completed') {
+            setPaymentStatus({
+              status: 'success',
+              message: 'Payment completed successfully!',
+              paymentId: paymentStatus.paymentId
+            });
+            
+            toast({
+              title: "Payment Successful! 🎉",
+              description: "Your package has been activated. Welcome to the next level!",
+              variant: "default",
+            });
+            
+            setTimeout(() => onNext(), 3000);
+          }
+        } catch (error) {
+          console.error('Error checking payment status on focus:', error);
+        }
+      }
+    };
+
+    window.addEventListener('focus', handleFocus);
+    return () => window.removeEventListener('focus', handleFocus);
+  }, [paymentStatus, onNext, toast]);
 
   const packageData = (isEarlyPayment || !isHighScore) ? {
     type: "foundation",
@@ -405,6 +440,50 @@ export default function PaymentOnboarding({ sessionData, onNext, onSkip, onPrev,
                         className="flex-1 text-blue-300 border-blue-500 hover:bg-blue-500/10"
                       >
                         Reopen Payment
+                      </Button>
+                      <Button
+                        onClick={async () => {
+                          if (paymentStatus.paymentId) {
+                            try {
+                              console.log('Manual payment status check for:', paymentStatus.paymentId);
+                              const statusResponse = await apiRequest('GET', `/api/payment/status/${paymentStatus.paymentId}`);
+                              const statusData = await statusResponse.json();
+                              
+                              if (statusData.success && statusData.status === 'completed') {
+                                setPaymentStatus({
+                                  status: 'success',
+                                  message: 'Payment completed successfully!',
+                                  paymentId: paymentStatus.paymentId
+                                });
+                                
+                                toast({
+                                  title: "Payment Found! 🎉",
+                                  description: "Your payment has been completed successfully.",
+                                  variant: "default",
+                                });
+                                
+                                setTimeout(() => onNext(), 2000);
+                              } else {
+                                toast({
+                                  title: "Payment Still Pending",
+                                  description: "Payment is still being processed. Please wait or complete payment.",
+                                  variant: "default",
+                                });
+                              }
+                            } catch (error) {
+                              console.error('Manual status check error:', error);
+                              toast({
+                                title: "Check Failed",
+                                description: "Unable to check payment status. Please try again.",
+                                variant: "destructive",
+                              });
+                            }
+                          }
+                        }}
+                        variant="outline"
+                        className="flex-1 text-green-300 border-green-500 hover:bg-green-500/10"
+                      >
+                        Check Status
                       </Button>
                       <Button
                         onClick={() => setPaymentStatus({ status: 'idle' })}
