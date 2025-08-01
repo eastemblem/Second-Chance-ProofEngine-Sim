@@ -58,6 +58,6 @@ router.use("/payment", paymentNextStepsRouter);
 // V1 API routes (JWT authentication)
 router.use("/v1/payments", paymentsRouter);
 router.use("/v1/webhooks", webhooksRouter);
-router.use("/v1/payment", paymentNextStepsRouter);
+// Note: V1 payment next-steps will be implemented separately for dashboard use
 
 export default router;
