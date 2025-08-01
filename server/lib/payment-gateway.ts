@@ -242,7 +242,7 @@ class TelrGateway extends PaymentGateway {
       
       // Telr status mapping for hosted page callbacks using centralized mapper
       const telrStatus = payload.status || payload.STATUS;
-      const status = PaymentStatusMapper.mapTelrWebhookStatus(telrStatus);
+      let status = PaymentStatusMapper.mapTelrWebhookStatus(telrStatus);
       
       if (telrStatus === 'H' || telrStatus === '0' || telrStatus === 'pending') {
         status = 'pending';
