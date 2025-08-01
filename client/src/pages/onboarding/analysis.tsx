@@ -417,6 +417,7 @@ const getProofTagIcon = (tagName: string): string => {
 interface AnalysisProps {
   sessionId: string;
   sessionData: any;
+  onNext?: () => void;
   onComplete: () => void;
 }
 
@@ -428,6 +429,7 @@ interface FeedbackPageProps {
 export default function Analysis({
   sessionId,
   sessionData,
+  onNext,
   onComplete,
 }: AnalysisProps) {
   const [isLoading, setIsLoading] = useState(false);
@@ -1590,14 +1592,14 @@ export default function Analysis({
                 </p>
                 <Button
                   onClick={() => {
-                    // TEMP: Use test session for manual testing
-                    const testSessionId = sessionId || 'test-session-123';
-                    window.location.href = `/next-steps?sessionId=${testSessionId}&score=${analysisData.total_score || 75}&venture=Test%20Venture`;
+                    if (onNext) {
+                      onNext();
+                    }
                   }}
                   className="gradient-button px-6 sm:px-8 py-4 sm:py-6 text-base sm:text-lg w-full sm:w-auto min-h-[48px] mb-4"
                   size="lg"
                 >
-                  Discover Next Steps (TEST)
+                  Continue to Next Steps
                   <ArrowRight className="ml-2 w-4 h-4 sm:w-5 sm:h-5" />
                 </Button>
                 
