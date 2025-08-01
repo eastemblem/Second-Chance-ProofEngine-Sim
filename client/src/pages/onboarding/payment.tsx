@@ -457,35 +457,38 @@ export default function PaymentOnboarding({ sessionData, onNext, onSkip, onPrev,
             </CardHeader>
             
             <CardContent className="space-y-6">
-              {/* Features */}
-              <div>
-                <h3 className="text-lg font-semibold text-foreground mb-3 flex items-center">
-                  <CheckCircle className="w-5 h-5 text-green-400 mr-2" />
-                  What's Included
-                </h3>
-                <div className="grid gap-2">
-                  {packageData.features.map((feature, index) => (
-                    <div key={index} className="flex items-center text-muted-foreground">
-                      <div className="w-2 h-2 bg-primary rounded-full mr-3 flex-shrink-0"></div>
-                      {feature}
-                    </div>
-                  ))}
+              {/* Features and Outcomes - Side by Side */}
+              <div className="grid md:grid-cols-2 gap-6">
+                {/* Features */}
+                <div>
+                  <h3 className="text-lg font-semibold text-foreground mb-3 flex items-center">
+                    <CheckCircle className="w-5 h-5 text-green-400 mr-2" />
+                    What's Included
+                  </h3>
+                  <div className="grid gap-2">
+                    {packageData.features.map((feature, index) => (
+                      <div key={index} className="flex items-center text-muted-foreground">
+                        <div className="w-2 h-2 bg-primary rounded-full mr-3 flex-shrink-0"></div>
+                        {feature}
+                      </div>
+                    ))}
+                  </div>
                 </div>
-              </div>
 
-              {/* Outcomes */}
-              <div>
-                <h3 className="text-lg font-semibold text-foreground mb-3 flex items-center">
-                  <Target className="w-5 h-5 text-primary mr-2" />
-                  Expected Outcomes
-                </h3>
-                <div className="grid gap-2">
-                  {packageData.outcomes.map((outcome, index) => (
-                    <div key={index} className="flex items-center text-muted-foreground">
-                      <div className="w-2 h-2 bg-primary-gold rounded-full mr-3 flex-shrink-0"></div>
-                      {outcome}
-                    </div>
-                  ))}
+                {/* Outcomes */}
+                <div>
+                  <h3 className="text-lg font-semibold text-foreground mb-3 flex items-center">
+                    <Target className="w-5 h-5 text-primary mr-2" />
+                    Expected Outcomes
+                  </h3>
+                  <div className="grid gap-2">
+                    {packageData.outcomes.map((outcome, index) => (
+                      <div key={index} className="flex items-center text-muted-foreground">
+                        <div className="w-2 h-2 bg-primary-gold rounded-full mr-3 flex-shrink-0"></div>
+                        {outcome}
+                      </div>
+                    ))}
+                  </div>
                 </div>
               </div>
 
@@ -504,10 +507,10 @@ export default function PaymentOnboarding({ sessionData, onNext, onSkip, onPrev,
                     </div>
                     <Button
                       onClick={onNext}
-                      className="w-full text-lg font-semibold py-6 bg-green-600 hover:bg-green-700 text-white"
+                      className="w-full text-base font-semibold py-4 bg-green-600 hover:bg-green-700 text-white max-w-md mx-auto"
                     >
-                      Continue to Dashboard
-                      <ArrowRight className="w-5 h-5 ml-2" />
+                      Continue
+                      <ArrowRight className="w-4 h-4 ml-2" />
                     </Button>
                   </div>
                 ) : paymentStatus.status === 'waiting' ? (
@@ -587,23 +590,23 @@ export default function PaymentOnboarding({ sessionData, onNext, onSkip, onPrev,
                     <Button
                       onClick={handlePurchasePackage}
                       disabled={paymentStatus.status === 'generating' || paymentStatus.status === 'processing'}
-                      className="w-full gradient-button py-6 text-lg font-semibold"
-                      size="lg"
+                      className="w-full gradient-button py-4 text-base font-semibold max-w-md mx-auto"
+                      size="default"
                     >
                       {paymentStatus.status === 'generating' && (
-                        <Loader2 className="w-5 h-5 animate-spin mr-2" />
+                        <Loader2 className="w-4 h-4 animate-spin mr-2" />
                       )}
                       {paymentStatus.status === 'processing' && (
-                        <CreditCard className="w-5 h-5 mr-2" />
+                        <CreditCard className="w-4 h-4 mr-2" />
                       )}
                       {paymentStatus.status === 'idle' && (
-                        <ArrowRight className="w-5 h-5 mr-2" />
+                        <ArrowRight className="w-4 h-4 mr-2" />
                       )}
                       {paymentStatus.status === 'generating' 
                         ? 'Preparing Payment...'
                         : paymentStatus.status === 'processing'
                         ? 'Opening Payment in New Tab...'
-                        : `Get ${packageData.title}`
+                        : 'Make Payment'
                       }
                     </Button>
 
@@ -640,7 +643,7 @@ export default function PaymentOnboarding({ sessionData, onNext, onSkip, onPrev,
                       variant="outline"
                       className="flex-1 text-muted-foreground border-border hover:bg-secondary"
                     >
-                      Continue to Dashboard
+                      Skip Payment
                     </Button>
                   </div>
                 )}
