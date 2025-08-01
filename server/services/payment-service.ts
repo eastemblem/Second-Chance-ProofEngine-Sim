@@ -20,11 +20,26 @@ interface PaymentStatusUpdate {
 
 export class PaymentService {
   private getReturnUrls(orderReference: string) {
-    const baseUrl = process.env.FRONTEND_URL || `${process.env.REPLIT_DOMAINS?.split(',')[0] || 'localhost:5000'}`;
+    const frontendUrl = process.env.FRONTEND_URL;
+    const replitDomain = process.env.REPLIT_DOMAINS?.split(',')[0];
+    
+    let baseUrl: string;
+    if (frontendUrl) {
+      // Clean up FRONTEND_URL - remove protocol if present and trailing slashes
+      const cleanUrl = frontendUrl.replace(/^https?:\/\//, '').replace(/\/$/, '');
+      baseUrl = `https://${cleanUrl}`;
+    } else if (replitDomain) {
+      // Build URL from Replit domain
+      baseUrl = `https://${replitDomain}`;
+    } else {
+      // Fallback to localhost
+      baseUrl = 'http://localhost:5000';
+    }
+    
     return {
-      authorised: `https://${baseUrl}/payment/success?ref=${orderReference}`,
-      declined: `https://${baseUrl}/payment/failed?ref=${orderReference}`,
-      cancelled: `https://${baseUrl}/payment/cancelled?ref=${orderReference}`
+      authorised: `${baseUrl}/payment/success?ref=${orderReference}`,
+      declined: `${baseUrl}/payment/failed?ref=${orderReference}`,
+      cancelled: `${baseUrl}/payment/cancelled?ref=${orderReference}`
     };
   }
 
