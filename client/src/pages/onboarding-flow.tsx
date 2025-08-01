@@ -16,9 +16,7 @@ import Navbar from "@/components/navbar";
 import Layout from "@/components/layout";
 
 interface OnboardingFlowProps {
-  onComplete?: () => void;
-  initialStep?: string;
-  testMode?: boolean;
+  onComplete: () => void;
 }
 
 interface SessionData {
@@ -39,7 +37,7 @@ const steps = [
   { key: "payment", name: "Next Steps", description: "Choose your development package" }
 ];
 
-export default function OnboardingFlow({ onComplete, initialStep, testMode }: OnboardingFlowProps) {
+export default function OnboardingFlow({ onComplete }: OnboardingFlowProps) {
   const [sessionData, setSessionData] = useState<SessionData | null>(null);
   const [currentStepIndex, setCurrentStepIndex] = useState(0);
   const { toast } = useToast();
@@ -93,42 +91,6 @@ export default function OnboardingFlow({ onComplete, initialStep, testMode }: On
 
   // Check for existing session on mount
   useEffect(() => {
-    if (testMode && initialStep) {
-      // Create mock session data for testing
-      const mockSessionData: SessionData = {
-        sessionId: 'test-session-' + Date.now(),
-        currentStep: initialStep,
-        stepData: {
-          founder: { name: 'Test Founder', email: 'test@example.com' },
-          venture: { name: 'Test Venture', industry: 'Technology' },
-          team: [],
-          upload: { files: ['test-pitch-deck.pdf'] },
-          processing: {
-            total_score: initialStep === 'payment' ? 75 : 65,
-            scoringResult: {
-              output: {
-                total_score: initialStep === 'payment' ? 75 : 65,
-                Problem: { score: 15, justification: 'Strong problem identification' },
-                solution: { score: 12, justification: 'Good solution approach' },
-                market_opportunity: { score: 14, justification: 'Clear market opportunity' },
-                product_technology: { score: 11, justification: 'Solid technology foundation' },
-                team: { score: 13, justification: 'Experienced team' }
-              }
-            }
-          }
-        },
-        completedSteps: initialStep === 'payment' 
-          ? ['founder', 'venture', 'team', 'upload', 'processing', 'analysis']
-          : ['founder', 'venture', 'team', 'upload', 'processing'],
-        isComplete: false
-      };
-      
-      setSessionData(mockSessionData);
-      const stepIndex = steps.findIndex(step => step.key === initialStep);
-      setCurrentStepIndex(stepIndex >= 0 ? stepIndex : 0);
-      return;
-    }
-
     const existingSession = localStorage.getItem('onboardingSession');
     if (existingSession) {
       try {
@@ -146,7 +108,7 @@ export default function OnboardingFlow({ onComplete, initialStep, testMode }: On
     
     // Initialize new session
     initSessionMutation.mutate();
-  }, [testMode, initialStep]);
+  }, []);
 
   // Navigate to next step
   const nextStep = () => {
@@ -277,24 +239,12 @@ export default function OnboardingFlow({ onComplete, initialStep, testMode }: On
   };
 
   const handleComplete = () => {
-    if (testMode) {
-      toast({
-        title: "Test Complete!",
-        description: "Testing flow completed successfully.",
-        variant: "default",
-      });
-      return;
-    }
-    
     // Track onboarding completion
     trackEvent('onboarding_complete', 'user_journey', 'full_analysis_complete');
     
     // Clear session from localStorage
     localStorage.removeItem('onboardingSession');
-    
-    if (onComplete) {
-      onComplete();
-    }
+    onComplete();
   };
 
   if (!sessionData) {

@@ -255,21 +255,7 @@ function Router() {
           </Suspense>
         )} />
       )}
-      {/* Temporary direct access routes for testing */}
-      {import.meta.env.MODE === 'development' && (
-        <>
-          <Route path="/test-analysis" component={() => (
-            <Suspense fallback={<SimpleLoader />}>
-              <OnboardingFlow initialStep="analysis" testMode={true} />
-            </Suspense>
-          )} />
-          <Route path="/test-payment" component={() => (
-            <Suspense fallback={<SimpleLoader />}>
-              <OnboardingFlow initialStep="payment" testMode={true} />
-            </Suspense>
-          )} />
-        </>
-      )}
+
       <Route path="/payment/success" component={() => (
         <Suspense fallback={<SimpleLoader />}>
           <PaymentSuccessPage />
