@@ -34,6 +34,7 @@ Second Chance is a startup validation platform that assesses investment readines
 - **Payment Button**: Reduced size and changed text to "Make Payment" for better UX
 - **Theme Consistency**: Applied dark theme across all payment pages to match app design system
 - **Navigation**: Simplified button labels and removed dashboard references in payment flow
+- **Onboarding Flow Restructure**: Moved payment step to final position (after analysis) for better user experience - users now see ProofScore results before payment options
 
 ## System Architecture
 

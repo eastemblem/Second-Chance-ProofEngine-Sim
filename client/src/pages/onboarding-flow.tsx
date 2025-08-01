@@ -30,12 +30,12 @@ interface SessionData {
 
 const steps = [
   { key: "founder", name: "Founder Details", description: "Personal information and experience" },
-  { key: "payment", name: "Early Access", description: "Secure your ProofScaling package" },
   { key: "venture", name: "Venture Info", description: "Company details and market information" },
   { key: "team", name: "Team Members", description: "Add up to 4 team members (optional)" },
   { key: "upload", name: "Pitch Deck", description: "Upload your pitch deck" },
   { key: "processing", name: "Processing", description: "Analyzing your submission" },
-  { key: "analysis", name: "Analysis", description: "Your ProofScore analysis results" }
+  { key: "analysis", name: "Analysis", description: "Your ProofScore analysis results" },
+  { key: "payment", name: "Investment Package", description: "Choose your next steps" }
 ];
 
 export default function OnboardingFlow({ onComplete }: OnboardingFlowProps) {
@@ -381,15 +381,7 @@ export default function OnboardingFlow({ onComplete }: OnboardingFlowProps) {
               />
             )}
             
-            {currentStep.key === "payment" && (
-              <PaymentOnboarding
-                sessionData={sessionData}
-                onNext={nextStep}
-                onSkip={nextStep}
-                onPrev={prevStep}
-                currentStepIndex={currentStepIndex}
-              />
-            )}
+
             
             {currentStep.key === "venture" && (
               <VentureOnboarding
@@ -442,8 +434,18 @@ export default function OnboardingFlow({ onComplete }: OnboardingFlowProps) {
                   ...sessionData,
                   scoringResult: sessionData?.stepData?.processing?.scoringResult
                 }}
-                onNext={() => {}} // No more steps after analysis
-                onComplete={handleComplete}
+                onNext={nextStep}
+                onComplete={nextStep}
+              />
+            )}
+            
+            {currentStep.key === "payment" && (
+              <PaymentOnboarding
+                sessionData={sessionData}
+                onNext={handleComplete}
+                onSkip={handleComplete}
+                onPrev={prevStep}
+                currentStepIndex={currentStepIndex}
               />
             )}
 

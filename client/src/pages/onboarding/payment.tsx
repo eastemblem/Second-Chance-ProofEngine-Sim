@@ -52,8 +52,8 @@ export default function PaymentOnboarding({ sessionData, onNext, onSkip, onPrev,
   const proofScore = analysisData.total_score || 0;
   const ventureName = sessionData?.stepData?.venture?.name || sessionData?.stepData?.founder?.firstName + "'s Venture" || "Your Venture";
   
-  // For early payment: always show Foundation package (course-focused)
-  const isEarlyPayment = currentStepIndex === 1; // Payment is step 2 (index 1)
+  // Payment now comes after analysis (final step)
+  const isEarlyPayment = false;
   const isHighScore = !isEarlyPayment && proofScore >= 70;
   
   // Payment status polling function
