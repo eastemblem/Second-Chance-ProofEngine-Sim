@@ -229,13 +229,15 @@ router.get("/status/:paymentId", async (req: Request, res: Response) => {
     const transaction = paymentStatus.transaction;
     const metadata = transaction.metadata as any;
 
-    // Check status with Telr if still pending
-    if (transaction.status === 'pending' && transaction.gatewayTransactionId) {
+    // Always check current status with Telr if we have a gateway transaction ID
+    if (transaction.gatewayTransactionId) {
       try {
+        console.log(`Checking live payment status with Telr for transaction: ${transaction.gatewayTransactionId}`);
         const gateway = PaymentGatewayFactory.create('telr');
         const statusResult = await gateway.checkStatus(transaction.gatewayTransactionId);
         
-        if (statusResult.success && statusResult.status !== 'pending') {
+        if (statusResult.success && statusResult.status !== transaction.status) {
+          console.log(`Payment status changed from ${transaction.status} to ${statusResult.status}`);
           // Update transaction status in database
           await paymentService.updatePaymentStatus(paymentId, statusResult.status);
 
@@ -247,9 +249,10 @@ router.get("/status/:paymentId", async (req: Request, res: Response) => {
                 activityType: 'system',
                 action: 'payment_status_changed',
                 title: 'Payment Status Updated',
-                description: `Payment status changed to ${statusResult.status}`,
+                description: `Payment status changed from ${transaction.status} to ${statusResult.status}`,
                 metadata: {
                   paymentId,
+                  oldStatus: transaction.status,
                   newStatus: statusResult.status,
                   packageType: metadata?.packageType
                 }
@@ -261,6 +264,8 @@ router.get("/status/:paymentId", async (req: Request, res: Response) => {
 
           // Update local transaction object for response
           transaction.status = statusResult.status;
+        } else {
+          console.log(`Payment status unchanged: ${transaction.status}`);
         }
       } catch (telrError) {
         console.error("Error checking Telr payment status:", telrError);
