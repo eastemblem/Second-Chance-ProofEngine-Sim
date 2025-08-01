@@ -131,6 +131,8 @@ class TelrGateway extends PaymentGateway {
     };
 
     try {
+      console.log('Telr request payload:', JSON.stringify(telrRequest, null, 2));
+      
       const response = await fetch(this.baseUrl, {
         method: 'POST',
         headers: {
@@ -141,8 +143,10 @@ class TelrGateway extends PaymentGateway {
       });
 
       const result = await response.json();
+      console.log('Telr raw response:', JSON.stringify(result, null, 2));
 
       if (result.error) {
+        console.error('Telr API error:', result.error);
         return {
           success: false,
           orderReference: '',

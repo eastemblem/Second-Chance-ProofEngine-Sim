@@ -102,6 +102,7 @@ Second Chance is a startup validation platform designed to assess investment rea
 - **Architecture**: EastEmblem API proxy eliminates need for direct Box SDK integration
 - **Payment System**: ✅ **DUAL AUTHENTICATION ARCHITECTURE COMPLETED** - Session-based payment routes (`/api/payment/*`) for onboarding flow, JWT-protected routes (`/api/v1/payment/*`) preserved for future dashboard payments
 - **Browser Caching Issue**: ✅ **RESOLVED** - Root cause was automatic URL conversion in queryClient.ts that converted all `/api/` requests to `/api/v1/`, bypassed with payment route exemption
+- **Telr Currency Configuration**: ✅ **RESOLVED** - "E05:Transaction cost or currency not valid" error resolved by switching from USD to AED currency with proper conversion ($100 USD = 367 AED)
 - **Authentication Flow**: ✅ **WORKING** - Onboarding payment flow now uses session-based authentication correctly, V1 routes preserved for future dashboard functionality
 - **Data Utilization**: 85% of rich scoring API data still unused - opportunity for enhancement
 - **Production Security**: Environment-based protection implemented for test endpoints and debug routes

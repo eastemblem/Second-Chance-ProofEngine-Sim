@@ -49,6 +49,9 @@ router.post("/create-next-steps-session", async (req: Request, res: Response) =>
       });
     }
 
+    // Convert USD to AED for Telr (approximate conversion: $100 USD = 367 AED)
+    const aedAmount = Math.round(amount * 3.67); // USD to AED conversion
+    
     // Validate package type and amount
     if (amount !== 100) {
       return res.status(400).json({
@@ -108,9 +111,9 @@ router.post("/create-next-steps-session", async (req: Request, res: Response) =>
     // Prepare payment order data
     const orderData: PaymentOrderData = {
       orderId: paymentId,
-      amount: amount,
-      currency: "USD",
-      description: `${packageType === 'foundation' ? 'ProofScaling Foundation Course' : 'Investment Ready Package'} - ${ventureName}`,
+      amount: aedAmount, // Use AED amount for Telr
+      currency: "AED", // Telr primarily supports AED (UAE Dirham) - $100 USD ≈ 367 AED
+      description: `${packageType === 'foundation' ? 'ProofScaling Foundation Course' : 'Investment Ready Package'} - ${ventureName} (${amount} USD)`,
       returnUrls: {
         authorised: `${process.env.FRONTEND_URL || 'http://localhost:5000'}/payment/success?payment_id=${paymentId}`,
         declined: `${process.env.FRONTEND_URL || 'http://localhost:5000'}/payment/failed?payment_id=${paymentId}`,
@@ -129,14 +132,20 @@ router.post("/create-next-steps-session", async (req: Request, res: Response) =>
       sessionId,
       ventureName,
       packageType,
-      amount
+      amount,
+      aedAmount,
+      orderData
     });
 
     const gateway = PaymentGatewayFactory.create('telr');
+    console.log('Gateway created successfully, calling createOrder...');
     const telrResponse = await gateway.createOrder(orderData);
 
+    console.log('Telr response details:', JSON.stringify(telrResponse, null, 2));
+
     if (!telrResponse.success) {
-      throw new Error(`Telr payment creation failed: ${telrResponse.gatewayResponse?.error?.message || 'Unknown error'}`);
+      console.error('Telr error details:', JSON.stringify(telrResponse.gatewayResponse, null, 2));
+      throw new Error(`Telr payment creation failed: ${telrResponse.gatewayResponse?.error?.message || telrResponse.gatewayResponse?.error?.code || 'Unknown error'}`);
     }
 
     // Store payment transaction
