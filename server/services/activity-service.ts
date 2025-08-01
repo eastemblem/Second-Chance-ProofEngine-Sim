@@ -2,6 +2,7 @@ import { Request } from 'express';
 import { storage } from '../storage';
 import { InsertUserActivity, UserActivity } from '@shared/schema';
 import { appLogger } from "../utils/logger";
+import { lruCacheService } from './lru-cache-service';
 
 export interface ActivityContext {
   founderId?: string;
@@ -63,6 +64,18 @@ export class ActivityService {
 
       const createdActivity = await storage.createUserActivity(activityData);
       appLogger.business(`Activity logged: ${activity.action} - ${activity.title}`);
+      
+      // Invalidate activity cache for founder when new activity is logged
+      if (context.founderId) {
+        try {
+          await lruCacheService.invalidate('dashboard', `activity_${context.founderId}`);
+          appLogger.info(`🗑️ ACTIVITY: Cache invalidated for founder ${context.founderId}`);
+        } catch (cacheError) {
+          appLogger.error(`⚠️ ACTIVITY: Cache invalidation failed:`, cacheError);
+          // Don't fail the activity logging if cache invalidation fails
+        }
+      }
+      
       return createdActivity;
     } catch (error) {
       appLogger.business('Failed to log activity:', error);

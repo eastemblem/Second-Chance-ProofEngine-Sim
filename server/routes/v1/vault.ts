@@ -6,6 +6,7 @@ import { getSessionId, getSessionData, updateSessionData } from '../../utils/ses
 import { createSuccessResponse } from '../../utils/error-handler';
 import { cleanupUploadedFile } from '../../utils/file-cleanup';
 import { ActivityService } from '../../services/activity-service';
+import { lruCacheService } from '../../services/lru-cache-service';
 import multer from 'multer';
 import path from 'path';
 import fs from 'fs';
@@ -330,7 +331,19 @@ router.post('/upload-file', upload.single("file"), asyncHandler(async (req: Auth
       }
     );
 
-    // Step 6: Cleanup uploaded file
+    // Step 6: Invalidate cache after successful upload
+    if (founderId) {
+      try {
+        await lruCacheService.invalidate('dashboard', `vault_${founderId}`);
+        await lruCacheService.invalidate('dashboard', `activity_${founderId}`);
+        console.log(`🗑️ V1 UPLOAD: Cache invalidated for founder ${founderId}`);
+      } catch (cacheError) {
+        console.error(`⚠️ V1 UPLOAD: Cache invalidation failed:`, cacheError);
+        // Don't fail the upload if cache invalidation fails
+      }
+    }
+
+    // Step 7: Cleanup uploaded file
     cleanupUploadedFile(file.path);
 
     console.log(`✅ V1 UPLOAD: File "${file.originalname}" uploaded successfully to folder ${actualFolderId}`);
@@ -484,6 +497,17 @@ router.post('/create-folder', upload.none(), asyncHandler(async (req: Authentica
       usedFallback = true;
     }
     
+    // Invalidate cache after successful folder creation
+    if (founderId) {
+      try {
+        await lruCacheService.invalidate('dashboard', `vault_${founderId}`);
+        console.log(`🗑️ V1 FOLDER CREATION: Cache invalidated for founder ${founderId}`);
+      } catch (cacheError) {
+        console.error(`⚠️ V1 FOLDER CREATION: Cache invalidation failed:`, cacheError);
+        // Don't fail the folder creation if cache invalidation fails
+      }
+    }
+
     res.json(createSuccessResponse({
       folderId: result.id,
       folderName: folderName,
@@ -570,6 +594,18 @@ router.post('/upload-file-direct', upload.single("file"), asyncHandler(async (re
     } catch (dbError) {
       console.error(`❌ V1 DIRECT UPLOAD: Database storage failed:`, dbError);
       // Continue without failing the upload since Box.com upload succeeded
+    }
+
+    // Invalidate cache after successful direct upload
+    if (founderId) {
+      try {
+        await lruCacheService.invalidate('dashboard', `vault_${founderId}`);
+        await lruCacheService.invalidate('dashboard', `activity_${founderId}`);
+        console.log(`🗑️ V1 DIRECT UPLOAD: Cache invalidated for founder ${founderId}`);
+      } catch (cacheError) {
+        console.error(`⚠️ V1 DIRECT UPLOAD: Cache invalidation failed:`, cacheError);
+        // Don't fail the upload if cache invalidation fails
+      }
     }
 
     // Cleanup uploaded file

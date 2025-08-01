@@ -6,6 +6,7 @@ import { safeValidate } from '../../utils/validation';
 import { onboardingService } from '../../services/onboarding-service';
 import { requireSession } from '../../middleware/auth';
 import { founderOnboardingSchema, ventureOnboardingSchema, teamMemberSchema } from '../../onboarding';
+import { lruCacheService } from '../../services/lru-cache-service';
 
 const router = Router();
 
@@ -37,6 +38,17 @@ router.post("/founder", asyncHandler(async (req: Request, res: Response) => {
 
   const result = await onboardingService.completeFounderStep(sessionId, validation.data);
 
+  // Invalidate founder cache when new founder is created
+  if (result.founderId) {
+    try {
+      await lruCacheService.invalidate('founder', result.founderId);
+      console.log(`🗑️ V1 ONBOARDING: Founder cache invalidated for ${result.founderId}`);
+    } catch (cacheError) {
+      console.error(`⚠️ V1 ONBOARDING: Founder cache invalidation failed:`, cacheError);
+      // Don't fail the onboarding if cache invalidation fails
+    }
+  }
+
   res.json(createSuccessResponse({
     sessionId: result.sessionId,
     founderId: result.founderId,
@@ -58,6 +70,19 @@ router.post("/venture", asyncHandler(async (req: Request, res: Response) => {
   }
 
   const result = await onboardingService.completeVentureStep(sessionId, validation.data);
+
+  // Invalidate venture and founder cache when new venture is created
+  if (result.venture?.founderId) {
+    try {
+      await lruCacheService.invalidate('founder', result.venture.founderId);
+      await lruCacheService.invalidate('venture', result.venture.ventureId);
+      await lruCacheService.invalidate('dashboard', `vault_${result.venture.founderId}`);
+      console.log(`🗑️ V1 ONBOARDING: Cache invalidated for founder ${result.venture.founderId} and venture ${result.venture.ventureId}`);
+    } catch (cacheError) {
+      console.error(`⚠️ V1 ONBOARDING: Cache invalidation failed:`, cacheError);
+      // Don't fail the onboarding if cache invalidation fails
+    }
+  }
 
   res.json(createSuccessResponse({
     venture: result.venture,

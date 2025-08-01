@@ -95,7 +95,7 @@ Second Chance is a startup validation platform designed to assess investment rea
 
 ### Current Status (Updated: 2025-08-01)
 - **Application Health**: Server fully functional on port 5000, all endpoints operational
-- **Secrets Audit Completed**: Identified 7 unused secrets for potential cleanup
+- **Cache Invalidation System**: Comprehensive cache invalidation implemented for V1 routes only
 - **Architecture**: EastEmblem API proxy eliminates need for direct Box SDK integration
 - **Payment System**: Score-based payment integration planned for analysis page ($100 packages)
 - **Data Utilization**: 85% of rich scoring API data still unused - opportunity for enhancement
@@ -118,6 +118,7 @@ Second Chance is a startup validation platform designed to assess investment rea
 - **Monitoring**: Dual system (Sentry + NewRelic) with graceful fallbacks
 - **Authentication**: JWT-based with session management
 - **File Management**: ProofVault integration through EastEmblem proxy
+- **Cache Invalidation**: Event-driven invalidation for V1 routes only (file uploads, folder creation, activity logging, onboarding)
 
 ### Development Patterns
 - **Error Handling**: Comprehensive error boundaries and graceful degradation
@@ -131,3 +132,20 @@ Second Chance is a startup validation platform designed to assess investment rea
 - Utilization of unused scoring API data (venture context, team analysis, traction signals)
 - Payment section implementation with Telr hosted page flow
 - Enhanced user experience based on ProofScore results
+
+### Cache Invalidation Implementation (2025-08-01)
+**Scope**: V1 routes only (user preference for targeted implementation)
+**Strategy**: Event-driven cache invalidation with graceful error handling
+
+**Cache Invalidation Triggers:**
+- **File Upload** (V1 vault upload, direct upload) → Invalidates `vault_{founderId}` + `activity_{founderId}`
+- **Folder Creation** (V1 vault create-folder) → Invalidates `vault_{founderId}`  
+- **Activity Logging** (ActivityService) → Invalidates `activity_{founderId}`
+- **Founder Creation** (V1 onboarding) → Invalidates `founder_{founderId}`
+- **Venture Creation** (V1 onboarding) → Invalidates `founder_{founderId}` + `venture_{ventureId}` + `vault_{founderId}`
+
+**Implementation Details:**
+- Graceful error handling (cache failures don't break core functionality)
+- LRU + KV cache dual invalidation
+- Console logging for cache operations
+- Activity-driven cache updates ensure real-time data freshness
