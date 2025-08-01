@@ -112,7 +112,7 @@ Second Chance is a startup validation platform designed to assess investment rea
 - **Error Handling Enhancement**: ✅ **404 POLLING GRACEFUL STOP** - Added proper error handling to stop polling when payment not found (e.g., after server restart)
 - **Tab Focus Detection**: ✅ **AUTOMATIC PAYMENT DETECTION** - Added window focus listener to automatically check payment status when user returns to onboarding tab after payment
 - **Manual Refresh Feature**: ✅ **USER-TRIGGERED STATUS CHECK** - Added "Check Payment Status" button in waiting state for users experiencing polling delays or timing issues
-- **Database Integration Complete**: ✅ **SINGLE SOURCE OF TRUTH ACHIEVED** - Payment initialization, logging, and status checks now use database exclusively, temporary founder creation for session-based payments, eliminated all in-memory storage dependencies
+- **Database Integration Complete**: ✅ **SINGLE SOURCE OF TRUTH ACHIEVED** - Payment initialization, logging, and status checks now use database exclusively, eliminated all in-memory storage dependencies, requires proper onboarding completion
 - **Data Utilization**: 85% of rich scoring API data still unused - opportunity for enhancement
 - **Production Security**: Environment-based protection implemented for test endpoints and debug routes
 

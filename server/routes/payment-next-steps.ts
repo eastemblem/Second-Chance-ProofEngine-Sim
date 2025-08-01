@@ -95,48 +95,18 @@ router.post("/create-next-steps-session", async (req: Request, res: Response) =>
       }
     }
 
-    // Get or create session founder for database integration
-    let founderId: string;
-    try {
-      // Try to get existing session first, but handle non-UUID session IDs gracefully
-      let sessionFounderId: string | null = null;
-      
-      // Only try to get session if it's a valid UUID format
-      if (sessionId.match(/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i)) {
-        try {
-          const onboardingService = new OnboardingService();
-          const session = await onboardingService.getSession(sessionId);
-          sessionFounderId = session?.stepData?.founder?.id || null;
-        } catch (sessionError) {
-          console.log('Session not found, proceeding with temporary founder creation');
-        }
-      } else {
-        console.log('Non-UUID sessionId detected, proceeding with temporary founder creation');
-      }
-
-      if (sessionFounderId) {
-        founderId = sessionFounderId;
-        console.log('✅ Using existing founder from session:', founderId);
-      } else {
-        // Create a temporary founder for session-based payments
-        const tempFounder = await storage.createFounder({
-          firstName: 'Session',
-          lastName: 'User',
-          fullName: `Session User - ${ventureName}`,
-          email: `session-${Date.now()}@placeholder.com`,
-          positionRole: 'Session Payment User'
-        });
-        founderId = tempFounder.founderId;
-        console.log('✅ Created temporary founder for session payment:', founderId);
-        
-        if (!founderId) {
-          throw new Error('Failed to create temporary founder - no ID returned');
-        }
-      }
-    } catch (error) {
-      console.error('❌ Failed to get/create founder for session:', error);
-      throw new Error('Unable to process payment - session setup failed');
+    // Get founderId from session
+    const onboardingService = new OnboardingService();
+    const session = await onboardingService.getSession(sessionId);
+    
+    if (!session?.stepData?.founder?.id) {
+      return res.status(400).json({
+        success: false,
+        message: 'No founder found in session. Please complete onboarding first.'
+      });
     }
+    
+    const founderId = session.stepData.founder.id;
 
     // Use PaymentService to create payment transaction in database
     const paymentRequest = {
