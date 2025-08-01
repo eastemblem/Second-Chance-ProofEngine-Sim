@@ -178,7 +178,10 @@ class TelrGateway extends PaymentGateway {
     };
 
     try {
-      const response = await fetch(this.baseUrl, {
+      console.log(`Making Telr status check request for order: ${orderRef}`);
+      console.log(`Request payload:`, JSON.stringify(telrRequest, null, 2));
+      
+      const response = await fetch('https://secure.telr.com/gateway/order.json', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -187,9 +190,15 @@ class TelrGateway extends PaymentGateway {
         body: JSON.stringify(telrRequest)
       });
 
+      if (!response.ok) {
+        throw new Error(`Telr API responded with status ${response.status}`);
+      }
+
       const result = await response.json();
+      console.log(`Telr status check response:`, JSON.stringify(result, null, 2));
 
       if (result.error) {
+        console.error(`Telr status check error:`, result.error);
         return {
           success: false,
           status: 'failed',
@@ -199,24 +208,34 @@ class TelrGateway extends PaymentGateway {
 
       // Map Telr status codes to our generic status
       let status: PaymentStatusResponse['status'] = 'pending';
-      if (result.order?.status?.code === 3) {
+      const statusCode = result.order?.status?.code;
+      const statusText = result.order?.status?.text;
+      
+      console.log(`Telr order status - Code: ${statusCode}, Text: ${statusText}`);
+      
+      if (statusCode === 3 || statusText === 'Paid') {
         status = 'completed';
-      } else if (result.order?.status?.code === 1) {
+      } else if (statusCode === 1 || statusText === 'Cancelled') {
         status = 'cancelled';
-      } else if (result.order?.status?.code === 2) {
+      } else if (statusCode === 2 || statusText === 'Declined') {
         status = 'failed';
+      } else if (statusCode === 0 || statusText === 'Pending') {
+        status = 'pending';
       }
+
+      console.log(`Mapped status: ${status}`);
 
       return {
         success: true,
         status,
-        gatewayStatus: result.order?.status?.text,
+        gatewayStatus: statusText,
         transactionId: result.order?.transaction?.ref,
         amount: parseFloat(result.order?.amount || '0'),
         currency: result.order?.currency,
         gatewayResponse: result
       };
     } catch (error) {
+      console.error(`Telr status check error for order ${orderRef}:`, error);
       throw new Error(`Telr status check error: ${error}`);
     }
   }

@@ -294,6 +294,33 @@ router.get("/status/:paymentId", async (req: Request, res: Response) => {
 });
 
 /**
+ * Test endpoint for direct Telr status check (development only)
+ * GET /api/payment/test-telr-status/:orderRef
+ */
+router.get("/test-telr-status/:orderRef", async (req: Request, res: Response) => {
+  if (process.env.NODE_ENV !== 'development') {
+    return res.status(404).json({ message: 'Not found' });
+  }
+
+  try {
+    const { orderRef } = req.params;
+    const gateway = PaymentGatewayFactory.create('telr');
+    const result = await gateway.checkStatus(orderRef);
+    
+    res.json({
+      success: true,
+      telrResponse: result
+    });
+  } catch (error) {
+    console.error("Direct Telr test error:", error);
+    res.status(500).json({
+      success: false,
+      error: error instanceof Error ? error.message : 'Unknown error'
+    });
+  }
+});
+
+/**
  * Handle Telr webhook notifications
  * POST /api/payment/webhook/next-steps (session-based)
  * POST /api/v1/payment/webhook/next-steps (JWT-based, future dashboard use)

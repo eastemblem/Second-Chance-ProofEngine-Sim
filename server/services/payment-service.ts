@@ -166,16 +166,7 @@ export class PaymentService {
         };
       }
 
-      // If already completed, return cached status
-      if (transaction.status === 'completed') {
-        return {
-          success: true,
-          status: transaction.status,
-          transaction
-        };
-      }
-
-      // Check with gateway for latest status
+      // Always check with gateway for latest status (no caching to prevent status discrepancies)
       const gateway = PaymentGatewayFactory.create(transaction.gatewayProvider);
       const statusResult = await gateway.checkStatus(transaction.gatewayTransactionId || orderReference);
 
