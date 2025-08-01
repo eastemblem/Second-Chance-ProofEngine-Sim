@@ -10,6 +10,7 @@ import TeamOnboarding from "./onboarding/team";
 import DocumentUpload from "./onboarding/upload";
 import ProcessingScreen from "./onboarding/processing";
 import Analysis from "./onboarding/analysis";
+import PaymentOnboarding from "./onboarding/payment";
 import ProgressBar from "@/components/progress-bar";
 import Navbar from "@/components/navbar";
 import Layout from "@/components/layout";
@@ -33,7 +34,8 @@ const steps = [
   { key: "team", name: "Team Members", description: "Add up to 4 team members (optional)" },
   { key: "upload", name: "Pitch Deck", description: "Upload your pitch deck" },
   { key: "processing", name: "Processing", description: "Analyzing your submission" },
-  { key: "analysis", name: "Analysis", description: "Your ProofScore analysis results" }
+  { key: "analysis", name: "Analysis", description: "Your ProofScore analysis results" },
+  { key: "payment", name: "Next Steps", description: "Choose your development package" }
 ];
 
 export default function OnboardingFlow({ onComplete }: OnboardingFlowProps) {
@@ -430,8 +432,17 @@ export default function OnboardingFlow({ onComplete }: OnboardingFlowProps) {
                   ...sessionData,
                   scoringResult: sessionData?.stepData?.processing?.scoringResult
                 }}
-                onNext={handleComplete}
+                onNext={nextStep}
                 onComplete={handleComplete}
+              />
+            )}
+            
+            {currentStep.key === "payment" && (
+              <PaymentOnboarding
+                sessionData={sessionData}
+                onNext={handleComplete}
+                onSkip={handleComplete}
+                onPrev={prevStep}
               />
             )}
             

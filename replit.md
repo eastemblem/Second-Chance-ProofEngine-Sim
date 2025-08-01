@@ -58,7 +58,7 @@ Second Chance is a startup validation platform designed to assess investment rea
 - **Connection**: Connection pooling with @neondatabase/serverless.
 
 ### Key Features
-- **Onboarding Flow**: Streamlined multi-step wizard (Founder, Venture, Team, Document Upload, Analysis Results) with back navigation, ending after analysis completion.
+- **Onboarding Flow**: Complete multi-step wizard (Founder, Venture, Team, Document Upload, Analysis Results, Payment) with back navigation and session-based payment integration.
 - **ProofScore System**: Comprehensive 5-dimension scoring (Desirability, Feasibility, Viability, Traction, Readiness), each max 20 points.
 - **Pathway Recommendations**: Personalized development pathways based on ProofScore (ProofScaling course <70, investor matching ≥80).
 - **ProofVault Integration**: Document management with AI-powered pitch deck analysis, structured folder creation, and handling of single/multiple file/folder uploads (preserving hierarchy).
@@ -96,7 +96,7 @@ Second Chance is a startup validation platform designed to assess investment rea
 
 ### Current Status (Updated: 2025-08-01)
 - **Application Health**: Server fully functional on port 5000, all endpoints operational
-- **Onboarding Flow Simplified**: ✅ **COMPLETED** - Removed pathway and payment steps from onboarding flow per user request, flow now ends after analysis step
+- **Onboarding Flow with Payment**: ✅ **COMPLETED** - Added payment step back to onboarding flow using session-based `/api/payment/create-next-steps-session` endpoint
 - **Cache Invalidation System**: Comprehensive cache invalidation implemented for V1 routes only
 - **Activity Logging System**: V1 upload and folder creation endpoints now log activities for real-time dashboard updates
 - **Architecture**: EastEmblem API proxy eliminates need for direct Box SDK integration
