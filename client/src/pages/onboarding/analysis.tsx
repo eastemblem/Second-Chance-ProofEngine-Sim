@@ -1571,17 +1571,46 @@ export default function Analysis({
               </motion.div>
             )}
 
-            {/* Continue Button */}
-            <div className="text-center">
-              <Button
-                onClick={onComplete}
-                className="gradient-button px-6 sm:px-8 py-4 sm:py-6 text-base sm:text-lg w-full sm:w-auto min-h-[48px]"
-                size="lg"
-              >
-                See My Pathway
-                <ArrowRight className="ml-2 w-4 h-4 sm:w-5 sm:h-5" />
-              </Button>
-            </div>
+            {/* Next Steps Button */}
+            <motion.div
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: 2.2, duration: 0.6 }}
+              className="text-center mb-8"
+            >
+              <div className="space-y-4">
+                <h3 className="text-xl font-semibold text-white mb-3">
+                  Ready for Your Next Steps?
+                </h3>
+                <p className="text-purple-200 mb-6 max-w-2xl mx-auto">
+                  {analysisData.total_score < 70 
+                    ? "Strengthen your venture fundamentals with our ProofScaling course and boost your score by 15-25 points."
+                    : "Unlock advanced tools and investor-ready materials to accelerate your path to investment."
+                  }
+                </p>
+                <Button
+                  onClick={() => {
+                    window.location.href = `/next-steps?sessionId=${sessionId}`;
+                  }}
+                  className="gradient-button px-6 sm:px-8 py-4 sm:py-6 text-base sm:text-lg w-full sm:w-auto min-h-[48px] mb-4"
+                  size="lg"
+                >
+                  Discover Next Steps
+                  <ArrowRight className="ml-2 w-4 h-4 sm:w-5 sm:h-5" />
+                </Button>
+                
+                {/* Alternative Continue to Dashboard */}
+                <div className="pt-4 border-t border-purple-500/30">
+                  <Button
+                    onClick={onComplete}
+                    variant="outline"
+                    className="text-purple-200 border-purple-500/50 hover:bg-purple-500/20 px-4 py-2"
+                  >
+                    Continue to Dashboard
+                  </Button>
+                </div>
+              </div>
+            </motion.div>
           </motion.div>
         </div>
       </div>

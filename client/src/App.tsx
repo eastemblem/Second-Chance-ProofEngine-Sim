@@ -41,6 +41,7 @@ const PaymentSuccessPage = lazy(() => import("@/pages/payment-success"));
 const PaymentFailedPage = lazy(() => import("@/pages/payment-failed"));
 const PaymentCancelledPage = lazy(() => import("@/pages/payment-cancelled"));
 const PaymentErrorPage = lazy(() => import("@/pages/payment-error"));
+const NextSteps = lazy(() => import("@/pages/next-steps"));
 
 // Disable preloading to reduce initial bundle size and blocking
 const preloadComponents = () => {
@@ -218,6 +219,11 @@ function Router() {
       <Route path="/token-expired" component={() => (
         <Suspense fallback={<SimpleLoader />}>
           <TokenExpiredPage />
+        </Suspense>
+      )} />
+      <Route path="/next-steps" component={() => (
+        <Suspense fallback={<SimpleLoader />}>
+          <NextSteps />
         </Suspense>
       )} />
       {/* Development-only test routes */}
