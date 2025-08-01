@@ -431,29 +431,50 @@ export default function OnboardingFlow({ onComplete }: OnboardingFlowProps) {
             
             {currentStep.key === "pathway" && (
               <>
-                {sessionData?.stepData?.processing?.scoringResult ? (
-                  <PathwayPage
-                    onNext={nextStep}
-                    proofScore={sessionData.stepData.processing.scoringResult}
-                  />
-                ) : (
-                  <div className="text-center py-16">
-                    <div className="text-foreground mb-4">
-                      <h3 className="text-xl font-semibold mb-2">Loading Your Pathway...</h3>
-                      <p className="text-muted-foreground mb-4">
-                        We're preparing your personalized recommendations based on your ProofScore analysis.
-                      </p>
+                {(() => {
+                  // Debug: Log all available data paths
+                  console.log("🔍 Pathway Debug - Session Data:", sessionData);
+                  console.log("🔍 Pathway Debug - Step Data:", sessionData?.stepData);
+                  console.log("🔍 Pathway Debug - Processing Data:", sessionData?.stepData?.processing);
+                  console.log("🔍 Pathway Debug - Scoring Result:", sessionData?.stepData?.processing?.scoringResult);
+                  
+                  const scoringResult = sessionData?.stepData?.processing?.scoringResult || 
+                                     sessionData?.stepData?.processing ||
+                                     sessionData?.scoringResult;
+                  
+                  console.log("🔍 Pathway Debug - Final Scoring Result:", scoringResult);
+                  
+                  return scoringResult && (scoringResult.total || scoringResult.total_score) ? (
+                    <PathwayPage
+                      onNext={nextStep}
+                      proofScore={scoringResult}
+                    />
+                  ) : (
+                    <div className="text-center py-16">
+                      <div className="text-foreground mb-4">
+                        <h3 className="text-xl font-semibold mb-2">Loading Your Pathway...</h3>
+                        <p className="text-muted-foreground mb-4">
+                          We're preparing your personalized recommendations based on your ProofScore analysis.
+                        </p>
+                        <div className="text-xs text-muted-foreground mb-4 p-4 bg-muted rounded">
+                          Debug: {JSON.stringify({
+                            hasProcessingData: !!sessionData?.stepData?.processing,
+                            hasScoringResult: !!sessionData?.stepData?.processing?.scoringResult,
+                            processingKeys: sessionData?.stepData?.processing ? Object.keys(sessionData.stepData.processing) : 'none'
+                          }, null, 2)}
+                        </div>
+                      </div>
+                      <div className="flex gap-4 justify-center">
+                        <Button onClick={prevStep} variant="outline">
+                          Back to Analysis
+                        </Button>
+                        <Button onClick={nextStep}>
+                          Continue to Next Steps
+                        </Button>
+                      </div>
                     </div>
-                    <div className="flex gap-4 justify-center">
-                      <Button onClick={prevStep} variant="outline">
-                        Back to Analysis
-                      </Button>
-                      <Button onClick={nextStep}>
-                        Continue to Next Steps
-                      </Button>
-                    </div>
-                  </div>
-                )}
+                  );
+                })()}
               </>
             )}
             
