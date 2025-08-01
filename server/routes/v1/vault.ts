@@ -255,6 +255,9 @@ router.post('/upload-file', upload.single("file"), asyncHandler(async (req: Auth
 
   const sessionId = getSessionId(req);
   
+  // SCOPE FIX: Declare currentVentureId at function scope so it's accessible in catch block
+  let currentVentureId = null;
+  
   try {
     // Step 1: Get actual Box.com folder ID from database - NO FALLBACKS
     const { getFolderIdFromCategory } = await import("../../utils/folder-mapping");
@@ -277,8 +280,7 @@ router.post('/upload-file', upload.single("file"), asyncHandler(async (req: Auth
     const { databaseService } = await import("../../services/database-service");
     
     try {
-      // CRITICAL FIX: Get current venture ID from founder ID
-      let currentVentureId = null;
+      // Get current venture ID from founder ID
       try {
         const dashboardData = await databaseService.getFounderWithLatestVenture(founderId);
         currentVentureId = dashboardData?.venture?.ventureId || null;
@@ -347,6 +349,27 @@ router.post('/upload-file', upload.single("file"), asyncHandler(async (req: Auth
   } catch (error) {
     const errorMessage = error instanceof Error ? error.message : String(error);
     console.error(`❌ V1 UPLOAD: Failed to resolve category to folder ID:`, error);
+    
+    // Log activity even on failure (currentVentureId is now accessible)
+    try {
+      const context = ActivityService.getContextFromRequest(req);
+      await ActivityService.logDocumentActivity(
+        { ...context, founderId, ventureId: currentVentureId },
+        'upload',
+        `Failed to upload ${file.originalname}: ${errorMessage}`,
+        null,
+        file.originalname,
+        folder_id,
+        {
+          error: errorMessage,
+          fileSize: file.size,
+          category: folder_id,
+          status: 'failed'
+        }
+      );
+    } catch (activityError) {
+      console.error(`❌ V1 UPLOAD: Failed to log activity:`, activityError);
+    }
     
     // Cleanup uploaded file on error
     if (file.path && fs.existsSync(file.path)) {
