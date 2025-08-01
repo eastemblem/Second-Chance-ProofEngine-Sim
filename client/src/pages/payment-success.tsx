@@ -184,7 +184,7 @@ export default function PaymentSuccess() {
                   className="bg-white/5 backdrop-blur-sm rounded-lg p-4 border border-white/10"
                 >
                   <h3 className="text-sm font-semibold text-gray-300 mb-3 flex items-center">
-                    <Receipt className="w-4 h-4 mr-2" />
+                    <CheckCircle className="w-4 h-4 mr-2" />
                     Transaction Details
                   </h3>
                   <div className="space-y-2 text-sm">
