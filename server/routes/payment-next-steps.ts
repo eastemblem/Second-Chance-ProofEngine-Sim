@@ -37,7 +37,7 @@ const paymentTransactions = new Map<string, PaymentTransaction>();
  * POST /api/payment/create-next-steps (session-based)
  * POST /api/v1/payment/create-next-steps (JWT-based, future dashboard use)
  */
-router.post("/create-next-steps", async (req: Request, res: Response) => {
+router.post("/create-next-steps-session", async (req: Request, res: Response) => {
   try {
     const { sessionId, ventureName, proofScore, amount, packageType }: NextStepsPaymentRequest = req.body;
 

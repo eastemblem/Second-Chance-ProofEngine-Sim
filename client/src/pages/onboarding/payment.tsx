@@ -103,8 +103,8 @@ export default function PaymentOnboarding({ sessionData, onNext, onSkip, onPrev 
     try {
       console.log('Creating payment for package:', packageData.type);
       
-      console.log('DEBUG: Calling session-based payment endpoint');
-      const response = await apiRequest('POST', '/api/payment/create-next-steps', {
+      console.log('PAYMENT-DEBUG: Calling SESSION-BASED endpoint /api/payment/create-next-steps');
+      const response = await apiRequest('POST', '/api/payment/create-next-steps-session', {
         sessionId: sessionData.sessionId,
         packageType: packageData.type,
         amount: packageData.price,
