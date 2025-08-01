@@ -389,7 +389,7 @@ export default function PaymentOnboarding({ sessionData, onNext, onSkip, onPrev,
   const IconComponent = packageData.icon;
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-purple-900 via-blue-900 to-indigo-900">
+    <div className="min-h-screen bg-background">
       <div className="container mx-auto px-4 py-8 max-w-4xl">
         
         {/* Header */}
@@ -399,27 +399,27 @@ export default function PaymentOnboarding({ sessionData, onNext, onSkip, onPrev,
           transition={{ duration: 0.6 }}
           className="text-center mb-8"
         >
-          <Badge className="mb-4 bg-purple-500/20 text-purple-200 border-purple-500/50">
+          <Badge className="mb-4 bg-primary/20 text-primary border-primary/50">
             {isEarlyPayment ? "Step 2 of 7 • Early Access" : "Step 7 of 7 • Final Step"}
           </Badge>
-          <h1 className="text-3xl md:text-4xl font-bold text-white mb-4">
+          <h1 className="text-3xl md:text-4xl font-bold text-foreground mb-4">
             {isEarlyPayment ? "Secure Your ProofScaling Package" : "Choose Your Next Steps"}
           </h1>
           {isEarlyPayment ? (
             <>
-              <p className="text-purple-200 text-lg mb-2">
-                Start your validation journey with <span className="font-bold text-white">early access pricing</span>
+              <p className="text-muted-foreground text-lg mb-2">
+                Start your validation journey with <span className="font-bold text-foreground">early access pricing</span>
               </p>
-              <p className="text-purple-300 max-w-2xl mx-auto">
+              <p className="text-muted-foreground max-w-2xl mx-auto">
                 Get immediate access to our ProofScaling Foundation course while we analyze your venture. Perfect your fundamentals and boost your score.
               </p>
             </>
           ) : (
             <>
-              <p className="text-purple-200 text-lg mb-2">
-                Based on your ProofScore of <span className="font-bold text-white">{proofScore}</span>
+              <p className="text-muted-foreground text-lg mb-2">
+                Based on your ProofScore of <span className="font-bold text-foreground">{proofScore}</span>
               </p>
-              <p className="text-purple-300 max-w-2xl mx-auto">
+              <p className="text-muted-foreground max-w-2xl mx-auto">
                 {isHighScore 
                   ? "Your venture shows strong fundamentals. Accelerate your path to investment with advanced tools."
                   : "Strengthen your venture foundation and boost your score with our comprehensive course."
@@ -436,37 +436,37 @@ export default function PaymentOnboarding({ sessionData, onNext, onSkip, onPrev,
           transition={{ delay: 0.3, duration: 0.6 }}
           className="mb-8"
         >
-          <Card className="bg-gray-800/50 border-gray-700/50 backdrop-blur-sm">
+          <Card className="bg-card border-border backdrop-blur-sm">
             <CardHeader className="text-center pb-6">
               <div className={`mx-auto w-16 h-16 rounded-full bg-${packageData.color}-500/20 flex items-center justify-center mb-4`}>
                 <IconComponent className={`w-8 h-8 text-${packageData.color}-400`} />
               </div>
-              <CardTitle className="text-2xl font-bold text-white mb-2">
+              <CardTitle className="text-2xl font-bold text-foreground mb-2">
                 {packageData.title}
               </CardTitle>
               <p className={`text-${packageData.color}-300 text-lg font-medium mb-2`}>
                 {packageData.tagline}
               </p>
-              <p className="text-gray-300">
+              <p className="text-muted-foreground">
                 {packageData.description}
               </p>
-              <div className="text-4xl font-bold text-white mt-4">
+              <div className="text-4xl font-bold text-foreground mt-4">
                 ${packageData.price}
-                <span className="text-lg font-normal text-gray-400">/package</span>
+                <span className="text-lg font-normal text-muted-foreground">/package</span>
               </div>
             </CardHeader>
             
             <CardContent className="space-y-6">
               {/* Features */}
               <div>
-                <h3 className="text-lg font-semibold text-white mb-3 flex items-center">
+                <h3 className="text-lg font-semibold text-foreground mb-3 flex items-center">
                   <CheckCircle className="w-5 h-5 text-green-400 mr-2" />
                   What's Included
                 </h3>
                 <div className="grid gap-2">
                   {packageData.features.map((feature, index) => (
-                    <div key={index} className="flex items-center text-gray-300">
-                      <div className="w-2 h-2 bg-purple-400 rounded-full mr-3 flex-shrink-0"></div>
+                    <div key={index} className="flex items-center text-muted-foreground">
+                      <div className="w-2 h-2 bg-primary rounded-full mr-3 flex-shrink-0"></div>
                       {feature}
                     </div>
                   ))}
@@ -475,14 +475,14 @@ export default function PaymentOnboarding({ sessionData, onNext, onSkip, onPrev,
 
               {/* Outcomes */}
               <div>
-                <h3 className="text-lg font-semibold text-white mb-3 flex items-center">
-                  <Target className="w-5 h-5 text-blue-400 mr-2" />
+                <h3 className="text-lg font-semibold text-foreground mb-3 flex items-center">
+                  <Target className="w-5 h-5 text-primary mr-2" />
                   Expected Outcomes
                 </h3>
                 <div className="grid gap-2">
                   {packageData.outcomes.map((outcome, index) => (
-                    <div key={index} className="flex items-center text-gray-300">
-                      <div className="w-2 h-2 bg-blue-400 rounded-full mr-3 flex-shrink-0"></div>
+                    <div key={index} className="flex items-center text-muted-foreground">
+                      <div className="w-2 h-2 bg-primary-gold rounded-full mr-3 flex-shrink-0"></div>
                       {outcome}
                     </div>
                   ))}
@@ -525,7 +525,7 @@ export default function PaymentOnboarding({ sessionData, onNext, onSkip, onPrev,
                       <Button
                         onClick={() => paymentStatus.telrUrl && window.open(paymentStatus.telrUrl, '_blank')}
                         variant="outline"
-                        className="flex-1 text-blue-300 border-blue-500 hover:bg-blue-500/10"
+                        className="flex-1 text-primary border-primary hover:bg-primary/10"
                       >
                         Reopen Payment
                       </Button>
@@ -576,7 +576,7 @@ export default function PaymentOnboarding({ sessionData, onNext, onSkip, onPrev,
                       <Button
                         onClick={() => setPaymentStatus({ status: 'idle' })}
                         variant="outline"
-                        className="flex-1 text-gray-300 border-gray-600 hover:bg-gray-700/50"
+                        className="flex-1 text-muted-foreground border-border hover:bg-secondary"
                       >
                         Try Again
                       </Button>
@@ -608,7 +608,7 @@ export default function PaymentOnboarding({ sessionData, onNext, onSkip, onPrev,
                     </Button>
 
                     {paymentStatus.message && paymentStatus.status !== 'processing' && (
-                      <p className="text-center text-sm text-purple-300">
+                      <p className="text-center text-sm text-primary">
                         {paymentStatus.message}
                       </p>
                     )}
@@ -625,12 +625,12 @@ export default function PaymentOnboarding({ sessionData, onNext, onSkip, onPrev,
 
                 {/* Navigation Options - Only show when not in success or waiting state */}
                 {paymentStatus.status !== 'success' && paymentStatus.status !== 'waiting' && (
-                  <div className="flex gap-3 pt-4 border-t border-gray-700/50">
+                  <div className="flex gap-3 pt-4 border-t border-border">
                     {onPrev && (
                       <Button
                         onClick={onPrev}
                         variant="outline"
-                        className="flex-1 text-gray-300 border-gray-600 hover:bg-gray-700/50"
+                        className="flex-1 text-muted-foreground border-border hover:bg-secondary"
                       >
                         Back to Pathway
                       </Button>
@@ -638,7 +638,7 @@ export default function PaymentOnboarding({ sessionData, onNext, onSkip, onPrev,
                     <Button
                       onClick={onSkip}
                       variant="outline"
-                      className="flex-1 text-gray-300 border-gray-600 hover:bg-gray-700/50"
+                      className="flex-1 text-muted-foreground border-border hover:bg-secondary"
                     >
                       Continue to Dashboard
                     </Button>
@@ -647,7 +647,7 @@ export default function PaymentOnboarding({ sessionData, onNext, onSkip, onPrev,
                 
                 {paymentStatus.status !== 'success' && paymentStatus.status !== 'waiting' && (
                   <div className="text-center">
-                    <p className="text-gray-400 text-sm">
+                    <p className="text-muted-foreground text-sm">
                       Not ready yet? You can access this later from your dashboard.
                     </p>
                   </div>
@@ -664,7 +664,7 @@ export default function PaymentOnboarding({ sessionData, onNext, onSkip, onPrev,
           transition={{ delay: 0.6, duration: 0.6 }}
           className="text-center"
         >
-          <div className="flex items-center justify-center text-gray-400 text-sm">
+          <div className="flex items-center justify-center text-muted-foreground text-sm">
             <Shield className="w-4 h-4 mr-2" />
             Secure payment processing powered by Telr
           </div>
