@@ -101,8 +101,8 @@ Second Chance is a startup validation platform designed to assess investment rea
 - **Activity Logging System**: V1 upload and folder creation endpoints now log activities for real-time dashboard updates
 - **Architecture**: EastEmblem API proxy eliminates need for direct Box SDK integration
 - **Payment System**: ✅ **DUAL AUTHENTICATION ARCHITECTURE COMPLETED** - Session-based payment routes (`/api/payment/*`) for onboarding flow, JWT-protected routes (`/api/v1/payment/*`) preserved for future dashboard payments
-- **Browser Caching Issue**: ✅ **RESOLVED** - Aggressive cache-busting and endpoint renaming forced browser to load fresh JavaScript bundles
-- **Authentication Flow**: ✅ **WORKING** - Onboarding payment flow now uses session-based authentication correctly
+- **Browser Caching Issue**: ✅ **RESOLVED** - Root cause was automatic URL conversion in queryClient.ts that converted all `/api/` requests to `/api/v1/`, bypassed with payment route exemption
+- **Authentication Flow**: ✅ **WORKING** - Onboarding payment flow now uses session-based authentication correctly, V1 routes preserved for future dashboard functionality
 - **Data Utilization**: 85% of rich scoring API data still unused - opportunity for enhancement
 - **Production Security**: Environment-based protection implemented for test endpoints and debug routes
 

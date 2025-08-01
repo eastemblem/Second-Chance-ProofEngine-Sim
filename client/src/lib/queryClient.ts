@@ -7,6 +7,12 @@ const getApiUrl = (endpoint: string) => {
   if (endpoint.startsWith('/api/v1/')) {
     return endpoint; // Already versioned
   }
+  
+  // EXEMPTION: Payment routes for onboarding flow use session-based auth (not JWT)
+  if (endpoint.startsWith('/api/payment/')) {
+    return endpoint; // Keep as-is for session-based routes
+  }
+  
   if (endpoint.startsWith('/api/')) {
     // Convert legacy endpoint to v1
     return endpoint.replace('/api/', `/api/${API_VERSION}/`);
@@ -26,7 +32,9 @@ export async function apiRequest(
   url: string,
   data?: unknown | undefined,
 ): Promise<Response> {
+  console.log('🔥 API-REQUEST-DEBUG: Original URL:', url);
   const apiUrl = getApiUrl(url);
+  console.log('🔥 API-REQUEST-DEBUG: Final API URL:', apiUrl);
   
   // Get JWT token from localStorage for authentication
   const token = localStorage.getItem('auth_token');
