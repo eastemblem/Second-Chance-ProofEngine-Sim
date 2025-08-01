@@ -217,7 +217,7 @@ router.get("/status/:paymentId", async (req: Request, res: Response) => {
     }
 
     // Get transaction from database using PaymentService
-    const paymentStatus = await paymentService.getPaymentStatus(paymentId);
+    const paymentStatus = await paymentService.checkPaymentStatus(paymentId);
 
     if (!paymentStatus.success || !paymentStatus.transaction) {
       return res.status(404).json({

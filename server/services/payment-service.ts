@@ -323,6 +323,46 @@ export class PaymentService {
     return await storage.getUserSubscriptions(founderId);
   }
 
+  async updatePaymentStatus(orderReference: string, status: string): Promise<{
+    success: boolean;
+    transaction?: PaymentTransaction;
+    error?: string;
+  }> {
+    try {
+      // Get transaction by order reference
+      const transaction = await storage.getPaymentTransactionByOrderRef(orderReference);
+      if (!transaction) {
+        return {
+          success: false,
+          error: 'Transaction not found'
+        };
+      }
+
+      // Update status
+      const updatedTransaction = await storage.updatePaymentTransaction(transaction.id, {
+        status: status as any
+      });
+
+      // Log the update
+      await this.logPaymentAction(transaction.id, transaction.gatewayProvider, 'status_updated', {
+        oldStatus: transaction.status,
+        newStatus: status
+      });
+
+      return {
+        success: true,
+        transaction: updatedTransaction
+      };
+
+    } catch (error) {
+      console.error('Payment status update error:', error);
+      return {
+        success: false,
+        error: error instanceof Error ? error.message : 'Unknown error'
+      };
+    }
+  }
+
   async getPaymentHistory(founderId: string) {
     return await storage.getPaymentTransactions(founderId);
   }
