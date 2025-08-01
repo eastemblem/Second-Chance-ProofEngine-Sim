@@ -71,8 +71,10 @@ export default function PaymentOnboarding({ sessionData, onNext, onSkip, onPrev,
         
         if (statusData.success) {
           const status = statusData.status; // Session-based API returns status directly
+          console.log(`Payment status check result:`, status);
           
           if (status === 'completed') {
+            console.log('✅ Payment completed, stopping polling and showing success');
             clearInterval(pollInterval);
             setIsPolling(false);
             setPaymentStatus({
