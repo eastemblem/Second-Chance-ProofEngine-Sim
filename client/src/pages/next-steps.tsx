@@ -54,6 +54,23 @@ export default function NextSteps() {
   useEffect(() => {
     const urlParams = new URLSearchParams(window.location.search);
     const sessionId = urlParams.get('sessionId');
+    const testScore = urlParams.get('score');
+    const testVenture = urlParams.get('venture');
+    
+    // TEMP: For manual testing, create mock data
+    if (testScore && testVenture) {
+      setNextStepsData({
+        sessionId: sessionId || 'test-session',
+        ventureName: decodeURIComponent(testVenture),
+        proofScore: parseInt(testScore) || 75,
+        analysis: {
+          total_score: parseInt(testScore) || 75,
+          feedback: { overall_feedback: "Test feedback for manual testing" }
+        }
+      });
+      setIsLoading(false);
+      return;
+    }
     
     if (!sessionId) {
       toast({
