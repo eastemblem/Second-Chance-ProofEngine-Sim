@@ -39,7 +39,7 @@ router.post("/init", requireSession, asyncHandler(async (req: Request, res: Resp
 // Get payment session data
 router.get("/session", requireSession, asyncHandler(async (req: Request, res: Response) => {
   const sessionId = getSessionId(req);
-  const sessionData = req.session.data || {};
+  const sessionData = (req.session as any).data || {};
   
   res.json(createSuccessResponse({
     sessionId,
@@ -56,7 +56,7 @@ router.post("/status", requireSession, asyncHandler(async (req: Request, res: Re
   appLogger.business('Payment status update:', { sessionId, status, transactionId });
   
   // Update payment status in session
-  const currentSession = req.session.data || {};
+  const currentSession = (req.session as any).data || {};
   updateSessionData(req, {
     ...currentSession,
     payment: {
@@ -86,7 +86,7 @@ router.post("/complete", requireSession, asyncHandler(async (req: Request, res: 
     // Mark payment as completed in session
     updateSessionData(req, {
       payment: {
-        ...req.session.data?.payment,
+        ...(req.session as any).data?.payment,
         status: 'completed',
         transactionId,
         completedAt: new Date().toISOString(),
@@ -104,7 +104,7 @@ router.post("/complete", requireSession, asyncHandler(async (req: Request, res: 
     // Mark payment as failed
     updateSessionData(req, {
       payment: {
-        ...req.session.data?.payment,
+        ...(req.session as any).data?.payment,
         status: 'failed',
         failedAt: new Date().toISOString(),
         error: paymentData?.error
