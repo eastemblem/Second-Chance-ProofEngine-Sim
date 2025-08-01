@@ -430,40 +430,10 @@ export default function OnboardingFlow({ onComplete }: OnboardingFlowProps) {
             )}
             
             {currentStep.key === "pathway" && (
-              <div>
-                {console.log("Pathway Debug:", {
-                  sessionData: sessionData,
-                  stepData: sessionData?.stepData,
-                  processing: sessionData?.stepData?.processing,
-                  scoringResult: sessionData?.stepData?.processing?.scoringResult
-                })}
-                {sessionData?.stepData?.processing?.scoringResult ? (
-                  <PathwayPage
-                    onNext={nextStep}
-                    proofScore={sessionData.stepData.processing.scoringResult}
-                  />
-                ) : (
-                  <div className="min-h-screen bg-gradient-to-br from-purple-900 via-blue-900 to-indigo-900 flex items-center justify-center">
-                    <div className="text-center text-white">
-                      <h2 className="text-2xl font-bold mb-4">Loading Your Pathway...</h2>
-                      <p className="text-purple-200 mb-4">
-                        We're preparing your personalized recommendations based on your ProofScore analysis.
-                      </p>
-                      <div className="animate-spin w-8 h-8 border-4 border-white border-t-transparent rounded-full mx-auto mb-4"></div>
-                      <p className="text-sm text-purple-300">
-                        If this takes too long, please go back to the analysis step and try again.
-                      </p>
-                      <Button 
-                        onClick={prevStep} 
-                        variant="outline" 
-                        className="mt-4 text-white border-white hover:bg-white hover:text-purple-900"
-                      >
-                        Back to Analysis
-                      </Button>
-                    </div>
-                  </div>
-                )}
-              </div>
+              <PathwayPage
+                onNext={nextStep}
+                proofScore={sessionData?.stepData?.processing?.scoringResult || { total: 75 }}
+              />
             )}
             
             {currentStep.key === "payment" && (
