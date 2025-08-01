@@ -361,11 +361,6 @@ export default function ProofScalingDashboard({ onNext, proofScore }: ProofScali
                     </div>
                   </div>
                 </div>
-                
-                <Button className="w-full gradient-button mt-4">
-                  <Calendar className="w-4 h-4 mr-2" />
-                  Schedule Onboarding Call
-                </Button>
               </Card>
             </div>
           </div>

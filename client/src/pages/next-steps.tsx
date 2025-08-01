@@ -243,11 +243,13 @@ export default function NextSteps() {
   if (isLoading) {
     return (
       <Layout>
-        <Navbar />
-        <div className="min-h-screen bg-gradient-to-br from-gray-900 via-purple-900 to-violet-900 flex items-center justify-center">
+        <div className="sticky top-0 z-50 bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
+          <Navbar />
+        </div>
+        <div className="min-h-screen bg-background flex items-center justify-center">
           <div className="text-center">
-            <Loader2 className="w-8 h-8 animate-spin mx-auto mb-4 text-white" />
-            <p className="text-white">Loading your next steps...</p>
+            <Loader2 className="w-8 h-8 animate-spin mx-auto mb-4 text-primary" />
+            <p className="text-foreground">Loading your next steps...</p>
           </div>
         </div>
       </Layout>
@@ -257,10 +259,12 @@ export default function NextSteps() {
   if (!nextStepsData) {
     return (
       <Layout>
-        <Navbar />
-        <div className="min-h-screen bg-gradient-to-br from-gray-900 via-purple-900 to-violet-900 flex items-center justify-center">
+        <div className="sticky top-0 z-50 bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
+          <Navbar />
+        </div>
+        <div className="min-h-screen bg-background flex items-center justify-center">
           <div className="text-center">
-            <p className="text-white mb-4">Unable to load your analysis data.</p>
+            <p className="text-foreground mb-4">Unable to load your analysis data.</p>
             <Button onClick={() => navigate('/onboarding')}>
               Return to Onboarding
             </Button>
@@ -347,59 +351,87 @@ export default function NextSteps() {
 
   return (
     <Layout>
-      <Navbar />
-      <div className="min-h-screen bg-gradient-to-br from-gray-900 via-purple-900 to-violet-900">
+      <div className="sticky top-0 z-50 bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
+        <Navbar />
+      </div>
+      
+      <div className="min-h-screen bg-background text-foreground">
         <div className="container mx-auto px-4 py-8">
           {/* Header Section */}
           <motion.div
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.6 }}
-            className="text-center mb-8"
+            className="text-center mb-12"
           >
-            <div className="flex items-center justify-center mb-4">
-              <Target className="w-8 h-8 text-yellow-400 mr-3" />
-              <span className="text-2xl font-bold text-white">
-                Your ProofScore: {nextStepsData.proofScore}/100
-              </span>
+            <div className="flex items-center justify-center mb-6">
+              <div className="p-3 rounded-full bg-primary/10 border border-primary/20">
+                <Target className="w-8 h-8 text-primary" />
+              </div>
             </div>
-            <h1 className="text-4xl md:text-5xl font-bold text-white mb-4">
-              Take Your Venture to the Next Level
+            <div className="mb-4">
+              <span className="text-sm text-muted-foreground uppercase tracking-wider">Your ProofScore</span>
+              <div className="text-6xl font-bold text-primary mt-2">
+                {nextStepsData.proofScore}<span className="text-2xl text-muted-foreground">/100</span>
+              </div>
+            </div>
+            <h1 className="text-4xl md:text-5xl font-bold text-foreground mb-4">
+              Choose Your Development Path
             </h1>
-            <p className="text-xl text-purple-200 max-w-2xl mx-auto">
-              Unlock your full potential with our comprehensive {isFoundationPath ? 'foundation' : 'investment'} package
+            <p className="text-xl text-muted-foreground max-w-3xl mx-auto">
+              Based on your ProofScore, we've curated the perfect package to accelerate your venture's growth
             </p>
           </motion.div>
 
-          {/* Package Card */}
+          {/* Modern Pricing Card */}
           <motion.div
             initial={{ opacity: 0, y: 30 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.6, delay: 0.2 }}
             className="max-w-4xl mx-auto"
           >
-            <Card className="bg-black/50 border-purple-500/30 backdrop-blur-sm">
-              <CardHeader className="text-center pb-6">
-                <div className={`w-16 h-16 mx-auto mb-4 rounded-full bg-gradient-to-r ${packageData.color} flex items-center justify-center`}>
-                  <packageData.icon className="w-8 h-8 text-white" />
+            <div className="relative">
+              {/* Recommended Badge */}
+              <div className="absolute -top-4 left-1/2 transform -translate-x-1/2 z-10">
+                <div className="bg-primary text-primary-foreground px-6 py-2 rounded-full text-sm font-semibold">
+                  Recommended for You
                 </div>
-                <CardTitle className="text-3xl text-white mb-2">
-                  {packageData.title}
-                </CardTitle>
-                <p className="text-xl text-purple-200 mb-4">
-                  {packageData.subtitle}
-                </p>
-                <div className="flex items-center justify-center mb-4">
-                  <span className="text-4xl font-bold text-white">$100</span>
-                  <span className="text-purple-200 ml-2">one-time payment</span>
-                </div>
-                <p className="text-purple-200 leading-relaxed max-w-2xl mx-auto">
-                  {packageData.description}
-                </p>
-              </CardHeader>
+              </div>
+              
+              <Card className="border-primary/20 bg-card/50 backdrop-blur-sm overflow-hidden">
+                <div className={`h-2 bg-gradient-to-r ${packageData.color}`} />
+                
+                <CardHeader className="text-center pb-8 pt-8">
+                  <div className="flex items-center justify-center mb-6">
+                    <div className={`p-4 rounded-2xl bg-gradient-to-r ${packageData.color} bg-opacity-10 border border-current border-opacity-20`}>
+                      <packageData.icon className="w-10 h-10 text-primary" />
+                    </div>
+                  </div>
+                  
+                  <CardTitle className="text-3xl font-bold text-foreground mb-2">
+                    {packageData.title}
+                  </CardTitle>
+                  <p className="text-lg text-muted-foreground mb-6">
+                    {packageData.subtitle}
+                  </p>
+                  
+                  <div className="flex items-center justify-center mb-6">
+                    <div className="text-center">
+                      <div className="flex items-baseline justify-center">
+                        <span className="text-5xl font-bold text-foreground">$100</span>
+                        <span className="text-lg text-muted-foreground ml-2">USD</span>
+                      </div>
+                      <div className="text-sm text-muted-foreground mt-1">One-time payment</div>
+                    </div>
+                  </div>
+                  
+                  <p className="text-muted-foreground leading-relaxed max-w-2xl mx-auto">
+                    {packageData.description}
+                  </p>
+                </CardHeader>
 
               <CardContent className="space-y-8">
-                {/* Features Grid */}
+                {/* Features Grid - Modern Table Style */}
                 <div className="grid md:grid-cols-3 gap-6">
                   {packageData.features.map((category, index) => (
                     <motion.div
@@ -407,16 +439,16 @@ export default function NextSteps() {
                       initial={{ opacity: 0, y: 20 }}
                       animate={{ opacity: 1, y: 0 }}
                       transition={{ duration: 0.6, delay: 0.3 + index * 0.1 }}
-                      className="space-y-4"
+                      className="bg-muted/30 rounded-lg p-6 border border-border/50"
                     >
-                      <h3 className="text-lg font-semibold text-white border-b border-purple-500/30 pb-2">
+                      <h3 className="text-lg font-semibold text-foreground mb-4 pb-2 border-b border-border">
                         {category.category}
                       </h3>
-                      <ul className="space-y-2">
+                      <ul className="space-y-3">
                         {category.items.map((item, itemIndex) => (
-                          <li key={itemIndex} className="flex items-start text-purple-200">
-                            <CheckCircle className="w-5 h-5 text-green-400 mr-2 mt-0.5 flex-shrink-0" />
-                            <span className="text-sm">{item}</span>
+                          <li key={itemIndex} className="flex items-start text-muted-foreground">
+                            <CheckCircle className="w-4 h-4 text-primary mr-3 mt-0.5 flex-shrink-0" />
+                            <span className="text-sm leading-relaxed">{item}</span>
                           </li>
                         ))}
                       </ul>
@@ -429,13 +461,13 @@ export default function NextSteps() {
                   initial={{ opacity: 0, y: 20 }}
                   animate={{ opacity: 1, y: 0 }}
                   transition={{ duration: 0.6, delay: 0.6 }}
-                  className={`p-6 rounded-lg bg-gradient-to-r ${packageData.color} bg-opacity-20 border border-current border-opacity-30`}
+                  className="p-6 rounded-lg bg-primary/5 border border-primary/20"
                 >
                   <div className="flex items-center mb-3">
-                    <Award className="w-6 h-6 text-yellow-400 mr-3" />
-                    <h3 className="text-lg font-semibold text-white">Expected Outcome</h3>
+                    <Award className="w-6 h-6 text-primary mr-3" />
+                    <h3 className="text-lg font-semibold text-foreground">Expected Outcome</h3>
                   </div>
-                  <p className="text-white text-lg font-medium">
+                  <p className="text-foreground text-lg font-medium">
                     {packageData.expectedOutcome}
                   </p>
                 </motion.div>
@@ -445,36 +477,36 @@ export default function NextSteps() {
                   initial={{ opacity: 0, y: 20 }}
                   animate={{ opacity: 1, y: 0 }}
                   transition={{ duration: 0.6, delay: 0.7 }}
-                  className="border-t border-purple-500/30 pt-8"
+                  className="border-t border-border pt-8"
                 >
                   {paymentStatus.status === 'idle' && (
                     <div className="text-center space-y-6">
-                      <div className="flex items-center justify-center space-x-4 text-sm text-purple-200">
+                      <div className="flex items-center justify-center space-x-6 text-sm text-muted-foreground">
                         <div className="flex items-center">
-                          <Shield className="w-4 h-4 mr-1 text-green-400" />
+                          <Shield className="w-4 h-4 mr-2 text-primary" />
                           <span>Secure Payment</span>
                         </div>
                         <div className="flex items-center">
-                          <Clock className="w-4 h-4 mr-1 text-blue-400" />
+                          <Clock className="w-4 h-4 mr-2 text-primary" />
                           <span>Instant Access</span>
                         </div>
                         <div className="flex items-center">
-                          <Star className="w-4 h-4 mr-1 text-yellow-400" />
+                          <Star className="w-4 h-4 mr-2 text-primary" />
                           <span>Money-back Guarantee</span>
                         </div>
                       </div>
                       
                       <Button
                         onClick={handlePayment}
-                        className={`bg-gradient-to-r ${packageData.color} hover:opacity-90 text-white px-8 py-6 text-lg font-semibold rounded-lg transition-all duration-300 transform hover:scale-105`}
+                        className="bg-primary hover:bg-primary/90 text-primary-foreground px-8 py-6 text-lg font-semibold rounded-lg transition-all duration-300 transform hover:scale-105 shadow-lg"
                         size="lg"
                       >
                         <CreditCard className="w-5 h-5 mr-2" />
-                        Unlock Premium Package - $100
+                        Get Started - $100 USD
                         <ArrowRight className="w-5 h-5 ml-2" />
                       </Button>
                       
-                      <div className="text-sm text-purple-200 space-y-1">
+                      <div className="text-sm text-muted-foreground space-y-1">
                         <p>✓ SSL secured payment processing</p>
                         <p>✓ Instant access to all premium features</p>
                         <p>✓ 30-day money-back guarantee</p>
@@ -487,18 +519,18 @@ export default function NextSteps() {
                     <div className="text-center space-y-4">
                       <div className="flex items-center justify-center">
                         {paymentStatus.status === 'generating' && (
-                          <Loader2 className="w-6 h-6 animate-spin text-blue-400 mr-2" />
+                          <Loader2 className="w-6 h-6 animate-spin text-primary mr-2" />
                         )}
                         {paymentStatus.status === 'processing' && (
-                          <Clock className="w-6 h-6 text-yellow-400 mr-2" />
+                          <Clock className="w-6 h-6 text-primary mr-2" />
                         )}
                         {paymentStatus.status === 'success' && (
-                          <CheckCircle className="w-6 h-6 text-green-400 mr-2" />
+                          <CheckCircle className="w-6 h-6 text-primary mr-2" />
                         )}
                         {(paymentStatus.status === 'failed' || paymentStatus.status === 'cancelled') && (
-                          <Target className="w-6 h-6 text-red-400 mr-2" />
+                          <Target className="w-6 h-6 text-destructive mr-2" />
                         )}
-                        <span className="text-white font-medium">
+                        <span className="text-foreground font-medium">
                           {paymentStatus.message}
                         </span>
                       </div>
@@ -507,7 +539,6 @@ export default function NextSteps() {
                         <Button
                           onClick={retryPayment}
                           variant="outline"
-                          className="border-purple-500 text-purple-200 hover:bg-purple-500/20"
                         >
                           Try Again
                         </Button>
@@ -521,7 +552,7 @@ export default function NextSteps() {
                   initial={{ opacity: 0, y: 20 }}
                   animate={{ opacity: 1, y: 0 }}
                   transition={{ duration: 0.6, delay: 0.8 }}
-                  className="border-t border-purple-500/30 pt-6"
+                  className="border-t border-border pt-6"
                 >
                   <h3 className="text-lg font-semibold text-white mb-4 text-center">
                     Frequently Asked Questions
@@ -543,6 +574,7 @@ export default function NextSteps() {
                 </motion.div>
               </CardContent>
             </Card>
+            </div>
           </motion.div>
         </div>
       </div>
