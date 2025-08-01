@@ -10,8 +10,6 @@ import TeamOnboarding from "./onboarding/team";
 import DocumentUpload from "./onboarding/upload";
 import ProcessingScreen from "./onboarding/processing";
 import Analysis from "./onboarding/analysis";
-import PathwayPage from "./pathway";
-import PaymentOnboarding from "./onboarding/payment";
 import ProgressBar from "@/components/progress-bar";
 import Navbar from "@/components/navbar";
 import Layout from "@/components/layout";
@@ -35,9 +33,7 @@ const steps = [
   { key: "team", name: "Team Members", description: "Add up to 4 team members (optional)" },
   { key: "upload", name: "Pitch Deck", description: "Upload your pitch deck" },
   { key: "processing", name: "Processing", description: "Analyzing your submission" },
-  { key: "analysis", name: "Analysis", description: "Your ProofScore analysis results" },
-  { key: "pathway", name: "Pathway", description: "Your recommended development pathway" },
-  { key: "payment", name: "Next Steps", description: "Choose your development package" }
+  { key: "analysis", name: "Analysis", description: "Your ProofScore analysis results" }
 ];
 
 export default function OnboardingFlow({ onComplete }: OnboardingFlowProps) {
@@ -123,9 +119,9 @@ export default function OnboardingFlow({ onComplete }: OnboardingFlowProps) {
       // Track step completion
       trackEvent('onboarding_step_complete', 'user_journey', currentStep.key, currentStepIndex + 1);
       
-      // If we're coming from processing step and going to pathway, refresh session data first
-      if (currentStep.key === "processing" && nextStep.key === "pathway") {
-        console.log("🔄 Refreshing session data before pathway step...");
+      // Refresh session data if needed before proceeding
+      if (currentStep.key === "processing") {
+        console.log("🔄 Refreshing session data after processing...");
         await refreshSessionFromServer();
       }
       
@@ -434,68 +430,12 @@ export default function OnboardingFlow({ onComplete }: OnboardingFlowProps) {
                   ...sessionData,
                   scoringResult: sessionData?.stepData?.processing?.scoringResult
                 }}
-                onNext={nextStep}
+                onNext={handleComplete}
                 onComplete={handleComplete}
               />
             )}
             
-            {currentStep.key === "pathway" && (
-              <>
-                {(() => {
-                  // Debug: Log all available data paths
-                  console.log("🔍 Pathway Debug - Session Data:", sessionData);
-                  console.log("🔍 Pathway Debug - Step Data:", sessionData?.stepData);
-                  console.log("🔍 Pathway Debug - Processing Data:", sessionData?.stepData?.processing);
-                  console.log("🔍 Pathway Debug - Scoring Result:", sessionData?.stepData?.processing?.scoringResult);
-                  
-                  const scoringResult = sessionData?.stepData?.processing?.scoringResult || 
-                                     sessionData?.stepData?.processing ||
-                                     sessionData?.scoringResult;
-                  
-                  console.log("🔍 Pathway Debug - Final Scoring Result:", scoringResult);
-                  
-                  return scoringResult && (scoringResult.total || scoringResult.total_score) ? (
-                    <PathwayPage
-                      onNext={nextStep}
-                      proofScore={scoringResult}
-                    />
-                  ) : (
-                    <div className="text-center py-16">
-                      <div className="text-foreground mb-4">
-                        <h3 className="text-xl font-semibold mb-2">Loading Your Pathway...</h3>
-                        <p className="text-muted-foreground mb-4">
-                          We're preparing your personalized recommendations based on your ProofScore analysis.
-                        </p>
-                        <div className="text-xs text-muted-foreground mb-4 p-4 bg-muted rounded">
-                          Debug: {JSON.stringify({
-                            hasProcessingData: !!sessionData?.stepData?.processing,
-                            hasScoringResult: !!sessionData?.stepData?.processing?.scoringResult,
-                            processingKeys: sessionData?.stepData?.processing ? Object.keys(sessionData.stepData.processing) : 'none'
-                          }, null, 2)}
-                        </div>
-                      </div>
-                      <div className="flex gap-4 justify-center">
-                        <Button onClick={prevStep} variant="outline">
-                          Back to Analysis
-                        </Button>
-                        <Button onClick={nextStep}>
-                          Continue to Next Steps
-                        </Button>
-                      </div>
-                    </div>
-                  );
-                })()}
-              </>
-            )}
-            
-            {currentStep.key === "payment" && (
-              <PaymentOnboarding
-                sessionData={sessionData}
-                onNext={handleComplete}
-                onSkip={handleComplete}
-                onPrev={prevStep}
-              />
-            )}
+
           </motion.div>
         </AnimatePresence>
       </div>
