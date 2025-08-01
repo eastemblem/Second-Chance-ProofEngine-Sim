@@ -105,6 +105,7 @@ Second Chance is a startup validation platform designed to assess investment rea
 - **Telr Currency Configuration**: ✅ **RESOLVED** - "E05:Transaction cost or currency not valid" error resolved by switching from USD to AED currency with proper conversion ($100 USD = 367 AED)
 - **Authentication Flow**: ✅ **WORKING** - Onboarding payment flow now uses session-based authentication correctly, V1 routes preserved for future dashboard functionality
 - **Payment Storage**: ⚠️ **IN-MEMORY ONLY** - Payment transactions stored temporarily in Map() for development; database tables exist but not integrated with new payment flow
+- **Payment UX Enhancement**: ✅ **NEW TAB FLOW IMPLEMENTED** - Telr opens in new tab, payment status polling every 10s, users remain on onboarding page with real-time status updates
 - **Data Utilization**: 85% of rich scoring API data still unused - opportunity for enhancement
 - **Production Security**: Environment-based protection implemented for test endpoints and debug routes
 
