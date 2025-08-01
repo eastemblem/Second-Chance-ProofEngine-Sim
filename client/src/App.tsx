@@ -29,11 +29,14 @@ const LoginPage = lazy(() => import("@/pages/login"));
 const ForgotPasswordPage = lazy(() => import("@/pages/forgot-password"));
 const Dashboard = lazy(() => import("@/pages/dashboard"));
 const TokenExpiredPage = lazy(() => import("@/pages/token-expired"));
-const PerformanceTest = lazy(() => import("@/pages/performance-test"));
-const SentryTest = lazy(() => import("@/pages/sentry-test"));
-const RoutingDebug = lazy(() => import("@/pages/routing-debug"));
+
+// Development-only test pages (conditionally loaded)
+const PerformanceTest = import.meta.env.MODE === 'development' ? lazy(() => import("@/pages/performance-test")) : null;
+const SentryTest = import.meta.env.MODE === 'development' ? lazy(() => import("@/pages/sentry-test")) : null;
+const RoutingDebug = import.meta.env.MODE === 'development' ? lazy(() => import("@/pages/routing-debug")) : null;
+const PaymentTestPage = import.meta.env.MODE === 'development' ? lazy(() => import("@/pages/payment-test")) : null;
+
 const SimpleResetPassword = lazy(() => import("@/pages/simple-reset-password"));
-const PaymentTestPage = lazy(() => import("@/pages/payment-test"));
 const PaymentSuccessPage = lazy(() => import("@/pages/payment-success"));
 const PaymentFailedPage = lazy(() => import("@/pages/payment-failed"));
 const PaymentCancelledPage = lazy(() => import("@/pages/payment-cancelled"));
@@ -199,11 +202,14 @@ function Router() {
           <ResetPasswordPage />
         </Suspense>
       )} />
-      <Route path="/reset-password-debug" component={() => (
-        <Suspense fallback={<SimpleLoader />}>
-          <ResetPasswordDebugPage />
-        </Suspense>
-      )} />
+      {/* Development-only reset password debug route */}
+      {import.meta.env.MODE === 'development' && ResetPasswordDebugPage && (
+        <Route path="/reset-password-debug" component={() => (
+          <Suspense fallback={<SimpleLoader />}>
+            <ResetPasswordDebugPage />
+          </Suspense>
+        )} />
+      )}
       <Route path="/dashboard" component={() => (
         <Suspense fallback={<SimpleLoader />}>
           <Dashboard />
@@ -214,26 +220,35 @@ function Router() {
           <TokenExpiredPage />
         </Suspense>
       )} />
-      <Route path="/performance-test" component={() => (
-        <Suspense fallback={<SimpleLoader />}>
-          <PerformanceTest />
-        </Suspense>
-      )} />
-      <Route path="/sentry-test" component={() => (
-        <Suspense fallback={<SimpleLoader />}>
-          <SentryTest />
-        </Suspense>
-      )} />
-      <Route path="/routing-debug" component={() => (
-        <Suspense fallback={<SimpleLoader />}>
-          <RoutingDebug />
-        </Suspense>
-      )} />
-      <Route path="/payment-test" component={() => (
-        <Suspense fallback={<SimpleLoader />}>
-          <PaymentTestPage />
-        </Suspense>
-      )} />
+      {/* Development-only test routes */}
+      {import.meta.env.MODE === 'development' && PerformanceTest && (
+        <Route path="/performance-test" component={() => (
+          <Suspense fallback={<SimpleLoader />}>
+            <PerformanceTest />
+          </Suspense>
+        )} />
+      )}
+      {import.meta.env.MODE === 'development' && SentryTest && (
+        <Route path="/sentry-test" component={() => (
+          <Suspense fallback={<SimpleLoader />}>
+            <SentryTest />
+          </Suspense>
+        )} />
+      )}
+      {import.meta.env.MODE === 'development' && RoutingDebug && (
+        <Route path="/routing-debug" component={() => (
+          <Suspense fallback={<SimpleLoader />}>
+            <RoutingDebug />
+          </Suspense>
+        )} />
+      )}
+      {import.meta.env.MODE === 'development' && PaymentTestPage && (
+        <Route path="/payment-test" component={() => (
+          <Suspense fallback={<SimpleLoader />}>
+            <PaymentTestPage />
+          </Suspense>
+        )} />
+      )}
       <Route path="/payment/success" component={() => (
         <Suspense fallback={<SimpleLoader />}>
           <PaymentSuccessPage />

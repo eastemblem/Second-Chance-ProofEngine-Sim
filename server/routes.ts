@@ -474,26 +474,27 @@ export async function registerRoutes(app: Express): Promise<Server> {
     res.json(result);
   }));
   
-  // Trigger email flow manually for testing
-  app.post("/api/onboarding/trigger-email-flow", asyncHandler(async (req, res) => {
-    const { sessionId } = req.body;
-    if (!sessionId) {
-      return res.status(400).json({ success: false, error: 'sessionId is required' });
-    }
-    
-    try {
-      const { onboardingService } = await import('./services/onboarding-service');
+  // Development-only email flow testing endpoint
+  if (process.env.NODE_ENV === 'development') {
+    app.post("/api/onboarding/trigger-email-flow", asyncHandler(async (req, res) => {
+      const { sessionId } = req.body;
+      if (!sessionId) {
+        return res.status(400).json({ success: false, error: 'sessionId is required' });
+      }
       
-      // Simulate the async certificate/report generation and email flow
-      const { createCertificateForSession } = await import('./routes/certificate');
-      const { createReportForSession } = await import('./routes/report');
-      
-      appLogger.business("Testing certificate generation for session:", sessionId);
-      const certificateResult = await createCertificateForSession(sessionId);
-      appLogger.business("Certificate result:", certificateResult);
-      
-      appLogger.business("Testing report generation for session:", sessionId);
-      const reportResult = await createReportForSession(sessionId);
+      try {
+        const { onboardingService } = await import('./services/onboarding-service');
+        
+        // Simulate the async certificate/report generation and email flow
+        const { createCertificateForSession } = await import('./routes/certificate');
+        const { createReportForSession } = await import('./routes/report');
+        
+        appLogger.business("Testing certificate generation for session:", sessionId);
+        const certificateResult = await createCertificateForSession(sessionId);
+        appLogger.business("Certificate result:", certificateResult);
+        
+        appLogger.business("Testing report generation for session:", sessionId);
+        const reportResult = await createReportForSession(sessionId);
       appLogger.business("Report result:", reportResult);
       
       // Send email notification with fallback logic
@@ -514,17 +515,18 @@ export async function registerRoutes(app: Express): Promise<Server> {
         appLogger.email("Email notification sent with fallback URLs");
       }
       
-      res.json({ 
-        success: true, 
-        message: "Email flow triggered successfully",
-        certificateResult: certificateResult.success ? "success" : "failed",
-        reportResult: reportResult.success ? "success" : "failed"
-      });
-    } catch (error) {
-      appLogger.email("Email flow test failed:", error);
-      res.status(500).json({ success: false, error: error instanceof Error ? error.message : 'Unknown error' });
-    }
-  }));
+        res.json({ 
+          success: true, 
+          message: "Email flow triggered successfully",
+          certificateResult: certificateResult.success ? "success" : "failed",
+          reportResult: reportResult.success ? "success" : "failed"
+        });
+      } catch (error) {
+        appLogger.email("Email flow test failed:", error);
+        res.status(500).json({ success: false, error: error instanceof Error ? error.message : 'Unknown error' });
+      }
+    }));
+  }
 
   // Fix venture table with certificate and report URLs
   app.post("/api/fix-venture-urls", async (req, res) => {
