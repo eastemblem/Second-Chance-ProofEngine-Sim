@@ -88,7 +88,8 @@ export default function ProcessingScreen({
         
         // Update session data with processing results - use data.data structure
         const processingData = data.data?.session?.stepData?.processing || data.data?.scoringResult;
-        onDataUpdate(processingData);
+        console.log("🎯 Final processing data being sent to onboarding flow:", processingData);
+        onDataUpdate(processingData || data.data);
         setProcessingComplete(true);
         
         // Show toast notifications for certificate and report when ready

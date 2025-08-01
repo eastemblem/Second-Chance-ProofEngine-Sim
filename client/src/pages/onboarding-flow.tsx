@@ -114,7 +114,7 @@ export default function OnboardingFlow({ onComplete }: OnboardingFlowProps) {
   }, []);
 
   // Navigate to next step
-  const nextStep = () => {
+  const nextStep = async () => {
     if (currentStepIndex < steps.length - 1) {
       const currentStep = steps[currentStepIndex];
       const nextIndex = currentStepIndex + 1;
@@ -122,6 +122,12 @@ export default function OnboardingFlow({ onComplete }: OnboardingFlowProps) {
       
       // Track step completion
       trackEvent('onboarding_step_complete', 'user_journey', currentStep.key, currentStepIndex + 1);
+      
+      // If we're coming from processing step and going to pathway, refresh session data first
+      if (currentStep.key === "processing" && nextStep.key === "pathway") {
+        console.log("🔄 Refreshing session data before pathway step...");
+        await refreshSessionFromServer();
+      }
       
       // Track step progression
       trackEvent('onboarding_step_start', 'user_journey', nextStep.key, nextIndex + 1);
@@ -413,7 +419,11 @@ export default function OnboardingFlow({ onComplete }: OnboardingFlowProps) {
               <ProcessingScreen
                 sessionId={sessionData.sessionId}
                 onNext={nextStep}
-                onDataUpdate={(data) => updateSessionData("processing", data)}
+                onDataUpdate={(data) => {
+                  console.log("🔄 Processing data received in onboarding flow:", data);
+                  updateSessionData("processing", data);
+                  console.log("🔄 Session data after processing update:", sessionData);
+                }}
               />
             )}
             
