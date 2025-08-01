@@ -29,6 +29,7 @@ interface PaymentOnboardingProps {
   onNext: () => void;
   onSkip: () => void;
   onPrev?: () => void;
+  currentStepIndex?: number;
 }
 
 interface PaymentStatus {
@@ -38,18 +39,19 @@ interface PaymentStatus {
   paymentId?: string;
 }
 
-export default function PaymentOnboarding({ sessionData, onNext, onSkip, onPrev }: PaymentOnboardingProps) {
+export default function PaymentOnboarding({ sessionData, onNext, onSkip, onPrev, currentStepIndex = 6 }: PaymentOnboardingProps) {
   const { toast } = useToast();
   const [paymentStatus, setPaymentStatus] = useState<PaymentStatus>({ status: 'idle' });
   const [isPolling, setIsPolling] = useState(false);
   
-  // Extract analysis data from session
+  // Extract data from session - early payment doesn't have analysis data yet
   const analysisData = sessionData?.stepData?.processing || {};
   const proofScore = analysisData.total_score || 0;
-  const ventureName = sessionData?.stepData?.venture?.name || "Your Venture";
+  const ventureName = sessionData?.stepData?.venture?.name || sessionData?.stepData?.founder?.firstName + "'s Venture" || "Your Venture";
   
-  // Determine package based on score
-  const isHighScore = proofScore >= 70;
+  // For early payment: always show Foundation package (course-focused)
+  const isEarlyPayment = currentStepIndex === 1; // Payment is step 2 (index 1)
+  const isHighScore = !isEarlyPayment && proofScore >= 70;
   
   // Payment status polling function
   const startPaymentStatusPolling = (paymentId: string) => {
@@ -139,7 +141,32 @@ export default function PaymentOnboarding({ sessionData, onNext, onSkip, onPrev 
     };
   }, []);
 
-  const packageData = isHighScore ? {
+  const packageData = (isEarlyPayment || !isHighScore) ? {
+    type: "foundation",
+    title: "ProofScaling Foundation Course",
+    price: 100,
+    tagline: isEarlyPayment ? "Early Access • Foundation Course" : "Strengthen Your Venture Fundamentals",
+    description: isEarlyPayment 
+      ? "Start immediately with comprehensive validation course while we analyze your venture"
+      : "Comprehensive course to boost your ProofScore by 15-25 points",
+    icon: BookOpen,
+    color: "blue",
+    features: [
+      "Market Validation Framework",
+      "Business Model Optimization",
+      "Value Proposition Design",
+      "Customer Discovery Methods",
+      "Competitive Analysis Tools",
+      "Growth Strategy Planning",
+      "Monthly Mentorship Sessions (3 months)"
+    ],
+    outcomes: [
+      "Stronger venture fundamentals",
+      "15-25 point ProofScore increase",
+      "Validated business model",
+      "Clear go-to-market strategy"
+    ]
+  } : {
     type: "investment",
     title: "Investment Ready Package",
     price: 100,
@@ -161,29 +188,6 @@ export default function PaymentOnboarding({ sessionData, onNext, onSkip, onPrev 
       "Enhanced fundraising readiness",
       "Strategic investor connections",
       "Accelerated path to funding"
-    ]
-  } : {
-    type: "foundation",
-    title: "ProofScaling Foundation Course",
-    price: 100,
-    tagline: "Strengthen Your Venture Fundamentals",
-    description: "Comprehensive course to boost your ProofScore by 15-25 points",
-    icon: BookOpen,
-    color: "blue",
-    features: [
-      "Market Validation Framework",
-      "Business Model Optimization",
-      "Value Proposition Design",
-      "Customer Discovery Methods",
-      "Competitive Analysis Tools",
-      "Growth Strategy Planning",
-      "Monthly Mentorship Sessions (3 months)"
-    ],
-    outcomes: [
-      "Stronger venture fundamentals",
-      "15-25 point ProofScore increase",
-      "Validated business model",
-      "Clear go-to-market strategy"
     ]
   };
 
@@ -264,20 +268,33 @@ export default function PaymentOnboarding({ sessionData, onNext, onSkip, onPrev 
           className="text-center mb-8"
         >
           <Badge className="mb-4 bg-purple-500/20 text-purple-200 border-purple-500/50">
-            Step 7 of 7 • Final Step
+            {isEarlyPayment ? "Step 2 of 7 • Early Access" : "Step 7 of 7 • Final Step"}
           </Badge>
           <h1 className="text-3xl md:text-4xl font-bold text-white mb-4">
-            Choose Your Next Steps
+            {isEarlyPayment ? "Secure Your ProofScaling Package" : "Choose Your Next Steps"}
           </h1>
-          <p className="text-purple-200 text-lg mb-2">
-            Based on your ProofScore of <span className="font-bold text-white">{proofScore}</span>
-          </p>
-          <p className="text-purple-300 max-w-2xl mx-auto">
-            {isHighScore 
-              ? "Your venture shows strong fundamentals. Accelerate your path to investment with advanced tools."
-              : "Strengthen your venture foundation and boost your score with our comprehensive course."
-            }
-          </p>
+          {isEarlyPayment ? (
+            <>
+              <p className="text-purple-200 text-lg mb-2">
+                Start your validation journey with <span className="font-bold text-white">early access pricing</span>
+              </p>
+              <p className="text-purple-300 max-w-2xl mx-auto">
+                Get immediate access to our ProofScaling Foundation course while we analyze your venture. Perfect your fundamentals and boost your score.
+              </p>
+            </>
+          ) : (
+            <>
+              <p className="text-purple-200 text-lg mb-2">
+                Based on your ProofScore of <span className="font-bold text-white">{proofScore}</span>
+              </p>
+              <p className="text-purple-300 max-w-2xl mx-auto">
+                {isHighScore 
+                  ? "Your venture shows strong fundamentals. Accelerate your path to investment with advanced tools."
+                  : "Strengthen your venture foundation and boost your score with our comprehensive course."
+                }
+              </p>
+            </>
+          )}
         </motion.div>
 
         {/* Package Card */}

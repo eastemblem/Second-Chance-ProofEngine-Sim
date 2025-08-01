@@ -30,12 +30,12 @@ interface SessionData {
 
 const steps = [
   { key: "founder", name: "Founder Details", description: "Personal information and experience" },
+  { key: "payment", name: "Early Access", description: "Secure your ProofScaling package" },
   { key: "venture", name: "Venture Info", description: "Company details and market information" },
   { key: "team", name: "Team Members", description: "Add up to 4 team members (optional)" },
   { key: "upload", name: "Pitch Deck", description: "Upload your pitch deck" },
   { key: "processing", name: "Processing", description: "Analyzing your submission" },
-  { key: "analysis", name: "Analysis", description: "Your ProofScore analysis results" },
-  { key: "payment", name: "Next Steps", description: "Choose your development package" }
+  { key: "analysis", name: "Analysis", description: "Your ProofScore analysis results" }
 ];
 
 export default function OnboardingFlow({ onComplete }: OnboardingFlowProps) {
@@ -381,6 +381,16 @@ export default function OnboardingFlow({ onComplete }: OnboardingFlowProps) {
               />
             )}
             
+            {currentStep.key === "payment" && (
+              <PaymentOnboarding
+                sessionData={sessionData}
+                onNext={nextStep}
+                onSkip={nextStep}
+                onPrev={prevStep}
+                currentStepIndex={currentStepIndex}
+              />
+            )}
+            
             {currentStep.key === "venture" && (
               <VentureOnboarding
                 sessionId={sessionData.sessionId}
@@ -432,19 +442,11 @@ export default function OnboardingFlow({ onComplete }: OnboardingFlowProps) {
                   ...sessionData,
                   scoringResult: sessionData?.stepData?.processing?.scoringResult
                 }}
-                onNext={nextStep}
+                onNext={() => {}} // No more steps after analysis
                 onComplete={handleComplete}
               />
             )}
-            
-            {currentStep.key === "payment" && (
-              <PaymentOnboarding
-                sessionData={sessionData}
-                onNext={handleComplete}
-                onSkip={handleComplete}
-                onPrev={prevStep}
-              />
-            )}
+
             
 
           </motion.div>

@@ -106,6 +106,7 @@ Second Chance is a startup validation platform designed to assess investment rea
 - **Authentication Flow**: ✅ **WORKING** - Onboarding payment flow now uses session-based authentication correctly, V1 routes preserved for future dashboard functionality
 - **Payment Storage**: ⚠️ **IN-MEMORY ONLY** - Payment transactions stored temporarily in Map() for development; database tables exist but not integrated with new payment flow
 - **Payment UX Enhancement**: ✅ **NEW TAB FLOW IMPLEMENTED** - Telr opens in new tab, payment status polling every 10s, users remain on onboarding page with real-time status updates
+- **Payment Flow Optimization**: ✅ **MOVED TO STEP 2** - Payment now occurs after founder details (step 2) instead of step 7 for faster testing, shows early access Foundation package
 - **Data Utilization**: 85% of rich scoring API data still unused - opportunity for enhancement
 - **Production Security**: Environment-based protection implemented for test endpoints and debug routes
 
