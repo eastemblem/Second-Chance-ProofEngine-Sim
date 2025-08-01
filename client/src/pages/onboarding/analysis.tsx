@@ -1602,17 +1602,7 @@ export default function Analysis({
                   Continue to Next Steps
                   <ArrowRight className="ml-2 w-4 h-4 sm:w-5 sm:h-5" />
                 </Button>
-                
-                {/* Alternative Continue to Dashboard */}
-                <div className="pt-4 border-t border-purple-500/30">
-                  <Button
-                    onClick={onComplete}
-                    variant="outline"
-                    className="text-purple-200 border-purple-500/50 hover:bg-purple-500/20 px-4 py-2"
-                  >
-                    Continue to Dashboard
-                  </Button>
-                </div>
+
               </div>
             </motion.div>
           </motion.div>
