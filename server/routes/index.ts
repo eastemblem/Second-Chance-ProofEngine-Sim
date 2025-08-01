@@ -48,15 +48,15 @@ if (process.env.NODE_ENV === 'development') {
   });
 }
 
-// Mount route modules
+// Mount route modules (session-based authentication)
 router.use("/founders", foundersRouter);
 router.use("/ventures", venturesRouter);
 router.use("/onboarding", onboardingRouter);
 router.use("/vault", vaultRouter);
+router.use("/payment", paymentNextStepsRouter);
 
-// V1 API routes
+// V1 API routes (JWT authentication)
 router.use("/v1/payments", paymentsRouter);
 router.use("/v1/webhooks", webhooksRouter);
-router.use("/v1/payment", paymentNextStepsRouter);
 
 export default router;

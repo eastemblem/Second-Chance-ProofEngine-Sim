@@ -142,7 +142,7 @@ export default function NextSteps() {
     setPaymentStatus({ status: 'generating', message: 'Preparing your payment...' });
 
     try {
-      const response = await apiRequest("POST", "/api/v1/payment/create-next-steps", {
+      const response = await apiRequest("POST", "/api/payment/create-next-steps", {
         sessionId: nextStepsData.sessionId,
         ventureName: nextStepsData.ventureName,
         proofScore: nextStepsData.proofScore,
