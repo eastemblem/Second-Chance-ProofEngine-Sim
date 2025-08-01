@@ -35,7 +35,7 @@ const steps = [
   { key: "upload", name: "Pitch Deck", description: "Upload your pitch deck" },
   { key: "processing", name: "Processing", description: "Analyzing your submission" },
   { key: "analysis", name: "Analysis", description: "Your ProofScore analysis results" },
-  { key: "payment", name: "Investment Package", description: "Choose your next steps" }
+  { key: "payment", name: "Next Steps", description: "Choose your next steps" }
 ];
 
 export default function OnboardingFlow({ onComplete }: OnboardingFlowProps) {
