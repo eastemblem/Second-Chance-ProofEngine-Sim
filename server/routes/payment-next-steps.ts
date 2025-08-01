@@ -1,7 +1,7 @@
 import { Router, type Request, type Response } from "express";
 import { PaymentGatewayFactory, type PaymentOrderData } from "../lib/payment-gateway";
 import { ActivityService } from "../services/activity-service";
-import { onboardingService } from "../services/onboarding-service";
+import { OnboardingService } from "../services/onboarding-service";
 
 const router = Router();
 
@@ -35,7 +35,6 @@ const paymentTransactions = new Map<string, PaymentTransaction>();
 /**
  * Create a payment for Next Steps packages
  * POST /api/v1/payment/create-next-steps
- * Uses session-based validation (no JWT token required) for onboarding flow
  */
 router.post("/create-next-steps", async (req: Request, res: Response) => {
   try {
@@ -46,15 +45,6 @@ router.post("/create-next-steps", async (req: Request, res: Response) => {
       return res.status(400).json({
         success: false,
         message: "Missing required fields: sessionId, ventureName, proofScore, amount, packageType"
-      });
-    }
-
-    // Validate session exists (session-based validation instead of JWT)
-    const session = await onboardingService.getSession(sessionId);
-    if (!session) {
-      return res.status(401).json({
-        success: false,
-        message: "Invalid session. Please complete onboarding first."
       });
     }
 

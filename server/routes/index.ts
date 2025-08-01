@@ -54,22 +54,6 @@ router.use("/ventures", venturesRouter);
 router.use("/onboarding", onboardingRouter);
 router.use("/vault", vaultRouter);
 
-// V1 routes (mixed: session-based onboarding/payments + JWT for other features)
-try {
-  const v1Routes = await import("./v1/index.js");
-  router.use("/v1", v1Routes.default);
-} catch (error) {
-  console.error("Failed to load V1 routes:", error);
-}
-
-// V1-JWT routes (all JWT authenticated)
-try {
-  const v1JwtRoutes = await import("./v1-jwt/index.js");
-  router.use("/v1-jwt", v1JwtRoutes.default);
-} catch (error) {
-  console.error("Failed to load V1-JWT routes:", error);
-}
-
 // V1 API routes
 router.use("/v1/payments", paymentsRouter);
 router.use("/v1/webhooks", webhooksRouter);

@@ -5,7 +5,6 @@ import onboardingRoutes from './onboarding';
 import certificateRoutes from './certificates';
 import reportRoutes from './reports';
 import notificationRoutes from './notifications';
-import paymentsRoutes from './payments';
 import { getLeaderboard } from '../../routes/leaderboard';
 import { asyncHandler } from '../middleware/error';
 import { appLogger } from '../../utils/logger';
@@ -13,22 +12,21 @@ import { authenticateToken } from '../../middleware/token-auth';
 
 const router = Router();
 
-// LEGACY ROUTES (No JWT authentication required)
-// These routes use session management for onboarding and payment flows
+// Register onboarding routes FIRST (no authentication required for session init)
 router.use('/onboarding', onboardingRoutes);
-router.use('/payments', paymentsRoutes);
 
 // Apply JWT authentication with blacklist checking to remaining v1 routes
 router.use(authenticateToken);
 
-// JWT AUTHENTICATED ROUTES (All protected by JWT)
+// Register authenticated v1 routes (all protected by JWT)
 router.use('/dashboard', dashboardRoutes);
 router.use('/vault', vaultRoutes);
 router.use('/certificate', certificateRoutes);
 router.use('/report', reportRoutes);
 router.use('/notification', notificationRoutes);
+// Note: Test routes moved to tests/ directory
 
-// Leaderboard route - JWT protected
+// Leaderboard route - EXACT SAME LOGIC as routes.ts
 router.get('/leaderboard', asyncHandler(getLeaderboard));
 
 export default router;

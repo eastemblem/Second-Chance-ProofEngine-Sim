@@ -12,7 +12,6 @@ import ProcessingScreen from "./onboarding/processing";
 import Analysis from "./onboarding/analysis";
 import PathwayPage from "./pathway";
 import PaymentOnboarding from "./onboarding/payment";
-import { Button } from "@/components/ui/button";
 import ProgressBar from "@/components/progress-bar";
 import Navbar from "@/components/navbar";
 import Layout from "@/components/layout";
@@ -429,10 +428,10 @@ export default function OnboardingFlow({ onComplete }: OnboardingFlowProps) {
               />
             )}
             
-            {currentStep.key === "pathway" && (
+            {currentStep.key === "pathway" && sessionData?.stepData?.processing?.scoringResult && (
               <PathwayPage
                 onNext={nextStep}
-                proofScore={sessionData?.stepData?.processing?.scoringResult || { total: 75 }}
+                proofScore={sessionData.stepData.processing.scoringResult}
               />
             )}
             
