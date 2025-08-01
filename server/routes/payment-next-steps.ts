@@ -2,6 +2,8 @@ import { Router, type Request, type Response } from "express";
 import { PaymentGatewayFactory, type PaymentOrderData } from "../lib/payment-gateway";
 import { ActivityService } from "../services/activity-service";
 import { OnboardingService } from "../services/onboarding-service";
+import { PaymentService } from "../services/payment-service";
+import { storage } from "../storage";
 
 const router = Router();
 
@@ -28,6 +30,9 @@ interface PaymentTransaction {
   createdAt: Date;
   updatedAt: Date;
 }
+
+// Initialize payment service for database integration
+const paymentService = new PaymentService();
 
 // In-memory storage for payment transactions (in production, use database)
 const paymentTransactions = new Map<string, PaymentTransaction>();
@@ -164,6 +169,33 @@ router.post("/create-next-steps-session", async (req: Request, res: Response) =>
     };
 
     paymentTransactions.set(paymentId, transaction);
+
+    // Also save to database for persistent storage (simplified approach)
+    try {
+      // For session-based payments, we'll log to payment_logs without creating full database transactions
+      // This preserves payment history while avoiding complex founder constraints
+      await storage.createPaymentLog({
+        transactionId: paymentId,
+        gatewayProvider: 'telr',
+        action: 'session_payment_created',
+        requestData: {
+          sessionId,
+          packageType,
+          proofScore,
+          amount: aedAmount,
+          currency: 'AED',
+          ventureName,
+          telrRef: telrResponse.orderReference,
+          telrUrl: telrResponse.paymentUrl,
+          originalAmountUSD: amount
+        }
+      });
+
+      console.log('✅ Payment logged to database:', paymentId);
+    } catch (dbError) {
+      console.error('❌ Failed to log payment to database:', dbError);
+      // Continue anyway - in-memory storage will work for session-based flow
+    }
 
     // Log activity
     try {
@@ -472,6 +504,35 @@ router.get("/callback/telr", async (req: Request, res: Response) => {
     transaction.status = newStatus;
     transaction.updatedAt = new Date();
     paymentTransactions.set(paymentId, transaction);
+
+    // Also update database if transaction exists there
+    try {
+      const dbTransaction = await storage.getPaymentTransactionByOrderRef(paymentId);
+      if (dbTransaction) {
+        await storage.updatePaymentTransaction(dbTransaction.id, {
+          status: newStatus,
+          gatewayStatus: status,
+          gatewayResponse: { callbackData: req.query }
+        });
+
+        // Log callback to payment_logs
+        await storage.createPaymentLog({
+          transactionId: paymentId,
+          gatewayProvider: 'telr',
+          action: 'session_callback_received',
+          requestData: { 
+            callbackStatus: status,
+            paymentId,
+            newStatus 
+          }
+        });
+
+        console.log('✅ Database transaction updated via callback:', paymentId);
+      }
+    } catch (dbError) {
+      console.error('❌ Failed to update database transaction via callback:', dbError);
+      // Continue anyway - in-memory update succeeded
+    }
 
     console.log("Payment status updated via callback:", {
       paymentId,
