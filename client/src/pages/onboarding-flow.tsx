@@ -38,6 +38,33 @@ const steps = [
   { key: "payment", name: "Next Steps", description: "Choose your next steps" }
 ];
 
+// Helper function to determine the correct current step index
+const determineCurrentStepIndex = (completedSteps: string[] = [], currentStep?: string): number => {
+  // If no completed steps, start at step 0
+  if (!completedSteps || completedSteps.length === 0) {
+    return 0;
+  }
+  
+  // Find the last completed step index
+  let lastCompletedIndex = -1;
+  for (let i = steps.length - 1; i >= 0; i--) {
+    if (completedSteps.includes(steps[i].key)) {
+      lastCompletedIndex = i;
+      break;
+    }
+  }
+  
+  // The current step should be the next step after the last completed one
+  const nextStepIndex = lastCompletedIndex + 1;
+  
+  // Make sure we don't go beyond the available steps
+  const targetIndex = Math.min(nextStepIndex, steps.length - 1);
+  
+  console.log(`🎯 Step determination: completed=[${completedSteps.join(',')}], lastCompleted=${lastCompletedIndex}, target=${targetIndex}, currentStep=${currentStep}`);
+  
+  return targetIndex;
+};
+
 export default function OnboardingFlow({ onComplete }: OnboardingFlowProps) {
   const [sessionData, setSessionData] = useState<SessionData | null>(null);
   const [currentStepIndex, setCurrentStepIndex] = useState(0);
@@ -67,9 +94,9 @@ export default function OnboardingFlow({ onComplete }: OnboardingFlowProps) {
         };
         
         setSessionData(sessionData);
-        // Find current step index
-        const stepIndex = steps.findIndex(step => step.key === sessionData.currentStep);
-        setCurrentStepIndex(stepIndex >= 0 ? stepIndex : 0);
+        // Determine the correct step index based on completed steps
+        const stepIndex = determineCurrentStepIndex(sessionData.completedSteps, sessionData.currentStep);
+        setCurrentStepIndex(stepIndex);
         
         // Store session in localStorage for persistence
         try {
@@ -98,8 +125,8 @@ export default function OnboardingFlow({ onComplete }: OnboardingFlowProps) {
         const parsedSession = JSON.parse(existingSession);
         if (!parsedSession.isComplete) {
           setSessionData(parsedSession);
-          const stepIndex = steps.findIndex(step => step.key === parsedSession.currentStep);
-          setCurrentStepIndex(stepIndex >= 0 ? stepIndex : 0);
+          const stepIndex = determineCurrentStepIndex(parsedSession.completedSteps, parsedSession.currentStep);
+          setCurrentStepIndex(stepIndex);
           return;
         }
       } catch (error) {
@@ -192,6 +219,11 @@ export default function OnboardingFlow({ onComplete }: OnboardingFlowProps) {
         };
         
         setSessionData(updatedSession);
+        
+        // Update current step index based on completed steps
+        const stepIndex = determineCurrentStepIndex(updatedSession.completedSteps, updatedSession.currentStep);
+        setCurrentStepIndex(stepIndex);
+        
         localStorage.setItem('onboardingSession', JSON.stringify(updatedSession));
         
         console.log(`Local session synchronized with server`);
