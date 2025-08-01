@@ -189,7 +189,7 @@ export default function NextSteps() {
   const startPaymentStatusPolling = (paymentId: string) => {
     const checkStatus = async () => {
       try {
-        const response = await apiRequest("GET", `/api/v1/payment/status/${paymentId}`);
+        const response = await apiRequest("GET", `/api/payment/status/${paymentId}`);
         const data = await response.json();
 
         if (data.success) {
