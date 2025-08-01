@@ -142,6 +142,7 @@ export default function NextSteps() {
     setPaymentStatus({ status: 'generating', message: 'Preparing your payment...' });
 
     try {
+      console.log('NEXT-STEPS: Using session-based payment endpoint');
       const response = await apiRequest("POST", "/api/payment/create-next-steps", {
         sessionId: nextStepsData.sessionId,
         ventureName: nextStepsData.ventureName,
