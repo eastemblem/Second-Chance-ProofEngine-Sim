@@ -10,18 +10,37 @@ export default function PaymentSuccess() {
   const [orderRef, setOrderRef] = useState<string | null>(null);
 
   useEffect(() => {
-    // Get order reference from URL params
+    // Get order reference from URL params - support both 'ref' and 'payment_id'
     const urlParams = new URLSearchParams(window.location.search);
-    const ref = urlParams.get('ref');
+    const ref = urlParams.get('ref') || urlParams.get('payment_id');
     setOrderRef(ref);
   }, []);
 
-  // Query payment status to verify success
+  // Query payment status to verify success - try session-based endpoint first, then V1
   const { data: paymentStatus, isLoading, error } = useQuery({
-    queryKey: ['/api/v1/payments/status', orderRef],
+    queryKey: ['/api/payment/status', orderRef],
     enabled: !!orderRef,
     retry: 3,
     retryDelay: 1000,
+    queryFn: async () => {
+      try {
+        // Try session-based endpoint first (for onboarding payments)
+        const sessionResponse = await fetch(`/api/payment/status/${orderRef}`);
+        if (sessionResponse.ok) {
+          return await sessionResponse.json();
+        }
+        
+        // Fall back to V1 endpoint (for dashboard payments)
+        const v1Response = await fetch(`/api/v1/payments/status/${orderRef}`);
+        if (v1Response.ok) {
+          return await v1Response.json();
+        }
+        
+        throw new Error('Payment not found');
+      } catch (error) {
+        throw new Error('Failed to verify payment status');
+      }
+    },
   });
 
   const handleGoHome = () => {

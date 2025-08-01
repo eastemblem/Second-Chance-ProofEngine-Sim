@@ -115,9 +115,9 @@ router.post("/create-next-steps-session", async (req: Request, res: Response) =>
       currency: "AED", // Telr primarily supports AED (UAE Dirham) - $100 USD ≈ 367 AED
       description: `${packageType === 'foundation' ? 'ProofScaling Foundation Course' : 'Investment Ready Package'} - ${ventureName} (${amount} USD)`,
       returnUrls: {
-        authorised: `${process.env.FRONTEND_URL || 'http://localhost:5000'}/payment/success?payment_id=${paymentId}`,
-        declined: `${process.env.FRONTEND_URL || 'http://localhost:5000'}/payment/failed?payment_id=${paymentId}`,
-        cancelled: `${process.env.FRONTEND_URL || 'http://localhost:5000'}/payment/cancelled?payment_id=${paymentId}`,
+        authorised: `${process.env.FRONTEND_URL || 'http://localhost:5000'}/api/payment/callback/telr?payment_id=${paymentId}&status=completed`,
+        declined: `${process.env.FRONTEND_URL || 'http://localhost:5000'}/api/payment/callback/telr?payment_id=${paymentId}&status=failed`,
+        cancelled: `${process.env.FRONTEND_URL || 'http://localhost:5000'}/api/payment/callback/telr?payment_id=${paymentId}&status=cancelled`,
       },
       metadata: {
         sessionId,
@@ -435,6 +435,87 @@ router.get("/history/:sessionId", async (req: Request, res: Response) => {
       success: false,
       message: "Failed to get payment history"
     });
+  }
+});
+
+/**
+ * Handle Telr callback for session-based payments
+ * GET /api/payment/callback/telr
+ */
+router.get("/callback/telr", async (req: Request, res: Response) => {
+  try {
+    console.log("Session-based Telr callback received:", {
+      query: req.query,
+      headers: req.headers
+    });
+
+    const { payment_id, status, cartid, order_ref, tranref } = req.query as any;
+    const paymentId = payment_id || cartid || order_ref;
+
+    if (!paymentId) {
+      console.error("No payment ID found in callback");
+      return res.redirect(`${process.env.FRONTEND_URL || 'http://localhost:5000'}/payment/error?error=missing_payment_id`);
+    }
+
+    // Find the payment transaction
+    const transaction = paymentTransactions.get(paymentId);
+    if (!transaction) {
+      console.error("Payment transaction not found:", paymentId);
+      return res.redirect(`${process.env.FRONTEND_URL || 'http://localhost:5000'}/payment/error?error=payment_not_found`);
+    }
+
+    // Update transaction status
+    let newStatus: PaymentStatus = status === 'completed' ? 'completed' : 
+                                   status === 'failed' ? 'failed' : 
+                                   status === 'cancelled' ? 'cancelled' : 'pending';
+
+    transaction.status = newStatus;
+    transaction.updatedAt = new Date();
+    paymentTransactions.set(paymentId, transaction);
+
+    console.log("Payment status updated via callback:", {
+      paymentId,
+      newStatus,
+      callbackStatus: status
+    });
+
+    // Log activity
+    try {
+      await ActivityService.logActivity(
+        { sessionId: transaction.sessionId },
+        {
+          activityType: 'system',
+          action: 'payment_status_changed',
+          title: 'Payment Status Updated',
+          description: `Payment completed via Telr callback`,
+          metadata: {
+            paymentId,
+            status: newStatus,
+            packageType: transaction.packageType,
+            amount: transaction.amount
+          }
+        }
+      );
+    } catch (activityError) {
+      console.error("Failed to log payment callback activity:", activityError);
+    }
+
+    // Redirect to appropriate page
+    const baseUrl = process.env.FRONTEND_URL || 'http://localhost:5000';
+    if (newStatus === 'completed') {
+      return res.redirect(`${baseUrl}/payment/success?payment_id=${paymentId}`);
+    } else if (newStatus === 'failed') {
+      return res.redirect(`${baseUrl}/payment/failed?payment_id=${paymentId}`);
+    } else if (newStatus === 'cancelled') {
+      return res.redirect(`${baseUrl}/payment/cancelled?payment_id=${paymentId}`);
+    } else {
+      return res.redirect(`${baseUrl}/payment/pending?payment_id=${paymentId}`);
+    }
+
+  } catch (error) {
+    console.error("Error processing Telr callback:", error);
+    const baseUrl = process.env.FRONTEND_URL || 'http://localhost:5000';
+    return res.redirect(`${baseUrl}/payment/error?error=callback_processing_failed`);
   }
 });
 
