@@ -399,9 +399,7 @@ export default function PaymentOnboarding({ sessionData, onNext, onSkip, onPrev,
           transition={{ duration: 0.6 }}
           className="text-center mb-8"
         >
-          <Badge className="mb-4 bg-primary/20 text-primary border-primary/50">
-            {isEarlyPayment ? "Step 2 of 7 • Early Access" : "Step 7 of 7 • Final Step"}
-          </Badge>
+
           <h1 className="text-3xl md:text-4xl font-bold text-foreground mb-4">
             {isEarlyPayment ? "Secure Your ProofScaling Package" : "Choose Your Next Steps"}
           </h1>
@@ -488,6 +486,34 @@ export default function PaymentOnboarding({ sessionData, onNext, onSkip, onPrev,
                         {outcome}
                       </div>
                     ))}
+                  </div>
+                </div>
+              </div>
+
+              {/* Analysis Section */}
+              <div className="bg-gradient-to-r from-green-500/10 to-emerald-500/10 rounded-lg p-4 border border-green-500/20">
+                <h3 className="text-sm font-semibold text-green-300 mb-3 flex items-center">
+                  <Shield className="w-4 h-4 mr-2" />
+                  Why This Investment Matters
+                </h3>
+                <div className="space-y-2 text-sm text-muted-foreground">
+                  <div className="flex items-center">
+                    <div className="w-2 h-2 bg-green-400 rounded-full mr-3"></div>
+                    {isHighScore 
+                      ? "Direct access to investor networks and advanced deal structuring"
+                      : "Master the fundamentals that 90% of startups miss"
+                    }
+                  </div>
+                  <div className="flex items-center">
+                    <div className="w-2 h-2 bg-primary rounded-full mr-3"></div>
+                    {isHighScore
+                      ? "Premium tools for due diligence and investor presentations"
+                      : "Build a compelling investment case from the ground up"
+                    }
+                  </div>
+                  <div className="flex items-center">
+                    <div className="w-2 h-2 bg-primary-gold rounded-full mr-3"></div>
+                    Immediate access and lifetime updates
                   </div>
                 </div>
               </div>
@@ -587,12 +613,13 @@ export default function PaymentOnboarding({ sessionData, onNext, onSkip, onPrev,
                   </div>
                 ) : (
                   <div className="space-y-4">
-                    <Button
-                      onClick={handlePurchasePackage}
-                      disabled={paymentStatus.status === 'generating' || paymentStatus.status === 'processing'}
-                      className="w-full gradient-button py-4 text-base font-semibold max-w-md mx-auto"
-                      size="default"
-                    >
+                    <div className="flex justify-center">
+                      <Button
+                        onClick={handlePurchasePackage}
+                        disabled={paymentStatus.status === 'generating' || paymentStatus.status === 'processing'}
+                        className="gradient-button py-4 text-base font-semibold px-8"
+                        size="default"
+                      >
                       {paymentStatus.status === 'generating' && (
                         <Loader2 className="w-4 h-4 animate-spin mr-2" />
                       )}
@@ -608,7 +635,8 @@ export default function PaymentOnboarding({ sessionData, onNext, onSkip, onPrev,
                         ? 'Opening Payment in New Tab...'
                         : 'Make Payment'
                       }
-                    </Button>
+                      </Button>
+                    </div>
 
                     {paymentStatus.message && paymentStatus.status !== 'processing' && (
                       <p className="text-center text-sm text-primary">
