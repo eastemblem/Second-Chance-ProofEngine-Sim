@@ -497,6 +497,43 @@ router.post('/create-folder', upload.none(), asyncHandler(async (req: Authentica
       usedFallback = true;
     }
     
+    // Log folder creation activity for recent-activity feed
+    if (founderId) {
+      try {
+        const { databaseService } = await import("../../services/database-service");
+        let currentVentureId = null;
+        try {
+          const dashboardData = await databaseService.getFounderWithLatestVenture(founderId);
+          currentVentureId = dashboardData?.venture?.ventureId || null;
+        } catch (ventureError) {
+          console.error(`⚠️ V1 FOLDER CREATION: Failed to get venture ID:`, ventureError);
+        }
+
+        const context = ActivityService.getContextFromRequest(req);
+        await ActivityService.logActivity(
+          { ...context, founderId, ventureId: currentVentureId },
+          {
+            activityType: 'document',
+            action: 'folder_created',
+            title: `Folder created: ${folderName}`,
+            description: `Created folder "${folderName}" in ${folder_id} category`,
+            entityId: result.id?.toString(),
+            entityType: 'folder',
+            metadata: {
+              folderName: folderName,
+              parentCategory: folder_id,
+              parentFolderId: actualParentFolderId,
+              usedFallback: usedFallback
+            }
+          }
+        );
+        console.log(`📝 V1 FOLDER CREATION: Activity logged for folder creation: ${folderName}`);
+      } catch (activityError) {
+        console.error(`⚠️ V1 FOLDER CREATION: Activity logging failed:`, activityError);
+        // Don't fail the folder creation if activity logging fails
+      }
+    }
+
     // Invalidate cache after successful folder creation
     if (founderId) {
       try {
@@ -594,6 +631,34 @@ router.post('/upload-file-direct', upload.single("file"), asyncHandler(async (re
     } catch (dbError) {
       console.error(`❌ V1 DIRECT UPLOAD: Database storage failed:`, dbError);
       // Continue without failing the upload since Box.com upload succeeded
+    }
+
+    // Log direct upload activity for recent-activity feed
+    if (founderId) {
+      try {
+        const context = ActivityService.getContextFromRequest(req);
+        await ActivityService.logActivity(
+          { ...context, founderId, ventureId: currentVentureId },
+          {
+            activityType: 'document',
+            action: 'file_uploaded',
+            title: `File uploaded: ${file.originalname}`,
+            description: `Uploaded "${file.originalname}" directly to folder ${folder_id}`,
+            entityId: uploadResult.id,
+            entityType: 'file',
+            metadata: {
+              fileName: file.originalname,
+              fileSize: file.size,
+              folderId: folder_id,
+              uploadType: 'direct'
+            }
+          }
+        );
+        console.log(`📝 V1 DIRECT UPLOAD: Activity logged for file upload: ${file.originalname}`);
+      } catch (activityError) {
+        console.error(`⚠️ V1 DIRECT UPLOAD: Activity logging failed:`, activityError);
+        // Don't fail the upload if activity logging fails
+      }
     }
 
     // Invalidate cache after successful direct upload

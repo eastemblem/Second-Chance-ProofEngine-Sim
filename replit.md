@@ -96,6 +96,7 @@ Second Chance is a startup validation platform designed to assess investment rea
 ### Current Status (Updated: 2025-08-01)
 - **Application Health**: Server fully functional on port 5000, all endpoints operational
 - **Cache Invalidation System**: Comprehensive cache invalidation implemented for V1 routes only
+- **Activity Logging System**: V1 upload and folder creation endpoints now log activities for real-time dashboard updates
 - **Architecture**: EastEmblem API proxy eliminates need for direct Box SDK integration
 - **Payment System**: Score-based payment integration planned for analysis page ($100 packages)
 - **Data Utilization**: 85% of rich scoring API data still unused - opportunity for enhancement
@@ -138,11 +139,16 @@ Second Chance is a startup validation platform designed to assess investment rea
 **Strategy**: Event-driven cache invalidation with graceful error handling
 
 **Cache Invalidation Triggers:**
-- **File Upload** (V1 vault upload, direct upload) → Invalidates `vault_{founderId}` + `activity_{founderId}`
-- **Folder Creation** (V1 vault create-folder) → Invalidates `vault_{founderId}`  
+- **File Upload** (V1 vault upload, direct upload) → Logs activity + Invalidates `vault_{founderId}` + `activity_{founderId}`
+- **Folder Creation** (V1 vault create-folder) → Logs activity + Invalidates `vault_{founderId}`  
 - **Activity Logging** (ActivityService) → Invalidates `activity_{founderId}`
 - **Founder Creation** (V1 onboarding) → Invalidates `founder_{founderId}`
 - **Venture Creation** (V1 onboarding) → Invalidates `founder_{founderId}` + `venture_{ventureId}` + `vault_{founderId}`
+
+**Activity Logging Integration:**
+- **V1 File Upload** → Creates "file_uploaded" activity with file details
+- **V1 Direct Upload** → Creates "file_uploaded" activity with folder information
+- **V1 Folder Creation** → Creates "folder_created" activity with category context
 
 **Implementation Details:**
 - Graceful error handling (cache failures don't break core functionality)
