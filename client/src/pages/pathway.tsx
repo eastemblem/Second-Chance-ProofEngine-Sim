@@ -22,7 +22,7 @@ export default function PathwayPage({ onNext, proofScore }: PathwayPageProps) {
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.6 }}
         >
-          <ProgressBar currentStep={4} totalSteps={4} stepName="Your Next Steps" />
+          <ProgressBar currentStep={7} totalSteps={8} stepName="Your Next Steps" />
 
           <div className="text-center mb-8">
             <h2 className="text-3xl font-bold mb-4">Your Recommended Pathway</h2>
