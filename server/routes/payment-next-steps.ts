@@ -99,14 +99,24 @@ router.post("/create-next-steps-session", async (req: Request, res: Response) =>
     const onboardingService = new OnboardingService();
     const session = await onboardingService.getSession(sessionId);
     
-    if (!session?.stepData?.founder?.id) {
+    if (!session) {
+      return res.status(400).json({
+        success: false,
+        message: 'Session not found. Please complete onboarding first.'
+      });
+    }
+    
+    // Extract founderId from session data
+    const founderId = session.stepData?.founderId || 
+                     session.stepData?.founder?.founderId || 
+                     session.stepData?.founder?.id;
+    
+    if (!founderId) {
       return res.status(400).json({
         success: false,
         message: 'No founder found in session. Please complete onboarding first.'
       });
     }
-    
-    const founderId = session.stepData.founder.id;
 
     // Use PaymentService to create payment transaction in database
     const paymentRequest = {
