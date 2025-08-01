@@ -28,6 +28,7 @@ interface PaymentOnboardingProps {
   sessionData: any;
   onNext: () => void;
   onSkip: () => void;
+  onPrev?: () => void;
 }
 
 interface PaymentStatus {
@@ -36,7 +37,7 @@ interface PaymentStatus {
   telrUrl?: string;
 }
 
-export default function PaymentOnboarding({ sessionData, onNext, onSkip }: PaymentOnboardingProps) {
+export default function PaymentOnboarding({ sessionData, onNext, onSkip, onPrev }: PaymentOnboardingProps) {
   const { toast } = useToast();
   const [paymentStatus, setPaymentStatus] = useState<PaymentStatus>({ status: 'idle' });
   
@@ -265,18 +266,30 @@ export default function PaymentOnboarding({ sessionData, onNext, onSkip }: Payme
                   </p>
                 )}
 
-                {/* Skip Option */}
-                <div className="text-center pt-4 border-t border-gray-700/50">
-                  <p className="text-gray-400 text-sm mb-3">
-                    Not ready yet? You can access this later from your dashboard.
-                  </p>
+                {/* Navigation Options */}
+                <div className="flex gap-3 pt-4 border-t border-gray-700/50">
+                  {onPrev && (
+                    <Button
+                      onClick={onPrev}
+                      variant="outline"
+                      className="flex-1 text-gray-300 border-gray-600 hover:bg-gray-700/50"
+                    >
+                      Back to Pathway
+                    </Button>
+                  )}
                   <Button
                     onClick={onSkip}
                     variant="outline"
-                    className="text-gray-300 border-gray-600 hover:bg-gray-700/50"
+                    className="flex-1 text-gray-300 border-gray-600 hover:bg-gray-700/50"
                   >
                     Continue to Dashboard
                   </Button>
+                </div>
+                
+                <div className="text-center">
+                  <p className="text-gray-400 text-sm">
+                    Not ready yet? You can access this later from your dashboard.
+                  </p>
                 </div>
               </div>
             </CardContent>

@@ -10,6 +10,7 @@ import TeamOnboarding from "./onboarding/team";
 import DocumentUpload from "./onboarding/upload";
 import ProcessingScreen from "./onboarding/processing";
 import Analysis from "./onboarding/analysis";
+import PathwayPage from "./pathway";
 import PaymentOnboarding from "./onboarding/payment";
 import ProgressBar from "@/components/progress-bar";
 import Navbar from "@/components/navbar";
@@ -34,6 +35,7 @@ const steps = [
   { key: "upload", name: "Pitch Deck", description: "Upload your pitch deck" },
   { key: "processing", name: "Processing", description: "Analyzing your submission" },
   { key: "analysis", name: "Analysis", description: "Your ProofScore analysis results" },
+  { key: "pathway", name: "Pathway", description: "Your recommended development pathway" },
   { key: "payment", name: "Next Steps", description: "Choose your development package" }
 ];
 
@@ -426,11 +428,19 @@ export default function OnboardingFlow({ onComplete }: OnboardingFlowProps) {
               />
             )}
             
+            {currentStep.key === "pathway" && sessionData?.stepData?.processing?.scoringResult && (
+              <PathwayPage
+                onNext={nextStep}
+                proofScore={sessionData.stepData.processing.scoringResult}
+              />
+            )}
+            
             {currentStep.key === "payment" && (
               <PaymentOnboarding
                 sessionData={sessionData}
                 onNext={handleComplete}
                 onSkip={handleComplete}
+                onPrev={prevStep}
               />
             )}
           </motion.div>
