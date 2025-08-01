@@ -2,14 +2,14 @@ import { useEffect, useState } from 'react';
 import { useLocation } from 'wouter';
 import { motion } from 'framer-motion';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
-import { CheckCircle, Loader2, Home, Receipt, ArrowRight, Star, Shield, Trophy, Sparkles } from 'lucide-react';
+import { CheckCircle, Loader2, Star, Shield, Trophy, Sparkles, Clock } from 'lucide-react';
 import { useQuery } from '@tanstack/react-query';
 
 export default function PaymentSuccess() {
   const [, setLocation] = useLocation();
   const [orderRef, setOrderRef] = useState<string | null>(null);
+  const [countdown, setCountdown] = useState(5);
 
   useEffect(() => {
     // Get order reference from URL params - support both 'ref' and 'payment_id'
@@ -17,6 +17,19 @@ export default function PaymentSuccess() {
     const ref = urlParams.get('ref') || urlParams.get('payment_id');
     setOrderRef(ref);
   }, []);
+
+  // Countdown timer to auto-close page
+  useEffect(() => {
+    if (countdown > 0) {
+      const timer = setTimeout(() => {
+        setCountdown(countdown - 1);
+      }, 1000);
+      return () => clearTimeout(timer);
+    } else {
+      // Close the window/tab when countdown reaches 0
+      window.close();
+    }
+  }, [countdown]);
 
   // Query payment status to verify success - try session-based endpoint first, then V1
   const { data: paymentStatus, isLoading, error } = useQuery({
@@ -45,15 +58,7 @@ export default function PaymentSuccess() {
     },
   });
 
-  const handleGoHome = () => {
-    setLocation('/dashboard');
-  };
 
-  const handleViewReceipt = () => {
-    if (orderRef) {
-      window.open(`/api/v1/payments/receipt/${orderRef}`, '_blank');
-    }
-  };
 
   if (isLoading) {
     return (
@@ -105,10 +110,9 @@ export default function PaymentSuccess() {
                   We couldn't verify your payment. Please contact support.
                 </p>
                 <div className="mt-6">
-                  <Button onClick={handleGoHome} className="w-full gradient-button">
-                    <Home className="mr-2 h-4 w-4" />
-                    Go to Dashboard
-                  </Button>
+                  <div className="text-center text-sm text-gray-400">
+                    This page will close automatically in {countdown} seconds...
+                  </div>
                 </div>
               </div>
             </CardContent>
@@ -164,6 +168,10 @@ export default function PaymentSuccess() {
               <p className="text-gray-300 text-lg">
                 Your payment has been processed successfully. Your journey to investment readiness begins now!
               </p>
+              <div className="mt-4 flex items-center justify-center space-x-2 text-sm text-blue-300">
+                <Clock className="w-4 h-4" />
+                <span>Auto-closing in {countdown} seconds</span>
+              </div>
             </CardHeader>
             
             <CardContent className="space-y-6">
@@ -240,28 +248,33 @@ export default function PaymentSuccess() {
                 </div>
               </motion.div>
 
-              {/* Action Buttons */}
+              {/* Auto-close Notice */}
               <motion.div
                 initial={{ opacity: 0, y: 10 }}
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ delay: 0.8, duration: 0.5 }}
-                className="flex space-x-3 pt-4"
+                className="text-center pt-4"
               >
-                <Button 
-                  onClick={handleViewReceipt} 
-                  variant="outline" 
-                  className="flex-1 border-white/20 text-gray-300 hover:bg-white/10 hover:text-white"
-                >
-                  <Receipt className="mr-2 h-4 w-4" />
-                  Download Receipt
-                </Button>
-                <Button 
-                  onClick={handleGoHome} 
-                  className="flex-1 gradient-button text-lg font-semibold py-6"
-                >
-                  <ArrowRight className="mr-2 h-5 w-5" />
-                  Continue to Dashboard
-                </Button>
+                <div className="bg-blue-500/10 rounded-lg p-4 border border-blue-500/20">
+                  <div className="flex items-center justify-center space-x-3 text-blue-300">
+                    <div className="relative">
+                      <Clock className="w-6 h-6" />
+                      <motion.div
+                        className="absolute inset-0 border-2 border-blue-400 rounded-full"
+                        initial={{ scale: 1, opacity: 0.7 }}
+                        animate={{ scale: 1.5, opacity: 0 }}
+                        transition={{ duration: 1, repeat: Infinity }}
+                      />
+                    </div>
+                    <div>
+                      <div className="font-semibold text-lg">{countdown}</div>
+                      <div className="text-xs text-gray-400">seconds remaining</div>
+                    </div>
+                  </div>
+                  <p className="text-sm text-gray-300 mt-2">
+                    This window will close automatically. You can return to your dashboard anytime.
+                  </p>
+                </div>
               </motion.div>
             </CardContent>
           </Card>
