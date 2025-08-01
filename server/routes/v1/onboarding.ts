@@ -24,6 +24,29 @@ router.post("/session/init", asyncHandler(async (req: Request, res: Response) =>
   }));
 }));
 
+// Get onboarding session - V1 VERSION (No authentication required for session data retrieval)
+router.get("/session/:sessionId", asyncHandler(async (req: Request, res: Response) => {
+  const { sessionId } = req.params;
+  
+  if (!sessionId || sessionId === 'undefined') {
+    return res.status(400).json(createErrorResponse(400, "Invalid session ID"));
+  }
+  
+  const session = await onboardingService.getSession(sessionId);
+  
+  if (!session) {
+    return res.status(404).json(createErrorResponse(404, "Session not found"));
+  }
+
+  res.json(createSuccessResponse({
+    sessionId: session.sessionId,
+    currentStep: session.currentStep,
+    stepData: session.stepData,
+    completedSteps: session.completedSteps,
+    isComplete: session.isComplete,
+  }));
+}));
+
 // Founder onboarding step - UPDATED LOGIC to accept sessionId from request body
 router.post("/founder", asyncHandler(async (req: Request, res: Response) => {
   // Use sessionId from request body if provided, otherwise get from middleware
