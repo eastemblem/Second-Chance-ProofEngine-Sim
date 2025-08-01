@@ -17,25 +17,10 @@ interface NextStepsPaymentRequest {
 
 type PaymentStatus = 'pending' | 'completed' | 'failed' | 'cancelled' | 'expired';
 
-interface PaymentTransaction {
-  paymentId: string;
-  sessionId: string;
-  ventureName: string;
-  proofScore: number;
-  amount: number;
-  packageType: 'foundation' | 'investment_ready';
-  status: PaymentStatus;
-  telrRef?: string;
-  telrUrl?: string;
-  createdAt: Date;
-  updatedAt: Date;
-}
+// Interface removed - using database PaymentTransaction from shared schema
 
 // Initialize payment service for database integration
 const paymentService = new PaymentService();
-
-// In-memory storage for payment transactions (in production, use database)
-const paymentTransactions = new Map<string, PaymentTransaction>();
 
 /**
  * Create a payment for Next Steps packages
@@ -110,94 +95,87 @@ router.post("/create-next-steps-session", async (req: Request, res: Response) =>
       }
     }
 
-    // Generate payment ID
-    const paymentId = `payment_${Date.now()}_${Math.random().toString(36).substring(2, 15)}`;
-    
-    // Prepare payment order data
-    const orderData: PaymentOrderData = {
-      orderId: paymentId,
-      amount: aedAmount, // Use AED amount for Telr
-      currency: "AED", // Telr primarily supports AED (UAE Dirham) - $100 USD ≈ 367 AED
-      description: `${packageType === 'foundation' ? 'ProofScaling Foundation Course' : 'Investment Ready Package'} - ${ventureName} (${amount} USD)`,
-      returnUrls: {
-        authorised: `${process.env.FRONTEND_URL || 'http://localhost:5000'}/api/payment/callback/telr?payment_id=${paymentId}&status=completed`,
-        declined: `${process.env.FRONTEND_URL || 'http://localhost:5000'}/api/payment/callback/telr?payment_id=${paymentId}&status=failed`,
-        cancelled: `${process.env.FRONTEND_URL || 'http://localhost:5000'}/api/payment/callback/telr?payment_id=${paymentId}&status=cancelled`,
-      },
+    // Get or create session founder for database integration
+    let founderId: string;
+    try {
+      // Try to get existing session first, but handle non-UUID session IDs gracefully
+      let sessionFounderId: string | null = null;
+      
+      // Only try to get session if it's a valid UUID format
+      if (sessionId.match(/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i)) {
+        try {
+          const onboardingService = new OnboardingService();
+          const session = await onboardingService.getSession(sessionId);
+          sessionFounderId = session?.stepData?.founder?.id || null;
+        } catch (sessionError) {
+          console.log('Session not found, proceeding with temporary founder creation');
+        }
+      } else {
+        console.log('Non-UUID sessionId detected, proceeding with temporary founder creation');
+      }
+
+      if (sessionFounderId) {
+        founderId = sessionFounderId;
+        console.log('✅ Using existing founder from session:', founderId);
+      } else {
+        // Create a temporary founder for session-based payments
+        const tempFounder = await storage.createFounder({
+          firstName: 'Session',
+          lastName: 'User',
+          fullName: `Session User - ${ventureName}`,
+          email: `session-${Date.now()}@placeholder.com`,
+          positionRole: 'Session Payment User'
+        });
+        founderId = tempFounder.founderId;
+        console.log('✅ Created temporary founder for session payment:', founderId);
+        
+        if (!founderId) {
+          throw new Error('Failed to create temporary founder - no ID returned');
+        }
+      }
+    } catch (error) {
+      console.error('❌ Failed to get/create founder for session:', error);
+      throw new Error('Unable to process payment - session setup failed');
+    }
+
+    // Use PaymentService to create payment transaction in database
+    const paymentRequest = {
+      amount: aedAmount,
+      currency: 'AED' as const,
+      description: `${packageType === 'foundation' ? 'ProofScaling Foundation Course' : 'Investment Ready Package'} - ${ventureName}`,
       metadata: {
         sessionId,
         packageType,
-        proofScore
+        proofScore,
+        originalUSD: amount
       }
     };
 
-    // Create payment with Telr
-    console.log("Creating Telr payment for Next Steps:", {
-      paymentId,
+    console.log("Creating database payment transaction:", {
+      founderId,
       sessionId,
       ventureName,
       packageType,
-      amount,
-      aedAmount,
-      orderData
+      amount: aedAmount,
+      currency: 'AED'
     });
 
-    const gateway = PaymentGatewayFactory.create('telr');
-    console.log('Gateway created successfully, calling createOrder...');
-    const telrResponse = await gateway.createOrder(orderData);
+    const paymentResult = await paymentService.createPayment({
+      founderId,
+      request: paymentRequest,
+      customerEmail: `session-${sessionId}@placeholder.com`,
+      customerName: ventureName,
+      gatewayProvider: 'telr'
+    });
 
-    console.log('Telr response details:', JSON.stringify(telrResponse, null, 2));
-
-    if (!telrResponse.success) {
-      console.error('Telr error details:', JSON.stringify(telrResponse.gatewayResponse, null, 2));
-      throw new Error(`Telr payment creation failed: ${telrResponse.gatewayResponse?.error?.message || telrResponse.gatewayResponse?.error?.code || 'Unknown error'}`);
+    if (!paymentResult.success || !paymentResult.paymentUrl) {
+      console.error('Payment creation failed:', paymentResult.error);
+      throw new Error(paymentResult.error || "Payment creation failed");
     }
 
-    // Store payment transaction
-    const transaction: PaymentTransaction = {
-      paymentId,
-      sessionId,
-      ventureName,
-      proofScore,
-      amount,
-      packageType,
-      status: 'pending',
-      telrRef: telrResponse.orderReference,
-      telrUrl: telrResponse.paymentUrl,
-      createdAt: new Date(),
-      updatedAt: new Date(),
-    };
+    console.log('✅ Payment transaction created in database:', paymentResult.orderReference);
 
-    paymentTransactions.set(paymentId, transaction);
-
-    // Also save to database for persistent storage (simplified approach)
-    try {
-      // For session-based payments, we'll log to payment_logs without creating full database transactions
-      // This preserves payment history while avoiding complex founder constraints
-      await storage.createPaymentLog({
-        transactionId: paymentId,
-        gatewayProvider: 'telr',
-        action: 'session_payment_created',
-        requestData: {
-          sessionId,
-          packageType,
-          proofScore,
-          amount: aedAmount,
-          currency: 'AED',
-          ventureName,
-          telrRef: telrResponse.orderReference,
-          telrUrl: telrResponse.paymentUrl,
-          originalAmountUSD: amount
-        }
-      });
-
-      console.log('✅ Payment logged to database:', paymentId);
-    } catch (dbError) {
-      console.error('❌ Failed to log payment to database:', dbError);
-      // Continue anyway - in-memory storage will work for session-based flow
-    }
-
-    // Log activity
+    // Log activity using database transaction data
     try {
       await ActivityService.logActivity(
         { sessionId },
@@ -207,10 +185,11 @@ router.post("/create-next-steps-session", async (req: Request, res: Response) =>
           title: 'Next Steps Payment Initiated',
           description: `Payment initiated for ${packageType} package`,
           metadata: {
-            paymentId,
+            paymentId: paymentResult.orderReference,
             packageType,
             amount,
-            proofScore
+            proofScore,
+            founderId
           }
         }
       );
@@ -220,15 +199,15 @@ router.post("/create-next-steps-session", async (req: Request, res: Response) =>
     }
 
     console.log("Next Steps payment created successfully:", {
-      paymentId,
-      telrUrl: telrResponse.paymentUrl
+      paymentId: paymentResult.orderReference,
+      telrUrl: paymentResult.paymentUrl
     });
 
     return res.json({
       success: true,
-      paymentId,
-      telrUrl: telrResponse.paymentUrl,
-      telrRef: telrResponse.orderReference,
+      paymentId: paymentResult.orderReference,
+      telrUrl: paymentResult.paymentUrl,
+      telrRef: paymentResult.orderReference,
       message: "Payment created successfully"
     });
 
@@ -257,31 +236,33 @@ router.get("/status/:paymentId", async (req: Request, res: Response) => {
       });
     }
 
-    const transaction = paymentTransactions.get(paymentId);
+    // Get transaction from database using PaymentService
+    const paymentStatus = await paymentService.getPaymentStatus(paymentId);
 
-    if (!transaction) {
+    if (!paymentStatus.success || !paymentStatus.transaction) {
       return res.status(404).json({
         success: false,
-        message: "Payment not found"
+        message: paymentStatus.error || "Payment not found"
       });
     }
 
+    const transaction = paymentStatus.transaction;
+    const metadata = transaction.metadata as any;
+
     // Check status with Telr if still pending
-    if (transaction.status === 'pending' && transaction.telrRef) {
+    if (transaction.status === 'pending' && transaction.gatewayTransactionId) {
       try {
         const gateway = PaymentGatewayFactory.create('telr');
-        const statusResult = await gateway.checkStatus(transaction.telrRef);
+        const statusResult = await gateway.checkStatus(transaction.gatewayTransactionId);
         
         if (statusResult.success && statusResult.status !== 'pending') {
-          // Update transaction status
-          transaction.status = statusResult.status;
-          transaction.updatedAt = new Date();
-          paymentTransactions.set(paymentId, transaction);
+          // Update transaction status in database
+          await paymentService.updatePaymentStatus(paymentId, statusResult.status);
 
           // Log status change
           try {
             await ActivityService.logActivity(
-              { sessionId: transaction.sessionId },
+              { sessionId: metadata?.sessionId },
               {
                 activityType: 'system',
                 action: 'payment_status_changed',
@@ -290,13 +271,16 @@ router.get("/status/:paymentId", async (req: Request, res: Response) => {
                 metadata: {
                   paymentId,
                   newStatus: statusResult.status,
-                  packageType: transaction.packageType
+                  packageType: metadata?.packageType
                 }
               }
             );
           } catch (activityError) {
             console.error("Failed to log payment status activity:", activityError);
           }
+
+          // Update local transaction object for response
+          transaction.status = statusResult.status;
         }
       } catch (telrError) {
         console.error("Error checking Telr payment status:", telrError);
@@ -308,9 +292,9 @@ router.get("/status/:paymentId", async (req: Request, res: Response) => {
       success: true,
       paymentId,
       status: transaction.status,
-      packageType: transaction.packageType,
-      amount: transaction.amount,
-      ventureName: transaction.ventureName,
+      packageType: metadata?.packageType,
+      amount: metadata?.originalAmountUSD || transaction.amount,
+      ventureName: metadata?.ventureName,
       createdAt: transaction.createdAt,
       updatedAt: transaction.updatedAt
     });
@@ -354,15 +338,19 @@ router.post("/webhook/next-steps", async (req: Request, res: Response) => {
       });
     }
 
-    const transaction = paymentTransactions.get(paymentId);
+    // Get transaction from database using PaymentService
+    const paymentStatusResult = await paymentService.getPaymentStatus(paymentId);
 
-    if (!transaction) {
+    if (!paymentStatusResult.success || !paymentStatusResult.transaction) {
       console.error(`Payment transaction not found for webhook: ${paymentId}`);
       return res.status(404).json({
         success: false,
-        message: "Payment not found"
+        message: paymentStatusResult.error || "Payment not found"
       });
     }
+
+    const transaction = paymentStatusResult.transaction;
+    const metadata = transaction.metadata as any;
 
     // Map Telr status to our status
     let newStatus: PaymentStatus = 'pending';
@@ -382,16 +370,13 @@ router.post("/webhook/next-steps", async (req: Request, res: Response) => {
         newStatus = 'pending';
     }
 
-    // Update transaction
-    transaction.status = newStatus;
-    transaction.telrRef = ref || transaction.telrRef;
-    transaction.updatedAt = new Date();
-    paymentTransactions.set(paymentId, transaction);
+    // Update transaction status in database
+    await paymentService.updatePaymentStatus(paymentId, newStatus);
 
-    // Log webhook activity
+    // Log webhook activity using database metadata
     try {
       await ActivityService.logActivity(
-        { sessionId: transaction.sessionId },
+        { sessionId: metadata?.sessionId },
         {
           activityType: 'system',
           action: 'payment_webhook_received',
@@ -402,7 +387,7 @@ router.post("/webhook/next-steps", async (req: Request, res: Response) => {
             webhookStatus: status,
             newStatus,
             telrRef: ref,
-            packageType: transaction.packageType
+            packageType: metadata?.packageType
           }
         }
       );
@@ -442,23 +427,32 @@ router.get("/history/:sessionId", async (req: Request, res: Response) => {
       });
     }
 
-    // Find all payments for this session
-    const sessionPayments = Array.from(paymentTransactions.values())
-      .filter(transaction => transaction.sessionId === sessionId)
-      .map(transaction => ({
-        paymentId: transaction.paymentId,
-        packageType: transaction.packageType,
-        amount: transaction.amount,
+    // Find all payments for this session from database
+    const sessionPayments = await paymentService.getPaymentsBySessionId(sessionId);
+    
+    if (!sessionPayments.success) {
+      return res.status(500).json({
+        success: false,
+        message: sessionPayments.error || "Failed to retrieve payment history"
+      });
+    }
+
+    const formattedPayments = sessionPayments.payments?.map(transaction => {
+      const metadata = transaction.metadata as any;
+      return {
+        paymentId: transaction.orderReference,
+        packageType: metadata?.packageType,
+        amount: metadata?.originalAmountUSD || transaction.amount,
         status: transaction.status,
         createdAt: transaction.createdAt,
         updatedAt: transaction.updatedAt
-      }))
-      .sort((a, b) => b.createdAt.getTime() - a.createdAt.getTime());
+      };
+    }) || [];
 
     return res.json({
       success: true,
-      payments: sessionPayments,
-      total: sessionPayments.length
+      payments: formattedPayments,
+      total: formattedPayments.length
     });
 
   } catch (error) {
