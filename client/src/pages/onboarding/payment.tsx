@@ -110,6 +110,15 @@ export default function PaymentOnboarding({ sessionData, onNext, onSkip, onPrev,
               paymentId
             });
           }
+        } else {
+          // Payment not found (e.g., after server restart)
+          console.log('Payment not found, stopping polling');
+          clearInterval(pollInterval);
+          setIsPolling(false);
+          setPaymentStatus({
+            status: 'idle',
+            message: 'Session expired. Please try payment again.'
+          });
         }
         
         // Stop polling after max attempts
