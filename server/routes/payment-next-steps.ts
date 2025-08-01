@@ -34,7 +34,8 @@ const paymentTransactions = new Map<string, PaymentTransaction>();
 
 /**
  * Create a payment for Next Steps packages
- * POST /api/v1/payment/create-next-steps
+ * POST /api/payment/create-next-steps (session-based)
+ * POST /api/v1/payment/create-next-steps (JWT-based, future dashboard use)
  */
 router.post("/create-next-steps", async (req: Request, res: Response) => {
   try {
@@ -201,7 +202,8 @@ router.post("/create-next-steps", async (req: Request, res: Response) => {
 
 /**
  * Get payment status
- * GET /api/v1/payment/status/:paymentId
+ * GET /api/payment/status/:paymentId (session-based)
+ * GET /api/v1/payment/status/:paymentId (JWT-based, future dashboard use)
  */
 router.get("/status/:paymentId", async (req: Request, res: Response) => {
   try {
@@ -283,7 +285,8 @@ router.get("/status/:paymentId", async (req: Request, res: Response) => {
 
 /**
  * Handle Telr webhook notifications
- * POST /api/v1/payment/webhook/next-steps
+ * POST /api/payment/webhook/next-steps (session-based)
+ * POST /api/v1/payment/webhook/next-steps (JWT-based, future dashboard use)
  */
 router.post("/webhook/next-steps", async (req: Request, res: Response) => {
   try {
@@ -384,7 +387,8 @@ router.post("/webhook/next-steps", async (req: Request, res: Response) => {
 
 /**
  * Get payment history for a session
- * GET /api/v1/payment/history/:sessionId
+ * GET /api/payment/history/:sessionId (session-based)
+ * GET /api/v1/payment/history/:sessionId (JWT-based, future dashboard use)
  */
 router.get("/history/:sessionId", async (req: Request, res: Response) => {
   try {
