@@ -15,6 +15,7 @@ import PaymentOnboarding from "./onboarding/payment";
 import ProgressBar from "@/components/progress-bar";
 import Navbar from "@/components/navbar";
 import Layout from "@/components/layout";
+import { Button } from "@/components/ui/button";
 
 interface OnboardingFlowProps {
   onComplete: () => void;
@@ -428,11 +429,32 @@ export default function OnboardingFlow({ onComplete }: OnboardingFlowProps) {
               />
             )}
             
-            {currentStep.key === "pathway" && sessionData?.stepData?.processing?.scoringResult && (
-              <PathwayPage
-                onNext={nextStep}
-                proofScore={sessionData.stepData.processing.scoringResult}
-              />
+            {currentStep.key === "pathway" && (
+              <>
+                {sessionData?.stepData?.processing?.scoringResult ? (
+                  <PathwayPage
+                    onNext={nextStep}
+                    proofScore={sessionData.stepData.processing.scoringResult}
+                  />
+                ) : (
+                  <div className="text-center py-16">
+                    <div className="text-foreground mb-4">
+                      <h3 className="text-xl font-semibold mb-2">Loading Your Pathway...</h3>
+                      <p className="text-muted-foreground mb-4">
+                        We're preparing your personalized recommendations based on your ProofScore analysis.
+                      </p>
+                    </div>
+                    <div className="flex gap-4 justify-center">
+                      <Button onClick={prevStep} variant="outline">
+                        Back to Analysis
+                      </Button>
+                      <Button onClick={nextStep}>
+                        Continue to Next Steps
+                      </Button>
+                    </div>
+                  </div>
+                )}
+              </>
             )}
             
             {currentStep.key === "payment" && (
