@@ -62,23 +62,23 @@ export default function PaymentSuccess() {
 
   if (isLoading) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-purple-900 via-blue-900 to-indigo-900 flex items-center justify-center p-6">
+      <div className="min-h-screen bg-background flex items-center justify-center p-6">
         <motion.div
           initial={{ opacity: 0, scale: 0.95 }}
           animate={{ opacity: 1, scale: 1 }}
           transition={{ duration: 0.5 }}
         >
-          <Card className="w-full max-w-md bg-white/10 backdrop-blur-lg border-white/20">
+          <Card className="w-full max-w-md bg-card border-border">
             <CardContent className="pt-6">
               <div className="text-center">
                 <div className="relative">
-                  <Loader2 className="mx-auto h-12 w-12 animate-spin text-blue-400" />
-                  <div className="absolute inset-0 bg-blue-400/20 rounded-full animate-pulse" />
+                  <Loader2 className="mx-auto h-12 w-12 animate-spin text-primary" />
+                  <div className="absolute inset-0 bg-primary/20 rounded-full animate-pulse" />
                 </div>
-                <h2 className="mt-4 text-lg font-semibold text-white">
+                <h2 className="mt-4 text-lg font-semibold text-foreground">
                   Verifying Payment...
                 </h2>
-                <p className="mt-2 text-sm text-gray-300">
+                <p className="mt-2 text-sm text-muted-foreground">
                   Please wait while we confirm your payment
                 </p>
               </div>
@@ -91,26 +91,26 @@ export default function PaymentSuccess() {
 
   if (error || !paymentStatus) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-purple-900 via-blue-900 to-indigo-900 flex items-center justify-center p-6">
+      <div className="min-h-screen bg-background flex items-center justify-center p-6">
         <motion.div
           initial={{ opacity: 0, scale: 0.95 }}
           animate={{ opacity: 1, scale: 1 }}
           transition={{ duration: 0.5 }}
         >
-          <Card className="w-full max-w-md bg-white/10 backdrop-blur-lg border-white/20">
+          <Card className="w-full max-w-md bg-card border-border">
             <CardContent className="pt-6">
               <div className="text-center">
-                <div className="mx-auto h-12 w-12 bg-red-500/20 rounded-full flex items-center justify-center">
-                  <CheckCircle className="h-6 w-6 text-red-400" />
+                <div className="mx-auto h-12 w-12 bg-destructive/20 rounded-full flex items-center justify-center">
+                  <CheckCircle className="h-6 w-6 text-destructive" />
                 </div>
-                <h2 className="mt-4 text-lg font-semibold text-white">
+                <h2 className="mt-4 text-lg font-semibold text-foreground">
                   Payment Verification Failed
                 </h2>
-                <p className="mt-2 text-sm text-gray-300">
+                <p className="mt-2 text-sm text-muted-foreground">
                   We couldn't verify your payment. Please contact support.
                 </p>
                 <div className="mt-6">
-                  <div className="text-center text-sm text-gray-400">
+                  <div className="text-center text-sm text-muted-foreground">
                     This page will close automatically in {countdown} seconds...
                   </div>
                 </div>
@@ -123,7 +123,7 @@ export default function PaymentSuccess() {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-purple-900 via-blue-900 to-indigo-900 flex items-center justify-center p-6">
+    <div className="min-h-screen bg-background flex items-center justify-center p-6">
       <div className="container mx-auto max-w-2xl">
         
         {/* Success Animation */}
@@ -143,7 +143,7 @@ export default function PaymentSuccess() {
               transition={{ delay: 0.3, duration: 0.8, type: "spring" }}
               className="absolute -top-2 -right-2"
             >
-              <div className="h-8 w-8 bg-yellow-400 rounded-full flex items-center justify-center">
+              <div className="h-8 w-8 bg-primary-gold rounded-full flex items-center justify-center">
                 <Sparkles className="h-4 w-4 text-yellow-800" />
               </div>
             </motion.div>
@@ -156,19 +156,19 @@ export default function PaymentSuccess() {
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.2, duration: 0.6 }}
         >
-          <Card className="bg-white/10 backdrop-blur-lg border-white/20 shadow-2xl">
+          <Card className="bg-card border-border shadow-2xl">
             <CardHeader className="text-center pb-4">
               <Badge variant="secondary" className="mx-auto mb-4 bg-green-500/20 text-green-300 border-green-500/30">
                 <Trophy className="w-3 h-3 mr-1" />
                 Payment Successful
               </Badge>
-              <CardTitle className="text-3xl font-bold text-white mb-2">
+              <CardTitle className="text-3xl font-bold text-foreground mb-2">
                 Welcome to ProofScaling! 🎉
               </CardTitle>
-              <p className="text-gray-300 text-lg">
+              <p className="text-muted-foreground text-lg">
                 Your payment has been processed successfully. Your journey to investment readiness begins now!
               </p>
-              <div className="mt-4 flex items-center justify-center space-x-2 text-sm text-blue-300">
+              <div className="mt-4 flex items-center justify-center space-x-2 text-sm text-primary">
                 <Clock className="w-4 h-4" />
                 <span>Auto-closing in {countdown} seconds</span>
               </div>
@@ -181,37 +181,37 @@ export default function PaymentSuccess() {
                   initial={{ opacity: 0, y: 10 }}
                   animate={{ opacity: 1, y: 0 }}
                   transition={{ delay: 0.4, duration: 0.5 }}
-                  className="bg-white/5 backdrop-blur-sm rounded-lg p-4 border border-white/10"
+                  className="bg-secondary/50 rounded-lg p-4 border border-border"
                 >
-                  <h3 className="text-sm font-semibold text-gray-300 mb-3 flex items-center">
+                  <h3 className="text-sm font-semibold text-foreground mb-3 flex items-center">
                     <CheckCircle className="w-4 h-4 mr-2" />
                     Transaction Details
                   </h3>
                   <div className="space-y-2 text-sm">
                     <div className="flex justify-between items-center">
-                      <span className="text-gray-400">Order Reference:</span>
-                      <span className="font-mono text-xs text-white bg-white/10 px-2 py-1 rounded">
+                      <span className="text-muted-foreground">Order Reference:</span>
+                      <span className="font-mono text-xs text-foreground bg-secondary px-2 py-1 rounded">
                         {orderRef}
                       </span>
                     </div>
                     {(paymentStatus as any).amount && (
                       <div className="flex justify-between items-center">
-                        <span className="text-gray-400">Amount:</span>
-                        <span className="font-semibold text-white">
+                        <span className="text-muted-foreground">Amount:</span>
+                        <span className="font-semibold text-foreground">
                           {(paymentStatus as any).currency} {(paymentStatus as any).amount}
                         </span>
                       </div>
                     )}
                     {(paymentStatus as any).gatewayTransactionId && (
                       <div className="flex justify-between items-center">
-                        <span className="text-gray-400">Transaction ID:</span>
-                        <span className="font-mono text-xs text-white bg-white/10 px-2 py-1 rounded">
+                        <span className="text-muted-foreground">Transaction ID:</span>
+                        <span className="font-mono text-xs text-foreground bg-secondary px-2 py-1 rounded">
                           {(paymentStatus as any).gatewayTransactionId}
                         </span>
                       </div>
                     )}
                     <div className="flex justify-between items-center">
-                      <span className="text-gray-400">Status:</span>
+                      <span className="text-muted-foreground">Status:</span>
                       <Badge className="bg-green-500/20 text-green-300 border-green-500/30">
                         <CheckCircle className="w-3 h-3 mr-1" />
                         {(paymentStatus as any).status}
@@ -226,19 +226,19 @@ export default function PaymentSuccess() {
                 initial={{ opacity: 0, y: 10 }}
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ delay: 0.6, duration: 0.5 }}
-                className="bg-gradient-to-r from-blue-500/10 to-purple-500/10 rounded-lg p-4 border border-blue-500/20"
+                className="bg-gradient-to-r from-primary/10 to-primary-gold/10 rounded-lg p-4 border border-primary/20"
               >
-                <h3 className="text-sm font-semibold text-blue-300 mb-3 flex items-center">
+                <h3 className="text-sm font-semibold text-primary mb-3 flex items-center">
                   <Star className="w-4 h-4 mr-2" />
                   What's Next?
                 </h3>
-                <div className="space-y-2 text-sm text-gray-300">
+                <div className="space-y-2 text-sm text-muted-foreground">
                   <div className="flex items-center">
-                    <div className="w-2 h-2 bg-blue-400 rounded-full mr-3"></div>
+                    <div className="w-2 h-2 bg-primary rounded-full mr-3"></div>
                     Access your ProofScaling course materials
                   </div>
                   <div className="flex items-center">
-                    <div className="w-2 h-2 bg-purple-400 rounded-full mr-3"></div>
+                    <div className="w-2 h-2 bg-primary-gold rounded-full mr-3"></div>
                     Complete your venture analysis dashboard
                   </div>
                   <div className="flex items-center">
@@ -255,12 +255,12 @@ export default function PaymentSuccess() {
                 transition={{ delay: 0.8, duration: 0.5 }}
                 className="text-center pt-4"
               >
-                <div className="bg-blue-500/10 rounded-lg p-4 border border-blue-500/20">
-                  <div className="flex items-center justify-center space-x-3 text-blue-300">
+                <div className="bg-primary/10 rounded-lg p-4 border border-primary/20">
+                  <div className="flex items-center justify-center space-x-3 text-primary">
                     <div className="relative">
                       <Clock className="w-6 h-6" />
                       <motion.div
-                        className="absolute inset-0 border-2 border-blue-400 rounded-full"
+                        className="absolute inset-0 border-2 border-primary rounded-full"
                         initial={{ scale: 1, opacity: 0.7 }}
                         animate={{ scale: 1.5, opacity: 0 }}
                         transition={{ duration: 1, repeat: Infinity }}
@@ -268,10 +268,10 @@ export default function PaymentSuccess() {
                     </div>
                     <div>
                       <div className="font-semibold text-lg">{countdown}</div>
-                      <div className="text-xs text-gray-400">seconds remaining</div>
+                      <div className="text-xs text-muted-foreground">seconds remaining</div>
                     </div>
                   </div>
-                  <p className="text-sm text-gray-300 mt-2">
+                  <p className="text-sm text-muted-foreground mt-2">
                     This window will close automatically. You can return to your dashboard anytime.
                   </p>
                 </div>
@@ -287,7 +287,7 @@ export default function PaymentSuccess() {
           transition={{ delay: 1.0, duration: 0.6 }}
           className="text-center mt-6"
         >
-          <div className="flex items-center justify-center text-gray-400 text-sm">
+          <div className="flex items-center justify-center text-muted-foreground text-sm">
             <Shield className="w-4 h-4 mr-2" />
             Secure payment processing powered by Telr
           </div>
