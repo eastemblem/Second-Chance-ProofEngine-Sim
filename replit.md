@@ -116,6 +116,7 @@ Second Chance is a startup validation platform designed to assess investment rea
 - **Telr URL Fix**: ✅ **RETURN URL FORMAT RESOLVED** - Fixed double protocol issue in Telr return URLs by properly handling FRONTEND_URL environment variable that already contains protocol
 - **Payment Status Sync**: ✅ **LIVE STATUS CHECK IMPLEMENTED** - Enhanced payment status endpoint to always check live status with Telr gateway instead of relying on cached database status, preventing status discrepancies
 - **Telr API Integration**: ✅ **OFFICIAL ENDPOINT IMPLEMENTED** - Updated to use Telr's official order.json endpoint with comprehensive logging and removed PaymentService caching to ensure real-time status verification
+- **Status Mapping Fix**: ✅ **TELR STATUS CODES CORRECTED** - Fixed incorrect mapping where Telr status code 1 ("Pending") was being mapped to "cancelled" instead of "pending", resolving frontend status discrepancies
 - **Data Utilization**: 85% of rich scoring API data still unused - opportunity for enhancement
 - **Production Security**: Environment-based protection implemented for test endpoints and debug routes
 

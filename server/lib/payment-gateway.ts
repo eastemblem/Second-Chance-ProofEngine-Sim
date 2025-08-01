@@ -215,12 +215,12 @@ class TelrGateway extends PaymentGateway {
       
       if (statusCode === 3 || statusText === 'Paid') {
         status = 'completed';
-      } else if (statusCode === 1 || statusText === 'Cancelled') {
-        status = 'cancelled';
+      } else if (statusCode === 1 || statusText === 'Pending') {
+        status = 'pending';
       } else if (statusCode === 2 || statusText === 'Declined') {
         status = 'failed';
-      } else if (statusCode === 0 || statusText === 'Pending') {
-        status = 'pending';
+      } else if (statusCode === 0 || statusText === 'Cancelled') {
+        status = 'cancelled';
       }
 
       console.log(`Mapped status: ${status}`);
