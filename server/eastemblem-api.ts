@@ -253,18 +253,6 @@ class EastEmblemAPI {
         return true;
       }
       
-      // Retry on network timeout errors (ETIMEDOUT, ECONNRESET, etc.)
-      const nodeError = error as any; // Cast to handle Node.js error codes
-      if (nodeError.code === 'ETIMEDOUT' || 
-          nodeError.errno === 'ETIMEDOUT' ||
-          nodeError.code === 'ECONNRESET' ||
-          nodeError.code === 'ENOTFOUND' ||
-          error.message.includes('ETIMEDOUT') ||
-          error.message.includes('FetchError') ||
-          (error.message.includes('request to') && error.message.includes('failed'))) {
-        return true;
-      }
-      
       // Retry on 5xx server errors and 524 specifically
       if (error.message.includes('524') || 
           error.message.includes('503') || 
@@ -424,7 +412,8 @@ class EastEmblemAPI {
             return {
               id: parentFolderId, // Use parent folder for file uploads
               name: folderName,
-              url: `https://app.box.com/folder/${parentFolderId}`
+              url: `https://app.box.com/folder/${parentFolderId}`,
+              note: 'Folder already exists - using parent folder for uploads'
             };
           }
           console.log(`❌ Folder creation failed - validation error: ${errorText}`);
@@ -480,154 +469,102 @@ class EastEmblemAPI {
     onboardingId?: string,
     allowShare: boolean = true,
   ): Promise<FileUploadResponse> {
-    // Implement retry logic directly for file uploads
-    const maxRetries = 3;
-    let lastError: any;
-    
-    for (let attempt = 1; attempt <= maxRetries; attempt++) {
-      try {
-        console.log(`📤 File upload attempt ${attempt}/${maxRetries} for: ${fileName}`);
-        
-        const formData = new FormData();
-        formData.append("data", fileBuffer, fileName);
-        formData.append("folder_id", folderId);
-        formData.append("allowShare", allowShare.toString());
-        if (onboardingId) {
-          formData.append("onboarding_id", onboardingId);
-        }
-
-        console.log(`Uploading file: ${fileName} to folder: ${folderId}`);
-        console.log(`API endpoint: ${this.getEndpoint("/webhook/vault/file/upload")}`);
-
-        const controller = new AbortController();
-        // Increase timeout to 2 minutes for production file uploads due to network issues
-        const timeoutId = setTimeout(() => controller.abort(), 120000);
-
-        const response = await fetch(this.getEndpoint("/webhook/vault/file/upload"), {
-          method: "POST",
-          body: formData,
-          signal: controller.signal,
-          // Add network optimization headers
-          headers: {
-            'Connection': 'keep-alive',
-            'Keep-Alive': 'timeout=120',
-          },
-        });
-
-        clearTimeout(timeoutId);
-
-        if (!response.ok) {
-          const errorText = await response.text();
-          console.error(`File upload failed with status ${response.status}:`, errorText);
-          
-          if (response.status >= 500) {
-            throw new Error(`EastEmblem API service unavailable (${response.status}). Please try again later.`);
-          } else if (response.status === 401) {
-            throw new Error("EastEmblem API authentication failed. Please check API credentials.");
-          } else if (response.status === 403) {
-            throw new Error("EastEmblem API access forbidden. Please verify API permissions.");
-          } else if (response.status === 400 && errorText.includes("File already exists")) {
-            // Handle file already exists - this is actually OK, we can proceed
-            console.log("✅ File already exists in Box.com - using existing file reference");
-            
-            // Parse the error response to get the onboarding_id if available
-            let existingOnboardingId = undefined;
-            try {
-              const errorJson = JSON.parse(errorText);
-              existingOnboardingId = errorJson.onboarding_id;
-            } catch (e) {
-              // Ignore parse errors
-            }
-            
-            return {
-              id: `existing-${Date.now()}`,
-              name: fileName,
-              url: `https://app.box.com/file/${folderId}/${fileName}`,
-              download_url: `https://app.box.com/file/${folderId}/${fileName}`,
-            };
-          } else {
-            throw new Error(`File upload failed (${response.status}): ${errorText}`);
-          }
-        }
-
-        const responseText = await response.text();
-        console.log("Raw upload response:", responseText);
-        
-        try {
-          const result = JSON.parse(responseText) as FileUploadResponse;
-          console.log("File uploaded successfully:", result);
-          return result;
-        } catch (parseError) {
-          console.error("Failed to parse upload response JSON:", parseError);
-          console.log("Response was:", responseText);
-          
-          // Try to fix common JSON issues with unquoted UUIDs
-          try {
-            const fixedJson = responseText.replace(
-              /"onboarding_id":\s*([a-f0-9\-]{36})/g, 
-              '"onboarding_id": "$1"'
-            );
-            console.log("Attempting to parse fixed JSON:", fixedJson);
-            const result = JSON.parse(fixedJson) as FileUploadResponse;
-            console.log("Successfully parsed fixed JSON:", result);
-            return result;
-          } catch (fixError) {
-            console.error("Even fixed JSON parsing failed:", fixError);
-            throw new Error(`File upload succeeded but response parsing failed: ${parseError instanceof Error ? parseError.message : 'Invalid JSON'}`);
-          }
-        }
-      } catch (error) {
-        console.error("Error uploading file:", error);
-        if (!this.isConfigured()) {
-          throw new Error("EastEmblem API is not configured. Please provide EASTEMBLEM_API_URL and EASTEMBLEM_API_KEY.");
-        }
-        
-        // Store the error for potential retry
-        lastError = error;
-        
-        // Provide more specific error messaging for timeout and network issues
-        if (error instanceof Error) {
-          if (error.name === 'AbortError') {
-            if (attempt < maxRetries) {
-              console.log(`⏳ File upload timed out, retrying attempt ${attempt + 1}/${maxRetries}...`);
-            } else {
-              throw new Error("File upload timed out after 2 minutes and maximum retries. This may be due to network connectivity issues or server overload.");
-            }
-          }
-          
-          const nodeError = error as any; // Cast to handle Node.js error codes
-          if (nodeError.code === 'ETIMEDOUT' || nodeError.errno === 'ETIMEDOUT' || error.message.includes('ETIMEDOUT')) {
-            if (attempt < maxRetries) {
-              console.log(`⏳ Network timeout, retrying attempt ${attempt + 1}/${maxRetries}...`);
-            } else {
-              throw new Error(`Network timeout during file upload after ${maxRetries} attempts. This may be due to connectivity issues between the server and the N8N webhook.`);
-            }
-          }
-          
-          if (error.message.includes('FetchError') && error.message.includes('failed')) {
-            if (attempt < maxRetries) {
-              console.log(`⏳ Network connection failed, retrying attempt ${attempt + 1}/${maxRetries}...`);
-            } else {
-              throw new Error(`Network connection failed during file upload after ${maxRetries} attempts. Please check network connectivity.`);
-            }
-          }
-        }
-        
-        // Check if this is a retryable error
-        if (attempt < maxRetries && this.isRetryableError(error)) {
-          const delay = Math.pow(2, attempt - 1) * 1000; // Exponential backoff: 1s, 2s, 4s
-          console.log(`⏳ File upload failed, retrying in ${delay}ms... (${error instanceof Error ? error.message : 'Unknown error'})`);
-          await new Promise(resolve => setTimeout(resolve, delay));
-          continue;
-        }
-        
-        // If not retryable or max retries reached, throw the error
-        throw new Error(`File upload failed: ${error instanceof Error ? error.message : 'Unknown error'}`);
+    try {
+      const formData = new FormData();
+      formData.append("data", fileBuffer, fileName);
+      formData.append("folder_id", folderId);
+      formData.append("allowShare", allowShare.toString());
+      if (onboardingId) {
+        formData.append("onboarding_id", onboardingId);
       }
+
+      console.log(`Uploading file: ${fileName} to folder: ${folderId}`);
+      console.log(`API endpoint: ${this.getEndpoint("/webhook/vault/file/upload")}`);
+
+      const controller = new AbortController();
+      const timeoutId = setTimeout(() => controller.abort(), 60000); // Increase to 1 minute for file upload
+
+      const response = await fetch(this.getEndpoint("/webhook/vault/file/upload"), {
+        method: "POST",
+        body: formData,
+        signal: controller.signal,
+      });
+
+      clearTimeout(timeoutId);
+
+      if (!response.ok) {
+        const errorText = await response.text();
+        console.error(`File upload failed with status ${response.status}:`, errorText);
+        
+        if (response.status >= 500) {
+          throw new Error(`EastEmblem API service unavailable (${response.status}). Please try again later.`);
+        } else if (response.status === 401) {
+          throw new Error("EastEmblem API authentication failed. Please check API credentials.");
+        } else if (response.status === 403) {
+          throw new Error("EastEmblem API access forbidden. Please verify API permissions.");
+        } else if (response.status === 400 && errorText.includes("File already exists")) {
+          // Handle file already exists - this is actually OK, we can proceed
+          console.log("✅ File already exists in Box.com - using existing file reference");
+          
+          // Parse the error response to get the onboarding_id if available
+          let onboardingId = undefined;
+          try {
+            const errorJson = JSON.parse(errorText);
+            onboardingId = errorJson.onboarding_id;
+          } catch (e) {
+            // Ignore parse errors
+          }
+          
+          return {
+            id: `existing-${Date.now()}`,
+            name: fileName,
+            url: `https://app.box.com/file/${folderId}/${fileName}`,
+            download_url: `https://app.box.com/file/${folderId}/${fileName}`,
+          };
+        } else {
+          throw new Error(`File upload failed (${response.status}): ${errorText}`);
+        }
+      }
+
+      const responseText = await response.text();
+      console.log("Raw upload response:", responseText);
+      
+      try {
+        const result = JSON.parse(responseText) as FileUploadResponse;
+        console.log("File uploaded successfully:", result);
+        return result;
+      } catch (parseError) {
+        console.error("Failed to parse upload response JSON:", parseError);
+        console.log("Response was:", responseText);
+        
+        // Try to fix common JSON issues with unquoted UUIDs
+        try {
+          const fixedJson = responseText.replace(
+            /"onboarding_id":\s*([a-f0-9\-]{36})/g, 
+            '"onboarding_id": "$1"'
+          );
+          console.log("Attempting to parse fixed JSON:", fixedJson);
+          const result = JSON.parse(fixedJson) as FileUploadResponse;
+          console.log("Successfully parsed fixed JSON:", result);
+          return result;
+        } catch (fixError) {
+          console.error("Even fixed JSON parsing failed:", fixError);
+          throw new Error(`File upload succeeded but response parsing failed: ${parseError instanceof Error ? parseError.message : 'Invalid JSON'}`);
+        }
+      }
+    } catch (error) {
+      console.error("Error uploading file:", error);
+      if (!this.isConfigured()) {
+        throw new Error("EastEmblem API is not configured. Please provide EASTEMBLEM_API_URL and EASTEMBLEM_API_KEY.");
+      }
+      
+      // Provide more specific error messaging for timeout issues
+      if (error instanceof Error && error.name === 'AbortError') {
+        throw new Error("File upload is taking longer than expected. The file may be large or the service may be experiencing high load. Please try again in a few minutes.");
+      }
+      
+      throw new Error(`File upload failed: ${error instanceof Error ? error.message : 'Unknown error'}`);
     }
-    
-    // This shouldn't be reached, but TypeScript needs it
-    throw new Error(`File upload failed after ${maxRetries} attempts: ${lastError instanceof Error ? lastError.message : 'Unknown error'}`);
   }
 
   async createCertificate(
@@ -676,7 +613,7 @@ class EastEmblemAPI {
             const parsedError = JSON.parse(responseText);
             if (parsedError.onboarding_id) {
               // Return a proper existing certificate response - use a reasonable Box.com URL
-              const existingCertificateUrl = `https://app.box.com/s/${onboardingId}_certificate`;
+              const existingCertificateUrl = `https://app.box.com/s/${onboarding_id}_certificate`;
               console.log("Returning existing certificate URL:", existingCertificateUrl);
               return {
                 onboarding_id: parsedError.onboarding_id,
