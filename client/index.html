@@ -16,8 +16,8 @@
           }
         });
       }
-      // Clear all storage
-      if (typeof(Storage) !== "undefined") {
+      // Clear all storage (development only)
+      if (typeof(Storage) !== "undefined" && window.location.hostname === 'localhost') {
         localStorage.clear();
         sessionStorage.clear();
       }
