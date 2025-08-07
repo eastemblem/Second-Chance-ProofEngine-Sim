@@ -424,8 +424,7 @@ class EastEmblemAPI {
             return {
               id: parentFolderId, // Use parent folder for file uploads
               name: folderName,
-              url: `https://app.box.com/folder/${parentFolderId}`,
-              note: 'Folder already exists - using parent folder for uploads'
+              url: `https://app.box.com/folder/${parentFolderId}`
             };
           }
           console.log(`❌ Folder creation failed - validation error: ${errorText}`);
@@ -677,7 +676,7 @@ class EastEmblemAPI {
             const parsedError = JSON.parse(responseText);
             if (parsedError.onboarding_id) {
               // Return a proper existing certificate response - use a reasonable Box.com URL
-              const existingCertificateUrl = `https://app.box.com/s/${onboarding_id}_certificate`;
+              const existingCertificateUrl = `https://app.box.com/s/${onboardingId}_certificate`;
               console.log("Returning existing certificate URL:", existingCertificateUrl);
               return {
                 onboarding_id: parsedError.onboarding_id,
