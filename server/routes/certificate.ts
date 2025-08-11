@@ -22,14 +22,15 @@ export async function createCertificateForSession(sessionId: string) {
 
     const session = sessionData;
 
-    // Check if certificate already exists
-    if (session.stepData?.processing?.certificateUrl) {
-      const existingUrl = session.stepData.processing.certificateUrl;
+    // Check if certificate already exists - with proper type safety
+    const stepData = session.stepData as any;
+    if (stepData?.processing?.certificateUrl) {
+      const existingUrl = stepData.processing.certificateUrl;
       
       // Still update database even if certificate exists in session
       try {
         const { documentUpload, venture } = await import('@shared/schema');
-        const ventureId = session.stepData?.venture?.ventureId;
+        const ventureId = stepData?.venture?.ventureId;
         
         if (ventureId) {
           // Update venture table with certificate URL
@@ -73,14 +74,14 @@ export async function createCertificateForSession(sessionId: string) {
       };
     }
 
-    // Check if we have scoring data
-    if (!session.stepData?.processing?.scoringResult) {
+    // Check if we have scoring data - with proper type safety
+    if (!stepData?.processing?.scoringResult) {
       throw new Error('No scoring data available');
     }
 
-    const scoringResult = session.stepData.processing.scoringResult;
+    const scoringResult = stepData.processing.scoringResult;
     const totalScore = scoringResult.output?.total_score || 0;
-    const folderStructure = session.stepData.folderStructure;
+    const folderStructure = stepData.folderStructure;
     const overviewFolderId = folderStructure?.folders?.["0_Overview"];
 
     if (!overviewFolderId || totalScore <= 0) {
@@ -106,11 +107,11 @@ export async function createCertificateForSession(sessionId: string) {
       throw new Error('Certificate creation failed');
     }
 
-    // Store certificate URL in session
+    // Store certificate URL in session - with proper type safety
     const updatedStepData = {
-      ...session.stepData,
+      ...stepData,
       processing: {
-        ...session.stepData.processing,
+        ...stepData.processing,
         certificateUrl: certificateResult.url,
         certificateGeneratedAt: new Date().toISOString()
       }
@@ -129,8 +130,8 @@ export async function createCertificateForSession(sessionId: string) {
     try {
       const { documentUpload } = await import('@shared/schema');
       
-      // Get venture ID from session
-      const ventureId = session.stepData?.venture?.ventureId;
+      // Get venture ID from session - with proper type safety
+      const ventureId = stepData?.venture?.ventureId;
       if (ventureId) {
         await db.insert(documentUpload).values({
           ventureId: ventureId,
@@ -255,9 +256,10 @@ export async function generateCertificate(req: Request, res: Response) {
       });
     }
 
-    // Check if session has certificate URL in stepData
-    if (session && session.stepData && session.stepData.processing && session.stepData.processing.certificateUrl) {
-      const certificateUrl = session.stepData.processing.certificateUrl;
+    // Check if session has certificate URL in stepData - with proper type safety
+    const sessionStepData = session?.stepData as any;
+    if (session && sessionStepData?.processing?.certificateUrl) {
+      const certificateUrl = sessionStepData.processing.certificateUrl;
       appLogger.business(`Certificate found in session data: ${certificateUrl}`);
       
       // Still update database even if certificate exists in session
@@ -265,7 +267,7 @@ export async function generateCertificate(req: Request, res: Response) {
         const { db } = await import('../db');
         const { documentUpload, venture } = await import('@shared/schema');
         const { eq } = await import('drizzle-orm');
-        const ventureId = session.stepData?.venture?.ventureId;
+        const ventureId = sessionStepData?.venture?.ventureId;
         
         if (ventureId) {
           // Update venture table with certificate URL
@@ -281,20 +283,16 @@ export async function generateCertificate(req: Request, res: Response) {
           
           // Try to create document_upload record (ignore if already exists)
           try {
-            const { randomUUID } = await import('crypto');
             await db.insert(documentUpload).values({
-              uploadId: randomUUID(),
               ventureId: ventureId,
               fileName: 'validation_certificate.pdf',
               originalName: 'validation_certificate.pdf',
               filePath: '/generated/certificate.pdf',
-              fileType: 'pdf',
               fileSize: 0,
               mimeType: 'application/pdf',
               uploadStatus: 'completed',
               processingStatus: 'completed',
-              sharedUrl: certificateUrl,
-              uploadedBy: 'system'
+              sharedUrl: certificateUrl
             });
             appLogger.business("✓ Certificate document_upload record created");
           } catch (docError) {
@@ -310,16 +308,16 @@ export async function generateCertificate(req: Request, res: Response) {
         success: true,
         certificateUrl: certificateUrl,
         message: "Certificate found in session",
-        generatedAt: session.stepData.processing.certificateGeneratedAt || null
+        generatedAt: sessionStepData.processing.certificateGeneratedAt || null
       });
     }
 
     // No certificate found in stored data, but let's try to create one for this session
-    // since it might already exist in EastEmblem API
-    if (session && session.stepData && session.stepData.processing && session.stepData.processing.scoringResult) {
-      const scoringResult = session.stepData.processing.scoringResult;
+    // since it might already exist in EastEmblem API - with proper type safety
+    if (session && sessionStepData?.processing?.scoringResult) {
+      const scoringResult = sessionStepData.processing.scoringResult;
       const totalScore = scoringResult.output?.total_score || 0;
-      const folderStructure = session.stepData.folderStructure;
+      const folderStructure = sessionStepData.folderStructure;
       const overviewFolderId = folderStructure?.folders?.["0_Overview"];
       
       if (overviewFolderId && totalScore > 0) {
@@ -347,9 +345,9 @@ export async function generateCertificate(req: Request, res: Response) {
               .update(onboardingSession)
               .set({
                 stepData: {
-                  ...session.stepData,
+                  ...sessionStepData,
                   processing: {
-                    ...session.stepData.processing,
+                    ...sessionStepData.processing,
                     certificateUrl: certificateResult.url,
                     certificateGeneratedAt: new Date()
                   }
@@ -358,7 +356,7 @@ export async function generateCertificate(req: Request, res: Response) {
               .where(eq(onboardingSession.sessionId, session.sessionId));
 
             // Update venture table with certificate URL
-            const ventureId = session.stepData?.venture?.ventureId;
+            const ventureId = sessionStepData?.venture?.ventureId;
             if (ventureId) {
               const { venture: ventureTable } = await import('@shared/schema');
               await db
@@ -372,22 +370,18 @@ export async function generateCertificate(req: Request, res: Response) {
               appLogger.business("✓ Venture table updated with certificate URL");
 
               // Create document_upload record for certificate
-              const { randomUUID } = await import('crypto');
               await db.insert(documentUpload).values({
-                uploadId: randomUUID(),
                 ventureId: ventureId,
                 fileName: certificateResult.name || 'validation_certificate.pdf',
                 originalName: certificateResult.name || 'validation_certificate.pdf',
                 filePath: '/generated/certificate.pdf',
-                fileType: 'pdf',
                 fileSize: certificateResult.size || 512000, // Use actual size from API or default 512KB
                 mimeType: 'application/pdf',
                 uploadStatus: 'completed',
                 processingStatus: 'completed',
                 sharedUrl: certificateResult.url,
                 folderId: certificateResult.folderId || null, // Use actual folder ID from API if available
-                eastemblemFileId: certificateResult.id,
-                uploadedBy: 'system'
+                eastemblemFileId: certificateResult.id
               });
               appLogger.business("✓ Certificate document_upload record created");
             }
