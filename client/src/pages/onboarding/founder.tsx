@@ -43,6 +43,7 @@ export default function FounderOnboarding({
 }: FounderOnboardingProps) {
   const { toast } = useToast();
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [emailError, setEmailError] = useState<string | null>(null);
 
   const form = useForm<FounderFormData>({
     resolver: zodResolver(founderSchema),
@@ -90,18 +91,49 @@ export default function FounderOnboarding({
       // Track founder step error
       trackEvent('onboarding_founder_error', 'user_journey', 'founder_details_error');
       
-      toast({
-        title: "Error",
-        description: error.message || "Failed to save founder information",
-        variant: "destructive",
-      });
+      const errorMessage = error.message || "Failed to save founder information";
+      
+      // Check if this is an email duplicate error
+      if (errorMessage.includes("Email already taken")) {
+        // Set field-specific error
+        setEmailError("Email already taken");
+        
+        // Set form field error for styling
+        form.setError("email", {
+          type: "manual",
+          message: "Email already taken"
+        });
+        
+        // Show toast notification with helpful message
+        toast({
+          title: "Email Already Registered",
+          description: "This email address is already in use. Please use a different email address.",
+          variant: "destructive",
+        });
+      } else {
+        // Handle other errors normally
+        toast({
+          title: "Error",
+          description: errorMessage,
+          variant: "destructive",
+        });
+      }
     }
   });
 
   const onSubmit = async (data: FounderFormData) => {
     setIsSubmitting(true);
-    await submitMutation.mutateAsync(data);
-    setIsSubmitting(false);
+    // Clear any existing email error
+    setEmailError(null);
+    form.clearErrors("email");
+    
+    try {
+      await submitMutation.mutateAsync(data);
+    } catch (error) {
+      // Error handled by mutation onError callback
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
   return (
@@ -142,12 +174,20 @@ export default function FounderOnboarding({
               id="email"
               type="email"
               {...form.register("email")}
-              className="mt-1"
+              className={`mt-1 ${form.formState.errors.email || emailError ? 'border-red-500' : ''}`}
               placeholder="john@example.com"
+              onChange={(e) => {
+                form.register("email").onChange(e);
+                // Clear email error when user starts typing
+                if (emailError) {
+                  setEmailError(null);
+                  form.clearErrors("email");
+                }
+              }}
             />
-            {form.formState.errors.email && (
+            {(form.formState.errors.email || emailError) && (
               <p className="text-red-500 text-sm mt-1">
-                {form.formState.errors.email.message}
+                {form.formState.errors.email?.message || emailError}
               </p>
             )}
           </div>

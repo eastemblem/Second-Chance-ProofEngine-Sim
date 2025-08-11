@@ -212,8 +212,8 @@ export class OnboardingManager {
     );
 
     if (existingFounder) {
-      await storage.updateFounder(existingFounder.founderId, validatedData);
-      founderId = existingFounder.founderId;
+      // Email already exists - throw error to prevent silent data overwriting
+      throw new Error("Email already taken");
     } else {
       try {
         const newFounder = await storage.createFounder(validatedData);

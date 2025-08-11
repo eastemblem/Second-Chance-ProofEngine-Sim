@@ -140,6 +140,9 @@ export class OnboardingService {
         console.error("❌ Failed to create founder:", error);
         throw new Error(`Failed to create founder: ${error instanceof Error ? error.message : 'Unknown error'}`);
       }
+    } else {
+      // Email already exists - throw error to prevent silent data overwriting
+      throw new Error("Email already taken");
     }
 
     // Update session with founder data and ID
