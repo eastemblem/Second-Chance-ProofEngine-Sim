@@ -23,12 +23,21 @@ const upload = multer({
       cb(null, uploadDir);
     },
     filename: (req, file, cb) => {
-      // Generate unique filename to prevent overwrites
-      const uniqueSuffix = Date.now() + '-' + Math.round(Math.random() * 1E9);
+      // Generate incremented filename to prevent overwrites
       const ext = path.extname(file.originalname);
       const baseName = path.basename(file.originalname, ext);
-      const uniqueFilename = `${baseName}-${uniqueSuffix}${ext}`;
-      cb(null, uniqueFilename);
+      const uploadDir = path.join(process.cwd(), "uploads");
+      
+      // Find existing files with same base name
+      let counter = 0;
+      let filename = file.originalname;
+      
+      while (fs.existsSync(path.join(uploadDir, filename))) {
+        counter++;
+        filename = `${baseName}-${counter}${ext}`;
+      }
+      
+      cb(null, filename);
     },
   }),
   limits: { fileSize: 10 * 1024 * 1024 },

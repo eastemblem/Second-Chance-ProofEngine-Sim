@@ -51,7 +51,8 @@ Second Chance is a startup validation platform that assesses investment readines
 - **Smart Counter Logic**: Retry counter increments on all processing errors and displays current attempt status to users
 - **Session-Persisted Counter**: Retry count persists across navigation steps and stored in session data to prevent reset on re-upload
 - **Streamlined Error Messages**: Removed duplicate instruction text as API error messages already contain user guidance
-- **Unique File Upload Fix**: Fixed file overwrite issue by generating unique filenames with timestamp and random suffix to prevent conflicts on retry attempts
+- **Simple Counter File Upload**: Implemented clean counter-based filename system (deck.pdf → deck-1.pdf → deck-2.pdf) replacing complex timestamp approach for better tracking and processing
+- **Enhanced File Cleanup**: Added cleanup utility for numbered file versions to prevent accumulation of retry attempts in upload directory
 
 ## System Architecture
 

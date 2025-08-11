@@ -20,6 +20,41 @@ export function cleanupUploadedFile(filePath: string, fileName: string, reason: 
 }
 
 /**
+ * Clean up all numbered versions of a file (e.g., deck.pdf, deck-1.pdf, deck-2.pdf)
+ * @param basePath - Directory containing the files
+ * @param originalFileName - Original filename to find versions of
+ * @param reason - Reason for cleanup (optional)
+ */
+export function cleanupFileVersions(basePath: string, originalFileName: string, reason: string = "processing complete"): void {
+  try {
+    const ext = path.extname(originalFileName);
+    const baseName = path.basename(originalFileName, ext);
+    const uploadDir = path.dirname(basePath);
+    
+    // Clean original file
+    const originalPath = path.join(uploadDir, originalFileName);
+    if (fs.existsSync(originalPath)) {
+      fs.unlinkSync(originalPath);
+      appLogger.file(`${reason} - cleaned up original file: ${originalFileName}`);
+    }
+    
+    // Clean numbered versions
+    let counter = 1;
+    let versionPath = path.join(uploadDir, `${baseName}-${counter}${ext}`);
+    
+    while (fs.existsSync(versionPath)) {
+      fs.unlinkSync(versionPath);
+      appLogger.file(`${reason} - cleaned up version file: ${baseName}-${counter}${ext}`);
+      counter++;
+      versionPath = path.join(uploadDir, `${baseName}-${counter}${ext}`);
+    }
+  } catch (error) {
+    appLogger.file(`File versions cleanup error for ${originalFileName}:`, error);
+    // Don't throw errors for cleanup failures
+  }
+}
+
+/**
  * Clean up multiple files
  */
 export function cleanupMultipleFiles(files: Array<{ path: string; name: string }>): void {
