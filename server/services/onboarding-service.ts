@@ -479,9 +479,9 @@ export class OnboardingService {
       throw new Error("Venture step not completed");
     }
 
-    // Ensure we have the file name
-    const fileName = file.originalname || file.filename || 'uploaded_pitch_deck.pdf';
-    console.log('Creating upload record with fileName:', fileName, 'file object:', file);
+    // Ensure we have the file name - use the actual saved filename from multer
+    const fileName = file.filename || file.originalname || 'uploaded_pitch_deck.pdf';
+    console.log('Creating upload record with fileName:', fileName, 'originalname:', file.originalname, 'file object:', file);
 
     // Get the Overview folder ID for onboarding pitch decks
     let overviewFolderId = null;
@@ -505,7 +505,7 @@ export class OnboardingService {
         sessionId,
         ventureId: venture.ventureId, // Ensure venture ID is set
         fileName: fileName,
-        originalName: fileName,
+        originalName: file.originalname,
         filePath: file.path,
         fileSize: file.size,
         mimeType: file.mimetype,
