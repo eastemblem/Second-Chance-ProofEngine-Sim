@@ -37,7 +37,12 @@ const upload = multer({
       cb(null, uploadDir);
     },
     filename: (req, file, cb) => {
-      cb(null, file.originalname);
+      // Generate unique filename to prevent overwrites
+      const uniqueSuffix = Date.now() + '-' + Math.round(Math.random() * 1E9);
+      const ext = path.extname(file.originalname);
+      const baseName = path.basename(file.originalname, ext);
+      const uniqueFilename = `${baseName}-${uniqueSuffix}${ext}`;
+      cb(null, uniqueFilename);
     },
   }),
   limits: { fileSize: 10 * 1024 * 1024 },
