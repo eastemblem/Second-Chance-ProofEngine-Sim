@@ -147,14 +147,24 @@ export default function ProcessingScreen({
           setDocumentsNotified(prev => ({ ...prev, report: true }));
         }
         
-        setTimeout(() => {
-          onNext();
-        }, 2000);
+        // Only proceed to next step if the processing was actually successful (not an error case)
+        if (data.data?.isComplete !== false) {
+          setTimeout(() => {
+            onNext();
+          }, 2000);
+        }
       }
     }
   });
 
   const handleRetry = () => {
+    // For image-based PDF errors, navigate back to upload instead of retrying
+    if (errorMessage.includes('image-based') || errorMessage.includes('couldn\'t score it')) {
+      onBack && onBack();
+      return;
+    }
+    
+    // For other errors, retry the processing
     setHasError(false);
     setErrorMessage("");
     setRetryCount(prev => prev + 1);
@@ -333,8 +343,8 @@ export default function ProcessingScreen({
             }
           </p>
           <div className="flex flex-col sm:flex-row gap-3 justify-center">
+            {/* For image-based PDF errors, show "Upload Different File" button */}
             {errorMessage.includes('image-based') || errorMessage.includes('couldn\'t score it') ? (
-              // Show "Go Back to Upload" for image-based PDF errors
               <Button 
                 onClick={() => onBack && onBack()}
                 className="bg-primary hover:bg-primary/90 text-primary-foreground"
@@ -343,7 +353,7 @@ export default function ProcessingScreen({
                 Upload Different File
               </Button>
             ) : (
-              // Show "Try Again" for other errors
+              /* For other errors, show "Try Again" button */
               <Button 
                 onClick={handleRetry}
                 disabled={submitForScoringMutation.isPending}

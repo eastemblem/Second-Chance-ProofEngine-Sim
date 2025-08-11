@@ -39,12 +39,14 @@ Second Chance is a startup validation platform that assesses investment readines
 - **ProofScore Integration**: Payment page prominently displays user's ProofScore and provides score-based package recommendations
 
 ### Comprehensive Error Handling System (Aug 11, 2025)
-- **Dynamic API Error Messages**: System now displays actual error messages from EastEmblem API instead of hardcoded text
+- **Dynamic API Error Messages**: System displays actual error messages from EastEmblem API instead of hardcoded text
 - **Image-based PDF Detection**: Enhanced error handling specifically for image-based PDFs that cannot be processed
 - **Database Error Tracking**: Added error tracking fields (error_message, retry_count, max_retries, can_retry) to document upload schema
-- **User-Friendly Navigation**: Added "Upload Different File" button that navigates back to upload step for file retry scenarios
+- **User-Friendly Navigation**: "Upload Different File" button navigates back to upload step for file format errors
 - **Error Type Classification**: System distinguishes between retryable errors (server issues) and user action required errors (file format issues)
-- **Comprehensive Error Flow**: Complete error handling from API → backend → database → frontend → user retry functionality
+- **Critical Flow Prevention**: Fixed logic to prevent automatic progression to analysis page with 0 score when processing errors occur
+- **Smart Retry Logic**: "Try Again" button behavior depends on error type - navigates back to upload for file format issues, retries processing for server errors
+- **Complete Error Chain**: API error → backend preservation → database storage → frontend detection → appropriate user navigation flow
 
 ## System Architecture
 
