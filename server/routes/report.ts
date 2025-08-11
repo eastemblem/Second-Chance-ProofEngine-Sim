@@ -146,13 +146,13 @@ export async function createReportForSession(sessionId: string) {
     const session = sessionData;
 
     // Check if report already exists
-    if (session.stepData?.processing?.reportUrl) {
-      const existingUrl = session.stepData.processing.reportUrl;
+    if ((session.stepData as any)?.processing?.reportUrl) {
+      const existingUrl = (session.stepData as any).processing.reportUrl;
       
       // Still update database even if report exists in session
       try {
         const { documentUpload, venture } = await import('@shared/schema');
-        const ventureId = session.stepData?.venture?.ventureId;
+        const ventureId = (session.stepData as any)?.venture?.ventureId;
         
         if (ventureId) {
           // Update venture table with report URL
@@ -170,20 +170,17 @@ export async function createReportForSession(sessionId: string) {
           try {
             const { randomUUID } = await import('crypto');
             await db.insert(documentUpload).values({
-              uploadId: randomUUID(),
               ventureId: ventureId,
               fileName: 'analysis_report.pdf',
               originalName: 'analysis_report.pdf',
               filePath: '/generated/report.pdf',
-              fileType: 'pdf',
               fileSize: 1024000, // Default 1MB for existing reports
               mimeType: 'application/pdf',
               uploadStatus: 'completed',
               processingStatus: 'completed',
               sharedUrl: existingUrl,
-              folderId: session.stepData?.folderStructure?.folders?.["0_Overview"] || null, // Use Overview folder ID
-              eastemblemFileId: null, // Will be populated when we have the actual ID
-              uploadedBy: 'system'
+              folderId: (session.stepData as any)?.folderStructure?.folders?.["0_Overview"] || null, // Use Overview folder ID
+              eastemblemFileId: null // Will be populated when we have the actual ID
             });
             appLogger.business("✓ Report document_upload record created");
           } catch (docError) {
@@ -203,12 +200,12 @@ export async function createReportForSession(sessionId: string) {
     }
 
     // Check if we have scoring data
-    if (!session.stepData?.processing?.scoringResult) {
+    if (!(session.stepData as any)?.processing?.scoringResult) {
       throw new Error('No scoring data available');
     }
 
-    const scoringResult = session.stepData.processing.scoringResult;
-    const folderStructure = session.stepData.folderStructure;
+    const scoringResult = (session.stepData as any).processing.scoringResult;
+    const folderStructure = (session.stepData as any).folderStructure;
 
     // Map scoring response to report format
     const reportData = mapScoringToReportData(scoringResult, sessionId, folderStructure);
@@ -221,9 +218,9 @@ export async function createReportForSession(sessionId: string) {
 
     // Store report URL in session
     const updatedStepData = {
-      ...session.stepData,
+      ...(session.stepData as any),
       processing: {
-        ...session.stepData.processing,
+        ...(session.stepData as any).processing,
         reportUrl: reportResult.url,
         reportGeneratedAt: new Date().toISOString()
       }
@@ -243,23 +240,20 @@ export async function createReportForSession(sessionId: string) {
       const { documentUpload } = await import('@shared/schema');
       
       // Get venture ID from session
-      const ventureId = session.stepData?.venture?.ventureId;
+      const ventureId = (session.stepData as any)?.venture?.ventureId;
       if (ventureId) {
         await db.insert(documentUpload).values({
-          uploadId: randomUUID(),
           ventureId: ventureId,
           fileName: reportResult.name || 'analysis_report.pdf',
           originalName: reportResult.name || 'analysis_report.pdf',
           filePath: '/generated/report.pdf',
-          fileType: 'pdf',
           fileSize: reportResult.size || 1024000, // Use actual size from API or default 1MB
           mimeType: 'application/pdf',
           uploadStatus: 'completed',
           processingStatus: 'completed',
           sharedUrl: reportResult.url,
-          folderId: reportResult.folderId || session.stepData?.folderStructure?.folders?.["0_Overview"] || null, // Use folder ID from API or Overview folder
-          eastemblemFileId: reportResult.id,
-          uploadedBy: 'system'
+          folderId: reportResult.folderId || (session.stepData as any)?.folderStructure?.folders?.["0_Overview"] || null, // Use folder ID from API or Overview folder
+          eastemblemFileId: reportResult.id
         });
         appLogger.business("✓ Report document_upload record created");
         

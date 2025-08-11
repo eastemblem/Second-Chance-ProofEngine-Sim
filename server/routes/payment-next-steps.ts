@@ -442,7 +442,7 @@ router.get("/history/:sessionId", async (req: Request, res: Response) => {
     }
 
     // Find all payments for this session from database
-    const sessionPayments = await storage.getPaymentTransactionsBySessionId(sessionId);
+    const sessionPayments = await storage.getPaymentTransactions(sessionId);
     
     if (!sessionPayments || sessionPayments.length === 0) {
       return res.json({
@@ -542,8 +542,9 @@ router.get("/callback/telr", async (req: Request, res: Response) => {
 
     // Log activity
     try {
+      const transactionMetadata = dbTransaction.metadata as any;
       await ActivityService.logActivity(
-        { sessionId: transaction.sessionId },
+        { sessionId: transactionMetadata?.sessionId },
         {
           activityType: 'system',
           action: 'payment_status_changed',
@@ -552,8 +553,8 @@ router.get("/callback/telr", async (req: Request, res: Response) => {
           metadata: {
             paymentId,
             status: newStatus,
-            packageType: transaction.packageType,
-            amount: transaction.amount
+            packageType: transactionMetadata?.packageType,
+            amount: dbTransaction.amount
           }
         }
       );

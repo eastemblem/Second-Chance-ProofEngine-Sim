@@ -108,7 +108,11 @@ router.post("/founder", asyncHandler(async (req, res) => {
   } catch (error: any) {
     // Handle email duplicate error as validation error, not server error
     if (error.message === "Email already taken") {
-      return res.status(400).json(createErrorResponse(400, "Email already taken"));
+      return res.status(400).json({
+        success: false,
+        message: "Email already taken",
+        statusCode: 400
+      });
     }
     // Re-throw other errors to be handled by asyncHandler
     throw error;
@@ -209,7 +213,11 @@ router.get("/team/:sessionId", asyncHandler(async (req, res) => {
   
   // Validate sessionId is not undefined or invalid
   if (!sessionId || sessionId === 'undefined') {
-    return res.status(400).json(createErrorResponse("Invalid session ID", 400));
+    return res.status(400).json({
+      success: false,
+      message: "Invalid session ID",
+      statusCode: 400
+    });
   }
   
   const teamMembers = await onboardingService.getTeamMembers(sessionId);
@@ -285,13 +293,13 @@ router.post("/submit-for-scoring", requireFields(['sessionId']), asyncHandler(as
     // Ensure proper JSON content type
     res.setHeader('Content-Type', 'application/json');
     res.json(response);
-  } catch (error) {
+  } catch (error: any) {
     appLogger.business('Submit for scoring error:', error);
     res.setHeader('Content-Type', 'application/json');
     res.status(500).json({
       success: false,
       error: {
-        message: error.message,
+        message: error.message || 'Unknown error',
         status: 500
       },
       sessionId
@@ -343,7 +351,7 @@ router.post("/retry-analysis", asyncHandler(async (req, res) => {
   appLogger.business(`🔄 Retrying analysis for session: ${sessionId}`);
   
   // Get the uploaded file data
-  const uploadData = session.stepData?.upload;
+  const uploadData = (session.stepData as any)?.upload;
   if (!uploadData) {
     throw new Error("No upload data found in session");
   }

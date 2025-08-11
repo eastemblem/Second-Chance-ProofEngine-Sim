@@ -61,21 +61,20 @@ router.post("/founder", asyncHandler(async (req, res) => {
     }
 
     // Process founder data through onboarding service
-    const result = await onboardingService.processFounderData(founderData, sessionId);
+    const result = await onboardingService.completeFounderStep(sessionId, founderData);
 
     // Update session with founder data
     await updateSessionData(sessionId, {
       founderData: {
         ...founderData,
-        founderId: result.founderId,
-        ventureId: result.ventureId
+        founderId: result.founderId
       }
     });
 
     // Log founder creation activity
     const context = ActivityService.getContextFromRequest(req);
     await ActivityService.logAccountActivity(
-      { ...context, founderId: result.founderId, ventureId: result.ventureId },
+      { ...context, founderId: result.founderId },
       'signup',
       'Founder profile created',
       `Founder ${founderData.fullName} created profile during onboarding`,
@@ -87,13 +86,11 @@ router.post("/founder", asyncHandler(async (req, res) => {
     );
 
     console.log(`✅ ONBOARDING: Founder data processed successfully`, {
-      founderId: result.founderId,
-      ventureId: result.ventureId
+      founderId: result.founderId
     });
 
     res.json(createSuccessResponse({
       founderId: result.founderId,
-      ventureId: result.ventureId,
       message: "Founder data saved successfully"
     }, "Founder information processed"));
 
@@ -123,11 +120,7 @@ router.post("/team", asyncHandler(async (req, res) => {
     }
 
     // Process team members through onboarding service
-    const result = await onboardingService.processTeamData(
-      teamData, 
-      sessionData.founderData.ventureId,
-      sessionId
-    );
+    const result = await onboardingService.completeTeamStep(sessionId);
 
     console.log(`✅ ONBOARDING: Team data processed successfully`, {
       ventureId: sessionData.founderData.ventureId,
@@ -136,7 +129,6 @@ router.post("/team", asyncHandler(async (req, res) => {
 
     res.json(createSuccessResponse({
       ventureId: sessionData.founderData.ventureId,
-      teamMembersProcessed: result.teamMembersProcessed,
       message: "Team data saved successfully"
     }, "Team information processed"));
 
@@ -173,10 +165,9 @@ router.post("/upload-pitch-deck",
       }
 
       // Process pitch deck through onboarding service
-      const result = await onboardingService.processPitchDeckUpload(
-        req.file,
-        sessionData.founderData.ventureId,
-        sessionId
+      const result = await onboardingService.handleDocumentUpload(
+        sessionId,
+        req.file
       );
 
       // Update session with upload data
@@ -196,7 +187,7 @@ router.post("/upload-pitch-deck",
       });
 
       // Cleanup uploaded file
-      await cleanupUploadedFile(req.file.path);
+      await cleanupUploadedFile(req.file.path, req.file.originalname);
 
       res.json(createSuccessResponse({
         fileName: req.file.originalname,
@@ -210,7 +201,7 @@ router.post("/upload-pitch-deck",
       
       // Cleanup on error
       if (req.file?.path) {
-        await cleanupUploadedFile(req.file.path);
+        await cleanupUploadedFile(req.file.path, req.file.originalname || "unknown");
       }
 
       res.status(500).json({
@@ -243,23 +234,16 @@ router.post("/submit-for-scoring", asyncHandler(async (req, res) => {
     }
 
     // Process scoring through onboarding service
-    const result = await onboardingService.processScoring(
-      sessionData.founderData.ventureId,
-      sessionId
-    );
+    const result = await onboardingService.submitForScoring(sessionId);
 
     console.log(`✅ ONBOARDING: Scoring completed successfully`, {
       ventureId: sessionData.founderData.ventureId,
-      proofScore: result.proofScore,
-      evaluationId: result.evaluationId
+      scoringResult: result
     });
 
     res.json(createSuccessResponse({
-      proofScore: result.proofScore,
-      evaluationId: result.evaluationId,
-      ventureId: sessionData.founderData.ventureId,
-      certificateGenerated: result.certificateGenerated,
-      reportGenerated: result.reportGenerated
+      scoringResult: result,
+      ventureId: sessionData.founderData.ventureId
     }, "Scoring completed successfully"));
 
   } catch (error) {
@@ -289,26 +273,23 @@ router.post("/create-startup-vault", asyncHandler(async (req, res) => {
   console.log(`🗃️ ONBOARDING: Creating startup vault for ${ventureName} (${ventureId})`);
 
   try {
-    // Create folder structure through onboarding service
-    const result = await onboardingService.createStartupVault(
-      ventureId,
-      ventureName,
-      sessionId
-    );
+    // Create folder structure through EastEmblem API
+    const { eastEmblemAPI } = await import('../../eastemblem-api');
+    const result = await eastEmblemAPI.createFolderStructure(ventureName, ventureId);
 
     // Update session with folder structure
     await updateSessionData(sessionId, {
-      folderStructure: result.folderStructure,
+      folderStructure: result,
       vaultCreated: true
     });
 
     console.log(`✅ ONBOARDING: Startup vault created successfully`, {
       ventureId,
-      rootFolderId: result.folderStructure.id
+      rootFolderId: result.id
     });
 
     res.json(createSuccessResponse({
-      folderStructure: result.folderStructure,
+      folderStructure: result,
       ventureId,
       ventureName,
       vaultCreated: true

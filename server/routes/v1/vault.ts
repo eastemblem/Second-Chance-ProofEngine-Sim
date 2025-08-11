@@ -103,7 +103,7 @@ const upload = multer({
 });
 
 // Create startup vault structure - EXACT SAME LOGIC as routes.ts
-router.post('/create-startup-vault', asyncHandler(async (req, res) => {
+router.post('/create-startup-vault', asyncHandler(async (req: Request, res: Response) => {
   const { startupName } = req.body;
 
   if (!startupName) {
@@ -120,7 +120,8 @@ router.post('/create-startup-vault', asyncHandler(async (req, res) => {
 
   const folderStructure = await eastEmblemAPI.createFolderStructure(startupName, getSessionId(req));
 
-  updateSessionData(req, {
+  const sessionId = getSessionId(req);
+  updateSessionData(sessionId, {
     folderStructure,
     startupName,
     uploadedFiles: [],
@@ -133,8 +134,9 @@ router.post('/create-startup-vault', asyncHandler(async (req, res) => {
 }));
 
 // Get session data - EXACT SAME LOGIC as routes.ts
-router.get('/session', asyncHandler(async (req, res) => {
-  const sessionData = getSessionData(req);
+router.get('/session', asyncHandler(async (req: Request, res: Response) => {
+  const sessionId = getSessionId(req);
+  const sessionData = await getSessionData(sessionId);
 
   console.log("Retrieved session data:", {
     sessionId: getSessionId(req),
@@ -150,7 +152,7 @@ router.get('/session', asyncHandler(async (req, res) => {
 }));
 
 // Upload file only (store for later processing) - EXACT SAME LOGIC as routes.ts
-router.post('/upload-only', upload.single("file"), asyncHandler(async (req, res) => {
+router.post('/upload-only', upload.single("file"), asyncHandler(async (req: Request, res: Response) => {
   const file = req.file;
 
   if (!file) {
@@ -161,7 +163,8 @@ router.post('/upload-only', upload.single("file"), asyncHandler(async (req, res)
   const sanitizedFilename = String(file.originalname).replace(/[<>&"']/g, '');
   console.log(`Storing file for later processing: ${sanitizedFilename}`);
 
-  updateSessionData(req, {
+  const sessionId = getSessionId(req);
+  updateSessionData(sessionId, {
     uploadedFile: {
       filepath: file.path,
       originalname: file.originalname,
@@ -180,12 +183,13 @@ router.post('/upload-only', upload.single("file"), asyncHandler(async (req, res)
 }));
 
 // Submit for scoring workflow - EXACT SAME LOGIC as routes.ts
-router.post('/submit-for-scoring', asyncHandler(async (req, res) => {
+router.post('/submit-for-scoring', asyncHandler(async (req: Request, res: Response) => {
   if (!eastEmblemAPI.isConfigured()) {
     throw new Error("EastEmblem API not configured");
   }
 
-  const sessionData = getSessionData(req);
+  const sessionId = getSessionId(req);
+  const sessionData = await getSessionData(sessionId);
   const uploadedFile = sessionData.uploadedFile;
   const folderStructure = sessionData.folderStructure;
 
@@ -196,8 +200,6 @@ router.post('/submit-for-scoring', asyncHandler(async (req, res) => {
   if (!folderStructure) {
     throw new Error("No folder structure found - please complete venture step first");
   }
-
-  const sessionId = getSessionId(req);
   // Sanitize filename for logging to prevent security scanner warnings
   const sanitizedUploadFilename = String(uploadedFile.originalname).replace(/[<>&"']/g, '');
   console.log(`Starting scoring workflow for: ${sanitizedUploadFilename}`);
@@ -231,7 +233,7 @@ router.post('/submit-for-scoring', asyncHandler(async (req, res) => {
 
   // Update session
   const updatedFiles = [...(sessionData.uploadedFiles || []), uploadResult];
-  updateSessionData(req, { 
+  updateSessionData(sessionId, { 
     uploadedFiles: updatedFiles,
     pitchDeckScore,
     uploadedFile: undefined
@@ -331,9 +333,9 @@ router.post('/upload-file', upload.single("file"), asyncHandler(async (req: Auth
     }
 
     // Step 4: Update session with uploaded file
-    const sessionData = getSessionData(req);
+    const sessionData = await getSessionData(sessionId);
     const updatedFiles = [...(sessionData.uploadedFiles || []), uploadResult];
-    updateSessionData(req, { uploadedFiles: updatedFiles });
+    updateSessionData(sessionId, { uploadedFiles: updatedFiles });
 
     // Step 5: Log file upload activity
     const context = ActivityService.getContextFromRequest(req);
@@ -366,7 +368,7 @@ router.post('/upload-file', upload.single("file"), asyncHandler(async (req: Auth
     }
 
     // Step 7: Cleanup uploaded file
-    cleanupUploadedFile(file.path);
+    cleanupUploadedFile(file.path, file.originalname);
 
     // Sanitize filename and folder ID for logging to prevent security scanner warnings
     const sanitizedUploadFilename = String(file.originalname).replace(/[<>&"']/g, '');
@@ -395,7 +397,7 @@ router.post('/upload-file', upload.single("file"), asyncHandler(async (req: Auth
         { ...context, founderId, ventureId: currentVentureId },
         'upload',
         `Failed to upload ${file.originalname}: ${errorMessage}`,
-        null,
+        '',
         file.originalname,
         folder_id,
         {
@@ -411,7 +413,7 @@ router.post('/upload-file', upload.single("file"), asyncHandler(async (req: Auth
     
     // Cleanup uploaded file on error
     if (file.path && fs.existsSync(file.path)) {
-      cleanupUploadedFile(file.path);
+      cleanupUploadedFile(file.path, file.originalname);
     }
 
     return res.status(400).json({ 
@@ -546,7 +548,7 @@ router.post('/create-folder', upload.none(), asyncHandler(async (req: Authentica
 
         const context = ActivityService.getContextFromRequest(req);
         await ActivityService.logActivity(
-          { ...context, founderId, ventureId: currentVentureId },
+          { ...context, founderId, ventureId: currentVentureId || null },
           {
             activityType: 'document',
             action: 'folder_created',
@@ -590,7 +592,7 @@ router.post('/create-folder', upload.none(), asyncHandler(async (req: Authentica
       parentFolderId: actualParentFolderId,
       usedFallback: usedFallback,
       message: usedFallback ? 'Folder creation used fallback strategy' : 'Folder created successfully',
-      note: result.note || undefined
+      note: 'note' in result ? result.note : undefined
     }, "V1 Folder creation completed"));
 
   } catch (error) {
@@ -636,9 +638,9 @@ router.post('/upload-file-direct', upload.single("file"), asyncHandler(async (re
     );
 
     // Update session with uploaded file
-    const sessionData = getSessionData(req);
+    const sessionData = await getSessionData(sessionId);
     const updatedFiles = [...(sessionData.uploadedFiles || []), uploadResult];
-    updateSessionData(req, { uploadedFiles: updatedFiles });
+    updateSessionData(sessionId, { uploadedFiles: updatedFiles });
 
     // Get venture ID from founder ID and store upload in database
     const { storage } = await import("../../storage");
@@ -684,9 +686,19 @@ router.post('/upload-file-direct', upload.single("file"), asyncHandler(async (re
     // Log direct upload activity for recent-activity feed
     if (founderId) {
       try {
+        // Get venture ID for activity logging
+        const { databaseService } = await import("../../services/database-service");
+        let activityVentureId = null;
+        try {
+          const dashboardData = await databaseService.getFounderWithLatestVenture(founderId);
+          activityVentureId = dashboardData?.venture?.ventureId || null;
+        } catch (ventureError) {
+          console.error(`⚠️ V1 DIRECT UPLOAD: Failed to get venture ID for activity logging:`, ventureError);
+        }
+
         const context = ActivityService.getContextFromRequest(req);
         await ActivityService.logActivity(
-          { ...context, founderId, ventureId: currentVentureId },
+          { ...context, founderId, ventureId: activityVentureId },
           {
             activityType: 'document',
             action: 'file_uploaded',
@@ -726,7 +738,7 @@ router.post('/upload-file-direct', upload.single("file"), asyncHandler(async (re
     }
 
     // Cleanup uploaded file
-    cleanupUploadedFile(file.path);
+    cleanupUploadedFile(file.path, file.originalname);
 
     // Sanitize filename and folder ID for logging to prevent security scanner warnings
     const sanitizedFilename = String(file.originalname).replace(/[<>&"']/g, '');
@@ -749,7 +761,7 @@ router.post('/upload-file-direct', upload.single("file"), asyncHandler(async (re
     
     // Cleanup uploaded file on error
     if (file.path && fs.existsSync(file.path)) {
-      cleanupUploadedFile(file.path);
+      cleanupUploadedFile(file.path, file.originalname);
     }
 
     return res.status(400).json({ 
@@ -816,7 +828,7 @@ router.get('/files', asyncHandler(async (req: AuthenticatedRequest, res: Respons
 
     // Format files response with accurate hierarchical category information
     const formattedFiles = files.map(file => {
-      const hierarchicalCategory = findMainCategoryForFile(file.folderId, folderLookup);
+      const hierarchicalCategory = findMainCategoryForFile(file.folderId || '', folderLookup);
       const displayName = getCategoryDisplayNameFromHierarchy(hierarchicalCategory);
       
       return {
