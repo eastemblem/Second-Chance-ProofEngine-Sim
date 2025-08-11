@@ -1,12 +1,13 @@
 // Sentry initialization for server-side error tracking
 import * as Sentry from "@sentry/node";
+import { appLogger } from "./utils/logger";
 
 let sentryInitialized = false;
 
 export function initSentry() {
   if (!process.env.SENTRY_DSN) {
-    console.log('⚠️ Sentry DSN not found - error tracking disabled');
-    console.log('💡 Add SENTRY_DSN to your Replit secrets to enable error monitoring');
+    appLogger.warn('Sentry DSN not found - error tracking disabled');
+    appLogger.info('Add SENTRY_DSN to your Replit secrets to enable error monitoring');
     return null;
   }
 
@@ -42,13 +43,13 @@ export function initSentry() {
     });
 
     sentryInitialized = true;
-    console.log('✅ Sentry initialized successfully for server-side error tracking');
-    console.log(`📊 Environment: ${process.env.NODE_ENV || 'development'}`);
-    console.log(`📊 DSN configured: ***${process.env.SENTRY_DSN.slice(-8)}`);
+    appLogger.system('Sentry initialized successfully for server-side error tracking');
+    appLogger.system(`Environment: ${process.env.NODE_ENV || 'development'}`);
+    appLogger.system(`DSN configured: ***${process.env.SENTRY_DSN.slice(-8)}`);
     
     return Sentry;
   } catch (error: any) {
-    console.error('❌ Sentry initialization failed:', error.message);
+    appLogger.error('Sentry initialization failed:', error.message);
     return null;
   }
 }
@@ -59,7 +60,7 @@ export { Sentry };
 // Error context enrichment with enhanced transmission logging
 export function enrichErrorContext(error: Error, user: any = {}, context: any = {}) {
   if (!sentryInitialized) {
-    console.log('📊 Error captured (Sentry not initialized):', error.message);
+    appLogger.debug('Error captured (Sentry not initialized):', error.message);
     return;
   }
 
@@ -107,8 +108,8 @@ export function enrichErrorContext(error: Error, user: any = {}, context: any = 
       }
 
       // Enhanced logging for debugging transmission
-      console.log('🔴 Sending error to Sentry dashboard:', error.message);
-      console.log('📊 Error context:', {
+      appLogger.debug('Sending error to Sentry dashboard:', error.message);
+      appLogger.debug('Error context:', {
         user: user ? Object.keys(user) : [],
         context: Object.keys(context),
         timestamp: new Date().toISOString()
@@ -119,7 +120,7 @@ export function enrichErrorContext(error: Error, user: any = {}, context: any = 
       
       // Force flush to ensure immediate transmission
       Sentry.flush(2000).then(() => {
-        console.log('✅ Error successfully transmitted to Sentry dashboard');
+        appLogger.debug('Error successfully transmitted to Sentry dashboard');
       }).catch((flushError) => {
         console.error('❌ Failed to transmit error to Sentry:', flushError);
       });
