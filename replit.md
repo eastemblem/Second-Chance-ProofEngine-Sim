@@ -47,6 +47,8 @@ Second Chance is a startup validation platform that assesses investment readines
 - **Critical Flow Prevention**: Fixed logic to prevent automatic progression to analysis page with 0 score when processing errors occur
 - **Smart Retry Logic**: "Try Again" button behavior depends on error type - navigates back to upload for file format issues, retries processing for server errors
 - **Complete Error Chain**: API error → backend preservation → database storage → frontend detection → appropriate user navigation flow
+- **Retry Limit System**: Maximum 3 retry attempts with clear counter display (1/3, 2/3, etc.) and disabled state when limit reached
+- **Smart Counter Logic**: Retry counter increments on all processing errors and displays current attempt status to users
 
 ## System Architecture
 

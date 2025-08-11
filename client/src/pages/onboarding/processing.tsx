@@ -87,6 +87,9 @@ export default function ProcessingScreen({
       setErrorMessage(errorMsg);
       setCurrentStep(processingSteps.length - 2); // Set to scoring step to show where it failed
       
+      // Increment retry count for any processing error
+      setRetryCount(prev => prev + 1);
+      
       toast({
         title: "Processing Failed",
         description: errorMsg,
@@ -104,6 +107,9 @@ export default function ProcessingScreen({
         setHasError(true);
         setErrorMessage(processingData.errorMessage || "Unable to process the file");
         setCurrentStep(processingSteps.length - 2);
+        
+        // Increment retry count for any processing error
+        setRetryCount(prev => prev + 1);
         
         toast({
           title: "File Processing Issue",
@@ -157,17 +163,28 @@ export default function ProcessingScreen({
     }
   });
 
+  const MAX_RETRIES = 3;
+
   const handleRetry = () => {
+    // Check if maximum retries reached
+    if (retryCount >= MAX_RETRIES) {
+      toast({
+        title: "Maximum Retries Reached",
+        description: "Please try uploading a different file or start over.",
+        variant: "destructive",
+      });
+      return;
+    }
+
     // For image-based PDF errors, navigate back to upload instead of retrying
     if (errorMessage.includes('image-based') || errorMessage.includes('couldn\'t score it')) {
       onBack && onBack();
       return;
     }
     
-    // For other errors, retry the processing
+    // For other errors, retry the processing (don't increment counter here, it's done in mutation handlers)
     setHasError(false);
     setErrorMessage("");
-    setRetryCount(prev => prev + 1);
     setProcessingComplete(false);
     setCurrentStep(processingSteps.length - 2); // Go to scoring step
     submitForScoringMutation.mutate();
@@ -356,7 +373,7 @@ export default function ProcessingScreen({
               /* For other errors, show "Try Again" button */
               <Button 
                 onClick={handleRetry}
-                disabled={submitForScoringMutation.isPending}
+                disabled={submitForScoringMutation.isPending || retryCount >= MAX_RETRIES}
                 className="bg-primary hover:bg-primary/90 text-primary-foreground"
               >
                 {submitForScoringMutation.isPending ? (
@@ -364,10 +381,15 @@ export default function ProcessingScreen({
                     <Loader2 className="w-4 h-4 mr-2 animate-spin" />
                     Retrying...
                   </>
+                ) : retryCount >= MAX_RETRIES ? (
+                  <>
+                    <AlertCircle className="w-4 h-4 mr-2" />
+                    Max Retries Reached
+                  </>
                 ) : (
                   <>
                     <RefreshCw className="w-4 h-4 mr-2" />
-                    Try Again {retryCount > 0 && `(Attempt ${retryCount + 1})`}
+                    Try Again {retryCount > 0 && `(${retryCount}/${MAX_RETRIES})`}
                   </>
                 )}
               </Button>
@@ -378,7 +400,8 @@ export default function ProcessingScreen({
           </div>
           {retryCount > 0 && (
             <p className="text-xs text-muted-foreground mt-3">
-              Previous attempts: {retryCount}
+              Retry attempts: {retryCount}/{MAX_RETRIES} 
+              {retryCount >= MAX_RETRIES && " - Maximum retries reached"}
             </p>
           )}
         </motion.div>
