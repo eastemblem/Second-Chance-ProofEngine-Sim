@@ -1,6 +1,7 @@
 // Initialize monitoring services
 // Sentry must be imported before any other modules
 import { initSentry, Sentry, enrichErrorContext } from "./sentry";
+import { appLogger } from "./utils/logger";
 const sentry = initSentry();
 
 // NewRelic agent initialization 
@@ -60,7 +61,6 @@ import { setupVite, serveStatic, log } from "./vite";
 import { errorHandler } from "./utils/error-handler";
 import { schedulePeriodicCleanup } from "./utils/file-cleanup";
 import path from "path";
-import { appLogger } from "./utils/logger";
 
 const app = express();
 

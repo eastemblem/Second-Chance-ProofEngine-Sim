@@ -1,5 +1,6 @@
 import { LRUCache } from 'lru-cache';
 import { kvCacheService } from './kv-cache-service';
+import { appLogger } from '../utils/logger';
 
 interface CacheStats {
   hits: number;
@@ -51,12 +52,13 @@ class LRUCacheService {
       dispose: () => this.stats.leaderboard.evictions++
     });
 
-    console.log('🚀 LRU Cache Service initialized with hybrid caching strategy');
-    console.log('📊 Cache configuration:');
-    console.log('  - Founder: 1000 entries, 15min TTL');
-    console.log('  - Dashboard: 500 entries, 10min TTL');
-    console.log('  - Venture: 2000 entries, 10min TTL');
-    console.log('  - Leaderboard: 50 entries, 20min TTL');
+    appLogger.system('LRU Cache Service initialized with hybrid caching strategy');
+    appLogger.system('Cache configuration:', {
+      founder: '1000 entries, 15min TTL',
+      dashboard: '500 entries, 10min TTL', 
+      venture: '2000 entries, 10min TTL',
+      leaderboard: '50 entries, 20min TTL'
+    });
   }
 
   // Hybrid get: LRU → KV → null
@@ -68,7 +70,7 @@ class LRUCacheService {
     const lruValue = cache.get(cacheKey);
     if (lruValue !== undefined) {
       this.stats[type].hits++;
-      console.log(`🎯 LRU Cache HIT: ${cacheKey} (memory)`);
+      appLogger.cache(`LRU Cache HIT: ${cacheKey} (memory)`);
       return lruValue;
     }
 
@@ -78,12 +80,12 @@ class LRUCacheService {
       // Populate LRU cache with KV data
       cache.set(cacheKey, kvValue);
       this.stats[type].hits++;
-      console.log(`📦 KV Cache HIT: ${cacheKey} (promoted to LRU)`);
+      appLogger.cache(`KV Cache HIT: ${cacheKey} (promoted to LRU)`);
       return kvValue;
     }
 
     this.stats[type].misses++;
-    console.log(`❌ Cache MISS: ${cacheKey} (LRU + KV)`);
+    appLogger.cache(`Cache MISS: ${cacheKey} (LRU + KV)`);
     return null;
   }
 
@@ -95,11 +97,11 @@ class LRUCacheService {
     // Set in LRU cache (immediate memory access)
     cache.set(cacheKey, value);
     this.stats[type].sets++;
-    console.log(`💾 LRU Cache SET: ${cacheKey} (memory)`);
+    appLogger.cache(`LRU Cache SET: ${cacheKey} (memory)`);
 
     // Also persist to KV store for backup/persistence
     await kvCacheService.set(key, value);
-    console.log(`🔄 KV Cache SET: ${cacheKey} (persistence)`);
+    appLogger.cache(`KV Cache SET: ${cacheKey} (persistence)`);
   }
 
   // Invalidate from both LRU and KV
@@ -109,14 +111,14 @@ class LRUCacheService {
     
     cache.delete(cacheKey);
     await kvCacheService.delete(key);
-    console.log(`🗑️ Cache INVALIDATED: ${cacheKey} (LRU + KV)`);
+    appLogger.cache(`Cache INVALIDATED: ${cacheKey} (LRU + KV)`);
   }
 
   // Clear specific cache type
   async clearType(type: 'founder' | 'dashboard' | 'venture' | 'leaderboard'): Promise<void> {
     const cache = this.getCache(type);
     cache.clear();
-    console.log(`🧹 Cache CLEARED: ${type} (LRU only)`);
+    appLogger.cache(`Cache CLEARED: ${type} (LRU only)`);
   }
 
   // Clear all caches
@@ -125,7 +127,7 @@ class LRUCacheService {
     this.dashboardCache.clear();
     this.ventureCache.clear();
     this.leaderboardCache.clear();
-    console.log('🧹 All caches CLEARED (LRU)');
+    appLogger.cache('All caches CLEARED (LRU)');
   }
 
   // Get cache statistics
@@ -186,14 +188,16 @@ class LRUCacheService {
       const stats = this.getStats();
       const memory = this.getMemoryInfo();
       
-      console.log('\n📊 LRU Cache Performance Report:');
-      for (const [type, stat] of Object.entries(stats)) {
-        const memoryInfo = memory[type as keyof typeof memory];
-        console.log(`  ${type}: ${stat.hits}H/${stat.misses}M (${stat.hitRate}% hit rate) - ${memoryInfo.usage} entries`);
+      if (process.env.NODE_ENV === 'development') {
+        console.log('\n📊 LRU Cache Performance Report:');
+        for (const [type, stat] of Object.entries(stats)) {
+          const memoryInfo = memory[type as keyof typeof memory];
+          console.log(`  ${type}: ${stat.hits}H/${stat.misses}M (${stat.hitRate}% hit rate) - ${memoryInfo.usage} entries`);
+        }
       }
     }, 5 * 60 * 1000); // Every 5 minutes
 
-    console.log('🔥 LRU Cache periodic tasks scheduled');
+    appLogger.system('LRU Cache periodic tasks scheduled');
   }
 
 

@@ -2,6 +2,7 @@
  * Replit Key-Value Store Cache Service
  * Enhanced caching with persistent storage using Replit's KV store
  */
+import { appLogger } from '../utils/logger';
 
 interface KVCacheOptions {
   ttl?: number; // Time to live in seconds
@@ -24,9 +25,9 @@ class KVCacheService {
       // Import Replit KV store
       const Database = await import('@replit/database');
       this.kvStore = new Database.default();
-      console.log('✅ Replit KV store initialized');
+      appLogger.system('Replit KV store initialized');
     } catch (error) {
-      console.warn('⚠️ Replit KV store not available, falling back to memory cache');
+      appLogger.warn('Replit KV store not available, falling back to memory cache');
       this.kvStore = null;
     }
   }
@@ -49,7 +50,7 @@ class KVCacheService {
       const cached = await this.kvStore.get(cacheKey);
       
       if (!cached) {
-        console.log(`🎯 KV Cache MISS: ${key}`);
+        appLogger.cache(`KV Cache MISS: ${key}`);
         return null;
       }
 
@@ -60,7 +61,7 @@ class KVCacheService {
           parsedData = JSON.parse(cached);
         } catch {
           // If parsing fails, treat as raw string data
-          console.log(`✅ KV Cache HIT: ${key} (raw data)`);
+          appLogger.cache(`KV Cache HIT: ${key} (raw data)`);
           return cached;
         }
       } else {
@@ -71,12 +72,12 @@ class KVCacheService {
       
       // Check if cache has expired
       if (ttl && Date.now() - timestamp > ttl * 1000) {
-        console.log(`⏰ KV Cache EXPIRED: ${key}`);
+        appLogger.cache(`KV Cache EXPIRED: ${key}`);
         await this.delete(key, options);
         return null;
       }
 
-      console.log(`✅ KV Cache HIT: ${key}`);
+      appLogger.cache(`KV Cache HIT: ${key}`);
       return data;
     } catch (error) {
       console.error(`❌ KV Cache GET error for ${key}:`, error);
@@ -101,7 +102,7 @@ class KVCacheService {
       };
 
       await this.kvStore.set(cacheKey, JSON.stringify(cacheData));
-      console.log(`💾 KV Cache SET: ${key} (TTL: ${ttl}s)`);
+      appLogger.cache(`KV Cache SET: ${key} (TTL: ${ttl}s)`);
     } catch (error) {
       console.error(`❌ KV Cache SET error for ${key}:`, error);
     }
@@ -116,7 +117,7 @@ class KVCacheService {
     try {
       const cacheKey = this.getCacheKey(key, options.namespace);
       await this.kvStore.delete(cacheKey);
-      console.log(`🗑️ KV Cache DELETE: ${key}`);
+      appLogger.cache(`KV Cache DELETE: ${key}`);
     } catch (error) {
       console.error(`❌ KV Cache DELETE error for ${key}:`, error);
     }
@@ -137,7 +138,7 @@ class KVCacheService {
     }
 
     // Cache miss - fetch data and store
-    console.log(`📥 KV Cache FETCH: ${key}`);
+    appLogger.cache(`KV Cache FETCH: ${key}`);
     const data = await fetchFn();
     await this.set(key, data, options);
     return data;
@@ -149,7 +150,7 @@ class KVCacheService {
   async clearNamespace(namespace: string): Promise<void> {
     if (!this.kvStore) return;
     
-    console.log(`🧹 KV Cache CLEAR namespace: ${namespace} (TTL will handle expiration)`);
+    appLogger.cache(`KV Cache CLEAR namespace: ${namespace} (TTL will handle expiration)`);
     // For Replit Database, we don't have a list method to clear by prefix
     // TTL will handle expiration automatically
   }
@@ -187,7 +188,7 @@ class KVCacheService {
 
     // For Replit Database, we don't have a list method, so just return 0
     // The TTL expiration is handled when we try to get values
-    console.log(`🧹 KV Cache CLEANUP: TTL-based expiration (no manual cleanup needed)`);
+    appLogger.cache(`KV Cache CLEANUP: TTL-based expiration (no manual cleanup needed)`);
     return 0;
   }
 
