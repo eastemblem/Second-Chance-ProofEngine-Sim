@@ -39,7 +39,7 @@ const steps = [
 ];
 
 // Helper function to determine the correct current step index
-const determineCurrentStepIndex = (completedSteps: string[] = [], currentStep?: string): number => {
+const determineCurrentStepIndex = (completedSteps: string[] = [], currentStep?: string, sessionData?: any): number => {
   // If no completed steps, start at step 0
   if (!completedSteps || completedSteps.length === 0) {
     return 0;
@@ -55,7 +55,25 @@ const determineCurrentStepIndex = (completedSteps: string[] = [], currentStep?: 
   }
   
   // The current step should be the next step after the last completed one
-  const nextStepIndex = lastCompletedIndex + 1;
+  let nextStepIndex = lastCompletedIndex + 1;
+  
+  // Special validation for analysis step
+  if (nextStepIndex >= 5) { // analysis step index
+    const processingData = sessionData?.stepData?.processing;
+    
+    // Check if processing is actually complete with valid results
+    const hasValidScore = processingData && 
+                         processingData.proofScore && 
+                         processingData.proofScore > 0 &&
+                         !processingData.hasError;
+    
+    // If trying to access analysis but processing isn't complete, stay on processing
+    if (!hasValidScore) {
+      console.log(`🚫 Analysis access blocked: processing incomplete or has errors`);
+      console.log(`Processing data:`, processingData);
+      return 4; // Force back to processing step
+    }
+  }
   
   // Make sure we don't go beyond the available steps
   const targetIndex = Math.min(nextStepIndex, steps.length - 1);
@@ -95,7 +113,7 @@ export default function OnboardingFlow({ onComplete }: OnboardingFlowProps) {
         
         setSessionData(sessionData);
         // Determine the correct step index based on completed steps
-        const stepIndex = determineCurrentStepIndex(sessionData.completedSteps, sessionData.currentStep);
+        const stepIndex = determineCurrentStepIndex(sessionData.completedSteps, sessionData.currentStep, sessionData);
         setCurrentStepIndex(stepIndex);
         
         // Store session in localStorage for persistence
@@ -125,7 +143,7 @@ export default function OnboardingFlow({ onComplete }: OnboardingFlowProps) {
         const parsedSession = JSON.parse(existingSession);
         if (!parsedSession.isComplete) {
           setSessionData(parsedSession);
-          const stepIndex = determineCurrentStepIndex(parsedSession.completedSteps, parsedSession.currentStep);
+          const stepIndex = determineCurrentStepIndex(parsedSession.completedSteps, parsedSession.currentStep, parsedSession);
           setCurrentStepIndex(stepIndex);
           return;
         }
@@ -221,7 +239,7 @@ export default function OnboardingFlow({ onComplete }: OnboardingFlowProps) {
         setSessionData(updatedSession);
         
         // Update current step index based on completed steps
-        const stepIndex = determineCurrentStepIndex(updatedSession.completedSteps, updatedSession.currentStep);
+        const stepIndex = determineCurrentStepIndex(updatedSession.completedSteps, updatedSession.currentStep, updatedSession);
         setCurrentStepIndex(stepIndex);
         
         localStorage.setItem('onboardingSession', JSON.stringify(updatedSession));
