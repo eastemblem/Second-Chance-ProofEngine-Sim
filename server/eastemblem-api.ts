@@ -847,6 +847,11 @@ class EastEmblemAPI {
         throw new Error("EastEmblem analysis service is temporarily unavailable. Please try again in a few minutes.");
       }
       
+      // Preserve user action required errors
+      if (error instanceof Error && (error as any).isUserActionRequired) {
+        throw error; // Re-throw the original error with its special properties
+      }
+      
       throw new Error(`Pitch deck scoring failed: ${error instanceof Error ? error.message : 'Unknown error'}`);
     });
   }

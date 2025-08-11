@@ -122,6 +122,27 @@ router.post('/submit-for-scoring', asyncHandler(async (req: Request, res: Respon
     const result = await onboardingService.submitForScoring(sessionId);
     console.log('Scoring result received:', result ? 'SUCCESS' : 'NULL');
     
+    // Check if the scoring result contains an error (like user action required)
+    if (result.scoringResult?.hasError) {
+      console.log('Scoring result contains user action required error, returning success response with error details');
+      const response = {
+        success: true,
+        data: {
+          session: {
+            sessionId,
+            stepData: {
+              processing: result.scoringResult
+            }
+          },
+          ...result
+        }
+      };
+      
+      res.setHeader('Content-Type', 'application/json');
+      res.json(response);
+      return;
+    }
+    
     const response = {
       success: true,
       data: {
