@@ -1,5 +1,6 @@
 import { kvCacheService } from "./kv-cache-service";
 import { lruCacheService } from "./lru-cache-service";
+import { appLogger } from '../utils/logger';
 
 /**
  * Cache Service for Performance Optimization
@@ -7,7 +8,7 @@ import { lruCacheService } from "./lru-cache-service";
  */
 export class CacheService {
   constructor() {
-    console.log('🔄 CacheService initialized with hybrid LRU + KV caching');
+    appLogger.system('CacheService initialized with hybrid LRU + KV caching');
     // Initialize LRU cache periodic tasks
     lruCacheService.schedulePeriodicTasks();
   }
@@ -20,19 +21,19 @@ export class CacheService {
     // Try LRU cache first (memory)
     const cached = await lruCacheService.get('founder', founderId);
     if (cached !== null && cached !== undefined) {
-      console.log(`🎯 Cache HIT: Founder ${founderId}`);
+      appLogger.cache(`Cache HIT: Founder ${founderId}`);
       return cached;
     }
 
-    console.log(`📥 Cache MISS: Fetching founder ${founderId}`);
+    appLogger.cache(`Cache MISS: Fetching founder ${founderId}`);
     const data = await fetchFn();
     
     // Only cache valid, non-null data
     if (data && data !== null && data !== undefined) {
       await lruCacheService.set('founder', founderId, data);
-      console.log(`💾 Cache SET: Founder ${founderId}`);
+      appLogger.cache(`Cache SET: Founder ${founderId}`);
     } else {
-      console.log(`⚠️ Not caching null/empty result for founder ${founderId}`);
+      appLogger.cache(`Not caching null/empty result for founder ${founderId}`);
     }
     
     return data;
@@ -46,19 +47,19 @@ export class CacheService {
     // Try LRU cache first (sub-millisecond response)
     const cached = await lruCacheService.get('dashboard', founderId);
     if (cached !== null && cached !== undefined) {
-      console.log(`🎯 Dashboard Cache HIT: ${founderId}`);
+      appLogger.cache(`Dashboard Cache HIT: ${founderId}`);
       return cached;
     }
 
-    console.log(`📥 Cache MISS: Fetching dashboard data ${founderId}`);
+    appLogger.cache(`Cache MISS: Fetching dashboard data ${founderId}`);
     const data = await fetchFn();
     
     // Only cache valid, non-null data
     if (data && data !== null && data !== undefined) {
       await lruCacheService.set('dashboard', founderId, data);
-      console.log(`💾 Dashboard Cache SET: ${founderId}`);
+      appLogger.cache(`Dashboard Cache SET: ${founderId}`);
     } else {
-      console.log(`⚠️ Not caching null/empty result for dashboard ${founderId}`);
+      appLogger.cache(`Not caching null/empty result for dashboard ${founderId}`);
     }
     
     return data;
@@ -74,17 +75,17 @@ export class CacheService {
     if (kvCacheService.isAvailable()) {
       const cached = await kvCacheService.get(cacheKey, { namespace: 'venture', ttl: 600 });
       if (cached) {
-        console.log(`🎯 KV Cache HIT: Venture ${ventureId}`);
+        appLogger.cache(`KV Cache HIT: Venture ${ventureId}`);
         return cached;
       }
     }
 
-    console.log(`📥 Cache MISS: Fetching venture ${ventureId}`);
+    appLogger.cache(`Cache MISS: Fetching venture ${ventureId}`);
     const data = await fetchFn();
     
     if (data && kvCacheService.isAvailable()) {
       await kvCacheService.set(cacheKey, data, { namespace: 'venture', ttl: 600 });
-      console.log(`💾 KV Cache SET: ${cacheKey} (TTL: 600s)`);
+      appLogger.cache(`KV Cache SET: ${cacheKey} (TTL: 600s)`);
     }
     
     return data;
@@ -98,17 +99,17 @@ export class CacheService {
     if (kvCacheService.isAvailable()) {
       const cached = await kvCacheService.get(cacheKey, { namespace: 'leaderboard', ttl: 1200 });
       if (cached) {
-        console.log(`🎯 KV Cache HIT: Leaderboard ${cacheKey}`);
+        appLogger.cache(`KV Cache HIT: Leaderboard ${cacheKey}`);
         return cached;
       }
     }
 
-    console.log(`📥 Cache MISS: Fetching leaderboard ${cacheKey}`);
+    appLogger.cache(`Cache MISS: Fetching leaderboard ${cacheKey}`);
     const data = await fetchFn();
     
     if (data && kvCacheService.isAvailable()) {
       await kvCacheService.set(cacheKey, data, { namespace: 'leaderboard', ttl: 1200 });
-      console.log(`💾 KV Cache SET: ${cacheKey} (TTL: 1200s)`);
+      appLogger.cache(`KV Cache SET: ${cacheKey} (TTL: 1200s)`);
     }
     
     return data;
@@ -118,22 +119,22 @@ export class CacheService {
    * Cache invalidation methods
    */
   invalidateFounder(founderId: string): void {
-    console.log(`🗑️ Invalidating founder cache: ${founderId}`);
+    appLogger.cache(`Invalidating founder cache: ${founderId}`);
     // No memory cache to invalidate, KV store handles TTL
   }
 
   invalidateDashboard(founderId: string): void {
-    console.log(`🗑️ Invalidating dashboard cache: ${founderId}`);
+    appLogger.cache(`Invalidating dashboard cache: ${founderId}`);
     // No memory cache to invalidate, KV store handles TTL
   }
 
   invalidateVenture(ventureId: string): void {
-    console.log(`🗑️ Invalidating venture cache: ${ventureId}`);
+    appLogger.cache(`Invalidating venture cache: ${ventureId}`);
     // No memory cache to invalidate, KV store handles TTL
   }
 
   invalidateLeaderboard(): void {
-    console.log(`🗑️ Invalidating leaderboard cache`);
+    appLogger.cache(`Invalidating leaderboard cache`);
     // No memory cache to invalidate, KV store handles TTL
   }
 

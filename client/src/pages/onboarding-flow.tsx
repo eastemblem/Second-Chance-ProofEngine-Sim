@@ -69,8 +69,10 @@ const determineCurrentStepIndex = (completedSteps: string[] = [], currentStep?: 
     
     // If trying to access analysis but processing isn't complete, stay on processing
     if (!hasValidScore) {
-      console.log(`🚫 Analysis access blocked: processing incomplete or has errors`);
-      console.log(`Processing data:`, processingData);
+      // Analysis access blocked - redirect to processing
+      if (import.meta.env.MODE === 'development') {
+        console.log(`Analysis access blocked: processing incomplete or has errors`, processingData);
+      }
       return 4; // Force back to processing step
     }
   }
@@ -78,7 +80,10 @@ const determineCurrentStepIndex = (completedSteps: string[] = [], currentStep?: 
   // Make sure we don't go beyond the available steps
   const targetIndex = Math.min(nextStepIndex, steps.length - 1);
   
-  console.log(`🎯 Step determination: completed=[${completedSteps.join(',')}], lastCompleted=${lastCompletedIndex}, target=${targetIndex}, currentStep=${currentStep}`);
+  // Step determination logic for debugging
+  if (import.meta.env.MODE === 'development') {
+    console.log(`Step determination: completed=[${completedSteps.join(',')}], lastCompleted=${lastCompletedIndex}, target=${targetIndex}, currentStep=${currentStep}`);
+  }
   
   return targetIndex;
 };
@@ -97,7 +102,9 @@ export default function OnboardingFlow({ onComplete }: OnboardingFlowProps) {
     },
     onSuccess: (response) => {
       if (response.success && response.data) {
-        console.log(`🎯 Initialized session:`, response);
+        if (import.meta.env.MODE === 'development') {
+          console.log(`Initialized session:`, response);
+        }
         
         // Track onboarding start event
         trackEvent('onboarding_start', 'user_journey', 'session_initialized');
@@ -119,7 +126,9 @@ export default function OnboardingFlow({ onComplete }: OnboardingFlowProps) {
         // Store session in localStorage for persistence
         try {
           localStorage.setItem('onboardingSession', JSON.stringify(sessionData));
-          console.log(`💾 Initial session stored in localStorage`);
+          if (import.meta.env.MODE === 'development') {
+            console.log(`Initial session stored in localStorage`);
+          }
         } catch (error) {
           console.error(`❌ Failed to store initial session:`, error);
         }
@@ -168,7 +177,9 @@ export default function OnboardingFlow({ onComplete }: OnboardingFlowProps) {
       
       // Refresh session data if needed before proceeding
       if (currentStep.key === "processing") {
-        console.log("🔄 Refreshing session data after processing...");
+        if (import.meta.env.MODE === 'development') {
+          console.log("Refreshing session data after processing...");
+        }
         await refreshSessionFromServer();
       }
       

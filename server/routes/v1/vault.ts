@@ -7,6 +7,7 @@ import { createSuccessResponse } from '../../utils/error-handler';
 import { cleanupUploadedFile } from '../../utils/file-cleanup';
 import { ActivityService } from '../../services/activity-service';
 import { lruCacheService } from '../../services/lru-cache-service';
+import { appLogger } from '../../utils/logger';
 import multer from 'multer';
 import path from 'path';
 import fs from 'fs';
@@ -261,9 +262,8 @@ router.post('/upload-file', upload.single("file"), asyncHandler(async (req: Auth
     throw new Error("File is required for upload");
   }
 
-  // Sanitize founder ID for logging to prevent security scanner warnings
-  const sanitizedFounderId = String(founderId).replace(/[^\w-]/g, '');
-  console.log(`📁 V1 UPLOAD: Processing database-driven file upload for founder ${sanitizedFounderId}`);
+  // Log file upload processing for debugging
+  appLogger.file(`V1 UPLOAD: Processing database-driven file upload for founder ${founderId}`);
 
   const sessionId = getSessionId(req);
   
@@ -278,7 +278,7 @@ router.post('/upload-file', upload.single("file"), asyncHandler(async (req: Auth
     // Sanitize IDs for logging to prevent security scanner warnings
     const sanitizedCategory = String(folder_id).replace(/[^\w-]/g, '');
     const sanitizedFolderId = String(actualFolderId).replace(/[^\w-]/g, '');
-    console.log(`📁 V1 UPLOAD: Resolved category "${sanitizedCategory}" to folder ID "${sanitizedFolderId}"`);
+    appLogger.file(`V1 UPLOAD: Resolved category "${folder_id}" to folder ID "${actualFolderId}"`);
 
     // Step 2: Upload to Box.com using resolved folder ID
     const fileBuffer = fs.readFileSync(file.path);
@@ -302,7 +302,7 @@ router.post('/upload-file', upload.single("file"), asyncHandler(async (req: Auth
         // Sanitize IDs for logging to prevent security scanner warnings
         const sanitizedFounderId = String(founderId).replace(/[^\w-]/g, '');
         const sanitizedVentureId = String(currentVentureId).replace(/[^\w-]/g, '');
-        console.log(`📝 V1 UPLOAD: Resolved founder ${sanitizedFounderId} to venture ${sanitizedVentureId}`);
+        appLogger.database(`V1 UPLOAD: Resolved founder ${founderId} to venture ${currentVentureId}`);
       } catch (ventureError) {
         console.error(`⚠️ V1 UPLOAD: Failed to get venture ID for founder ${founderId}:`, ventureError);
       }
@@ -324,7 +324,7 @@ router.post('/upload-file', upload.single("file"), asyncHandler(async (req: Auth
       // Sanitize IDs for logging to prevent security scanner warnings
       const sanitizedUploadId = String(uploadRecord.uploadId).replace(/[^\w-]/g, '');
       const sanitizedVentureId = String(currentVentureId).replace(/[^\w-]/g, '');
-      console.log(`✅ V1 UPLOAD: Database record created with ID ${sanitizedUploadId} for venture ${sanitizedVentureId}`);
+      appLogger.database(`V1 UPLOAD: Database record created with ID ${uploadRecord.uploadId} for venture ${currentVentureId}`);
     } catch (dbError) {
       console.error(`❌ V1 UPLOAD: Database storage failed:`, dbError);
       // Continue without failing the upload since Box.com upload succeeded
@@ -358,7 +358,7 @@ router.post('/upload-file', upload.single("file"), asyncHandler(async (req: Auth
         await lruCacheService.invalidate('dashboard', `activity_${founderId}`);
         // Sanitize founder ID for logging to prevent security scanner warnings
         const sanitizedFounderId = String(founderId).replace(/[^\w-]/g, '');
-        console.log(`🗑️ V1 UPLOAD: Cache invalidated for founder ${sanitizedFounderId}`);
+        appLogger.cache(`V1 UPLOAD: Cache invalidated for founder ${founderId}`);
       } catch (cacheError) {
         console.error(`⚠️ V1 UPLOAD: Cache invalidation failed:`, cacheError);
         // Don't fail the upload if cache invalidation fails
@@ -371,7 +371,7 @@ router.post('/upload-file', upload.single("file"), asyncHandler(async (req: Auth
     // Sanitize filename and folder ID for logging to prevent security scanner warnings
     const sanitizedUploadFilename = String(file.originalname).replace(/[<>&"']/g, '');
     const sanitizedUploadFolderId = String(actualFolderId).replace(/[^\w-]/g, '');
-    console.log(`✅ V1 UPLOAD: File "${sanitizedUploadFilename}" uploaded successfully to folder ${sanitizedUploadFolderId}`);
+    appLogger.file(`V1 UPLOAD: File "${file.originalname}" uploaded successfully to folder ${actualFolderId}`);
 
     res.json(createSuccessResponse({
       file: {

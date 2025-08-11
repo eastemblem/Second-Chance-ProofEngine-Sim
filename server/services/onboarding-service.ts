@@ -133,9 +133,13 @@ export class OnboardingService {
     if (!founder) {
       // Create new founder
       try {
-        console.log("Creating founder with data:", JSON.stringify(founderData, null, 2));
+        if (process.env.NODE_ENV === 'development') {
+          console.log("Creating founder with data:", JSON.stringify(founderData, null, 2));
+        }
         founder = await storage.createFounder(founderData);
-        console.log("✓ Founder created successfully:", founder.founderId);
+        if (process.env.NODE_ENV === 'development') {
+          console.log("Founder created successfully:", founder.founderId);
+        }
       } catch (error) {
         console.error("❌ Failed to create founder:", error);
         throw new Error(`Failed to create founder: ${error instanceof Error ? error.message : 'Unknown error'}`);
@@ -186,7 +190,9 @@ export class OnboardingService {
    * Complete venture onboarding step
    */
   async completeVentureStep(sessionId: string, ventureData: any) {
-    console.log(`Getting session for venture step: ${sessionId}`);
+    if (process.env.NODE_ENV === 'development') {
+      console.log(`Getting session for venture step: ${sessionId}`);
+    }
     const session = await this.getSession(sessionId);
     console.log(`Session found:`, session ? 'YES' : 'NO', session?.currentStep);
     console.log(`Session data:`, JSON.stringify(session, null, 2));

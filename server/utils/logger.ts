@@ -33,7 +33,7 @@ const logsDir = path.join(process.cwd(), 'logs');
 // Configure winston logger
 const logger = winston.createLogger({
   levels: logLevels,
-  level: process.env.NODE_ENV === 'development' ? 'debug' : 'info',
+  level: process.env.NODE_ENV === 'production' ? 'warn' : process.env.NODE_ENV === 'development' ? 'debug' : 'info',
   format: combine(
     timestamp({ format: 'YYYY-MM-DD HH:mm:ss' }),
     errors({ stack: true }),
@@ -43,7 +43,7 @@ const logger = winston.createLogger({
   transports: [
     // Console transport for development
     new winston.transports.Console({
-      level: process.env.NODE_ENV === 'development' ? 'debug' : 'info',
+      level: process.env.NODE_ENV === 'production' ? 'warn' : process.env.NODE_ENV === 'development' ? 'debug' : 'info',
       format: combine(
         colorize({ all: true }),
         timestamp({ format: 'HH:mm:ss' }),
@@ -95,12 +95,12 @@ export class Logger {
 
   // Database operations
   database(message: string, meta?: any) {
-    this.winston.info(`🗄️ ${message}`, { category: 'database', ...meta });
+    this.winston.debug(`🗄️ ${message}`, { category: 'database', ...meta });
   }
 
   // API requests and responses
   api(message: string, meta?: any) {
-    this.winston.http(`📡 ${message}`, { category: 'api', ...meta });
+    this.winston.debug(`📡 ${message}`, { category: 'api', ...meta });
   }
 
   // Authentication and security
@@ -125,7 +125,7 @@ export class Logger {
 
   // File operations
   file(message: string, meta?: any) {
-    this.winston.info(`📁 ${message}`, { category: 'file', ...meta });
+    this.winston.debug(`📁 ${message}`, { category: 'file', ...meta });
   }
 
   // Email operations

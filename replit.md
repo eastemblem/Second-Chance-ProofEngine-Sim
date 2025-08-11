@@ -1,7 +1,7 @@
 # Second Chance - ProofScaling Validation Platform
 
 ## Overview
-Second Chance is a startup validation platform that assesses investment readiness. It uses AI-powered document analysis and a structured scoring framework to provide insights and personalized pathways for founders. The platform aims to help entrepreneurs validate their ventures, improve their chances of success, and attract investment.
+Second Chance is a startup validation platform designed to assess investment readiness. It leverages AI-powered document analysis and a structured scoring framework to provide founders with insights and personalized pathways, ultimately helping them validate ventures, improve success rates, and attract investment.
 
 ## User Preferences
 ### Communication Style
@@ -29,103 +29,45 @@ Second Chance is a startup validation platform that assesses investment readines
 - Restart workflow after cache clearing for UI changes to take effect
 - This is critical for frontend development workflow
 
-### Recent UI Improvements (Aug 2025)
-- **Payment Page Layout**: Updated to show "What's Included" and "Expected Outcomes" side by side in responsive grid
-- **Payment Button**: Reduced size and changed text to "Make Payment" for better UX
-- **Theme Consistency**: Applied dark theme across all payment pages to match app design system
-- **Navigation**: Simplified button labels and removed dashboard references in payment flow
-- **Onboarding Flow Restructure**: Moved payment step to final position (after analysis) for better user experience - users now see ProofScore results before payment options
-- **Progress Bar Updates**: Renamed final step from "Investment Package" to "Next Steps" for clearer navigation
-- **ProofScore Integration**: Payment page prominently displays user's ProofScore and provides score-based package recommendations
-
-### Comprehensive Error Handling System (Aug 11, 2025)
-- **Dynamic API Error Messages**: System displays actual error messages from EastEmblem API instead of hardcoded text
-- **Image-based PDF Detection**: Enhanced error handling specifically for image-based PDFs that cannot be processed
-- **Database Error Tracking**: Added error tracking fields (error_message, retry_count, max_retries, can_retry) to document upload schema
-- **User-Friendly Navigation**: "Upload Different File" button navigates back to upload step for file format errors
-- **Error Type Classification**: System distinguishes between retryable errors (server issues) and user action required errors (file format issues)
-- **Critical Flow Prevention**: Fixed logic to prevent automatic progression to analysis page with 0 score when processing errors occur
-- **Smart Retry Logic**: "Try Again" button behavior depends on error type - navigates back to upload for file format issues, retries processing for server errors
-- **Complete Error Chain**: API error → backend preservation → database storage → frontend detection → appropriate user navigation flow
-- **Retry Limit System**: Maximum 3 retry attempts with clear counter display (1/3, 2/3, etc.) and disabled state when limit reached
-- **Smart Counter Logic**: Retry counter increments on all processing errors and displays current attempt status to users
-- **Session-Persisted Counter**: Retry count persists across navigation steps and stored in session data to prevent reset on re-upload
-- **Streamlined Error Messages**: Removed duplicate instruction text as API error messages already contain user guidance
-- **Simple Counter File Upload**: Implemented clean counter-based filename system (deck.pdf → deck-1.pdf → deck-2.pdf) replacing complex timestamp approach for better tracking and processing
-- **Enhanced File Cleanup**: Added cleanup utility for numbered file versions to prevent accumulation of retry attempts in upload directory
-- **Fixed File Processing**: Corrected filename tracking in handleDocumentUpload to use multer's generated filename instead of original name for proper file processing
-- **Enhanced Error Flow Control**: Prevented report generation and analysis page access when scoring API fails, ensuring users cannot proceed with invalid results
-- **Analysis Page Protection**: Added comprehensive validation to prevent access to analysis page during page reloads if processing is incomplete or failed, forcing users back to processing step until valid results are available
-- **Retry Limit Enforcement**: Fixed automatic processing to check retry limits on page reload, preventing 4th+ attempts when maximum retries (3) already reached
-- **Folder ID Correction**: Enhanced folder targeting logic to prioritize upload record's folderId over session data, ensuring uploads go to correct Overview folder during retry operations
-
-### Dependency Security Updates (Aug 11, 2025)
-- **Major Vulnerability Fixes**: Resolved 7 moderate security vulnerabilities in dependencies using npm audit fix
-- **Babel Security Update**: Fixed RegExp complexity vulnerability in @babel/helpers (updated to 7.26.10+)
-- **Build System Updates**: Updated Vite from 5.4.19 to 6.3.5 for security compliance and maintained compatibility with @replit/vite-plugin-cartographer
-- **Drizzle Kit Update**: Updated drizzle-kit to 0.31.4 for improved security and bug fixes
-- **Legacy Dependencies**: 4 remaining moderate vulnerabilities in deprecated @esbuild-kit packages (merged into tsx), but do not impact production security
-- **Build Verification**: Confirmed application builds and functions correctly after updates
-- **Development Workflow**: Maintained compatibility with existing development tools and Replit platform integrations
-
-### Certificate Route Security Fixes (Aug 11, 2025)
-- **Type Safety Vulnerabilities**: Fixed 21 TypeScript errors in server/routes/certificate.ts that posed runtime security risks
-- **Unsafe Property Access**: Added proper type guards and null checks to prevent runtime exceptions when accessing session.stepData properties
-- **Database Schema Violations**: Removed invalid field names (uploadId, fileType, uploadedBy) from documentUpload insert operations to prevent SQL errors
-- **Memory Safety**: Implemented safe property access patterns using proper type casting (stepData as any) with optional chaining
-- **Input Validation**: Enhanced parameter validation for ventureId and sessionId to prevent injection attacks
-- **Error Prevention**: Eliminated potential null reference exceptions that could crash the certificate generation service
-- **Production Stability**: Ensured certificate generation functionality remains stable under all edge cases and invalid input scenarios
-- **SQL Injection Prevention**: Added input sanitization to all logging statements to prevent security scanner false positives and eliminate any theoretical injection vectors
-- **Logging Security**: Implemented regex-based sanitization for all user-provided data in log messages (session IDs, venture IDs, names) to prevent log injection attacks
-
-### Vault Route Security Hardening (Aug 11, 2025)
-- **Comprehensive Log Sanitization**: Applied input sanitization to all console.log statements in server/routes/v1/vault.ts containing user data
-- **SQL Injection Prevention**: Eliminated security scanner warnings for logging statements with string interpolation
-- **Multi-vector Protection**: Sanitized founder IDs, venture IDs, file names, folder IDs, and pagination parameters across all vault operations
-- **Regex-based Filtering**: Implemented consistent sanitization patterns removing HTML entities and non-alphanumeric characters from logged data
-- **Complete Coverage**: Secured 20+ logging statements across file upload, folder creation, and pagination endpoints
-- **Production Ready**: Maintained full functionality while eliminating all potential log injection attack vectors
-
 ## System Architecture
 
 ### Frontend Architecture
 - **Framework**: React 18 with TypeScript
-- **Routing**: Wouter for client-side routing
+- **Routing**: Wouter
 - **UI Components**: Radix UI primitives with shadcn/ui design system
-- **Styling**: Tailwind CSS with custom theme and gradient utilities
-- **Animations**: Framer Motion for smooth transitions
-- **Data Fetching**: TanStack Query (React Query) for server state management
-- **Performance**: 3-phase optimization (75% load time reduction), code splitting, lazy loading, memory optimization, critical CSS inlining, service worker caching, chunk preloading.
+- **Styling**: Tailwind CSS
+- **Animations**: Framer Motion
+- **Data Fetching**: TanStack Query
+- **Performance**: 3-phase optimization, code splitting, lazy loading, memory optimization, critical CSS inlining, service worker caching, chunk preloading.
 
 ### Backend Architecture
 - **Runtime**: Node.js with Express.js
 - **Language**: TypeScript with ES modules
 - **Build System**: Vite for frontend, esbuild for server
-- **File Uploads**: Multer for multipart form data
+- **File Uploads**: Multer
 - **API Integration**: Custom EastEmblem API client
 - **Route Architecture**: Modular, domain-based structure with standardized middleware and V1 API versioning.
-- **Performance Monitoring**: Request tracking, memory monitoring, query optimization.
-- **Payment System**: Generic payment gateway abstraction layer with factory pattern supporting multiple providers.
+- **Payment System**: Generic payment gateway abstraction layer with factory pattern.
 
 ### Database Architecture
 - **ORM**: Drizzle ORM with PostgreSQL dialect
 - **Database**: PostgreSQL (configured for Neon serverless)
-- **Migrations**: Drizzle Kit for schema management
+- **Migrations**: Drizzle Kit
 - **Connection**: Connection pooling with @neondatabase/serverless.
 
 ### Key Features
-- **Onboarding Flow**: Multi-step wizard (Founder, Venture, Team, Document Upload, Analysis Results, Payment) with back navigation and session-based payment integration.
+- **Onboarding Flow**: Multi-step wizard with back navigation and session-based payment integration.
 - **ProofScore System**: Comprehensive 5-dimension scoring (Desirability, Feasibility, Viability, Traction, Readiness), each max 20 points.
-- **Pathway Recommendations**: Personalized development pathways based on ProofScore (ProofScaling course <70, investor matching ≥80).
+- **Pathway Recommendations**: Personalized development pathways based on ProofScore.
 - **ProofVault Integration**: Document management with AI-powered pitch deck analysis, structured folder creation, and handling of single/multiple file/folder uploads (preserving hierarchy).
-- **Email Communication System**: 11 responsive HTML email templates for user engagement and automated notifications.
-- **Simulation Engine**: Demo experience for testing user journeys with dynamic score generation.
-- **Activity Tracking**: Real-time logging of user actions (authentication, file uploads, onboarding, payments).
-- **Payment Gateway System**: Generic payment architecture supporting multiple providers with hosted payment page solution, comprehensive transaction management, webhook/callback processing, and automated status page redirects.
+- **Email Communication System**: 11 responsive HTML email templates.
+- **Simulation Engine**: Demo experience for testing user journeys.
+- **Activity Tracking**: Real-time logging of user actions.
+- **Payment Gateway System**: Generic payment architecture with hosted payment page solution, comprehensive transaction management, webhook/callback processing, and automated status page redirects.
+- **Comprehensive Error Handling**: Dynamic API error messages, image-based PDF detection, database error tracking, user-friendly navigation for errors, distinction between retryable and user-action errors, critical flow prevention, smart retry logic with limit (3 attempts), session-persisted retry counter, streamlined error messages, clean counter-based filename system for retries, and enhanced file cleanup.
 
 ### Architecture Decisions
-- **Box Integration**: Using EastEmblem API as Box.com proxy instead of direct Box SDK.
+- **Box Integration**: Using EastEmblem API as Box.com proxy.
 - **Payment Gateway**: Generic factory pattern with Telr implementation.
 - **Monitoring**: Dual system (Sentry + NewRelic) with graceful fallbacks.
 - **Authentication**: JWT-based with session management.
@@ -136,7 +78,9 @@ Second Chance is a startup validation platform that assesses investment readines
 - **Environment Protection Strategy**: Complete isolation of development resources from production.
 - **Frontend Security**: Test routes conditionally rendered using `import.meta.env.MODE === 'development'`.
 - **Backend Security**: Test endpoints protected with `process.env.NODE_ENV !== 'production'` guards.
-- **Security Infrastructure**: Environment protection middleware created for systematic protection of sensitive endpoints.
+- **Security Infrastructure**: Environment protection middleware for systematic protection of sensitive endpoints.
+- **Route Security**: Fixed TypeScript errors in server/routes/certificate.ts for type safety, removed invalid database schema fields, implemented safe property access, enhanced parameter validation, eliminated null reference exceptions, and added input sanitization to logging statements.
+- **Vault Route Security**: Applied input sanitization to all `console.log` statements containing user data in server/routes/v1/vault.ts to prevent SQL injection warnings and log injection attacks.
 
 ## External Dependencies
 
@@ -156,9 +100,9 @@ Second Chance is a startup validation platform that assesses investment readines
 - **tailwindcss**: Utility-first CSS framework
 
 ### External Services
-- **EastEmblem API**: Document analysis and scoring service, email delivery service.
+- **EastEmblem API**: Document analysis and scoring, email delivery.
 - **Neon Database**: Serverless PostgreSQL hosting.
 - **Replit**: Development and deployment platform.
 - **Sentry**: Error tracking system.
 - **NewRelic**: Performance monitoring.
-- **Telr Payment Gateway**: Primary payment processor with hosted payment page solution, webhook verification, and automated callback handling.
+- **Telr Payment Gateway**: Primary payment processor.
