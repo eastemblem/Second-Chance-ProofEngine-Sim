@@ -492,10 +492,15 @@ export class OnboardingService {
         if (overviewFolder && overviewFolder.subFolderId) {
           overviewFolderId = overviewFolder.subFolderId;
           console.log(`📁 Mapping onboarding pitch deck to Overview folder: ${overviewFolderId}`);
+          console.log(`📁 Venture ID: ${venture.ventureId}, ProofVault records:`, proofVaultRecords.length);
+        } else {
+          console.log(`⚠️ No Overview folder found in ProofVault. Available folders:`, proofVaultRecords.map(pv => pv.folderName));
         }
+      } else {
+        console.log('⚠️ No venture.ventureId available for folder mapping');
       }
     } catch (error) {
-      console.log('Warning: Could not find Overview folder for venture:', venture.ventureId);
+      console.log('Warning: Could not find Overview folder for venture:', venture.ventureId, error);
     }
 
     // Save upload to database
@@ -580,12 +585,17 @@ export class OnboardingService {
           const fileBuffer = fs.readFileSync(upload.filePath);
           
           // Try to upload file to EastEmblem Box.com folder (0_Overview)
-          console.log("Uploading file to Box.com folder:", folderStructure?.folders?.["0_Overview"]);
+          // Use the folderId from upload record (which was set during handleDocumentUpload)
+          const targetFolderId = upload.folderId || folderStructure?.folders?.["0_Overview"] || "overview";
+          console.log("Uploading file to Box.com folder:");
+          console.log("  - upload.folderId:", upload.folderId);
+          console.log("  - session folderStructure['0_Overview']:", folderStructure?.folders?.["0_Overview"]);
+          console.log("  - final targetFolderId:", targetFolderId);
           try {
             const uploadResult = await eastEmblemAPI.uploadFile(
               fileBuffer,
               upload.fileName,
-              folderStructure?.folders?.["0_Overview"] || "overview",
+              targetFolderId,
               sessionId,
               true // allowShare
             );

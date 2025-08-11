@@ -57,6 +57,7 @@ Second Chance is a startup validation platform that assesses investment readines
 - **Enhanced Error Flow Control**: Prevented report generation and analysis page access when scoring API fails, ensuring users cannot proceed with invalid results
 - **Analysis Page Protection**: Added comprehensive validation to prevent access to analysis page during page reloads if processing is incomplete or failed, forcing users back to processing step until valid results are available
 - **Retry Limit Enforcement**: Fixed automatic processing to check retry limits on page reload, preventing 4th+ attempts when maximum retries (3) already reached
+- **Folder ID Correction**: Enhanced folder targeting logic to prioritize upload record's folderId over session data, ensuring uploads go to correct Overview folder during retry operations
 
 ## System Architecture
 
