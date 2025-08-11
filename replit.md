@@ -49,6 +49,8 @@ Second Chance is a startup validation platform that assesses investment readines
 - **Complete Error Chain**: API error → backend preservation → database storage → frontend detection → appropriate user navigation flow
 - **Retry Limit System**: Maximum 3 retry attempts with clear counter display (1/3, 2/3, etc.) and disabled state when limit reached
 - **Smart Counter Logic**: Retry counter increments on all processing errors and displays current attempt status to users
+- **Session-Persisted Counter**: Retry count persists across navigation steps and stored in session data to prevent reset on re-upload
+- **Streamlined Error Messages**: Removed duplicate instruction text as API error messages already contain user guidance
 
 ## System Architecture
 

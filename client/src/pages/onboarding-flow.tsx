@@ -450,6 +450,7 @@ export default function OnboardingFlow({ onComplete }: OnboardingFlowProps) {
             {currentStep.key === "processing" && (
               <ProcessingScreen
                 sessionId={sessionData.sessionId}
+                sessionData={sessionData}
                 onNext={nextStep}
                 onBack={prevStep}
                 onDataUpdate={(data) => {

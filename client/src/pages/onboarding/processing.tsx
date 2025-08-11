@@ -12,6 +12,7 @@ interface ProcessingScreenProps {
   onNext: () => void;
   onDataUpdate: (data: any) => void;
   onBack?: () => void; // Add navigation back function
+  sessionData?: any; // Add session data to access retry count
 }
 
 const processingSteps = [
@@ -45,14 +46,23 @@ export default function ProcessingScreen({
   sessionId, 
   onNext, 
   onDataUpdate,
-  onBack
+  onBack,
+  sessionData
 }: ProcessingScreenProps) {
   const { toast } = useToast();
   const [currentStep, setCurrentStep] = useState(0);
   const [processingComplete, setProcessingComplete] = useState(false);
   const [hasError, setHasError] = useState(false);
   const [errorMessage, setErrorMessage] = useState("");
-  const [retryCount, setRetryCount] = useState(0);
+  // Get retry count from session data, default to 0
+  const initialRetryCount = sessionData?.stepData?.processing?.retryCount || 0;
+  const [retryCount, setRetryCount] = useState(initialRetryCount);
+  
+  // Sync retry count when session data changes
+  useEffect(() => {
+    const sessionRetryCount = sessionData?.stepData?.processing?.retryCount || 0;
+    setRetryCount(sessionRetryCount);
+  }, [sessionData?.stepData?.processing?.retryCount]);
   const [documentsNotified, setDocumentsNotified] = useState({
     certificate: false,
     report: false
@@ -87,8 +97,16 @@ export default function ProcessingScreen({
       setErrorMessage(errorMsg);
       setCurrentStep(processingSteps.length - 2); // Set to scoring step to show where it failed
       
-      // Increment retry count for any processing error
-      setRetryCount(prev => prev + 1);
+      // Increment retry count for any processing error and update session
+      const newRetryCount = retryCount + 1;
+      setRetryCount(newRetryCount);
+      
+      // Update session data with new retry count
+      onDataUpdate({ 
+        retryCount: newRetryCount,
+        hasError: true,
+        errorMessage: errorMsg
+      });
       
       toast({
         title: "Processing Failed",
@@ -108,8 +126,17 @@ export default function ProcessingScreen({
         setErrorMessage(processingData.errorMessage || "Unable to process the file");
         setCurrentStep(processingSteps.length - 2);
         
-        // Increment retry count for any processing error
-        setRetryCount(prev => prev + 1);
+        // Increment retry count for any processing error and update session
+        const newRetryCount = retryCount + 1;
+        setRetryCount(newRetryCount);
+        
+        // Update session data with new retry count
+        onDataUpdate({ 
+          ...processingData, 
+          retryCount: newRetryCount,
+          hasError: true,
+          errorMessage: processingData.errorMessage || "Unable to process the file"
+        });
         
         toast({
           title: "File Processing Issue",
@@ -354,9 +381,7 @@ export default function ProcessingScreen({
               ? "The analysis is taking longer than expected. This may be due to high server load or a large file size."
               : errorMessage.includes('service unavailable') || errorMessage.includes('524')
                 ? "The analysis service is temporarily unavailable. This is usually resolved within a few minutes."
-                : errorMessage.includes('image-based') || errorMessage.includes('couldn\'t score it') 
-                  ? `${errorMessage} Please upload a text-based PDF file that can be processed by our AI analysis system.`
-                  : errorMessage
+                : errorMessage
             }
           </p>
           <div className="flex flex-col sm:flex-row gap-3 justify-center">
