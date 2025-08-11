@@ -20,14 +20,14 @@ export const pool = new Pool({
   idleTimeoutMillis: 30000,   // Close idle connections after 30s
   connectionTimeoutMillis: 10000, // Connection timeout: 10s
   maxUses: 7500,     // Rotate connections after 7500 uses
-  acquireTimeoutMillis: 8000, // Wait max 8s for available connection
+  // acquireTimeoutMillis: 8000, // Wait max 8s for available connection (not supported)
 });
 
 export const db = drizzle({ client: pool, schema });
 
 // Connection pool event handlers for monitoring
-pool.on('connect', (client: any) => {
-  console.log('Database connection established:', client.processID);
+pool.on('connect', (client) => {
+  console.log('Database connection established:', (client as any).processID);
 });
 
 pool.on('error', (err: Error) => {

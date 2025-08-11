@@ -8,7 +8,7 @@ import { onboardingService } from '../../services/onboarding-service';
 const router = Router();
 
 // Slack notification endpoint - EXACT SAME LOGIC as routes.ts
-router.post('/send', asyncHandler(async (req, res) => {
+router.post('/send', asyncHandler(async (req: Request, res: Response) => {
   const { message } = req.body;
   
   if (!message) {

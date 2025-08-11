@@ -3,13 +3,14 @@ import { asyncHandler } from "../../utils/error-handler";
 import { databaseService } from "../../services/database-service";
 import { lruCacheService } from "../../services/lru-cache-service";
 import { authenticateToken } from "../../middleware/token-auth";
+import { AuthenticatedRequest } from "../middleware/auth";
 import { eq } from "drizzle-orm";
 import { db } from "../../db";
 
 const router = express.Router();
 
 // Dashboard validation endpoint with JWT authentication
-router.get("/validation", authenticateToken, asyncHandler(async (req, res) => {
+router.get("/validation", authenticateToken, asyncHandler(async (req: AuthenticatedRequest, res) => {
   const founderId = req.user?.founderId;
 
   if (!founderId) {
@@ -67,7 +68,7 @@ router.get("/validation", authenticateToken, asyncHandler(async (req, res) => {
 }));
 
 // Dashboard vault endpoint with JWT authentication
-router.get("/vault", authenticateToken, asyncHandler(async (req, res) => {
+router.get("/vault", authenticateToken, asyncHandler(async (req: AuthenticatedRequest, res) => {
   const founderId = req.user?.founderId;
 
   if (!founderId) {
@@ -152,7 +153,7 @@ router.get("/vault", authenticateToken, asyncHandler(async (req, res) => {
 }));
 
 // Dashboard activity endpoint with JWT authentication
-router.get("/activity", authenticateToken, asyncHandler(async (req, res) => {
+router.get("/activity", authenticateToken, asyncHandler(async (req: AuthenticatedRequest, res) => {
   const founderId = req.user?.founderId;
 
   if (!founderId) {

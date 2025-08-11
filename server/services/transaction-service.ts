@@ -40,14 +40,14 @@ export class TransactionService {
       // Create founder
       const [founder] = await tx.insert(founders).values(data.founder).returning();
 
-      // Create venture with founder ID
-      const ventureData = { ...data.venture, founderId: founder.id };
+      // Create venture with founder ID  
+      const ventureData = { ...data.venture, founderId: founder.founderId };
       const [venture] = await tx.insert(ventures).values(ventureData).returning();
 
       // Create evaluation if provided
       let evaluation = undefined;
       if (data.evaluation) {
-        const evaluationData = { ...data.evaluation, ventureId: venture.id };
+        const evaluationData = { ...data.evaluation, ventureId: venture.ventureId };
         [evaluation] = await tx.insert(evaluations).values(evaluationData).returning();
       }
 

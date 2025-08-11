@@ -20,13 +20,13 @@ export class ActivityService {
   static getContextFromRequest(req: Request): ActivityContext {
     // Try JWT authentication first (V1 endpoints)
     const jwtUser = (req as any).user;
-    const founderId = jwtUser?.founderId || req.session?.founderId;
+    const founderId = jwtUser?.founderId || (req.session as any)?.founderId;
     
     return {
       founderId,
-      ventureId: jwtUser?.ventureId || req.session?.ventureId,
+      ventureId: jwtUser?.ventureId || (req.session as any)?.ventureId,
       sessionId: req.sessionID || 'jwt-session',
-      ipAddress: req.ip || req.connection.remoteAddress,
+      ipAddress: req.ip || (req.connection as any)?.remoteAddress,
       userAgent: req.get('User-Agent')
     };
   }

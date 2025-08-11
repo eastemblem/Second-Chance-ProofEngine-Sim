@@ -1,6 +1,6 @@
 import fs from "fs";
 import { eastEmblemAPI } from "../eastemblem-api";
-import { getSessionData, updateSessionData } from "../utils/session-manager";
+import { getSessionData, updateSessionData, getSessionId } from "../utils/session-manager";
 import { cleanupUploadedFile } from "../utils/file-cleanup";
 import { Request } from "express";
 
@@ -69,7 +69,7 @@ export class VaultService {
    * Complete scoring workflow: upload file and score
    */
   async completeScoring(req: Request) {
-    const sessionData = getSessionData(req);
+    const sessionData = await getSessionData(req);
     const uploadedFile = sessionData.uploadedFile;
     const folderStructure = sessionData.folderStructure;
 
@@ -77,7 +77,7 @@ export class VaultService {
       throw new Error("Missing required data for scoring");
     }
 
-    const sessionId = req.session?.id || 'unknown';
+    const sessionId = getSessionId(req);
     const overviewFolderId = folderStructure.folders?.["0_Overview"];
 
     if (!overviewFolderId) {
@@ -102,8 +102,8 @@ export class VaultService {
     );
 
     // Update session
-    const updatedFiles = [...(sessionData.uploadedFiles || []), uploadResult];
-    updateSessionData(req, { 
+    const updatedFiles = [...((sessionData as any).uploadedFiles || []), uploadResult];
+    updateSessionData(sessionId, { 
       uploadedFiles: updatedFiles,
       pitchDeckScore,
       uploadedFile: undefined // Clear processed file

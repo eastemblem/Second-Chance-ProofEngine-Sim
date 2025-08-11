@@ -110,7 +110,7 @@ router.get("/telr", async (req, res) => {
 });
 
 // Generic webhook handler for future payment gateways
-router.post("/:provider", async (req, res) => {
+router.post("/:provider", async (req: Request, res: Response) => {
   try {
     const { provider } = req.params;
     

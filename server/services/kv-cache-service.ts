@@ -62,7 +62,7 @@ class KVCacheService {
         } catch {
           // If parsing fails, treat as raw string data
           appLogger.cache(`KV Cache HIT: ${key} (raw data)`);
-          return cached;
+          return cached as T;
         }
       } else {
         parsedData = cached;

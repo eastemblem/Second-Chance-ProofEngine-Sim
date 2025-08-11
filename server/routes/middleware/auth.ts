@@ -15,7 +15,7 @@ export const requireAuth = (req: AuthenticatedRequest, res: Response, next: Next
     return res.status(401).json({ error: 'Not authenticated' });
   }
 
-  const user = req.session?.user;
+  const user = (req.session as any)?.user;
   if (!user?.founderId) {
     return res.status(401).json({ error: 'Not authenticated' });
   }
@@ -30,7 +30,7 @@ export const requireAuth = (req: AuthenticatedRequest, res: Response, next: Next
 };
 
 export const optionalAuth = (req: AuthenticatedRequest, res: Response, next: NextFunction) => {
-  const user = req.session?.user;
+  const user = (req.session as any)?.user;
   if (user?.founderId) {
     req.user = {
       founderId: user.founderId,

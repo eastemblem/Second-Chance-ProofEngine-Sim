@@ -10,7 +10,6 @@ const router = Router();
 
 // Create founder schema
 const createFounderSchema = createInsertSchema(founder).omit({
-  id: true,
   createdAt: true,
   updatedAt: true,
 });

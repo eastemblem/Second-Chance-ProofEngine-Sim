@@ -26,7 +26,7 @@ export class BusinessLogicService {
 
     // Process through onboarding service with circuit breaker
     return await circuitBreakers.database.execute(async () => {
-      return await onboardingService.processFounderData(founderData, sessionId);
+      return await onboardingService.completeFounderStep(founderData, sessionId);
     });
   }
 

@@ -38,7 +38,7 @@ router.get("/", asyncHandler(async (req, res) => {
       },
       cache: {
         hitRate: cacheStats.founder.hitRate,
-        totalEntries: Object.values(cacheStats).reduce((sum, cache) => sum + (cache.entries || 0), 0),
+        totalEntries: Object.values(cacheStats).reduce((sum, cache: any) => sum + (cache.entries || 0), 0),
         memoryUsage: cacheStats
       },
       memory: {

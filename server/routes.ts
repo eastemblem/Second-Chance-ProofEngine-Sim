@@ -767,7 +767,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       throw new Error("EastEmblem API not configured");
     }
 
-    const sessionData = getSessionData(req);
+    const sessionData = await getSessionData(req);
     const uploadedFile = sessionData.uploadedFile;
     const folderStructure = sessionData.folderStructure;
 
@@ -807,8 +807,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
     );
 
     // Update session
-    const updatedFiles = [...(sessionData.uploadedFiles || []), uploadResult];
-    updateSessionData(req, { 
+    const updatedFiles = [...((sessionData as any).uploadedFiles || []), uploadResult];
+    updateSessionData(getSessionId(req), { 
       uploadedFiles: updatedFiles,
       pitchDeckScore,
       uploadedFile: undefined

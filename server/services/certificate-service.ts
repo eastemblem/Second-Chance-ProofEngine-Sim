@@ -114,7 +114,7 @@ export class CertificateService {
         const stats = await fs.stat(templatePath);
         console.log('Template file stats:', { size: stats.size, isFile: stats.isFile() });
       } catch (error) {
-        console.log('Template file not found, error:', error.message);
+        console.log('Template file not found, error:', (error as Error).message);
         console.log('Using programmatic generation');
         return this.createProgrammaticCertificate(data);
       }

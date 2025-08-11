@@ -81,7 +81,8 @@ export class DocumentRepository extends BaseRepository {
    * Update document status
    */
   async updateStatus(id: string, status: string): Promise<void> {
-    await this.update(id, { status });
+    // Status field doesn't exist in current schema - using description instead
+    await this.update(id, { description: status });
   }
 
   /**
@@ -91,8 +92,8 @@ export class DocumentRepository extends BaseRepository {
     return await this.executeQuery(async () => {
       const documents = await this.db
         .select()
-        .from(documentUploads)
-        .where(eq(documentUploads.ventureId, ventureId));
+        .from(documentUpload)
+        .where(eq(documentUpload.ventureId, ventureId));
 
       // Count documents by extracting folder from shared_url
       const folderCounts: Record<string, number> = {

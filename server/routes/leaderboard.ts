@@ -65,7 +65,7 @@ export async function getLeaderboard(req: Request, res: Response) {
           ventureName: mockEntry.ventureName,
           totalScore: Math.max(adjustedScore, 50), // Minimum score of 50
           rank: finalData.length + 1,
-          analysisDate: new Date(Date.now() - (i + 1) * 24 * 60 * 60 * 1000).toISOString(), // Recent dates
+          analysisDate: new Date(Date.now() - (i + 1) * 24 * 60 * 60 * 1000), // Recent dates
           isReal: false
         });
       }
