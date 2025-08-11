@@ -678,6 +678,22 @@ export class OnboardingService {
       throw new Error("EastEmblem API is not configured. Please provide EASTEMBLEM_API_URL and EASTEMBLEM_API_KEY.");
     }
 
+    // Only proceed with post-processing if scoring was successful (no error)
+    if (scoringResult?.hasError) {
+      console.log(`[SCORING] Scoring failed with error: ${scoringResult.errorMessage}`);
+      
+      // Return error result without any further processing
+      const result = {
+        scoringResult,
+        hasError: true,
+        errorMessage: scoringResult.errorMessage,
+        canRetry: scoringResult.canRetry || false
+      };
+      
+      console.log('Returning error result without generating reports:', JSON.stringify(result, null, 2));
+      return result;
+    }
+
     // Clean up uploaded file after successful analysis
     if (upload.filePath) {
       try {

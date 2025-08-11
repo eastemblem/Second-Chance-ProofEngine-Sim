@@ -131,13 +131,14 @@ export default function ScoringPage({
   }, [analysisProgress]);
 
   useEffect(() => {
-    if (analysisProgress >= 100 && !isAnalyzing) {
+    // Only proceed to next step if analysis is complete AND successful (no errors)
+    if (analysisProgress >= 100 && !isAnalyzing && !submitForScoring.isError) {
       const timer = setTimeout(() => {
         onNext();
       }, 1000);
       return () => clearTimeout(timer);
     }
-  }, [analysisProgress, isAnalyzing, onNext]);
+  }, [analysisProgress, isAnalyzing, onNext, submitForScoring.isError]);
 
   return (
     <div className="min-h-screen flex items-center justify-center">

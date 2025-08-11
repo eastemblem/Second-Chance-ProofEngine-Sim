@@ -181,10 +181,14 @@ export default function ProcessingScreen({
         }
         
         // Only proceed to next step if the processing was actually successful (not an error case)
-        if (data.data?.isComplete !== false) {
+        // Check multiple conditions to ensure no errors occurred
+        const hasProcessingError = data.data?.hasError || processingData?.hasError || data.data?.errorMessage;
+        if (data.data?.isComplete !== false && !hasProcessingError) {
           setTimeout(() => {
             onNext();
           }, 2000);
+        } else if (hasProcessingError) {
+          console.log("Processing completed but with errors, staying on processing screen");
         }
       }
     }
