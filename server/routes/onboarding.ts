@@ -84,7 +84,17 @@ router.post("/founder", asyncHandler(async (req, res) => {
     throw validation.errors;
   }
 
-  const result = await onboardingService.completeFounderStep(sessionId, validation.data);
+  let result;
+  try {
+    result = await onboardingService.completeFounderStep(sessionId, validation.data);
+  } catch (error: any) {
+    // Handle email duplicate error as validation error, not server error
+    if (error.message === "Email already taken") {
+      return res.status(400).json(createErrorResponse(400, "Email already taken"));
+    }
+    // Re-throw other errors to be handled by asyncHandler
+    throw error;
+  }
 
   res.json(createSuccessResponse({
     sessionId: result.sessionId,
