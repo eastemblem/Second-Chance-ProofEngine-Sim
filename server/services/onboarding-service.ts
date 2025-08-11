@@ -545,10 +545,12 @@ export class OnboardingService {
    * Submit for scoring
    */
   async submitForScoring(sessionId: string) {
+    console.log(`[SCORING] Starting submitForScoring for session: ${sessionId}`);
     const session = await this.getSession(sessionId);
     if (!session) {
       throw new Error("Session not found");
     }
+    console.log(`[SCORING] Session found, processing...`);
 
     const stepData = session.stepData || {};
     const upload = stepData.upload;
@@ -570,9 +572,11 @@ export class OnboardingService {
       console.log("Using existing scoring result from session");
       scoringResult = stepData.processing.scoringResult;
     } else if (eastEmblemAPI.isConfigured() && upload.filePath) {
+      console.log(`[SCORING] Attempting to process file: ${upload.filePath}`);
       try {
         // Check if file still exists before trying to read it
         if (fs.existsSync(upload.filePath)) {
+          console.log(`[SCORING] File exists, reading: ${upload.filePath}`);
           const fileBuffer = fs.readFileSync(upload.filePath);
           
           // Try to upload file to EastEmblem Box.com folder (0_Overview)
@@ -624,11 +628,14 @@ export class OnboardingService {
           }
 
           // Score the pitch deck (this is the main operation we need)
+          console.log(`[SCORING] Calling EastEmblem API for scoring file: ${upload.fileName}`);
+          console.log(`[SCORING] File buffer size: ${fileBuffer.length} bytes`);
           scoringResult = await eastEmblemAPI.scorePitchDeck(
             fileBuffer,
             upload.fileName,
             sessionId
           );
+          console.log(`[SCORING] Received scoring result:`, scoringResult);
         } else {
           throw new Error("Uploaded file no longer exists - file may have been cleaned up");
         }
