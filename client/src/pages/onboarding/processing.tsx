@@ -280,6 +280,14 @@ export default function ProcessingScreen({
   }, [processingComplete, hasError, sessionId, documentsNotified, toast]);
 
   useEffect(() => {
+    // Check if maximum retries have been reached before starting processing
+    if (retryCount >= MAX_RETRIES) {
+      console.log(`[PROCESSING] Max retries (${MAX_RETRIES}) reached, skipping automatic processing`);
+      setHasError(true);
+      setErrorMessage("Maximum retry attempts reached. Please upload a different file or start over.");
+      return;
+    }
+
     // Start processing automatically when component mounts
     console.log(`[PROCESSING] Starting processing automation, retryCount: ${retryCount}`);
     
@@ -289,6 +297,15 @@ export default function ProcessingScreen({
         if (prev < processingSteps.length - 2) {
           return prev + 1;
         } else if (prev === processingSteps.length - 2 && !submitForScoringMutation.isPending && !hasError) {
+          // Double-check retry limit before triggering API call
+          if (retryCount >= MAX_RETRIES) {
+            console.log(`[PROCESSING] Max retries reached during processing, stopping`);
+            clearInterval(stepInterval);
+            setHasError(true);
+            setErrorMessage("Maximum retry attempts reached. Please upload a different file or start over.");
+            return prev;
+          }
+          
           // Start actual processing when we reach the last step
           console.log(`[PROCESSING] Triggering scoring API call`);
           clearInterval(stepInterval);
@@ -300,7 +317,7 @@ export default function ProcessingScreen({
     }, 2000);
 
     return () => clearInterval(stepInterval);
-  }, []); // Remove retryCount dependency to always trigger processing
+  }, [retryCount]); // Add retryCount dependency to re-evaluate on changes
 
   return (
     <motion.div
@@ -436,7 +453,7 @@ export default function ProcessingScreen({
           </div>
           {retryCount > 0 && (
             <p className="text-xs text-muted-foreground mt-3">
-              Retry attempts: {retryCount}/{MAX_RETRIES} 
+              Retry attempts: {Math.min(retryCount, MAX_RETRIES)}/{MAX_RETRIES} 
               {retryCount >= MAX_RETRIES && " - Maximum retries reached"}
             </p>
           )}
