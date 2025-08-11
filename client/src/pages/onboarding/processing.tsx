@@ -70,6 +70,7 @@ export default function ProcessingScreen({
 
   const submitForScoringMutation = useMutation({
     mutationFn: async () => {
+      console.log(`[PROCESSING] Making API call to submit-for-scoring with sessionId: ${sessionId}`);
       const res = await apiRequest("POST", "/api/v1/onboarding/submit-for-scoring", {
         sessionId
       });
@@ -214,11 +215,16 @@ export default function ProcessingScreen({
     }
     
     // For other errors, retry the processing (don't increment counter here, it's done in mutation handlers)
+    console.log(`[PROCESSING] Manual retry triggered, retryCount: ${retryCount}`);
     setHasError(false);
     setErrorMessage("");
     setProcessingComplete(false);
-    setCurrentStep(processingSteps.length - 2); // Go to scoring step
-    submitForScoringMutation.mutate();
+    setCurrentStep(0); // Start from beginning for retry
+    
+    // Immediately trigger scoring without waiting for step animation
+    setTimeout(() => {
+      submitForScoringMutation.mutate();
+    }, 1000);
   };
 
   // Polling for document completion
@@ -274,26 +280,27 @@ export default function ProcessingScreen({
   }, [processingComplete, hasError, sessionId, documentsNotified, toast]);
 
   useEffect(() => {
-    // Only start automatic processing on first load, not on retries
-    if (retryCount === 0) {
-      // Simulate processing steps
-      const stepInterval = setInterval(() => {
-        setCurrentStep(prev => {
-          if (prev < processingSteps.length - 2) {
-            return prev + 1;
-          } else if (prev === processingSteps.length - 2) {
-            // Start actual processing when we reach the last step
-            clearInterval(stepInterval);
-            submitForScoringMutation.mutate();
-            return prev + 1;
-          }
-          return prev;
-        });
-      }, 2000);
+    // Start processing automatically when component mounts
+    console.log(`[PROCESSING] Starting processing automation, retryCount: ${retryCount}`);
+    
+    // Simulate processing steps
+    const stepInterval = setInterval(() => {
+      setCurrentStep(prev => {
+        if (prev < processingSteps.length - 2) {
+          return prev + 1;
+        } else if (prev === processingSteps.length - 2 && !submitForScoringMutation.isPending && !hasError) {
+          // Start actual processing when we reach the last step
+          console.log(`[PROCESSING] Triggering scoring API call`);
+          clearInterval(stepInterval);
+          submitForScoringMutation.mutate();
+          return prev + 1;
+        }
+        return prev;
+      });
+    }, 2000);
 
-      return () => clearInterval(stepInterval);
-    }
-  }, [retryCount]);
+    return () => clearInterval(stepInterval);
+  }, []); // Remove retryCount dependency to always trigger processing
 
   return (
     <motion.div
