@@ -115,7 +115,7 @@ export default function PerformanceTest() {
             Performance Test Dashboard
           </h1>
           <p className="text-gray-400 mt-2">Test and monitor caching performance optimizations</p>
-          {performanceData?.testMode && (
+          {(performanceData as any)?.testMode && (
             <div className="mt-2 inline-block px-3 py-1 bg-green-900 text-green-300 text-xs rounded-full">
               TEST MODE - Authentication Bypassed
             </div>

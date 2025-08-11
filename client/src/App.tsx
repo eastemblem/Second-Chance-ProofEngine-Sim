@@ -300,10 +300,10 @@ function App() {
       <TokenAuthProvider>
         <SentryErrorBoundary fallback={({ error, resetError }) => {
         // Check if this is an authentication-related error
-        const isAuthError = error?.message?.includes('vault/session') || 
-                           error?.message?.includes('authentication') ||
-                           error?.message?.includes('token') ||
-                           error?.message?.includes('401');
+        const isAuthError = (error as any)?.message?.includes('vault/session') || 
+                           (error as any)?.message?.includes('authentication') ||
+                           (error as any)?.message?.includes('token') ||
+                           (error as any)?.message?.includes('401');
         
         if (isAuthError) {
           // Clear any stale auth data and redirect to clean landing

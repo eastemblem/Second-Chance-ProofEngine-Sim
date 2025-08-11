@@ -1,4 +1,12 @@
-import { ProofScore } from "@shared/schema";
+// ProofScore type definition
+interface ProofScore {
+  desirability: number;
+  feasibility: number;
+  viability: number;
+  traction: number;
+  readiness: number;
+  total?: number;
+}
 
 export const generateProofScore = (acceleratorApps: number = 0, founderName?: string): ProofScore => {
   let baseScores;
@@ -56,6 +64,7 @@ export const generateProofScore = (acceleratorApps: number = 0, founderName?: st
   if (baseScores.readiness >= 15) unlockedTags.push("Investor Ready");
 
   return {
+    ...baseScores,
     total,
     dimensions: baseScores,
     prooTags: {

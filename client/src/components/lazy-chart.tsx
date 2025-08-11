@@ -10,7 +10,7 @@ const BarChart = lazy(() =>
 );
 
 const Bar = lazy(() => 
-  import("recharts").then(mod => ({ default: mod.Bar }))
+  import("recharts").then(mod => ({ default: mod.Bar as unknown as React.ComponentType<any> }))
 );
 
 const XAxis = lazy(() => 
