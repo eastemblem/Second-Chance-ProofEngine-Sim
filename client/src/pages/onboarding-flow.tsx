@@ -451,6 +451,7 @@ export default function OnboardingFlow({ onComplete }: OnboardingFlowProps) {
               <ProcessingScreen
                 sessionId={sessionData.sessionId}
                 onNext={nextStep}
+                onBack={prevStep}
                 onDataUpdate={(data) => {
                   console.log("🔄 Processing data received in onboarding flow:", data);
                   updateSessionData("processing", data);

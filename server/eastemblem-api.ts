@@ -766,6 +766,21 @@ class EastEmblemAPI {
               throw new Error("EastEmblem API authentication failed. Please check API credentials.");
             } else if (response.status === 403) {
               throw new Error("EastEmblem API access forbidden. Please verify API permissions.");
+            } else if (response.status === 400) {
+              // Handle 400 errors (like image-based PDF) - parse the error message from JSON response
+              let errorMessage = "Unable to process the pitch deck file.";
+              try {
+                const errorJson = JSON.parse(errorText);
+                errorMessage = errorJson.message || errorMessage;
+              } catch {
+                // If JSON parsing fails, use the raw error text
+                errorMessage = errorText || errorMessage;
+              }
+              // Create a special error type that indicates user action is needed (not retryable)
+              const error = new Error(errorMessage);
+              (error as any).isUserActionRequired = true;
+              (error as any).statusCode = 400;
+              throw error;
             } else {
               throw new Error(`Pitch deck scoring failed (${response.status}): ${errorText}`);
             }

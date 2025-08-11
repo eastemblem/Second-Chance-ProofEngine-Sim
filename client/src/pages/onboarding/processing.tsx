@@ -5,12 +5,13 @@ import { apiRequest } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
 import { trackEvent } from "@/lib/analytics";
 import { Button } from "@/components/ui/button";
-import { Loader2, FileText, Brain, BarChart3, CheckCircle, RefreshCw, AlertCircle } from "lucide-react";
+import { Loader2, FileText, Brain, BarChart3, CheckCircle, RefreshCw, AlertCircle, Upload } from "lucide-react";
 
 interface ProcessingScreenProps {
   sessionId: string;
   onNext: () => void;
   onDataUpdate: (data: any) => void;
+  onBack?: () => void; // Add navigation back function
 }
 
 const processingSteps = [
@@ -43,7 +44,8 @@ const processingSteps = [
 export default function ProcessingScreen({ 
   sessionId, 
   onNext, 
-  onDataUpdate 
+  onDataUpdate,
+  onBack
 }: ProcessingScreenProps) {
   const { toast } = useToast();
   const [currentStep, setCurrentStep] = useState(0);
@@ -76,7 +78,41 @@ export default function ProcessingScreen({
         throw new Error('Invalid JSON response from server');
       }
     },
+    onError: (error: any) => {
+      // Track processing error
+      trackEvent('onboarding_processing_error', 'user_journey', 'ai_analysis_failed');
+      
+      const errorMsg = error.message || "Failed to process your submission";
+      setHasError(true);
+      setErrorMessage(errorMsg);
+      setCurrentStep(processingSteps.length - 2); // Set to scoring step to show where it failed
+      
+      toast({
+        title: "Processing Failed",
+        description: errorMsg,
+        variant: "destructive",
+      });
+    },
     onSuccess: async (data) => {
+      // Check if the response contains an error (like user action required)
+      const processingData = data.data?.session?.stepData?.processing || data.data?.scoringResult;
+      
+      if (processingData?.hasError || processingData?.errorType === 'user_action_required') {
+        // Track processing error for user action required cases
+        trackEvent('onboarding_processing_error', 'user_journey', 'user_action_required');
+        
+        setHasError(true);
+        setErrorMessage(processingData.errorMessage || "Unable to process the file");
+        setCurrentStep(processingSteps.length - 2);
+        
+        toast({
+          title: "File Processing Issue",
+          description: processingData.errorMessage || "Unable to process the file",
+          variant: "destructive",
+        });
+        return; // Don't proceed with normal success flow
+      }
+
       if (data?.success) {
         // Track processing completion
         trackEvent('onboarding_processing_complete', 'user_journey', 'ai_analysis_complete');
@@ -87,7 +123,6 @@ export default function ProcessingScreen({
         console.log("Processing step data:", data.data?.session?.stepData?.processing);
         
         // Update session data with processing results - use data.data structure
-        const processingData = data.data?.session?.stepData?.processing || data.data?.scoringResult;
         console.log("🎯 Final processing data being sent to onboarding flow:", processingData);
         onDataUpdate(processingData || data.data);
         setProcessingComplete(true);
@@ -116,21 +151,6 @@ export default function ProcessingScreen({
           onNext();
         }, 2000);
       }
-    },
-    onError: (error: any) => {
-      // Track processing error
-      trackEvent('onboarding_processing_error', 'user_journey', 'ai_analysis_failed');
-      
-      const errorMsg = error.message || "Failed to process your submission";
-      setHasError(true);
-      setErrorMessage(errorMsg);
-      setCurrentStep(processingSteps.length - 2); // Set to scoring step to show where it failed
-      
-      toast({
-        title: "Processing Failed",
-        description: errorMsg,
-        variant: "destructive",
-      });
     }
   });
 
@@ -306,28 +326,42 @@ export default function ProcessingScreen({
             {errorMessage.includes('timeout') || errorMessage.includes('taking longer than expected') 
               ? "The analysis is taking longer than expected. This may be due to high server load or a large file size."
               : errorMessage.includes('service unavailable') || errorMessage.includes('524')
-                ? "The analysis service is temporarily unavailable. This is usually resolved within a few minutes."  
-                : errorMessage
+                ? "The analysis service is temporarily unavailable. This is usually resolved within a few minutes."
+                : errorMessage.includes('image-based') || errorMessage.includes('couldn\'t score it') 
+                  ? `${errorMessage} Please upload a text-based PDF file that can be processed by our AI analysis system.`
+                  : errorMessage
             }
           </p>
           <div className="flex flex-col sm:flex-row gap-3 justify-center">
-            <Button 
-              onClick={handleRetry}
-              disabled={submitForScoringMutation.isPending}
-              className="bg-primary hover:bg-primary/90 text-primary-foreground"
-            >
-              {submitForScoringMutation.isPending ? (
-                <>
-                  <Loader2 className="w-4 h-4 mr-2 animate-spin" />
-                  Retrying...
-                </>
-              ) : (
-                <>
-                  <RefreshCw className="w-4 h-4 mr-2" />
-                  Try Again {retryCount > 0 && `(Attempt ${retryCount + 1})`}
-                </>
-              )}
-            </Button>
+            {errorMessage.includes('image-based') || errorMessage.includes('couldn\'t score it') ? (
+              // Show "Go Back to Upload" for image-based PDF errors
+              <Button 
+                onClick={() => onBack && onBack()}
+                className="bg-primary hover:bg-primary/90 text-primary-foreground"
+              >
+                <Upload className="w-4 h-4 mr-2" />
+                Upload Different File
+              </Button>
+            ) : (
+              // Show "Try Again" for other errors
+              <Button 
+                onClick={handleRetry}
+                disabled={submitForScoringMutation.isPending}
+                className="bg-primary hover:bg-primary/90 text-primary-foreground"
+              >
+                {submitForScoringMutation.isPending ? (
+                  <>
+                    <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                    Retrying...
+                  </>
+                ) : (
+                  <>
+                    <RefreshCw className="w-4 h-4 mr-2" />
+                    Try Again {retryCount > 0 && `(Attempt ${retryCount + 1})`}
+                  </>
+                )}
+              </Button>
+            )}
             <Button variant="outline" onClick={() => window.location.reload()}>
               Start Over
             </Button>

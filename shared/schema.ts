@@ -149,6 +149,11 @@ export const documentUpload = pgTable("document_upload", {
   eastemblemFileId: varchar("eastemblem_file_id", { length: 100 }),
   sharedUrl: varchar("shared_url", { length: 500 }),
   folderId: varchar("folder_id", { length: 255 }), // Maps to proof_vault.sub_folder_id
+  // Error handling fields for pitch deck processing retry functionality
+  errorMessage: text("error_message"), // Dynamic error message from API
+  retryCount: integer("retry_count").default(0), // Track retry attempts
+  maxRetries: integer("max_retries").default(3), // Maximum allowed retries
+  canRetry: boolean("can_retry").default(true), // Whether retry is allowed
   createdAt: timestamp("created_at").defaultNow().notNull(),
 });
 

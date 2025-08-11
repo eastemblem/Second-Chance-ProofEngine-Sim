@@ -635,12 +635,37 @@ export class OnboardingService {
       } catch (error) {
         console.error("EastEmblem API error:", error);
         
-        // Check if this is a timeout/abort error and provide user-friendly message
-        if (error instanceof Error && error.message.includes('taking longer than expected')) {
-          throw error; // Pass through the user-friendly timeout message
+        // Handle user action required errors (like image-based PDF)
+        if (error instanceof Error && (error as any).isUserActionRequired) {
+          console.log("User action required error detected, updating database with error state");
+          
+          // Update document record with error information
+          await db
+            .update(documentUpload)
+            .set({
+              processingStatus: 'error',
+              errorMessage: error.message,
+              retryCount: (upload.retryCount || 0), // Keep current retry count
+              canRetry: true // Allow user to retry with different file
+            })
+            .where(eq(documentUpload.uploadId, upload.uploadId));
+          
+          // Create error result instead of throwing - this allows frontend to handle gracefully
+          scoringResult = {
+            hasError: true,
+            errorMessage: error.message,
+            errorType: 'user_action_required',
+            canRetry: true,
+            statusCode: (error as any).statusCode || 400
+          };
+        } else {
+          // Check if this is a timeout/abort error and provide user-friendly message
+          if (error instanceof Error && error.message.includes('taking longer than expected')) {
+            throw error; // Pass through the user-friendly timeout message
+          }
+          
+          throw new Error(`Analysis failed: ${error instanceof Error ? error.message : 'Unknown error'}`);
         }
-        
-        throw new Error(`Analysis failed: ${error instanceof Error ? error.message : 'Unknown error'}`);
       }
     } else if (!eastEmblemAPI.isConfigured()) {
       throw new Error("EastEmblem API is not configured. Please provide EASTEMBLEM_API_URL and EASTEMBLEM_API_KEY.");
@@ -858,17 +883,11 @@ export class OnboardingService {
         });
     }
 
+    // Don't provide fallback scoring data if there's an error
     const result = {
-      scoringResult: scoringResult || {
-        output: {
-          total_score: 75,
-          overall_feedback: ["Analysis completed successfully"]
-        },
-        score: 75,
-        analysis: "Pitch deck processed and scored"
-      },
+      scoringResult,
       sessionId,
-      isComplete: true,
+      isComplete: scoringResult && !scoringResult.hasError, // Only complete if no error
     };
     
     console.log('Returning scoring result:', JSON.stringify(result, null, 2));
