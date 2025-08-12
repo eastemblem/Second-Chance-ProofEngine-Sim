@@ -6,9 +6,10 @@ import { Badge } from "@/components/ui/badge";
 
 export default function DealRoomSalesPage() {
   return (
-    <div className="min-h-screen bg-gradient-to-br from-purple-50/50 via-white to-orange-50/50 text-foreground">
+    <div className="min-h-screen bg-background text-foreground">
       {/* Hero Section */}
       <section className="relative py-20 px-4 overflow-hidden">
+        <div className="absolute inset-0 bg-gradient-to-br from-primary/10 via-background to-primary-gold/10" />
         <div className="container mx-auto max-w-5xl relative">
           <motion.div
             initial={{ opacity: 0, y: 30 }}
@@ -16,16 +17,16 @@ export default function DealRoomSalesPage() {
             transition={{ duration: 0.8 }}
             className="text-center mb-16"
           >
-            <Badge className="mb-6 bg-purple-100 text-purple-800 border-purple-200 px-4 py-2 text-sm font-medium">
+            <Badge className="mb-6 bg-primary-gold/20 text-primary-gold border-primary-gold/30 px-4 py-2 text-sm font-medium">
               Limited Deal Room Access - Curated Investment
             </Badge>
-            <h1 className="text-4xl md:text-6xl font-bold mb-6 leading-tight text-gray-900">
+            <h1 className="text-4xl md:text-6xl font-bold mb-6 leading-tight">
               Deal Room
             </h1>
-            <h2 className="text-2xl md:text-3xl font-semibold mb-6 text-gray-700">
+            <h2 className="text-2xl md:text-3xl font-semibold mb-6 gradient-text">
               Where Proof Meets Capital
             </h2>
-            <p className="text-lg md:text-xl text-gray-600 mb-8 max-w-3xl mx-auto leading-relaxed">
+            <p className="text-lg md:text-xl text-muted-foreground mb-8 max-w-3xl mx-auto leading-relaxed">
               Exclusive network where validated startups connect with qualified investors. 
               Your ProofScore qualifies you for curated investment opportunities.
             </p>
@@ -33,7 +34,7 @@ export default function DealRoomSalesPage() {
               <Button size="lg" className="gradient-button text-lg px-8 py-4 h-auto">
                 Get Investment Ready
               </Button>
-              <Button size="lg" variant="outline" className="border-gray-300 text-gray-700 hover:bg-gray-50 text-lg px-8 py-4 h-auto">
+              <Button size="lg" variant="outline" className="border-primary-gold text-primary-gold hover:bg-primary-gold hover:text-black text-lg px-8 py-4 h-auto">
                 Watch Product Demo
               </Button>
             </div>
@@ -41,14 +42,14 @@ export default function DealRoomSalesPage() {
             {/* Stats */}
             <div className="grid grid-cols-2 md:grid-cols-4 gap-8 max-w-4xl mx-auto">
               {[
-                { number: '87%', label: 'Success Rate', color: 'text-green-600' },
-                { number: '$2.4M', label: 'Average Round', color: 'text-blue-600' },
-                { number: '14', label: 'Days to Close', color: 'text-orange-600' },
-                { number: '300+', label: 'Funded Startups', color: 'text-purple-600' }
+                { number: '87%', label: 'Success Rate', color: 'text-green-400' },
+                { number: '$2.4M', label: 'Average Round', color: 'text-blue-400' },
+                { number: '14', label: 'Days to Close', color: 'text-primary-gold' },
+                { number: '300+', label: 'Funded Startups', color: 'text-primary' }
               ].map((stat, index) => (
                 <div key={index} className="text-center">
                   <div className={`text-3xl font-bold mb-1 ${stat.color}`}>{stat.number}</div>
-                  <div className="text-sm text-gray-500">{stat.label}</div>
+                  <div className="text-sm text-muted-foreground">{stat.label}</div>
                 </div>
               ))}
             </div>
@@ -57,7 +58,7 @@ export default function DealRoomSalesPage() {
       </section>
 
       {/* Trusted by Top Founders */}
-      <section className="py-16 px-4 bg-white">
+      <section className="py-16 px-4 bg-card/30">
         <div className="container mx-auto max-w-6xl">
           <motion.div
             initial={{ opacity: 0, y: 30 }}
@@ -65,7 +66,7 @@ export default function DealRoomSalesPage() {
             transition={{ duration: 0.8, delay: 0.2 }}
             className="text-center mb-12"
           >
-            <h2 className="text-3xl md:text-4xl font-bold mb-8 text-gray-900">Trusted by Top Founders</h2>
+            <h2 className="text-3xl md:text-4xl font-bold mb-8">Trusted by Top Founders</h2>
             
             {/* Founder Profile Cards */}
             <div className="grid md:grid-cols-3 gap-6 mb-16">
@@ -76,7 +77,8 @@ export default function DealRoomSalesPage() {
                   amount: '$2.1M',
                   stage: 'Series A',
                   avatar: '🚀',
-                  bgColor: 'bg-blue-50'
+                  bgColor: 'bg-blue-500/10',
+                  borderColor: 'border-blue-500/20'
                 },
                 {
                   name: 'GreenScale',
@@ -84,7 +86,8 @@ export default function DealRoomSalesPage() {
                   amount: '$1.8M',
                   stage: 'Seed Round',
                   avatar: '🌱',
-                  bgColor: 'bg-green-50'
+                  bgColor: 'bg-green-500/10',
+                  borderColor: 'border-green-500/20'
                 },
                 {
                   name: 'HealthTech Connect',
@@ -92,19 +95,20 @@ export default function DealRoomSalesPage() {
                   amount: '$3.2M',
                   stage: 'Series A',
                   avatar: '❤️',
-                  bgColor: 'bg-red-50'
+                  bgColor: 'bg-red-500/10',
+                  borderColor: 'border-red-500/20'
                 }
               ].map((founder, index) => (
-                <Card key={index} className={`p-6 ${founder.bgColor} border-gray-200`}>
+                <Card key={index} className={`p-6 ${founder.bgColor} ${founder.borderColor} border bg-card/50`}>
                   <div className="text-center">
-                    <div className="w-12 h-12 bg-white rounded-full flex items-center justify-center text-2xl mb-4 mx-auto">
+                    <div className="w-12 h-12 bg-background rounded-full flex items-center justify-center text-2xl mb-4 mx-auto border">
                       {founder.avatar}
                     </div>
-                    <h3 className="font-bold text-gray-900 mb-1">{founder.name}</h3>
-                    <p className="text-sm text-gray-600 mb-3">{founder.subtitle}</p>
+                    <h3 className="font-bold mb-1">{founder.name}</h3>
+                    <p className="text-sm text-muted-foreground mb-3">{founder.subtitle}</p>
                     <div className="flex justify-between items-center text-sm">
-                      <span className="font-semibold text-green-600">{founder.amount}</span>
-                      <span className="text-gray-500">{founder.stage}</span>
+                      <span className="font-semibold text-primary-gold">{founder.amount}</span>
+                      <span className="text-muted-foreground">{founder.stage}</span>
                     </div>
                   </div>
                 </Card>
@@ -133,16 +137,16 @@ export default function DealRoomSalesPage() {
                   avatar: 'DK'
                 }
               ].map((testimonial, index) => (
-                <Card key={index} className="p-6 bg-gray-50 border-gray-200">
+                <Card key={index} className="p-6 bg-card border-border">
                   <div className="flex items-start space-x-4">
-                    <div className="w-10 h-10 bg-purple-500 rounded-full flex items-center justify-center text-white text-sm font-bold">
+                    <div className="w-10 h-10 bg-primary rounded-full flex items-center justify-center text-white text-sm font-bold">
                       {testimonial.avatar}
                     </div>
                     <div className="flex-1 text-left">
-                      <p className="text-gray-700 text-sm mb-2">"{testimonial.quote}"</p>
+                      <p className="text-muted-foreground text-sm mb-2">"{testimonial.quote}"</p>
                       <div>
-                        <div className="font-semibold text-gray-900 text-sm">{testimonial.name}</div>
-                        <div className="text-gray-500 text-xs">{testimonial.company}</div>
+                        <div className="font-semibold text-sm">{testimonial.name}</div>
+                        <div className="text-muted-foreground text-xs">{testimonial.company}</div>
                       </div>
                     </div>
                   </div>
@@ -154,7 +158,7 @@ export default function DealRoomSalesPage() {
       </section>
 
       {/* Why Our Deal Room Works */}
-      <section className="py-20 px-4 bg-gradient-to-br from-gray-50 to-purple-50/30">
+      <section className="py-20 px-4 bg-background">
         <div className="container mx-auto max-w-6xl">
           <motion.div
             initial={{ opacity: 0, y: 30 }}
@@ -162,8 +166,8 @@ export default function DealRoomSalesPage() {
             transition={{ duration: 0.8, delay: 0.3 }}
             className="text-center mb-16"
           >
-            <h2 className="text-4xl md:text-5xl font-bold mb-6 text-gray-900">Why Our Deal Room Works</h2>
-            <p className="text-xl text-gray-600 max-w-3xl mx-auto">
+            <h2 className="text-4xl md:text-5xl font-bold mb-6">Why Our Deal Room Works</h2>
+            <p className="text-xl text-muted-foreground max-w-3xl mx-auto">
               Four key advantages that set successful founders apart
             </p>
           </motion.div>
@@ -174,29 +178,33 @@ export default function DealRoomSalesPage() {
                 icon: '📊',
                 title: 'AI-Powered Matching',
                 description: 'Advanced algorithms match startups with investors based on industry, stage, check size, and portfolio fit.',
-                bgColor: 'bg-blue-50',
-                textColor: 'text-blue-800'
+                bgColor: 'bg-blue-500/10',
+                textColor: 'text-blue-400',
+                borderColor: 'border-blue-500/20'
               },
               {
                 icon: '🎯',
                 title: 'Curated Investor Network',
                 description: 'Access to pre-qualified investors who actively invest in your sector and stage.',
-                bgColor: 'bg-green-50',
-                textColor: 'text-green-800'
+                bgColor: 'bg-green-500/10',
+                textColor: 'text-green-400',
+                borderColor: 'border-green-500/20'
               },
               {
                 icon: '📈',
                 title: 'Pitch Optimization',
                 description: 'Data-driven improvements to your pitch deck and materials based on successful raises.',
-                bgColor: 'bg-orange-50',
-                textColor: 'text-orange-800'
+                bgColor: 'bg-primary-gold/10',
+                textColor: 'text-primary-gold',
+                borderColor: 'border-primary-gold/20'
               },
               {
                 icon: '🤝',
                 title: 'Strategic Partnerships',
                 description: 'Beyond funding - access to strategic partners, customers, and growth opportunities.',
-                bgColor: 'bg-purple-50',
-                textColor: 'text-purple-800'
+                bgColor: 'bg-primary/10',
+                textColor: 'text-primary',
+                borderColor: 'border-primary/20'
               }
             ].map((feature, index) => (
               <motion.div
@@ -205,12 +213,12 @@ export default function DealRoomSalesPage() {
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ duration: 0.8, delay: 0.4 + index * 0.1 }}
               >
-                <Card className={`p-8 h-full ${feature.bgColor} border-gray-200`}>
+                <Card className={`p-8 h-full ${feature.bgColor} ${feature.borderColor} border bg-card`}>
                   <div className="flex items-start space-x-4">
                     <div className="text-4xl mb-4">{feature.icon}</div>
                     <div className="flex-1">
                       <h3 className={`text-xl font-bold mb-3 ${feature.textColor}`}>{feature.title}</h3>
-                      <p className="text-gray-600 leading-relaxed">{feature.description}</p>
+                      <p className="text-muted-foreground leading-relaxed">{feature.description}</p>
                     </div>
                   </div>
                 </Card>
@@ -221,7 +229,7 @@ export default function DealRoomSalesPage() {
       </section>
 
       {/* Choose Your Access Level */}
-      <section className="py-20 px-4 bg-gradient-to-br from-purple-600 to-orange-500">
+      <section className="py-20 px-4 bg-gradient-to-br from-primary/20 via-background to-primary-gold/20">
         <div className="container mx-auto max-w-4xl">
           <motion.div
             initial={{ opacity: 0, y: 30 }}
@@ -229,21 +237,21 @@ export default function DealRoomSalesPage() {
             transition={{ duration: 0.8, delay: 0.5 }}
             className="text-center mb-16"
           >
-            <h2 className="text-4xl md:text-5xl font-bold mb-6 text-white">Choose Your Access Level</h2>
-            <p className="text-xl text-purple-100 max-w-3xl mx-auto">
+            <h2 className="text-4xl md:text-5xl font-bold mb-6">Choose Your Access Level</h2>
+            <p className="text-xl text-muted-foreground max-w-3xl mx-auto">
               Get started with our proven fundraising system
             </p>
           </motion.div>
 
           <div className="max-w-md mx-auto">
-            <Card className="p-8 bg-white shadow-2xl">
+            <Card className="p-8 bg-card border-primary-gold/20 shadow-2xl">
               <div className="text-center mb-8">
-                <h3 className="text-2xl font-bold mb-2 text-gray-900">Deal Room Access</h3>
+                <h3 className="text-2xl font-bold mb-2">Deal Room Access</h3>
                 <div className="mb-4">
-                  <span className="text-5xl font-bold text-gray-900">$99</span>
-                  <span className="text-gray-500 ml-2">one-time</span>
+                  <span className="text-5xl font-bold gradient-text">$99</span>
+                  <span className="text-muted-foreground ml-2">one-time</span>
                 </div>
-                <p className="text-gray-600">Complete access to our investor network and resources</p>
+                <p className="text-muted-foreground">Complete access to our investor network and resources</p>
               </div>
               
               <ul className="space-y-4 mb-8">
@@ -257,8 +265,8 @@ export default function DealRoomSalesPage() {
                   "Success metrics tracking"
                 ].map((feature, i) => (
                   <li key={i} className="flex items-start">
-                    <Check className="w-5 h-5 text-green-500 mr-3 flex-shrink-0 mt-0.5" />
-                    <span className="text-gray-700">{feature}</span>
+                    <Check className="w-5 h-5 text-primary-gold mr-3 flex-shrink-0 mt-0.5" />
+                    <span>{feature}</span>
                   </li>
                 ))}
               </ul>
@@ -270,7 +278,7 @@ export default function DealRoomSalesPage() {
                 Get Started Now
               </Button>
               
-              <p className="text-center text-sm text-gray-500 mt-4">
+              <p className="text-center text-sm text-muted-foreground mt-4">
                 30-day money-back guarantee • No monthly fees
               </p>
             </Card>
@@ -279,17 +287,17 @@ export default function DealRoomSalesPage() {
       </section>
 
       {/* Ready to Accelerate */}
-      <section className="py-20 px-4 bg-white">
+      <section className="py-20 px-4 bg-card/30">
         <div className="container mx-auto max-w-4xl text-center">
           <motion.div
             initial={{ opacity: 0, y: 30 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.8, delay: 1.2 }}
           >
-            <h2 className="text-4xl md:text-5xl font-bold mb-6 text-gray-900">
+            <h2 className="text-4xl md:text-5xl font-bold mb-6">
               Ready to <span className="gradient-text">Accelerate</span> Your Fundraising?
             </h2>
-            <p className="text-xl text-gray-600 mb-8 max-w-2xl mx-auto">
+            <p className="text-xl text-muted-foreground mb-8 max-w-2xl mx-auto">
               Join 300+ startups that have successfully raised capital through our Deal Room
             </p>
             
@@ -297,18 +305,18 @@ export default function DealRoomSalesPage() {
               Join Deal Room Today
             </Button>
             
-            <div className="bg-gradient-to-r from-purple-50 to-orange-50 rounded-2xl p-8 max-w-2xl mx-auto">
-              <div className="flex items-center justify-center space-x-8 text-sm text-gray-600">
+            <div className="bg-gradient-to-r from-primary/10 to-primary-gold/10 rounded-2xl p-8 max-w-2xl mx-auto border border-primary-gold/20">
+              <div className="flex items-center justify-center space-x-8 text-sm text-muted-foreground">
                 <div className="flex items-center">
-                  <CheckCircle2 className="w-5 h-5 text-green-500 mr-2" />
+                  <CheckCircle2 className="w-5 h-5 text-primary-gold mr-2" />
                   <span>Instant Access</span>
                 </div>
                 <div className="flex items-center">
-                  <CheckCircle2 className="w-5 h-5 text-green-500 mr-2" />
+                  <CheckCircle2 className="w-5 h-5 text-primary-gold mr-2" />
                   <span>30-Day Guarantee</span>
                 </div>
                 <div className="flex items-center">
-                  <CheckCircle2 className="w-5 h-5 text-green-500 mr-2" />
+                  <CheckCircle2 className="w-5 h-5 text-primary-gold mr-2" />
                   <span>Expert Support</span>
                 </div>
               </div>
