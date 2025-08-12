@@ -54,8 +54,10 @@ export default function TeamOnboarding({
 
   // Validate sessionId on component mount
   if (!sessionId || sessionId === 'undefined' || sessionId === '') {
-    console.error('TeamOnboarding: Invalid sessionId provided:', sessionId);
-    console.log('SessionId type:', typeof sessionId, 'Value:', sessionId);
+    if (import.meta.env.MODE === 'development') {
+      console.error('TeamOnboarding: Invalid sessionId provided:', sessionId);
+      console.log('SessionId type:', typeof sessionId, 'Value:', sessionId);
+    }
     return (
       <div className="max-w-4xl mx-auto p-6">
         <div className="text-center text-red-600">
@@ -116,12 +118,14 @@ export default function TeamOnboarding({
   const teamMemberCount = teamMembers.length;
   const canSkip = true; // Always allow completing team step
 
-  console.log('Team Data Debug:', { 
-    teamData, 
-    teamMembers, 
-    teamMemberCount, 
-    canSkip
-  });
+  if (import.meta.env.MODE === 'development') {
+    console.log('Team Data Debug:', { 
+      teamData, 
+      teamMembers, 
+      teamMemberCount, 
+      canSkip
+    });
+  }
 
   // Add team member mutation
   const addMemberMutation = useMutation({

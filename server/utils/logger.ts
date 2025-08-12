@@ -41,15 +41,17 @@ const logger = winston.createLogger({
   ),
   defaultMeta: { service: 'second-chance-api' },
   transports: [
-    // Console transport for development
-    new winston.transports.Console({
-      level: process.env.NODE_ENV === 'production' ? 'warn' : process.env.NODE_ENV === 'development' ? 'debug' : 'info',
-      format: combine(
-        colorize({ all: true }),
-        timestamp({ format: 'HH:mm:ss' }),
-        consoleFormat
-      ),
-    }),
+    // Console transport - disabled in production
+    ...(process.env.NODE_ENV !== 'production' ? [
+      new winston.transports.Console({
+        level: process.env.NODE_ENV === 'development' ? 'debug' : 'info',
+        format: combine(
+          colorize({ all: true }),
+          timestamp({ format: 'HH:mm:ss' }),
+          consoleFormat
+        ),
+      })
+    ] : []),
     
     // Daily rotating file for errors
     new DailyRotateFile({

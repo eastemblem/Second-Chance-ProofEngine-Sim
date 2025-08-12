@@ -75,7 +75,9 @@ export function useSimulation() {
         throw new Error('ProofVault session not found');
       }
     } catch (error) {
-      console.error('Analysis failed:', error);
+      if (import.meta.env.MODE === 'development') {
+        console.error('Analysis failed:', error);
+      }
       setState(prev => ({
         ...prev,
         analysisProgress: 0,

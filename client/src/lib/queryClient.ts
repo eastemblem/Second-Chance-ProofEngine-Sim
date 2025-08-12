@@ -32,9 +32,13 @@ export async function apiRequest(
   url: string,
   data?: unknown | undefined,
 ): Promise<Response> {
-  console.log('🔥 API-REQUEST-DEBUG: Original URL:', url);
+  if (import.meta.env.MODE === 'development') {
+    console.log('🔥 API-REQUEST-DEBUG: Original URL:', url);
+  }
   const apiUrl = getApiUrl(url);
-  console.log('🔥 API-REQUEST-DEBUG: Final API URL:', apiUrl);
+  if (import.meta.env.MODE === 'development') {
+    console.log('🔥 API-REQUEST-DEBUG: Final API URL:', apiUrl);
+  }
   
   // Get JWT token from localStorage for authentication
   const token = localStorage.getItem('auth_token');

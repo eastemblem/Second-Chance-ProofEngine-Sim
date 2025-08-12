@@ -6,8 +6,10 @@ let sentryInitialized = false;
 
 export function initSentry() {
   if (!import.meta.env.VITE_SENTRY_DSN) {
-    console.log('⚠️ Sentry DSN not found - client error tracking disabled');
-    console.log('💡 Add VITE_SENTRY_DSN to your environment variables to enable error monitoring');
+    if (import.meta.env.MODE === 'development') {
+      console.log('⚠️ Sentry DSN not found - client error tracking disabled');
+      console.log('💡 Add VITE_SENTRY_DSN to your environment variables to enable error monitoring');
+    }
     return null;
   }
 
@@ -40,26 +42,32 @@ export function initSentry() {
           }
         }
         
-        // Enhanced logging for debugging transmission
-        console.log('🔴 Sending frontend error to Sentry:', event.exception?.values?.[0]?.value || event.message);
-        console.log('📊 Frontend error context:', {
-          level: event.level,
-          timestamp: new Date().toISOString(),
-          user: event.user
-        });
+        // Enhanced logging for debugging transmission (development only)
+        if (import.meta.env.MODE === 'development') {
+          console.log('🔴 Sending frontend error to Sentry:', event.exception?.values?.[0]?.value || event.message);
+          console.log('📊 Frontend error context:', {
+            level: event.level,
+            timestamp: new Date().toISOString(),
+            user: event.user
+          });
+        }
         
         return event;
       },
     });
 
     sentryInitialized = true;
-    console.log('✅ Sentry initialized successfully for client-side error tracking');
-    console.log(`📊 Environment: ${import.meta.env.MODE || 'development'}`);
-    console.log(`📊 DSN configured: ***${import.meta.env.VITE_SENTRY_DSN.slice(-8)}`);
+    if (import.meta.env.MODE === 'development') {
+      console.log('✅ Sentry initialized successfully for client-side error tracking');
+      console.log(`📊 Environment: ${import.meta.env.MODE || 'development'}`);
+      console.log(`📊 DSN configured: ***${import.meta.env.VITE_SENTRY_DSN.slice(-8)}`);
+    }
     
     return Sentry;
   } catch (error: any) {
-    console.error('❌ Sentry client initialization failed:', error.message);
+    if (import.meta.env.MODE === 'development') {
+      console.error('❌ Sentry client initialization failed:', error.message);
+    }
     return null;
   }
 }

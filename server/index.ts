@@ -93,6 +93,14 @@ if (sentry && process.env.SENTRY_DSN) {
 }
 
 app.set('trust proxy', 1); // Trust first proxy only (safer for rate limiting)
+
+// Suppress console output in production
+if (process.env.NODE_ENV === 'production') {
+  console.log = () => {};
+  console.info = () => {};
+  console.debug = () => {};
+  // Keep console.warn and console.error for critical issues
+}
 app.use(express.json());
 app.use(express.urlencoded({ extended: false }));
 app.use(cookieParser());
