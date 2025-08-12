@@ -409,7 +409,9 @@ const getProofTagIcon = (tagName: string): string => {
     // Default fallback
     return "✨";
   } catch (error) {
-    console.error('Error in getProofTagIcon:', error);
+    if (import.meta.env.MODE === 'development') {
+      console.error('Error in getProofTagIcon:', error);
+    }
     return "✨";
   }
 };
@@ -485,7 +487,9 @@ export default function Analysis({
             setSessionFromAPI(data?.data || data?.session || data);
           }
         } catch (error) {
-          console.error("Failed to fetch session data:", error);
+          if (import.meta.env.MODE === 'development') {
+            console.error("Failed to fetch session data:", error);
+          }
         } finally {
           setIsLoading(false);
         }
@@ -582,8 +586,10 @@ export default function Analysis({
 
   // Check if we have valid scoring data
   if (!scoringResult) {
-    console.error("No scoring result found in sessionData:", sessionData);
-    console.error("No scoring result found in sessionFromAPI:", sessionFromAPI);
+    if (import.meta.env.MODE === 'development') {
+      console.error("No scoring result found in sessionData:", sessionData);
+      console.error("No scoring result found in sessionFromAPI:", sessionFromAPI);
+    }
     return (
       <div className="min-h-screen bg-background p-6 flex items-center justify-center">
         <div className="text-center">
@@ -690,7 +696,9 @@ export default function Analysis({
       }
       return result;
     } catch (error) {
-      console.error('Error extracting ProofTags:', error);
+      if (import.meta.env.MODE === 'development') {
+        console.error('Error extracting ProofTags:', error);
+      }
       return {
         unlocked: 0,
         total: ALL_PROOF_TAGS.length || 1,

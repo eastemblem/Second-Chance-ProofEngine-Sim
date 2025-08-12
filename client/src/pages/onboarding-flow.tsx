@@ -130,12 +130,16 @@ export default function OnboardingFlow({ onComplete }: OnboardingFlowProps) {
             console.log(`Initial session stored in localStorage`);
           }
         } catch (error) {
-          console.error(`❌ Failed to store initial session:`, error);
+          if (import.meta.env.MODE === 'development') {
+            console.error(`❌ Failed to store initial session:`, error);
+          }
         }
       }
     },
     onError: (error) => {
-      console.error("Failed to initialize session:", error);
+      if (import.meta.env.MODE === 'development') {
+        console.error("Failed to initialize session:", error);
+      }
       toast({
         title: "Session Error",
         description: "Failed to initialize onboarding session",
@@ -157,7 +161,9 @@ export default function OnboardingFlow({ onComplete }: OnboardingFlowProps) {
           return;
         }
       } catch (error) {
-        console.error("Invalid session data in localStorage");
+        if (import.meta.env.MODE === 'development') {
+          console.error("Invalid session data in localStorage");
+        }
       }
     }
     
@@ -196,7 +202,9 @@ export default function OnboardingFlow({ onComplete }: OnboardingFlowProps) {
         };
         setSessionData(updatedSession);
         localStorage.setItem('onboardingSession', JSON.stringify(updatedSession));
-        console.log(`Navigated to step ${nextIndex}: ${steps[nextIndex].key}`);
+        if (import.meta.env.MODE === 'development') {
+          console.log(`Navigated to step ${nextIndex}: ${steps[nextIndex].key}`);
+        }
       }
     }
   };
@@ -227,17 +235,23 @@ export default function OnboardingFlow({ onComplete }: OnboardingFlowProps) {
   // Refresh session data from server API
   const refreshSessionFromServer = async () => {
     if (!sessionData?.sessionId) {
-      console.error('No sessionId available for refresh');
+      if (import.meta.env.MODE === 'development') {
+        console.error('No sessionId available for refresh');
+      }
       return;
     }
 
     try {
-      console.log(`Refreshing session data from server...`);
+      if (import.meta.env.MODE === 'development') {
+        console.log(`Refreshing session data from server...`);
+      }
       const response = await fetch(`/api/onboarding/session/${sessionData.sessionId}`);
       
       if (response.ok) {
         const serverSession = await response.json();
-        console.log(`Server session retrieved:`, serverSession.session);
+        if (import.meta.env.MODE === 'development') {
+          console.log(`Server session retrieved:`, serverSession.session);
+        }
         
         // Update local state with server data
         const updatedSession = {
@@ -255,22 +269,32 @@ export default function OnboardingFlow({ onComplete }: OnboardingFlowProps) {
         
         localStorage.setItem('onboardingSession', JSON.stringify(updatedSession));
         
-        console.log(`Local session synchronized with server`);
+        if (import.meta.env.MODE === 'development') {
+          console.log(`Local session synchronized with server`);
+        }
         return updatedSession;
       } else {
-        console.error(`Failed to fetch session: ${response.status}`);
+        if (import.meta.env.MODE === 'development') {
+          console.error(`Failed to fetch session: ${response.status}`);
+        }
       }
     } catch (error) {
-      console.error(`Error refreshing session:`, error);
+      if (import.meta.env.MODE === 'development') {
+        console.error(`Error refreshing session:`, error);
+      }
     }
   };
 
   // Simplified update - just trigger server refresh
   const updateSessionData = (stepKey: string, data: any) => {
-    console.log(`Updating session data for step ${stepKey}:`, data);
+    if (import.meta.env.MODE === 'development') {
+      console.log(`Updating session data for step ${stepKey}:`, data);
+    }
     
     if (!sessionData) {
-      console.error('No sessionData available for update');
+      if (import.meta.env.MODE === 'development') {
+        console.error('No sessionData available for update');
+      }
       return;
     }
 
@@ -294,15 +318,21 @@ export default function OnboardingFlow({ onComplete }: OnboardingFlowProps) {
       lastUpdated: new Date().toISOString()
     };
     
-    console.log('Session updated:', updatedSession);
+    if (import.meta.env.MODE === 'development') {
+      console.log('Session updated:', updatedSession);
+    }
     
     // Update both state and localStorage atomically
     setSessionData(updatedSession);
     try {
       localStorage.setItem('onboardingSession', JSON.stringify(updatedSession));
-      console.log('Successfully saved to localStorage');
+      if (import.meta.env.MODE === 'development') {
+        console.log('Successfully saved to localStorage');
+      }
     } catch (error) {
-      console.error('Failed to save to localStorage:', error);
+      if (import.meta.env.MODE === 'development') {
+        console.error('Failed to save to localStorage:', error);
+      }
     }
   };
 
@@ -334,7 +364,9 @@ export default function OnboardingFlow({ onComplete }: OnboardingFlowProps) {
 
   // Additional validation for sessionId
   if (!sessionData.sessionId) {
-    console.error('OnboardingFlow: sessionData exists but sessionId is missing', sessionData);
+    if (import.meta.env.MODE === 'development') {
+      console.error('OnboardingFlow: sessionData exists but sessionId is missing', sessionData);
+    }
     
     // Try to fix the session data structure if it's in API response format
     if ((sessionData as any).success && (sessionData as any).data && (sessionData as any).data.sessionId) {
@@ -451,7 +483,9 @@ export default function OnboardingFlow({ onComplete }: OnboardingFlowProps) {
                 onNext={nextStep}
                 onPrev={prevStep}
                 onDataUpdate={(data: any) => {
-                  console.log("VentureOnboarding onDataUpdate called with:", data);
+                  if (import.meta.env.MODE === 'development') {
+                    console.log("VentureOnboarding onDataUpdate called with:", data);
+                  }
                   updateSessionData("venture", data);
                 }}
               />
@@ -483,9 +517,13 @@ export default function OnboardingFlow({ onComplete }: OnboardingFlowProps) {
                 onNext={nextStep}
                 onBack={prevStep}
                 onDataUpdate={(data) => {
-                  console.log("🔄 Processing data received in onboarding flow:", data);
+                  if (import.meta.env.MODE === 'development') {
+                    console.log("🔄 Processing data received in onboarding flow:", data);
+                  }
                   updateSessionData("processing", data);
-                  console.log("🔄 Session data after processing update:", sessionData);
+                  if (import.meta.env.MODE === 'development') {
+                    console.log("🔄 Session data after processing update:", sessionData);
+                  }
                 }}
               />
             )}

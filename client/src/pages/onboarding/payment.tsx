@@ -67,17 +67,23 @@ export default function PaymentOnboarding({ sessionData, onNext, onSkip, onPrev,
     const pollInterval = setInterval(async () => {
       try {
         pollCount++;
-        console.log(`Polling payment status (${pollCount}/${maxPolls}):`, paymentId);
+        if (import.meta.env.MODE === 'development') {
+          console.log(`Polling payment status (${pollCount}/${maxPolls}):`, paymentId);
+        }
         
         const statusResponse = await apiRequest('GET', `/api/payment/status/${paymentId}`);
         const statusData = await statusResponse.json();
         
         if (statusData.success) {
           const status = statusData.status; // Session-based API returns status directly
-          console.log(`Payment status check result:`, status);
+          if (import.meta.env.MODE === 'development') {
+            console.log(`Payment status check result:`, status);
+          }
           
           if (status === 'completed') {
-            console.log('✅ Payment completed, stopping polling and showing success');
+            if (import.meta.env.MODE === 'development') {
+              console.log('✅ Payment completed, stopping polling and showing success');
+            }
             clearInterval(pollInterval);
             setIsPolling(false);
             setPaymentStatus({

@@ -68,7 +68,9 @@ export default function VentureOnboarding({
           description: "Venture information saved successfully",
         });
         // Pass the complete venture data including folder structure
-        console.log("Venture step completed successfully. API response:", data);
+        if (import.meta.env.MODE === 'development') {
+          console.log("Venture step completed successfully. API response:", data);
+        }
         
         // Ensure we pass the data in the correct format for session storage
         const ventureData = {
@@ -78,7 +80,9 @@ export default function VentureOnboarding({
           success: data?.success
         };
         
-        console.log("Calling onDataUpdate with structured data:", ventureData);
+        if (import.meta.env.MODE === 'development') {
+          console.log("Calling onDataUpdate with structured data:", ventureData);
+        }
         onDataUpdate?.(ventureData);
         onNext();
       }
@@ -100,7 +104,9 @@ export default function VentureOnboarding({
     try {
       await submitMutation.mutateAsync(data);
     } catch (error) {
-      console.error("Error submitting venture data:", error);
+      if (import.meta.env.MODE === 'development') {
+        console.error("Error submitting venture data:", error);
+      }
     } finally {
       setIsSubmitting(false);
     }

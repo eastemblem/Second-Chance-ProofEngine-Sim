@@ -93,13 +93,17 @@ export default function TeamOnboarding({
       if (!sessionId || sessionId === 'undefined') {
         throw new Error('Invalid session ID');
       }
-      console.log('Fetching team members for session:', sessionId);
+      if (import.meta.env.MODE === 'development') {
+        console.log('Fetching team members for session:', sessionId);
+      }
       const response = await fetch(`/api/v1/onboarding/team/${sessionId}`);
       if (!response.ok) {
         throw new Error(`HTTP error! status: ${response.status}`);
       }
       const data = await response.json();
-      console.log('Team members response:', data);
+      if (import.meta.env.MODE === 'development') {
+        console.log('Team members response:', data);
+      }
       
       // Return the team members directly for easier access
       if (data.success && data.data) {
@@ -134,7 +138,9 @@ export default function TeamOnboarding({
         throw new Error('Invalid session ID - please restart onboarding');
       }
       
-      console.log('Adding team member with sessionId:', sessionId);
+      if (import.meta.env.MODE === 'development') {
+        console.log('Adding team member with sessionId:', sessionId);
+      }
       const response = await fetch("/api/v1/onboarding/team/add", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
@@ -246,7 +252,9 @@ export default function TeamOnboarding({
         throw new Error('Invalid session ID - please restart onboarding');
       }
       
-      console.log('Completing team step with sessionId:', sessionId);
+      if (import.meta.env.MODE === 'development') {
+        console.log('Completing team step with sessionId:', sessionId);
+      }
       const response = await fetch("/api/v1/onboarding/team/complete", {
         method: "POST",
         headers: { "Content-Type": "application/json" },

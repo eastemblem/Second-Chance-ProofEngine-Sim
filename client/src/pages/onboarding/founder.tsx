@@ -78,7 +78,9 @@ export default function FounderOnboarding({
           description: "Founder information saved successfully",
         });
         
-        console.log("👤 Founder step completed successfully");
+        if (import.meta.env.MODE === 'development') {
+          console.log("👤 Founder step completed successfully");
+        }
         
         // Trigger session refresh from server
         onDataUpdate(data);

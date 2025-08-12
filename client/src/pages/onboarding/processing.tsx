@@ -70,13 +70,17 @@ export default function ProcessingScreen({
 
   const submitForScoringMutation = useMutation({
     mutationFn: async () => {
-      console.log(`[PROCESSING] Making API call to submit-for-scoring with sessionId: ${sessionId}`);
+      if (import.meta.env.MODE === 'development') {
+        console.log(`[PROCESSING] Making API call to submit-for-scoring with sessionId: ${sessionId}`);
+      }
       const res = await apiRequest("POST", "/api/v1/onboarding/submit-for-scoring", {
         sessionId
       });
       
       const text = await res.text();
-      console.log('Raw response:', text);
+      if (import.meta.env.MODE === 'development') {
+        console.log('Raw response:', text);
+      }
       
       if (!text || text.trim() === '') {
         throw new Error('Empty response from server');
@@ -85,7 +89,9 @@ export default function ProcessingScreen({
       try {
         return JSON.parse(text);
       } catch (e) {
-        console.error('Failed to parse JSON:', text);
+        if (import.meta.env.MODE === 'development') {
+          console.error('Failed to parse JSON:', text);
+        }
         throw new Error('Invalid JSON response from server');
       }
     },
@@ -151,13 +157,17 @@ export default function ProcessingScreen({
         // Track processing completion
         trackEvent('onboarding_processing_complete', 'user_journey', 'ai_analysis_complete');
         
-        console.log("Processing completed. Full response:", data);
-        console.log("Session data from processing:", data.data?.session);
-        console.log("Session stepData:", data.data?.session?.stepData);
-        console.log("Processing step data:", data.data?.session?.stepData?.processing);
+        if (import.meta.env.MODE === 'development') {
+          console.log("Processing completed. Full response:", data);
+          console.log("Session data from processing:", data.data?.session);
+          console.log("Session stepData:", data.data?.session?.stepData);
+          console.log("Processing step data:", data.data?.session?.stepData?.processing);
+        }
         
         // Update session data with processing results - use data.data structure
-        console.log("🎯 Final processing data being sent to onboarding flow:", processingData);
+        if (import.meta.env.MODE === 'development') {
+          console.log("🎯 Final processing data being sent to onboarding flow:", processingData);
+        }
         onDataUpdate(processingData || data.data);
         setProcessingComplete(true);
         
@@ -189,7 +199,9 @@ export default function ProcessingScreen({
             onNext();
           }, 2000);
         } else if (hasProcessingError) {
-          console.log("Processing completed but with errors, staying on processing screen");
+          if (import.meta.env.MODE === 'development') {
+            console.log("Processing completed but with errors, staying on processing screen");
+          }
         }
       }
     }
@@ -267,7 +279,9 @@ export default function ProcessingScreen({
             }
           }
         } catch (error) {
-          console.log('Document check polling error:', error);
+          if (import.meta.env.MODE === 'development') {
+            console.log('Document check polling error:', error);
+          }
         }
       }, 3000);
     }
@@ -282,14 +296,18 @@ export default function ProcessingScreen({
   useEffect(() => {
     // Check if maximum retries have been reached before starting processing
     if (retryCount >= MAX_RETRIES) {
-      console.log(`[PROCESSING] Max retries (${MAX_RETRIES}) reached, skipping automatic processing`);
+      if (import.meta.env.MODE === 'development') {
+        console.log(`[PROCESSING] Max retries (${MAX_RETRIES}) reached, skipping automatic processing`);
+      }
       setHasError(true);
       setErrorMessage("Maximum retry attempts reached. Please upload a different file or start over.");
       return;
     }
 
     // Start processing automatically when component mounts
-    console.log(`[PROCESSING] Starting processing automation, retryCount: ${retryCount}`);
+    if (import.meta.env.MODE === 'development') {
+      console.log(`[PROCESSING] Starting processing automation, retryCount: ${retryCount}`);
+    }
     
     // Simulate processing steps
     const stepInterval = setInterval(() => {
@@ -299,7 +317,9 @@ export default function ProcessingScreen({
         } else if (prev === processingSteps.length - 2 && !submitForScoringMutation.isPending && !hasError) {
           // Double-check retry limit before triggering API call
           if (retryCount >= MAX_RETRIES) {
-            console.log(`[PROCESSING] Max retries reached during processing, stopping`);
+            if (import.meta.env.MODE === 'development') {
+              console.log(`[PROCESSING] Max retries reached during processing, stopping`);
+            }
             clearInterval(stepInterval);
             setHasError(true);
             setErrorMessage("Maximum retry attempts reached. Please upload a different file or start over.");
@@ -307,7 +327,9 @@ export default function ProcessingScreen({
           }
           
           // Start actual processing when we reach the last step
-          console.log(`[PROCESSING] Triggering scoring API call`);
+          if (import.meta.env.MODE === 'development') {
+            console.log(`[PROCESSING] Triggering scoring API call`);
+          }
           clearInterval(stepInterval);
           submitForScoringMutation.mutate();
           return prev + 1;
