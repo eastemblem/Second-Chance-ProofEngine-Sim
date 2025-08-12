@@ -7,11 +7,26 @@ import { Progress } from "@/components/ui/progress";
 import { ProofScoreResult } from "@shared/schema";
 
 interface ProofScalingDashboardProps {
-  onNext: () => void;
-  proofScore: ProofScoreResult;
+  onNext?: () => void;
+  proofScore?: ProofScoreResult;
 }
 
-export default function ProofScalingDashboard({ onNext, proofScore }: ProofScalingDashboardProps) {
+export default function ProofScalingDashboard({ onNext, proofScore: propProofScore }: ProofScalingDashboardProps) {
+  // Get onboarding session data to extract score
+  const onboardingSession = localStorage.getItem('onboardingSession');
+  let sessionProofScore = null;
+  
+  try {
+    if (onboardingSession) {
+      const parsed = JSON.parse(onboardingSession);
+      sessionProofScore = parsed.stepData?.processing?.scoringResult;
+    }
+  } catch (error) {
+    console.error('Failed to parse onboarding session:', error);
+  }
+  
+  // Use prop score if available, otherwise use session score, otherwise default
+  const proofScore = propProofScore || sessionProofScore || { total: 60, insights: { strengths: [], improvements: [], recommendations: [] } };
   const modules = [
     {
       id: 1,

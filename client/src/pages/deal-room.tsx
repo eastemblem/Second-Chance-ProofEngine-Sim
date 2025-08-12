@@ -9,8 +9,8 @@ import { useQuery } from "@tanstack/react-query";
 import { useEffect, useState } from "react";
 
 interface DealRoomPageProps {
-  onNext: () => void;
-  proofScore: ProofScoreResult;
+  onNext?: () => void;
+  proofScore?: ProofScoreResult;
 }
 
 interface SessionResponse {
@@ -33,7 +33,22 @@ interface SessionResponse {
   };
 }
 
-export default function DealRoomPage({ onNext, proofScore }: DealRoomPageProps) {
+export default function DealRoomPage({ onNext, proofScore: propProofScore }: DealRoomPageProps) {
+  // Get onboarding session data to extract score
+  const onboardingSession = localStorage.getItem('onboardingSession');
+  let sessionProofScore = null;
+  
+  try {
+    if (onboardingSession) {
+      const parsed = JSON.parse(onboardingSession);
+      sessionProofScore = parsed.stepData?.processing?.scoringResult;
+    }
+  } catch (error) {
+    console.error('Failed to parse onboarding session:', error);
+  }
+  
+  // Use prop score if available, otherwise use session score, otherwise default
+  const proofScore = propProofScore || sessionProofScore || { total: 70, insights: { strengths: [], improvements: [], recommendations: [] } };
   // Fetch ProofVault session data
   const { data: sessionData, isLoading: sessionLoading } = useQuery<SessionResponse>({
     queryKey: ['/api/vault/session'],

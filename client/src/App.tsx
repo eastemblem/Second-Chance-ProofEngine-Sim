@@ -226,6 +226,16 @@ function Router() {
           <NextSteps />
         </Suspense>
       )} />
+      <Route path="/deal-room" component={() => (
+        <Suspense fallback={<SimpleLoader />}>
+          <DealRoomPage />
+        </Suspense>
+      )} />
+      <Route path="/proofscaling-dashboard" component={() => (
+        <Suspense fallback={<SimpleLoader />}>
+          <ProofScalingDashboard />
+        </Suspense>
+      )} />
       {/* Development-only test routes */}
       {import.meta.env.MODE === 'development' && PerformanceTest && (
         <Route path="/performance-test" component={() => (
