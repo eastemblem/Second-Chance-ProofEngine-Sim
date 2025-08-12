@@ -6,115 +6,155 @@ import { Badge } from "@/components/ui/badge";
 
 export default function DealRoomSalesPage() {
   return (
-    <div className="min-h-screen bg-background text-foreground">
+    <div className="min-h-screen bg-gradient-to-br from-purple-50/50 via-white to-orange-50/50 text-foreground">
       {/* Hero Section */}
       <section className="relative py-20 px-4 overflow-hidden">
-        <div className="absolute inset-0 bg-gradient-to-br from-primary/10 via-background to-primary-gold/10" />
-        <div className="container mx-auto max-w-6xl relative">
+        <div className="container mx-auto max-w-5xl relative">
           <motion.div
             initial={{ opacity: 0, y: 30 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.8 }}
-            className="text-center mb-12"
+            className="text-center mb-16"
           >
-            <Badge className="mb-6 bg-primary-gold/20 text-primary-gold border-primary-gold/30 px-6 py-2 text-lg font-semibold">
-              <Crown className="w-5 h-5 mr-2" />
-              PREMIUM DEAL ROOM ACCESS
+            <Badge className="mb-6 bg-purple-100 text-purple-800 border-purple-200 px-4 py-2 text-sm font-medium">
+              Limited Deal Room Access - Curated Investment
             </Badge>
-            <h1 className="text-5xl md:text-7xl font-bold mb-6 leading-tight">
-              Welcome to the
-              <span className="block gradient-text">Deal Room</span>
+            <h1 className="text-4xl md:text-6xl font-bold mb-6 leading-tight text-gray-900">
+              Deal Room
             </h1>
-            <p className="text-xl md:text-2xl text-muted-foreground mb-8 max-w-3xl mx-auto leading-relaxed">
-              Your ProofScore qualifies you for our exclusive investor network. Connect with pre-vetted investors, 
-              access premium resources, and accelerate your fundraising journey.
+            <h2 className="text-2xl md:text-3xl font-semibold mb-6 text-gray-700">
+              Where Proof Meets Capital
+            </h2>
+            <p className="text-lg md:text-xl text-gray-600 mb-8 max-w-3xl mx-auto leading-relaxed">
+              Exclusive network where validated startups connect with qualified investors. 
+              Your ProofScore qualifies you for curated investment opportunities.
             </p>
-            <div className="flex flex-col sm:flex-row gap-4 justify-center">
-              <Button size="lg" className="gradient-button text-lg px-8 py-6 h-auto">
-                <Rocket className="w-6 h-6 mr-2" />
-                Start Your Journey
+            <div className="flex flex-col sm:flex-row gap-4 justify-center mb-12">
+              <Button size="lg" className="gradient-button text-lg px-8 py-4 h-auto">
+                Get Investment Ready
               </Button>
-              <Button size="lg" variant="outline" className="border-primary-gold text-primary-gold hover:bg-primary-gold hover:text-black text-lg px-8 py-6 h-auto">
-                <Calendar className="w-6 h-6 mr-2" />
-                Book Strategy Session
+              <Button size="lg" variant="outline" className="border-gray-300 text-gray-700 hover:bg-gray-50 text-lg px-8 py-4 h-auto">
+                Watch Product Demo
               </Button>
+            </div>
+            
+            {/* Stats */}
+            <div className="grid grid-cols-2 md:grid-cols-4 gap-8 max-w-4xl mx-auto">
+              {[
+                { number: '87%', label: 'Success Rate', color: 'text-green-600' },
+                { number: '$2.4M', label: 'Average Round', color: 'text-blue-600' },
+                { number: '14', label: 'Days to Close', color: 'text-orange-600' },
+                { number: '300+', label: 'Funded Startups', color: 'text-purple-600' }
+              ].map((stat, index) => (
+                <div key={index} className="text-center">
+                  <div className={`text-3xl font-bold mb-1 ${stat.color}`}>{stat.number}</div>
+                  <div className="text-sm text-gray-500">{stat.label}</div>
+                </div>
+              ))}
             </div>
           </motion.div>
         </div>
       </section>
 
-      {/* Why Deal Room Section */}
-      <section className="py-16 px-4 bg-card/30">
+      {/* Trusted by Top Founders */}
+      <section className="py-16 px-4 bg-white">
         <div className="container mx-auto max-w-6xl">
           <motion.div
             initial={{ opacity: 0, y: 30 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.8, delay: 0.2 }}
-            className="text-center mb-16"
+            className="text-center mb-12"
           >
-            <h2 className="text-3xl md:text-4xl font-bold mb-6">Why Deal Room Works</h2>
-            <p className="text-xl text-muted-foreground max-w-3xl mx-auto">
-              Traditional fundraising is broken. 98% of startups never raise capital. We're changing that.
-            </p>
-          </motion.div>
-
-          <div className="grid md:grid-cols-2 gap-12 items-center mb-16">
-            <div>
-              <h3 className="text-2xl font-bold mb-6 text-red-400">The Traditional Way (Broken)</h3>
-              <div className="space-y-4">
-                {[
-                  'Cold outreach to investors (2% response rate)',
-                  'Generic pitch decks that don\'t convert',
-                  'No investor matching or qualification',
-                  'Months of wasted time and rejection',
-                  'No feedback or guidance from experts'
-                ].map((item, index) => (
-                  <div key={index} className="flex items-center">
-                    <TrendingDown className="w-5 h-5 text-red-400 mr-3 flex-shrink-0" />
-                    <span className="text-muted-foreground">{item}</span>
-                  </div>
-                ))}
-              </div>
-            </div>
-            <div>
-              <h3 className="text-2xl font-bold mb-6 gradient-text">The Deal Room Way (Proven)</h3>
-              <div className="space-y-4">
-                {[
-                  'Warm introductions to qualified investors',
-                  'AI-optimized pitch decks with proven frameworks',
-                  'Smart matching based on your specific needs',
-                  'Average 6-week funding timeline',
-                  'Expert guidance at every step'
-                ].map((item, index) => (
-                  <div key={index} className="flex items-center">
-                    <CheckCircle2 className="w-5 h-5 text-primary-gold mr-3 flex-shrink-0" />
-                    <span>{item}</span>
-                  </div>
-                ))}
-              </div>
-            </div>
-          </div>
-
-          <div className="text-center">
-            <div className="grid grid-cols-2 md:grid-cols-4 gap-8 items-center">
+            <h2 className="text-3xl md:text-4xl font-bold mb-8 text-gray-900">Trusted by Top Founders</h2>
+            
+            {/* Founder Profile Cards */}
+            <div className="grid md:grid-cols-3 gap-6 mb-16">
               {[
-                { number: '400+', label: 'Successful Raises' },
-                { number: '$127M+', label: 'Capital Raised' },
-                { number: '92%', label: 'Success Rate' },
-                { number: '50+', label: 'Partner VCs' }
-              ].map((stat, index) => (
-                <div key={index} className="text-center">
-                  <div className="text-3xl font-bold gradient-text mb-2">{stat.number}</div>
-                  <div className="text-muted-foreground">{stat.label}</div>
-                </div>
+                {
+                  name: 'TechFlow',
+                  subtitle: 'AI-Powered Analytics',
+                  amount: '$2.1M',
+                  stage: 'Series A',
+                  avatar: '🚀',
+                  bgColor: 'bg-blue-50'
+                },
+                {
+                  name: 'GreenScale',
+                  subtitle: 'Sustainable Energy',
+                  amount: '$1.8M',
+                  stage: 'Seed Round',
+                  avatar: '🌱',
+                  bgColor: 'bg-green-50'
+                },
+                {
+                  name: 'HealthTech Connect',
+                  subtitle: 'Digital Healthcare',
+                  amount: '$3.2M',
+                  stage: 'Series A',
+                  avatar: '❤️',
+                  bgColor: 'bg-red-50'
+                }
+              ].map((founder, index) => (
+                <Card key={index} className={`p-6 ${founder.bgColor} border-gray-200`}>
+                  <div className="text-center">
+                    <div className="w-12 h-12 bg-white rounded-full flex items-center justify-center text-2xl mb-4 mx-auto">
+                      {founder.avatar}
+                    </div>
+                    <h3 className="font-bold text-gray-900 mb-1">{founder.name}</h3>
+                    <p className="text-sm text-gray-600 mb-3">{founder.subtitle}</p>
+                    <div className="flex justify-between items-center text-sm">
+                      <span className="font-semibold text-green-600">{founder.amount}</span>
+                      <span className="text-gray-500">{founder.stage}</span>
+                    </div>
+                  </div>
+                </Card>
               ))}
             </div>
-          </div>
+
+            {/* Testimonials */}
+            <div className="grid md:grid-cols-3 gap-6">
+              {[
+                {
+                  name: 'Alex Chen',
+                  company: 'TechFlow',
+                  quote: 'Deal Room connected us with the perfect investors. Closed our Series A in 6 weeks.',
+                  avatar: 'AC'
+                },
+                {
+                  name: 'Sarah Martinez',
+                  company: 'GreenScale',
+                  quote: 'The curated network saved us months of outreach. Highly recommend.',
+                  avatar: 'SM'
+                },
+                {
+                  name: 'David Kim',
+                  company: 'HealthTech',
+                  quote: 'Professional process from start to finish. Great investor matching.',
+                  avatar: 'DK'
+                }
+              ].map((testimonial, index) => (
+                <Card key={index} className="p-6 bg-gray-50 border-gray-200">
+                  <div className="flex items-start space-x-4">
+                    <div className="w-10 h-10 bg-purple-500 rounded-full flex items-center justify-center text-white text-sm font-bold">
+                      {testimonial.avatar}
+                    </div>
+                    <div className="flex-1 text-left">
+                      <p className="text-gray-700 text-sm mb-2">"{testimonial.quote}"</p>
+                      <div>
+                        <div className="font-semibold text-gray-900 text-sm">{testimonial.name}</div>
+                        <div className="text-gray-500 text-xs">{testimonial.company}</div>
+                      </div>
+                    </div>
+                  </div>
+                </Card>
+              ))}
+            </div>
+          </motion.div>
         </div>
       </section>
 
-      {/* How It Works Section */}
-      <section className="py-20 px-4">
+      {/* Why Our Deal Room Works */}
+      <section className="py-20 px-4 bg-gradient-to-br from-gray-50 to-purple-50/30">
         <div className="container mx-auto max-w-6xl">
           <motion.div
             initial={{ opacity: 0, y: 30 }}
@@ -122,324 +162,157 @@ export default function DealRoomSalesPage() {
             transition={{ duration: 0.8, delay: 0.3 }}
             className="text-center mb-16"
           >
-            <h2 className="text-4xl md:text-5xl font-bold mb-6">How Deal Room Works</h2>
-            <p className="text-xl text-muted-foreground max-w-3xl mx-auto">
-              Our proven 3-step process has helped 400+ startups raise over $127M in funding
+            <h2 className="text-4xl md:text-5xl font-bold mb-6 text-gray-900">Why Our Deal Room Works</h2>
+            <p className="text-xl text-gray-600 max-w-3xl mx-auto">
+              Four key advantages that set successful founders apart
             </p>
           </motion.div>
 
-          <div className="grid md:grid-cols-3 gap-8 mb-16">
+          <div className="grid md:grid-cols-2 gap-8 mb-16">
             {[
               {
-                step: "1",
-                icon: <UserCheck className="w-8 h-8" />,
-                title: "Qualify & Match",
-                description: "Our AI analyzes your startup profile and matches you with the most relevant investors in our network of 50+ VCs and angels.",
-                features: ["ProofScore validation", "Industry matching", "Stage-appropriate investors"]
+                icon: '📊',
+                title: 'AI-Powered Matching',
+                description: 'Advanced algorithms match startups with investors based on industry, stage, check size, and portfolio fit.',
+                bgColor: 'bg-blue-50',
+                textColor: 'text-blue-800'
               },
               {
-                step: "2",
-                icon: <FileText className="w-8 h-8" />,
-                title: "Optimize & Prepare",
-                description: "We optimize your pitch deck and fundraising materials using proven frameworks that have closed $127M+ in funding.",
-                features: ["Pitch deck optimization", "Financial model review", "Market validation"]
+                icon: '🎯',
+                title: 'Curated Investor Network',
+                description: 'Access to pre-qualified investors who actively invest in your sector and stage.',
+                bgColor: 'bg-green-50',
+                textColor: 'text-green-800'
               },
               {
-                step: "3",
-                icon: <Handshake className="w-8 h-8" />,
-                title: "Connect & Close",
-                description: "Get warm introductions to qualified investors and expert support throughout your fundraising process.",
-                features: ["Warm introductions", "Expert guidance", "Closing support"]
+                icon: '📈',
+                title: 'Pitch Optimization',
+                description: 'Data-driven improvements to your pitch deck and materials based on successful raises.',
+                bgColor: 'bg-orange-50',
+                textColor: 'text-orange-800'
+              },
+              {
+                icon: '🤝',
+                title: 'Strategic Partnerships',
+                description: 'Beyond funding - access to strategic partners, customers, and growth opportunities.',
+                bgColor: 'bg-purple-50',
+                textColor: 'text-purple-800'
               }
-            ].map((step, index) => (
+            ].map((feature, index) => (
               <motion.div
                 key={index}
                 initial={{ opacity: 0, y: 30 }}
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ duration: 0.8, delay: 0.4 + index * 0.1 }}
-                className="relative"
               >
-                <Card className="p-8 h-full border-border bg-card hover:border-primary-gold/30 transition-colors relative">
-                  <div className="absolute -top-4 left-8">
-                    <div className="w-8 h-8 bg-primary-gold rounded-full flex items-center justify-center text-black font-bold">
-                      {step.step}
+                <Card className={`p-8 h-full ${feature.bgColor} border-gray-200`}>
+                  <div className="flex items-start space-x-4">
+                    <div className="text-4xl mb-4">{feature.icon}</div>
+                    <div className="flex-1">
+                      <h3 className={`text-xl font-bold mb-3 ${feature.textColor}`}>{feature.title}</h3>
+                      <p className="text-gray-600 leading-relaxed">{feature.description}</p>
                     </div>
                   </div>
-                  <div className="w-16 h-16 bg-primary/10 rounded-2xl flex items-center justify-center mb-6 text-primary mt-4">
-                    {step.icon}
-                  </div>
-                  <h3 className="text-2xl font-bold mb-4">{step.title}</h3>
-                  <p className="text-muted-foreground mb-6 leading-relaxed">{step.description}</p>
-                  <ul className="space-y-2">
-                    {step.features.map((item, i) => (
-                      <li key={i} className="flex items-center text-sm">
-                        <Check className="w-4 h-4 text-primary-gold mr-2 flex-shrink-0" />
-                        {item}
-                      </li>
-                    ))}
-                  </ul>
                 </Card>
               </motion.div>
             ))}
           </div>
-
-          <div className="text-center">
-            <p className="text-muted-foreground mb-6">
-              Average time from application to first investor meeting: <span className="text-primary-gold font-semibold">2 weeks</span>
-            </p>
-            <Button size="lg" className="gradient-button text-lg px-8 py-6 h-auto">
-              <Timer className="w-6 h-6 mr-2" />
-              Start Your 2-Week Journey
-            </Button>
-          </div>
         </div>
       </section>
 
-      {/* Pricing Section */}
-      <section className="py-20 px-4 bg-card/30">
-        <div className="container mx-auto max-w-6xl">
+      {/* Choose Your Access Level */}
+      <section className="py-20 px-4 bg-gradient-to-br from-purple-600 to-orange-500">
+        <div className="container mx-auto max-w-4xl">
           <motion.div
             initial={{ opacity: 0, y: 30 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.8, delay: 0.5 }}
             className="text-center mb-16"
           >
-            <h2 className="text-4xl md:text-5xl font-bold mb-6">Choose Your Investment Package</h2>
-            <p className="text-xl text-muted-foreground max-w-3xl mx-auto">
-              Flexible pricing designed to maximize your fundraising success
+            <h2 className="text-4xl md:text-5xl font-bold mb-6 text-white">Choose Your Access Level</h2>
+            <p className="text-xl text-purple-100 max-w-3xl mx-auto">
+              Get started with our proven fundraising system
             </p>
           </motion.div>
 
-          <div className="grid md:grid-cols-3 gap-8">
-            {[
-              {
-                name: "Starter",
-                price: "$497",
-                period: "one-time",
-                description: "Perfect for early-stage startups ready to connect with investors",
-                features: [
-                  "Basic investor matching (10 matches)",
-                  "Standard data room (30 days)",
-                  "Email support",
-                  "Basic analytics",
-                  "Pitch deck review"
-                ],
-                popular: false
-              },
-              {
-                name: "Professional",
-                price: "$1,497",
-                period: "one-time",
-                description: "Comprehensive solution for serious fundraising campaigns",
-                features: [
-                  "Advanced investor matching (50 matches)",
-                  "Premium data room (90 days)",
-                  "Priority support",
-                  "Advanced analytics & tracking",
-                  "Expert pitch deck optimization",
-                  "Warm investor introductions",
-                  "Monthly strategy calls"
-                ],
-                popular: true
-              },
-              {
-                name: "Enterprise",
-                price: "$3,997",
-                period: "one-time",
-                description: "White-glove service for high-growth companies seeking Series A+",
-                features: [
-                  "Unlimited investor matching",
-                  "Enterprise data room (1 year)",
-                  "Dedicated account manager",
-                  "Real-time investor intelligence",
-                  "Custom pitch deck development",
-                  "Executive introductions",
-                  "Weekly strategy sessions",
-                  "Legal document templates",
-                  "Due diligence preparation"
-                ],
-                popular: false
-              }
-            ].map((plan, index) => (
-              <motion.div
-                key={index}
-                initial={{ opacity: 0, y: 30 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ duration: 0.8, delay: 0.6 + index * 0.1 }}
+          <div className="max-w-md mx-auto">
+            <Card className="p-8 bg-white shadow-2xl">
+              <div className="text-center mb-8">
+                <h3 className="text-2xl font-bold mb-2 text-gray-900">Deal Room Access</h3>
+                <div className="mb-4">
+                  <span className="text-5xl font-bold text-gray-900">$99</span>
+                  <span className="text-gray-500 ml-2">one-time</span>
+                </div>
+                <p className="text-gray-600">Complete access to our investor network and resources</p>
+              </div>
+              
+              <ul className="space-y-4 mb-8">
+                {[
+                  "Curated investor matching",
+                  "Pitch deck optimization",
+                  "Direct investor introductions",
+                  "Fundraising strategy sessions",
+                  "Deal room dashboard access",
+                  "Expert mentorship calls",
+                  "Success metrics tracking"
+                ].map((feature, i) => (
+                  <li key={i} className="flex items-start">
+                    <Check className="w-5 h-5 text-green-500 mr-3 flex-shrink-0 mt-0.5" />
+                    <span className="text-gray-700">{feature}</span>
+                  </li>
+                ))}
+              </ul>
+              
+              <Button 
+                size="lg" 
+                className="w-full h-12 gradient-button text-lg font-semibold"
               >
-                <Card className={`p-8 h-full relative ${plan.popular ? 'border-primary-gold bg-primary-gold/5' : 'border-border bg-card'}`}>
-                  {plan.popular && (
-                    <Badge className="absolute -top-3 left-1/2 transform -translate-x-1/2 bg-primary-gold text-black px-4 py-1">
-                      <Award className="w-4 h-4 mr-1" />
-                      Most Popular
-                    </Badge>
-                  )}
-                  <div className="text-center mb-8">
-                    <h3 className="text-2xl font-bold mb-2">{plan.name}</h3>
-                    <div className="mb-4">
-                      <span className="text-4xl font-bold gradient-text">{plan.price}</span>
-                      <span className="text-muted-foreground ml-2">{plan.period}</span>
-                    </div>
-                    <p className="text-muted-foreground">{plan.description}</p>
-                  </div>
-                  
-                  <ul className="space-y-3 mb-8">
-                    {plan.features.map((feature, i) => (
-                      <li key={i} className="flex items-start">
-                        <Check className="w-5 h-5 text-primary-gold mr-3 flex-shrink-0 mt-0.5" />
-                        <span className="text-sm">{feature}</span>
-                      </li>
-                    ))}
-                  </ul>
-                  
-                  <Button 
-                    size="lg" 
-                    className={`w-full h-12 ${plan.popular ? 'gradient-button' : 'border-primary-gold text-primary-gold hover:bg-primary-gold hover:text-black'}`}
-                    variant={plan.popular ? "default" : "outline"}
-                  >
-                    Get Started
-                    <ArrowRight className="w-5 h-5 ml-2" />
-                  </Button>
-                </Card>
-              </motion.div>
-            ))}
+                Get Started Now
+              </Button>
+              
+              <p className="text-center text-sm text-gray-500 mt-4">
+                30-day money-back guarantee • No monthly fees
+              </p>
+            </Card>
           </div>
         </div>
       </section>
 
-      {/* Testimonials Section */}
-      <section className="py-20 px-4">
-        <div className="container mx-auto max-w-6xl">
-          <motion.div
-            initial={{ opacity: 0, y: 30 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.8, delay: 0.7 }}
-            className="text-center mb-16"
-          >
-            <h2 className="text-4xl md:text-5xl font-bold mb-6">Success Stories</h2>
-            <p className="text-xl text-muted-foreground max-w-3xl mx-auto">
-              See how other founders used our Deal Room to secure their funding
-            </p>
-          </motion.div>
-
-          <div className="grid md:grid-cols-2 gap-8">
-            {[
-              {
-                quote: "The Deal Room connected us with exactly the right investors. We closed our Series A in just 6 weeks.",
-                author: "Sarah Chen",
-                company: "TechFlow AI",
-                amount: "$2.5M Series A",
-                avatar: "SC"
-              },
-              {
-                quote: "Premium investor matching and expert guidance made all the difference. Worth every penny.",
-                author: "Marcus Rodriguez",
-                company: "GreenScale",
-                amount: "$750K Seed",
-                avatar: "MR"
-              }
-            ].map((testimonial, index) => (
-              <motion.div
-                key={index}
-                initial={{ opacity: 0, y: 30 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ duration: 0.8, delay: 0.8 + index * 0.1 }}
-              >
-                <Card className="p-8 border-border bg-card">
-                  <div className="flex mb-4">
-                    {[...Array(5)].map((_, i) => (
-                      <Star key={i} className="w-5 h-5 fill-primary-gold text-primary-gold" />
-                    ))}
-                  </div>
-                  <blockquote className="text-lg mb-6 leading-relaxed">"{testimonial.quote}"</blockquote>
-                  <div className="flex items-center">
-                    <div className="w-12 h-12 bg-primary/10 rounded-full flex items-center justify-center mr-4">
-                      <span className="text-sm font-bold text-primary">{testimonial.avatar}</span>
-                    </div>
-                    <div>
-                      <div className="font-semibold">{testimonial.author}</div>
-                      <div className="text-sm text-muted-foreground">{testimonial.company} • {testimonial.amount}</div>
-                    </div>
-                  </div>
-                </Card>
-              </motion.div>
-            ))}
-          </div>
-        </div>
-      </section>
-
-      {/* FAQ Section */}
-      <section className="py-20 px-4 bg-card/30">
-        <div className="container mx-auto max-w-4xl">
-          <motion.div
-            initial={{ opacity: 0, y: 30 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.8, delay: 0.9 }}
-            className="text-center mb-16"
-          >
-            <h2 className="text-4xl md:text-5xl font-bold mb-6">Frequently Asked Questions</h2>
-          </motion.div>
-
-          <div className="space-y-6">
-            {[
-              {
-                question: "How does the investor matching work?",
-                answer: "Our AI algorithm analyzes your startup profile, industry, funding stage, and goals to match you with investors who have a proven track record in your sector."
-              },
-              {
-                question: "What makes this different from other fundraising platforms?",
-                answer: "We focus exclusively on high-quality, pre-qualified startups (ProofScore 70+) and maintain curated relationships with premium investors, ensuring higher success rates."
-              },
-              {
-                question: "How long does it take to see results?",
-                answer: "Most clients start receiving investor introductions within 48 hours of onboarding, with initial meetings typically scheduled within 2 weeks."
-              },
-              {
-                question: "Is there a money-back guarantee?",
-                answer: "Yes, we offer a 30-day satisfaction guarantee. If you're not completely satisfied with the service, we'll provide a full refund."
-              }
-            ].map((faq, index) => (
-              <motion.div
-                key={index}
-                initial={{ opacity: 0, y: 20 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ duration: 0.6, delay: 1.0 + index * 0.1 }}
-              >
-                <Card className="p-6 border-border bg-card">
-                  <h3 className="text-lg font-semibold mb-3">{faq.question}</h3>
-                  <p className="text-muted-foreground leading-relaxed">{faq.answer}</p>
-                </Card>
-              </motion.div>
-            ))}
-          </div>
-        </div>
-      </section>
-
-      {/* Final CTA Section */}
-      <section className="py-20 px-4 bg-gradient-to-r from-primary/20 via-background to-primary-gold/20">
+      {/* Ready to Accelerate */}
+      <section className="py-20 px-4 bg-white">
         <div className="container mx-auto max-w-4xl text-center">
           <motion.div
             initial={{ opacity: 0, y: 30 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.8, delay: 1.2 }}
           >
-            <h2 className="text-4xl md:text-5xl font-bold mb-6">Ready to Access the Deal Room?</h2>
-            <p className="text-xl text-muted-foreground mb-8 max-w-2xl mx-auto">
-              Join the exclusive network of high-performing startups and connect with premium investors today
+            <h2 className="text-4xl md:text-5xl font-bold mb-6 text-gray-900">
+              Ready to <span className="gradient-text">Accelerate</span> Your Fundraising?
+            </h2>
+            <p className="text-xl text-gray-600 mb-8 max-w-2xl mx-auto">
+              Join 300+ startups that have successfully raised capital through our Deal Room
             </p>
-            <div className="flex flex-col sm:flex-row gap-4 justify-center">
-              <Button size="lg" className="gradient-button text-lg px-12 py-6 h-auto">
-                <Zap className="w-6 h-6 mr-2" />
-                Start Now - Professional
-              </Button>
-              <Button size="lg" variant="outline" className="border-primary-gold text-primary-gold hover:bg-primary-gold hover:text-black text-lg px-12 py-6 h-auto">
-                <Shield className="w-6 h-6 mr-2" />
-                Book Free Consultation
-              </Button>
+            
+            <Button size="lg" className="gradient-button text-lg px-12 py-6 h-auto mb-8">
+              Join Deal Room Today
+            </Button>
+            
+            <div className="bg-gradient-to-r from-purple-50 to-orange-50 rounded-2xl p-8 max-w-2xl mx-auto">
+              <div className="flex items-center justify-center space-x-8 text-sm text-gray-600">
+                <div className="flex items-center">
+                  <CheckCircle2 className="w-5 h-5 text-green-500 mr-2" />
+                  <span>Instant Access</span>
+                </div>
+                <div className="flex items-center">
+                  <CheckCircle2 className="w-5 h-5 text-green-500 mr-2" />
+                  <span>30-Day Guarantee</span>
+                </div>
+                <div className="flex items-center">
+                  <CheckCircle2 className="w-5 h-5 text-green-500 mr-2" />
+                  <span>Expert Support</span>
+                </div>
+              </div>
             </div>
-            <p className="text-sm text-muted-foreground mt-4">
-              30-day money-back guarantee • No setup fees • Cancel anytime
-            </p>
           </motion.div>
         </div>
       </section>
