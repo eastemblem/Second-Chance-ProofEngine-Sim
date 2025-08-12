@@ -27,7 +27,7 @@ export const db = drizzle({ client: pool, schema });
 
 // Connection pool event handlers for monitoring
 pool.on('connect', (client) => {
-  console.log('Database connection established:', (client as any).processID);
+  console.log('Database connection established successfully');
 });
 
 pool.on('error', (err: Error) => {
