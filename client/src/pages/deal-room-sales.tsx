@@ -1,5 +1,5 @@
 import { motion } from "framer-motion";
-import { ArrowRight, Check, Star, Users, TrendingUp, Shield, Zap, Target, Crown, Award, Briefcase, DollarSign, ChevronRight, PlayCircle } from "lucide-react";
+import { ArrowRight, Check, Star, Users, TrendingUp, Shield, Zap, Target, Crown, Award, Briefcase, DollarSign, ChevronRight, PlayCircle, Rocket, BarChart3, Lock, Globe, MessageSquare, Calendar, Phone, Mail, CheckCircle2, Trophy, Lightbulb, FileText, PieChart, UserCheck, Timer, Handshake, TrendingDown } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -22,50 +22,98 @@ export default function DealRoomSalesPage() {
               PREMIUM DEAL ROOM ACCESS
             </Badge>
             <h1 className="text-5xl md:text-7xl font-bold mb-6 leading-tight">
-              Your Gateway to
-              <span className="block gradient-text">Investor Success</span>
+              Welcome to the
+              <span className="block gradient-text">Deal Room</span>
             </h1>
             <p className="text-xl md:text-2xl text-muted-foreground mb-8 max-w-3xl mx-auto leading-relaxed">
-              Join the exclusive Deal Room where high-performing startups connect with premium investors. 
-              Your ProofScore of 70+ unlocks access to curated opportunities and accelerated growth.
+              Your ProofScore qualifies you for our exclusive investor network. Connect with pre-vetted investors, 
+              access premium resources, and accelerate your fundraising journey.
             </p>
             <div className="flex flex-col sm:flex-row gap-4 justify-center">
               <Button size="lg" className="gradient-button text-lg px-8 py-6 h-auto">
-                <PlayCircle className="w-6 h-6 mr-2" />
-                Watch Demo Video
+                <Rocket className="w-6 h-6 mr-2" />
+                Start Your Journey
               </Button>
               <Button size="lg" variant="outline" className="border-primary-gold text-primary-gold hover:bg-primary-gold hover:text-black text-lg px-8 py-6 h-auto">
-                <Target className="w-6 h-6 mr-2" />
-                Schedule Strategy Call
+                <Calendar className="w-6 h-6 mr-2" />
+                Book Strategy Session
               </Button>
             </div>
           </motion.div>
         </div>
       </section>
 
-      {/* Social Proof Section */}
-      <section className="py-16 px-4 bg-card/50">
+      {/* Why Deal Room Section */}
+      <section className="py-16 px-4 bg-card/30">
         <div className="container mx-auto max-w-6xl">
           <motion.div
             initial={{ opacity: 0, y: 30 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.8, delay: 0.2 }}
-            className="text-center mb-12"
+            className="text-center mb-16"
           >
-            <h2 className="text-3xl md:text-4xl font-bold mb-6">Trusted by High-Growth Startups</h2>
+            <h2 className="text-3xl md:text-4xl font-bold mb-6">Why Deal Room Works</h2>
+            <p className="text-xl text-muted-foreground max-w-3xl mx-auto">
+              Traditional fundraising is broken. 98% of startups never raise capital. We're changing that.
+            </p>
+          </motion.div>
+
+          <div className="grid md:grid-cols-2 gap-12 items-center mb-16">
+            <div>
+              <h3 className="text-2xl font-bold mb-6 text-red-400">The Traditional Way (Broken)</h3>
+              <div className="space-y-4">
+                {[
+                  'Cold outreach to investors (2% response rate)',
+                  'Generic pitch decks that don\'t convert',
+                  'No investor matching or qualification',
+                  'Months of wasted time and rejection',
+                  'No feedback or guidance from experts'
+                ].map((item, index) => (
+                  <div key={index} className="flex items-center">
+                    <TrendingDown className="w-5 h-5 text-red-400 mr-3 flex-shrink-0" />
+                    <span className="text-muted-foreground">{item}</span>
+                  </div>
+                ))}
+              </div>
+            </div>
+            <div>
+              <h3 className="text-2xl font-bold mb-6 gradient-text">The Deal Room Way (Proven)</h3>
+              <div className="space-y-4">
+                {[
+                  'Warm introductions to qualified investors',
+                  'AI-optimized pitch decks with proven frameworks',
+                  'Smart matching based on your specific needs',
+                  'Average 6-week funding timeline',
+                  'Expert guidance at every step'
+                ].map((item, index) => (
+                  <div key={index} className="flex items-center">
+                    <CheckCircle2 className="w-5 h-5 text-primary-gold mr-3 flex-shrink-0" />
+                    <span>{item}</span>
+                  </div>
+                ))}
+              </div>
+            </div>
+          </div>
+
+          <div className="text-center">
             <div className="grid grid-cols-2 md:grid-cols-4 gap-8 items-center">
-              {['200+ Startups', '$50M+ Raised', '85% Success Rate', '30+ VCs'].map((stat, index) => (
+              {[
+                { number: '400+', label: 'Successful Raises' },
+                { number: '$127M+', label: 'Capital Raised' },
+                { number: '92%', label: 'Success Rate' },
+                { number: '50+', label: 'Partner VCs' }
+              ].map((stat, index) => (
                 <div key={index} className="text-center">
-                  <div className="text-3xl font-bold gradient-text mb-2">{stat.split(' ')[0]}</div>
-                  <div className="text-muted-foreground">{stat.split(' ').slice(1).join(' ')}</div>
+                  <div className="text-3xl font-bold gradient-text mb-2">{stat.number}</div>
+                  <div className="text-muted-foreground">{stat.label}</div>
                 </div>
               ))}
             </div>
-          </motion.div>
+          </div>
         </div>
       </section>
 
-      {/* Features Section */}
+      {/* How It Works Section */}
       <section className="py-20 px-4">
         <div className="container mx-auto max-w-6xl">
           <motion.div
@@ -74,47 +122,56 @@ export default function DealRoomSalesPage() {
             transition={{ duration: 0.8, delay: 0.3 }}
             className="text-center mb-16"
           >
-            <h2 className="text-4xl md:text-5xl font-bold mb-6">Everything You Need to Succeed</h2>
+            <h2 className="text-4xl md:text-5xl font-bold mb-6">How Deal Room Works</h2>
             <p className="text-xl text-muted-foreground max-w-3xl mx-auto">
-              Access premium tools, exclusive networks, and expert guidance designed for investor-ready startups
+              Our proven 3-step process has helped 400+ startups raise over $127M in funding
             </p>
           </motion.div>
 
-          <div className="grid md:grid-cols-3 gap-8">
+          <div className="grid md:grid-cols-3 gap-8 mb-16">
             {[
               {
-                icon: <Users className="w-8 h-8" />,
-                title: "Curated Investor Matching",
-                description: "Connect with pre-qualified investors who match your industry, stage, and funding requirements",
-                features: ["AI-powered matching", "Warm introductions", "Direct contact details"]
+                step: "1",
+                icon: <UserCheck className="w-8 h-8" />,
+                title: "Qualify & Match",
+                description: "Our AI analyzes your startup profile and matches you with the most relevant investors in our network of 50+ VCs and angels.",
+                features: ["ProofScore validation", "Industry matching", "Stage-appropriate investors"]
               },
               {
-                icon: <Briefcase className="w-8 h-8" />,
-                title: "Premium Data Room",
-                description: "Professional-grade virtual data room with advanced analytics and investor tracking",
-                features: ["Secure document sharing", "Investor activity tracking", "Professional templates"]
+                step: "2",
+                icon: <FileText className="w-8 h-8" />,
+                title: "Optimize & Prepare",
+                description: "We optimize your pitch deck and fundraising materials using proven frameworks that have closed $127M+ in funding.",
+                features: ["Pitch deck optimization", "Financial model review", "Market validation"]
               },
               {
-                icon: <TrendingUp className="w-8 h-8" />,
-                title: "Growth Acceleration",
-                description: "Access exclusive resources, mentorship, and strategic partnerships for rapid scaling",
-                features: ["Expert mentorship", "Strategic partnerships", "Exclusive events"]
+                step: "3",
+                icon: <Handshake className="w-8 h-8" />,
+                title: "Connect & Close",
+                description: "Get warm introductions to qualified investors and expert support throughout your fundraising process.",
+                features: ["Warm introductions", "Expert guidance", "Closing support"]
               }
-            ].map((feature, index) => (
+            ].map((step, index) => (
               <motion.div
                 key={index}
                 initial={{ opacity: 0, y: 30 }}
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ duration: 0.8, delay: 0.4 + index * 0.1 }}
+                className="relative"
               >
-                <Card className="p-8 h-full border-border bg-card hover:border-primary-gold/30 transition-colors">
-                  <div className="w-16 h-16 bg-primary/10 rounded-2xl flex items-center justify-center mb-6 text-primary">
-                    {feature.icon}
+                <Card className="p-8 h-full border-border bg-card hover:border-primary-gold/30 transition-colors relative">
+                  <div className="absolute -top-4 left-8">
+                    <div className="w-8 h-8 bg-primary-gold rounded-full flex items-center justify-center text-black font-bold">
+                      {step.step}
+                    </div>
                   </div>
-                  <h3 className="text-2xl font-bold mb-4">{feature.title}</h3>
-                  <p className="text-muted-foreground mb-6 leading-relaxed">{feature.description}</p>
+                  <div className="w-16 h-16 bg-primary/10 rounded-2xl flex items-center justify-center mb-6 text-primary mt-4">
+                    {step.icon}
+                  </div>
+                  <h3 className="text-2xl font-bold mb-4">{step.title}</h3>
+                  <p className="text-muted-foreground mb-6 leading-relaxed">{step.description}</p>
                   <ul className="space-y-2">
-                    {feature.features.map((item, i) => (
+                    {step.features.map((item, i) => (
                       <li key={i} className="flex items-center text-sm">
                         <Check className="w-4 h-4 text-primary-gold mr-2 flex-shrink-0" />
                         {item}
@@ -124,6 +181,16 @@ export default function DealRoomSalesPage() {
                 </Card>
               </motion.div>
             ))}
+          </div>
+
+          <div className="text-center">
+            <p className="text-muted-foreground mb-6">
+              Average time from application to first investor meeting: <span className="text-primary-gold font-semibold">2 weeks</span>
+            </p>
+            <Button size="lg" className="gradient-button text-lg px-8 py-6 h-auto">
+              <Timer className="w-6 h-6 mr-2" />
+              Start Your 2-Week Journey
+            </Button>
           </div>
         </div>
       </section>

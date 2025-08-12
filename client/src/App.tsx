@@ -16,7 +16,7 @@ const OnboardingFlow = lazy(() => import("@/pages/onboarding-flow"));
 const ScoringPage = lazy(() => import("@/pages/scoring"));
 const FeedbackPage = lazy(() => import("@/pages/feedback"));
 const PathwayPage = lazy(() => import("@/pages/pathway"));
-const DealRoomPage = lazy(() => import("@/pages/deal-room"));
+const DealRoomSalesPage = lazy(() => import("@/pages/deal-room-sales"));
 const ProofScalingDashboard = lazy(() => import("@/pages/proofscaling-dashboard"));
 const FinalPage = lazy(() => import("@/pages/final"));
 const Privacy = lazy(() => import("@/pages/Privacy"));
@@ -228,7 +228,7 @@ function Router() {
       )} />
       <Route path="/deal-room" component={() => (
         <Suspense fallback={<SimpleLoader />}>
-          <DealRoomPage />
+          <DealRoomSalesPage />
         </Suspense>
       )} />
       <Route path="/proofscaling" component={() => (
