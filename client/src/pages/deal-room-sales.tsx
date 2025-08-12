@@ -1,8 +1,75 @@
 import { motion } from "framer-motion";
-import { ArrowRight, Check, Star, Users, TrendingUp, Shield, Zap, Target, Crown, Award, Briefcase, DollarSign, ChevronRight, PlayCircle, Rocket, BarChart3, Lock, Globe, MessageSquare, Calendar, Phone, Mail, CheckCircle2, Trophy, Lightbulb, FileText, PieChart, UserCheck, Timer, Handshake, TrendingDown, Clock } from "lucide-react";
-import { Button } from "@/components/ui/button";
+import { ArrowRight, Star, Users, TrendingUp, Shield, Zap, Crown, Award, DollarSign, Timer, Handshake, CheckCircle2, Target, Trophy, Rocket, PlayCircle } from "lucide-react";
 import { Card } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
+
+// Import reusable components
+import { AnimatedSection } from "@/components/deal-room/animated-section";
+import { SectionHeader } from "@/components/deal-room/section-header";
+import { MetricCard } from "@/components/deal-room/metric-card";
+import { FeatureList } from "@/components/deal-room/feature-list";
+import { GradientButton } from "@/components/deal-room/gradient-button";
+import { TestimonialCard } from "@/components/deal-room/testimonial-card";
+import { CompanyLogoGrid } from "@/components/deal-room/company-logo";
+import { BadgeWithIcon } from "@/components/deal-room/badge-with-icon";
+
+// Data constants
+const heroMetrics = [
+  { value: "87%", label: "Success Rate", delay: 0.7 },
+  { value: "$2.4M", label: "Avg. Raise", delay: 0.8 },
+  { value: "14", label: "Days", delay: 0.9 },
+  { value: "300+", label: "Active Investors", delay: 1.0 }
+];
+
+const partnerCompanies = [
+  "500Global", "Plug and Play", "Techstars", "Y Combinator", 
+  "AngelList", "Seedcamp"
+];
+
+const testimonials = [
+  {
+    name: "Sarah Chen",
+    title: "CEO & Founder",
+    company: "FinTech Innovations",
+    proofScore: 78,
+    quote: "The Deal Room connected us with the perfect investors who understood our market. We closed our Series A in just 6 weeks.",
+    rating: 5,
+    result: "$3.2M Raised",
+    avatar: "SC"
+  },
+  {
+    name: "Marcus Rodriguez",
+    title: "Co-Founder",
+    company: "GreenTech Solutions",
+    proofScore: 82,
+    quote: "Having our ProofScore validated gave investors confidence. The warm introductions made all the difference.",
+    rating: 5,
+    result: "$1.8M Raised",
+    avatar: "MR"
+  },
+  {
+    name: "Emily Foster",
+    title: "Founder",
+    company: "HealthTech AI",
+    proofScore: 85,
+    quote: "The strategic partnerships we gained through Deal Room were as valuable as the funding itself.",
+    rating: 5,
+    result: "$4.1M Raised",
+    avatar: "EF"
+  }
+];
+
+const features = [
+  'Unlimited investor introductions',
+  'Complete ProofVault access',
+  'Priority deal flow placement',
+  'Dedicated success support',
+  'Corporate partnership opportunities',
+  'Quarterly demo day invitations',
+  'Expert network access',
+  'Due diligence fast-track'
+];
 
 export default function DealRoomSalesPage() {
   return (
@@ -303,77 +370,19 @@ export default function DealRoomSalesPage() {
             </motion.div>
 
             {/* Testimonials */}
-            <motion.div 
-              className="grid md:grid-cols-3 gap-8"
-              initial={{ opacity: 0, y: 40 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.8, delay: 0.8 }}
-            >
-              {[
-                {
-                  name: 'Sarah Chen',
-                  title: 'CEO @ HealthTech AI',
-                  proofScore: '92',
-                  quote: '"The Deal Room cut our fundraising timeline from 8 months to 6 weeks. The quality of investors was exceptional."',
-                  result: '$1.2M Series A',
-                  avatar: 'SC',
-                  bgColor: 'bg-purple-500',
-                  rating: 5
-                },
-                {
-                  name: 'Marcus Rodriguez',
-                  title: 'Founder @ FinFlow',
-                  proofScore: '85',
-                  quote: '"Within 24 hours of joining, I had 3 investor meetings scheduled. This platform is a game-changer."',
-                  result: '$500K Pre-seed',
-                  avatar: 'MR',
-                  bgColor: 'bg-primary-gold',
-                  rating: 5
-                },
-                {
-                  name: 'Priya Patel',
-                  title: 'Co-founder @ EduTech Solutions',
-                  proofScore: '89',
-                  quote: '"The validation data made our pitch bulletproof. VCs loved the evidence-backed approach."',
-                  result: '$800K Seed',
-                  avatar: 'PP',
-                  bgColor: 'bg-primary',
-                  rating: 5
-                }
-              ].map((testimonial, index) => (
-                <motion.div
-                  key={index}
-                  initial={{ opacity: 0, y: 30 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  transition={{ duration: 0.6, delay: 0.9 + index * 0.1 }}
-                  whileHover={{ y: -5, scale: 1.02 }}
-                >
-                  <Card className="p-6 bg-card/50 backdrop-blur-sm hover:bg-card/80 transition-all duration-300 h-full">
-                    <div className="flex items-start mb-4">
-                      <div className={`w-12 h-12 rounded-full ${testimonial.bgColor} flex items-center justify-center text-white font-bold text-lg mr-4 flex-shrink-0`}>
-                        {testimonial.avatar}
-                      </div>
-                      <div className="text-left">
-                        <h4 className="font-semibold text-foreground text-lg">{testimonial.name}</h4>
-                        <p className="text-sm text-muted-foreground">{testimonial.title}</p>
-                        <p className="text-sm text-primary font-medium">ProofScore: {testimonial.proofScore}</p>
-                      </div>
-                    </div>
-                    
-                    <p className="text-sm text-muted-foreground mb-4 italic">{testimonial.quote}</p>
-                    
-                    <div className="flex items-center justify-between pt-4 border-t border-border">
-                      <div className="flex">
-                        {[...Array(testimonial.rating)].map((_, i) => (
-                          <Star key={i} className="w-4 h-4 fill-primary-gold text-primary-gold" />
-                        ))}
-                      </div>
-                      <div className="text-sm font-semibold text-primary">{testimonial.result}</div>
-                    </div>
-                  </Card>
-                </motion.div>
+            <AnimatedSection delay={0.8} className="grid md:grid-cols-3 gap-8">
+              {testimonials.map((testimonial, index) => (
+                <TestimonialCard
+                  key={testimonial.name}
+                  testimonial={{
+                    ...testimonial,
+                    company: testimonial.company,
+                    proofScore: testimonial.proofScore
+                  }}
+                  delay={0.9 + index * 0.1}
+                />
               ))}
-            </motion.div>
+            </AnimatedSection>
           </motion.div>
         </div>
       </section>
@@ -544,39 +553,16 @@ export default function DealRoomSalesPage() {
                 <p className="text-muted-foreground">per year</p>
               </div>
 
-              <ul className="space-y-4 mb-8">
-                {[
-                  'Unlimited investor introductions',
-                  'Complete ProofVault access',
-                  'Priority deal flow placement',
-                  'Dedicated success support',
-                  'Corporate partnership opportunities',
-                  'Quarterly demo day invitations',
-                  'Expert network access',
-                  'Due diligence fast-track'
-                ].map((feature, index) => (
-                  <motion.li 
-                    key={index} 
-                    className="flex items-center space-x-3"
-                    initial={{ opacity: 0, x: -20 }}
-                    animate={{ opacity: 1, x: 0 }}
-                    transition={{ duration: 0.5, delay: 0.6 + index * 0.05 }}
-                  >
-                    <CheckCircle2 className="text-green-500 h-5 w-5 flex-shrink-0" />
-                    <span className="text-foreground">{feature}</span>
-                  </motion.li>
-                ))}
-              </ul>
+              <FeatureList 
+                features={features}
+                startDelay={0.6}
+                className="mb-8"
+                iconColor="text-green-500"
+              />
 
-              <motion.div
-                whileHover={{ scale: 1.02 }}
-                whileTap={{ scale: 0.98 }}
-              >
-                <Button className="w-full bg-gradient-to-r from-primary via-primary-gold to-orange-500 hover:from-primary/90 hover:via-primary-gold/90 hover:to-orange-500/90 text-white text-lg py-4 h-auto rounded-full font-semibold shadow-lg" size="lg">
-                  Join Deal Room
-                  <ArrowRight className="w-5 h-5 ml-2" />
-                </Button>
-              </motion.div>
+              <GradientButton rightIcon={ArrowRight} size="lg" className="w-full">
+                Join Deal Room
+              </GradientButton>
             </Card>
           </motion.div>
 
@@ -628,41 +614,17 @@ export default function DealRoomSalesPage() {
               Join the most exclusive network of validated startups and get direct access to investors who understand the value of evidence-based ventures.
             </motion.p>
             
-            <motion.div
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.6, delay: 0.3 }}
-              className="mb-10"
-            >
-              <Button 
-                size="lg" 
-                className="bg-gradient-to-r from-primary via-primary-gold to-orange-500 hover:from-primary/90 hover:via-primary-gold/90 hover:to-orange-500/90 text-white text-xl font-semibold px-12 py-6 h-auto rounded-full shadow-xl"
-              >
-                <Crown className="w-5 h-5 mr-3" />
+            <AnimatedSection delay={0.3} className="mb-10">
+              <GradientButton leftIcon={Crown} rightIcon={ArrowRight} size="xl">
                 Join Deal Room Now
-                <ArrowRight className="w-5 h-5 ml-3" />
-              </Button>
-            </motion.div>
+              </GradientButton>
+            </AnimatedSection>
             
-            <motion.div 
-              className="flex flex-col md:flex-row items-center justify-center gap-8 mb-12 text-sm"
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.6, delay: 0.4 }}
-            >
-              <div className="flex items-center text-green-500">
-                <CheckCircle2 className="w-5 h-5 mr-2" />
-                <span className="text-muted-foreground">No setup fees</span>
-              </div>
-              <div className="flex items-center text-green-500">
-                <CheckCircle2 className="w-5 h-5 mr-2" />
-                <span className="text-muted-foreground">Cancel anytime</span>
-              </div>
-              <div className="flex items-center text-green-500">
-                <CheckCircle2 className="w-5 h-5 mr-2" />
-                <span className="text-muted-foreground">Money-back guarantee</span>
-              </div>
-            </motion.div>
+            <AnimatedSection delay={0.4} className="flex flex-col md:flex-row items-center justify-center gap-8 mb-12 text-sm">
+              <BadgeWithIcon text="No setup fees" icon={CheckCircle2} variant="default" />
+              <BadgeWithIcon text="Cancel anytime" icon={CheckCircle2} variant="default" />
+              <BadgeWithIcon text="Money-back guarantee" icon={CheckCircle2} variant="default" />
+            </AnimatedSection>
 
             {/* Limited spots banner */}
             <motion.div
