@@ -1583,70 +1583,25 @@ export default function Analysis({
               </div>
             </div>
 
-            {/* Generated Report */}
-            {(ventureData?.ventureId || sessionId) && (
-              <motion.div
-                initial={{ opacity: 0, y: 20 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ delay: 1.8, duration: 0.6 }}
-                className="mb-8"
-              >
-                <ReportDownload 
-                  ventureId={ventureData?.ventureId}
-                  sessionId={sessionId}
-                  existingReportUrl={reportUrl}
-                />
-              </motion.div>
-            )}
-
-            {/* Certificate Download */}
-            {(ventureData?.ventureId || sessionId) && (
-              <motion.div
-                initial={{ opacity: 0, y: 20 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ delay: 2.0, duration: 0.6 }}
-                className="mb-8"
-              >
-                <CertificateDownload
-                  ventureId={ventureData?.ventureId}
-                  sessionId={sessionId}
-                  ventureName={ventureName || ventureData?.name || "Your Venture"}
-                  existingCertificateUrl={certificateUrl}
-                />
-              </motion.div>
-            )}
-
-            {/* Next Steps Button */}
+            {/* See My Pathway Button */}
             <motion.div
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: 2.2, duration: 0.6 }}
+              transition={{ delay: 1.8, duration: 0.6 }}
               className="text-center mb-8"
             >
-              <div className="space-y-4">
-                <h3 className="text-xl font-semibold text-white mb-3">
-                  Ready for Your Next Steps?
-                </h3>
-                <p className="text-purple-200 mb-6 max-w-2xl mx-auto">
-                  {analysisData.total_score < 70 
-                    ? "Strengthen your venture fundamentals with our ProofScaling course and boost your score by 15-25 points."
-                    : "Unlock advanced tools and investor-ready materials to accelerate your path to investment."
+              <Button
+                onClick={() => {
+                  if (onComplete) {
+                    onComplete();
                   }
-                </p>
-                <Button
-                  onClick={() => {
-                    if (onNext) {
-                      onNext();
-                    }
-                  }}
-                  className="gradient-button px-6 sm:px-8 py-4 sm:py-6 text-base sm:text-lg w-full sm:w-auto min-h-[48px] mb-4"
-                  size="lg"
-                >
-                  Continue to Next Steps
-                  <ArrowRight className="ml-2 w-4 h-4 sm:w-5 sm:h-5" />
-                </Button>
-
-              </div>
+                }}
+                className="gradient-button px-6 sm:px-8 py-4 sm:py-6 text-base sm:text-lg w-full sm:w-auto min-h-[48px] mb-4"
+                size="lg"
+              >
+                See My Pathway
+                <ArrowRight className="ml-2 w-4 h-4 sm:w-5 sm:h-5" />
+              </Button>
             </motion.div>
           </motion.div>
         </div>
