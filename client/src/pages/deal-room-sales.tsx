@@ -158,101 +158,222 @@ export default function DealRoomSalesPage() {
       </section>
 
       {/* Trusted by Top Founders */}
-      <section className="py-16 px-4 bg-card/30">
+      <section className="py-20 px-4 bg-card/30">
         <div className="container mx-auto max-w-6xl">
           <motion.div
             initial={{ opacity: 0, y: 30 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.8, delay: 0.2 }}
-            className="text-center mb-12"
+            className="text-center mb-16"
           >
-            <h2 className="text-3xl md:text-4xl font-bold mb-8">Trusted by Top Founders</h2>
+            {/* Main heading */}
+            <motion.h2 
+              className="text-4xl md:text-5xl font-bold mb-6 text-foreground"
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.6, delay: 0.1 }}
+            >
+              Trusted by Top Founders
+            </motion.h2>
             
-            {/* Founder Profile Cards */}
-            <div className="grid md:grid-cols-3 gap-6 mb-16">
-              {[
-                {
-                  name: 'TechFlow',
-                  subtitle: 'AI-Powered Analytics',
-                  amount: '$2.1M',
-                  stage: 'Series A',
-                  avatar: '🚀',
-                  bgColor: 'bg-blue-500/10',
-                  borderColor: 'border-blue-500/20'
-                },
-                {
-                  name: 'GreenScale',
-                  subtitle: 'Sustainable Energy',
-                  amount: '$1.8M',
-                  stage: 'Seed Round',
-                  avatar: '🌱',
-                  bgColor: 'bg-green-500/10',
-                  borderColor: 'border-green-500/20'
-                },
-                {
-                  name: 'HealthTech Connect',
-                  subtitle: 'Digital Healthcare',
-                  amount: '$3.2M',
-                  stage: 'Series A',
-                  avatar: '❤️',
-                  bgColor: 'bg-red-500/10',
-                  borderColor: 'border-red-500/20'
-                }
-              ].map((founder, index) => (
-                <Card key={index} className={`p-6 ${founder.bgColor} ${founder.borderColor} border bg-card/50`}>
-                  <div className="text-center">
-                    <div className="w-12 h-12 bg-background rounded-full flex items-center justify-center text-2xl mb-4 mx-auto border">
-                      {founder.avatar}
-                    </div>
-                    <h3 className="font-bold mb-1">{founder.name}</h3>
-                    <p className="text-sm text-muted-foreground mb-3">{founder.subtitle}</p>
-                    <div className="flex justify-between items-center text-sm">
-                      <span className="font-semibold text-primary-gold">{founder.amount}</span>
-                      <span className="text-muted-foreground">{founder.stage}</span>
-                    </div>
-                  </div>
-                </Card>
-              ))}
-            </div>
+            {/* Subtitle */}
+            <motion.p 
+              className="text-lg text-muted-foreground mb-12 max-w-2xl mx-auto"
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.6, delay: 0.2 }}
+            >
+              See how validated startups are raising faster and bigger rounds through the Deal Room
+            </motion.p>
 
-            {/* Testimonials */}
-            <div className="grid md:grid-cols-3 gap-6">
+            {/* Partner logos section */}
+            <motion.div
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.6, delay: 0.3 }}
+              className="mb-16"
+            >
+              <p className="text-sm text-muted-foreground mb-8">
+                Trusted by leading accelerators and partners:
+              </p>
+              
+              <div className="grid grid-cols-2 md:grid-cols-4 gap-4 max-w-4xl mx-auto mb-8">
+                {[
+                  { name: '500Global', color: 'bg-gradient-to-r from-purple-500/20 to-blue-500/20 border-purple-500/30' },
+                  { name: 'Plug and Play Tech Centre', color: 'bg-gradient-to-r from-blue-500/20 to-purple-500/20 border-blue-500/30' },
+                  { name: 'Antler', color: 'bg-gradient-to-r from-primary-gold/20 to-yellow-500/20 border-primary-gold/30' },
+                  { name: 'FlateLabs', color: 'bg-gradient-to-r from-purple-500/20 to-pink-500/20 border-purple-500/30' },
+                  { name: 'Innoway', color: 'bg-gradient-to-r from-green-500/20 to-blue-500/20 border-green-500/30' },
+                  { name: 'Pleny', color: 'bg-gradient-to-r from-purple-500/20 to-primary-gold/20 border-purple-500/30' },
+                  { name: 'East Emblem', color: 'bg-gradient-to-r from-primary-gold/20 to-orange-500/20 border-primary-gold/30' },
+                  { name: 'Beyond Impact', color: 'bg-gradient-to-r from-blue-500/20 to-green-500/20 border-blue-500/30' }
+                ].map((partner, index) => (
+                  <motion.div
+                    key={index}
+                    initial={{ opacity: 0, scale: 0.9 }}
+                    animate={{ opacity: 1, scale: 1 }}
+                    transition={{ duration: 0.4, delay: 0.4 + index * 0.05 }}
+                    whileHover={{ scale: 1.05 }}
+                  >
+                    <Card className={`p-4 text-center ${partner.color} border backdrop-blur-sm hover:bg-card/80 transition-all duration-300`}>
+                      <div className="text-sm font-medium text-foreground">{partner.name}</div>
+                    </Card>
+                  </motion.div>
+                ))}
+              </div>
+            </motion.div>
+            
+            {/* Success story cards */}
+            <motion.div 
+              className="grid md:grid-cols-3 gap-8 mb-16"
+              initial={{ opacity: 0, y: 40 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.8, delay: 0.5 }}
+            >
               {[
                 {
-                  name: 'Alex Chen',
-                  company: 'TechFlow',
-                  quote: 'Deal Room connected us with the perfect investors. Closed our Series A in 6 weeks.',
-                  avatar: 'AC'
+                  company: 'TechFlow AI',
+                  achievement: 'Raised $3.2M Series A in 45 days',
+                  description: 'Used Deal Room validation data to secure oversubscribed funding round',
+                  raised: '$3.2M',
+                  timeline: '45 days',
+                  investors: '5',
+                  icon: <TrendingUp className="w-8 h-8" />,
+                  bgColor: 'bg-purple-500/10',
+                  borderColor: 'border-purple-500/20',
+                  accentColor: 'text-purple-400'
                 },
                 {
-                  name: 'Sarah Martinez',
-                  company: 'GreenScale',
-                  quote: 'The curated network saved us months of outreach. Highly recommend.',
-                  avatar: 'SM'
+                  company: 'GreenEnergy Corp',
+                  achievement: 'Secured 3 strategic investors same week',
+                  description: 'Corporate partnerships led to immediate funding opportunities',
+                  raised: '$1.8M',
+                  timeline: '7 days',
+                  investors: '3',
+                  icon: <Target className="w-8 h-8" />,
+                  bgColor: 'bg-green-500/10',
+                  borderColor: 'border-green-500/20',
+                  accentColor: 'text-green-400'
                 },
                 {
-                  name: 'David Kim',
-                  company: 'HealthTech',
-                  quote: 'Professional process from start to finish. Great investor matching.',
-                  avatar: 'DK'
+                  company: 'HealthTech Innovations',
+                  achievement: 'Closed oversubscribed seed round',
+                  description: 'Proof-based metrics convinced 12 investors to participate',
+                  raised: '$2.1M',
+                  timeline: '21 days',
+                  investors: '12',
+                  icon: <Target className="w-8 h-8" />,
+                  bgColor: 'bg-primary-gold/10',
+                  borderColor: 'border-primary-gold/20',
+                  accentColor: 'text-primary-gold'
                 }
-              ].map((testimonial, index) => (
-                <Card key={index} className="p-6 bg-card border-border">
-                  <div className="flex items-start space-x-4">
-                    <div className="w-10 h-10 bg-primary rounded-full flex items-center justify-center text-white text-sm font-bold">
-                      {testimonial.avatar}
+              ].map((story, index) => (
+                <motion.div
+                  key={index}
+                  initial={{ opacity: 0, y: 30 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ duration: 0.6, delay: 0.6 + index * 0.1 }}
+                  whileHover={{ y: -10, scale: 1.02 }}
+                >
+                  <Card className={`p-8 ${story.bgColor} ${story.borderColor} border bg-card/50 backdrop-blur-sm hover:bg-card/80 transition-all duration-300 h-full`}>
+                    <div className={`w-16 h-16 mx-auto mb-6 rounded-2xl ${story.bgColor} flex items-center justify-center ${story.accentColor}`}>
+                      {story.icon}
                     </div>
-                    <div className="flex-1 text-left">
-                      <p className="text-muted-foreground text-sm mb-2">"{testimonial.quote}"</p>
-                      <div>
-                        <div className="font-semibold text-sm">{testimonial.name}</div>
-                        <div className="text-muted-foreground text-xs">{testimonial.company}</div>
+                    <h3 className="text-xl font-bold mb-3 text-foreground">{story.company}</h3>
+                    <p className={`text-lg font-semibold mb-4 ${story.accentColor}`}>{story.achievement}</p>
+                    <p className="text-sm text-muted-foreground mb-6">{story.description}</p>
+                    
+                    <div className="flex justify-between items-center pt-4 border-t border-border">
+                      <div className="text-center">
+                        <div className={`text-2xl font-bold ${story.accentColor}`}>{story.raised}</div>
+                        <div className="text-xs text-muted-foreground">Raised</div>
+                      </div>
+                      <div className="text-center">
+                        <div className={`text-2xl font-bold ${story.accentColor}`}>{story.timeline}</div>
+                        <div className="text-xs text-muted-foreground">Timeline</div>
+                      </div>
+                      <div className="text-center">
+                        <div className={`text-2xl font-bold ${story.accentColor}`}>{story.investors}</div>
+                        <div className="text-xs text-muted-foreground">Investors</div>
                       </div>
                     </div>
-                  </div>
-                </Card>
+                  </Card>
+                </motion.div>
               ))}
-            </div>
+            </motion.div>
+
+            {/* Testimonials */}
+            <motion.div 
+              className="grid md:grid-cols-3 gap-8"
+              initial={{ opacity: 0, y: 40 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.8, delay: 0.8 }}
+            >
+              {[
+                {
+                  name: 'Sarah Chen',
+                  title: 'CEO @ HealthTech AI',
+                  proofScore: '92',
+                  quote: '"The Deal Room cut our fundraising timeline from 8 months to 6 weeks. The quality of investors was exceptional."',
+                  result: '$1.2M Series A',
+                  avatar: 'SC',
+                  bgColor: 'bg-purple-500',
+                  rating: 5
+                },
+                {
+                  name: 'Marcus Rodriguez',
+                  title: 'Founder @ FinFlow',
+                  proofScore: '85',
+                  quote: '"Within 24 hours of joining, I had 3 investor meetings scheduled. This platform is a game-changer."',
+                  result: '$500K Pre-seed',
+                  avatar: 'MR',
+                  bgColor: 'bg-primary-gold',
+                  rating: 5
+                },
+                {
+                  name: 'Priya Patel',
+                  title: 'Co-founder @ EduTech Solutions',
+                  proofScore: '89',
+                  quote: '"The validation data made our pitch bulletproof. VCs loved the evidence-backed approach."',
+                  result: '$800K Seed',
+                  avatar: 'PP',
+                  bgColor: 'bg-primary',
+                  rating: 5
+                }
+              ].map((testimonial, index) => (
+                <motion.div
+                  key={index}
+                  initial={{ opacity: 0, y: 30 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ duration: 0.6, delay: 0.9 + index * 0.1 }}
+                  whileHover={{ y: -5, scale: 1.02 }}
+                >
+                  <Card className="p-6 bg-card/50 backdrop-blur-sm hover:bg-card/80 transition-all duration-300 h-full">
+                    <div className="flex items-center mb-4">
+                      <div className={`w-12 h-12 rounded-full ${testimonial.bgColor} flex items-center justify-center text-white font-bold text-lg mr-4`}>
+                        {testimonial.avatar}
+                      </div>
+                      <div>
+                        <h4 className="font-semibold text-foreground">{testimonial.name}</h4>
+                        <p className="text-sm text-muted-foreground">{testimonial.title}</p>
+                        <p className="text-xs text-primary">ProofScore: {testimonial.proofScore}</p>
+                      </div>
+                    </div>
+                    
+                    <p className="text-sm text-muted-foreground mb-4 italic">{testimonial.quote}</p>
+                    
+                    <div className="flex items-center justify-between pt-4 border-t border-border">
+                      <div className="flex">
+                        {[...Array(testimonial.rating)].map((_, i) => (
+                          <Star key={i} className="w-4 h-4 fill-primary-gold text-primary-gold" />
+                        ))}
+                      </div>
+                      <div className="text-sm font-semibold text-primary">{testimonial.result}</div>
+                    </div>
+                  </Card>
+                </motion.div>
+              ))}
+            </motion.div>
           </motion.div>
         </div>
       </section>
