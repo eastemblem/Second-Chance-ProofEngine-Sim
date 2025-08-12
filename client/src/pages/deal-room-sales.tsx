@@ -13,6 +13,10 @@ import { GradientButton } from "@/components/deal-room/gradient-button";
 import { TestimonialCard } from "@/components/deal-room/testimonial-card";
 import { CompanyLogoGrid } from "@/components/deal-room/company-logo";
 import { BadgeWithIcon } from "@/components/deal-room/badge-with-icon";
+import { AnimatedCounter } from "@/components/deal-room/animated-counter";
+import { FloatingElements } from "@/components/deal-room/floating-elements";
+import { SuccessIndicator } from "@/components/deal-room/success-indicator";
+import { ProgressVisualization } from "@/components/deal-room/progress-visualization";
 
 // Data constants
 const heroMetrics = [
@@ -77,6 +81,7 @@ export default function DealRoomSalesPage() {
       {/* Hero Section */}
       <section className="relative py-20 px-4 overflow-hidden">
         <div className="absolute inset-0 bg-gradient-to-br from-primary/10 via-background to-primary-gold/10" />
+        <FloatingElements />
         <div className="container mx-auto max-w-5xl relative">
           <motion.div
             initial={{ opacity: 0, y: 30 }}
@@ -213,7 +218,12 @@ export default function DealRoomSalesPage() {
                     <div className={`w-12 h-12 mx-auto mb-4 rounded-2xl ${stat.bgColor} flex items-center justify-center ${stat.color}`}>
                       {stat.icon}
                     </div>
-                    <div className={`text-3xl font-bold mb-2 ${stat.color}`}>{stat.number}</div>
+                    <AnimatedCounter 
+                      value={stat.number}
+                      className={`text-3xl font-bold mb-2 ${stat.color}`}
+                      duration={2}
+                      delay={0.2 + index * 0.1}
+                    />
                     <div className="text-sm font-semibold text-foreground mb-1">{stat.label}</div>
                     <div className="text-xs text-muted-foreground">{stat.sublabel}</div>
                   </Card>
