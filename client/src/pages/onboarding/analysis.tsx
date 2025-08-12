@@ -295,13 +295,17 @@ const getProofTagJustification = (
 
   const category = proofTag.category;
 
-  console.log("Getting justification for tag:", tagName, "category:", category);
-  console.log("Raw scoring result:", JSON.stringify(scoringResult, null, 2));
+  if (import.meta.env.MODE === 'development') {
+    console.log("Getting justification for tag:", tagName, "category:", category);
+    console.log("Raw scoring result:", JSON.stringify(scoringResult, null, 2));
+  }
 
   // Get justification from API response - try both output and direct access
   const output = scoringResult?.output || scoringResult;
 
-  console.log("Output structure:", JSON.stringify(output, null, 2));
+  if (import.meta.env.MODE === 'development') {
+    console.log("Output structure:", JSON.stringify(output, null, 2));
+  }
 
   // Direct API field mapping to try all possible fields
   const allApiFields = [
@@ -334,15 +338,19 @@ const getProofTagJustification = (
       const categoryData = output[field];
       const justification =
         categoryData.justification || categoryData.recommendation;
-      console.log(
-        `Checking field ${field} for category ${category}:`,
-        justification,
-      );
-      if (justification && justification.length > 10) {
+      if (import.meta.env.MODE === 'development') {
         console.log(
-          `Found justification for ${tagName} in ${field}:`,
+          `Checking field ${field} for category ${category}:`,
           justification,
         );
+      }
+      if (justification && justification.length > 10) {
+        if (import.meta.env.MODE === 'development') {
+          console.log(
+            `Found justification for ${tagName} in ${field}:`,
+            justification,
+          );
+        }
         return justification;
       }
     }
@@ -355,7 +363,9 @@ const getProofTagJustification = (
       const justification =
         categoryData.justification || categoryData.recommendation;
       if (justification && justification.length > 10) {
-        console.log(`Found justification in ${field}:`, justification);
+        if (import.meta.env.MODE === 'development') {
+          console.log(`Found justification in ${field}:`, justification);
+        }
         return justification;
       }
     }
@@ -441,9 +451,11 @@ export default function Analysis({
   const celebrationTriggered = useRef(false);
 
   // Extract data from session with comprehensive checking
-  console.log("Analysis component received sessionData:", sessionData);
-  console.log("SessionData stepData:", sessionData?.stepData);
-  console.log("Processing step data:", sessionData?.stepData?.processing);
+  if (import.meta.env.MODE === 'development') {
+    console.log("Analysis component received sessionData:", sessionData);
+    console.log("SessionData stepData:", sessionData?.stepData);
+    console.log("Processing step data:", sessionData?.stepData?.processing);
+  }
 
   let scoringResult =
     sessionData?.scoringResult ||
@@ -451,7 +463,9 @@ export default function Analysis({
     sessionData?.stepData?.scoringResult ||
     sessionData?.processing?.scoringResult;
 
-  console.log("Initial scoringResult found:", scoringResult);
+  if (import.meta.env.MODE === 'development') {
+    console.log("Initial scoringResult found:", scoringResult);
+  }
 
   const founderData = sessionData?.stepData?.founder;
   const ventureData =
@@ -468,11 +482,13 @@ export default function Analysis({
   const reportUrl = sessionFromAPI?.stepData?.processing?.reportUrl || ventureData?.reportUrl;
   const certificateUrl = sessionFromAPI?.stepData?.processing?.certificateUrl || ventureData?.certificateUrl;
 
-  console.log("Analysis component - scoringResult:", scoringResult);
-  console.log(
-    "Analysis component - sessionData keys:",
-    Object.keys(sessionData || {}),
-  );
+  if (import.meta.env.MODE === 'development') {
+    console.log("Analysis component - scoringResult:", scoringResult);
+    console.log(
+      "Analysis component - sessionData keys:",
+      Object.keys(sessionData || {}),
+    );
+  }
 
   // Try to fetch session data from API if not available
   useEffect(() => {
@@ -483,7 +499,9 @@ export default function Analysis({
           const response = await fetch(`/api/onboarding/session/${sessionId}`);
           if (response.ok) {
             const data = await response.json();
-            console.log("Fetched session data from API:", data);
+            if (import.meta.env.MODE === 'development') {
+              console.log("Fetched session data from API:", data);
+            }
             setSessionFromAPI(data?.data || data?.session || data);
           }
         } catch (error) {
@@ -514,23 +532,29 @@ export default function Analysis({
       currentScoringResult?.output?.total_score ||
       currentScoringResult?.score;
 
-    console.log("Celebration Debug:");
-    console.log("- currentScoringResult:", currentScoringResult);
-    console.log("- totalScore:", totalScore);
-    console.log("- showCelebration:", showCelebration);
-    console.log(
-      "- celebrationTriggered.current:",
-      celebrationTriggered.current,
-    );
-    console.log("- Score > 50?", totalScore > 50);
+    if (import.meta.env.MODE === 'development') {
+      console.log("Celebration Debug:");
+      console.log("- currentScoringResult:", currentScoringResult);
+      console.log("- totalScore:", totalScore);
+      console.log("- showCelebration:", showCelebration);
+      console.log(
+        "- celebrationTriggered.current:",
+        celebrationTriggered.current,
+      );
+      console.log("- Score > 50?", totalScore > 50);
+    }
 
     if (totalScore > 50 && !showCelebration && !celebrationTriggered.current) {
-      console.log("🎉 TRIGGERING CELEBRATION ANIMATION!");
+      if (import.meta.env.MODE === 'development') {
+        console.log("🎉 TRIGGERING CELEBRATION ANIMATION!");
+      }
       celebrationTriggered.current = true;
 
       const timer = setTimeout(() => {
         setShowCelebration(true);
-        console.log("Celebration animation started!");
+        if (import.meta.env.MODE === 'development') {
+          console.log("Celebration animation started!");
+        }
 
         // Show toast notification
         toast({
@@ -554,14 +578,18 @@ export default function Analysis({
       sessionFromAPI?.stepData?.scoringResult ||
       sessionFromAPI?.scoringResult;
     if (apiScoringResult) {
-      console.log("Using scoring result from API:", apiScoringResult);
+      if (import.meta.env.MODE === 'development') {
+        console.log("Using scoring result from API:", apiScoringResult);
+      }
       scoringResult = apiScoringResult;
     } else {
-      console.log(
-        "No scoring result in API data. SessionFromAPI stepData:",
-        sessionFromAPI?.stepData,
-      );
-      console.log("Full sessionFromAPI:", sessionFromAPI);
+      if (import.meta.env.MODE === 'development') {
+        console.log(
+          "No scoring result in API data. SessionFromAPI stepData:",
+          sessionFromAPI?.stepData,
+        );
+        console.log("Full sessionFromAPI:", sessionFromAPI);
+      }
     }
   }
 
@@ -611,17 +639,23 @@ export default function Analysis({
     proofTags: scoringResult?.output?.tags || scoringResult?.tags || [],
   };
 
-  console.log("Analysis data for ProofTags:", analysisData);
+  if (import.meta.env.MODE === 'development') {
+    console.log("Analysis data for ProofTags:", analysisData);
+  }
 
   // Extract ProofTags from API response or calculate from score
   function extractProofTags(scoringResult: any) {
-    console.log("Extracting ProofTags from scoring result:", scoringResult);
+    if (import.meta.env.MODE === 'development') {
+      console.log("Extracting ProofTags from scoring result:", scoringResult);
+    }
 
     const currentScore = analysisData?.total_score || 0;
 
     // Get tags directly from API response first
     const apiTags = scoringResult?.output?.tags || [];
-    console.log("API provided tags:", apiTags);
+    if (import.meta.env.MODE === 'development') {
+      console.log("API provided tags:", apiTags);
+    }
 
     // Use API tags if available, otherwise calculate based on score thresholds
     const unlockedTags: string[] =
@@ -658,15 +692,17 @@ export default function Analysis({
       }
     });
 
-    console.log("Debug filtering - Unlocked tags:", unlockedTags);
-    console.log("Debug filtering - Locked tags:", lockedTags.map(t => t.name));
+    if (import.meta.env.MODE === 'development') {
+      console.log("Debug filtering - Unlocked tags:", unlockedTags);
+      console.log("Debug filtering - Locked tags:", lockedTags.map(t => t.name));
 
-    console.log(
-      "ProofTags extracted - Unlocked:",
-      unlockedTags.length,
-      "Locked:",
-      lockedTags.length,
-    );
+      console.log(
+        "ProofTags extracted - Unlocked:",
+        unlockedTags.length,
+        "Locked:",
+        lockedTags.length,
+      );
+    }
 
     return {
       unlocked: unlockedTags.length,
@@ -730,7 +766,9 @@ export default function Analysis({
     readiness: "🟥 Readiness",
   };
 
-  console.log("Extracted ProofTags result:", extractedProofTags);
+  if (import.meta.env.MODE === 'development') {
+    console.log("Extracted ProofTags result:", extractedProofTags);
+  }
 
   // Score badge mapping function - matches certificate service logic
   function getScoreBadge(score: number): string | null {
@@ -778,15 +816,16 @@ export default function Analysis({
   
   const badgeNumber = getBadgeNumber(analysisData.total_score);
 
-  console.log("Score Badge Debug:", {
-    totalScore: analysisData.total_score,
-    badgeNumber,
-    scoreBadge: scoreBadge ? "Found" : "Not found",
-  });
+  if (import.meta.env.MODE === 'development') {
+    console.log("Score Badge Debug:", {
+      totalScore: analysisData.total_score,
+      badgeNumber,
+      scoreBadge: scoreBadge ? "Found" : "Not found",
+    });
 
-  console.log("ProofTag Debug - Categories from API:", analysisData.categories);
-  console.log("ProofTag Debug - Extracted tags:", extractedProofTags);
-  console.log("ProofTag Debug - All category scores:", {
+    console.log("ProofTag Debug - Categories from API:", analysisData.categories);
+    console.log("ProofTag Debug - Extracted tags:", extractedProofTags);
+    console.log("ProofTag Debug - All category scores:", {
     Problem: analysisData.categories.Problem?.score,
     solution: analysisData.categories.solution?.score,
     market_opportunity: analysisData.categories.market_opportunity?.score,
@@ -796,9 +835,10 @@ export default function Analysis({
     traction_milestones: analysisData.categories.traction_milestones?.score,
     competition: analysisData.categories.competition?.score,
     go_to_market_strategy: analysisData.categories.go_to_market_strategy?.score,
-    financials_projections_ask:
-      analysisData.categories.financials_projections_ask?.score,
-  });
+      financials_projections_ask:
+        analysisData.categories.financials_projections_ask?.score,
+    });
+  }
 
   // Map to ProofScore format for consistency with feedback.tsx
   const proofScore: ProofScoreResult = {
