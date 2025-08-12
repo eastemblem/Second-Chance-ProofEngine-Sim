@@ -17,42 +17,142 @@ export default function DealRoomSalesPage() {
             transition={{ duration: 0.8 }}
             className="text-center mb-16"
           >
-            <Badge className="mb-6 bg-primary-gold/20 text-primary-gold border-primary-gold/30 px-4 py-2 text-sm font-medium">
-              Limited Deal Room Access - Curated Investment
-            </Badge>
-            <h1 className="text-4xl md:text-6xl font-bold mb-6 leading-tight">
+            {/* Badge with crown icons */}
+            <motion.div
+              initial={{ opacity: 0, scale: 0.9 }}
+              animate={{ opacity: 1, scale: 1 }}
+              transition={{ duration: 0.6, delay: 0.1 }}
+            >
+              <Badge className="mb-8 bg-primary-gold/20 text-primary-gold border-primary-gold/30 px-6 py-3 text-sm font-medium">
+                <Crown className="w-4 h-4 mr-2" />
+                Exclusive Deal Room Access - Limited to 100 Founders
+                <Crown className="w-4 h-4 ml-2" />
+              </Badge>
+            </motion.div>
+
+            {/* Main heading with gradient */}
+            <motion.h1 
+              className="text-5xl md:text-7xl font-bold mb-6 leading-tight bg-gradient-to-r from-primary via-primary-gold to-primary bg-clip-text text-transparent"
+              initial={{ opacity: 0, y: 30 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.8, delay: 0.2 }}
+            >
               Deal Room
-            </h1>
-            <h2 className="text-2xl md:text-3xl font-semibold mb-6 gradient-text">
+            </motion.h1>
+
+            {/* Subheading */}
+            <motion.h2 
+              className="text-2xl md:text-4xl font-bold mb-8 text-foreground"
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.6, delay: 0.3 }}
+            >
               Where Proof Meets Capital
-            </h2>
-            <p className="text-lg md:text-xl text-muted-foreground mb-8 max-w-3xl mx-auto leading-relaxed">
-              Exclusive network where validated startups connect with qualified investors. 
-              Your ProofScore qualifies you for curated investment opportunities.
-            </p>
-            <div className="flex flex-col sm:flex-row gap-4 justify-center mb-12">
-              <Button size="lg" className="gradient-button text-lg px-8 py-4 h-auto">
-                Get Investment Ready
-              </Button>
-              <Button size="lg" variant="outline" className="border-primary-gold text-primary-gold hover:bg-primary-gold hover:text-black text-lg px-8 py-4 h-auto">
-                Watch Product Demo
-              </Button>
-            </div>
+            </motion.h2>
+
+            {/* Description with highlighted text */}
+            <motion.p 
+              className="text-lg md:text-xl text-muted-foreground mb-10 max-w-3xl mx-auto leading-relaxed"
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.6, delay: 0.4 }}
+            >
+              Join the <span className="text-primary font-semibold">most exclusive network</span> of validated startups. Get 
+              direct access to top-tier investors who understand the value of evidence-based ventures.
+            </motion.p>
+
+            {/* Animated buttons */}
+            <motion.div 
+              className="flex flex-col sm:flex-row gap-4 justify-center mb-16"
+              initial={{ opacity: 0, y: 30 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.6, delay: 0.5 }}
+            >
+              <motion.div
+                whileHover={{ scale: 1.05 }}
+                whileTap={{ scale: 0.95 }}
+              >
+                <Button size="lg" className="gradient-button text-lg px-8 py-4 h-auto rounded-full shadow-lg hover:shadow-xl transition-all duration-300">
+                  <Rocket className="w-5 h-5 mr-2" />
+                  Join Deal Room Now
+                  <ArrowRight className="w-5 h-5 ml-2" />
+                </Button>
+              </motion.div>
+              
+              <motion.div
+                whileHover={{ scale: 1.05 }}
+                whileTap={{ scale: 0.95 }}
+              >
+                <Button size="lg" variant="outline" className="border-2 border-foreground text-foreground hover:bg-foreground hover:text-background text-lg px-8 py-4 h-auto rounded-full shadow-lg hover:shadow-xl transition-all duration-300">
+                  <PlayCircle className="w-5 h-5 mr-2" />
+                  Watch Success Stories
+                </Button>
+              </motion.div>
+            </motion.div>
             
-            {/* Stats */}
-            <div className="grid grid-cols-2 md:grid-cols-4 gap-8 max-w-4xl mx-auto">
+            {/* Stats cards with icons */}
+            <motion.div 
+              className="grid grid-cols-2 md:grid-cols-4 gap-6 max-w-5xl mx-auto"
+              initial={{ opacity: 0, y: 40 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.8, delay: 0.6 }}
+            >
               {[
-                { number: '87%', label: 'Success Rate', color: 'text-green-400' },
-                { number: '$2.4M', label: 'Average Round', color: 'text-blue-400' },
-                { number: '14', label: 'Days to Close', color: 'text-primary-gold' },
-                { number: '300+', label: 'Funded Startups', color: 'text-primary' }
+                { 
+                  number: '87%', 
+                  label: 'SUCCESS RATE', 
+                  sublabel: 'Founders get funded within 90 days',
+                  color: 'text-green-400',
+                  bgColor: 'bg-green-500/10',
+                  borderColor: 'border-green-500/20',
+                  icon: <Trophy className="w-6 h-6" />
+                },
+                { 
+                  number: '$2.4M', 
+                  label: 'AVG. RAISE', 
+                  sublabel: 'Per successful introduction',
+                  color: 'text-primary',
+                  bgColor: 'bg-primary/10',
+                  borderColor: 'border-primary/20',
+                  icon: <TrendingUp className="w-6 h-6" />
+                },
+                { 
+                  number: '14', 
+                  label: 'DAYS AVG', 
+                  sublabel: 'From intro to term sheet',
+                  color: 'text-primary-gold',
+                  bgColor: 'bg-primary-gold/10',
+                  borderColor: 'border-primary-gold/20',
+                  icon: <Timer className="w-6 h-6" />
+                },
+                { 
+                  number: '300+', 
+                  label: 'ACTIVE INVESTORS', 
+                  sublabel: 'Ready to invest right now',
+                  color: 'text-blue-400',
+                  bgColor: 'bg-blue-500/10',
+                  borderColor: 'border-blue-500/20',
+                  icon: <Users className="w-6 h-6" />
+                }
               ].map((stat, index) => (
-                <div key={index} className="text-center">
-                  <div className={`text-3xl font-bold mb-1 ${stat.color}`}>{stat.number}</div>
-                  <div className="text-sm text-muted-foreground">{stat.label}</div>
-                </div>
+                <motion.div
+                  key={index}
+                  initial={{ opacity: 0, y: 20 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ duration: 0.5, delay: 0.7 + index * 0.1 }}
+                  whileHover={{ y: -5, scale: 1.02 }}
+                >
+                  <Card className={`p-6 text-center ${stat.bgColor} ${stat.borderColor} border bg-card/50 backdrop-blur-sm hover:bg-card/80 transition-all duration-300`}>
+                    <div className={`w-12 h-12 mx-auto mb-4 rounded-2xl ${stat.bgColor} flex items-center justify-center ${stat.color}`}>
+                      {stat.icon}
+                    </div>
+                    <div className={`text-3xl font-bold mb-2 ${stat.color}`}>{stat.number}</div>
+                    <div className="text-sm font-semibold text-foreground mb-1">{stat.label}</div>
+                    <div className="text-xs text-muted-foreground">{stat.sublabel}</div>
+                  </Card>
+                </motion.div>
               ))}
-            </div>
+            </motion.div>
           </motion.div>
         </div>
       </section>
