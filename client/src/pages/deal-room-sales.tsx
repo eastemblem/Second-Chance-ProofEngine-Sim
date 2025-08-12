@@ -1,5 +1,5 @@
 import { motion } from "framer-motion";
-import { ArrowRight, Check, Star, Users, TrendingUp, Shield, Zap, Target, Crown, Award, Briefcase, DollarSign, ChevronRight, PlayCircle, Rocket, BarChart3, Lock, Globe, MessageSquare, Calendar, Phone, Mail, CheckCircle2, Trophy, Lightbulb, FileText, PieChart, UserCheck, Timer, Handshake, TrendingDown } from "lucide-react";
+import { ArrowRight, Check, Star, Users, TrendingUp, Shield, Zap, Target, Crown, Award, Briefcase, DollarSign, ChevronRight, PlayCircle, Rocket, BarChart3, Lock, Globe, MessageSquare, Calendar, Phone, Mail, CheckCircle2, Trophy, Lightbulb, FileText, PieChart, UserCheck, Timer, Handshake, TrendingDown, Clock } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -480,60 +480,125 @@ export default function DealRoomSalesPage() {
       </section>
 
       {/* Choose Your Access Level */}
-      <section className="py-20 px-4 bg-gradient-to-br from-primary/20 via-background to-primary-gold/20">
-        <div className="container mx-auto max-w-4xl">
+      <section className="py-20 px-4 bg-gradient-to-br from-primary via-primary-gold to-orange-500">
+        <div className="container mx-auto max-w-2xl">
           <motion.div
             initial={{ opacity: 0, y: 30 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.8, delay: 0.5 }}
-            className="text-center mb-16"
+            className="text-center mb-12"
           >
-            <h2 className="text-4xl md:text-5xl font-bold mb-6">Choose Your Access Level</h2>
-            <p className="text-xl text-muted-foreground max-w-3xl mx-auto">
-              Get started with our proven fundraising system
-            </p>
+            <motion.h2 
+              className="text-4xl md:text-5xl font-bold mb-6 text-white"
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.6, delay: 0.1 }}
+            >
+              Choose Your Access Level
+            </motion.h2>
+            <motion.p 
+              className="text-lg text-white/90 max-w-2xl mx-auto mb-8"
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.6, delay: 0.2 }}
+            >
+              Investment in your success. Join thousands of founders who've accelerated their fundraising
+            </motion.p>
+
+            {/* Limited Time Badge */}
+            <motion.div
+              initial={{ opacity: 0, scale: 0.9 }}
+              animate={{ opacity: 1, scale: 1 }}
+              transition={{ duration: 0.6, delay: 0.3 }}
+            >
+              <Badge className="bg-white/20 text-white border-white/30 px-6 py-2 text-sm font-medium backdrop-blur-sm">
+                <Timer className="w-4 h-4 mr-2" />
+                Limited Time: 50% Off All Plans
+              </Badge>
+            </motion.div>
           </motion.div>
 
-          <div className="max-w-md mx-auto">
-            <Card className="p-8 bg-card border-primary-gold/20 shadow-2xl">
-              <div className="text-center mb-8">
-                <h3 className="text-2xl font-bold mb-2">Deal Room Access</h3>
-                <div className="mb-4">
-                  <span className="text-5xl font-bold gradient-text">$99</span>
-                  <span className="text-muted-foreground ml-2">one-time</span>
-                </div>
-                <p className="text-muted-foreground">Complete access to our investor network and resources</p>
+          <motion.div
+            initial={{ opacity: 0, y: 40 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.8, delay: 0.4 }}
+            whileHover={{ y: -5 }}
+            className="max-w-lg mx-auto mb-8"
+          >
+            <Card className="p-8 bg-white shadow-2xl rounded-3xl border-0 overflow-hidden relative">
+              {/* Annual Membership Badge */}
+              <div className="absolute top-0 left-1/2 transform -translate-x-1/2 -translate-y-1/2">
+                <Badge className="bg-gradient-to-r from-primary-gold to-orange-500 text-white px-6 py-2 text-sm font-semibold rounded-full">
+                  Annual Membership
+                </Badge>
               </div>
-              
+
+              <div className="text-center mb-8 pt-4">
+                <h3 className="text-3xl font-bold mb-4 text-gray-900">Deal Room Access</h3>
+                <div className="mb-2">
+                  <span className="text-6xl font-bold text-gray-900">$99</span>
+                </div>
+                <div className="text-gray-500 mb-1">
+                  <span className="line-through text-lg">$199</span>
+                </div>
+                <p className="text-gray-600">per year</p>
+              </div>
+
               <ul className="space-y-4 mb-8">
                 {[
-                  "Curated investor matching",
-                  "Pitch deck optimization",
-                  "Direct investor introductions",
-                  "Fundraising strategy sessions",
-                  "Deal room dashboard access",
-                  "Expert mentorship calls",
-                  "Success metrics tracking"
-                ].map((feature, i) => (
-                  <li key={i} className="flex items-start">
-                    <Check className="w-5 h-5 text-primary-gold mr-3 flex-shrink-0 mt-0.5" />
-                    <span>{feature}</span>
-                  </li>
+                  'Unlimited investor introductions',
+                  'Complete ProofVault access',
+                  'Priority deal flow placement',
+                  'Dedicated success support',
+                  'Corporate partnership opportunities',
+                  'Quarterly demo day invitations',
+                  'Expert network access',
+                  'Due diligence fast-track'
+                ].map((feature, index) => (
+                  <motion.li 
+                    key={index} 
+                    className="flex items-center space-x-3"
+                    initial={{ opacity: 0, x: -20 }}
+                    animate={{ opacity: 1, x: 0 }}
+                    transition={{ duration: 0.5, delay: 0.6 + index * 0.05 }}
+                  >
+                    <CheckCircle2 className="text-green-500 h-5 w-5 flex-shrink-0" />
+                    <span className="text-gray-700">{feature}</span>
+                  </motion.li>
                 ))}
               </ul>
-              
-              <Button 
-                size="lg" 
-                className="w-full h-12 gradient-button text-lg font-semibold"
+
+              <motion.div
+                whileHover={{ scale: 1.02 }}
+                whileTap={{ scale: 0.98 }}
               >
-                Get Started Now
-              </Button>
-              
-              <p className="text-center text-sm text-muted-foreground mt-4">
-                30-day money-back guarantee • No monthly fees
-              </p>
+                <Button className="w-full bg-gradient-to-r from-primary via-primary-gold to-orange-500 hover:from-primary/90 hover:via-primary-gold/90 hover:to-orange-500/90 text-white text-lg py-4 h-auto rounded-full font-semibold shadow-lg" size="lg">
+                  Join Deal Room
+                  <ArrowRight className="w-5 h-5 ml-2" />
+                </Button>
+              </motion.div>
             </Card>
-          </div>
+          </motion.div>
+
+          {/* Guarantee Badge */}
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.6, delay: 0.8 }}
+            className="max-w-md mx-auto"
+          >
+            <Card className="p-6 bg-white/10 backdrop-blur-sm border-white/20 rounded-2xl">
+              <div className="flex items-center space-x-4 text-white">
+                <div className="w-12 h-12 rounded-full bg-white/20 flex items-center justify-center flex-shrink-0">
+                  <Shield className="w-6 h-6" />
+                </div>
+                <div>
+                  <h4 className="font-bold text-lg">100% Success Guarantee</h4>
+                  <p className="text-white/90 text-sm">Get matched with investors or full refund within 90 days</p>
+                </div>
+              </div>
+            </Card>
+          </motion.div>
         </div>
       </section>
 
