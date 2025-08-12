@@ -26,7 +26,12 @@ export default function ProofScalingDashboard({ onNext, proofScore: propProofSco
   }
   
   // Use prop score if available, otherwise use session score, otherwise default
-  const proofScore = propProofScore || sessionProofScore || { total: 60, insights: { strengths: [], improvements: [], recommendations: [] } };
+  const proofScore = propProofScore || sessionProofScore || { 
+    total: 60, 
+    insights: { strengths: [], improvements: [], recommendations: [] },
+    dimensions: { desirability: 12, feasibility: 15, viability: 18, traction: 15 },
+    prooTags: { unlocked: 3, total: 15, tags: ['Customer Discovery', 'Problem Definition', 'Market Research'] }
+  };
   const modules = [
     {
       id: 1,
@@ -267,13 +272,13 @@ export default function ProofScalingDashboard({ onNext, proofScore: propProofSco
                 </div>
                 
                 <div className="space-y-3">
-                  {Object.entries(proofScore.dimensions).map(([dimension, score]) => (
+                  {Object.entries(proofScore.dimensions || {}).map(([dimension, score]) => (
                     <div key={dimension}>
                       <div className="flex justify-between text-sm mb-1">
                         <span className="capitalize">{dimension}</span>
-                        <span>{score}/20</span>
+                        <span>{score as number}/20</span>
                       </div>
-                      <Progress value={(score / 20) * 100} className="h-2" />
+                      <Progress value={((score as number) / 20) * 100} className="h-2" />
                     </div>
                   ))}
                 </div>
@@ -290,22 +295,22 @@ export default function ProofScalingDashboard({ onNext, proofScore: propProofSco
                 <h3 className="text-lg font-semibold mb-4">ProofTags Progress</h3>
                 <div className="text-center mb-4">
                   <div className="text-2xl font-bold text-primary mb-1">
-                    {proofScore.prooTags.unlocked}/{proofScore.prooTags.total}
+                    {proofScore.prooTags?.unlocked || 0}/{proofScore.prooTags?.total || 15}
                   </div>
                   <p className="text-sm text-muted-foreground">Tags Unlocked</p>
                 </div>
                 
                 <div className="grid grid-cols-5 gap-2 mb-4">
-                  {Array.from({ length: proofScore.prooTags.total }).map((_, index) => (
+                  {Array.from({ length: proofScore.prooTags?.total || 15 }).map((_, index) => (
                     <div
                       key={index}
                       className={`aspect-square rounded-lg flex items-center justify-center ${
-                        index < proofScore.prooTags.unlocked
+                        index < (proofScore.prooTags?.unlocked || 0)
                           ? index % 2 === 0 ? "bg-primary" : "bg-primary-gold"
                           : "bg-border"
                       }`}
                     >
-                      {index < proofScore.prooTags.unlocked ? (
+                      {index < (proofScore.prooTags?.unlocked || 0) ? (
                         <CheckCircle className="w-4 h-4 text-white" />
                       ) : (
                         <Lock className="w-3 h-3 text-muted-foreground" />
@@ -315,7 +320,7 @@ export default function ProofScalingDashboard({ onNext, proofScore: propProofSco
                 </div>
                 
                 <div className="space-y-1">
-                  {proofScore.prooTags.tags.map((tag, index) => (
+                  {(proofScore.prooTags?.tags || []).map((tag: string, index: number) => (
                     <div key={index} className="text-xs text-primary font-medium">
                       ✓ {tag}
                     </div>

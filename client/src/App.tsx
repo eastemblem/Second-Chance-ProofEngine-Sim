@@ -231,7 +231,7 @@ function Router() {
           <DealRoomPage />
         </Suspense>
       )} />
-      <Route path="/proofscaling-dashboard" component={() => (
+      <Route path="/proofscaling" component={() => (
         <Suspense fallback={<SimpleLoader />}>
           <ProofScalingDashboard />
         </Suspense>
