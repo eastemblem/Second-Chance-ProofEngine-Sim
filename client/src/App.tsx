@@ -109,12 +109,12 @@ function SimulationFlow() {
       case 5:
         return state.proofScore ? (
           <PathwayPage 
-            onNext={() => setCurrentPage(state.proofScore!.total >= 80 ? 6 : 7)}
+            onNext={() => setCurrentPage(state.proofScore!.total >= 70 ? 6 : 7)}
             proofScore={state.proofScore}
           />
         ) : null;
       case 6:
-        return state.proofScore && state.proofScore.total >= 80 ? (
+        return state.proofScore && state.proofScore.total >= 70 ? (
           <DealRoomPage 
             onNext={() => setCurrentPage(8)}
             proofScore={state.proofScore}

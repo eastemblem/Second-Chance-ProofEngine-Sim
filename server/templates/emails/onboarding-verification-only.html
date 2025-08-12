@@ -1,0 +1,315 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Welcome to Second Chance - Complete Your Registration</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { 
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; 
+            line-height: 1.6; 
+            background-color: #f5f5f5;
+            color: #333333; 
+        }
+        
+        .container { 
+            max-width: 600px; 
+            margin: 0 auto; 
+            background-color: #ffffff;
+            box-shadow: 0 0 20px rgba(0,0,0,0.1);
+        }
+        
+        .header { 
+            background: linear-gradient(135deg, #1A1A1B 0%, #2D1B69 100%);
+            padding: 30px; 
+            text-align: center; 
+        }
+        
+        .logo-img { 
+            max-width: 180px; 
+            height: auto; 
+            margin-bottom: 15px;
+        }
+        
+        .header-title { 
+            font-size: 28px; 
+            font-weight: bold; 
+            color: #FFFFFF;
+            margin: 0; 
+        }
+        
+        .header-subtitle { 
+            color: #D97706; 
+            font-size: 16px; 
+            margin-top: 8px; 
+        }
+        
+        .content { 
+            padding: 40px; 
+            background-color: #ffffff;
+        }
+        
+        .welcome-text { 
+            font-size: 18px; 
+            color: #333; 
+            margin-bottom: 25px; 
+            text-align: center; 
+        }
+        
+        .greeting { 
+            font-size: 16px; 
+            color: #666; 
+            margin-bottom: 20px; 
+        }
+        
+        .score-card { 
+            background: linear-gradient(135deg, #8B5CF6 0%, #D97706 100%);
+            padding: 30px; 
+            border-radius: 15px; 
+            text-align: center; 
+            margin: 30px 0; 
+            color: white; 
+        }
+        
+        .score-number { 
+            font-size: 56px; 
+            font-weight: bold; 
+            margin-bottom: 5px; 
+            text-shadow: 0 2px 4px rgba(0,0,0,0.3);
+        }
+        
+        .score-label { 
+            font-size: 18px; 
+            opacity: 0.9; 
+        }
+        
+        .milestone { 
+            background: rgba(255,255,255,0.2); 
+            padding: 12px 20px; 
+            border-radius: 25px; 
+            margin-top: 15px; 
+            font-weight: bold;
+        }
+        
+        .action-needed { 
+            background: #fff3cd;
+            border: 2px solid #D97706;
+            border-radius: 12px; 
+            padding: 25px; 
+            margin: 30px 0; 
+            text-align: center; 
+        }
+        
+        .action-title { 
+            color: #D97706; 
+            font-size: 20px; 
+            font-weight: bold; 
+            margin-bottom: 15px; 
+        }
+        
+        .action-text { 
+            color: #856404; 
+            margin-bottom: 20px; 
+            font-size: 16px; 
+        }
+        
+        .verify-button { 
+            display: inline-block; 
+            background: linear-gradient(135deg, #D97706 0%, #8B5CF6 100%);
+            color: white; 
+            text-decoration: none; 
+            padding: 18px 35px; 
+            border-radius: 50px; 
+            font-weight: bold; 
+            font-size: 18px; 
+            box-shadow: 0 4px 15px rgba(139, 92, 246, 0.3);
+            transition: transform 0.2s;
+        }
+        
+        .verify-button:hover { 
+            transform: translateY(-2px); 
+        }
+        
+        .pathway-info { 
+            background: #f8f9fa;
+            border-radius: 12px; 
+            padding: 25px; 
+            margin: 30px 0; 
+            text-align: center;
+        }
+        
+        .pathway-title { 
+            font-size: 20px; 
+            color: #333; 
+            margin-bottom: 15px; 
+        }
+        
+        .pathway-text { 
+            color: #666; 
+            margin-bottom: 20px; 
+        }
+        
+        .pathway-button { 
+            display: inline-block; 
+            background: linear-gradient(135deg, #8B5CF6 0%, #D97706 100%);
+            color: white; 
+            text-decoration: none; 
+            padding: 12px 25px; 
+            border-radius: 8px; 
+            font-weight: 600; 
+            transition: transform 0.2s;
+        }
+        
+        .pathway-button:hover { 
+            transform: translateY(-1px); 
+        }
+        
+        .next-steps { 
+            margin: 30px 0; 
+        }
+        
+        .next-steps-title { 
+            font-size: 20px; 
+            color: #333; 
+            margin-bottom: 15px; 
+        }
+        
+        .steps-list { 
+            list-style: none; 
+            padding: 0; 
+        }
+        
+        .steps-list li { 
+            padding: 8px 0; 
+            color: #666; 
+            position: relative; 
+            padding-left: 25px; 
+        }
+        
+        .steps-list li:before { 
+            content: "✓"; 
+            color: #8B5CF6; 
+            font-weight: bold; 
+            position: absolute; 
+            left: 0; 
+        }
+        
+        .support { 
+            background: #f8f9fa; 
+            padding: 20px; 
+            border-radius: 8px; 
+            margin: 25px 0; 
+            text-align: center; 
+        }
+        
+        .support-text { 
+            color: #666; 
+            margin-bottom: 10px; 
+        }
+        
+        .support-email { 
+            color: #8B5CF6; 
+            text-decoration: none; 
+            font-weight: 600; 
+        }
+        
+        .footer { 
+            background: #1A1A1B; 
+            padding: 25px; 
+            text-align: center; 
+        }
+        
+        .footer-links { 
+            margin-bottom: 15px; 
+        }
+        
+        .footer-link { 
+            color: #8B5CF6; 
+            text-decoration: none; 
+            margin: 0 15px; 
+        }
+        
+        .footer-text { 
+            color: #999; 
+            font-size: 12px; 
+            line-height: 1.4; 
+        }
+        
+        @media (max-width: 600px) {
+            .header, .content { padding: 20px; }
+            .score-number { font-size: 48px; }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <!-- Header -->
+        <div class="header">
+            <img src="{{LOGO_URL}}" alt="Second Chance Logo" class="logo-img">
+            <h1 class="header-title">Welcome to Second Chance!</h1>
+            <p class="header-subtitle">You're almost there - just one more step!</p>
+        </div>
+
+        <!-- Content -->
+        <div class="content">
+            <p class="greeting">Hello {{USER_NAME}},</p>
+            
+            <p class="welcome-text">Thank you for starting your journey with <strong>Second Chance!</strong> We're excited to have you join our community of individuals committed to personal growth and positive change.</p>
+
+            <!-- ProofScore Display -->
+            <div class="score-card">
+                <div class="score-number">{{PROOF_SCORE}}</div>
+                <div class="score-label">Your ProofScore out of 100</div>
+                <div class="milestone">{{MILESTONE_LEVEL}}</div>
+            </div>
+
+            <!-- Action Required -->
+            <div class="action-needed">
+                <div class="action-title">🎯 Complete Your Registration</div>
+                <p class="action-text">To see your personalized pathway and access the platform, please verify your email address by clicking the button below.</p>
+                <a href="{{VERIFICATION_URL}}" class="verify-button">
+                    ✅ Verify Email & See My Pathway
+                </a>
+            </div>
+
+            <!-- Pathway Preview -->
+            <div class="pathway-info">
+                <h3 class="pathway-title">🚀 Your Next Step is Ready</h3>
+                <p class="pathway-text">Based on your ProofScore of {{PROOF_SCORE}}, we've prepared a personalized pathway to help you achieve your goals. Access it immediately after verification!</p>
+            </div>
+
+            <!-- Next Steps -->
+            <div class="next-steps">
+                <h3 class="next-steps-title">What happens after verification?</h3>
+                <ul class="steps-list">
+                    <li>See your personalized pathway</li>
+                    <li>Access your recommended next steps</li>
+                    <li>Connect with the right opportunities</li>
+                    <li>Start your journey to success</li>
+                </ul>
+            </div>
+
+            <!-- Support -->
+            <div class="support">
+                <p class="support-text">Need help? Our support team is here for you.</p>
+                <a href="mailto:info@secondchance.com" class="support-email">support@secondchance.com</a>
+            </div>
+
+            <div class="signature">
+                <strong>Best regards,<br>The Second Chance Team</strong>
+            </div>
+        </div>
+
+        <!-- Footer -->
+        <div class="footer">
+            <div class="footer-links">
+                <a href="{{PRIVACY_URL}}" class="footer-link">Privacy Policy</a>
+                <a href="{{TERMS_URL}}" class="footer-link">Terms & Conditions</a>
+            </div>
+            <p class="footer-text">© {{CURRENT_YEAR}} Second Chance - ProofScaling Platform. All rights reserved.</p>
+            <p class="footer-text">East Emblem Technologies, Masdar City Free Zone, UAE</p>
+        </div>
+    </div>
+</body>
+</html>

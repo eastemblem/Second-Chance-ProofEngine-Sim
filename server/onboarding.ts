@@ -560,7 +560,7 @@ export class OnboardingManager {
     // Check multiple locations for folderStructure
     const folderStructure =
       stepData?.venture?.folderStructure ||
-      session?.folderStructure ||
+      (session as any)?.folderStructure ||
       stepData?.folderStructure;
 
     // Check multiple locations for ventureId
@@ -568,7 +568,7 @@ export class OnboardingManager {
       stepData?.venture?.ventureId ||
       stepData?.venture?.venture?.ventureId ||
       stepData?.team?.ventureId ||
-      session?.ventureId;
+      (session as any)?.ventureId;
 
     console.log("Found ventureId:", ventureId);
     console.log("Found folderStructure:", folderStructure);
@@ -776,6 +776,9 @@ export class OnboardingManager {
       })
       .where(eq(onboardingSession.sessionId, sessionId));
 
+    // Skip certificate and report generation for now - code preserved for future use
+    // TODO: Re-enable when needed for different flow
+    /*
     // Create certificate asynchronously after successful scoring
     if (eastEmblemAPI.isConfigured() && scoringResult?.output?.total_score) {
       const totalScore = scoringResult.output.total_score;
@@ -837,6 +840,9 @@ export class OnboardingManager {
         console.log("No overview folder found, skipping certificate and report creation");
       }
     }
+    */
+    
+    console.log("Certificate and report generation skipped - preserved for future use");
 
     // Send Slack notification for analysis completion (async, no wait)
     if (eastEmblemAPI.isConfigured()) {

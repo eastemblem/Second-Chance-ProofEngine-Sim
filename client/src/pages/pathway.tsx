@@ -11,7 +11,7 @@ interface PathwayPageProps {
 }
 
 export default function PathwayPage({ onNext, proofScore }: PathwayPageProps) {
-  const isInvestorReady = proofScore.total >= 80;
+  const isInvestorReady = proofScore.total >= 70;
   const projectedScore = Math.min(95, proofScore.total + 18 + Math.floor(Math.random() * 10));
 
   return (

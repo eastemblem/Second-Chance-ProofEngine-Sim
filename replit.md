@@ -1,108 +1,154 @@
-# Second Chance - ProofScaling Validation Platform
+# Second Chance - Startup Validation Platform
 
-## Overview
-Second Chance is a startup validation platform designed to assess investment readiness. It leverages AI-powered document analysis and a structured scoring framework to provide founders with insights and personalized pathways, ultimately helping them validate ventures, improve success rates, and attract investment.
+## Project Overview
+A comprehensive startup validation platform that leverages intelligent document processing, advanced error management, and user-centric design to empower entrepreneurs through technological innovation.
+
+### Key Technologies
+- TypeScript React frontend with Vite
+- Express.js backend with serverless architecture
+- JWT-based authentication
+- Drizzle ORM for database interactions
+- React Query for state management
+- Tailwind CSS with shadcn/ui components
+
+## Recent Major Changes (August 2025)
+
+### New Pathway Feature Implementation
+**Date**: August 12, 2025
+
+**Summary**: Implemented pathway-based routing that directs users to different experiences based on their ProofScore, removing the payment/next-steps flow from onboarding.
+
+#### Changes Made:
+
+1. **Score Threshold Update**
+   - Changed investor readiness threshold from 80 to 70 points
+   - Score >= 70: Users see Deal Room page
+   - Score < 70: Users see ProofScaling page
+   - Files updated: `client/src/pages/pathway.tsx`, `client/src/App.tsx`
+
+2. **Onboarding Flow Simplified**
+   - Removed payment step from onboarding flow
+   - Users now go directly from analysis to completion
+   - Analysis page calls `handleComplete()` instead of continuing to payment
+   - Files updated: `client/src/pages/onboarding-flow.tsx`
+
+3. **Analysis Page Cleanup**
+   - Removed Download Report, Certificate, and Payment sections from feedback page
+   - Created reusable `DownloadSections` component for future use
+   - Files updated: `client/src/pages/feedback.tsx`, `client/src/components/download-sections.tsx`
+
+4. **New Email Template**
+   - Created verification-only email template without download links
+   - Template focuses on email verification and pathway preview
+   - Files: `server/templates/emails/onboarding-verification-only.html`
+   - Updated email service to use new template: `server/services/emailService.ts`
+
+5. **Backend Changes**
+   - Commented out certificate and report generation after scoring
+   - Preserved code for future use with TODO comments
+   - Files updated: `server/onboarding.ts`
+
+#### Technical Details:
+
+**Frontend Architecture Changes:**
+- Simplified onboarding steps array (removed payment step)
+- Updated App.tsx routing logic for new score threshold
+- Analysis completion now triggers onboarding completion
+
+**Backend Architecture Changes:**
+- Email service now sends verification-only emails
+- Certificate/report generation temporarily disabled
+- Preserved existing API endpoints and functionality
+
+**Component Structure:**
+- Created `DownloadSections` component containing:
+  - `ReportDownload` component
+  - `CertificateDownload` component
+  - Simple download cards for future use
+
+## Project Architecture
+
+### Frontend Structure
+```
+client/src/
+├── pages/
+│   ├── onboarding-flow.tsx       # Main onboarding orchestrator
+│   ├── feedback.tsx              # Analysis results (simplified)
+│   ├── pathway.tsx               # Score-based routing
+│   ├── deal-room.tsx             # High-score users (>= 70)
+│   └── proofscaling-dashboard.tsx # Low-score users (< 70)
+├── components/
+│   ├── download-sections.tsx     # Reusable download components
+│   ├── report-download.tsx       # Report download functionality
+│   └── certificate-download.tsx  # Certificate download functionality
+```
+
+### Backend Structure
+```
+server/
+├── onboarding.ts                 # Main onboarding logic
+├── services/
+│   └── emailService.ts           # Email template handling
+└── templates/emails/
+    ├── onboarding.html           # Original template (with downloads)
+    └── onboarding-verification-only.html  # New verification template
+```
+
+## User Flow
+
+### Current Flow (Post-Changes):
+1. **Landing** → User starts journey
+2. **Onboarding** → Founder details, venture info, team, upload
+3. **Processing** → AI analysis and scoring
+4. **Analysis** → Results display with "See My Pathway" button
+5. **Pathway** → Score-based recommendation (>= 70 = Deal Room, < 70 = ProofScaling)
+6. **Completion** → Direct to appropriate experience
+
+### Email Flow:
+1. User completes analysis
+2. Receives verification-only email with score and pathway preview
+3. Email verification leads directly to pathway page
+
+## Development Guidelines
+
+### Code Style Preferences
+- Use TypeScript with strict typing
+- Follow React hooks patterns
+- Implement proper error handling
+- Use Tailwind CSS for styling
+- Maintain component reusability
+
+### Database Changes
+- Use Drizzle ORM with `npm run db:push` for schema changes
+- Never manually write SQL migrations
+- Update `shared/schema.ts` for model changes
+
+### File Editing Rules
+- Always view files before editing
+- Use exact string matching for replacements
+- Preserve indentation and formatting
+- Test changes incrementally
+
+## Future Considerations
+
+### Preserved Functionality
+- Certificate and report generation code preserved with TODO comments
+- Original email template maintained for potential different flows
+- Download components available in `download-sections.tsx`
+
+### Potential Enhancements
+- Conditional email template selection
+- Re-enabling report/certificate generation for premium users
+- Enhanced pathway personalization based on detailed scoring
 
 ## User Preferences
-### Communication Style
-- **Primary Style**: Simple, everyday language
-- **Technical Level**: Non-technical user - avoid code details and technical jargon
-- **Response Format**: Calm, supportive tone with measured, professional language
-- **Documentation**: Focus on outcomes and impacts rather than implementation details
+- Communicate in simple, everyday language
+- Avoid technical jargon in user-facing content
+- Focus on user journey and experience
+- Maintain professional tone without emojis
 
-### Development Communication Pattern
-- Apply question-first approach to all technical development tasks
-- Before implementing any feature or fix, ask relevant counter-questions to gather context
-- Only proceed after asking "Do you want me to ask more questions, or should I proceed with the answer?"
-- This approach reduces unnecessary work and produces better outputs by understanding requirements fully
-- Continue this pattern throughout entire conversation
-
-### Agent Memory Optimization
-- **Context Management**: Use targeted file searches and focused information sharing
-- **Session Continuity**: Document decisions and progress in this file for future sessions
-- **Concurrent Operations**: Execute multiple tools simultaneously to reduce back-and-forth
-- **Documentation Priority**: Update this file with architectural changes and user preferences immediately
-
-### Cache Management Requirements
-- Always clear build cache when UI files change to ensure changes are immediately visible
-- Use `rm -rf dist .vite && npm run build` or run `./clear-cache.sh` script
-- Restart workflow after cache clearing for UI changes to take effect
-- This is critical for frontend development workflow
-
-## System Architecture
-
-### Frontend Architecture
-- **Framework**: React 18 with TypeScript
-- **Routing**: Wouter
-- **UI Components**: Radix UI primitives with shadcn/ui design system
-- **Styling**: Tailwind CSS
-- **Animations**: Framer Motion
-- **Data Fetching**: TanStack Query
-- **Performance**: 3-phase optimization, code splitting, lazy loading, memory optimization, critical CSS inlining, service worker caching, chunk preloading.
-
-### Backend Architecture
-- **Runtime**: Node.js with Express.js
-- **Language**: TypeScript with ES modules
-- **Build System**: Vite for frontend, esbuild for server
-- **File Uploads**: Multer
-- **API Integration**: Custom EastEmblem API client
-- **Route Architecture**: Modular, domain-based structure with standardized middleware and V1 API versioning.
-- **Payment System**: Generic payment gateway abstraction layer with factory pattern.
-
-### Database Architecture
-- **ORM**: Drizzle ORM with PostgreSQL dialect
-- **Database**: PostgreSQL (configured for Neon serverless)
-- **Migrations**: Drizzle Kit
-- **Connection**: Connection pooling with @neondatabase/serverless.
-
-### Key Features
-- **Onboarding Flow**: Multi-step wizard with back navigation and session-based payment integration.
-- **ProofScore System**: Comprehensive 5-dimension scoring (Desirability, Feasibility, Viability, Traction, Readiness), each max 20 points.
-- **Pathway Recommendations**: Personalized development pathways based on ProofScore.
-- **ProofVault Integration**: Document management with AI-powered pitch deck analysis, structured folder creation, and handling of single/multiple file/folder uploads (preserving hierarchy).
-- **Email Communication System**: 11 responsive HTML email templates.
-- **Simulation Engine**: Demo experience for testing user journeys.
-- **Activity Tracking**: Real-time logging of user actions.
-- **Payment Gateway System**: Generic payment architecture with hosted payment page solution, comprehensive transaction management, webhook/callback processing, and automated status page redirects.
-- **Comprehensive Error Handling**: Dynamic API error messages, image-based PDF detection, database error tracking, user-friendly navigation for errors, distinction between retryable and user-action errors, critical flow prevention, smart retry logic with limit (3 attempts), session-persisted retry counter, streamlined error messages, clean counter-based filename system for retries, and enhanced file cleanup.
-
-### Architecture Decisions
-- **Box Integration**: Using EastEmblem API as Box.com proxy.
-- **Payment Gateway**: Generic factory pattern with Telr implementation.
-- **Monitoring**: Dual system (Sentry + NewRelic) with graceful fallbacks.
-- **Authentication**: JWT-based with session management.
-- **File Management**: ProofVault integration through EastEmblem proxy.
-- **Cache Invalidation**: Event-driven invalidation for V1 routes only (file uploads, folder creation, activity logging, onboarding).
-
-### Security Implementations
-- **Environment Protection Strategy**: Complete isolation of development resources from production.
-- **Frontend Security**: Test routes conditionally rendered using `import.meta.env.MODE === 'development'`.
-- **Backend Security**: Test endpoints protected with `process.env.NODE_ENV !== 'production'` guards.
-- **Security Infrastructure**: Environment protection middleware for systematic protection of sensitive endpoints.
-- **Route Security**: Fixed TypeScript errors in server/routes/certificate.ts for type safety, removed invalid database schema fields, implemented safe property access, enhanced parameter validation, eliminated null reference exceptions, and added input sanitization to logging statements.
-- **Vault Route Security**: Applied input sanitization to all `console.log` statements containing user data in server/routes/v1/vault.ts to prevent SQL injection warnings and log injection attacks.
-
-## External Dependencies
-
-### Core Dependencies
-- **@neondatabase/serverless**: PostgreSQL connection and pooling
-- **drizzle-orm**: Database ORM and query builder
-- **@tanstack/react-query**: Server state management
-- **@radix-ui/**: UI component primitives
-- **framer-motion**: Animation library
-- **multer**: File upload handling
-- **zod**: Runtime type validation
-
-### Development Dependencies
-- **tsx**: TypeScript execution for development
-- **vite**: Frontend build tool and dev server
-- **esbuild**: Server-side bundling
-- **tailwindcss**: Utility-first CSS framework
-
-### External Services
-- **EastEmblem API**: Document analysis and scoring, email delivery.
-- **Neon Database**: Serverless PostgreSQL hosting.
-- **Replit**: Development and deployment platform.
-- **Sentry**: Error tracking system.
-- **NewRelic**: Performance monitoring.
-- **Telr Payment Gateway**: Primary payment processor.
+## Environment Variables
+- `DATABASE_URL`: PostgreSQL connection
+- `FRONTEND_URL`: Frontend domain for email links
+- `EASTEMBLEM_API_BASE_URL`: External API base URL
+- Various authentication and service keys as needed

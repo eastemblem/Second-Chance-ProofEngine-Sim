@@ -160,21 +160,7 @@ export default function FeedbackPage({ onNext, proofScore }: FeedbackPageProps) 
             </Card>
           </div>
 
-          {/* Generated Report */}
-          <Card className="p-6 border-border bg-card mb-8">
-            <div className="flex items-center justify-between">
-              <div>
-                <h3 className="text-xl font-semibold mb-2">Your Detailed Founder Report</h3>
-                <p className="text-muted-foreground">
-                  Comprehensive analysis with actionable recommendations
-                </p>
-              </div>
-              <Button className="gradient-button">
-                <Download className="mr-2 w-4 h-4" />
-                Download PDF
-              </Button>
-            </div>
-          </Card>
+
 
           {/* Continue Button */}
           <div className="text-center">

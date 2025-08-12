@@ -137,8 +137,7 @@ export class EmailService {
         
         // Also check the template data one more time
         appLogger.email("TEMPLATE DATA BEING USED:");
-        appLogger.email("CERTIFICATE_DOWNLOAD_URL:", enrichedData.CERTIFICATE_DOWNLOAD_URL);
-        appLogger.email("REPORT_DOWNLOAD_URL:", enrichedData.REPORT_DOWNLOAD_URL);
+        // Removed certificate and report URL logging for verification-only template
       }
       
       // Call N8N webhook email API using environment variable
@@ -249,42 +248,24 @@ export class EmailService {
     certificateUrl: string,
     verificationUrl?: string
   ): Promise<boolean> {
-    console.log("📧 EmailService.sendOnboardingEmail called with URLs:", {
-      reportUrl,
-      certificateUrl,
-      verificationUrl
-    });
+    console.log("📧 EmailService.sendOnboardingEmail called for verification-only email");
     
     const templateData = {
       USER_NAME: userName,
       PROOF_SCORE: proofScore,
       MILESTONE_LEVEL: this.getMilestoneLevel(proofScore),
-      DESIRABILITY_SCORE: scoreBreakdown.desirability || 0,
-      FEASIBILITY_SCORE: scoreBreakdown.feasibility || 0,
-      VIABILITY_SCORE: scoreBreakdown.viability || 0,
-      TRACTION_SCORE: scoreBreakdown.traction || 0,
-      READINESS_SCORE: scoreBreakdown.readiness || 0,
-      DESIRABILITY_PERCENTAGE: ((scoreBreakdown.desirability || 0) / 20) * 100,
-      FEASIBILITY_PERCENTAGE: ((scoreBreakdown.feasibility || 0) / 20) * 100,
-      VIABILITY_PERCENTAGE: ((scoreBreakdown.viability || 0) / 20) * 100,
-      TRACTION_PERCENTAGE: ((scoreBreakdown.traction || 0) / 20) * 100,
-      READINESS_PERCENTAGE: ((scoreBreakdown.readiness || 0) / 20) * 100,
-      PROOF_TAGS: proofTags.map(tag => ({ TAG_NAME: tag })),
-      REPORT_DOWNLOAD_URL: reportUrl,
-      CERTIFICATE_DOWNLOAD_URL: certificateUrl,
       VERIFICATION_URL: verificationUrl || `${(process.env.FRONTEND_URL || `https://${process.env.REPLIT_DOMAINS?.split(',')[0]}`).replace(/\/+$/, '')}/set-password`,
-      HOST_URL: process.env.FRONTEND_URL || `https://${process.env.REPLIT_DOMAINS?.split(',')[0]}`
+      HOST_URL: process.env.FRONTEND_URL || `https://${process.env.REPLIT_DOMAINS?.split(',')[0]}`,
+      CURRENT_YEAR: new Date().getFullYear(),
+      PRIVACY_URL: `${process.env.FRONTEND_URL || `https://${process.env.REPLIT_DOMAINS?.split(',')[0]}`}/privacy`,
+      TERMS_URL: `${process.env.FRONTEND_URL || `https://${process.env.REPLIT_DOMAINS?.split(',')[0]}`}/terms`,
+      LOGO_URL: `${process.env.FRONTEND_URL || `https://${process.env.REPLIT_DOMAINS?.split(',')[0]}`}/logo.png`
     };
-    
-    console.log("📧 Template data URLs being sent:", {
-      REPORT_DOWNLOAD_URL: templateData.REPORT_DOWNLOAD_URL,
-      CERTIFICATE_DOWNLOAD_URL: templateData.CERTIFICATE_DOWNLOAD_URL
-    });
     
     return this.sendEmail(
       to,
-      `🎉 Welcome to Second Chance - Your Documents Are Ready !`,
-      'onboarding',
+      `🎉 Welcome to Second Chance - Complete Your Registration`,
+      'onboarding-verification-only',
       templateData
     );
   }
