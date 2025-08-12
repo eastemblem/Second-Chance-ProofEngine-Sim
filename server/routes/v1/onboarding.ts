@@ -278,7 +278,6 @@ router.post("/team/complete", asyncHandler(async (req: Request, res: Response) =
   res.json(createSuccessResponse({
     teamComplete: true,
     nextStep: "upload",
-    completedSteps: result.completedSteps,
   }));
 }));
 
