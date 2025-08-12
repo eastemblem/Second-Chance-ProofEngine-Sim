@@ -302,10 +302,6 @@ const getProofTagJustification = (
   // Get justification from API response - try both output and direct access
   const output = scoringResult?.output || scoringResult;
 
-  if (import.meta.env.MODE === 'development') {
-    console.log("Output structure:", JSON.stringify(output, null, 2));
-  }
-
   // Direct API field mapping to try all possible fields
   const allApiFields = [
     "Problem",
