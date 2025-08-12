@@ -54,8 +54,10 @@ if (process.env.NEW_RELIC_LICENSE_KEY) {
 
 import express, { type Request, Response, NextFunction } from "express";
 import session from "express-session";
+import connectPgSimple from "connect-pg-simple";
 import cookieParser from "cookie-parser";
 import compression from "compression";
+import { pool } from "./db";
 import { registerRoutes } from "./routes-refactored";
 import { setupVite, serveStatic, log } from "./vite";
 import { errorHandler } from "./utils/error-handler";
@@ -95,14 +97,23 @@ app.use(express.json());
 app.use(express.urlencoded({ extended: false }));
 app.use(cookieParser());
 
-// Configure session middleware
+// Configure PostgreSQL session store
+const PostgreSqlStore = connectPgSimple(session);
+
+// Configure session middleware with PostgreSQL store
 app.use(session({
+  store: new PostgreSqlStore({
+    pool: pool,
+    tableName: 'session',
+    createTableIfMissing: true,
+  }),
   secret: process.env.SESSION_SECRET || 'dev-secret-key',
   resave: false,
-  saveUninitialized: true,
+  saveUninitialized: false, // Don't save empty sessions
   cookie: { 
-    secure: false, // Set to true in production with HTTPS
-    maxAge: 24 * 60 * 60 * 1000 // 24 hours
+    secure: process.env.NODE_ENV === 'production', // HTTPS in production
+    maxAge: 24 * 60 * 60 * 1000, // 24 hours
+    httpOnly: true // Prevent XSS attacks
   }
 }));
 
