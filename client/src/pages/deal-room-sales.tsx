@@ -603,40 +603,85 @@ export default function DealRoomSalesPage() {
       </section>
 
       {/* Ready to Accelerate */}
-      <section className="py-20 px-4 bg-card/30">
+      <section className="py-20 px-4 bg-background">
         <div className="container mx-auto max-w-4xl text-center">
           <motion.div
             initial={{ opacity: 0, y: 30 }}
             animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.8, delay: 1.2 }}
+            transition={{ duration: 0.8, delay: 0.2 }}
           >
-            <h2 className="text-4xl md:text-5xl font-bold mb-6">
-              Ready to <span className="gradient-text">Accelerate</span> Your Fundraising?
-            </h2>
-            <p className="text-xl text-muted-foreground mb-8 max-w-2xl mx-auto">
-              Join 300+ startups that have successfully raised capital through our Deal Room
-            </p>
+            <motion.h2 
+              className="text-4xl md:text-6xl font-bold mb-6 text-foreground"
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.6, delay: 0.1 }}
+            >
+              Ready to <span className="bg-gradient-to-r from-primary via-primary-gold to-orange-500 bg-clip-text text-transparent">Accelerate</span> Your Fundraising?
+            </motion.h2>
             
-            <Button size="lg" className="gradient-button text-lg px-12 py-6 h-auto mb-8">
-              Join Deal Room Today
-            </Button>
+            <motion.p 
+              className="text-lg text-muted-foreground mb-10 max-w-3xl mx-auto leading-relaxed"
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.6, delay: 0.2 }}
+            >
+              Join the most exclusive network of validated startups and get direct access to investors who understand the value of evidence-based ventures.
+            </motion.p>
             
-            <div className="bg-gradient-to-r from-primary/10 to-primary-gold/10 rounded-2xl p-8 max-w-2xl mx-auto border border-primary-gold/20">
-              <div className="flex items-center justify-center space-x-8 text-sm text-muted-foreground">
-                <div className="flex items-center">
-                  <CheckCircle2 className="w-5 h-5 text-primary-gold mr-2" />
-                  <span>Instant Access</span>
-                </div>
-                <div className="flex items-center">
-                  <CheckCircle2 className="w-5 h-5 text-primary-gold mr-2" />
-                  <span>30-Day Guarantee</span>
-                </div>
-                <div className="flex items-center">
-                  <CheckCircle2 className="w-5 h-5 text-primary-gold mr-2" />
-                  <span>Expert Support</span>
-                </div>
+            <motion.div
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.6, delay: 0.3 }}
+              className="mb-10"
+            >
+              <Button 
+                size="lg" 
+                className="bg-gradient-to-r from-primary via-primary-gold to-orange-500 hover:from-primary/90 hover:via-primary-gold/90 hover:to-orange-500/90 text-white text-xl font-semibold px-12 py-6 h-auto rounded-full shadow-xl"
+              >
+                <Crown className="w-5 h-5 mr-3" />
+                Join Deal Room Now
+                <ArrowRight className="w-5 h-5 ml-3" />
+              </Button>
+            </motion.div>
+            
+            <motion.div 
+              className="flex flex-col md:flex-row items-center justify-center gap-8 mb-12 text-sm"
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.6, delay: 0.4 }}
+            >
+              <div className="flex items-center text-green-500">
+                <CheckCircle2 className="w-5 h-5 mr-2" />
+                <span className="text-muted-foreground">No setup fees</span>
               </div>
-            </div>
+              <div className="flex items-center text-green-500">
+                <CheckCircle2 className="w-5 h-5 mr-2" />
+                <span className="text-muted-foreground">Cancel anytime</span>
+              </div>
+              <div className="flex items-center text-green-500">
+                <CheckCircle2 className="w-5 h-5 mr-2" />
+                <span className="text-muted-foreground">Money-back guarantee</span>
+              </div>
+            </motion.div>
+
+            {/* Limited spots banner */}
+            <motion.div
+              initial={{ opacity: 0, scale: 0.95 }}
+              animate={{ opacity: 1, scale: 1 }}
+              transition={{ duration: 0.6, delay: 0.5 }}
+              className="max-w-2xl mx-auto"
+            >
+              <Card className="p-6 bg-gradient-to-r from-primary/10 to-primary-gold/10 border border-primary/20 rounded-2xl backdrop-blur-sm">
+                <div className="flex items-center justify-center text-center">
+                  <Timer className="w-6 h-6 text-primary mr-3 flex-shrink-0" />
+                  <p className="text-primary font-semibold">
+                    <span className="text-base">Limited spots available - Only </span>
+                    <span className="text-lg font-bold">43</span>
+                    <span className="text-base"> remaining this month</span>
+                  </p>
+                </div>
+              </Card>
+            </motion.div>
           </motion.div>
         </div>
       </section>
