@@ -349,14 +349,14 @@ export default function DealRoomSalesPage() {
                   whileHover={{ y: -5, scale: 1.02 }}
                 >
                   <Card className="p-6 bg-card/50 backdrop-blur-sm hover:bg-card/80 transition-all duration-300 h-full">
-                    <div className="flex items-center mb-4">
-                      <div className={`w-12 h-12 rounded-full ${testimonial.bgColor} flex items-center justify-center text-white font-bold text-lg mr-4`}>
+                    <div className="flex items-start mb-4">
+                      <div className={`w-12 h-12 rounded-full ${testimonial.bgColor} flex items-center justify-center text-white font-bold text-lg mr-4 flex-shrink-0`}>
                         {testimonial.avatar}
                       </div>
-                      <div>
-                        <h4 className="font-semibold text-foreground">{testimonial.name}</h4>
+                      <div className="text-left">
+                        <h4 className="font-semibold text-foreground text-lg">{testimonial.name}</h4>
                         <p className="text-sm text-muted-foreground">{testimonial.title}</p>
-                        <p className="text-xs text-primary">ProofScore: {testimonial.proofScore}</p>
+                        <p className="text-sm text-primary font-medium">ProofScore: {testimonial.proofScore}</p>
                       </div>
                     </div>
                     
