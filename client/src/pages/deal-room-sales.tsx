@@ -387,65 +387,95 @@ export default function DealRoomSalesPage() {
             transition={{ duration: 0.8, delay: 0.3 }}
             className="text-center mb-16"
           >
-            <h2 className="text-4xl md:text-5xl font-bold mb-6">Why Our Deal Room Works</h2>
-            <p className="text-xl text-muted-foreground max-w-3xl mx-auto">
-              Four key advantages that set successful founders apart
-            </p>
+            <motion.h2 
+              className="text-4xl md:text-5xl font-bold mb-6 text-foreground"
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.6, delay: 0.1 }}
+            >
+              Why Our Deal Room Works
+            </motion.h2>
+            <motion.p 
+              className="text-lg text-muted-foreground max-w-2xl mx-auto"
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.6, delay: 0.2 }}
+            >
+              Our proven system connects validated startups with the right investors at the perfect time
+            </motion.p>
           </motion.div>
 
-          <div className="grid md:grid-cols-2 gap-8 mb-16">
+          <motion.div 
+            className="grid md:grid-cols-2 gap-8 mb-16"
+            initial={{ opacity: 0, y: 40 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.8, delay: 0.4 }}
+          >
             {[
               {
-                icon: '📊',
-                title: 'AI-Powered Matching',
-                description: 'Advanced algorithms match startups with investors based on industry, stage, check size, and portfolio fit.',
-                bgColor: 'bg-blue-500/10',
-                textColor: 'text-blue-400',
-                borderColor: 'border-blue-500/20'
+                icon: <Crown className="w-8 h-8" />,
+                title: 'VIP Investor Network',
+                description: 'Direct access to 300+ pre-qualified, actively investing VCs and angels',
+                benefit: 'Skip the cold outreach',
+                bgColor: 'bg-purple-500/10',
+                iconBgColor: 'bg-gradient-to-br from-purple-500 to-primary-gold',
+                borderColor: 'border-purple-500/20',
+                benefitColor: 'text-primary'
               },
               {
-                icon: '🎯',
-                title: 'Curated Investor Network',
-                description: 'Access to pre-qualified investors who actively invest in your sector and stage.',
-                bgColor: 'bg-green-500/10',
-                textColor: 'text-green-400',
-                borderColor: 'border-green-500/20'
-              },
-              {
-                icon: '📈',
-                title: 'Pitch Optimization',
-                description: 'Data-driven improvements to your pitch deck and materials based on successful raises.',
+                icon: <Zap className="w-8 h-8" />,
+                title: 'Lightning-Fast Introductions',
+                description: 'Get warm introductions within 48 hours of joining the Deal Room',
+                benefit: '2x faster than traditional methods',
                 bgColor: 'bg-primary-gold/10',
-                textColor: 'text-primary-gold',
-                borderColor: 'border-primary-gold/20'
+                iconBgColor: 'bg-gradient-to-br from-primary-gold to-orange-500',
+                borderColor: 'border-primary-gold/20',
+                benefitColor: 'text-primary'
               },
               {
-                icon: '🤝',
+                icon: <Shield className="w-8 h-8" />,
+                title: 'Due Diligence Ready',
+                description: 'Your ProofVault contains everything investors need for quick decisions',
+                benefit: 'Reduce diligence time by 75%',
+                bgColor: 'bg-blue-500/10',
+                iconBgColor: 'bg-gradient-to-br from-blue-500 to-purple-500',
+                borderColor: 'border-blue-500/20',
+                benefitColor: 'text-primary'
+              },
+              {
+                icon: <Handshake className="w-8 h-8" />,
                 title: 'Strategic Partnerships',
-                description: 'Beyond funding - access to strategic partners, customers, and growth opportunities.',
-                bgColor: 'bg-primary/10',
-                textColor: 'text-primary',
-                borderColor: 'border-primary/20'
+                description: 'Connect with Fortune 500 companies looking for innovation partners',
+                benefit: 'Revenue + funding opportunities',
+                bgColor: 'bg-green-500/10',
+                iconBgColor: 'bg-gradient-to-br from-green-500 to-primary-gold',
+                borderColor: 'border-green-500/20',
+                benefitColor: 'text-primary'
               }
             ].map((feature, index) => (
               <motion.div
                 key={index}
                 initial={{ opacity: 0, y: 30 }}
                 animate={{ opacity: 1, y: 0 }}
-                transition={{ duration: 0.8, delay: 0.4 + index * 0.1 }}
+                transition={{ duration: 0.6, delay: 0.5 + index * 0.1 }}
+                whileHover={{ y: -10, scale: 1.02 }}
               >
-                <Card className={`p-8 h-full ${feature.bgColor} ${feature.borderColor} border bg-card`}>
-                  <div className="flex items-start space-x-4">
-                    <div className="text-4xl mb-4">{feature.icon}</div>
-                    <div className="flex-1">
-                      <h3 className={`text-xl font-bold mb-3 ${feature.textColor}`}>{feature.title}</h3>
-                      <p className="text-muted-foreground leading-relaxed">{feature.description}</p>
+                <Card className={`p-8 ${feature.bgColor} ${feature.borderColor} border bg-card/50 backdrop-blur-sm hover:bg-card/80 transition-all duration-300 h-full`}>
+                  <div className="text-left">
+                    <div className={`w-16 h-16 rounded-2xl ${feature.iconBgColor} flex items-center justify-center text-white mb-6`}>
+                      {feature.icon}
+                    </div>
+                    <h3 className="text-xl font-bold mb-4 text-foreground">{feature.title}</h3>
+                    <p className="text-muted-foreground mb-6 leading-relaxed">{feature.description}</p>
+                    <div className={`flex items-center ${feature.benefitColor} text-sm font-semibold`}>
+                      <CheckCircle2 className="w-4 h-4 mr-2" />
+                      {feature.benefit}
                     </div>
                   </div>
                 </Card>
               </motion.div>
             ))}
-          </div>
+          </motion.div>
         </div>
       </section>
 
