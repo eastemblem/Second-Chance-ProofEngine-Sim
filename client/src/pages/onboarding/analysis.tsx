@@ -297,7 +297,6 @@ const getProofTagJustification = (
 
   if (import.meta.env.MODE === 'development') {
     console.log("Getting justification for tag:", tagName, "category:", category);
-    console.log("Raw scoring result:", JSON.stringify(scoringResult, null, 2));
   }
 
   // Get justification from API response - try both output and direct access
