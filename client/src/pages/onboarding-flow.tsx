@@ -66,13 +66,21 @@ const determineCurrentStepIndex = (completedSteps: string[] = [], currentStep?: 
                          processingData.proofScore > 0 &&
                          !processingData.hasError;
     
-    // If trying to access analysis but processing isn't complete, stay on processing
-    if (!hasValidScore) {
+    // Also check if analysis step is already marked as completed (user has been on analysis page)
+    const analysisCompleted = completedSteps.includes('analysis');
+    
+    // If trying to access analysis but processing isn't complete AND analysis wasn't already completed
+    if (!hasValidScore && !analysisCompleted) {
       // Analysis access blocked - redirect to processing
       if (import.meta.env.MODE === 'development') {
         console.log(`Analysis access blocked: processing incomplete or has errors`, processingData);
       }
       return 4; // Force back to processing step
+    }
+    
+    // If analysis was already completed (user was on analysis page before), allow them to stay
+    if (analysisCompleted) {
+      return 5; // Keep them on analysis step
     }
   }
   
@@ -527,17 +535,32 @@ export default function OnboardingFlow({ onComplete }: OnboardingFlowProps) {
               />
             )}
             
-            {currentStep.key === "analysis" && (
-              <Analysis
-                sessionId={sessionData.sessionId}
-                sessionData={{
+            {currentStep.key === "analysis" && (() => {
+              // Mark analysis step as completed when user lands on it (for reload persistence)
+              if (sessionData && !sessionData.completedSteps?.includes('analysis')) {
+                const updatedSession = {
                   ...sessionData,
-                  scoringResult: sessionData?.stepData?.processing?.scoringResult
-                }}
-                onNext={handleComplete}
-                onComplete={handleComplete}
-              />
-            )}
+                  completedSteps: [...(sessionData.completedSteps || []), 'analysis']
+                };
+                setSessionData(updatedSession);
+                localStorage.setItem('onboardingSession', JSON.stringify(updatedSession));
+                if (import.meta.env.MODE === 'development') {
+                  console.log('Analysis step marked as completed for reload persistence');
+                }
+              }
+              
+              return (
+                <Analysis
+                  sessionId={sessionData.sessionId}
+                  sessionData={{
+                    ...sessionData,
+                    scoringResult: sessionData?.stepData?.processing?.scoringResult
+                  }}
+                  onNext={handleComplete}
+                  onComplete={handleComplete}
+                />
+              );
+            })()}
             
             {/* Payment step removed - users go directly from analysis to completion */}
 
