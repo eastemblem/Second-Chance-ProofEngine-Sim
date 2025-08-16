@@ -128,7 +128,7 @@ export default function ProofScalingSalesPage(props?: ProofScalingSalesPageProps
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.8, delay: 0.5 }}
             >
-              Turn rejection into{' '}
+              Turn rejection into<br />
               <span className="bg-gradient-to-r from-blue-500 via-green-400 to-blue-600 bg-clip-text text-transparent">
                 investor-ready proof
               </span>
