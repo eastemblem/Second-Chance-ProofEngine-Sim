@@ -17,6 +17,8 @@ import { AnimatedCounter } from "@/components/proofscaling/animated-counter";
 import { FloatingElements } from "@/components/proofscaling/floating-elements";
 import { SuccessIndicator } from "@/components/proofscaling/success-indicator";
 import { ProgressVisualization } from "@/components/proofscaling/progress-visualization";
+import { MetricCardsHero } from "@/components/proofscaling/metric-card-hero";
+import { UrgencyBanner } from "@/components/proofscaling/urgency-banner";
 
 // Data for ProofScaling
 const heroMetrics = [
@@ -110,77 +112,61 @@ export default function ProofScalingSalesPage(props?: ProofScalingSalesPageProps
         <div className="absolute inset-0 bg-gradient-to-br from-blue-500/10 via-background to-green-500/10" />
         <FloatingElements />
         <div className="container mx-auto max-w-5xl relative">
-          <motion.div
-            initial={{ opacity: 0, y: 30 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.8 }}
-            className="text-center mb-16"
-          >
-            {/* Badge */}
-            <motion.div
-              initial={{ opacity: 0, scale: 0.9 }}
-              animate={{ opacity: 1, scale: 1 }}
-              transition={{ duration: 0.6, delay: 0.1 }}
-            >
-              <Badge className="mb-8 bg-blue-500/20 text-blue-400 border-blue-500/30 px-6 py-3 text-sm font-medium">
-                <Brain className="w-4 h-4 mr-2" />
-                ProofScaling Program - Transform Your Startup
-                <Lightbulb className="w-4 h-4 ml-2" />
-              </Badge>
-            </motion.div>
+          <div className="text-center">
+            {/* Metric Cards */}
+            <MetricCardsHero />
+            
+            {/* Urgency Banner */}
+            <div className="flex justify-center mb-12">
+              <UrgencyBanner />
+            </div>
 
             {/* Main heading */}
             <motion.h1 
-              className="text-5xl md:text-7xl font-bold mb-6 leading-tight bg-gradient-to-r from-blue-500 via-green-500 to-blue-600 bg-clip-text text-transparent"
+              className="text-5xl md:text-7xl font-bold mb-6 leading-tight"
               initial={{ opacity: 0, y: 30 }}
               animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.8, delay: 0.2 }}
+              transition={{ duration: 0.8, delay: 0.5 }}
             >
-              ProofScaling
+              Turn rejection into{' '}
+              <span className="bg-gradient-to-r from-blue-500 via-green-400 to-blue-600 bg-clip-text text-transparent">
+                investor-ready proof
+              </span>
             </motion.h1>
 
             {/* Subheading */}
-            <motion.h2 
-              className="text-2xl md:text-4xl font-bold mb-8 text-foreground"
+            <motion.p 
+              className="text-2xl md:text-3xl font-bold mb-8 text-foreground"
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.6, delay: 0.3 }}
+              transition={{ duration: 0.6, delay: 0.6 }}
             >
-              From Idea to Investor-Ready
-            </motion.h2>
+              in just 4 weeks
+            </motion.p>
 
             {/* Description */}
             <motion.p 
-              className="text-lg md:text-xl text-muted-foreground mb-6 max-w-3xl mx-auto leading-relaxed"
+              className="text-lg md:text-xl text-muted-foreground mb-12 max-w-3xl mx-auto leading-relaxed"
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.6, delay: 0.4 }}
+              transition={{ duration: 0.6, delay: 0.7 }}
             >
-              Join the comprehensive program that transforms early-stage startups into <span className="text-blue-500 font-semibold">investment-ready ventures</span>. Get the validation, framework, and mentorship you need to build something <span className="bg-gradient-to-r from-green-500 to-blue-500 bg-clip-text text-transparent font-bold">investors actually want</span>.
+              A practical sprint that upgrades your ProofScore, derisks your venture, and magnetizes capital.
             </motion.p>
 
-            {/* Success indicators */}
-            <motion.div 
-              className="flex flex-col md:flex-row justify-center items-center gap-8 mb-10 max-w-4xl mx-auto"
+            {/* Quote Section */}
+            <motion.div
+              className="bg-white/5 backdrop-blur-sm border border-white/10 rounded-2xl p-8 mb-12 max-w-4xl mx-auto"
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.6, delay: 0.45 }}
+              transition={{ duration: 0.6, delay: 0.8 }}
             >
-              <SuccessIndicator 
-                metric="12 Weeks" 
-                description="to investor readiness"
-                delay={0.5}
-              />
-              <SuccessIndicator 
-                metric="94% Success" 
-                description="complete the program"
-                delay={0.6}
-              />
-              <SuccessIndicator 
-                metric="73% Funded" 
-                description="within 6 months"
-                delay={0.7}
-              />
+              <div className="text-2xl md:text-3xl font-bold mb-4 bg-gradient-to-r from-blue-400 to-green-400 bg-clip-text text-transparent">
+                "Investors don't fund ideas – they fund evidence."
+              </div>
+              <p className="text-muted-foreground text-base md:text-lg">
+                ProofScaling is the only fast-track curriculum that turns gut-feel into data VCs can underwrite. Follow our weekly experiments, upload the artefacts, and watch your ProofTags turn gold.
+              </p>
             </motion.div>
 
             {/* CTA Buttons */}
@@ -222,7 +208,7 @@ export default function ProofScalingSalesPage(props?: ProofScalingSalesPageProps
                 />
               ))}
             </motion.div>
-          </motion.div>
+          </div>
         </div>
       </section>
 
