@@ -17,6 +17,7 @@ const ScoringPage = lazy(() => import("@/pages/scoring"));
 const FeedbackPage = lazy(() => import("@/pages/feedback"));
 const PathwayPage = lazy(() => import("@/pages/pathway"));
 const DealRoomSalesPage = lazy(() => import("@/pages/deal-room-sales"));
+const ProofScalingSalesPage = lazy(() => import("@/pages/proofscaling-sales"));
 const ProofScalingDashboard = lazy(() => import("@/pages/proofscaling-dashboard"));
 const FinalPage = lazy(() => import("@/pages/final"));
 const Privacy = lazy(() => import("@/pages/Privacy"));
@@ -115,7 +116,7 @@ function SimulationFlow() {
         ) : null;
       case 6:
         return state.proofScore && state.proofScore.total >= 70 ? (
-          <DealRoomPage 
+          <DealRoomSalesPage 
             onNext={() => setCurrentPage(8)}
             proofScore={state.proofScore}
           />
@@ -229,6 +230,11 @@ function Router() {
       <Route path="/deal-room" component={() => (
         <Suspense fallback={<SimpleLoader />}>
           <DealRoomSalesPage />
+        </Suspense>
+      )} />
+      <Route path="/proof-scaling" component={() => (
+        <Suspense fallback={<SimpleLoader />}>
+          <ProofScalingSalesPage />
         </Suspense>
       )} />
       <Route path="/proofscaling" component={() => (

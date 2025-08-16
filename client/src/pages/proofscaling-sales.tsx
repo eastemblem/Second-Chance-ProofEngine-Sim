@@ -4,19 +4,19 @@ import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 
-// Import reusable components
-import { AnimatedSection } from "@/components/deal-room/animated-section";
-import { SectionHeader } from "@/components/deal-room/section-header";
-import { MetricCard } from "@/components/deal-room/metric-card";
-import { FeatureList } from "@/components/deal-room/feature-list";
-import { GradientButton } from "@/components/deal-room/gradient-button";
-import { TestimonialCard } from "@/components/deal-room/testimonial-card";
-import { CompanyLogoGrid } from "@/components/deal-room/company-logo";
-import { BadgeWithIcon } from "@/components/deal-room/badge-with-icon";
-import { AnimatedCounter } from "@/components/deal-room/animated-counter";
-import { FloatingElements } from "@/components/deal-room/floating-elements";
-import { SuccessIndicator } from "@/components/deal-room/success-indicator";
-import { ProgressVisualization } from "@/components/deal-room/progress-visualization";
+// Import ProofScaling components
+import { AnimatedSection } from "@/components/proofscaling/animated-section";
+import { SectionHeader } from "@/components/proofscaling/section-header";
+import { MetricCard } from "@/components/proofscaling/metric-card";
+import { FeatureList } from "@/components/proofscaling/feature-list";
+import { GradientButton } from "@/components/proofscaling/gradient-button";
+import { TestimonialCard } from "@/components/proofscaling/testimonial-card";
+import { CompanyLogoGrid } from "@/components/proofscaling/company-logo";
+import { BadgeWithIcon } from "@/components/proofscaling/badge-with-icon";
+import { AnimatedCounter } from "@/components/proofscaling/animated-counter";
+import { FloatingElements } from "@/components/proofscaling/floating-elements";
+import { SuccessIndicator } from "@/components/proofscaling/success-indicator";
+import { ProgressVisualization } from "@/components/proofscaling/progress-visualization";
 
 // Data for ProofScaling
 const heroMetrics = [
@@ -97,7 +97,12 @@ const curriculumModules = [
   }
 ];
 
-export default function ProofScalingSalesPage() {
+interface ProofScalingSalesPageProps {
+  onNext?: () => void;
+  proofScore?: any;
+}
+
+export default function ProofScalingSalesPage(props?: ProofScalingSalesPageProps) {
   return (
     <div className="min-h-screen bg-background text-foreground">
       {/* Hero Section */}
@@ -231,7 +236,7 @@ export default function ProofScalingSalesPage() {
             />
           </AnimatedSection>
 
-          <CompanyLogoGrid companies={partnerPrograms} delay={0.4} />
+          <CompanyLogoGrid companies={partnerPrograms} />
 
           {/* Testimonials */}
           <div className="mt-20">
@@ -284,7 +289,6 @@ export default function ProofScalingSalesPage() {
             <SectionHeader 
               title="Why Most Startups Fail" 
               subtitle="DIY approach vs. The ProofScaling systematic framework"
-              gradient={true}
             />
           </AnimatedSection>
 
@@ -372,12 +376,11 @@ export default function ProofScalingSalesPage() {
       </section>
 
       {/* Curriculum Overview */}
-      <AnimatedSection id="curriculum" className="py-20 px-4 bg-card/30">
+      <AnimatedSection className="py-20 px-4 bg-card/30">
         <div className="container mx-auto max-w-6xl">
           <SectionHeader 
             title="Complete Curriculum" 
             subtitle="Six comprehensive modules designed to transform your startup into an investment-ready business"
-            gradient={true}
           />
           
           <ProgressVisualization />
@@ -386,7 +389,6 @@ export default function ProofScalingSalesPage() {
             <FeatureList 
               features={curriculumModules}
               columns={2}
-              delay={0.2}
             />
           </div>
 
@@ -438,7 +440,6 @@ export default function ProofScalingSalesPage() {
             <SectionHeader 
               title="Transform Your Startup" 
               subtitle="Choose the program that fits your stage and ambition"
-              gradient={true}
             />
           </AnimatedSection>
 
