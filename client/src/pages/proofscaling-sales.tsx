@@ -108,7 +108,7 @@ export default function ProofScalingSalesPage(props?: ProofScalingSalesPageProps
   return (
     <div className="min-h-screen bg-background text-foreground">
       {/* Hero Section */}
-      <section className="relative py-20 px-4 overflow-hidden">
+      <section className="relative pt-8 pb-20 px-4 overflow-hidden">
         <div className="absolute inset-0 bg-gradient-to-br from-blue-500/10 via-background to-green-500/10" />
         <FloatingElements />
         <div className="container mx-auto max-w-5xl relative">
@@ -169,45 +169,7 @@ export default function ProofScalingSalesPage(props?: ProofScalingSalesPageProps
               </p>
             </motion.div>
 
-            {/* CTA Buttons */}
-            <motion.div 
-              className="flex flex-col sm:flex-row gap-4 justify-center mb-16"
-              initial={{ opacity: 0, y: 30 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.6, delay: 0.5 }}
-            >
-              <GradientButton leftIcon={Rocket} rightIcon={ArrowRight} size="lg">
-                Start ProofScaling
-              </GradientButton>
-              
-              <motion.div
-                whileHover={{ scale: 1.05 }}
-                whileTap={{ scale: 0.95 }}
-              >
-                <Button size="lg" variant="outline" className="border-2 border-foreground text-foreground hover:bg-foreground hover:text-background text-lg px-8 py-4 h-auto rounded-full shadow-lg hover:shadow-xl transition-all duration-300">
-                  <PlayCircle className="w-5 h-5 mr-2" />
-                  See Success Stories
-                </Button>
-              </motion.div>
-            </motion.div>
-            
-            {/* Stats cards */}
-            <motion.div 
-              className="grid grid-cols-2 md:grid-cols-4 gap-6 max-w-5xl mx-auto"
-              initial={{ opacity: 0, y: 40 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.8, delay: 0.6 }}
-            >
-              {heroMetrics.map((metric, index) => (
-                <MetricCard
-                  key={index}
-                  value={metric.value}
-                  label={metric.label}
-                  icon={metric.icon}
-                  delay={metric.delay}
-                />
-              ))}
-            </motion.div>
+
           </div>
         </div>
       </section>

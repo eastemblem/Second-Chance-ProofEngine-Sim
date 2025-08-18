@@ -15,7 +15,7 @@ export function MetricCardHero({ icon, value, label, delay = 0, gradientColors }
       initial={{ opacity: 0, y: 20 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.6, delay }}
-      className="bg-card/30 backdrop-blur-sm rounded-xl shadow-md p-4 hover:shadow-lg transition-all duration-300 border border-border/50"
+      className="bg-card/30 backdrop-blur-sm rounded-xl shadow-md p-4 hover:shadow-lg transition-all duration-300 border-2 border-white/20"
     >
       <div className="flex items-center gap-3">
         {/* Icon with gradient background */}
