@@ -288,14 +288,14 @@ export function PaymentModal({
 
       case 'iframe':
         return (
-          <div className="h-[calc(95vh-8rem)] flex flex-col">
-            <div className="text-center px-4 pb-2 shrink-0">
+          <div className="h-[calc(95vh-8rem)] flex flex-col bg-background">
+            <div className="text-center px-4 pb-3 shrink-0 bg-background/95 border-b border-border/50">
               <p className="text-xs text-muted-foreground">
                 Order Reference: {paymentData?.orderReference}
               </p>
             </div>
             
-            <div className="flex-1 mx-4 mb-2 border border-border rounded-lg overflow-hidden bg-white min-h-0">
+            <div className="flex-1 mx-4 my-3 border-2 border-border rounded-lg overflow-hidden bg-white shadow-lg min-h-0">
               {paymentData?.paymentUrl ? (
                 <iframe
                   src={paymentData.paymentUrl}
@@ -321,12 +321,16 @@ export function PaymentModal({
               )}
             </div>
             
-            <div className="px-4 pb-2 shrink-0">
-              <Button variant="outline" onClick={onClose} className="w-full">
+            <div className="px-4 pb-4 shrink-0 bg-background/95 border-t border-border/50">
+              <Button 
+                variant="outline" 
+                onClick={onClose} 
+                className="w-full mb-3 border-2 border-red-500/20 hover:border-red-500/40 hover:bg-red-500/10 text-foreground"
+              >
                 Cancel Payment
               </Button>
-              <div className="text-center pt-2">
-                <p className="text-sm text-muted-foreground font-medium">
+              <div className="text-center">
+                <p className="text-sm text-muted-foreground font-medium bg-muted/30 px-3 py-2 rounded-md">
                   🔒 Secure payment processing powered by Telr
                 </p>
               </div>
