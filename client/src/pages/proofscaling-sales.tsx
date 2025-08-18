@@ -291,12 +291,12 @@ export default function ProofScalingSalesPage(props?: ProofScalingSalesPageProps
             />
           </AnimatedSection>
 
-          <div className="relative mt-16">
+          <div className="relative mt-16 min-h-[1400px]">
             {/* Timeline Line */}
             <TimelineLine totalSteps={timelineSteps.length} />
             
             {/* Timeline Cards */}
-            <div className="relative z-10 space-y-8">
+            <div className="relative z-10">
               {timelineSteps.map((step, index) => (
                 <TimelineCard
                   key={step.week}

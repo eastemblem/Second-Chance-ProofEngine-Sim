@@ -6,15 +6,15 @@ interface TimelineLineProps {
 
 export function TimelineLine({ totalSteps }: TimelineLineProps) {
   return (
-    <div className="absolute left-1/2 transform -translate-x-1/2 h-full w-1 flex flex-col items-center">
+    <div className="absolute left-1/2 transform -translate-x-1/2 top-0 bottom-0 w-1 flex flex-col items-center">
       {/* Animated line */}
       <motion.div
         initial={{ height: 0 }}
-        animate={{ height: "100%" }}
+        animate={{ height: "calc(100% - 4rem)" }}
         transition={{ duration: 2, delay: 0.5 }}
-        className="w-full bg-gradient-to-b from-purple-500 via-blue-500 to-green-500 rounded-full relative"
+        className="w-full bg-gradient-to-b from-purple-500 via-blue-500 to-green-500 rounded-full relative mt-8"
       >
-        {/* Timeline dots */}
+        {/* Timeline dots positioned to align with cards */}
         {Array.from({ length: totalSteps }).map((_, index) => (
           <motion.div
             key={index}
@@ -23,9 +23,9 @@ export function TimelineLine({ totalSteps }: TimelineLineProps) {
             transition={{ duration: 0.4, delay: 0.8 + index * 0.2 }}
             className="absolute w-4 h-4 bg-white border-4 border-purple-500 rounded-full shadow-lg"
             style={{
-              top: `${(index / (totalSteps - 1)) * 100}%`,
+              top: `${index * (100 / (totalSteps - 1))}%`,
               left: "50%",
-              transform: "translateX(-50%)"
+              transform: "translateX(-50%) translateY(-50%)"
             }}
           />
         ))}
