@@ -1,8 +1,10 @@
 import { motion } from "framer-motion";
+import { useState } from "react";
 import { ArrowRight, Star, Users, TrendingUp, Shield, Zap, Crown, Award, DollarSign, Timer, Handshake, CheckCircle2, Target, Trophy, Rocket, PlayCircle } from "lucide-react";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
+import { EmailVerificationPopup } from "@/components/ui/email-verification-popup";
 
 // Import reusable components
 import { AnimatedSection } from "@/components/deal-room/animated-section";
@@ -76,6 +78,12 @@ const features = [
 ];
 
 export default function DealRoomSalesPage() {
+  const [showEmailPopup, setShowEmailPopup] = useState(false);
+
+  const handleJoinClick = () => {
+    setShowEmailPopup(true);
+  };
+
   return (
     <div className="min-h-screen bg-background text-foreground">
       {/* Hero Section */}
@@ -144,7 +152,11 @@ export default function DealRoomSalesPage() {
                 whileHover={{ scale: 1.05 }}
                 whileTap={{ scale: 0.95 }}
               >
-                <Button size="lg" className="gradient-button text-lg px-8 py-4 h-auto rounded-full shadow-lg hover:shadow-xl transition-all duration-300">
+                <Button 
+                  onClick={handleJoinClick}
+                  size="lg" 
+                  className="gradient-button text-lg px-8 py-4 h-auto rounded-full shadow-lg hover:shadow-xl transition-all duration-300"
+                >
                   <Rocket className="w-5 h-5 mr-2" />
                   Join Deal Room Now
                   <ArrowRight className="w-5 h-5 ml-2" />
@@ -625,7 +637,7 @@ export default function DealRoomSalesPage() {
             </motion.p>
             
             <AnimatedSection delay={0.3} className="mb-10">
-              <GradientButton leftIcon={Crown} rightIcon={ArrowRight} size="xl">
+              <GradientButton leftIcon={Crown} rightIcon={ArrowRight} size="xl" onClick={handleJoinClick}>
                 Join Deal Room Now
               </GradientButton>
             </AnimatedSection>
@@ -657,6 +669,12 @@ export default function DealRoomSalesPage() {
           </motion.div>
         </div>
       </section>
+
+      {/* Email Verification Popup */}
+      <EmailVerificationPopup 
+        isOpen={showEmailPopup}
+        onClose={() => setShowEmailPopup(false)}
+      />
     </div>
   );
 }

@@ -1,8 +1,10 @@
 import { motion } from "framer-motion";
+import { useState } from "react";
 import { ArrowRight, Star, Users, TrendingUp, Shield, Zap, Crown, Award, DollarSign, Timer, Handshake, CheckCircle2, Target, Trophy, Rocket, PlayCircle, Brain, BookOpen, Lightbulb, Search, BarChart3, MessageSquare, Layers, Presentation, Gauge, CheckCircle, User, Lock, Clock } from "lucide-react";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
+import { EmailVerificationPopup } from "@/components/ui/email-verification-popup";
 
 // Import ProofScaling components
 import { AnimatedSection } from "@/components/proofscaling/animated-section";
@@ -205,6 +207,12 @@ interface ProofScalingSalesPageProps {
 }
 
 export default function ProofScalingSalesPage(props?: ProofScalingSalesPageProps) {
+  const [showEmailPopup, setShowEmailPopup] = useState(false);
+
+  const handleJoinClick = () => {
+    setShowEmailPopup(true);
+  };
+
   return (
     <div className="min-h-screen bg-background text-foreground">
       {/* Hero Section */}
@@ -477,7 +485,10 @@ export default function ProofScalingSalesPage(props?: ProofScalingSalesPageProps
                   animate={{ opacity: 1, y: 0 }}
                   transition={{ duration: 0.6, delay: 0.8 }}
                 >
-                  <button className="w-full bg-gradient-to-r from-orange-500 to-orange-600 hover:from-orange-400 hover:to-orange-500 text-white font-bold py-4 px-8 rounded-xl text-lg transition-all duration-300 transform hover:scale-105 shadow-lg hover:shadow-xl">
+                  <button 
+                    onClick={handleJoinClick}
+                    className="w-full bg-gradient-to-r from-orange-500 to-orange-600 hover:from-orange-400 hover:to-orange-500 text-white font-bold py-4 px-8 rounded-xl text-lg transition-all duration-300 transform hover:scale-105 shadow-lg hover:shadow-xl"
+                  >
                     <div className="flex items-center justify-center gap-2">
                       <Rocket className="w-5 h-5" />
                       <span>Join the Next Cohort - Start Today</span>
@@ -528,7 +539,10 @@ export default function ProofScalingSalesPage(props?: ProofScalingSalesPageProps
                 whileHover={{ scale: 1.05 }}
                 whileTap={{ scale: 0.95 }}
               >
-                <button className="bg-gradient-to-r from-purple-600 to-orange-500 hover:from-purple-500 hover:to-orange-400 text-white font-bold py-4 px-8 rounded-xl text-lg transition-all duration-300 shadow-lg hover:shadow-xl">
+                <button 
+                  onClick={handleJoinClick}
+                  className="bg-gradient-to-r from-purple-600 to-orange-500 hover:from-purple-500 hover:to-orange-400 text-white font-bold py-4 px-8 rounded-xl text-lg transition-all duration-300 shadow-lg hover:shadow-xl"
+                >
                   <div className="flex items-center gap-2">
                     <Zap className="w-5 h-5" />
                     <span>Join ProofScaling Now</span>
@@ -549,6 +563,12 @@ export default function ProofScalingSalesPage(props?: ProofScalingSalesPageProps
           </motion.div>
         </div>
       </section>
+
+      {/* Email Verification Popup */}
+      <EmailVerificationPopup 
+        isOpen={showEmailPopup}
+        onClose={() => setShowEmailPopup(false)}
+      />
     </div>
   );
 }
