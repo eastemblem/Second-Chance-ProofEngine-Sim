@@ -421,7 +421,7 @@ export default function ProofScalingSalesPage(props?: ProofScalingSalesPageProps
             transition={{ duration: 0.6, delay: 0.3 }}
             className="mt-12 max-w-2xl mx-auto"
           >
-            <div className="bg-gradient-to-br from-purple-600 via-purple-700 to-purple-800 rounded-2xl p-8 border-2 border-white/20 shadow-2xl relative overflow-hidden">
+            <div className="bg-gradient-to-br from-[#17171C] via-[#17171C] to-[#17171C] rounded-2xl p-8 border-2 border-white/20 shadow-2xl relative overflow-hidden">
               {/* Background decorative elements */}
               <div className="absolute inset-0 bg-gradient-to-br from-purple-500/20 to-transparent" />
               <div className="absolute top-0 right-0 w-32 h-32 bg-gradient-to-bl from-white/10 to-transparent rounded-full -translate-y-16 translate-x-16" />
