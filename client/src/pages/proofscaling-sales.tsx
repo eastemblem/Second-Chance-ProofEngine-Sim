@@ -1,5 +1,5 @@
 import { motion } from "framer-motion";
-import { ArrowRight, Star, Users, TrendingUp, Shield, Zap, Crown, Award, DollarSign, Timer, Handshake, CheckCircle2, Target, Trophy, Rocket, PlayCircle, Brain, BookOpen, Lightbulb } from "lucide-react";
+import { ArrowRight, Star, Users, TrendingUp, Shield, Zap, Crown, Award, DollarSign, Timer, Handshake, CheckCircle2, Target, Trophy, Rocket, PlayCircle, Brain, BookOpen, Lightbulb, Search, BarChart3, MessageSquare, Layers, Presentation, Gauge } from "lucide-react";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -21,6 +21,61 @@ import { MetricCardsHero } from "@/components/proofscaling/metric-card-hero";
 import { UrgencyBanner } from "@/components/proofscaling/urgency-banner";
 import { VideoPlayer } from "@/components/proofscaling/video-player";
 import { OutcomeCard } from "@/components/proofscaling/outcome-card";
+import { TimelineCard } from "@/components/proofscaling/timeline-card";
+import { TimelineLine } from "@/components/proofscaling/timeline-line";
+
+// Timeline data
+const timelineSteps = [
+  {
+    week: 0,
+    title: "Diagnostic",
+    description: "Comprehensive assessment of your startup's current state, identifying strengths and critical gaps in your business model.",
+    icon: Search,
+    weekColor: "bg-red-500"
+  },
+  {
+    week: 1,
+    title: "ProofPlan",
+    description: "Strategic roadmap creation with prioritized experiments and validation frameworks tailored to your venture.",
+    icon: Target,
+    weekColor: "bg-orange-500"
+  },
+  {
+    week: 2,
+    title: "Commercial Test",
+    description: "Execute market validation experiments to prove demand and refine your value proposition with real customers.",
+    icon: BarChart3,
+    weekColor: "bg-yellow-500"
+  },
+  {
+    week: 3,
+    title: "Desirability Interviews",
+    description: "Conduct structured customer interviews to validate problem-solution fit and gather actionable insights.",
+    icon: MessageSquare,
+    weekColor: "bg-green-500"
+  },
+  {
+    week: 4,
+    title: "Feasibility Prototype",
+    description: "Build and test minimum viable solutions to demonstrate technical and operational feasibility to investors.",
+    icon: Layers,
+    weekColor: "bg-blue-500"
+  },
+  {
+    week: 5,
+    title: "Traction Deck",
+    description: "Compile validated proof points into a compelling investor presentation that showcases measurable progress.",
+    icon: Presentation,
+    weekColor: "bg-purple-500"
+  },
+  {
+    week: 6,
+    title: "Momentum Launch",
+    description: "Execute go-to-market strategy with proven metrics, creating sustainable growth momentum for funding rounds.",
+    icon: Gauge,
+    weekColor: "bg-purple-600"
+  }
+];
 
 // Data for ProofScaling
 const heroMetrics = [
@@ -225,96 +280,36 @@ export default function ProofScalingSalesPage(props?: ProofScalingSalesPageProps
         </div>
       </section>
 
-      {/* Why ProofScaling Works */}
+      {/* 6-Week Transformation Journey */}
       <section className="py-20 px-4">
         <div className="container mx-auto max-w-6xl relative">
           <FloatingElements />
           <AnimatedSection delay={0.2}>
             <SectionHeader 
-              title="Why Most Startups Fail" 
-              subtitle="DIY approach vs. The ProofScaling systematic framework"
+              title="Your 6-Week Transformation Journey" 
+              subtitle="Each week builds systematic proof that investors can't ignore"
             />
           </AnimatedSection>
 
-          <div className="grid md:grid-cols-2 gap-8 mb-16 relative z-10">
-            {/* DIY approach */}
-            <motion.div
-              initial={{ opacity: 0, x: -50 }}
-              animate={{ opacity: 1, x: 0 }}
-              transition={{ duration: 0.8, delay: 0.3 }}
-              whileHover={{ scale: 1.02, y: -5 }}
-              className="group"
-            >
-              <Card className="p-8 bg-gradient-to-br from-red-500/5 to-red-500/10 border-red-500/20 h-full hover:border-red-500/40 transition-all duration-300 hover:shadow-xl hover:shadow-red-500/10 relative overflow-hidden">
-                <div className="absolute top-0 right-0 w-20 h-20 bg-red-500/10 rounded-full -translate-y-10 translate-x-10" />
-                <h3 className="text-xl font-bold text-red-400 mb-6 flex items-center">
-                  <Timer className="w-5 h-5 mr-2" />
-                  DIY Approach
-                </h3>
-                <ul className="space-y-4">
-                  {[
-                    "Building without market validation",
-                    "Guessing what investors want", 
-                    "No structured growth framework",
-                    "Learning from expensive mistakes",
-                    "90% failure rate in first 5 years"
-                  ].map((item, index) => (
-                    <motion.li 
-                      key={index} 
-                      className="flex items-center text-muted-foreground group-hover:text-foreground transition-colors"
-                      initial={{ opacity: 0, x: -20 }}
-                      animate={{ opacity: 1, x: 0 }}
-                      transition={{ duration: 0.5, delay: 0.4 + index * 0.1 }}
-                    >
-                      <div className="w-2 h-2 bg-red-400 rounded-full mr-3 flex-shrink-0" />
-                      {item}
-                    </motion.li>
-                  ))}
-                </ul>
-              </Card>
-            </motion.div>
-
-            {/* ProofScaling way */}
-            <motion.div
-              initial={{ opacity: 0, x: 50 }}
-              animate={{ opacity: 1, x: 0 }}
-              transition={{ duration: 0.8, delay: 0.4 }}
-              whileHover={{ scale: 1.02, y: -5 }}
-              className="group"
-            >
-              <Card className="p-8 bg-gradient-to-br from-green-500/5 to-green-500/10 border-green-500/20 h-full hover:border-green-500/40 transition-all duration-300 hover:shadow-xl hover:shadow-green-500/10 relative overflow-hidden">
-                <div className="absolute top-0 right-0 w-20 h-20 bg-green-500/10 rounded-full -translate-y-10 translate-x-10" />
-                <h3 className="text-xl font-bold text-green-400 mb-6 flex items-center">
-                  <Rocket className="w-5 h-5 mr-2" />
-                  The ProofScaling Way
-                </h3>
-                <ul className="space-y-4">
-                  {[
-                    "Validate before you build anything",
-                    "Follow proven investor frameworks",
-                    "Systematic approach to growth",
-                    "Learn from expert mentors",
-                    "94% complete the transformation"
-                  ].map((item, index) => (
-                    <motion.li 
-                      key={index} 
-                      className="flex items-center text-foreground"
-                      initial={{ opacity: 0, x: 20 }}
-                      animate={{ opacity: 1, x: 0 }}
-                      transition={{ duration: 0.5, delay: 0.5 + index * 0.1 }}
-                    >
-                      <motion.div
-                        whileHover={{ scale: 1.2, rotate: 360 }}
-                        transition={{ duration: 0.3 }}
-                      >
-                        <CheckCircle2 className="w-5 h-5 text-green-400 mr-3 flex-shrink-0" />
-                      </motion.div>
-                      {item}
-                    </motion.li>
-                  ))}
-                </ul>
-              </Card>
-            </motion.div>
+          <div className="relative mt-16">
+            {/* Timeline Line */}
+            <TimelineLine totalSteps={timelineSteps.length} />
+            
+            {/* Timeline Cards */}
+            <div className="relative z-10 space-y-8">
+              {timelineSteps.map((step, index) => (
+                <TimelineCard
+                  key={step.week}
+                  week={step.week}
+                  title={step.title}
+                  description={step.description}
+                  icon={step.icon}
+                  isLeft={index % 2 === 0}
+                  delay={0.3 + index * 0.1}
+                  weekColor={step.weekColor}
+                />
+              ))}
+            </div>
           </div>
         </div>
       </section>
