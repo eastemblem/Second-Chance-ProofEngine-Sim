@@ -19,6 +19,8 @@ import { SuccessIndicator } from "@/components/proofscaling/success-indicator";
 import { ProgressVisualization } from "@/components/proofscaling/progress-visualization";
 import { MetricCardsHero } from "@/components/proofscaling/metric-card-hero";
 import { UrgencyBanner } from "@/components/proofscaling/urgency-banner";
+import { VideoPlayer } from "@/components/proofscaling/video-player";
+import { OutcomeCard } from "@/components/proofscaling/outcome-card";
 
 // Data for ProofScaling
 const heroMetrics = [
@@ -174,57 +176,51 @@ export default function ProofScalingSalesPage(props?: ProofScalingSalesPageProps
         </div>
       </section>
 
-      {/* Trusted by Programs */}
+      {/* Video and Outcomes Section */}
       <section className="py-20 px-4 bg-card/30">
         <div className="container mx-auto max-w-6xl">
-          <AnimatedSection delay={0.2}>
-            <SectionHeader 
-              title="Trusted by Top Accelerators" 
-              subtitle="ProofScaling curriculum is recommended by leading startup programs worldwide"
+          {/* Video Player */}
+          <div className="mb-16">
+            <VideoPlayer 
+              title="Watch: ProofScaling Explained"
+              subtitle="See how founders transform rejection into funding"
+              onPlay={() => console.log('Video play clicked')}
             />
-          </AnimatedSection>
+          </div>
 
-          <CompanyLogoGrid companies={partnerPrograms} />
+          {/* Outcomes Text */}
+          <div className="text-center mb-12">
+            <p className="text-xl text-muted-foreground max-w-2xl mx-auto">
+              ProofScaling doesn't just teach theory – it delivers measurable outcomes
+            </p>
+          </div>
 
-          {/* Testimonials */}
-          <div className="mt-20">
-            <AnimatedSection delay={0.6}>
-              <SectionHeader 
-                title="Success Stories" 
-                subtitle="See how founders transformed their startups through ProofScaling"
-              />
-            </AnimatedSection>
-
-            <div className="grid md:grid-cols-3 gap-8 mt-12">
-              {testimonials.map((testimonial, index) => (
-                <TestimonialCard 
-                  key={testimonial.name}
-                  testimonial={testimonial}
-                  delay={index * 0.2}
-                />
-              ))}
-            </div>
-
-            {/* Live activity indicator */}
-            <motion.div 
-              className="mt-12 text-center"
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.6, delay: 0.8 }}
-            >
-              <div className="inline-flex items-center space-x-3 bg-gradient-to-r from-green-500/20 to-blue-500/20 px-6 py-3 rounded-full border border-green-500/30">
-                <div className="w-3 h-3 bg-green-500 rounded-full animate-pulse" />
-                <span className="text-sm font-medium text-foreground">
-                  <span className="text-green-500 font-bold">Live:</span> 7 founders started this week
-                </span>
-                <motion.div
-                  animate={{ rotate: [0, 10, -10, 0] }}
-                  transition={{ duration: 2, repeat: Infinity }}
-                >
-                  <TrendingUp className="w-4 h-4 text-green-500" />
-                </motion.div>
-              </div>
-            </motion.div>
+          {/* Outcome Cards */}
+          <div className="grid md:grid-cols-3 gap-8">
+            <OutcomeCard 
+              icon={TrendingUp}
+              badge="$1m raised in 30 days"
+              title="Founder A jumped from 40 → 70 ProofScore"
+              description="and closed a $1m pre-seed round within 30 days."
+              delay={0.1}
+              gradientColor="from-purple-500 to-pink-500"
+            />
+            <OutcomeCard 
+              icon={Target}
+              badge="Weekly experiments"
+              title="One flagship experiment per week"
+              description="– smoke test, prototype, KPI dashboard. No fluff, all signal."
+              delay={0.2}
+              gradientColor="from-blue-500 to-purple-500"
+            />
+            <OutcomeCard 
+              icon={Users}
+              badge="75% success rate"
+              title="75% of alumni receive inbound VC meetings"
+              description="within a fortnight of publishing their ProofDeck."
+              delay={0.3}
+              gradientColor="from-green-500 to-blue-500"
+            />
           </div>
         </div>
       </section>
