@@ -20,7 +20,7 @@ A comprehensive startup validation platform that leverages intelligent document 
 
 #### Changes Made:
 - **Score Threshold Update**: Changed Deal Room access requirement from 90 to 70 points
-- **Payment Modal Integration**: Added Telr iframe payment modal with $49 pricing for Deal Room access
+- **Payment Modal Integration**: Added Telr iframe payment modal with $99 pricing for Deal Room access
 - **Backend Payment Tracking**: Extended payment service to handle "Access Deal Room" transactions
 - **API Endpoint**: Created `/api/v1/payments/deal-room-access` for checking user access status
 - **Dashboard Enhancement**: Updated Deal Room section with investor matching display and payment flow
@@ -31,7 +31,7 @@ A comprehensive startup validation platform that leverages intelligent document 
 - **Secure Payment Processing**: Telr iframe integration with proper metadata tracking
 - **Access Control**: Real-time checking of user's Deal Room payment status
 - **User Experience**: Modal-based payment flow with success/failure handling
-- **Business Logic**: $49 one-time payment for Deal Room access with investor matching
+- **Business Logic**: $99 one-time payment for Deal Room access with investor matching
 
 #### Benefits:
 - **Monetization**: Direct revenue generation from qualified users
