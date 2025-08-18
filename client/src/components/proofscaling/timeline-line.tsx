@@ -30,7 +30,8 @@ export function TimelineLine({ totalSteps }: TimelineLineProps) {
               style={{
                 top: `${topOffset}px`,
                 left: "50%",
-                transform: "translateX(-50%)"
+                transform: "translateX(-50%)",
+                marginLeft: "-6px"
               }}
             />
           );
