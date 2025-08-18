@@ -2209,7 +2209,7 @@ export default function DashboardPage() {
         onClose={() => setIsPaymentModalOpen(false)}
         onSuccess={handlePaymentSuccess}
         amount={99}
-        currency="USD"
+        currency="AED"
         description="Deal Room Access - Connect with verified investors"
         customerEmail={user?.email || ''}
         customerName={user?.fullName || ''}
