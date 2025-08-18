@@ -278,8 +278,8 @@ export function PaymentModal({
               </Button>
             </div>
             
-            <div className="text-center">
-              <p className="text-xs text-muted-foreground">
+            <div className="text-center pt-4 border-t border-border/50">
+              <p className="text-xs text-muted-foreground font-medium">
                 🔒 Secure payment processing powered by Telr
               </p>
             </div>
@@ -443,13 +443,13 @@ export function PaymentModal({
 
   return (
     <Dialog open={isOpen} onOpenChange={handleClose}>
-      <DialogContent className={step === 'iframe' ? "max-w-[850px] w-[95vw] h-[95vh] max-h-[95vh] overflow-hidden p-0 flex flex-col" : "sm:max-w-md"}>
+      <DialogContent className={step === 'iframe' ? "max-w-[850px] w-[95vw] h-[95vh] max-h-[95vh] overflow-hidden p-0 flex flex-col" : "sm:max-w-md overflow-y-visible"}>
         <DialogHeader className={step === 'iframe' ? "p-4 pb-2 shrink-0" : ""}>
           <DialogTitle className={step === 'iframe' ? "text-center text-lg" : "sr-only"}>
             {step === 'iframe' ? "Complete Your Payment" : "Payment Modal"}
           </DialogTitle>
         </DialogHeader>
-        <div className={step === 'iframe' ? "flex-1 overflow-hidden min-h-0" : ""}>
+        <div className={step === 'iframe' ? "flex-1 overflow-hidden min-h-0" : "pb-4"}>
           {renderContent()}
         </div>
       </DialogContent>
