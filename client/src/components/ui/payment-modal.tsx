@@ -279,7 +279,7 @@ export function PaymentModal({
             </div>
             
             <div className="text-center pt-4 border-t border-border/50">
-              <p className="text-xs text-muted-foreground font-medium">
+              <p className="text-sm text-muted-foreground font-medium">
                 🔒 Secure payment processing powered by Telr
               </p>
             </div>
@@ -326,7 +326,7 @@ export function PaymentModal({
                 Cancel Payment
               </Button>
               <div className="text-center pt-2">
-                <p className="text-xs text-muted-foreground">
+                <p className="text-sm text-muted-foreground font-medium">
                   🔒 Secure payment processing powered by Telr
                 </p>
               </div>
@@ -376,7 +376,7 @@ export function PaymentModal({
             </Button>
             
             <div className="text-center pt-4 border-t">
-              <p className="text-xs text-muted-foreground">
+              <p className="text-sm text-muted-foreground font-medium">
                 🔒 Secure payment processing powered by Telr
               </p>
             </div>
