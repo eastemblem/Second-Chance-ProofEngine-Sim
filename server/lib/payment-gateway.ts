@@ -110,7 +110,7 @@ class TelrGateway extends PaymentGateway {
       method: 'create',
       store: parseInt(this.storeId!),
       authkey: this.authKey,
-      framed: 0, // Full screen payment page - hosted page solution
+      framed: 2, // Framed payment page that can break out if required by payment method
       order: {
         cartid: orderData.orderId,
         test: process.env.NODE_ENV === 'development' ? '1' : '0',

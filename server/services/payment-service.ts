@@ -54,11 +54,11 @@ export class PaymentService {
       const cleanUrl = frontendUrl.replace(/^https?:\/\//, '').replace(/\/$/, '');
       baseUrl = `https://${cleanUrl}`;
     } else if (replitDomain) {
-      // Build URL from Replit domain
+      // Build URL from Replit domain - ensure HTTPS for Telr framed mode
       baseUrl = `https://${replitDomain}`;
     } else {
-      // Fallback to localhost
-      baseUrl = 'http://localhost:5000';
+      // For development, use HTTPS to meet Telr requirements
+      baseUrl = `https://localhost:5000`;
     }
     
     return {

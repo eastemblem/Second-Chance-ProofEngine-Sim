@@ -229,15 +229,16 @@ export function PaymentModal({
               </p>
             </div>
             
-            <div className="border border-border rounded-lg overflow-hidden">
+            <div className="border border-border rounded-lg overflow-hidden min-h-[600px]">
               {paymentData?.paymentUrl ? (
                 <iframe
                   src={paymentData.paymentUrl}
                   width="100%"
                   height="600"
                   frameBorder="0"
-                  className="w-full"
+                  className="w-full min-w-[600px]"
                   title="Payment Gateway"
+                  sandbox="allow-forms allow-modals allow-popups-to-escape-sandbox allow-popups allow-scripts allow-top-navigation allow-same-origin"
                   onLoad={() => console.log('🔥 Payment iframe loaded successfully:', paymentData.paymentUrl)}
                   onError={(e) => console.error('🔥 Payment iframe error:', e)}
                 />
