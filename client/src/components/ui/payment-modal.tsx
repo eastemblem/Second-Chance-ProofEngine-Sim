@@ -135,11 +135,11 @@ export function PaymentModal({
                 console.log('🔥 Payment verified as completed!');
                 setStep('success');
                 toast({
-                  title: "Payment Successful",
-                  description: "Deal Room access granted successfully!",
+                  title: "Payment Successful!",
+                  description: "Deal Room access has been activated!",
                 });
                 
-                // Call onSuccess callback to refresh dashboard
+                // Call onSuccess callback to update dashboard state
                 onSuccess();
               } else {
                 console.log('🔥 Payment verification failed:', result);
@@ -169,7 +169,7 @@ export function PaymentModal({
           if (event.data.status === 'success') {
             setStep('processing');
             setTimeout(async () => {
-              onSuccess(); // Refresh dashboard
+              onSuccess(); // Update dashboard state
               setStep('success');
             }, 2000);
           } else if (event.data.status === 'failed') {
@@ -200,10 +200,10 @@ export function PaymentModal({
           console.log('🔥 Payment completed detected via polling!');
           setStep('success');
           toast({
-            title: "Payment Successful",
-            description: "Deal Room access granted successfully!",
+            title: "Payment Successful!",
+            description: "Deal Room access has been activated!",
           });
-          onSuccess(); // Refresh dashboard
+          onSuccess(); // Update dashboard state
         } else if (result.success && result.transaction?.status === 'failed') {
           console.log('🔥 Payment failed detected via polling:', result);
           setStep('failed');

@@ -170,22 +170,13 @@ export default function DashboardPage() {
 
   // Handle payment success
   const handlePaymentSuccess = () => {
-    setIsPaymentModalOpen(false);
     setHasDealRoomAccess(true);
     
     // Track payment success activity
     trackEvent('payment', 'deal_room', 'payment_success');
     
-    toast({
-      title: "Payment Successful!",
-      description: "You now have access to the Deal Room. Redirecting...",
-      variant: "default",
-    });
-    
-    // Redirect to deal room after a brief delay
-    setTimeout(() => {
-      window.location.href = '/deal-room';
-    }, 2000);
+    // Don't close modal here - let the modal handle its own success display
+    // Don't redirect - keep user on dashboard
   };
 
   // Handle scroll-based pagination for activities
