@@ -528,7 +528,7 @@ export default function ProofScalingSalesPage(props?: ProofScalingSalesPageProps
                 whileHover={{ scale: 1.05 }}
                 whileTap={{ scale: 0.95 }}
               >
-                <button className="bg-gradient-to-r from-purple-600 to-orange-500 hover:from-purple-500 hover:to-orange-400 text-white font-bold py-4 px-8 rounded-xl text-lg transition-all duration-300 shadow-lg hover:shadow-xl border-2 border-white/20">
+                <button className="bg-gradient-to-r from-purple-600 to-orange-500 hover:from-purple-500 hover:to-orange-400 text-white font-bold py-4 px-8 rounded-xl text-lg transition-all duration-300 shadow-lg hover:shadow-xl">
                   <div className="flex items-center gap-2">
                     <Zap className="w-5 h-5" />
                     <span>Join ProofScaling Now</span>
