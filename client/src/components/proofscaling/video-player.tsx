@@ -20,7 +20,7 @@ export function VideoPlayer({ title, subtitle, thumbnail, onPlay }: VideoPlayerP
       className="relative w-full max-w-2xl mx-auto"
     >
       <div
-        className="relative bg-gradient-to-br from-purple-600 to-orange-500 rounded-2xl p-16 cursor-pointer overflow-hidden"
+        className="relative bg-gradient-to-br from-purple-600 to-orange-500 rounded-2xl py-24 px-16 cursor-pointer overflow-hidden"
         onMouseEnter={() => setIsHovered(true)}
         onMouseLeave={() => setIsHovered(false)}
         onClick={onPlay}

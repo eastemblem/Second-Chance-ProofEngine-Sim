@@ -23,7 +23,12 @@ export function OutcomeCard({
       initial={{ opacity: 0, y: 20 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.6, delay }}
-      className="bg-card/50 backdrop-blur-sm border border-border/50 rounded-xl p-6 hover:shadow-lg transition-all duration-300"
+      whileHover={{ 
+        scale: 1.02, 
+        y: -8,
+        transition: { duration: 0.3 }
+      }}
+      className="bg-card/50 backdrop-blur-sm border border-border/50 rounded-xl p-6 hover:shadow-xl hover:shadow-blue-500/10 hover:border-border/80 transition-all duration-300 cursor-pointer"
     >
       <div className="flex items-start gap-4">
         {/* Icon */}
@@ -38,15 +43,17 @@ export function OutcomeCard({
             {badge}
           </div>
           
-          {/* Title */}
-          <h3 className="text-lg font-bold text-foreground mb-2">
-            {title}
-          </h3>
-          
-          {/* Description */}
-          <p className="text-muted-foreground text-sm leading-relaxed">
-            {description}
-          </p>
+          {/* Title and Description - Left Aligned */}
+          <div className="text-left">
+            <h3 className="text-lg font-bold text-foreground mb-2">
+              {title}
+            </h3>
+            
+            {/* Description on new line */}
+            <p className="text-muted-foreground text-sm leading-relaxed">
+              {description}
+            </p>
+          </div>
         </div>
       </div>
     </motion.div>
