@@ -164,7 +164,19 @@ export default function FeedbackPage({ onNext, proofScore }: FeedbackPageProps) 
 
           {/* Continue Button */}
           <div className="text-center">
-            <Button onClick={onNext} className="gradient-button px-8 py-6 text-lg" size="lg">
+            <Button 
+              onClick={() => {
+                // Navigate directly to appropriate pathway based on score
+                const score = proofScore.total || 0;
+                if (score >= 70) {
+                  window.location.href = '/deal-room';
+                } else {
+                  window.location.href = '/proof-scaling';
+                }
+              }} 
+              className="gradient-button px-8 py-6 text-lg" 
+              size="lg"
+            >
               See My Pathway
               <ArrowRight className="ml-2 w-5 h-5" />
             </Button>

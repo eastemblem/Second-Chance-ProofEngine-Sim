@@ -1597,7 +1597,7 @@ export default function Analysis({
                   if (score >= 70) {
                     window.location.href = '/deal-room';
                   } else {
-                    window.location.href = '/proofscaling';
+                    window.location.href = '/proof-scaling';
                   }
                 }}
                 className="gradient-button px-6 sm:px-8 py-4 sm:py-6 text-base sm:text-lg w-full sm:w-auto min-h-[48px] mb-4"
