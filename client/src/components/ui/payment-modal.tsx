@@ -13,7 +13,13 @@ interface PaymentModalProps {
   amount: number;
   currency: string;
   description: string;
-  purpose: string;
+  customerEmail?: string;
+  customerName?: string;
+  metadata?: {
+    purpose: string;
+    founderId: string;
+    ventureId: string;
+  };
 }
 
 type PaymentStep = 'form' | 'processing' | 'iframe' | 'success' | 'failed' | 'cancelled';
@@ -30,7 +36,9 @@ export function PaymentModal({
   amount,
   currency,
   description,
-  purpose
+  customerEmail,
+  customerName,
+  metadata
 }: PaymentModalProps) {
   const [step, setStep] = useState<PaymentStep>('form');
   const [paymentData, setPaymentData] = useState<PaymentResult | null>(null);
@@ -55,9 +63,12 @@ export function PaymentModal({
         amount,
         currency,
         description,
-        purpose,
-        planType: "premium",
-        gatewayProvider: "telr"
+        purpose: metadata?.purpose || 'Payment',
+        planType: "one-time",
+        gatewayProvider: "telr",
+        customerEmail,
+        customerName,
+        metadata
       });
 
       if (!response.ok) {
@@ -169,7 +180,7 @@ export function PaymentModal({
               <CardContent className="p-4 space-y-3">
                 <div className="flex justify-between text-sm">
                   <span className="text-muted-foreground">Service:</span>
-                  <span className="font-medium">{purpose}</span>
+                  <span className="font-medium">{metadata?.purpose || 'Payment'}</span>
                 </div>
                 <div className="flex justify-between text-sm">
                   <span className="text-muted-foreground">Amount:</span>

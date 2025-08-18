@@ -247,4 +247,78 @@ router.get("/deal-room-access", async (req: AuthenticatedRequest, res) => {
   }
 });
 
+// Get user payment activities and analytics
+router.get("/activities", async (req: AuthenticatedRequest, res) => {
+  try {
+    const founderId = req.user?.founderId;
+    if (!founderId) {
+      return res.status(401).json({ error: "User not authenticated" });
+    }
+
+    // Get all payment-related activities for the user (limit to 50 most recent)
+    const activities = await storage.getUserActivities(founderId, 50);
+
+    // Get payment transaction history
+    const transactions = await storage.getPaymentTransactions(founderId);
+    
+    // Get payment analytics
+    const completedTransactions = transactions.filter((t: any) => t.status === 'completed');
+    const analytics = {
+      totalPayments: completedTransactions.length,
+      totalAmount: completedTransactions.reduce((sum: number, t: any) => sum + t.amount, 0),
+      pendingPayments: transactions.filter((t: any) => t.status === 'pending').length,
+      failedPayments: transactions.filter((t: any) => t.status === 'failed').length,
+      lastPaymentDate: completedTransactions
+        .sort((a: any, b: any) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime())[0]?.createdAt,
+      paymentMethods: Array.from(new Set(transactions.map((t: any) => t.gatewayProvider)))
+    };
+
+    // Enhanced payment activity tracking - filter only payment-related activities
+    const paymentActivities = activities.filter((activity: any) => 
+      ['payment_initiated', 'payment_completed', 'payment_failed'].includes(activity.action)
+    );
+    
+    const paymentEvents = paymentActivities.map((activity: any) => ({
+      id: activity.activityId,
+      timestamp: activity.createdAt,
+      action: activity.action,
+      title: activity.title,
+      description: activity.description,
+      metadata: activity.metadata,
+      success: activity.action === 'payment_completed'
+    }));
+
+    res.json({
+      success: true,
+      data: {
+        activities: paymentEvents,
+        transactions: transactions.map((t: any) => ({
+          id: t.id,
+          orderReference: t.orderReference,
+          amount: t.amount,
+          currency: t.currency,
+          status: t.status,
+          description: t.description,
+          gatewayProvider: t.gatewayProvider,
+          createdAt: t.createdAt,
+          metadata: t.metadata
+        })),
+        analytics
+      }
+    });
+
+  } catch (error) {
+    winston.error("Failed to get payment activities", { 
+      founderId: req.user?.founderId, 
+      error: error instanceof Error ? error.message : 'Unknown error',
+      service: "second-chance-api",
+      category: "payment"
+    });
+    
+    res.status(500).json({ 
+      error: "Failed to retrieve payment activities" 
+    });
+  }
+});
+
 export default router;

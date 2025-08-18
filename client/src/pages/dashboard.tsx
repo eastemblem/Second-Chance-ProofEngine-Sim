@@ -172,6 +172,10 @@ export default function DashboardPage() {
   const handlePaymentSuccess = () => {
     setIsPaymentModalOpen(false);
     setHasDealRoomAccess(true);
+    
+    // Track payment success activity
+    trackEvent('payment', 'deal_room', 'payment_success');
+    
     toast({
       title: "Payment Successful!",
       description: "You now have access to the Deal Room. Redirecting...",
@@ -2054,7 +2058,11 @@ export default function DashboardPage() {
                           </p>
                           <Button 
                             className="w-full bg-gradient-to-r from-purple-500 to-yellow-500 text-white hover:from-purple-600 hover:to-yellow-600 flex items-center justify-center gap-2"
-                            onClick={() => setIsPaymentModalOpen(true)}
+                            onClick={() => {
+                              // Track payment modal open
+                              trackEvent('payment', 'deal_room', 'payment_modal_opened');
+                              setIsPaymentModalOpen(true);
+                            }}
                           >
                             <CreditCard className="w-4 h-4" />
                             Unlock Deal Room - $99
@@ -2203,10 +2211,8 @@ export default function DashboardPage() {
         amount={99}
         currency="USD"
         description="Deal Room Access - Connect with verified investors"
-        customerInfo={{
-          email: user?.email || '',
-          name: user?.fullName || ''
-        }}
+        customerEmail={user?.email || ''}
+        customerName={user?.fullName || ''}
         metadata={{
           purpose: 'Access Deal Room',
           founderId: user?.founderId || '',

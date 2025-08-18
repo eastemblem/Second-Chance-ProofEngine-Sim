@@ -2,6 +2,8 @@ import { PaymentGatewayFactory, type PaymentOrderData, type CreatePaymentRequest
 import { storage } from '../storage.js';
 import type { PaymentTransaction, InsertPaymentTransaction, InsertUserSubscription, InsertPaymentLog } from '@shared/schema';
 import { v4 as uuidv4 } from 'uuid';
+import { ActivityService } from './activity-service.js';
+import winston from 'winston';
 
 interface CreatePaymentOptions {
   founderId: string;
@@ -77,8 +79,33 @@ export class PaymentService {
       await this.logPaymentAction(transaction.id, gatewayProvider as any, 'created', {
         orderReference,
         amount: request.amount,
-        currency: request.currency
+        currency: request.currency,
+        purpose: request.purpose,
+        founderId
       });
+      
+      // Create user activity for payment initiation
+      try {
+        await ActivityService.logActivity(
+          { founderId },
+          {
+            activityType: 'venture',
+            action: 'payment_initiated',
+            title: 'Payment Created',
+            description: `Payment initiated for ${request.description}`,
+            metadata: {
+              orderReference,
+              amount: request.amount,
+              currency: request.currency,
+              purpose: request.purpose,
+              gatewayProvider
+            }
+          }
+        );
+      } catch (error) {
+        winston.error('Activity logging error:', error);
+        // Don't fail the payment flow for activity logging issues
+      }
 
       // Get payment gateway implementation
       const gateway = PaymentGatewayFactory.create(gatewayProvider);
@@ -183,6 +210,32 @@ export class PaymentService {
         });
 
         await this.logPaymentAction(transaction.id, transaction.gatewayProvider, 'status_updated', statusResult.gatewayResponse);
+
+        // Log payment completion activity
+        if (statusResult.status === 'completed') {
+          try {
+            await ActivityService.logActivity(
+              { founderId: transaction.founderId },
+              {
+                activityType: 'venture',
+                action: 'payment_completed',
+                title: 'Payment Successful',
+                description: `Payment completed for ${transaction.description}`,
+                metadata: {
+                  orderReference: transaction.orderReference,
+                  amount: transaction.amount,
+                  currency: transaction.currency,
+                  purpose: transaction.metadata && typeof transaction.metadata === 'object' && 'purpose' in transaction.metadata 
+                    ? (transaction.metadata as any).purpose 
+                    : 'Payment',
+                  gatewayProvider: transaction.gatewayProvider
+                }
+              }
+            );
+          } catch (error) {
+            winston.error('Payment completion activity logging error:', error);
+          }
+        }
 
         // Create subscription if payment completed
         if (statusResult.status === 'completed' && transaction.metadata && 
