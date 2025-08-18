@@ -144,7 +144,7 @@ export function PaymentModal({
               } else {
                 console.log('🔥 Payment verification failed:', result);
                 setStep('failed');
-                setError('Payment could not be verified');
+                setError(result.transaction?.error || result.transaction?.failureReason || result.error || 'Payment could not be verified. Please try again or contact support.');
               }
             } catch (error) {
               console.error('🔥 Payment verification error:', error);
@@ -205,9 +205,9 @@ export function PaymentModal({
           });
           onSuccess(); // Refresh dashboard
         } else if (result.success && result.transaction?.status === 'failed') {
-          console.log('🔥 Payment failed detected via polling');
+          console.log('🔥 Payment failed detected via polling:', result);
           setStep('failed');
-          setError('Payment failed');
+          setError(result.transaction?.error || result.transaction?.failureReason || result.error || 'Payment was declined. Please check your payment details and try again.');
         }
       } catch (error) {
         console.error('🔥 Polling error:', error);
@@ -395,9 +395,18 @@ export function PaymentModal({
             </div>
             <div>
               <h3 className="text-xl font-semibold text-red-600 mb-2">Payment Failed</h3>
-              <p className="text-muted-foreground mb-4">
-                {error || "Your payment could not be processed. Please try again or contact support."}
-              </p>
+              <div className="mb-4">
+                <p className="text-muted-foreground mb-2">
+                  {error || "Your payment could not be processed. Please try again or contact support."}
+                </p>
+                {error && error !== 'Payment failed' && (
+                  <div className="bg-red-500/10 border border-red-500/20 rounded-lg p-3">
+                    <p className="text-sm text-red-700 dark:text-red-400 font-medium">
+                      Reason: {error}
+                    </p>
+                  </div>
+                )}
+              </div>
               {paymentData?.orderReference && (
                 <div className="bg-red-500/10 border border-red-500/20 rounded-lg p-4">
                   <p className="text-sm text-red-700 dark:text-red-400">
