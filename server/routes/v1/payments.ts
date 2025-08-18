@@ -220,4 +220,31 @@ router.get("/subscriptions", async (req: AuthenticatedRequest, res) => {
   }
 });
 
+// Check if user has deal room access
+router.get("/deal-room-access", async (req: AuthenticatedRequest, res) => {
+  try {
+    const founderId = req.user?.founderId;
+    if (!founderId) {
+      return res.status(401).json({ error: "User not authenticated" });
+    }
+
+    const hasAccess = await paymentService.hasDealRoomAccess(founderId);
+    
+    res.json({
+      success: true,
+      hasAccess
+    });
+
+  } catch (error) {
+    winston.error("Deal room access check error", { 
+      error: error instanceof Error ? error.message : 'Unknown error',
+      founderId: req.user?.founderId,
+      service: "second-chance-api",
+      category: "payment"
+    });
+    
+    res.status(500).json({ error: "Internal server error" });
+  }
+});
+
 export default router;

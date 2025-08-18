@@ -64,7 +64,11 @@ export class PaymentService {
         currency: request.currency,
         status: 'pending',
         description: request.description,
-        metadata: request.metadata
+        metadata: {
+          ...request.metadata,
+          purpose: request.purpose,
+          planType: request.planType
+        }
       };
 
       const transaction = await storage.createPaymentTransaction(transactionData);
@@ -331,6 +335,26 @@ export class PaymentService {
 
   async getUserSubscriptions(founderId: string) {
     return await storage.getUserSubscriptions(founderId);
+  }
+
+  async hasDealRoomAccess(founderId: string): Promise<boolean> {
+    try {
+      // Get user's payment history
+      const transactions = await this.getPaymentHistory(founderId);
+      
+      // Check for completed deal room access payments
+      const dealRoomPayments = transactions.filter((transaction: PaymentTransaction) => 
+        transaction.status === 'completed' && 
+        transaction.metadata && 
+        typeof transaction.metadata === 'object' &&
+        (transaction.metadata as any).purpose === 'Access Deal Room'
+      );
+      
+      return dealRoomPayments.length > 0;
+    } catch (error) {
+      console.error('Deal room access check error:', error);
+      return false;
+    }
   }
 
   async updatePaymentStatus(orderReference: string, status: string): Promise<{
