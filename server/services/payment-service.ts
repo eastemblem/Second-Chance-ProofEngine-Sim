@@ -184,10 +184,9 @@ export class PaymentService {
         metadata: {
           founderId,
           planType: request.planType,
+          purpose: request.purpose || request.metadata?.purpose,
           displayAmount, // Store original USD amount
-          displayCurrency, // Store original USD currency
-          conversionRate: displayCurrency === 'USD' ? 3.673 : 1,
-          ...request.metadata
+          displayCurrency // Store original USD currency
         }
       };
 

@@ -127,12 +127,21 @@ class TelrGateway extends PaymentGateway {
       ...(orderData.metadata && {
         extra: {
           gateway: 'telr',
-          ...orderData.metadata
+          founderId: orderData.metadata.founderId,
+          planType: orderData.metadata.planType,
+          purpose: orderData.metadata.purpose,
+          displayAmount: orderData.metadata.displayAmount?.toString(),
+          displayCurrency: orderData.metadata.displayCurrency
+          // Total: 6 variables (within 7 limit)
         }
       })
     };
 
     try {
+      // Count extra variables to ensure we're within Telr's 7-variable limit
+      const extraCount = telrRequest.extra ? Object.keys(telrRequest.extra).length : 0;
+      console.log(`🔥 Telr extra variables count: ${extraCount}/7`);
+      console.log('🔥 Telr extra variables:', telrRequest.extra);
       console.log('Telr request payload:', JSON.stringify(telrRequest, null, 2));
       
       const response = await fetch(this.baseUrl, {
