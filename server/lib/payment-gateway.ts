@@ -157,6 +157,17 @@ class TelrGateway extends PaymentGateway {
         };
       }
 
+      // Check if we have the expected response structure
+      if (!result.order || !result.order.ref || !result.order.url) {
+        console.error('Telr API returned unexpected response structure:', result);
+        return {
+          success: false,
+          orderReference: '',
+          paymentUrl: '',
+          gatewayResponse: result
+        };
+      }
+
       return {
         success: true,
         orderReference: result.order.ref,

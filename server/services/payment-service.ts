@@ -53,9 +53,18 @@ export class PaymentService {
   }> {
     const { founderId, request, customerEmail, customerName, gatewayProvider = 'telr' } = options;
     
+    console.log('🔥 PaymentService.createPayment called with:', {
+      founderId,
+      request,
+      customerEmail,
+      customerName,
+      gatewayProvider
+    });
+    
     try {
       // Generate unique order reference
       const orderReference = `SC_${Date.now()}_${uuidv4().substring(0, 8)}`;
+      console.log('🔥 Generated order reference:', orderReference);
       
       // Create transaction record first
       const transactionData: InsertPaymentTransaction = {
@@ -72,8 +81,17 @@ export class PaymentService {
           planType: request.planType
         }
       };
+      
+      console.log('🔥 Creating transaction with data:', transactionData);
 
       const transaction = await storage.createPaymentTransaction(transactionData);
+      
+      console.log('🔥 Transaction created successfully:', {
+        id: transaction.id,
+        orderReference: transaction.orderReference,
+        amount: transaction.amount,
+        status: transaction.status
+      });
       
       // Log the creation
       await this.logPaymentAction(transaction.id, gatewayProvider as any, 'created', {
@@ -108,15 +126,19 @@ export class PaymentService {
       }
 
       // Get payment gateway implementation
+      console.log('🔥 Creating gateway for provider:', gatewayProvider);
       const gateway = PaymentGatewayFactory.create(gatewayProvider);
       
       // Prepare order data for gateway
+      const returnUrls = this.getReturnUrls(orderReference);
+      console.log('🔥 Generated return URLs:', returnUrls);
+      
       const orderData: PaymentOrderData = {
         orderId: orderReference,
         amount: request.amount,
         currency: request.currency,
         description: request.description,
-        returnUrls: this.getReturnUrls(orderReference),
+        returnUrls,
         metadata: {
           founderId,
           planType: request.planType,
@@ -137,11 +159,26 @@ export class PaymentService {
           })
         };
       }
+      
+      console.log('🔥 Final order data for gateway:', JSON.stringify(orderData, null, 2));
 
       // Create order with gateway
+      console.log('🔥 Calling gateway.createOrder...');
       const result = await gateway.createOrder(orderData);
+      console.log('🔥 Gateway response:', JSON.stringify(result, null, 2));
       
       if (!result.success) {
+        // Log detailed error information
+        console.error('Payment gateway order creation failed:', {
+          orderReference,
+          gatewayProvider,
+          founderId,
+          amount: request.amount,
+          currency: request.currency,
+          gatewayResponse: result.gatewayResponse,
+          gatewayError: result.gatewayResponse?.error || 'Unknown error'
+        });
+        
         // Update transaction status to failed
         await storage.updatePaymentTransaction(transaction.id, {
           status: 'failed',
@@ -150,9 +187,13 @@ export class PaymentService {
         
         await this.logPaymentAction(transaction.id, gatewayProvider as any, 'creation_failed', result.gatewayResponse);
         
+        const errorMessage = result.gatewayResponse?.error?.note || 
+                           result.gatewayResponse?.error?.message || 
+                           'Failed to create payment order';
+        
         return {
           success: false,
-          error: 'Failed to create payment order'
+          error: errorMessage
         };
       }
 

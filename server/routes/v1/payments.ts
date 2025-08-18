@@ -321,4 +321,95 @@ router.get("/activities", async (req: AuthenticatedRequest, res) => {
   }
 });
 
+// Test Telr gateway endpoint (development only)
+if (process.env.NODE_ENV === 'development') {
+  router.post('/test-telr', async (req: AuthenticatedRequest, res) => {
+    try {
+      const founderId = req.user?.founderId;
+      if (!founderId) {
+        return res.status(401).json({ error: "User not authenticated" });
+      }
+      
+      // Test data
+      const testOrderRef = `TEST_${Date.now()}_${founderId.slice(0, 8)}`;
+      
+      // Get return URLs using same logic as payment service
+      const frontendUrl = process.env.FRONTEND_URL;
+      const replitDomain = process.env.REPLIT_DOMAINS?.split(',')[0];
+      
+      let baseUrl: string;
+      if (frontendUrl) {
+        const cleanUrl = frontendUrl.replace(/^https?:\/\//, '').replace(/\/$/, '');
+        baseUrl = `https://${cleanUrl}`;
+      } else if (replitDomain) {
+        baseUrl = `https://${replitDomain}`;
+      } else {
+        baseUrl = 'http://localhost:5000';
+      }
+      
+      const telrRequest = {
+        method: 'create',
+        store: parseInt(process.env.TELR_STORE_ID!),
+        authkey: process.env.TELR_AUTH_KEY,
+        framed: 0,
+        order: {
+          cartid: testOrderRef,
+          test: '1',
+          amount: '99.00',
+          currency: 'AED',
+          description: 'Test Deal Room Access'
+        },
+        return: {
+          authorised: `${baseUrl}/payment/success?ref=${testOrderRef}`,
+          declined: `${baseUrl}/payment/failed?ref=${testOrderRef}`,
+          cancelled: `${baseUrl}/payment/cancelled?ref=${testOrderRef}`
+        },
+        customer: {
+          ref: founderId,
+          email: req.user.email
+        }
+      };
+
+      console.log('Test Telr request:', JSON.stringify(telrRequest, null, 2));
+      
+      const response = await fetch('https://secure.telr.com/gateway/order.json', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'accept': 'application/json'
+        },
+        body: JSON.stringify(telrRequest)
+      });
+
+      const result = await response.json();
+      console.log('Test Telr response:', JSON.stringify(result, null, 2));
+
+      res.json({
+        success: true,
+        data: {
+          testOrderRef,
+          baseUrl,
+          telrRequest,
+          telrResponse: result,
+          responseStatus: response.status,
+          hasError: !!result.error,
+          hasOrder: !!result.order,
+          environment: {
+            TELR_STORE_ID: process.env.TELR_STORE_ID,
+            FRONTEND_URL: process.env.FRONTEND_URL,
+            REPLIT_DOMAINS: process.env.REPLIT_DOMAINS,
+            NODE_ENV: process.env.NODE_ENV
+          }
+        }
+      });
+    } catch (error) {
+      console.error('Telr test error:', error);
+      res.status(500).json({
+        success: false,
+        error: error instanceof Error ? error.message : 'Unknown error'
+      });
+    }
+  });
+}
+
 export default router;
