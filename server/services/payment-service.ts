@@ -5,6 +5,29 @@ import { v4 as uuidv4 } from 'uuid';
 import { ActivityService } from './activity-service.js';
 import winston from 'winston';
 
+// Currency conversion service
+class CurrencyConverter {
+  // Current rate: 1 USD = 3.673 AED (as of August 18, 2025)
+  // In production, this should come from a real-time API
+  private static readonly USD_TO_AED_RATE = 3.673;
+
+  static convertUsdToAed(usdAmount: number): number {
+    return Math.round(usdAmount * this.USD_TO_AED_RATE * 100) / 100; // Round to 2 decimal places
+  }
+
+  static getDisplayCurrency(): string {
+    return 'USD';
+  }
+
+  static getPaymentCurrency(): string {
+    return 'AED';
+  }
+
+  static formatPrice(amount: number, currency: string): string {
+    return currency === 'USD' ? `$${amount}` : `${amount} ${currency}`;
+  }
+}
+
 interface CreatePaymentOptions {
   founderId: string;
   request: CreatePaymentRequest;
@@ -66,19 +89,24 @@ export class PaymentService {
       const orderReference = `SC_${Date.now()}_${uuidv4().substring(0, 8)}`;
       console.log('🔥 Generated order reference:', orderReference);
       
-      // Create transaction record first
+      // Create transaction record first (store in display currency for user reference)
       const transactionData: InsertPaymentTransaction = {
         founderId,
         gatewayProvider: gatewayProvider as any,
         orderReference,
-        amount: request.amount.toString(),
-        currency: request.currency,
+        amount: request.amount.toString(), // Store original USD amount for user reference
+        currency: request.currency, // Store original USD currency for user reference
         status: 'pending',
         description: request.description,
         metadata: {
           ...request.metadata,
           purpose: request.purpose,
-          planType: request.planType
+          planType: request.planType,
+          displayAmount: request.amount,
+          displayCurrency: request.currency,
+          paymentAmount: request.currency === 'USD' ? CurrencyConverter.convertUsdToAed(request.amount) : request.amount,
+          paymentCurrency: request.currency === 'USD' ? 'AED' : request.currency,
+          conversionRate: request.currency === 'USD' ? 3.673 : 1
         }
       };
       
@@ -129,19 +157,36 @@ export class PaymentService {
       console.log('🔥 Creating gateway for provider:', gatewayProvider);
       const gateway = PaymentGatewayFactory.create(gatewayProvider);
       
+      // Currency conversion: Convert USD to AED for Telr
+      const displayAmount = request.amount; // Amount shown to user (USD)
+      const displayCurrency = request.currency; // Currency shown to user (USD)
+      const paymentAmount = displayCurrency === 'USD' ? 
+        CurrencyConverter.convertUsdToAed(displayAmount) : displayAmount;
+      const paymentCurrency = displayCurrency === 'USD' ? 
+        CurrencyConverter.getPaymentCurrency() : displayCurrency;
+      
+      console.log('🔥 Currency conversion:', {
+        displayAmount: `${displayAmount} ${displayCurrency}`,
+        paymentAmount: `${paymentAmount} ${paymentCurrency}`,
+        conversionRate: displayCurrency === 'USD' ? '3.673' : 'No conversion'
+      });
+      
       // Prepare order data for gateway
       const returnUrls = this.getReturnUrls(orderReference);
       console.log('🔥 Generated return URLs:', returnUrls);
       
       const orderData: PaymentOrderData = {
         orderId: orderReference,
-        amount: request.amount,
-        currency: request.currency,
-        description: request.description,
+        amount: paymentAmount, // Use converted amount for gateway
+        currency: paymentCurrency, // Use AED for gateway
+        description: `${request.description} (${CurrencyConverter.formatPrice(displayAmount, displayCurrency)})`,
         returnUrls,
         metadata: {
           founderId,
           planType: request.planType,
+          displayAmount, // Store original USD amount
+          displayCurrency, // Store original USD currency
+          conversionRate: displayCurrency === 'USD' ? 3.673 : 1,
           ...request.metadata
         }
       };

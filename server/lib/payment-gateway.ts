@@ -299,7 +299,7 @@ class TelrGateway extends PaymentGateway {
 // Request/Response validation schemas
 export const createPaymentRequestSchema = z.object({
   amount: z.number().positive('Amount must be positive'),
-  currency: z.string().length(3, 'Currency must be 3 characters').default('AED'),
+  currency: z.string().length(3, 'Currency must be 3 characters').default('USD'),
   description: z.string().min(1, 'Description is required'),
   purpose: z.string().optional(),
   planType: z.enum(['basic', 'premium', 'enterprise', 'one-time']).optional(),
