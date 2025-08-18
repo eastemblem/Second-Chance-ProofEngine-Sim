@@ -610,8 +610,99 @@ export default function DealRoomSalesPage() {
         </div>
       </section>
 
-      {/* Ready to Accelerate */}
+      {/* Pricing Section */}
       <section className="py-20 px-4 bg-background">
+        <div className="container mx-auto max-w-4xl">
+          <motion.div
+            initial={{ opacity: 0, y: 30 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.8 }}
+            className="text-center mb-12"
+          >
+            <h2 className="text-4xl md:text-5xl font-bold mb-4 text-foreground">
+              Exclusive Deal Room Access
+            </h2>
+            <p className="text-lg text-muted-foreground max-w-2xl mx-auto">
+              Join the most exclusive network of validated startups and get direct access to top-tier investors.
+            </p>
+          </motion.div>
+
+          <motion.div
+            initial={{ opacity: 0, y: 30 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.6, delay: 0.3 }}
+            className="max-w-md mx-auto"
+          >
+            <div className="bg-gradient-to-br from-gray-900 to-gray-800 rounded-3xl p-8 border-2 border-white/10 shadow-2xl relative overflow-hidden">
+              {/* Background decorative elements */}
+              <div className="absolute inset-0 bg-gradient-to-br from-primary/10 to-transparent" />
+              <div className="absolute top-0 right-0 w-24 h-24 bg-gradient-to-bl from-white/5 to-transparent rounded-full -translate-y-12 translate-x-12" />
+              
+              <div className="relative z-10 text-center">
+                {/* Title */}
+                <h3 className="text-2xl font-bold text-white mb-6">Deal Room Access</h3>
+
+                {/* Price */}
+                <div className="mb-6">
+                  <div className="flex items-center justify-center gap-2 mb-2">
+                    <span className="text-5xl font-bold text-white">$99</span>
+                  </div>
+                  <div className="text-gray-400 line-through text-lg mb-1">$199</div>
+                  <p className="text-gray-300">per year</p>
+                </div>
+
+                {/* Features */}
+                <div className="space-y-4 mb-8 text-left">
+                  {[
+                    "Unlimited investor introductions",
+                    "Complete ProofVault access",
+                    "Priority deal flow placement",
+                    "Dedicated success support",
+                    "Corporate partnership opportunities",
+                    "Quarterly demo day invitations",
+                    "Expert network access",
+                    "Due diligence fast-track"
+                  ].map((feature, index) => (
+                    <motion.div
+                      key={feature}
+                      initial={{ opacity: 0, x: -20 }}
+                      animate={{ opacity: 1, x: 0 }}
+                      transition={{ duration: 0.4, delay: 0.5 + index * 0.1 }}
+                      className="flex items-center text-white"
+                    >
+                      <div className="w-6 h-6 rounded-full bg-green-500/20 border-2 border-green-500 flex items-center justify-center mr-3 flex-shrink-0">
+                        <CheckCircle2 className="w-3 h-3 text-green-500" />
+                      </div>
+                      <span className="text-sm">{feature}</span>
+                    </motion.div>
+                  ))}
+                </div>
+
+                {/* CTA Button */}
+                <motion.div
+                  initial={{ opacity: 0, y: 20 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ duration: 0.6, delay: 0.8 }}
+                  className="text-center"
+                >
+                  <button 
+                    onClick={handleJoinClick}
+                    className="w-full bg-gradient-to-r from-purple-600 to-orange-500 hover:from-purple-500 hover:to-orange-400 text-white font-bold py-4 px-8 rounded-xl text-lg transition-all duration-300 transform hover:scale-105 shadow-lg hover:shadow-xl"
+                  >
+                    <div className="flex items-center justify-center gap-2">
+                      <span>Join Deal Room</span>
+                      <ArrowRight className="w-5 h-5" />
+                    </div>
+                  </button>
+                </motion.div>
+              </div>
+            </div>
+          </motion.div>
+        </div>
+      </section>
+
+      {/* Ready to Accelerate */}
+      <section className="py-20 px-4 bg-gradient-to-br from-primary/5 via-background to-primary-gold/5">
         <div className="container mx-auto max-w-4xl text-center">
           <motion.div
             initial={{ opacity: 0, y: 30 }}
@@ -636,7 +727,7 @@ export default function DealRoomSalesPage() {
               Join the most exclusive network of validated startups and get direct access to investors who understand the value of evidence-based ventures.
             </motion.p>
             
-            <AnimatedSection delay={0.3} className="mb-10">
+            <AnimatedSection delay={0.3} className="mb-10 flex justify-center">
               <GradientButton leftIcon={Crown} rightIcon={ArrowRight} size="xl" onClick={handleJoinClick}>
                 Join Deal Room Now
               </GradientButton>
