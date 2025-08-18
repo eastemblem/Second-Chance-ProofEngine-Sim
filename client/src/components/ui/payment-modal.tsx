@@ -229,21 +229,21 @@ export function PaymentModal({
               </p>
             </div>
             
-            <div className="border border-border rounded-lg overflow-hidden min-h-[600px]">
+            <div className="border border-border rounded-lg overflow-hidden">
               {paymentData?.paymentUrl ? (
                 <iframe
                   src={paymentData.paymentUrl}
                   width="100%"
-                  height="600"
+                  height="700"
                   frameBorder="0"
-                  className="w-full min-w-[600px]"
+                  className="w-full block"
                   title="Payment Gateway"
                   sandbox="allow-forms allow-modals allow-popups-to-escape-sandbox allow-popups allow-scripts allow-top-navigation allow-same-origin"
                   onLoad={() => console.log('🔥 Payment iframe loaded successfully:', paymentData.paymentUrl)}
                   onError={(e) => console.error('🔥 Payment iframe error:', e)}
                 />
               ) : (
-                <div className="h-[600px] flex items-center justify-center bg-muted/50">
+                <div className="h-[700px] flex items-center justify-center bg-muted/50">
                   <div className="text-center">
                     <div className="w-16 h-16 mx-auto mb-4 bg-red-500/20 rounded-full flex items-center justify-center">
                       <XCircle className="w-8 h-8 text-red-500" />
@@ -357,11 +357,13 @@ export function PaymentModal({
 
   return (
     <Dialog open={isOpen} onOpenChange={handleClose}>
-      <DialogContent className="sm:max-w-md">
-        <DialogHeader>
-          <DialogTitle className="sr-only">Payment Modal</DialogTitle>
+      <DialogContent className="sm:max-w-[900px] max-w-[95vw] max-h-[95vh] overflow-hidden p-0">
+        <DialogHeader className="p-6 pb-2">
+          <DialogTitle className="text-center">Payment Processing</DialogTitle>
         </DialogHeader>
-        {renderContent()}
+        <div className="px-6 pb-6 overflow-y-auto max-h-[85vh]">
+          {renderContent()}
+        </div>
       </DialogContent>
     </Dialog>
   );
