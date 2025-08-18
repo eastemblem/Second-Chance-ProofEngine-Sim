@@ -1,5 +1,5 @@
 import { motion } from "framer-motion";
-import { ArrowRight, Star, Users, TrendingUp, Shield, Zap, Crown, Award, DollarSign, Timer, Handshake, CheckCircle2, Target, Trophy, Rocket, PlayCircle, Brain, BookOpen, Lightbulb, Search, BarChart3, MessageSquare, Layers, Presentation, Gauge, CheckCircle, User, Lock } from "lucide-react";
+import { ArrowRight, Star, Users, TrendingUp, Shield, Zap, Crown, Award, DollarSign, Timer, Handshake, CheckCircle2, Target, Trophy, Rocket, PlayCircle, Brain, BookOpen, Lightbulb, Search, BarChart3, MessageSquare, Layers, Presentation, Gauge, CheckCircle, User, Lock, Clock } from "lucide-react";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -410,100 +410,95 @@ export default function ProofScalingSalesPage(props?: ProofScalingSalesPageProps
         <div className="container mx-auto max-w-4xl">
           <AnimatedSection delay={0.2}>
             <SectionHeader 
-              title="Transform Your Startup" 
-              subtitle="Choose the program that fits your stage and ambition"
+              title="Transform Your Startup for Less Than a Coffee Per Day" 
+              subtitle="Get $10,000+ worth of expert guidance, tools, and community access"
             />
           </AnimatedSection>
 
-          <div className="grid md:grid-cols-2 gap-8 mt-12">
-            {/* Standard Program */}
-            <motion.div
-              initial={{ opacity: 0, y: 30 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.6, delay: 0.3 }}
-            >
-              <Card className="p-8 border-border hover:border-blue-500/50 transition-all duration-300 relative">
-                <div className="text-center mb-6">
-                  <h3 className="text-2xl font-bold mb-2">ProofScaling Standard</h3>
-                  <div className="text-4xl font-bold text-blue-500 mb-2">$2,997</div>
-                  <p className="text-muted-foreground">12-week transformation program</p>
-                </div>
-                
-                <ul className="space-y-3 mb-8">
-                  {[
-                    "Complete 6-module curriculum",
-                    "Weekly group mentorship calls",
-                    "Private community access",
-                    "Templates & frameworks",
-                    "Certificate of completion"
-                  ].map((feature, index) => (
-                    <li key={index} className="flex items-center">
-                      <CheckCircle2 className="w-5 h-5 text-green-500 mr-3 flex-shrink-0" />
-                      {feature}
-                    </li>
-                  ))}
-                </ul>
-
-                <GradientButton className="w-full" size="lg">
-                  Start Standard Program
-                </GradientButton>
-              </Card>
-            </motion.div>
-
-            {/* Premium Program */}
-            <motion.div
-              initial={{ opacity: 0, y: 30 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.6, delay: 0.4 }}
-            >
-              <Card className="p-8 border-primary bg-gradient-to-br from-primary/5 to-primary/10 relative">
-                <div className="absolute -top-4 left-1/2 transform -translate-x-1/2">
-                  <Badge className="bg-primary text-primary-foreground px-4 py-1">
-                    <Crown className="w-4 h-4 mr-1" />
-                    Most Popular
-                  </Badge>
-                </div>
-                
-                <div className="text-center mb-6">
-                  <h3 className="text-2xl font-bold mb-2">ProofScaling Premium</h3>
-                  <div className="text-4xl font-bold text-primary mb-2">$4,997</div>
-                  <p className="text-muted-foreground">Premium with 1-on-1 mentoring</p>
-                </div>
-                
-                <ul className="space-y-3 mb-8">
-                  {[
-                    "Everything in Standard +",
-                    "Weekly 1-on-1 mentor sessions",
-                    "Personal success manager",
-                    "Direct investor introductions",
-                    "Money-back guarantee"
-                  ].map((feature, index) => (
-                    <li key={index} className="flex items-center">
-                      <CheckCircle2 className="w-5 h-5 text-green-500 mr-3 flex-shrink-0" />
-                      {feature}
-                    </li>
-                  ))}
-                </ul>
-
-                <GradientButton className="w-full" size="lg">
-                  Start Premium Program
-                </GradientButton>
-              </Card>
-            </motion.div>
-          </div>
-
-          {/* Money-back guarantee */}
-          <motion.div 
-            className="text-center mt-12"
-            initial={{ opacity: 0, y: 20 }}
+          <motion.div
+            initial={{ opacity: 0, y: 30 }}
             animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.6, delay: 0.6 }}
+            transition={{ duration: 0.6, delay: 0.3 }}
+            className="mt-12 max-w-2xl mx-auto"
           >
-            <div className="inline-flex items-center space-x-3 bg-green-500/20 px-6 py-3 rounded-full border border-green-500/30">
-              <Shield className="w-5 h-5 text-green-500" />
-              <span className="text-sm font-medium">
-                <span className="text-green-500 font-bold">ProofScore 70+ Guarantee:</span> Reach investor readiness or get your money back
-              </span>
+            <div className="bg-gradient-to-br from-purple-600 via-purple-700 to-purple-800 rounded-2xl p-8 border-2 border-white/20 shadow-2xl relative overflow-hidden">
+              {/* Background decorative elements */}
+              <div className="absolute inset-0 bg-gradient-to-br from-purple-500/20 to-transparent" />
+              <div className="absolute top-0 right-0 w-32 h-32 bg-gradient-to-bl from-white/10 to-transparent rounded-full -translate-y-16 translate-x-16" />
+              
+              <div className="relative z-10">
+                {/* Limited Time Offer Badge */}
+                <div className="flex justify-center mb-6">
+                  <div className="inline-flex items-center px-4 py-2 rounded-full bg-white/20 backdrop-blur-sm border border-white/30">
+                    <Clock className="w-4 h-4 text-white/80 mr-2" />
+                    <span className="text-white/90 text-sm font-medium">Limited Time Offer</span>
+                  </div>
+                </div>
+
+                {/* Price */}
+                <div className="text-center mb-6">
+                  <div className="flex items-center justify-center gap-3 mb-2">
+                    <span className="text-6xl font-bold text-white">$249</span>
+                    <div className="text-left">
+                      <div className="text-white/60 line-through text-xl">$10,000</div>
+                      <div className="text-green-400 font-semibold text-sm">97% savings</div>
+                    </div>
+                  </div>
+                  <p className="text-white/80 text-lg">
+                    One-time payment • Lifetime access • 30-day money-back guarantee
+                  </p>
+                </div>
+
+                {/* Features */}
+                <div className="space-y-3 mb-8">
+                  {[
+                    "6-week intensive curriculum",
+                    "1:1 office hours with serial entrepreneurs", 
+                    "Full ProofScaling platform access",
+                    "Private founder community",
+                    "Lifetime updates & resources"
+                  ].map((feature, index) => (
+                    <motion.div
+                      key={feature}
+                      initial={{ opacity: 0, x: -20 }}
+                      animate={{ opacity: 1, x: 0 }}
+                      transition={{ duration: 0.4, delay: 0.5 + index * 0.1 }}
+                      className="flex items-center text-white/90"
+                    >
+                      <CheckCircle className="w-5 h-5 text-green-400 mr-3 flex-shrink-0" />
+                      <span>{feature}</span>
+                    </motion.div>
+                  ))}
+                </div>
+
+                {/* CTA Button */}
+                <motion.div
+                  initial={{ opacity: 0, y: 20 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ duration: 0.6, delay: 0.8 }}
+                >
+                  <button className="w-full bg-gradient-to-r from-orange-500 to-orange-600 hover:from-orange-400 hover:to-orange-500 text-white font-bold py-4 px-8 rounded-xl text-lg transition-all duration-300 transform hover:scale-105 shadow-lg hover:shadow-xl">
+                    <div className="flex items-center justify-center gap-2">
+                      <Rocket className="w-5 h-5" />
+                      <span>Join the Next Cohort - Start Today</span>
+                      <ArrowRight className="w-5 h-5" />
+                    </div>
+                  </button>
+                </motion.div>
+
+                {/* Security badges */}
+                <motion.div 
+                  className="text-center mt-4"
+                  initial={{ opacity: 0 }}
+                  animate={{ opacity: 1 }}
+                  transition={{ duration: 0.6, delay: 1.0 }}
+                >
+                  <p className="text-white/60 text-sm flex items-center justify-center gap-1">
+                    <Shield className="w-4 h-4" />
+                    Secure payment • Cancel anytime • No hidden fees
+                  </p>
+                </motion.div>
+              </div>
             </div>
           </motion.div>
         </div>
