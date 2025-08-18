@@ -1,5 +1,5 @@
 import { motion } from "framer-motion";
-import { ArrowRight, Star, Users, TrendingUp, Shield, Zap, Crown, Award, DollarSign, Timer, Handshake, CheckCircle2, Target, Trophy, Rocket, PlayCircle, Brain, BookOpen, Lightbulb, Search, BarChart3, MessageSquare, Layers, Presentation, Gauge } from "lucide-react";
+import { ArrowRight, Star, Users, TrendingUp, Shield, Zap, Crown, Award, DollarSign, Timer, Handshake, CheckCircle2, Target, Trophy, Rocket, PlayCircle, Brain, BookOpen, Lightbulb, Search, BarChart3, MessageSquare, Layers, Presentation, Gauge, CheckCircle, User, Lock } from "lucide-react";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -23,6 +23,8 @@ import { VideoPlayer } from "@/components/proofscaling/video-player";
 import { OutcomeCard } from "@/components/proofscaling/outcome-card";
 import { TimelineCard } from "@/components/proofscaling/timeline-card";
 import { TimelineLine } from "@/components/proofscaling/timeline-line";
+import { InvestorTestimonial } from "@/components/proofscaling/investor-testimonial";
+import { FeatureCardSimple } from "@/components/proofscaling/feature-card-simple";
 
 // Timeline data
 const timelineSteps = [
@@ -74,6 +76,47 @@ const timelineSteps = [
     description: "Execute go-to-market strategy with proven metrics, creating sustainable growth momentum for funding rounds.",
     icon: Gauge,
     weekColor: "bg-purple-600"
+  }
+];
+
+// Investor testimonials data
+const investorTestimonials = [
+  {
+    name: "Sarah Chen",
+    title: "Investor @ Beyond Ventures",
+    quote: "I'd funded teams before - ProofScaling gave me the hard numbers I needed to fund this one.",
+    avatar: "SC"
+  },
+  {
+    name: "Josh B.",
+    title: "Cohort #07",
+    quote: "Our landing-page smoke test hit 18% conversion in Week 2. That metric alone got us into Antler.",
+    avatar: "JB"
+  }
+];
+
+// ProofScaling features data
+const proofScalingFeatures = [
+  {
+    title: "Self-Paced Learning",
+    description: "4 weeks with full proof-first traction framework",
+    icon: CheckCircle,
+    gradientFrom: "from-purple-500",
+    gradientTo: "to-orange-400"
+  },
+  {
+    title: "1:1 Office Hours",
+    description: "Direct access to exited, serial entrepreneurs",
+    icon: User,
+    gradientFrom: "from-blue-500",
+    gradientTo: "to-purple-500"
+  },
+  {
+    title: "ProofScaling Platform",
+    description: "Full access worth over $40k annually",
+    icon: Lock,
+    gradientFrom: "from-pink-500",
+    gradientTo: "to-red-400"
   }
 ];
 
@@ -314,63 +357,53 @@ export default function ProofScalingSalesPage(props?: ProofScalingSalesPageProps
         </div>
       </section>
 
-      {/* Curriculum Overview */}
-      <AnimatedSection className="py-20 px-4 bg-card/30">
+      {/* Trusted by Investors */}
+      <section className="py-20 px-4 bg-card/30">
         <div className="container mx-auto max-w-6xl">
-          <SectionHeader 
-            title="Complete Curriculum" 
-            subtitle="Six comprehensive modules designed to transform your startup into an investment-ready business"
-          />
-          
-          <ProgressVisualization />
-          
-          <div className="mt-16">
-            <FeatureList 
-              features={curriculumModules}
-              columns={2}
+          <AnimatedSection delay={0.2}>
+            <SectionHeader 
+              title="Trusted By The Leading Investors in MENA & GCC" 
+              subtitle="See what industry leaders say about ProofScaling graduates"
             />
+          </AnimatedSection>
+
+          {/* Investor Testimonials */}
+          <div className="grid md:grid-cols-2 gap-8 mt-12 mb-16">
+            {investorTestimonials.map((testimonial, index) => (
+              <InvestorTestimonial
+                key={testimonial.name}
+                name={testimonial.name}
+                title={testimonial.title}
+                quote={testimonial.quote}
+                avatar={testimonial.avatar}
+                delay={0.3 + index * 0.1}
+              />
+            ))}
           </div>
 
-          {/* Program details */}
-          <div className="mt-16 grid md:grid-cols-3 gap-8">
-            <motion.div
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.6, delay: 0.4 }}
-            >
-              <Card className="p-6 bg-gradient-to-br from-blue-500/10 to-blue-500/5 border-blue-500/20 text-center">
-                <BookOpen className="w-12 h-12 text-blue-500 mx-auto mb-4" />
-                <h3 className="text-xl font-bold mb-2">12-Week Program</h3>
-                <p className="text-muted-foreground">Intensive curriculum with weekly milestones and expert feedback</p>
-              </Card>
-            </motion.div>
+          <AnimatedSection delay={0.5}>
+            <SectionHeader 
+              title="What You Get Inside ProofScaling" 
+              subtitle="Everything you need to build investor-ready proof in 6 weeks"
+            />
+          </AnimatedSection>
 
-            <motion.div
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.6, delay: 0.5 }}
-            >
-              <Card className="p-6 bg-gradient-to-br from-green-500/10 to-green-500/5 border-green-500/20 text-center">
-                <Users className="w-12 h-12 text-green-500 mx-auto mb-4" />
-                <h3 className="text-xl font-bold mb-2">Expert Mentorship</h3>
-                <p className="text-muted-foreground">1-on-1 guidance from successful founders and investors</p>
-              </Card>
-            </motion.div>
-
-            <motion.div
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.6, delay: 0.6 }}
-            >
-              <Card className="p-6 bg-gradient-to-br from-purple-500/10 to-purple-500/5 border-purple-500/20 text-center">
-                <Trophy className="w-12 h-12 text-purple-500 mx-auto mb-4" />
-                <h3 className="text-xl font-bold mb-2">Graduation Promise</h3>
-                <p className="text-muted-foreground">ProofScore 70+ guaranteed or your money back</p>
-              </Card>
-            </motion.div>
+          {/* ProofScaling Features */}
+          <div className="grid md:grid-cols-3 gap-8 mt-12">
+            {proofScalingFeatures.map((feature, index) => (
+              <FeatureCardSimple
+                key={feature.title}
+                title={feature.title}
+                description={feature.description}
+                icon={feature.icon}
+                delay={0.6 + index * 0.1}
+                gradientFrom={feature.gradientFrom}
+                gradientTo={feature.gradientTo}
+              />
+            ))}
           </div>
         </div>
-      </AnimatedSection>
+      </section>
 
       {/* Pricing Section */}
       <section className="py-20 px-4">
