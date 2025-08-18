@@ -115,38 +115,67 @@ export function PaymentModal({
     const handleMessage = async (event: MessageEvent) => {
       if (!paymentData?.orderReference) return;
 
+      console.log('🔥 Received iframe message:', event.data, 'from origin:', event.origin);
+
       // Handle Telr payment completion messages
       if (event.data && typeof event.data === 'string') {
-        if (event.data.includes('payment_successful') || event.data.includes('authorised')) {
+        if (event.data.includes('payment_successful') || event.data.includes('authorised') || event.data.includes('completed')) {
+          console.log('🔥 Payment success detected, switching to processing...');
           setStep('processing');
           
           // Wait a moment then check payment status
           setTimeout(async () => {
             try {
+              console.log('🔥 Checking payment status for:', paymentData.orderReference);
               const response = await apiRequest("GET", `/api/v1/payments/status/${paymentData.orderReference}`);
               const result = await response.json();
+              console.log('🔥 Payment status result:', result);
               
               if (result.success && result.transaction?.status === 'completed') {
+                console.log('🔥 Payment verified as completed!');
                 setStep('success');
                 toast({
                   title: "Payment Successful",
                   description: "Deal Room access granted successfully!",
                 });
+                
+                // Call onSuccess callback to refresh dashboard
+                onSuccess();
               } else {
+                console.log('🔥 Payment verification failed:', result);
                 setStep('failed');
                 setError('Payment could not be verified');
               }
             } catch (error) {
-              console.error('Payment verification error:', error);
+              console.error('🔥 Payment verification error:', error);
               setStep('failed');
               setError('Payment verification failed');
             }
           }, 2000);
         } else if (event.data.includes('payment_failed') || event.data.includes('declined')) {
+          console.log('🔥 Payment failed detected');
           setStep('failed');
           setError('Payment was declined by your bank or card issuer');
         } else if (event.data.includes('payment_cancelled') || event.data.includes('cancelled')) {
+          console.log('🔥 Payment cancelled detected');
           setStep('cancelled');
+        }
+      }
+
+      // Also check for URL changes in iframe that indicate success/failure
+      if (event.data && typeof event.data === 'object') {
+        if (event.data.type === 'telr_payment_result') {
+          console.log('🔥 Telr payment result received:', event.data);
+          if (event.data.status === 'success') {
+            setStep('processing');
+            setTimeout(async () => {
+              onSuccess(); // Refresh dashboard
+              setStep('success');
+            }, 2000);
+          } else if (event.data.status === 'failed') {
+            setStep('failed');
+            setError(event.data.message || 'Payment failed');
+          }
         }
       }
     };
@@ -155,12 +184,44 @@ export function PaymentModal({
       window.addEventListener('message', handleMessage);
       return () => window.removeEventListener('message', handleMessage);
     }
-  }, [step, paymentData]);
+  }, [step, paymentData, onSuccess, toast]);
+
+  // Polling mechanism to check payment status as fallback
+  useEffect(() => {
+    if (step !== 'iframe' || !paymentData?.orderReference) return;
+
+    const pollPaymentStatus = async () => {
+      try {
+        console.log('🔥 Polling payment status...');
+        const response = await apiRequest("GET", `/api/v1/payments/status/${paymentData.orderReference}`);
+        const result = await response.json();
+        
+        if (result.success && result.transaction?.status === 'completed') {
+          console.log('🔥 Payment completed detected via polling!');
+          setStep('success');
+          toast({
+            title: "Payment Successful",
+            description: "Deal Room access granted successfully!",
+          });
+          onSuccess(); // Refresh dashboard
+        } else if (result.success && result.transaction?.status === 'failed') {
+          console.log('🔥 Payment failed detected via polling');
+          setStep('failed');
+          setError('Payment failed');
+        }
+      } catch (error) {
+        console.error('🔥 Polling error:', error);
+      }
+    };
+
+    // Poll every 3 seconds
+    const pollInterval = setInterval(pollPaymentStatus, 3000);
+    
+    return () => clearInterval(pollInterval);
+  }, [step, paymentData, onSuccess, toast]);
 
   const handleClose = () => {
-    if (step === 'success') {
-      onSuccess();
-    }
+    // Don't call onSuccess here since we handle it in the success step directly
     onClose();
   };
 

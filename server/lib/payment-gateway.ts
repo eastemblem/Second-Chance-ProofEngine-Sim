@@ -110,7 +110,7 @@ class TelrGateway extends PaymentGateway {
       method: 'create',
       store: parseInt(this.storeId!),
       authkey: this.authKey,
-      framed: 2, // Framed payment page that can break out if required by payment method
+      framed: 1, // Framed payment page that stays within iframe
       order: {
         cartid: orderData.orderId,
         test: process.env.NODE_ENV === 'development' ? '1' : '0',
