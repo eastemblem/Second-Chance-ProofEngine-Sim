@@ -77,8 +77,10 @@ export function PaymentModal({
       }
 
       const result = await response.json();
+      console.log('🔥 Payment creation response:', result);
       
-      if (result.success) {
+      if (result.success && result.paymentUrl) {
+        console.log('🔥 Payment URL received:', result.paymentUrl);
         setPaymentData({
           orderReference: result.orderReference,
           paymentUrl: result.paymentUrl
@@ -90,7 +92,8 @@ export function PaymentModal({
           description: `Order reference: ${result.orderReference}`,
         });
       } else {
-        throw new Error(result.error || "Payment creation failed");
+        console.error('🔥 Payment creation failed:', result);
+        throw new Error(result.error || `Payment creation failed: ${JSON.stringify(result)}`);
       }
     } catch (error) {
       console.error("Payment creation error:", error);
@@ -227,14 +230,28 @@ export function PaymentModal({
             </div>
             
             <div className="border border-border rounded-lg overflow-hidden">
-              <iframe
-                src={paymentData?.paymentUrl}
-                width="100%"
-                height="600"
-                frameBorder="0"
-                className="w-full"
-                title="Payment Gateway"
-              />
+              {paymentData?.paymentUrl ? (
+                <iframe
+                  src={paymentData.paymentUrl}
+                  width="100%"
+                  height="600"
+                  frameBorder="0"
+                  className="w-full"
+                  title="Payment Gateway"
+                  onLoad={() => console.log('🔥 Payment iframe loaded successfully:', paymentData.paymentUrl)}
+                  onError={(e) => console.error('🔥 Payment iframe error:', e)}
+                />
+              ) : (
+                <div className="h-[600px] flex items-center justify-center bg-muted/50">
+                  <div className="text-center">
+                    <div className="w-16 h-16 mx-auto mb-4 bg-red-500/20 rounded-full flex items-center justify-center">
+                      <XCircle className="w-8 h-8 text-red-500" />
+                    </div>
+                    <p className="text-sm text-muted-foreground">Payment URL not available</p>
+                    <p className="text-xs text-red-500 mt-2">Debug: {JSON.stringify(paymentData)}</p>
+                  </div>
+                </div>
+              )}
             </div>
             
             <Button variant="outline" onClick={onClose} className="w-full">
