@@ -282,29 +282,29 @@ export function PaymentModal({
 
       case 'iframe':
         return (
-          <div className="space-y-4">
-            <div className="text-center">
-              <h3 className="text-lg font-semibold text-foreground mb-2">Complete Your Payment</h3>
-              <p className="text-sm text-muted-foreground">
+          <div className="h-[calc(95vh-8rem)] flex flex-col">
+            <div className="text-center px-4 pb-2 shrink-0">
+              <h3 className="text-lg font-semibold text-foreground mb-1">Complete Your Payment</h3>
+              <p className="text-xs text-muted-foreground">
                 Order Reference: {paymentData?.orderReference}
               </p>
             </div>
             
-            <div className="border border-border rounded-lg overflow-hidden">
+            <div className="flex-1 mx-4 mb-2 border border-border rounded-lg overflow-hidden bg-white min-h-0">
               {paymentData?.paymentUrl ? (
                 <iframe
                   src={paymentData.paymentUrl}
                   width="100%"
-                  height="700"
+                  height="100%"
                   frameBorder="0"
-                  className="w-full block"
+                  className="w-full h-full block"
                   title="Payment Gateway"
                   sandbox="allow-forms allow-modals allow-popups-to-escape-sandbox allow-popups allow-scripts allow-top-navigation allow-same-origin"
                   onLoad={() => console.log('🔥 Payment iframe loaded successfully:', paymentData.paymentUrl)}
                   onError={(e) => console.error('🔥 Payment iframe error:', e)}
                 />
               ) : (
-                <div className="h-[700px] flex items-center justify-center bg-muted/50">
+                <div className="h-full flex items-center justify-center bg-muted/50">
                   <div className="text-center">
                     <div className="w-16 h-16 mx-auto mb-4 bg-red-500/20 rounded-full flex items-center justify-center">
                       <XCircle className="w-8 h-8 text-red-500" />
@@ -316,9 +316,11 @@ export function PaymentModal({
               )}
             </div>
             
-            <Button variant="outline" onClick={onClose} className="w-full">
-              Cancel Payment
-            </Button>
+            <div className="px-4 pb-2 shrink-0">
+              <Button variant="outline" onClick={onClose} className="w-full">
+                Cancel Payment
+              </Button>
+            </div>
           </div>
         );
 
@@ -418,11 +420,11 @@ export function PaymentModal({
 
   return (
     <Dialog open={isOpen} onOpenChange={handleClose}>
-      <DialogContent className="sm:max-w-[900px] max-w-[95vw] max-h-[95vh] overflow-hidden p-0">
-        <DialogHeader className="p-6 pb-2">
-          <DialogTitle className="text-center">Payment Processing</DialogTitle>
+      <DialogContent className="max-w-[850px] w-[95vw] h-[95vh] max-h-[95vh] overflow-hidden p-0 flex flex-col">
+        <DialogHeader className="p-4 pb-2 shrink-0">
+          <DialogTitle className="text-center text-lg">Payment Processing</DialogTitle>
         </DialogHeader>
-        <div className="px-6 pb-6 overflow-y-auto max-h-[85vh]">
+        <div className="flex-1 overflow-hidden min-h-0">
           {renderContent()}
         </div>
       </DialogContent>
