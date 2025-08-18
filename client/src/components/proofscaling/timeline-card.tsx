@@ -21,10 +21,7 @@ export function TimelineCard({
   weekColor = "bg-blue-500"
 }: TimelineCardProps) {
   return (
-    <div className="relative flex items-center justify-center min-h-[200px]">
-      {/* Timeline dot indicator - positioned at center */}
-      <div className="absolute left-1/2 transform -translate-x-1/2 w-4 h-4 z-20" />
-      
+    <div className="relative flex items-center justify-center min-h-[200px] mb-0">
       {/* Card positioned left or right of center */}
       <motion.div
         initial={{ opacity: 0, x: isLeft ? -50 : 50 }}
@@ -35,7 +32,7 @@ export function TimelineCard({
           y: -5,
           transition: { duration: 0.3 }
         }}
-        className={`absolute ${isLeft ? 'right-1/2 mr-8' : 'left-1/2 ml-8'} w-80 max-w-md`}
+        className={`absolute ${isLeft ? 'right-1/2 mr-8' : 'left-1/2 ml-8'} w-80 max-w-md z-10`}
       >
         <div className="bg-card/60 backdrop-blur-sm border border-border/50 rounded-xl p-6 hover:shadow-lg hover:border-border/80 transition-all duration-300">
           <div className="flex items-start gap-4">
