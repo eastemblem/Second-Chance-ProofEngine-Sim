@@ -512,24 +512,38 @@ export default function ProofScalingSalesPage(props?: ProofScalingSalesPageProps
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.8 }}
           >
-            <h2 className="text-4xl md:text-5xl font-bold mb-6">
-              Ready to Build Something 
-              <span className="bg-gradient-to-r from-blue-500 to-green-500 bg-clip-text text-transparent"> Investors Want?</span>
+            <h2 className="text-4xl md:text-5xl font-bold mb-6 leading-tight">
+              Don't let another investor{" "}
+              <span className="bg-gradient-to-r from-purple-500 via-pink-500 to-orange-500 bg-clip-text text-transparent">
+                say "no" to your idea
+              </span>
             </h2>
             
-            <p className="text-xl text-muted-foreground mb-10 max-w-2xl mx-auto">
-              Join 250+ founders who transformed their startups through ProofScaling. Start your 12-week journey to investor readiness today.
+            <p className="text-xl text-muted-foreground mb-10 max-w-3xl mx-auto">
+              Transform rejection into evidence. Turn evidence into funding. Start building proof today.
             </p>
 
-            <div className="flex flex-col sm:flex-row gap-4 justify-center">
-              <GradientButton leftIcon={Rocket} rightIcon={ArrowRight} size="xl">
-                Start Your Transformation
-              </GradientButton>
+            <div className="flex flex-col sm:flex-row gap-6 justify-center items-center">
+              <motion.div
+                whileHover={{ scale: 1.05 }}
+                whileTap={{ scale: 0.95 }}
+              >
+                <button className="bg-gradient-to-r from-purple-600 to-orange-500 hover:from-purple-500 hover:to-orange-400 text-white font-bold py-4 px-8 rounded-xl text-lg transition-all duration-300 shadow-lg hover:shadow-xl border-2 border-white/20">
+                  <div className="flex items-center gap-2">
+                    <Zap className="w-5 h-5" />
+                    <span>Join ProofScaling Now</span>
+                  </div>
+                </button>
+              </motion.div>
               
-              <motion.div whileHover={{ scale: 1.05 }}>
-                <Button size="lg" variant="outline" className="text-lg px-8 py-4 h-auto">
-                  Schedule a Call
-                </Button>
+              <motion.div
+                initial={{ opacity: 0, x: 20 }}
+                animate={{ opacity: 1, x: 0 }}
+                transition={{ duration: 0.6, delay: 0.3 }}
+                className="flex items-center text-muted-foreground"
+              >
+                <Timer className="w-4 h-4 mr-2 text-orange-500" />
+                <span className="text-sm">Only 20 spots left in this cohort</span>
               </motion.div>
             </div>
           </motion.div>
