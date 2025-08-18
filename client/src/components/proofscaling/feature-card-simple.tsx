@@ -28,7 +28,7 @@ export function FeatureCardSimple({
         y: -5,
         transition: { duration: 0.3 }
       }}
-      className="text-center"
+      className="text-center p-6 bg-card/50 backdrop-blur-sm border-2 border-white/20 rounded-xl hover:border-white/40 hover:shadow-lg transition-all duration-300"
     >
       {/* Icon */}
       <div className={`w-16 h-16 mx-auto mb-4 rounded-xl bg-gradient-to-br ${gradientFrom} ${gradientTo} flex items-center justify-center`}>
