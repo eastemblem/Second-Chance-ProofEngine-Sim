@@ -291,7 +291,7 @@ export const createPaymentRequestSchema = z.object({
   currency: z.string().length(3, 'Currency must be 3 characters').default('AED'),
   description: z.string().min(1, 'Description is required'),
   purpose: z.string().optional(),
-  planType: z.enum(['basic', 'premium', 'enterprise']).optional(),
+  planType: z.enum(['basic', 'premium', 'enterprise', 'one-time']).optional(),
   metadata: z.record(z.any()).optional()
 });
 
