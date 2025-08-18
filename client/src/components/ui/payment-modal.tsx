@@ -277,6 +277,12 @@ export function PaymentModal({
                 )}
               </Button>
             </div>
+            
+            <div className="text-center">
+              <p className="text-xs text-muted-foreground">
+                🔒 Secure payment processing powered by Telr
+              </p>
+            </div>
           </div>
         );
 
@@ -319,6 +325,11 @@ export function PaymentModal({
               <Button variant="outline" onClick={onClose} className="w-full">
                 Cancel Payment
               </Button>
+              <div className="text-center pt-2">
+                <p className="text-xs text-muted-foreground">
+                  🔒 Secure payment processing powered by Telr
+                </p>
+              </div>
             </div>
           </div>
         );
@@ -343,19 +354,32 @@ export function PaymentModal({
               <CheckCircle className="w-8 h-8 text-green-500" />
             </div>
             <div>
-              <h3 className="text-xl font-semibold text-green-600 mb-2">Payment Successful!</h3>
+              <h3 className="text-xl font-semibold text-green-600 mb-2">Congratulations! 🎉</h3>
               <p className="text-muted-foreground mb-4">
-                Your Deal Room access has been activated. You can now view your investor matches and start connecting with potential funders.
+                Your Deal Room access has been activated! You now have access to:
               </p>
-              <div className="bg-green-500/10 border border-green-500/20 rounded-lg p-4">
-                <p className="text-sm text-green-700 dark:text-green-400">
+              <div className="bg-green-500/10 border border-green-500/20 rounded-lg p-4 mb-4">
+                <div className="space-y-2 text-sm text-green-700 dark:text-green-400">
+                  <p>✓ Verified investor matches</p>
+                  <p>✓ Investment certificates and reports</p>
+                  <p>✓ Direct investor connections</p>
+                </div>
+              </div>
+              <div className="bg-muted/50 border rounded-lg p-3">
+                <p className="text-xs text-muted-foreground">
                   Order Reference: {paymentData?.orderReference}
                 </p>
               </div>
             </div>
-            <Button onClick={handleClose} className="w-full bg-green-600 hover:bg-green-700">
-              Continue to Deal Room
+            <Button onClick={onClose} className="w-full bg-green-600 hover:bg-green-700">
+              Continue to Dashboard
             </Button>
+            
+            <div className="text-center pt-4 border-t">
+              <p className="text-xs text-muted-foreground">
+                🔒 Secure payment processing powered by Telr
+              </p>
+            </div>
           </div>
         );
 
