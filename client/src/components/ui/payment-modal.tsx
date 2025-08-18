@@ -417,34 +417,17 @@ export function PaymentModal({
     }
   };
 
-  // Dynamic modal sizing based on step
-  const getModalClasses = () => {
-    if (step === 'iframe') {
-      return "max-w-[850px] w-[95vw] h-[95vh] max-h-[95vh] overflow-hidden p-0 flex flex-col";
-    }
-    return "sm:max-w-md overflow-y-auto";
-  };
-
   return (
     <Dialog open={isOpen} onOpenChange={handleClose}>
-      <DialogContent className={getModalClasses()}>
-        {step === 'iframe' ? (
-          <>
-            <DialogHeader className="p-4 pb-2 shrink-0">
-              <DialogTitle className="text-center text-lg">Payment Processing</DialogTitle>
-            </DialogHeader>
-            <div className="flex-1 overflow-hidden min-h-0">
-              {renderContent()}
-            </div>
-          </>
-        ) : (
-          <>
-            <DialogHeader>
-              <DialogTitle className="sr-only">Payment Modal</DialogTitle>
-            </DialogHeader>
-            {renderContent()}
-          </>
-        )}
+      <DialogContent className={step === 'iframe' ? "max-w-[850px] w-[95vw] h-[95vh] max-h-[95vh] overflow-hidden p-0 flex flex-col" : "sm:max-w-md"}>
+        <DialogHeader className={step === 'iframe' ? "p-4 pb-2 shrink-0" : ""}>
+          <DialogTitle className={step === 'iframe' ? "text-center text-lg" : "sr-only"}>
+            {step === 'iframe' ? "Complete Your Payment" : "Payment Modal"}
+          </DialogTitle>
+        </DialogHeader>
+        <div className={step === 'iframe' ? "flex-1 overflow-hidden min-h-0" : ""}>
+          {renderContent()}
+        </div>
       </DialogContent>
     </Dialog>
   );
