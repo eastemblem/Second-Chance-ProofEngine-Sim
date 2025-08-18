@@ -1914,7 +1914,89 @@ export default function DashboardPage() {
           {/* Right Column - Sidebar */}
           <div className="space-y-6">
             
-            {/* Leaderboard - Top Right */}
+            {/* Deal Room Access */}
+            <Card className="bg-black/50 border-gray-800">
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2 text-white">
+                  <Shield className="w-5 h-5" />
+                  Deal Room Access
+                </CardTitle>
+                <CardDescription className="text-gray-400">
+                  Connect with verified investors
+                </CardDescription>
+              </CardHeader>
+              <CardContent>
+                <div className="space-y-4">
+                  {(validationData?.proofScore || 0) >= 70 ? (
+                    <>
+                      {hasDealRoomAccess ? (
+                        <>
+                          <div className="flex items-center gap-2">
+                            <CheckCircle className="w-5 h-5 text-green-400" />
+                            <span className="text-green-400 text-sm">Access Granted</span>
+                          </div>
+                          <p className="text-gray-400 text-sm">Your venture is now visible to our verified investor network.</p>
+                          <Button 
+                            className="w-full bg-gradient-to-r from-purple-500 to-yellow-500 text-white hover:from-purple-600 hover:to-yellow-600"
+                            onClick={() => window.location.href = '/deal-room'}
+                          >
+                            Enter Deal Room →
+                          </Button>
+                        </>
+                      ) : (
+                        <>
+                          <div className="flex items-center gap-2">
+                            <TrendingUp className="w-5 h-5 text-purple-400" />
+                            <span className="text-purple-400 text-sm">Investor Ready</span>
+                          </div>
+                          <div className="bg-gradient-to-r from-purple-900/30 to-yellow-900/30 border border-purple-500/30 rounded-lg p-4">
+                            <div className="text-center">
+                              <div className="text-2xl font-bold text-transparent bg-clip-text bg-gradient-to-r from-purple-400 to-yellow-400 mb-2">
+                                {Math.floor(Math.random() * 15) + 12} investors
+                              </div>
+                              <p className="text-sm text-gray-300 mb-3">are matched and interested in your venture</p>
+                            </div>
+                          </div>
+                          <p className="text-gray-400 text-sm text-center">
+                            Access investor matches, personalized certificates, and detailed reports for $99
+                          </p>
+                          <Button 
+                            className="w-full bg-gradient-to-r from-purple-500 to-yellow-500 text-white hover:from-purple-600 hover:to-yellow-600 flex items-center justify-center gap-2"
+                            onClick={() => {
+                              // Track payment modal open
+                              trackEvent('payment', 'deal_room', 'payment_modal_opened');
+                              setIsPaymentModalOpen(true);
+                            }}
+                          >
+                            <CreditCard className="w-4 h-4" />
+                            Unlock Deal Room - $99
+                          </Button>
+                        </>
+                      )}
+                    </>
+                  ) : (
+                    <>
+                      <div className="flex items-center gap-2">
+                        <Clock className="w-5 h-5 text-yellow-400" />
+                        <span className="text-yellow-400 text-sm">Upload Required</span>
+                      </div>
+                      <p className="text-gray-400 text-sm">Upload more files to your ProofVault to achieve a score above 70 and qualify for investor matching.</p>
+                      <div className="bg-yellow-900/20 border border-yellow-700 rounded-lg p-3">
+                        <p className="text-yellow-300 text-xs">
+                          Current Score: {validationData?.proofScore || 0}/100<br/>
+                          Required: 70+ for Investor Matching
+                        </p>
+                      </div>
+                      <Button disabled className="w-full bg-gray-600 text-gray-400 cursor-not-allowed">
+                        Deal Room Locked
+                      </Button>
+                    </>
+                  )}
+                </div>
+              </CardContent>
+            </Card>
+
+            {/* Leaderboard */}
             <Card className="bg-black/50 border-gray-800">
               <CardHeader>
                 <CardTitle className="bg-gradient-to-r from-violet-400 to-amber-400 bg-clip-text text-transparent flex items-center gap-2">
@@ -2007,88 +2089,6 @@ export default function DashboardPage() {
                     <p className="text-gray-400 text-sm">Complete onboarding to see your leaderboard position</p>
                   </div>
                 )}
-              </CardContent>
-            </Card>
-
-            {/* Deal Room Access */}
-            <Card className="bg-black/50 border-gray-800">
-              <CardHeader>
-                <CardTitle className="flex items-center gap-2 text-white">
-                  <Shield className="w-5 h-5" />
-                  Deal Room Access
-                </CardTitle>
-                <CardDescription className="text-gray-400">
-                  Connect with verified investors
-                </CardDescription>
-              </CardHeader>
-              <CardContent>
-                <div className="space-y-4">
-                  {(validationData?.proofScore || 0) >= 70 ? (
-                    <>
-                      {hasDealRoomAccess ? (
-                        <>
-                          <div className="flex items-center gap-2">
-                            <CheckCircle className="w-5 h-5 text-green-400" />
-                            <span className="text-green-400 text-sm">Access Granted</span>
-                          </div>
-                          <p className="text-gray-400 text-sm">Your venture is now visible to our verified investor network.</p>
-                          <Button 
-                            className="w-full bg-gradient-to-r from-purple-500 to-yellow-500 text-white hover:from-purple-600 hover:to-yellow-600"
-                            onClick={() => window.location.href = '/deal-room'}
-                          >
-                            Enter Deal Room →
-                          </Button>
-                        </>
-                      ) : (
-                        <>
-                          <div className="flex items-center gap-2">
-                            <TrendingUp className="w-5 h-5 text-purple-400" />
-                            <span className="text-purple-400 text-sm">Investor Ready</span>
-                          </div>
-                          <div className="bg-gradient-to-r from-purple-900/30 to-yellow-900/30 border border-purple-500/30 rounded-lg p-4">
-                            <div className="text-center">
-                              <div className="text-2xl font-bold text-transparent bg-clip-text bg-gradient-to-r from-purple-400 to-yellow-400 mb-2">
-                                {Math.floor(Math.random() * 15) + 12} investors
-                              </div>
-                              <p className="text-sm text-gray-300 mb-3">are matched and interested in your venture</p>
-                            </div>
-                          </div>
-                          <p className="text-gray-400 text-sm text-center">
-                            Access investor matches, personalized certificates, and detailed reports for $99
-                          </p>
-                          <Button 
-                            className="w-full bg-gradient-to-r from-purple-500 to-yellow-500 text-white hover:from-purple-600 hover:to-yellow-600 flex items-center justify-center gap-2"
-                            onClick={() => {
-                              // Track payment modal open
-                              trackEvent('payment', 'deal_room', 'payment_modal_opened');
-                              setIsPaymentModalOpen(true);
-                            }}
-                          >
-                            <CreditCard className="w-4 h-4" />
-                            Unlock Deal Room - $99
-                          </Button>
-                        </>
-                      )}
-                    </>
-                  ) : (
-                    <>
-                      <div className="flex items-center gap-2">
-                        <Clock className="w-5 h-5 text-yellow-400" />
-                        <span className="text-yellow-400 text-sm">Upload Required</span>
-                      </div>
-                      <p className="text-gray-400 text-sm">Upload more files to your ProofVault to achieve a score above 70 and qualify for investor matching.</p>
-                      <div className="bg-yellow-900/20 border border-yellow-700 rounded-lg p-3">
-                        <p className="text-yellow-300 text-xs">
-                          Current Score: {validationData?.proofScore || 0}/100<br/>
-                          Required: 70+ for Investor Matching
-                        </p>
-                      </div>
-                      <Button disabled className="w-full bg-gray-600 text-gray-400 cursor-not-allowed">
-                        Deal Room Locked
-                      </Button>
-                    </>
-                  )}
-                </div>
               </CardContent>
             </Card>
 
