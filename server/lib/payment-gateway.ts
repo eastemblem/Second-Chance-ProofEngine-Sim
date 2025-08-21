@@ -97,12 +97,14 @@ class TelrGateway extends PaymentGateway {
   private readonly baseUrl = 'https://secure.telr.com/gateway/order.json';
   private readonly storeId = process.env.TELR_STORE_ID;
   private readonly authKey = process.env.TELR_AUTH_KEY;
+  private readonly testMode = process.env.TELR_TEST_MODE === 'true';
   
   constructor() {
     super();
     if (!this.storeId || !this.authKey) {
       throw new Error('Telr credentials not configured');
     }
+    console.log(`🔥 Telr Gateway initialized - Test Mode: ${this.testMode ? 'ENABLED' : 'DISABLED'}`);
   }
 
   async createOrder(orderData: PaymentOrderData): Promise<PaymentOrderResponse> {
@@ -113,7 +115,7 @@ class TelrGateway extends PaymentGateway {
       framed: 1, // Framed payment page that stays within iframe
       order: {
         cartid: orderData.orderId,
-        test: process.env.NODE_ENV === 'development' ? '1' : '0',
+        test: this.testMode ? '1' : '0',
         amount: orderData.amount.toFixed(2),
         currency: orderData.currency,
         description: orderData.description

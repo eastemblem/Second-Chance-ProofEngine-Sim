@@ -321,8 +321,8 @@ router.get("/activities", async (req: AuthenticatedRequest, res) => {
   }
 });
 
-// Test Telr gateway endpoint (development only)
-if (process.env.NODE_ENV === 'development') {
+// Test Telr gateway endpoint (when test mode enabled)
+if (process.env.TELR_TEST_MODE === 'true') {
   router.post('/test-telr', async (req: AuthenticatedRequest, res) => {
     try {
       const founderId = req.user?.founderId;
@@ -354,7 +354,7 @@ if (process.env.NODE_ENV === 'development') {
         framed: 0,
         order: {
           cartid: testOrderRef,
-          test: '1',
+          test: process.env.TELR_TEST_MODE === 'true' ? '1' : '0',
           amount: '99.00',
           currency: 'AED',
           description: 'Test Deal Room Access'
@@ -366,7 +366,7 @@ if (process.env.NODE_ENV === 'development') {
         },
         customer: {
           ref: founderId,
-          email: req.user.email
+          email: req.user?.email || 'test@example.com'
         }
       };
 
