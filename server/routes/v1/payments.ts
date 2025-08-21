@@ -321,6 +321,65 @@ router.get("/activities", async (req: AuthenticatedRequest, res) => {
   }
 });
 
+// Cancel payment endpoint
+router.post('/cancel/:orderRef', async (req: AuthenticatedRequest, res) => {
+  try {
+    const founderId = req.user?.founderId;
+    if (!founderId) {
+      return res.status(401).json({ error: "User not authenticated" });
+    }
 
+    const { orderRef } = req.params;
+    
+    winston.info("Payment cancellation requested", {
+      founderId,
+      orderRef,
+      service: "second-chance-api",
+      category: "payment"
+    });
+
+    // Update transaction status to cancelled
+    const result = await storage.cancelPaymentTransaction(orderRef, founderId);
+    
+    if (result.success) {
+      winston.info("Payment marked as cancelled successfully", {
+        founderId,
+        orderRef,
+        service: "second-chance-api",
+        category: "payment"
+      });
+
+      res.json({
+        success: true,
+        message: "Payment cancelled successfully",
+        orderReference: orderRef
+      });
+    } else {
+      winston.warn("Failed to cancel payment - transaction not found or unauthorized", {
+        founderId,
+        orderRef,
+        service: "second-chance-api",
+        category: "payment"
+      });
+
+      res.status(404).json({
+        error: "Transaction not found or unauthorized"
+      });
+    }
+
+  } catch (error) {
+    winston.error("Failed to cancel payment", {
+      founderId: req.user?.founderId,
+      orderRef: req.params.orderRef,
+      error: error instanceof Error ? error.message : 'Unknown error',
+      service: "second-chance-api",
+      category: "payment"
+    });
+
+    res.status(500).json({
+      error: "Failed to cancel payment"
+    });
+  }
+});
 
 export default router;

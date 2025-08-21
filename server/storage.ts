@@ -60,6 +60,7 @@ export interface IStorage {
   getPaymentTransactions(founderId: string): Promise<PaymentTransaction[]>;
   createPaymentTransaction(transaction: InsertPaymentTransaction): Promise<PaymentTransaction>;
   updatePaymentTransaction(id: string, transaction: Partial<InsertPaymentTransaction>): Promise<PaymentTransaction>;
+  cancelPaymentTransaction(orderRef: string, founderId: string): Promise<{ success: boolean }>;
 
   // User Subscription methods
   getUserSubscription(id: string): Promise<UserSubscription | undefined>;
@@ -360,6 +361,26 @@ export class DatabaseStorage implements IStorage {
       updatedAt: new Date()
     }).where(eq(paymentTransactions.id, id)).returning();
     return transactionRecord;
+  }
+
+  async cancelPaymentTransaction(orderRef: string, founderId: string): Promise<{ success: boolean }> {
+    try {
+      const updateResult = await db.update(paymentTransactions)
+        .set({
+          status: 'cancelled',
+          updatedAt: new Date()
+        })
+        .where(and(
+          eq(paymentTransactions.orderReference, orderRef),
+          eq(paymentTransactions.founderId, founderId)
+        ))
+        .returning();
+
+      return { success: updateResult.length > 0 };
+    } catch (error) {
+      console.error('Failed to cancel payment transaction:', error);
+      return { success: false };
+    }
   }
 
   // User Subscription methods

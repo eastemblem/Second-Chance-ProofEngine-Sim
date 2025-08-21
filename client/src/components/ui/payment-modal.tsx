@@ -220,9 +220,33 @@ export function PaymentModal({
     return () => clearInterval(pollInterval);
   }, [step, paymentData, onSuccess, toast]);
 
-  const handleClose = () => {
-    // Don't call onSuccess here since we handle it in the success step directly
-    onClose();
+  // Function to handle explicit cancellation
+  const handleCancel = async () => {
+    // If we have a payment order reference, mark it as cancelled
+    if (paymentData?.orderReference) {
+      try {
+        await apiRequest("POST", `/api/v1/payments/cancel/${paymentData.orderReference}`, {});
+        console.log('🔥 Payment marked as cancelled:', paymentData.orderReference);
+      } catch (error) {
+        console.error('🔥 Failed to mark payment as cancelled:', error);
+        // Continue with cancellation even if API call fails
+      }
+    }
+    
+    setStep('cancelled');
+  };
+
+  // Function to handle modal close - only allow if not in iframe or processing
+  const handleClose = (openState?: boolean) => {
+    // Prevent closing during iframe payment or processing
+    if (step === 'iframe' || step === 'processing') {
+      return;
+    }
+    
+    // If openState is false (modal is being closed), call onClose
+    if (openState === false) {
+      onClose();
+    }
   };
 
   const renderContent = () => {
@@ -259,8 +283,8 @@ export function PaymentModal({
             </Card>
 
             <div className="flex gap-3">
-              <Button variant="outline" onClick={onClose} className="flex-1">
-                Cancel
+              <Button variant="outline" onClick={handleCancel} className="flex-1">
+                Cancel Payment
               </Button>
               <Button 
                 onClick={createPayment} 
@@ -324,7 +348,7 @@ export function PaymentModal({
             <div className="px-4 pb-4 shrink-0 bg-background/95 border-t border-border/50">
               <Button 
                 variant="outline" 
-                onClick={onClose} 
+                onClick={handleCancel} 
                 className="w-full mb-3 border-2 border-red-500/20 hover:border-red-500/40 hover:bg-red-500/10 text-foreground"
               >
                 Cancel Payment
