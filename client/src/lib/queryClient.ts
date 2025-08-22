@@ -9,9 +9,8 @@ const getApiUrl = (endpoint: string) => {
     return endpoint; // Already versioned
   }
   
-  // EXEMPTION: Payment routes and auth-token routes for onboarding flow use session-based auth (not JWT) 
-  // Also disable encryption for auth-token endpoints temporarily
-  if (endpoint.startsWith('/api/payment/') || endpoint.startsWith('/api/auth-token/')) {
+  // EXEMPTION: Payment routes use session-based auth (not JWT) 
+  if (endpoint.startsWith('/api/payment/')) {
     return endpoint; // Keep as-is for session-based routes
   }
   

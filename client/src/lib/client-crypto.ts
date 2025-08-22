@@ -114,12 +114,15 @@ export class ClientCrypto {
     }
 
     // Check if payload is encrypted
-    if (!EncryptionUtils.isEncryptedPayload(payload)) {
+    if (!UnifiedEncryption.isEncryptedPayload(payload)) {
       return { data: payload, wasDecrypted: false };
     }
 
     try {
-      const decryptionResult = await EncryptionUtils.decryptData(payload, context.secret);
+      // Initialize encryption libraries (especially ChaCha20)
+      await UnifiedEncryption.initialize();
+      
+      const decryptionResult = await UnifiedEncryption.decryptData(payload, context.secret);
       return { data: decryptionResult.data, wasDecrypted: true };
     } catch (error) {
       console.error('Client decryption failed:', error);

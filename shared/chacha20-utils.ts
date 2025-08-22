@@ -27,8 +27,8 @@ export class ChaCha20Utils {
         await sodium.ready;
         this.sodium = sodium;
       } else {
-        // Node.js environment - use native bindings
-        const sodium = require('sodium-native');
+        // Node.js environment - use native bindings with dynamic import
+        const { default: sodium } = await import('sodium-native');
         this.sodium = sodium;
       }
       
@@ -76,7 +76,7 @@ export class ChaCha20Utils {
         };
       } else {
         // Node.js: Use crypto module for PBKDF2
-        const crypto = require('crypto');
+        const crypto = await import('crypto');
         const key = crypto.pbkdf2Sync(
           secret,
           salt,
@@ -102,9 +102,19 @@ export class ChaCha20Utils {
       // Browser environment
       return crypto.getRandomValues(new Uint8Array(length));
     } else {
-      // Node.js environment
-      const crypto = require('crypto');
-      return new Uint8Array(crypto.randomBytes(length));
+      // Node.js environment - use crypto from global or import
+      if (typeof globalThis.crypto !== 'undefined' && globalThis.crypto.getRandomValues) {
+        return globalThis.crypto.getRandomValues(new Uint8Array(length));
+      } else {
+        // Fallback: use Node.js crypto with dynamic import fallback
+        try {
+          const crypto = require('crypto');
+          return new Uint8Array(crypto.randomBytes(length));
+        } catch (error) {
+          // If require fails, throw meaningful error
+          throw new Error('Unable to generate secure random bytes: crypto module not available');
+        }
+      }
     }
   }
 
