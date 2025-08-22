@@ -27,6 +27,7 @@ The frontend is built with TypeScript React and Vite, utilizing React Query for 
 - **Validation:** Strict payload validation ensures only unified standard format is accepted
 - **Login Integration:** Auth-token routes use clean encryption middleware for secure authentication
 - **Test Verification:** Clean encryption test endpoints demonstrate working implementation
+- **Production Testing:** `/clean-login-test` page enabled in production for encryption verification
 - **Score-Based Routing:** Users are directed to different sales pages (`/deal-room` or `/proof-scaling`) based on their ProofScore (threshold at 70 points).
 - **Component-Based Design:** Core UI elements are refactored into reusable components (e.g., `AnimatedSection`, `MetricCard`, `GradientButton`) to reduce code duplication and improve maintainability.
 - **Payment Integration:** Secure payment processing for premium features (e.g., Deal Room access) via a modal-based flow with comprehensive activity tracking. Uses Telr gateway with automatic USD to AED currency conversion (rate: 3.673) for UAE market compliance while displaying USD prices to users. Supports dedicated TELR_TEST_MODE environment variable for flexible test/live mode switching.
