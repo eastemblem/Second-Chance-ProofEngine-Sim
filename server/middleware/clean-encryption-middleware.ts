@@ -91,21 +91,32 @@ export function cleanDecryptionMiddleware(req: Request, res: Response, next: Nex
         tagLength: authTag.length
       });
       
-      // Check for Web Crypto API format vs Node.js format compatibility
+      // AUTO-DETECT FORMAT: Handle both Web Crypto API and Node.js formats
+      let finalEncryptedData = encryptedData;
+      let finalAuthTag = authTag;
+      
+      // Web Crypto API often combines encrypted data + tag in single buffer
       if (authTag.length !== 16) {
-        console.log('🔧 [CLEAN_ENCRYPT] Warning: Auth tag length mismatch, attempting correction...');
-        // Try to handle different tag formats from Web Crypto API
-        if (authTag.length > 16) {
-          console.log('🔧 [CLEAN_ENCRYPT] Truncating oversized auth tag');
-        } else if (authTag.length < 16) {
-          console.log('🔧 [CLEAN_ENCRYPT] Padding undersized auth tag');
+        console.log('🔧 [CLEAN_ENCRYPT] Detecting Web Crypto API format...');
+        
+        // Check if encrypted data contains combined format
+        if (encryptedData.length > 16) {
+          // Extract last 16 bytes as auth tag
+          finalAuthTag = encryptedData.slice(-16);
+          finalEncryptedData = encryptedData.slice(0, -16);
+          console.log('🔧 [CLEAN_ENCRYPT] Extracted auth tag from combined data');
         }
       }
       
-      const decipher = crypto.createDecipheriv('aes-256-gcm', key, iv);
-      decipher.setAuthTag(authTag);
+      console.log('🔧 [CLEAN_ENCRYPT] Final buffer lengths:', {
+        encryptedLength: finalEncryptedData.length,
+        tagLength: finalAuthTag.length
+      });
       
-      let decrypted = decipher.update(encryptedData, undefined, 'utf8');
+      const decipher = crypto.createDecipheriv('aes-256-gcm', key, iv);
+      decipher.setAuthTag(finalAuthTag);
+      
+      let decrypted = decipher.update(finalEncryptedData, undefined, 'utf8');
       decrypted += decipher.final('utf8');
       
       const decryptedData = JSON.parse(decrypted);
