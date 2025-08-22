@@ -14,6 +14,11 @@ const getApiUrl = (endpoint: string) => {
     return endpoint; // Keep as-is for session-based routes
   }
   
+  // EXEMPTION: Encryption test routes for development testing
+  if (endpoint.startsWith('/api/encryption-test/')) {
+    return endpoint; // Keep as-is for test routes
+  }
+  
   if (endpoint.startsWith('/api/')) {
     // Convert legacy endpoint to v1
     return endpoint.replace('/api/', `/api/${API_VERSION}/`);

@@ -31,7 +31,7 @@ router.post('/echo', asyncHandler(async (req: Request, res: Response) => {
 // Test endpoint to check encryption status
 router.get('/status', asyncHandler(async (req: Request, res: Response) => {
   const responseData = {
-    encryptionEnabled: true,
+    encryptionEnabled: process.env.ENABLE_ENCRYPTION === 'true',
     serverTimestamp: new Date().toISOString(),
     environment: process.env.NODE_ENV,
     hasEncryptionSecret: !!process.env.ENCRYPTION_SECRET
