@@ -89,15 +89,14 @@ export function cleanDecryptionMiddleware(req: Request, res: Response, next: Nex
         tagLength: req.body.tag?.length
       });
       
-      // Use the EXACT working secret from our successful test
-      const workingSecret = 'public-session-PjUPhlc/b7NXvdlR911x/R8mhCvZwv+u4fljNhnjT7vcEJQ2ctx2Wh36i/3JVL+7';
-      const key = crypto.createHash('sha256').update(workingSecret, 'utf8').digest();
+      // Use the DYNAMIC secret from environment resolution 
+      const key = crypto.createHash('sha256').update(productionSecret, 'utf8').digest();
       const encryptedData = Buffer.from(req.body.data, 'base64');
       const iv = Buffer.from(req.body.iv, 'base64');
       const authTag = Buffer.from(req.body.tag, 'base64');
       
-      console.log('🔧 [CLEAN_ENCRYPT] Exact parameters for proven working approach:', {
-        secretUsed: workingSecret.substring(0, 30) + '...',
+      console.log('🔧 [CLEAN_ENCRYPT] Dynamic secret decryption attempt:', {
+        secretUsed: productionSecret.substring(0, 30) + '...',
         keyLength: key.length,
         dataB64: req.body.data.substring(0, 20) + '...',
         ivB64: req.body.iv,

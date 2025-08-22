@@ -1,4 +1,11 @@
 import { EncryptedPayload } from '@shared/crypto-utils';
+import * as crypto from 'crypto-browserify';
+import { Buffer } from 'buffer';
+
+// Make Buffer globally available
+if (typeof globalThis.Buffer === 'undefined') {
+  globalThis.Buffer = Buffer;
+}
 
 /**
  * Clean Frontend Encryption Service
@@ -33,113 +40,74 @@ export class CleanEncryptionService {
     this.sessionKey = frontendSessionKey;
   }
 
-  // Clean AES encryption using unified standard - FIXED for backend compatibility
+  // Node.js crypto encryption - IDENTICAL to backend implementation
   async encryptData(data: string): Promise<EncryptedPayload> {
     if (!this.sessionKey) {
       throw new Error('Encryption session not initialized');
     }
 
     try {
-      // Generate 12-byte IV for AES-GCM (unified standard)
-      const iv = crypto.getRandomValues(new Uint8Array(12));
-
-      // SHA-256 key derivation (matches backend exactly)
-      const keyMaterial = await crypto.subtle.digest(
-        'SHA-256',
-        new TextEncoder().encode(this.sessionKey)
-      );
-      
-      const cryptoKey = await crypto.subtle.importKey(
-        'raw',
-        keyMaterial,
-        { name: 'AES-GCM', length: 256 },
-        false,
-        ['encrypt']
-      );
-
-      // Encrypt the data - Web Crypto API automatically includes auth tag
-      const encryptedBuffer = await crypto.subtle.encrypt(
-        { name: 'AES-GCM', iv: iv },
-        cryptoKey,
-        new TextEncoder().encode(data)
-      );
-
-      // Web Crypto API returns combined encrypted data + auth tag
-      const combinedArray = new Uint8Array(encryptedBuffer);
-      
-      // Split into encrypted data and auth tag (last 16 bytes are the tag)
-      const encryptedData = combinedArray.slice(0, -16);
-      const authTag = combinedArray.slice(-16);
-
-      console.log('[FRONTEND_DEBUG] Web Crypto API encryption:', {
-        originalDataLength: data.length,
-        combinedBufferLength: encryptedBuffer.byteLength,
-        encryptedDataLength: encryptedData.length,
-        authTagLength: authTag.length,
-        ivLength: iv.length,
-        sessionKeyPrefix: this.sessionKey.substring(0, 20) + '...'
+      console.log('🔍 [FRONTEND_NODE_CRYPTO] Starting Node.js crypto encryption:', {
+        sessionKeyPrefix: this.sessionKey.substring(0, 30) + '...',
+        dataLength: data.length
       });
 
-      // Return in Node.js compatible format (separate data and tag)
-      return {
-        data: btoa(String.fromCharCode.apply(null, Array.from(encryptedData))),
-        iv: btoa(String.fromCharCode.apply(null, Array.from(iv))),
-        tag: btoa(String.fromCharCode.apply(null, Array.from(authTag)))
+      // Use exact same approach as backend Node.js crypto
+      const key = crypto.createHash('sha256').update(this.sessionKey, 'utf8').digest();
+      const iv = crypto.randomBytes(12);
+      const cipher = crypto.createCipheriv('aes-256-gcm', key, iv);
+      
+      let encrypted = cipher.update(data, 'utf8');
+      cipher.final();
+      const authTag = cipher.getAuthTag();
+
+      const payload = {
+        data: encrypted.toString('base64'),
+        iv: iv.toString('base64'),
+        tag: authTag.toString('base64')
       };
+
+      console.log('🔍 [FRONTEND_NODE_CRYPTO] Encryption successful:', {
+        encryptedDataLength: encrypted.length,
+        ivLength: iv.length,
+        authTagLength: authTag.length,
+        payloadDataB64Length: payload.data.length,
+        payloadIvB64Length: payload.iv.length,
+        payloadTagB64Length: payload.tag.length
+      });
+
+      return payload;
     } catch (error) {
-      console.error('[FRONTEND_ERROR] Encryption failed:', error);
+      console.error('[FRONTEND_ERROR] Node.js crypto encryption failed:', error);
       throw new Error(`Frontend encryption failed: ${error instanceof Error ? error.message : 'Unknown error'}`);
     }
   }
 
-  // Clean AES decryption using unified standard
+  // Node.js crypto decryption - IDENTICAL to backend implementation
   async decryptData(payload: EncryptedPayload): Promise<string> {
     if (!this.sessionKey) {
       throw new Error('Encryption session not initialized');
     }
 
     try {
-      // Convert base64 to byte arrays
-      const encryptedData = Uint8Array.from(atob(payload.data), c => c.charCodeAt(0));
-      const iv = Uint8Array.from(atob(payload.iv), c => c.charCodeAt(0));
-      const authTag = Uint8Array.from(atob(payload.tag), c => c.charCodeAt(0));
+      console.log('🔍 [FRONTEND_NODE_CRYPTO] Starting Node.js crypto decryption');
 
-      // Production-compatible validation - log warnings only
-      if (iv.length !== 12) {
-        console.log(`[FRONTEND_ENCRYPT] Warning: IV length ${iv.length} (expected 12)`);
-      }
-      if (authTag.length !== 16) {
-        console.log(`[FRONTEND_ENCRYPT] Warning: Auth tag length ${authTag.length} (expected 16)`);
-      }
+      // Use exact same approach as backend Node.js crypto
+      const key = crypto.createHash('sha256').update(this.sessionKey, 'utf8').digest();
+      const encryptedData = Buffer.from(payload.data, 'base64');
+      const iv = Buffer.from(payload.iv, 'base64');
+      const authTag = Buffer.from(payload.tag, 'base64');
 
-      // Combine encrypted data and auth tag for AES-GCM
-      const combinedBuffer = new Uint8Array(encryptedData.length + authTag.length);
-      combinedBuffer.set(encryptedData);
-      combinedBuffer.set(authTag, encryptedData.length);
-
-      // SHA-256 key derivation (matches backend exactly)
-      const keyMaterial = await crypto.subtle.digest(
-        'SHA-256',
-        new TextEncoder().encode(this.sessionKey)
-      );
+      const decipher = crypto.createDecipheriv('aes-256-gcm', key, iv);
+      decipher.setAuthTag(authTag);
       
-      const cryptoKey = await crypto.subtle.importKey(
-        'raw',
-        keyMaterial,
-        { name: 'AES-GCM', length: 256 },
-        false,
-        ['decrypt']
-      );
+      let decrypted = decipher.update(encryptedData, undefined, 'utf8');
+      decrypted += decipher.final('utf8');
 
-      // Decrypt the data
-      const decryptedBuffer = await crypto.subtle.decrypt(
-        { name: 'AES-GCM', iv: iv },
-        cryptoKey,
-        combinedBuffer
-      );
-
-      return new TextDecoder().decode(decryptedBuffer);
+      console.log('🔍 [FRONTEND_NODE_CRYPTO] Decryption successful');
+      return decrypted;
     } catch (error) {
+      console.error('[FRONTEND_ERROR] Node.js crypto decryption failed:', error);
       throw new Error(`Frontend decryption failed: ${error instanceof Error ? error.message : 'Unknown error'}`);
     }
   }
