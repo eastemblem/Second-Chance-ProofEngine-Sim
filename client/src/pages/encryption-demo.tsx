@@ -46,7 +46,7 @@ export default function EncryptionDemo() {
 
     try {
       setLoading(true);
-      const result = await encryptedApiClient.post('/api/v1/encryption-test/echo', {
+      const result = await encryptedApiClient.post('/api/encryption-test/echo', {
         message: testMessage,
         timestamp: new Date().toISOString(),
         testData: {
@@ -76,7 +76,7 @@ export default function EncryptionDemo() {
   const checkEncryptionStatus = async () => {
     try {
       setLoading(true);
-      const result = await encryptedApiClient.get('/api/v1/encryption-test/status');
+      const result = await encryptedApiClient.get('/api/encryption-test/status');
       setResponse(result);
       toast({
         title: "Status Retrieved",

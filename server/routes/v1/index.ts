@@ -6,7 +6,7 @@ import certificateRoutes from './certificates';
 import reportRoutes from './reports';
 import notificationRoutes from './notifications';
 import paymentsRoutes from './payments';
-import encryptionTestRoutes from './encryption-test';
+
 import { getLeaderboard } from '../../routes/leaderboard';
 import { asyncHandler } from '../middleware/error';
 import { appLogger } from '../../utils/logger';
@@ -31,7 +31,7 @@ router.use('/certificate', certificateRoutes);
 router.use('/report', reportRoutes);
 router.use('/notification', notificationRoutes);
 router.use('/payments', paymentsRoutes);
-router.use('/encryption-test', encryptionTestRoutes);
+
 // Note: Test routes moved to tests/ directory
 
 // Leaderboard route - EXACT SAME LOGIC as routes.ts
