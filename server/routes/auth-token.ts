@@ -1,8 +1,6 @@
 import express from 'express';
 import bcrypt from 'bcryptjs';
 import { databaseService } from '../services/database-service';
-// JWT token blacklist for logout functionality
-const blacklistedTokens = new Set<string>();
 import { 
   generateAuthToken, 
   verifyAuthToken, 
