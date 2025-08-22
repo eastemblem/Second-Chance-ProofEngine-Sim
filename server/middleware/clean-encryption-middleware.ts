@@ -29,6 +29,8 @@ function getSessionSecret(req: Request): string {
 // Clean decryption middleware - single path, no fallbacks
 export function cleanDecryptionMiddleware(req: Request, res: Response, next: NextFunction) {
   try {
+    // Clean encryption middleware processing
+    
     // Check if encryption is globally enabled
     if (!isEncryptionEnabled()) {
       req.encryptionEnabled = false;
@@ -37,6 +39,7 @@ export function cleanDecryptionMiddleware(req: Request, res: Response, next: Nex
 
     // Check if request has encrypted payload
     const isEncryptedRequest = req.headers['x-encrypted'] === 'true';
+    console.log('Is encrypted request:', isEncryptedRequest, 'has body:', !!req.body);
     
     if (!isEncryptedRequest || !req.body) {
       // Not an encrypted request, proceed normally
@@ -44,17 +47,11 @@ export function cleanDecryptionMiddleware(req: Request, res: Response, next: Nex
       return next();
     }
 
-    // Validate encrypted payload structure
-    if (!isValidEncryptedPayload(req.body)) {
-      winston.warn('Invalid encrypted payload format', {
-        service: 'second-chance-api',
-        category: 'clean-encryption',
-        endpoint: req.path,
-        payload: req.body
-      });
+    // Validate payload structure for clean encryption
+    if (!req.body?.data || !req.body?.iv || !req.body?.tag) {
       return res.status(400).json({ 
         error: 'Invalid encrypted payload format',
-        expected: 'Payload must have data, iv (12 bytes), and tag (16 bytes) as base64 strings'
+        expected: 'Payload must have data, iv, and tag fields'
       });
     }
 
