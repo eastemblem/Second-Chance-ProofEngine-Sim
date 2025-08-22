@@ -74,7 +74,9 @@ export class ClientCrypto {
       // Initialize encryption libraries (especially ChaCha20)
       await UnifiedEncryption.initialize();
       
-      const encryptedPayload = await UnifiedEncryption.encryptData(payload, context.secret);
+      // Force v2 ChaCha20 for testing
+      console.log('🔐 CLIENT: Forcing ChaCha20-Poly1305 (v2) encryption...');
+      const encryptedPayload = await UnifiedEncryption.encryptData(payload, context.secret, 'v2');
 
       // Create headers to indicate encrypted request
       const headers = {
