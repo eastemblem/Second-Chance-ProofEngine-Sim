@@ -182,8 +182,8 @@ export class ChaCha20Utils {
 
       return {
         encryptedData: this.arrayBufferToBase64(ciphertext),
-        nonce,
-        salt
+        nonce, // Keep as Uint8Array, will be converted by createEncryptedPayload
+        salt   // Keep as Uint8Array, will be converted by createEncryptedPayload
       };
     } catch (error) {
       throw new Error(`ChaCha20 encryption failed: ${error instanceof Error ? error.message : 'Unknown error'}`);
@@ -198,9 +198,12 @@ export class ChaCha20Utils {
 
     try {
       // Decode base64 data
+      console.log('🔓 ChaCha20: Decoding base64 strings...');
+      console.log('🔓 ChaCha20: Nonce base64:', encryptedPayload.nonce);
       const ciphertext = this.base64ToArrayBuffer(encryptedPayload.data);
       const nonce = this.base64ToArrayBuffer(encryptedPayload.nonce);
       const salt = this.base64ToArrayBuffer(encryptedPayload.salt);
+      console.log('🔓 ChaCha20: Decoded nonce length:', nonce.byteLength, 'bytes');
 
       // Derive decryption key using the salt from the payload
       const derivedKey = await this.deriveKey(secret, new Uint8Array(salt));
@@ -348,7 +351,8 @@ export class ChaCha20Utils {
     try {
       let binary: string;
       
-      const cleanBase64 = base64.replace(/\s/g, '+').trim();
+      // Clean base64 string - remove whitespace and ensure proper padding
+      const cleanBase64 = base64.replace(/\s/g, '').trim();
       
       if (typeof Buffer !== 'undefined' && typeof window === 'undefined') {
         // Node.js environment
