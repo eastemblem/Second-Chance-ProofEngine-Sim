@@ -21,17 +21,20 @@ export class UnifiedEncryption {
     try {
       if (preferredVersion === 'v2') {
         // Use ChaCha20-Poly1305
+        console.log('🔐 Attempting ChaCha20-Poly1305 encryption...');
         const result = await ChaCha20Utils.encryptData(data, secret);
+        console.log('✅ ChaCha20 encryption successful');
         return ChaCha20Utils.createEncryptedPayload(result);
       } else {
         // Use AES-GCM
+        console.log('🔐 Using AES-GCM encryption...');
         const result = await EncryptionUtils.encryptData(data, secret);
         return EncryptionUtils.createEncryptedPayload(result as EncryptionResultV1);
       }
     } catch (error) {
       // Fallback to v1 if v2 fails (e.g., libsodium not available)
       if (preferredVersion === 'v2') {
-        console.warn('ChaCha20 encryption failed, falling back to AES-GCM:', error);
+        console.warn('⚠️ ChaCha20 encryption failed, falling back to AES-GCM:', error);
         const result = await EncryptionUtils.encryptData(data, secret);
         return EncryptionUtils.createEncryptedPayload(result as EncryptionResultV1);
       }

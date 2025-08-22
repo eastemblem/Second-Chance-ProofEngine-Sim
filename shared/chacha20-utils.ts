@@ -206,19 +206,40 @@ export class ChaCha20Utils {
       } else {
         // Node.js: Use sodium-native
         const ciphertextBytes = new Uint8Array(ciphertext);
-        plaintext = Buffer.alloc(ciphertextBytes.length - this.sodium.crypto_aead_chacha20poly1305_ietf_ABYTES);
+        const nonceBytes = new Uint8Array(nonce);
         
-        const success = this.sodium.crypto_aead_chacha20poly1305_ietf_decrypt(
-          plaintext,
-          null, // nsec (not used)
-          ciphertextBytes,
-          null, // additional data
-          new Uint8Array(nonce),
-          derivedKey.key
-        );
+        // Validate input sizes
+        if (ciphertextBytes.length < this.sodium.crypto_aead_chacha20poly1305_ietf_ABYTES) {
+          throw new Error(`Ciphertext too short: ${ciphertextBytes.length} bytes, minimum required: ${this.sodium.crypto_aead_chacha20poly1305_ietf_ABYTES}`);
+        }
+        
+        if (nonceBytes.length !== this.sodium.crypto_aead_chacha20poly1305_ietf_NPUBBYTES) {
+          throw new Error(`Invalid nonce length: ${nonceBytes.length} bytes, required: ${this.sodium.crypto_aead_chacha20poly1305_ietf_NPUBBYTES}`);
+        }
+        
+        if (derivedKey.key.length !== this.sodium.crypto_aead_chacha20poly1305_ietf_KEYBYTES) {
+          throw new Error(`Invalid key length: ${derivedKey.key.length} bytes, required: ${this.sodium.crypto_aead_chacha20poly1305_ietf_KEYBYTES}`);
+        }
+        
+        // Calculate plaintext size
+        const plaintextLength = ciphertextBytes.length - this.sodium.crypto_aead_chacha20poly1305_ietf_ABYTES;
+        plaintext = Buffer.alloc(plaintextLength);
+        
+        try {
+          const success = this.sodium.crypto_aead_chacha20poly1305_ietf_decrypt(
+            plaintext,
+            null, // nsec (not used) 
+            ciphertextBytes,
+            null, // additional data
+            nonceBytes,
+            derivedKey.key
+          );
 
-        if (!success) {
-          throw new Error('Decryption failed - invalid ciphertext or key');
+          if (!success) {
+            throw new Error('Decryption failed - authentication verification failed');
+          }
+        } catch (error) {
+          throw new Error(`Sodium decryption error: ${error instanceof Error ? error.message : 'Unknown error'}`);
         }
         
         plaintext = new Uint8Array(plaintext);
