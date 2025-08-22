@@ -278,11 +278,13 @@ function Router() {
           <EncryptionDemo />
         </Suspense>
       )} />
-      <Route path="/clean-login-test" component={() => (
-        <Suspense fallback={<SimpleLoader />}>
-          <CleanLoginTest />
-        </Suspense>
-      )} />
+      {import.meta.env.MODE === 'development' && (
+        <Route path="/clean-login-test" component={() => (
+          <Suspense fallback={<SimpleLoader />}>
+            <CleanLoginTest />
+          </Suspense>
+        )} />
+      )}
 
       <Route path="/payment/success" component={() => (
         <Suspense fallback={<SimpleLoader />}>

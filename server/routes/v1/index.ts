@@ -11,7 +11,7 @@ import { getLeaderboard } from '../../routes/leaderboard';
 import { asyncHandler } from '../middleware/error';
 import { appLogger } from '../../utils/logger';
 import { authenticateToken } from '../../middleware/token-auth';
-import { encryptionSuite } from '../../middleware/encryption';
+import { cleanDecryptionMiddleware, cleanEncryptionMiddleware } from '../../middleware/clean-encryption-middleware';
 
 const router = Router();
 
@@ -22,7 +22,8 @@ router.use('/onboarding', onboardingRoutes);
 router.use(authenticateToken);
 
 // Apply encryption middleware to all authenticated routes
-router.use(encryptionSuite);
+router.use(cleanDecryptionMiddleware);
+router.use(cleanEncryptionMiddleware);
 
 // Register authenticated v1 routes (all protected by JWT and encryption)
 router.use('/dashboard', dashboardRoutes);
