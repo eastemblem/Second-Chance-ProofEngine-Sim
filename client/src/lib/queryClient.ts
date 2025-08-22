@@ -41,8 +41,10 @@ export async function apiRequest(
     console.log('🔥 API-REQUEST-DEBUG: Final API URL:', apiUrl);
   }
   
-  // Check if encryption is enabled for this endpoint
-  const shouldUseEncryption = !url.includes('/payment/') && 
+  // Check if encryption is enabled globally and for this endpoint
+  const isEncryptionEnabled = import.meta.env.VITE_ENABLE_ENCRYPTION === 'true';
+  const shouldUseEncryption = isEncryptionEnabled && 
+    !url.includes('/payment/') && 
     (url.includes('/auth') || url.includes('/dashboard') || url.includes('/onboarding') || url.includes('/v1/'));
   
   if (shouldUseEncryption) {

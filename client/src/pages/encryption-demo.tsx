@@ -4,6 +4,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { encryptedApiClient, encryptionService } from '@/lib/encryption';
+import { isEncryptionEnabled } from '@shared/crypto-utils';
 import { toast } from '@/hooks/use-toast';
 
 export default function EncryptionDemo() {
@@ -11,6 +12,9 @@ export default function EncryptionDemo() {
   const [response, setResponse] = useState<any>(null);
   const [loading, setLoading] = useState(false);
   const [encryptionInitialized, setEncryptionInitialized] = useState(false);
+  
+  // Check if encryption is enabled via feature flag
+  const encryptionFeatureEnabled = isEncryptionEnabled();
 
   const initializeEncryption = async () => {
     try {
@@ -98,9 +102,27 @@ export default function EncryptionDemo() {
     <div className="container mx-auto p-6 max-w-4xl">
       <div className="mb-6">
         <h1 className="text-3xl font-bold text-foreground mb-2">Encryption Demo</h1>
-        <p className="text-muted-foreground">
+        <p className="text-muted-foreground mb-4">
           Test the end-to-end payload encryption system between frontend and backend
         </p>
+        
+        {/* Feature Flag Status */}
+        <div className={`inline-flex items-center gap-2 px-3 py-1 rounded-full text-sm ${
+          encryptionFeatureEnabled 
+            ? 'bg-green-100 text-green-700 dark:bg-green-900 dark:text-green-300' 
+            : 'bg-yellow-100 text-yellow-700 dark:bg-yellow-900 dark:text-yellow-300'
+        }`}>
+          <div className={`w-2 h-2 rounded-full ${
+            encryptionFeatureEnabled ? 'bg-green-500' : 'bg-yellow-500'
+          }`} />
+          Encryption Feature: {encryptionFeatureEnabled ? 'ENABLED' : 'DISABLED'}
+        </div>
+        
+        {!encryptionFeatureEnabled && (
+          <p className="text-sm text-yellow-600 dark:text-yellow-400 mt-2">
+            Encryption is disabled by feature flag. Set VITE_ENABLE_ENCRYPTION=true to enable.
+          </p>
+        )}
       </div>
 
       <div className="grid gap-6">

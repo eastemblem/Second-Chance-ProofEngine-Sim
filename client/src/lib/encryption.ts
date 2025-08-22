@@ -1,4 +1,4 @@
-import { EncryptedPayload, encryptedPayloadSchema, safeStringify, safeParse } from '@shared/crypto-utils';
+import { EncryptedPayload, encryptedPayloadSchema, safeStringify, safeParse, isEncryptionEnabled } from '@shared/crypto-utils';
 
 // Simple browser-based encryption using Web Crypto API
 class EncryptionService {
@@ -111,7 +111,8 @@ export class EncryptedApiClient {
 
   constructor(baseUrl: string = '/api', enableEncryption: boolean = true) {
     this.baseUrl = baseUrl;
-    this.enableEncryption = enableEncryption;
+    // Check global encryption feature flag
+    this.enableEncryption = enableEncryption && isEncryptionEnabled();
   }
 
   // Initialize encryption for user session

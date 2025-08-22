@@ -1,5 +1,5 @@
 import { Request, Response, NextFunction } from 'express';
-import { encryptedPayloadSchema, EncryptedPayload } from '@shared/crypto-utils';
+import { encryptedPayloadSchema, EncryptedPayload, isEncryptionEnabled } from '@shared/crypto-utils';
 import { simpleEncryptData, simpleDecryptData, encryptApiResponse, decryptApiRequest } from '../lib/server-crypto-utils';
 import winston from 'winston';
 
@@ -30,6 +30,12 @@ function getSessionSecret(req: Request): string {
 // Encryption middleware for incoming requests
 export function decryptionMiddleware(req: Request, res: Response, next: NextFunction) {
   try {
+    // Check if encryption is globally enabled
+    if (!isEncryptionEnabled()) {
+      req.encryptionEnabled = false;
+      return next();
+    }
+
     // Check if request body contains encrypted payload
     const contentType = req.headers['content-type'];
     const isEncryptedRequest = req.headers['x-encrypted'] === 'true';
@@ -94,6 +100,11 @@ export function encryptionMiddleware(req: Request, res: Response, next: NextFunc
 
   res.json = function(body: any) {
     try {
+      // Check if encryption is globally enabled
+      if (!isEncryptionEnabled()) {
+        return originalJson.call(this, body);
+      }
+
       // Check if client expects encrypted response
       const expectsEncryption = req.headers['x-expect-encrypted'] === 'true';
       

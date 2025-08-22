@@ -1,5 +1,16 @@
 import { z } from "zod";
 
+// Encryption feature flag helper
+export function isEncryptionEnabled(): boolean {
+  if (typeof window !== 'undefined') {
+    // Frontend: Check Vite environment variable
+    return import.meta.env.VITE_ENABLE_ENCRYPTION === 'true';
+  } else {
+    // Backend: Check Node.js environment variable
+    return process.env.ENABLE_ENCRYPTION === 'true';
+  }
+}
+
 // Encryption configuration
 export const ENCRYPTION_CONFIG = {
   algorithm: 'AES-GCM',
