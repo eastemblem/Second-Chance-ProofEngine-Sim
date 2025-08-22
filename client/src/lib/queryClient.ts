@@ -9,8 +9,8 @@ const getApiUrl = (endpoint: string) => {
     return endpoint; // Already versioned
   }
   
-  // EXEMPTION: Payment routes for onboarding flow use session-based auth (not JWT)
-  if (endpoint.startsWith('/api/payment/')) {
+  // EXEMPTION: Payment routes and auth-token routes for onboarding flow use session-based auth (not JWT)
+  if (endpoint.startsWith('/api/payment/') || endpoint.startsWith('/api/auth-token/')) {
     return endpoint; // Keep as-is for session-based routes
   }
   
@@ -29,7 +29,7 @@ async function throwIfResNotOk(res: Response) {
 }
 
 // Enhanced response handler with decryption support
-async function handleResponse<T = any>(res: Response): Promise<T> {
+export async function handleResponse<T = any>(res: Response): Promise<T> {
   await throwIfResNotOk(res);
   
   const responseText = await res.text();
