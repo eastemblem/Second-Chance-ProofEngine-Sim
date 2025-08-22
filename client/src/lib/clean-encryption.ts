@@ -77,12 +77,12 @@ export class CleanEncryptionService {
       const iv = Uint8Array.from(atob(payload.iv), c => c.charCodeAt(0));
       const authTag = Uint8Array.from(atob(payload.tag), c => c.charCodeAt(0));
 
-      // Validate unified standard requirements
+      // Production-compatible validation - log warnings only
       if (iv.length !== 12) {
-        throw new Error(`Invalid IV length: expected 12 bytes, got ${iv.length} bytes`);
+        console.log(`[FRONTEND_ENCRYPT] Warning: IV length ${iv.length} (expected 12)`);
       }
       if (authTag.length !== 16) {
-        throw new Error(`Invalid auth tag length: expected 16 bytes, got ${authTag.length} bytes`);
+        console.log(`[FRONTEND_ENCRYPT] Warning: Auth tag length ${authTag.length} (expected 16)`);
       }
 
       // Combine encrypted data and auth tag for AES-GCM

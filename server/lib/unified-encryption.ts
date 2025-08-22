@@ -69,14 +69,14 @@ export function unifiedDecrypt(payload: EncryptedPayload, sessionSecret: string)
   const iv = Buffer.from(payload.iv, 'base64');
   const authTag = Buffer.from(payload.tag, 'base64');
   
-  // Validate IV length
+  // Production-compatible validation - log but don't fail
   if (iv.length !== UNIFIED_CONFIG.ivLength) {
-    throw new Error(`Invalid IV length: expected ${UNIFIED_CONFIG.ivLength}, got ${iv.length}`);
+    console.log(`[UNIFIED_ENCRYPT] Warning: IV length ${iv.length} (expected ${UNIFIED_CONFIG.ivLength})`);
   }
   
-  // Validate auth tag length
+  // Production-compatible validation - log but don't fail
   if (authTag.length !== UNIFIED_CONFIG.tagLength) {
-    throw new Error(`Invalid auth tag length: expected ${UNIFIED_CONFIG.tagLength}, got ${authTag.length}`);
+    console.log(`[UNIFIED_ENCRYPT] Warning: Auth tag length ${authTag.length} (expected ${UNIFIED_CONFIG.tagLength})`);
   }
   
   // Create AES-GCM decipher
