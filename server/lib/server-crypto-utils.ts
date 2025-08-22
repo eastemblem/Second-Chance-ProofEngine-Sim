@@ -1,5 +1,6 @@
 import crypto from 'crypto';
 import { EncryptedPayload, ENCRYPTION_CONFIG, safeStringify, safeParse } from '@shared/crypto-utils';
+import { comprehensiveWebCryptoDecrypt } from './webcrypto-compat';
 
 // Server-side key derivation
 export function deriveEncryptionKey(sessionSecret: string, salt: string): Buffer {
@@ -60,10 +61,19 @@ export function simpleEncryptData(data: string, sessionSecret: string): Encrypte
   };
 }
 
-// AES-GCM decryption with authentication verification
+// Web Crypto API compatible AES-GCM decryption
 export function simpleDecryptData(payload: EncryptedPayload, sessionSecret: string): string {
   if (process.env.NODE_ENV === 'development') {
-    console.log('[AES Decrypt] Attempting AES-GCM decryption...');
+    console.log('[AES Decrypt] Using comprehensive Web Crypto API compatibility...');
+  }
+  
+  // Try Web Crypto API compatible decryption first
+  try {
+    return comprehensiveWebCryptoDecrypt(payload, sessionSecret);
+  } catch (webCryptoError) {
+    if (process.env.NODE_ENV === 'development') {
+      console.log('[AES Decrypt] Web Crypto compatibility failed, falling back to legacy approach...');
+    }
   }
   
   const salt = 'second-chance-salt-2024';
