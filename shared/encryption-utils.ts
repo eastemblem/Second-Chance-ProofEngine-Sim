@@ -103,11 +103,32 @@ export class EncryptionUtils {
    */
   static async decryptData(encryptedPayload: EncryptedPayload, secret: string): Promise<DecryptionResult> {
     try {
+      // Debug logging for decryption
+      console.log('🔍 DECRYPT-DEBUG: Starting decryption');
+      console.log('🔍 DECRYPT-DEBUG: Payload structure:', {
+        hasData: !!encryptedPayload.data,
+        hasIv: !!encryptedPayload.iv,
+        hasTag: !!encryptedPayload.tag,
+        hasSalt: !!encryptedPayload.salt,
+        dataLength: encryptedPayload.data?.length,
+        ivLength: encryptedPayload.iv?.length,
+        tagLength: encryptedPayload.tag?.length,
+        saltLength: encryptedPayload.salt?.length
+      });
+      
+      console.log('🔍 DECRYPT-DEBUG: Base64 values:');
+      console.log('  data:', JSON.stringify(encryptedPayload.data.substring(0, 30) + '...'));
+      console.log('  iv:', JSON.stringify(encryptedPayload.iv));
+      console.log('  tag:', JSON.stringify(encryptedPayload.tag));
+      console.log('  salt:', JSON.stringify(encryptedPayload.salt.substring(0, 20) + '...'));
+      
       // Decode base64 data
+      console.log('🔍 DECRYPT-DEBUG: Decoding base64...');
       const ciphertext = this.base64ToArrayBuffer(encryptedPayload.data);
       const iv = this.base64ToArrayBuffer(encryptedPayload.iv);
       const tag = this.base64ToArrayBuffer(encryptedPayload.tag);
       const salt = this.base64ToArrayBuffer(encryptedPayload.salt);
+      console.log('🔍 DECRYPT-DEBUG: Base64 decoding successful');
 
       // Use the salt from the encrypted payload for key derivation
       const key = await this.deriveKey(secret, new Uint8Array(salt));
@@ -198,12 +219,18 @@ export class EncryptionUtils {
    * Convert Base64 string to ArrayBuffer
    */
   private static base64ToArrayBuffer(base64: string): ArrayBuffer {
-    const binary = atob(base64);
-    const bytes = new Uint8Array(binary.length);
-    for (let i = 0; i < binary.length; i++) {
-      bytes[i] = binary.charCodeAt(i);
+    try {
+      // Fix URL encoding issues: replace spaces back to + signs for proper base64
+      const cleanBase64 = base64.replace(/\s/g, '+');
+      const binary = atob(cleanBase64);
+      const bytes = new Uint8Array(binary.length);
+      for (let i = 0; i < binary.length; i++) {
+        bytes[i] = binary.charCodeAt(i);
+      }
+      return bytes.buffer;
+    } catch (error) {
+      throw new Error(`Invalid character in base64 string: "${base64.substring(0, 20)}..." - ${error instanceof Error ? error.message : 'Unknown error'}`);
     }
-    return bytes.buffer;
   }
 
   /**

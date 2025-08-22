@@ -65,6 +65,10 @@ export function encryptionMiddleware() {
             });
           }
         } catch (error) {
+          console.error('🚨 ENCRYPTION-MIDDLEWARE-ERROR:', error);
+          console.error('🚨 Error stack:', error instanceof Error ? error.stack : 'No stack');
+          console.error('🚨 Request body structure:', req.body);
+          
           appLogger.auth('Request decryption failed', {
             path: req.path,
             method: req.method,

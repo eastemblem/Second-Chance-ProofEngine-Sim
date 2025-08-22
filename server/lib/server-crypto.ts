@@ -1,12 +1,14 @@
 import { webcrypto } from 'crypto';
 import { ENCRYPTION_CONFIG } from '@shared/crypto-config';
-import { EncryptionUtils } from '@shared/encryption-utils';
 import type { EncryptedPayload, DecryptionResult, EncryptionContext } from '@shared/encryption-types';
 
-// Polyfill crypto for Node.js environment
+// Polyfill crypto for Node.js environment FIRST
 if (!globalThis.crypto) {
   globalThis.crypto = webcrypto as any;
 }
+
+// Import after polyfill is set up
+import { EncryptionUtils } from '@shared/encryption-utils';
 
 /**
  * Server-side encryption utilities
