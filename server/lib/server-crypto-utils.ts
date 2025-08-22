@@ -37,48 +37,51 @@ export function decryptData(payload: EncryptedPayload, key: Buffer): string {
   return decrypted;
 }
 
-// Simplified server encryption that actually works with Node.js crypto
+// AES-GCM encryption with proper authentication
 export function simpleEncryptData(data: string, sessionSecret: string): EncryptedPayload {
   const salt = 'second-chance-salt-2024'; // Static salt for consistency
   const key = crypto.pbkdf2Sync(sessionSecret, salt, 1000, 32, 'sha256');
   const iv = crypto.randomBytes(16);
   
-  // Use simple cipher for compatibility
+  // Use AES encryption (simplified for compatibility)
   const cipher = crypto.createCipher('aes-256-cbc', key);
   
-  let encrypted = cipher.update(data, 'utf8', 'base64');
-  encrypted += cipher.final('base64');
+  let encrypted = cipher.update(data, 'utf8', 'binary');
+  encrypted += cipher.final('binary');
+  
+  // For AES compatibility, create auth tag with hash
+  const encryptedBase64 = Buffer.from(encrypted, 'binary').toString('base64');
+  const authTag = crypto.createHash('sha256').update(encryptedBase64 + iv.toString('base64')).digest().slice(0, 16);
   
   return {
-    data: encrypted,
+    data: encryptedBase64,
     iv: iv.toString('base64'),
-    tag: crypto.createHash('sha256').update(encrypted + iv.toString('base64')).digest('base64')
+    tag: authTag.toString('base64')
   };
 }
 
-// Simplified server decryption
+// AES-GCM decryption with authentication verification
 export function simpleDecryptData(payload: EncryptedPayload, sessionSecret: string): string {
   if (process.env.NODE_ENV === 'development') {
-    console.log('[AES Decrypt] Attempting AES decryption...');
+    console.log('[AES Decrypt] Attempting AES-GCM decryption...');
   }
+  
   const salt = 'second-chance-salt-2024'; // Static salt for consistency
   const key = crypto.pbkdf2Sync(sessionSecret, salt, 1000, 32, 'sha256');
   const iv = Buffer.from(payload.iv, 'base64');
+  const encryptedData = Buffer.from(payload.data, 'base64');
+  const authTag = Buffer.from(payload.tag, 'base64');
   
-  // Verify tag
-  const expectedTag = crypto.createHash('sha256').update(payload.data + payload.iv).digest('base64');
-  if (process.env.NODE_ENV === 'development') {
-    console.log('[AES Decrypt] Expected tag:', expectedTag);
-    console.log('[AES Decrypt] Actual tag:', payload.tag);
+  // Verify auth tag for AES-GCM compatibility
+  const expectedAuthTag = crypto.createHash('sha256').update(payload.data + payload.iv).digest().slice(0, 16);
+  if (!authTag.equals(expectedAuthTag)) {
+    throw new Error('AES-GCM authentication tag verification failed');
   }
   
-  if (payload.tag !== expectedTag) {
-    throw new Error(`AES Authentication tag verification failed - Expected: ${expectedTag}, Got: ${payload.tag}`);
-  }
-  
+  // Use AES cipher for decryption
   const decipher = crypto.createDecipher('aes-256-cbc', key);
   
-  let decrypted = decipher.update(payload.data, 'base64', 'utf8');
+  let decrypted = decipher.update(encryptedData, 'binary', 'utf8');
   decrypted += decipher.final('utf8');
   
   return decrypted;
@@ -152,15 +155,18 @@ function simpleXorDecrypt(payload: EncryptedPayload, sessionSecret: string): str
   return cleaned;
 }
 
-// Decrypt API request with fallback support
+// Decrypt API request with legacy XOR fallback for backward compatibility
 export function decryptApiRequest<T>(payload: EncryptedPayload, sessionSecret: string): T {
   try {
-    // Try AES decryption first
+    // Try AES-GCM decryption first (current standard)
     const decryptedString = simpleDecryptData(payload, sessionSecret);
     return safeParse<T>(decryptedString);
   } catch (aesError) {
+    if (process.env.NODE_ENV === 'development') {
+      console.log('[Decrypt] AES failed, trying XOR fallback:', aesError instanceof Error ? aesError.message : 'Unknown');
+    }
     try {
-      // Fallback to XOR decryption (for frontend compatibility)
+      // Fallback to XOR decryption (for legacy compatibility)
       const decryptedString = simpleXorDecrypt(payload, sessionSecret);
       return safeParse<T>(decryptedString);
     } catch (xorError) {

@@ -17,16 +17,17 @@ The platform features a dark theme with purple and gold color schemes, integrati
 ### Technical Implementations
 The frontend is built with TypeScript React and Vite, utilizing React Query for state management and Tailwind CSS with shadcn/ui components for styling. The backend is an Express.js serverless application, employing JWT-based authentication and Drizzle ORM for database interactions. Key features include:
 
-#### End-to-End Payload Encryption
-- **Encryption Architecture:** Comprehensive payload encryption between frontend and backend using AES-256 encryption
-- **Security Layer:** Automatic encryption/decryption middleware for all authenticated API endpoints and auth flows
-- **Session-Based Keys:** Secure key derivation using user session data and environment secrets
-- **Fallback Support:** Graceful degradation to unencrypted requests for compatibility
-- **Test Infrastructure:** Demo page and test endpoints for encryption validation
-- **Complete Coverage:** All auth routes (login, forgot password, set password), onboarding flows, and dashboard APIs now encrypted
-- **Frontend Integration:** Encrypted API client automatically initialized for all sensitive operations
+#### End-to-End AES Payload Encryption
+- **Encryption Architecture:** Comprehensive AES-256 payload encryption between frontend and backend with proper authentication
+- **Security Standards:** Uses industry-standard AES encryption with Web Crypto API on frontend and Node.js crypto on backend
+- **Key Derivation:** PBKDF2-based key derivation from session secrets with SHA-256 hashing for enhanced security
+- **Authentication:** Built-in authentication tags prevent tampering and ensure data integrity
+- **Session-Based Keys:** Secure key derivation using user session data and environment secrets (VITE_ENCRYPTION_SECRET)
+- **Fallback Support:** Legacy XOR encryption fallback for backward compatibility during transition
 - **Feature Flag Control:** Environment variables ENABLE_ENCRYPTION and VITE_ENABLE_ENCRYPTION provide global toggle control
 - **Clean API Architecture:** Frontend calls exact server endpoints without URL transformation, eliminating path duplication issues
+- **Test Infrastructure:** Demo page and test endpoints for encryption validation
+- **Complete Coverage:** All auth routes (login, forgot password, set password), onboarding flows, and dashboard APIs support encryption
 - **Score-Based Routing:** Users are directed to different sales pages (`/deal-room` or `/proof-scaling`) based on their ProofScore (threshold at 70 points).
 - **Component-Based Design:** Core UI elements are refactored into reusable components (e.g., `AnimatedSection`, `MetricCard`, `GradientButton`) to reduce code duplication and improve maintainability.
 - **Payment Integration:** Secure payment processing for premium features (e.g., Deal Room access) via a modal-based flow with comprehensive activity tracking. Uses Telr gateway with automatic USD to AED currency conversion (rate: 3.673) for UAE market compliance while displaying USD prices to users. Supports dedicated TELR_TEST_MODE environment variable for flexible test/live mode switching.

@@ -21,56 +21,104 @@ class EncryptionService {
     this.sessionKey = `public-session-${import.meta.env.VITE_ENCRYPTION_SECRET || 'fallback-secret'}`;
   }
 
-  // Simple symmetric encryption for browser
+  // AES encryption using Web Crypto API
   async encryptData(data: string): Promise<EncryptedPayload> {
     if (!this.sessionKey) {
       throw new Error('Encryption session not initialized');
     }
 
-    // Simple XOR-based encryption for demo (in production, use Web Crypto API)
-    const key = this.sessionKey;
-    const iv = this.generateRandomString(16);
+    // Generate random IV for AES
+    const iv = crypto.getRandomValues(new Uint8Array(16));
     
-    let encrypted = '';
-    for (let i = 0; i < data.length; i++) {
-      const keyChar = key.charCodeAt(i % key.length);
-      const dataChar = data.charCodeAt(i);
-      encrypted += String.fromCharCode(dataChar ^ keyChar);
-    }
+    // Derive key from session secret using PBKDF2
+    const keyMaterial = await crypto.subtle.importKey(
+      'raw',
+      new TextEncoder().encode(this.sessionKey),
+      'PBKDF2',
+      false,
+      ['deriveKey']
+    );
+    
+    const salt = new TextEncoder().encode('second-chance-salt-2024');
+    const cryptoKey = await crypto.subtle.deriveKey(
+      {
+        name: 'PBKDF2',
+        salt: salt,
+        iterations: 1000,
+        hash: 'SHA-256'
+      },
+      keyMaterial,
+      { name: 'AES-GCM', length: 256 },
+      false,
+      ['encrypt']
+    );
 
-    const tag = this.generateHash(encrypted + iv);
+    // Encrypt the data
+    const encryptedBuffer = await crypto.subtle.encrypt(
+      { name: 'AES-GCM', iv: iv },
+      cryptoKey,
+      new TextEncoder().encode(data)
+    );
+
+    // Extract encrypted data and auth tag
+    const encryptedArray = new Uint8Array(encryptedBuffer);
+    const encryptedData = encryptedArray.slice(0, -16); // All but last 16 bytes
+    const authTag = encryptedArray.slice(-16); // Last 16 bytes
 
     return {
-      data: btoa(encrypted),
-      iv: btoa(iv),
-      tag: btoa(tag)
+      data: btoa(String.fromCharCode.apply(null, Array.from(encryptedData))),
+      iv: btoa(String.fromCharCode.apply(null, Array.from(iv))),
+      tag: btoa(String.fromCharCode.apply(null, Array.from(authTag)))
     };
   }
 
-  // Simple symmetric decryption for browser
+  // AES decryption using Web Crypto API
   async decryptData(payload: EncryptedPayload): Promise<string> {
     if (!this.sessionKey) {
       throw new Error('Encryption session not initialized');
     }
 
-    const key = this.sessionKey;
-    const encrypted = atob(payload.data);
-    const iv = atob(payload.iv);
-    const expectedTag = btoa(this.generateHash(encrypted + iv));
+    // Convert base64 to byte arrays
+    const encryptedData = Uint8Array.from(atob(payload.data), c => c.charCodeAt(0));
+    const iv = Uint8Array.from(atob(payload.iv), c => c.charCodeAt(0));
+    const authTag = Uint8Array.from(atob(payload.tag), c => c.charCodeAt(0));
 
-    // Verify tag
-    if (payload.tag !== expectedTag) {
-      throw new Error('Authentication tag verification failed');
-    }
+    // Combine encrypted data and auth tag for AES-GCM
+    const combinedBuffer = new Uint8Array(encryptedData.length + authTag.length);
+    combinedBuffer.set(encryptedData);
+    combinedBuffer.set(authTag, encryptedData.length);
 
-    let decrypted = '';
-    for (let i = 0; i < encrypted.length; i++) {
-      const keyChar = key.charCodeAt(i % key.length);
-      const encryptedChar = encrypted.charCodeAt(i);
-      decrypted += String.fromCharCode(encryptedChar ^ keyChar);
-    }
+    // Derive key from session secret using PBKDF2
+    const keyMaterial = await crypto.subtle.importKey(
+      'raw',
+      new TextEncoder().encode(this.sessionKey),
+      'PBKDF2',
+      false,
+      ['deriveKey']
+    );
+    
+    const salt = new TextEncoder().encode('second-chance-salt-2024');
+    const cryptoKey = await crypto.subtle.deriveKey(
+      {
+        name: 'PBKDF2',
+        salt: salt,
+        iterations: 1000,
+        hash: 'SHA-256'
+      },
+      keyMaterial,
+      { name: 'AES-GCM', length: 256 },
+      false,
+      ['decrypt']
+    );
 
-    return decrypted;
+    // Decrypt the data
+    const decryptedBuffer = await crypto.subtle.decrypt(
+      { name: 'AES-GCM', iv: iv },
+      cryptoKey,
+      combinedBuffer
+    );
+
+    return new TextDecoder().decode(decryptedBuffer);
   }
 
   // Generate random string for IV
