@@ -37,6 +37,7 @@ const SentryTest = import.meta.env.MODE === 'development' ? lazy(() => import("@
 const RoutingDebug = import.meta.env.MODE === 'development' ? lazy(() => import("@/pages/routing-debug")) : null;
 const PaymentTestPage = import.meta.env.MODE === 'development' ? lazy(() => import("@/pages/payment-test")) : null;
 const EncryptionDemo = lazy(() => import("@/pages/encryption-demo"));
+const CleanLoginTest = lazy(() => import("@/pages/clean-login-test"));
 
 const SimpleResetPassword = lazy(() => import("@/pages/simple-reset-password"));
 const PaymentSuccessPage = lazy(() => import("@/pages/payment-success"));
@@ -275,6 +276,11 @@ function Router() {
       <Route path="/encryption-demo" component={() => (
         <Suspense fallback={<SimpleLoader />}>
           <EncryptionDemo />
+        </Suspense>
+      )} />
+      <Route path="/clean-login-test" component={() => (
+        <Suspense fallback={<SimpleLoader />}>
+          <CleanLoginTest />
         </Suspense>
       )} />
 

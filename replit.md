@@ -17,17 +17,16 @@ The platform features a dark theme with purple and gold color schemes, integrati
 ### Technical Implementations
 The frontend is built with TypeScript React and Vite, utilizing React Query for state management and Tailwind CSS with shadcn/ui components for styling. The backend is an Express.js serverless application, employing JWT-based authentication and Drizzle ORM for database interactions. Key features include:
 
-#### Unified Encryption Standard (AES-256-GCM)
-- **Unified Architecture:** Standardized encryption system where frontend Web Crypto API and backend Node.js crypto use identical parameters
-- **Security Standards:** Industry-standard AES-256-GCM encryption with 12-byte IV and 16-byte authentication tags
-- **Key Derivation:** SHA-256 hash-based key derivation for consistent key generation across platforms
-- **Web Crypto Compatibility:** Frontend uses browser Web Crypto API with exact parameter matching for Node.js crypto
-- **Authentication:** Built-in GCM authentication tags ensure data integrity and prevent tampering
-- **Session-Based Keys:** Secure key derivation using user session data and environment secrets
-- **Production Compatibility:** Multiple secret format attempts for backward compatibility with existing production data
-- **Feature Flag Control:** Environment variables ENABLE_ENCRYPTION and VITE_ENABLE_ENCRYPTION provide global toggle control
-- **Test Infrastructure:** Unified test endpoints for encryption validation and production payload testing
-- **Complete Coverage:** All auth routes, onboarding flows, and dashboard APIs support the unified encryption standard
+#### Clean Unified Encryption Standard (AES-256-GCM)
+- **Single Path Architecture:** Eliminated all legacy encryption systems (XOR, PBKDF2, fallback methods)
+- **Clean Implementation:** Frontend and backend use identical AES-256-GCM with SHA-256 key derivation
+- **Unified Standard:** 12-byte IV, 16-byte authentication tags, single session secret generation
+- **No Fallbacks:** Removed production compatibility layers and multiple secret attempts
+- **Session Management:** `public-session-${SECRET}` for login, `session-${founderId}-${SECRET}` for authenticated users
+- **Clean Middleware:** `cleanDecryptionMiddleware` and `cleanEncryptionMiddleware` replace legacy encryption middleware
+- **Validation:** Strict payload validation ensures only unified standard format is accepted
+- **Login Integration:** Auth-token routes use clean encryption middleware for secure authentication
+- **Test Verification:** Clean encryption test endpoints demonstrate working implementation
 - **Score-Based Routing:** Users are directed to different sales pages (`/deal-room` or `/proof-scaling`) based on their ProofScore (threshold at 70 points).
 - **Component-Based Design:** Core UI elements are refactored into reusable components (e.g., `AnimatedSection`, `MetricCard`, `GradientButton`) to reduce code duplication and improve maintainability.
 - **Payment Integration:** Secure payment processing for premium features (e.g., Deal Room access) via a modal-based flow with comprehensive activity tracking. Uses Telr gateway with automatic USD to AED currency conversion (rate: 3.673) for UAE market compliance while displaying USD prices to users. Supports dedicated TELR_TEST_MODE environment variable for flexible test/live mode switching.

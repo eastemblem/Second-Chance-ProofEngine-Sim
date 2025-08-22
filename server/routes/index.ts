@@ -59,6 +59,10 @@ router.use("/payment", paymentNextStepsRouter);
 // Development/test routes (no authentication required)
 router.use("/encryption-test", encryptionTestRouter);
 
+// Clean encryption test routes
+import cleanTestRoutes from "./clean-test";
+router.use("/clean-test", cleanTestRoutes);
+
 // V1 API routes (JWT authentication)
 router.use("/v1/payments", paymentsRouter);
 router.use("/v1/webhooks", webhooksRouter);

@@ -13,13 +13,13 @@ import {
 import { asyncHandler, createSuccessResponse, createErrorResponse } from '../utils/error-handler';
 import { appLogger } from '../utils/logger';
 import { ActivityService } from '../services/activity-service';
-import { decryptionMiddleware, encryptionMiddleware } from '../middleware/encryption';
+import { cleanDecryptionMiddleware, cleanEncryptionMiddleware } from '../middleware/clean-encryption-middleware';
 
 const router = express.Router();
 
-// Apply encryption middleware to all auth-token routes
-router.use(decryptionMiddleware);
-router.use(encryptionMiddleware);
+// Apply clean encryption middleware to all auth-token routes
+router.use(cleanDecryptionMiddleware);
+router.use(cleanEncryptionMiddleware);
 
 /**
  * Register new user with token-based authentication
@@ -140,6 +140,13 @@ router.post('/register', asyncHandler(async (req, res) => {
  * Login with email and password
  */
 router.post('/login', asyncHandler(async (req, res) => {
+  appLogger.info('Clean encrypted login attempt', {
+    service: 'second-chance-api',
+    category: 'auth',
+    email: req.body?.email,
+    encrypted: req.encryptionEnabled || false
+  });
+  
   const { email, password } = req.body;
 
   if (!email || !password) {
