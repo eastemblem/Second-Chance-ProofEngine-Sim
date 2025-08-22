@@ -50,9 +50,9 @@ export class CleanEncryptionService {
         ['encrypt']
       );
 
-      // Encrypt the data
+      // Encrypt the data - use tagLength: 128 for 16-byte tags to match Node.js
       const encryptedBuffer = await crypto.subtle.encrypt(
-        { name: 'AES-GCM', iv: iv },
+        { name: 'AES-GCM', iv: iv, tagLength: 128 },
         cryptoKey,
         new TextEncoder().encode(data)
       );
@@ -61,6 +61,14 @@ export class CleanEncryptionService {
       const encryptedArray = new Uint8Array(encryptedBuffer);
       const encryptedData = encryptedArray.slice(0, -16); // All but last 16 bytes
       const authTag = encryptedArray.slice(-16); // Last 16 bytes
+
+      console.log('[FRONTEND_DEBUG] Encryption details:', {
+        originalLength: data.length,
+        encryptedBufferLength: encryptedBuffer.byteLength,
+        encryptedDataLength: encryptedData.length,
+        authTagLength: authTag.length,
+        ivLength: iv.length
+      });
 
       return {
         data: btoa(String.fromCharCode.apply(null, Array.from(encryptedData))),
