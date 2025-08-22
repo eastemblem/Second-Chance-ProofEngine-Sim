@@ -178,7 +178,7 @@ export function cleanDecryptionMiddleware(req: Request, res: Response, next: Nex
       console.log('[CLEAN_ENCRYPT] Success: Production payload decrypted successfully');
       next();
     } catch (primaryError) {
-      console.log('[CLEAN_ENCRYPT] Primary decryption failed:', primaryError.message);
+      console.log('[CLEAN_ENCRYPT] Primary decryption failed:', primaryError instanceof Error ? primaryError.message : String(primaryError));
       console.log('[CLEAN_ENCRYPT] ERROR: Production secret should work - investigating...');
       
       // Test both the production secret and the exact working secret
@@ -214,7 +214,7 @@ export function cleanDecryptionMiddleware(req: Request, res: Response, next: Nex
           
           return next();
         } catch (altError) {
-          console.log(`[CLEAN_ENCRYPT] Alternative secret failed: ${altError.message}`);
+          console.log(`[CLEAN_ENCRYPT] Alternative secret failed: ${altError instanceof Error ? altError.message : String(altError)}`);
         }
       }
       

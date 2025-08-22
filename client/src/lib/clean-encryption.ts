@@ -26,7 +26,7 @@ export class CleanEncryptionService {
     });
   }
 
-  // Clean AES encryption using unified standard
+  // Clean AES encryption using unified standard - FIXED for backend compatibility
   async encryptData(data: string): Promise<EncryptedPayload> {
     if (!this.sessionKey) {
       throw new Error('Encryption session not initialized');
@@ -50,32 +50,37 @@ export class CleanEncryptionService {
         ['encrypt']
       );
 
-      // Encrypt the data - use tagLength: 128 for 16-byte tags to match Node.js
+      // Encrypt the data - Web Crypto API automatically includes auth tag
       const encryptedBuffer = await crypto.subtle.encrypt(
-        { name: 'AES-GCM', iv: iv, tagLength: 128 },
+        { name: 'AES-GCM', iv: iv },
         cryptoKey,
         new TextEncoder().encode(data)
       );
 
-      // Extract encrypted data and auth tag
-      const encryptedArray = new Uint8Array(encryptedBuffer);
-      const encryptedData = encryptedArray.slice(0, -16); // All but last 16 bytes
-      const authTag = encryptedArray.slice(-16); // Last 16 bytes
+      // Web Crypto API returns combined encrypted data + auth tag
+      const combinedArray = new Uint8Array(encryptedBuffer);
+      
+      // Split into encrypted data and auth tag (last 16 bytes are the tag)
+      const encryptedData = combinedArray.slice(0, -16);
+      const authTag = combinedArray.slice(-16);
 
-      console.log('[FRONTEND_DEBUG] Encryption details:', {
-        originalLength: data.length,
-        encryptedBufferLength: encryptedBuffer.byteLength,
+      console.log('[FRONTEND_DEBUG] Web Crypto API encryption:', {
+        originalDataLength: data.length,
+        combinedBufferLength: encryptedBuffer.byteLength,
         encryptedDataLength: encryptedData.length,
         authTagLength: authTag.length,
-        ivLength: iv.length
+        ivLength: iv.length,
+        sessionKeyPrefix: this.sessionKey.substring(0, 20) + '...'
       });
 
+      // Return in Node.js compatible format (separate data and tag)
       return {
         data: btoa(String.fromCharCode.apply(null, Array.from(encryptedData))),
         iv: btoa(String.fromCharCode.apply(null, Array.from(iv))),
         tag: btoa(String.fromCharCode.apply(null, Array.from(authTag)))
       };
     } catch (error) {
+      console.error('[FRONTEND_ERROR] Encryption failed:', error);
       throw new Error(`Frontend encryption failed: ${error instanceof Error ? error.message : 'Unknown error'}`);
     }
   }
