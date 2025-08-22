@@ -17,23 +17,28 @@ export class ChaCha20Utils {
    * Initialize libsodium (async)
    */
   static async init(): Promise<void> {
-    if (this.isReady) return;
+    if (this.isReady && this.sodium) return;
 
     try {
       // Environment-specific libsodium loading
       if (typeof window !== 'undefined') {
         // Browser environment - use WebAssembly version
+        console.log('🔧 ChaCha20: Initializing libsodium-wrappers...');
         const sodium = await import('libsodium-wrappers');
         await sodium.ready;
-        this.sodium = sodium;
+        this.sodium = sodium.default || sodium; // Ensure we get the actual sodium object
+        console.log('✅ ChaCha20: libsodium-wrappers ready, methods available:', !!this.sodium.crypto_aead_chacha20poly1305_ietf_encrypt);
       } else {
         // Node.js environment - use native bindings with dynamic import
+        console.log('🔧 ChaCha20: Initializing sodium-native...');
         const { default: sodium } = await import('sodium-native');
         this.sodium = sodium;
+        console.log('✅ ChaCha20: sodium-native ready');
       }
       
       this.isReady = true;
     } catch (error) {
+      console.error('❌ ChaCha20: Initialization failed:', error);
       throw new Error(`Failed to initialize libsodium: ${error instanceof Error ? error.message : 'Unknown error'}`);
     }
   }
@@ -146,6 +151,14 @@ export class ChaCha20Utils {
 
       if (typeof window !== 'undefined') {
         // Browser: Use libsodium-wrappers
+        console.log('🔐 ChaCha20: Encrypting with libsodium-wrappers...');
+        console.log('🔐 ChaCha20: Sodium object type:', typeof this.sodium);
+        console.log('🔐 ChaCha20: Encrypt function available:', !!this.sodium.crypto_aead_chacha20poly1305_ietf_encrypt);
+        
+        if (!this.sodium || !this.sodium.crypto_aead_chacha20poly1305_ietf_encrypt) {
+          throw new Error('libsodium-wrappers not properly initialized');
+        }
+        
         ciphertext = this.sodium.crypto_aead_chacha20poly1305_ietf_encrypt(
           plaintext,
           null, // additional data
@@ -153,6 +166,7 @@ export class ChaCha20Utils {
           nonce,
           derivedKey.key
         );
+        console.log('✅ ChaCha20: Encryption successful');
       } else {
         // Node.js: Use sodium-native
         ciphertext = Buffer.alloc(plaintext.length + this.sodium.crypto_aead_chacha20poly1305_ietf_ABYTES);
