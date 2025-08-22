@@ -35,17 +35,6 @@ export function encryptionMiddleware() {
         shouldEncryptResponse: isEncryptedRequest && context.isEnabled
       };
 
-      // Debug logging
-      if (import.meta.env.MODE === 'development' || process.env.NODE_ENV === 'development') {
-        console.log('🔒 ENCRYPTION DEBUG:', {
-          path: req.path,
-          method: req.method,
-          isEncryptedRequest,
-          encryptionEnabled: context.isEnabled,
-          shouldEncryptResponse: req.encryptionContext.shouldEncryptResponse,
-          headers: Object.keys(req.headers).filter(h => h.toLowerCase().includes('encrypt'))
-        });
-      }
 
       // Skip decryption if encryption is disabled
       if (!context.isEnabled) {
@@ -99,50 +88,45 @@ export function encryptionMiddleware() {
 
       // Override res.json to handle response encryption
       const originalJson = res.json.bind(res);
-      res.json = async function(body: any) {
-        // Debug logging
-        if (import.meta.env.MODE === 'development' || process.env.NODE_ENV === 'development') {
-          console.log('🔒 RESPONSE DEBUG:', {
-            path: req.path,
-            shouldEncrypt: req.encryptionContext?.shouldEncryptResponse,
-            hasSecret: !!context.secret,
-            encryptionEnabled: context.isEnabled
-          });
-        }
+      res.json = function(body: any) {
         
         // Check if we should encrypt the response
         if (req.encryptionContext?.shouldEncryptResponse && context.isEnabled && context.secret) {
-          try {
-            const { data, wasEncrypted } = await ServerCrypto.encryptResponsePayload(body, context, true);
-            
-            if (wasEncrypted) {
-              // Add encryption headers
-              const encryptionHeaders = ServerCrypto.createEncryptionHeaders(true);
-              Object.entries(encryptionHeaders).forEach(([key, value]) => {
-                res.setHeader(key, value);
-              });
-              
-              appLogger.auth('Response payload encrypted', {
+          // Handle response encryption asynchronously but don't make res.json async
+          ServerCrypto.encryptResponsePayload(body, context, true)
+            .then(({ data, wasEncrypted }) => {
+              if (wasEncrypted) {
+                // Add encryption headers
+                const encryptionHeaders = ServerCrypto.createEncryptionHeaders(true);
+                Object.entries(encryptionHeaders).forEach(([key, value]) => {
+                  res.setHeader(key, value);
+                });
+                
+                appLogger.auth('Response payload encrypted', {
+                  path: req.path,
+                  method: req.method
+                });
+                
+                // Send encrypted response
+                originalJson(data);
+              } else {
+                // Send original response if encryption failed
+                originalJson(body);
+              }
+            })
+            .catch(error => {
+              appLogger.auth('Response encryption failed', {
                 path: req.path,
-                method: req.method
+                method: req.method,
+                error: error instanceof Error ? error.message : 'Unknown error'
               });
               
-              // Send encrypted response
-              return originalJson(data);
-            } else {
-              // Send original response if encryption failed
-              return originalJson(body);
-            }
-          } catch (error) {
-            appLogger.auth('Response encryption failed', {
-              path: req.path,
-              method: req.method,
-              error: error instanceof Error ? error.message : 'Unknown error'
+              // Fall back to unencrypted response
+              originalJson(body);
             });
-            
-            // Fall back to unencrypted response
-            return originalJson(body);
-          }
+          
+          // Return immediately for encrypted responses
+          return res;
         } else {
           return originalJson(body);
         }
