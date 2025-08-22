@@ -68,12 +68,17 @@ export function encryptionMiddleware() {
           appLogger.auth('Request decryption failed', {
             path: req.path,
             method: req.method,
-            error: error instanceof Error ? error.message : 'Unknown error'
+            error: error instanceof Error ? error.message : 'Unknown error',
+            payloadStructure: Object.keys(req.body),
+            hasRequiredFields: !!(req.body?.data && req.body?.iv && req.body?.tag && req.body?.salt),
+            timestamp: req.body?.timestamp,
+            timestampAge: req.body?.timestamp ? Date.now() - req.body.timestamp : 'N/A'
           });
           
           return res.status(400).json({
             error: 'Invalid encrypted payload',
-            message: 'Failed to decrypt request data'
+            message: 'Failed to decrypt request data',
+            details: error instanceof Error ? error.message : 'Unknown error'
           });
         }
       }

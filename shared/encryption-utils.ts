@@ -132,11 +132,14 @@ export class EncryptionUtils {
       const decryptedText = new TextDecoder().decode(decrypted);
       const payload = JSON.parse(decryptedText);
 
-      // Validate timestamp (prevent replay attacks - 5 minute window)
+      // Validate timestamp (prevent replay attacks - 10 minute window for development)
       const now = Date.now();
       const timeDiff = now - payload.timestamp;
-      if (timeDiff > 5 * 60 * 1000 || timeDiff < -1 * 60 * 1000) {
-        throw new Error('Request timestamp out of acceptable range');
+      const maxAge = 10 * 60 * 1000; // 10 minutes for development
+      const maxFuture = 2 * 60 * 1000; // 2 minutes in future
+      
+      if (timeDiff > maxAge || timeDiff < -maxFuture) {
+        throw new Error(`Request timestamp out of acceptable range. Age: ${Math.round(timeDiff/1000)}s, Max: ${Math.round(maxAge/1000)}s`);
       }
 
       return {

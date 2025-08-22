@@ -81,27 +81,22 @@ export async function apiRequest(
   let encryptionHeaders: Record<string, string> = {};
   
   if (data) {
-    // Skip encryption for auth-token routes temporarily to fix login issues  
-    if (apiUrl.includes('/api/auth-token/')) {
-      requestBody = JSON.stringify(data);
-    } else {
-      try {
-        const encryptionResult = await ClientCrypto.encryptRequestPayload(data);
+    try {
+      const encryptionResult = await ClientCrypto.encryptRequestPayload(data);
+      
+      if (encryptionResult.wasEncrypted) {
+        requestBody = JSON.stringify(encryptionResult.data);
+        encryptionHeaders = encryptionResult.headers;
         
-        if (encryptionResult.wasEncrypted) {
-          requestBody = JSON.stringify(encryptionResult.data);
-          encryptionHeaders = encryptionResult.headers;
-          
-          if (import.meta.env.MODE === 'development') {
-            console.log('🔒 REQUEST-ENCRYPTION: Payload encrypted');
-          }
-        } else {
-          requestBody = JSON.stringify(data);
+        if (import.meta.env.MODE === 'development') {
+          console.log('🔒 REQUEST-ENCRYPTION: Payload encrypted');
         }
-      } catch (error) {
-        console.error('Request encryption failed, falling back to unencrypted:', error);
+      } else {
         requestBody = JSON.stringify(data);
       }
+    } catch (error) {
+      console.error('Request encryption failed, falling back to unencrypted:', error);
+      requestBody = JSON.stringify(data);
     }
   }
   
