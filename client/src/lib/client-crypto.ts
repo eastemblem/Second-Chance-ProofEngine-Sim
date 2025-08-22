@@ -75,12 +75,16 @@ export class ClientCrypto {
       await UnifiedEncryption.initialize();
       
       // Force v2 ChaCha20 for testing
+      console.log('🚨 CLIENT CRYPTO VERSION CHECK:', new Date().toISOString());
       console.log('🔐 CLIENT: Forcing ChaCha20-Poly1305 (v2) encryption...');
       console.log('🔐 CLIENT: Secret configured:', !!context.secret);
       console.log('🔐 CLIENT: Context version:', context.version);
+      console.log('🔐 CLIENT: Browser timestamp:', Date.now());
+      console.warn('🧪 IF YOU SEE THIS MESSAGE, THE NEW CODE IS LOADED!');
       const encryptedPayload = await UnifiedEncryption.encryptData(payload, context.secret, 'v2');
       console.log('🔐 CLIENT: Encrypted payload version:', encryptedPayload.version);
       console.log('🔐 CLIENT: Payload structure:', Object.keys(encryptedPayload));
+      console.error('🔥 FINAL PAYLOAD:', JSON.stringify(encryptedPayload, null, 2));
 
       // Create headers to indicate encrypted request
       const headers = {
