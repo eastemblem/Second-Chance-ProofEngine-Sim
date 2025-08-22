@@ -96,7 +96,10 @@ export default function TeamOnboarding({
       if (import.meta.env.MODE === 'development') {
         console.log('Fetching team members for session:', sessionId);
       }
-      const response = await apiRequest("GET", `/api/v1/onboarding/team/${sessionId}`);
+      const response = await fetch(`/api/v1/onboarding/team/${sessionId}`);
+      if (!response.ok) {
+        throw new Error(`HTTP error! status: ${response.status}`);
+      }
       const data = await response.json();
       if (import.meta.env.MODE === 'development') {
         console.log('Team members response:', data);
@@ -138,10 +141,16 @@ export default function TeamOnboarding({
       if (import.meta.env.MODE === 'development') {
         console.log('Adding team member with sessionId:', sessionId);
       }
-      const response = await apiRequest("POST", "/api/v1/onboarding/team/add", {
-        sessionId, 
-        ...data
+      const response = await fetch("/api/v1/onboarding/team/add", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ sessionId, ...data })
       });
+      
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.error?.message || 'Failed to add team member');
+      }
       
       return await response.json();
     },
@@ -178,7 +187,11 @@ export default function TeamOnboarding({
   // Update team member mutation
   const updateMemberMutation = useMutation({
     mutationFn: async (data: TeamMemberFormData & { memberId: string }) => {
-      const response = await apiRequest("PUT", `/api/v1/onboarding/team/update/${data.memberId}`, data);
+      const response = await fetch(`/api/v1/onboarding/team/update/${data.memberId}`, {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(data)
+      });
       return await response.json();
     },
     onSuccess: (data) => {
@@ -210,7 +223,9 @@ export default function TeamOnboarding({
   // Delete team member mutation
   const deleteMemberMutation = useMutation({
     mutationFn: async (memberId: string) => {
-      const response = await apiRequest("DELETE", `/api/v1/onboarding/team/delete/${memberId}`);
+      const response = await fetch(`/api/v1/onboarding/team/delete/${memberId}`, {
+        method: "DELETE"
+      });
       return await response.json();
     },
     onSuccess: () => {
@@ -240,7 +255,16 @@ export default function TeamOnboarding({
       if (import.meta.env.MODE === 'development') {
         console.log('Completing team step with sessionId:', sessionId);
       }
-      const response = await apiRequest("POST", "/api/v1/onboarding/team/complete", { sessionId });
+      const response = await fetch("/api/v1/onboarding/team/complete", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ sessionId })
+      });
+      
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.error?.message || 'Failed to complete team step');
+      }
       
       return await response.json();
     },

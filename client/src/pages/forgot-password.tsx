@@ -9,7 +9,6 @@ import { Link } from 'wouter';
 import Logo from '@/components/logo';
 import { AuthLayout } from '@/components/layout';
 import { useToast } from '@/hooks/use-toast';
-import { encryptedApiClient } from '@/lib/encryption';
 
 export default function ForgotPasswordPage() {
   const [email, setEmail] = useState('');
@@ -31,12 +30,18 @@ export default function ForgotPasswordPage() {
     setError('');
 
     try {
-      // Initialize encryption before making auth requests
-      await encryptedApiClient.initializeEncryption('guest-forgot-password');
-      
-      const data = await encryptedApiClient.post<{success: boolean, error?: string}>('/api/auth/forgot-password', { email });
+      const response = await fetch('/api/auth/forgot-password', {
+        method: 'POST',
+        credentials: 'include',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ email }),
+      });
 
-      if (!data.success) {
+      const data = await response.json();
+
+      if (!response.ok) {
         throw new Error(data.error || 'Failed to send reset email');
       }
 

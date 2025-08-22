@@ -4,7 +4,6 @@ import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { apiRequest } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
 import { trackEvent } from "@/lib/analytics";
-import { encryptedApiClient } from "@/lib/encryption";
 import FounderOnboarding from "./onboarding/founder";
 import VentureOnboarding from "./onboarding/venture";
 import TeamOnboarding from "./onboarding/team";
@@ -105,9 +104,6 @@ export default function OnboardingFlow({ onComplete }: OnboardingFlowProps) {
   // Initialize session on component mount
   const initSessionMutation = useMutation({
     mutationFn: async () => {
-      // Initialize encryption for onboarding flow
-      await encryptedApiClient.initializeEncryption('guest-onboarding');
-      
       const res = await apiRequest("POST", "/api/onboarding/session/init", {});
       return await res.json();
     },
@@ -161,36 +157,25 @@ export default function OnboardingFlow({ onComplete }: OnboardingFlowProps) {
 
   // Check for existing session on mount
   useEffect(() => {
-    const initializeOnboarding = async () => {
-      // Initialize encryption early for onboarding
+    const existingSession = localStorage.getItem('onboardingSession');
+    if (existingSession) {
       try {
-        await encryptedApiClient.initializeEncryption('guest-onboarding');
+        const parsedSession = JSON.parse(existingSession);
+        if (!parsedSession.isComplete) {
+          setSessionData(parsedSession);
+          const stepIndex = determineCurrentStepIndex(parsedSession.completedSteps, parsedSession.currentStep, parsedSession);
+          setCurrentStepIndex(stepIndex);
+          return;
+        }
       } catch (error) {
-        console.warn('Failed to initialize encryption for onboarding:', error);
-      }
-      
-      const existingSession = localStorage.getItem('onboardingSession');
-      if (existingSession) {
-        try {
-          const parsedSession = JSON.parse(existingSession);
-          if (!parsedSession.isComplete) {
-            setSessionData(parsedSession);
-            const stepIndex = determineCurrentStepIndex(parsedSession.completedSteps, parsedSession.currentStep, parsedSession);
-            setCurrentStepIndex(stepIndex);
-            return;
-          }
-        } catch (error) {
-          if (import.meta.env.MODE === 'development') {
-            console.error("Invalid session data in localStorage");
-          }
+        if (import.meta.env.MODE === 'development') {
+          console.error("Invalid session data in localStorage");
         }
       }
-      
-      // Initialize new session
-      initSessionMutation.mutate();
-    };
+    }
     
-    initializeOnboarding();
+    // Initialize new session
+    initSessionMutation.mutate();
   }, []);
 
   // Navigate to next step

@@ -1,9 +1,23 @@
 import { QueryClient, QueryFunction } from "@tanstack/react-query";
-import { encryptedApiClient } from './encryption';
 
+// API version configuration
+const API_VERSION = 'v1';
 const getApiUrl = (endpoint: string) => {
-  // Return the endpoint as-is - frontend should call correct endpoints directly
-  return endpoint;
+  // Support both legacy and versioned endpoints
+  if (endpoint.startsWith('/api/v1/')) {
+    return endpoint; // Already versioned
+  }
+  
+  // EXEMPTION: Payment routes for onboarding flow use session-based auth (not JWT)
+  if (endpoint.startsWith('/api/payment/')) {
+    return endpoint; // Keep as-is for session-based routes
+  }
+  
+  if (endpoint.startsWith('/api/')) {
+    // Convert legacy endpoint to v1
+    return endpoint.replace('/api/', `/api/${API_VERSION}/`);
+  }
+  return `/api/${API_VERSION}${endpoint}`;
 };
 
 async function throwIfResNotOk(res: Response) {
@@ -26,35 +40,7 @@ export async function apiRequest(
     console.log('🔥 API-REQUEST-DEBUG: Final API URL:', apiUrl);
   }
   
-  // Check if encryption is enabled globally and for this endpoint
-  const isEncryptionEnabled = import.meta.env.VITE_ENABLE_ENCRYPTION === 'true';
-  const shouldUseEncryption = isEncryptionEnabled && 
-    !url.includes('/payment/') && 
-    (url.includes('/auth') || url.includes('/dashboard') || url.includes('/onboarding') || url.includes('/v1/'));
-  
-  if (shouldUseEncryption) {
-    // Use encrypted API client for protected endpoints
-    try {
-      const responseData = await encryptedApiClient.request(apiUrl, {
-        method,
-        body: data ? JSON.stringify(data) : undefined,
-        headers: {
-          "Authorization": `Bearer ${localStorage.getItem('auth_token') || ''}`,
-        }
-      });
-      
-      // Create mock response for compatibility
-      return new Response(JSON.stringify(responseData), {
-        status: 200,
-        headers: { 'Content-Type': 'application/json' }
-      });
-    } catch (error) {
-      console.warn('Encrypted request failed, falling back to standard request:', error);
-      // Fall through to standard request
-    }
-  }
-  
-  // Standard unencrypted request (for onboarding, payments, or fallback)
+  // Get JWT token from localStorage for authentication
   const token = localStorage.getItem('auth_token');
   const headers: Record<string, string> = {
     ...(data ? { "Content-Type": "application/json" } : {}),

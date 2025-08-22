@@ -9,7 +9,6 @@ import { Eye, EyeOff, LogIn } from "lucide-react";
 import Logo from "@/components/logo";
 import { AuthLayout } from "@/components/layout";
 import { trackEvent } from "@/lib/analytics";
-import { encryptedApiClient } from "@/lib/encryption";
 
 export default function LoginPage() {
   const [email, setEmail] = useState("");
@@ -73,18 +72,22 @@ export default function LoginPage() {
 
     try {
       console.log('🔐 Attempting login with email:', email);
-      
-      // Initialize encryption for login
-      await encryptedApiClient.initializeEncryption('guest-login');
-      
-      const data = await encryptedApiClient.post<{success: boolean, token?: string, founder?: any, error?: any}>('/api/auth-token/login', {
-        email,
-        password,
+      const response = await fetch('/api/auth-token/login', {
+        method: 'POST',
+        credentials: 'include',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          email,
+          password,
+        }),
       });
-      
-      console.log('🔐 Login response:', { hasToken: !!data.token, success: data.success });
 
-      if (data.success) {
+      const data = await response.json();
+      console.log('🔐 Login response:', { ok: response.ok, status: response.status, hasToken: !!data.token });
+
+      if (response.ok && data.success) {
         // Track successful login event
         trackEvent('login', 'authentication', 'login_success');
         

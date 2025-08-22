@@ -39,7 +39,6 @@ import { ProofScoreResult } from "@shared/schema";
 import { Leaderboard } from "@/components/leaderboard";
 import { CertificateDownload } from "@/components/certificate-download";
 import { ReportDownload } from "@/components/report-download";
-import { apiRequest } from "@/lib/queryClient";
 
 
 // Import score badges
@@ -492,12 +491,14 @@ export default function Analysis({
       setIsLoading(true);
       const fetchSessionData = async () => {
         try {
-          const response = await apiRequest("GET", `/api/onboarding/session/${sessionId}`);
-          const data = await response.json();
-          if (import.meta.env.MODE === 'development') {
-            console.log("Fetched session data from API:", data);
+          const response = await fetch(`/api/onboarding/session/${sessionId}`);
+          if (response.ok) {
+            const data = await response.json();
+            if (import.meta.env.MODE === 'development') {
+              console.log("Fetched session data from API:", data);
+            }
+            setSessionFromAPI(data?.data || data?.session || data);
           }
-          setSessionFromAPI(data?.data || data?.session || data);
         } catch (error) {
           if (import.meta.env.MODE === 'development') {
             console.error("Failed to fetch session data:", error);
