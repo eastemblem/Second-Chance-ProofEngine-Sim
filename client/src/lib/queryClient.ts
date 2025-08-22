@@ -42,7 +42,8 @@ export async function apiRequest(
   }
   
   // Check if encryption is enabled for this endpoint
-  const shouldUseEncryption = !url.includes('/onboarding') && !url.includes('/payment/');
+  const shouldUseEncryption = !url.includes('/payment/') && 
+    (url.includes('/auth') || url.includes('/dashboard') || url.includes('/onboarding') || url.includes('/v1/'));
   
   if (shouldUseEncryption) {
     // Use encrypted API client for protected endpoints

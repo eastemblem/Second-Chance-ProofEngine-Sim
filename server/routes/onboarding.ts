@@ -9,8 +9,12 @@ import multer from "multer";
 import path from "path";
 import fs from "fs";
 import { appLogger } from "../utils/logger";
+import { encryptionSuite } from "../middleware/encryption";
 
 const router = Router();
+
+// Apply encryption middleware to all onboarding routes
+router.use(encryptionSuite);
 
 // Configure multer for file uploads
 const upload = multer({

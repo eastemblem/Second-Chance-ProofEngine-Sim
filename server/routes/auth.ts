@@ -15,8 +15,12 @@ import {
 import { emailService } from '../services/emailService';
 import { appLogger } from '../utils/logger';
 import { ActivityService } from '../services/activity-service';
+import { encryptionSuite } from '../middleware/encryption';
 
 const router = express.Router();
+
+// Apply encryption middleware to all auth routes
+router.use(encryptionSuite);
 
 // Extend express session interface
 declare module 'express-session' {
