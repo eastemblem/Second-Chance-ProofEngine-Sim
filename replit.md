@@ -21,6 +21,7 @@ The frontend is built with TypeScript React and Vite, utilizing React Query for 
 - **Payment Integration:** Secure payment processing for premium features (e.g., Deal Room access) via a modal-based flow with comprehensive activity tracking. Uses Telr gateway with automatic USD to AED currency conversion (rate: 3.673) for UAE market compliance while displaying USD prices to users. Supports dedicated TELR_TEST_MODE environment variable for flexible test/live mode switching.
 - **Simplified Onboarding:** Streamlined user onboarding by removing intermediate payment steps and directly guiding users to their recommended pathway.
 - **Enhanced Error Handling:** Sophisticated retry logic and detailed error categorization for processes like pitch upload.
+- **End-to-End Encryption:** Transparent payload encryption for API communications using AES-256-GCM encryption with feature flags (ENABLE_ENCRYPTION/VITE_ENABLE_ENCRYPTION) for controlled rollout. Supports both encrypted and unencrypted requests without breaking existing functionality.
 
 ### Feature Specifications
 - **Deal Room Access:** Provides qualified users (ProofScore >= 70) access to investor matching and premium features for a one-time fee.

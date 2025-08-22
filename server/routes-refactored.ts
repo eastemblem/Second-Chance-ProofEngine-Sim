@@ -12,6 +12,7 @@ import { corsConfig, fileUploadRateLimit, apiRateLimit } from "./middleware/secu
 import { sanitizeInputComprehensive } from "./middleware/comprehensive-validation";
 import { advancedErrorHandler, correlationMiddleware } from "./middleware/advanced-error-handling";
 import { newRelicMiddleware, trackBusinessMetrics, configureNewRelic } from "./middleware/newrelic-observability";
+import { encryptionMiddleware, logEncryptionStatus } from "./middleware/encryption-middleware";
 
 // Modular route imports
 import dashboardRoutes from "./routes/dashboard";
@@ -45,6 +46,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.use(corsConfig);
   app.use(apiRateLimit); // General API rate limiting
   app.use(sanitizeInputComprehensive);
+  app.use(logEncryptionStatus()); // Log encryption status on startup
+  app.use(encryptionMiddleware()); // Handle request/response encryption
   app.use(apiVersioning);
   app.use(contentNegotiation);
   app.use(newRelicMiddleware);

@@ -1,4 +1,5 @@
 import { QueryClient, QueryFunction } from "@tanstack/react-query";
+import { ClientCrypto } from './client-crypto';
 
 // API version configuration
 const API_VERSION = 'v1';
@@ -27,6 +28,40 @@ async function throwIfResNotOk(res: Response) {
   }
 }
 
+// Enhanced response handler with decryption support
+async function handleResponse<T = any>(res: Response): Promise<T> {
+  await throwIfResNotOk(res);
+  
+  const responseText = await res.text();
+  
+  // Parse JSON response
+  let responseData: any;
+  try {
+    responseData = responseText ? JSON.parse(responseText) : null;
+  } catch (error) {
+    console.error('Failed to parse response JSON:', error);
+    throw new Error('Invalid JSON response from server');
+  }
+  
+  // Handle response decryption if indicated by headers
+  if (ClientCrypto.isEncryptedResponse(res.headers)) {
+    try {
+      const decryptionResult = await ClientCrypto.decryptResponsePayload(responseData);
+      
+      if (decryptionResult.wasDecrypted) {
+        if (import.meta.env.MODE === 'development') {
+          console.log('🔒 RESPONSE-DECRYPTION: Payload decrypted');
+        }
+        return decryptionResult.data;
+      }
+    } catch (error) {
+      console.error('Response decryption failed, using original response:', error);
+    }
+  }
+  
+  return responseData;
+}
+
 export async function apiRequest(
   method: string,
   url: string,
@@ -40,17 +75,42 @@ export async function apiRequest(
     console.log('🔥 API-REQUEST-DEBUG: Final API URL:', apiUrl);
   }
   
+  // Handle request payload encryption
+  let requestBody: string | undefined;
+  let encryptionHeaders: Record<string, string> = {};
+  
+  if (data) {
+    try {
+      const encryptionResult = await ClientCrypto.encryptRequestPayload(data);
+      
+      if (encryptionResult.wasEncrypted) {
+        requestBody = JSON.stringify(encryptionResult.data);
+        encryptionHeaders = encryptionResult.headers;
+        
+        if (import.meta.env.MODE === 'development') {
+          console.log('🔒 REQUEST-ENCRYPTION: Payload encrypted');
+        }
+      } else {
+        requestBody = JSON.stringify(data);
+      }
+    } catch (error) {
+      console.error('Request encryption failed, falling back to unencrypted:', error);
+      requestBody = JSON.stringify(data);
+    }
+  }
+  
   // Get JWT token from localStorage for authentication
   const token = localStorage.getItem('auth_token');
   const headers: Record<string, string> = {
     ...(data ? { "Content-Type": "application/json" } : {}),
     ...(token ? { "Authorization": `Bearer ${token}` } : {}),
+    ...encryptionHeaders,
   };
   
   const res = await fetch(apiUrl, {
     method,
     headers,
-    body: data ? JSON.stringify(data) : undefined,
+    body: requestBody,
     credentials: "include",
   });
 
@@ -81,8 +141,8 @@ export const getQueryFn: <T>(options: {
       return null;
     }
 
-    await throwIfResNotOk(res);
-    return await res.json();
+    // Use enhanced response handler with decryption support
+    return await handleResponse(res);
   };
 
 export const queryClient = new QueryClient({
