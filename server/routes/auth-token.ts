@@ -13,8 +13,13 @@ import {
 import { asyncHandler, createSuccessResponse, createErrorResponse } from '../utils/error-handler';
 import { appLogger } from '../utils/logger';
 import { ActivityService } from '../services/activity-service';
+import { decryptionMiddleware, encryptionMiddleware } from '../middleware/encryption';
 
 const router = express.Router();
+
+// Apply encryption middleware to all auth-token routes
+router.use(decryptionMiddleware);
+router.use(encryptionMiddleware);
 
 /**
  * Register new user with token-based authentication

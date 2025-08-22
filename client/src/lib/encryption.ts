@@ -4,10 +4,21 @@ import { EncryptedPayload, encryptedPayloadSchema, safeStringify, safeParse, isE
 class EncryptionService {
   private sessionKey: string | null = null;
 
+  // Getter for sessionKey to check if initialized
+  get hasSessionKey(): boolean {
+    return this.sessionKey !== null;
+  }
+
   // Initialize with session key (derived from authentication)
   async initializeSession(founderId: string): Promise<void> {
     // Use founderId as basis for session key (same logic as server)
     this.sessionKey = `session-${founderId}-${import.meta.env.VITE_ENCRYPTION_SECRET || 'fallback-secret'}`;
+  }
+
+  // Initialize with public session (for unauthenticated requests like login)
+  initializePublicSession(): void {
+    // Use the same format as server-side getSessionSecret for public endpoints
+    this.sessionKey = `public-session-${import.meta.env.VITE_ENCRYPTION_SECRET || 'fallback-secret'}`;
   }
 
   // Simple symmetric encryption for browser
@@ -135,6 +146,11 @@ export class EncryptedApiClient {
     };
 
     let body = options.body;
+
+    // Initialize public session for unauthenticated requests if no session exists
+    if (this.enableEncryption && !encryptionService.hasSessionKey) {
+      encryptionService.initializePublicSession();
+    }
 
     // Encrypt request body if enabled and body exists
     if (this.enableEncryption && body && typeof body === 'string') {
