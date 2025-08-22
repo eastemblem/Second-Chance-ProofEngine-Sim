@@ -6,9 +6,21 @@ import { EncryptedPayload } from '@shared/crypto-utils';
  * Single AES-256-GCM implementation with SHA-256 key derivation
  */
 
-// Generate session secret for encryption
+// Generate session secret for encryption with debug logging
 export function generateSessionSecret(founderId?: string): string {
-  const baseSecret = process.env.VITE_ENCRYPTION_SECRET || process.env.ENCRYPTION_SECRET || 'fallback-secret';
+  const viteSecret = process.env.VITE_ENCRYPTION_SECRET;
+  const encSecret = process.env.ENCRYPTION_SECRET;
+  const baseSecret = viteSecret || encSecret || 'fallback-secret';
+  
+  // Debug logging for production troubleshooting
+  if (process.env.NODE_ENV !== 'production') {
+    console.log('Secret generation debug:', {
+      hasViteSecret: !!viteSecret,
+      hasEncSecret: !!encSecret,
+      secretPrefix: baseSecret.substring(0, 15) + '...',
+      founderId: founderId || 'public'
+    });
+  }
   
   if (founderId) {
     return `session-${founderId}-${baseSecret}`;
