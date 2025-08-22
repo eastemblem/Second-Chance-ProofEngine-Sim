@@ -63,7 +63,7 @@ class EncryptionService {
     };
   }
 
-  // AES decryption using Web Crypto API
+  // AES decryption using unified standard (matches backend exactly)
   async decryptData(payload: EncryptedPayload): Promise<string> {
     if (!this.sessionKey) {
       throw new Error('Encryption session not initialized');
@@ -79,23 +79,14 @@ class EncryptionService {
     combinedBuffer.set(encryptedData);
     combinedBuffer.set(authTag, encryptedData.length);
 
-    // Derive key from session secret using PBKDF2
-    const keyMaterial = await crypto.subtle.importKey(
-      'raw',
-      new TextEncoder().encode(this.sessionKey),
-      'PBKDF2',
-      false,
-      ['deriveKey']
+    // Derive key using SHA-256 (unified standard - matches server exactly)
+    const keyMaterial = await crypto.subtle.digest(
+      'SHA-256',
+      new TextEncoder().encode(this.sessionKey)
     );
     
-    const salt = new TextEncoder().encode('second-chance-salt-2024');
-    const cryptoKey = await crypto.subtle.deriveKey(
-      {
-        name: 'PBKDF2',
-        salt: salt,
-        iterations: 1000,
-        hash: 'SHA-256'
-      },
+    const cryptoKey = await crypto.subtle.importKey(
+      'raw',
       keyMaterial,
       { name: 'AES-GCM', length: 256 },
       false,

@@ -1,6 +1,6 @@
 import { Request, Response, NextFunction } from 'express';
 import { encryptedPayloadSchema, EncryptedPayload, isEncryptionEnabled } from '@shared/crypto-utils';
-import { simpleEncryptData, simpleDecryptData, encryptApiResponse, decryptApiRequest } from '../lib/server-crypto-utils';
+import { productionCompatibleDecrypt, unifiedEncrypt } from '../lib/unified-encryption';
 import winston from 'winston';
 
 // Extend Request interface to include encryption context
@@ -66,9 +66,10 @@ export function decryptionMiddleware(req: Request, res: Response, next: NextFunc
     req.sessionSecret = sessionSecret;
     req.encryptionEnabled = true;
 
-    // Decrypt the request body
+    // Decrypt the request body using unified standard
     const encryptedPayload: EncryptedPayload = validationResult.data;
-    const decryptedData = decryptApiRequest(encryptedPayload, sessionSecret);
+    const decryptedDataString = productionCompatibleDecrypt(encryptedPayload, sessionSecret);
+    const decryptedData = JSON.parse(decryptedDataString);
     
     req.decryptedBody = decryptedData;
     req.body = decryptedData; // Replace encrypted body with decrypted data
@@ -83,12 +84,13 @@ export function decryptionMiddleware(req: Request, res: Response, next: NextFunc
     next();
 
   } catch (error) {
-    winston.error('Failed to decrypt request payload', {
+    winston.error('Failed to decrypt request payload using unified standard', {
       service: 'second-chance-api',
       category: 'encryption',
       endpoint: req.path,
       method: req.method,
-      error: error instanceof Error ? error.message : 'Unknown error'
+      error: error instanceof Error ? error.message : 'Unknown error',
+      sessionSecretPrefix: req.sessionSecret?.substring(0, 15) + '...'
     });
 
     res.status(400).json({ 
@@ -117,8 +119,8 @@ export function encryptionMiddleware(req: Request, res: Response, next: NextFunc
         return originalJson.call(this, body);
       }
 
-      // Encrypt the response
-      const encryptedResponse = encryptApiResponse(body, req.sessionSecret);
+      // Encrypt the response using unified standard
+      const encryptedResponse = unifiedEncrypt(JSON.stringify(body), req.sessionSecret);
       
       // Set encryption header
       res.setHeader('x-encrypted', 'true');
