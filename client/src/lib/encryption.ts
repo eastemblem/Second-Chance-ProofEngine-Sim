@@ -27,26 +27,17 @@ class EncryptionService {
       throw new Error('Encryption session not initialized');
     }
 
-    // Generate random IV for AES
-    const iv = crypto.getRandomValues(new Uint8Array(16));
+    // Generate 12-byte IV for AES-GCM (unified standard)
+    const iv = crypto.getRandomValues(new Uint8Array(12));
     
-    // Derive key from session secret using PBKDF2
-    const keyMaterial = await crypto.subtle.importKey(
-      'raw',
-      new TextEncoder().encode(this.sessionKey),
-      'PBKDF2',
-      false,
-      ['deriveKey']
+    // Derive key using SHA-256 (unified standard - matches server exactly)
+    const keyMaterial = await crypto.subtle.digest(
+      'SHA-256',
+      new TextEncoder().encode(this.sessionKey)
     );
     
-    const salt = new TextEncoder().encode('second-chance-salt-2024');
-    const cryptoKey = await crypto.subtle.deriveKey(
-      {
-        name: 'PBKDF2',
-        salt: salt,
-        iterations: 1000,
-        hash: 'SHA-256'
-      },
+    const cryptoKey = await crypto.subtle.importKey(
+      'raw',
       keyMaterial,
       { name: 'AES-GCM', length: 256 },
       false,

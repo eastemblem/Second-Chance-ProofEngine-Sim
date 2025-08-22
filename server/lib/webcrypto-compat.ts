@@ -68,15 +68,20 @@ export function webCryptoCompatibleDecrypt(payload: EncryptedPayload, sessionSec
           if (!gcmIv) continue;
 
           try {
-            // Try modern Node.js crypto.createDecipher for AES-GCM
-            const decipher = crypto.createDecipher('aes-256-gcm', key);
+            // Use proper Node.js crypto.createDecipherGCM for Web Crypto API compatibility
+            let decipher;
             
-            // Set auth tag if the method exists
-            if (typeof (decipher as any).setAuthTag === 'function') {
-              (decipher as any).setAuthTag(authTag);
+            try {
+              // Try Node.js 16+ crypto.createDecipherGCM
+              decipher = (crypto as any).createDecipherGCM('aes-256-gcm', key, gcmIv);
+              decipher.setAuthTag(authTag);
+            } catch (gcmError) {
+              // Fallback: Use createCipheriv for older Node.js versions
+              decipher = crypto.createDecipheriv('aes-256-gcm', key, gcmIv);
+              decipher.setAuthTag(authTag);
             }
             
-            let decrypted = decipher.update(encryptedData, undefined, 'utf8');
+            let decrypted = decipher.update(encryptedData, null, 'utf8');
             decrypted += decipher.final('utf8');
             
             // Validate result is JSON
@@ -142,10 +147,18 @@ export function comprehensiveWebCryptoDecrypt(payload: EncryptedPayload, session
       const gcmIv = iv.length >= 12 ? iv.slice(0, 12) : iv;
       
       // Try Node.js crypto with exact Web Crypto parameters
-      const decipher = crypto.createDecipher('aes-256-gcm', keyMaterial);
+      let decipher;
       
-      if ((decipher as any).setAuthTag) {
-        (decipher as any).setAuthTag(authTag);
+      try {
+        // Use proper GCM implementation
+        decipher = crypto.createDecipheriv('aes-256-gcm', keyMaterial, gcmIv);
+        decipher.setAuthTag(authTag);
+      } catch (decipherError) {
+        // Fallback for compatibility
+        decipher = crypto.createDecipher('aes-256-gcm', keyMaterial);
+        if ((decipher as any).setAuthTag) {
+          (decipher as any).setAuthTag(authTag);
+        }
       }
       
       let decrypted = decipher.update(encryptedData, undefined, 'utf8');

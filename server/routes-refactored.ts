@@ -18,6 +18,7 @@ import dashboardRoutes from "./routes/dashboard";
 import vaultRoutes from "./routes/vault";
 import v1ApiRoutes from "./routes/v1";
 import healthRoutes from "./routes/health";
+import unifiedTestRoutes from "./routes/unified-test";
 
 // Legacy route imports (preserved during transition)
 import apiRoutes from "./routes/index";
@@ -75,6 +76,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
   // Email routes (preserved)
   app.use("/api/email", (await import("./routes/emailRoutes")).default);
+  
+  // Unified encryption test routes
+  app.use("/api", unifiedTestRoutes);
 
   // Serve React frontend from build directory temporarily
   app.use(express.static(path.join(process.cwd(), 'dist/public')));

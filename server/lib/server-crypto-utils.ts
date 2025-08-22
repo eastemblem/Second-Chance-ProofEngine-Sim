@@ -1,6 +1,6 @@
 import crypto from 'crypto';
 import { EncryptedPayload, ENCRYPTION_CONFIG, safeStringify, safeParse } from '@shared/crypto-utils';
-import { comprehensiveWebCryptoDecrypt } from './webcrypto-compat';
+import { productionCompatibleDecrypt, unifiedEncrypt } from './unified-encryption';
 
 // Server-side key derivation
 export function deriveEncryptionKey(sessionSecret: string, salt: string): Buffer {
@@ -61,18 +61,18 @@ export function simpleEncryptData(data: string, sessionSecret: string): Encrypte
   };
 }
 
-// Web Crypto API compatible AES-GCM decryption
+// Unified AES-GCM decryption matching Web Crypto API exactly
 export function simpleDecryptData(payload: EncryptedPayload, sessionSecret: string): string {
   if (process.env.NODE_ENV === 'development') {
-    console.log('[AES Decrypt] Using comprehensive Web Crypto API compatibility...');
+    console.log('[AES Decrypt] Using unified encryption standard...');
   }
   
-  // Try Web Crypto API compatible decryption first
+  // Try unified standard decryption first
   try {
-    return comprehensiveWebCryptoDecrypt(payload, sessionSecret);
-  } catch (webCryptoError) {
+    return productionCompatibleDecrypt(payload, sessionSecret);
+  } catch (unifiedError) {
     if (process.env.NODE_ENV === 'development') {
-      console.log('[AES Decrypt] Web Crypto compatibility failed, falling back to legacy approach...');
+      console.log('[AES Decrypt] Unified standard failed, trying legacy compatibility...');
     }
   }
   
@@ -197,10 +197,10 @@ export function generateSessionSecret(): string {
   return crypto.randomBytes(32).toString('hex');
 }
 
-// Encrypt API response
+// Encrypt API response using unified standard
 export function encryptApiResponse(data: any, sessionSecret: string): EncryptedPayload {
   const jsonString = safeStringify(data);
-  return simpleEncryptData(jsonString, sessionSecret);
+  return unifiedEncrypt(jsonString, sessionSecret);
 }
 
 // Simple XOR decryption with multiple session secret attempts

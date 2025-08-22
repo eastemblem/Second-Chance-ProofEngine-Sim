@@ -1,246 +1,255 @@
-import { useState } from 'react';
-import { Button } from '@/components/ui/button';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Input } from '@/components/ui/input';
-import { Textarea } from '@/components/ui/textarea';
-import { encryptedApiClient, encryptionService } from '@/lib/encryption';
-import { isEncryptionEnabled } from '@shared/crypto-utils';
-import { toast } from '@/hooks/use-toast';
+import { useState } from "react";
+import { Button } from "@/components/ui/button";
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { Textarea } from "@/components/ui/textarea";
+import { Badge } from "@/components/ui/badge";
+import { CheckCircle, XCircle, Lock, Unlock } from "lucide-react";
 
 export default function EncryptionDemo() {
-  const [testMessage, setTestMessage] = useState('Hello, this is a test message!');
-  const [response, setResponse] = useState<any>(null);
+  const [testData, setTestData] = useState("Hello unified encryption!");
+  const [unifiedResult, setUnifiedResult] = useState<any>(null);
+  const [productionTest, setProductionTest] = useState<any>(null);
   const [loading, setLoading] = useState(false);
-  const [encryptionInitialized, setEncryptionInitialized] = useState(false);
-  
-  // Check if encryption is enabled via feature flag
-  const encryptionFeatureEnabled = isEncryptionEnabled();
 
-  const initializeEncryption = async () => {
+  const testUnifiedEncryption = async () => {
+    setLoading(true);
     try {
-      setLoading(true);
-      // Use a test founderId for demo purposes
-      const testFounderId = 'demo-user-123';
-      await encryptedApiClient.initializeEncryption(testFounderId);
-      setEncryptionInitialized(true);
-      toast({
-        title: "Encryption Initialized",
-        description: "Encryption session has been set up successfully"
+      const response = await fetch('/api/unified-test/echo', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ data: testData })
       });
+      const result = await response.json();
+      setUnifiedResult(result);
     } catch (error) {
-      toast({
-        title: "Initialization Failed",
-        description: error instanceof Error ? error.message : "Failed to initialize encryption",
-        variant: "destructive"
-      });
+      setUnifiedResult({ error: error instanceof Error ? error.message : 'Unknown error' });
     } finally {
       setLoading(false);
     }
   };
 
-  const testEncryptedRequest = async () => {
-    if (!encryptionInitialized) {
-      toast({
-        title: "Not Initialized",
-        description: "Please initialize encryption first",
-        variant: "destructive"
-      });
-      return;
-    }
-
+  const testProductionPayload = async () => {
+    setLoading(true);
     try {
-      setLoading(true);
-      const result = await encryptedApiClient.post('/api/encryption-test/echo', {
-        message: testMessage,
-        timestamp: new Date().toISOString(),
-        testData: {
-          number: 42,
-          boolean: true,
-          array: [1, 2, 3]
-        }
-      });
+      const productionPayload = {
+        data: "CEcWHggGAg9dVwcSGUMJXlVaLko9Czw8Rg8MQkAbbCgXFx8lVkNVWhVwCV9bd0NsVQs=",
+        iv: "aENyZ2tHbFdTOXh3YmxhUg==",
+        tag: "/BU8K67u4bKpbcq3ORYayA=="
+      };
       
-      setResponse(result);
-      toast({
-        title: "Test Successful",
-        description: "Encrypted request/response completed successfully"
+      const response = await fetch('/api/unified-test/production', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(productionPayload)
       });
+      const result = await response.json();
+      setProductionTest(result);
     } catch (error) {
-      toast({
-        title: "Test Failed",
-        description: error instanceof Error ? error.message : "Failed to send encrypted request",
-        variant: "destructive"
-      });
-      setResponse({ error: error instanceof Error ? error.message : "Unknown error" });
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  const checkEncryptionStatus = async () => {
-    try {
-      setLoading(true);
-      const result = await encryptedApiClient.get('/api/encryption-test/status');
-      setResponse(result);
-      toast({
-        title: "Status Retrieved",
-        description: "Encryption status retrieved successfully"
-      });
-    } catch (error) {
-      toast({
-        title: "Status Check Failed",
-        description: error instanceof Error ? error.message : "Failed to check encryption status",
-        variant: "destructive"
-      });
-      setResponse({ error: error instanceof Error ? error.message : "Unknown error" });
+      setProductionTest({ error: error instanceof Error ? error.message : 'Unknown error' });
     } finally {
       setLoading(false);
     }
   };
 
   return (
-    <div className="container mx-auto p-6 max-w-4xl">
-      <div className="mb-6">
-        <h1 className="text-3xl font-bold text-foreground mb-2">Encryption Demo</h1>
-        <p className="text-muted-foreground mb-4">
-          Test the end-to-end payload encryption system between frontend and backend
+    <div className="container mx-auto px-4 py-8 max-w-6xl">
+      <div className="mb-8">
+        <h1 className="text-3xl font-bold mb-4 bg-gradient-to-r from-purple-600 to-amber-500 bg-clip-text text-transparent">
+          Unified Encryption Standard Demo
+        </h1>
+        <p className="text-gray-600 dark:text-gray-300">
+          Test the new unified encryption system that provides identical encryption parameters between frontend and backend.
         </p>
-        
-        {/* Feature Flag Status */}
-        <div className={`inline-flex items-center gap-2 px-3 py-1 rounded-full text-sm ${
-          encryptionFeatureEnabled 
-            ? 'bg-green-100 text-green-700 dark:bg-green-900 dark:text-green-300' 
-            : 'bg-yellow-100 text-yellow-700 dark:bg-yellow-900 dark:text-yellow-300'
-        }`}>
-          <div className={`w-2 h-2 rounded-full ${
-            encryptionFeatureEnabled ? 'bg-green-500' : 'bg-yellow-500'
-          }`} />
-          Encryption Feature: {encryptionFeatureEnabled ? 'ENABLED' : 'DISABLED'}
-        </div>
-        
-        {!encryptionFeatureEnabled && (
-          <p className="text-sm text-yellow-600 dark:text-yellow-400 mt-2">
-            Encryption is disabled by feature flag. Set VITE_ENABLE_ENCRYPTION=true to enable.
-          </p>
-        )}
       </div>
 
-      <div className="grid gap-6">
-        {/* Initialization Card */}
+      <div className="grid gap-6 lg:grid-cols-2">
+        {/* Unified Encryption Test */}
         <Card>
           <CardHeader>
-            <CardTitle>1. Initialize Encryption</CardTitle>
-          </CardHeader>
-          <CardContent className="space-y-4">
-            <p className="text-sm text-muted-foreground">
-              Initialize the encryption session before making encrypted requests
-            </p>
-            <div className="flex items-center gap-4">
-              <Button 
-                onClick={initializeEncryption} 
-                disabled={loading || encryptionInitialized}
-                variant={encryptionInitialized ? "outline" : "default"}
-              >
-                {encryptionInitialized ? "✓ Initialized" : "Initialize Encryption"}
-              </Button>
-              {encryptionInitialized && (
-                <span className="text-sm text-green-600">Encryption session active</span>
-              )}
-            </div>
-          </CardContent>
-        </Card>
-
-        {/* Test Request Card */}
-        <Card>
-          <CardHeader>
-            <CardTitle>2. Test Encrypted Request</CardTitle>
+            <CardTitle className="flex items-center gap-2">
+              <Lock className="h-5 w-5" />
+              Unified Encryption Test
+            </CardTitle>
+            <CardDescription>
+              Test round-trip encryption/decryption with the new unified standard
+            </CardDescription>
           </CardHeader>
           <CardContent className="space-y-4">
             <div>
-              <label className="text-sm font-medium">Test Message</label>
-              <Textarea
-                value={testMessage}
-                onChange={(e) => setTestMessage(e.target.value)}
-                placeholder="Enter a test message to encrypt and send"
-                rows={3}
+              <Label htmlFor="test-data">Test Data</Label>
+              <Input
+                id="test-data"
+                value={testData}
+                onChange={(e) => setTestData(e.target.value)}
+                placeholder="Enter data to encrypt..."
               />
             </div>
-            <div className="flex gap-2">
-              <Button 
-                onClick={testEncryptedRequest} 
-                disabled={loading || !encryptionInitialized}
-              >
-                {loading ? "Sending..." : "Send Encrypted Request"}
-              </Button>
-              <Button 
-                onClick={checkEncryptionStatus} 
-                disabled={loading}
-                variant="outline"
-              >
-                Check Status
-              </Button>
-            </div>
+            
+            <Button 
+              onClick={testUnifiedEncryption} 
+              disabled={loading}
+              className="w-full"
+            >
+              {loading ? "Testing..." : "Test Unified Encryption"}
+            </Button>
+
+            {unifiedResult && (
+              <div className="space-y-3">
+                <div className="flex items-center gap-2">
+                  {unifiedResult.success ? (
+                    <CheckCircle className="h-5 w-5 text-green-500" />
+                  ) : (
+                    <XCircle className="h-5 w-5 text-red-500" />
+                  )}
+                  <span className="font-medium">
+                    {unifiedResult.success ? "Success" : "Failed"}
+                  </span>
+                </div>
+
+                {unifiedResult.success && (
+                  <div className="space-y-2">
+                    <div>
+                      <Label className="text-sm font-medium">Encryption Details:</Label>
+                      <div className="grid grid-cols-2 gap-2 mt-1">
+                        <Badge variant="secondary">
+                          IV: {unifiedResult.meta?.ivLength || 0} bytes
+                        </Badge>
+                        <Badge variant="secondary">
+                          Tag: {unifiedResult.meta?.tagLength || 0} bytes
+                        </Badge>
+                      </div>
+                    </div>
+                    
+                    <div>
+                      <Label className="text-sm font-medium">Encrypted Data:</Label>
+                      <Textarea
+                        value={JSON.stringify(unifiedResult.encrypted, null, 2)}
+                        readOnly
+                        className="text-xs"
+                        rows={4}
+                      />
+                    </div>
+                  </div>
+                )}
+
+                {unifiedResult.error && (
+                  <div className="p-3 bg-red-50 border border-red-200 rounded text-red-700 text-sm">
+                    {unifiedResult.error}
+                  </div>
+                )}
+              </div>
+            )}
           </CardContent>
         </Card>
 
-        {/* Response Card */}
-        {response && (
-          <Card>
-            <CardHeader>
-              <CardTitle>3. Server Response</CardTitle>
-            </CardHeader>
-            <CardContent>
-              <div className="bg-muted p-4 rounded-lg">
-                <pre className="text-sm overflow-auto">
-                  {JSON.stringify(response, null, 2)}
-                </pre>
-              </div>
-              {response.encryptionMetadata && (
-                <div className="mt-4 p-3 bg-green-50 dark:bg-green-950 rounded-lg">
-                  <h4 className="font-medium text-green-800 dark:text-green-200 mb-2">
-                    Encryption Metadata
-                  </h4>
-                  <ul className="text-sm text-green-700 dark:text-green-300 space-y-1">
-                    <li>• Request was encrypted: {response.encryptionMetadata.wasEncrypted ? 'Yes' : 'No'}</li>
-                    <li>• Session established: {response.encryptionMetadata.hasSessionSecret ? 'Yes' : 'No'}</li>
-                    <li>• Timestamp: {response.encryptionMetadata.timestamp}</li>
-                  </ul>
-                </div>
-              )}
-            </CardContent>
-          </Card>
-        )}
-
-        {/* Information Card */}
+        {/* Production Compatibility Test */}
         <Card>
           <CardHeader>
-            <CardTitle>How It Works</CardTitle>
+            <CardTitle className="flex items-center gap-2">
+              <Unlock className="h-5 w-5" />
+              Production Compatibility Test
+            </CardTitle>
+            <CardDescription>
+              Test decryption of production request format
+            </CardDescription>
           </CardHeader>
-          <CardContent className="space-y-4 text-sm text-muted-foreground">
-            <div>
-              <h4 className="font-medium text-foreground mb-2">Encryption Flow:</h4>
-              <ol className="list-decimal list-inside space-y-1">
-                <li>Client initializes encryption session with user ID</li>
-                <li>Request payload is encrypted using symmetric encryption</li>
-                <li>Encrypted payload is sent with special headers</li>
-                <li>Server decrypts request using session secret</li>
-                <li>Server processes request normally</li>
-                <li>Response is encrypted before sending back</li>
-                <li>Client decrypts response automatically</li>
-              </ol>
+          <CardContent className="space-y-4">
+            <div className="p-3 bg-blue-50 border border-blue-200 rounded text-blue-700 text-sm">
+              Testing decryption of actual production payload format
             </div>
-            <div>
-              <h4 className="font-medium text-foreground mb-2">Security Features:</h4>
-              <ul className="list-disc list-inside space-y-1">
-                <li>AES-256 encryption for all payloads</li>
-                <li>Session-based key derivation</li>
-                <li>Authentication tag verification</li>
-                <li>Automatic fallback for compatibility</li>
-              </ul>
-            </div>
+            
+            <Button 
+              onClick={testProductionPayload} 
+              disabled={loading}
+              className="w-full"
+              variant="outline"
+            >
+              {loading ? "Testing..." : "Test Production Payload"}
+            </Button>
+
+            {productionTest && (
+              <div className="space-y-3">
+                <div className="flex items-center gap-2">
+                  <Badge variant={productionTest.isValidFormat ? "default" : "destructive"}>
+                    Format: {productionTest.isValidFormat ? "Valid" : "Invalid"}
+                  </Badge>
+                </div>
+
+                {productionTest.meta && (
+                  <div>
+                    <Label className="text-sm font-medium">Payload Analysis:</Label>
+                    <div className="grid grid-cols-3 gap-2 mt-1">
+                      <Badge variant="secondary">
+                        IV: {productionTest.meta.ivLength} bytes
+                      </Badge>
+                      <Badge variant="secondary">
+                        Tag: {productionTest.meta.tagLength} bytes
+                      </Badge>
+                      <Badge variant="secondary">
+                        Data: {productionTest.meta.dataLength} bytes
+                      </Badge>
+                    </div>
+                  </div>
+                )}
+
+                {productionTest.results && (
+                  <div>
+                    <Label className="text-sm font-medium">Decryption Attempts:</Label>
+                    <div className="space-y-2 mt-2">
+                      {productionTest.results.map((result: any, index: number) => (
+                        <div key={index} className="flex items-center justify-between p-2 bg-gray-50 rounded">
+                          <span className="text-sm">{result.secret}</span>
+                          {result.success ? (
+                            <CheckCircle className="h-4 w-4 text-green-500" />
+                          ) : (
+                            <XCircle className="h-4 w-4 text-red-500" />
+                          )}
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                )}
+
+                {productionTest.error && (
+                  <div className="p-3 bg-red-50 border border-red-200 rounded text-red-700 text-sm">
+                    {productionTest.error}
+                  </div>
+                )}
+              </div>
+            )}
           </CardContent>
         </Card>
       </div>
+
+      <Card className="mt-6">
+        <CardHeader>
+          <CardTitle>Unified Encryption Standard Specifications</CardTitle>
+        </CardHeader>
+        <CardContent>
+          <div className="grid gap-4 md:grid-cols-2">
+            <div>
+              <h4 className="font-medium mb-2">Frontend (Web Crypto API)</h4>
+              <ul className="text-sm space-y-1 text-gray-600 dark:text-gray-300">
+                <li>• AES-256-GCM encryption</li>
+                <li>• 12-byte IV (standard GCM)</li>
+                <li>• SHA-256 key derivation</li>
+                <li>• Base64 encoded payloads</li>
+              </ul>
+            </div>
+            <div>
+              <h4 className="font-medium mb-2">Backend (Node.js crypto)</h4>
+              <ul className="text-sm space-y-1 text-gray-600 dark:text-gray-300">
+                <li>• AES-256-GCM decryption</li>
+                <li>• 12-byte IV validation</li>
+                <li>• SHA-256 key derivation</li>
+                <li>• Base64 decoded processing</li>
+              </ul>
+            </div>
+          </div>
+        </CardContent>
+      </Card>
     </div>
   );
 }
