@@ -8,7 +8,7 @@ if (!globalThis.crypto) {
 }
 
 // Import after polyfill is set up
-import { EncryptionUtils } from '@shared/encryption-utils';
+import { UnifiedEncryption } from '@shared/unified-encryption';
 
 /**
  * Server-side encryption utilities
@@ -28,7 +28,7 @@ export class ServerCrypto {
 
     return {
       isEnabled,
-      version: 'V1',
+      version: 'V2', // Default to ChaCha20-Poly1305
       secret
     };
   }
@@ -47,12 +47,15 @@ export class ServerCrypto {
     }
 
     // Check if payload is encrypted
-    if (!EncryptionUtils.isEncryptedPayload(payload)) {
+    if (!UnifiedEncryption.isEncryptedPayload(payload)) {
       return { data: payload, wasEncrypted: false };
     }
 
     try {
-      const decryptionResult = await EncryptionUtils.decryptData(payload, context.secret);
+      // Initialize encryption libraries (especially ChaCha20)
+      await UnifiedEncryption.initialize();
+      
+      const decryptionResult = await UnifiedEncryption.decryptData(payload, context.secret);
       return { data: decryptionResult.data, wasEncrypted: true };
     } catch (error) {
       const errorMessage = error instanceof Error ? error.message : 'Unknown decryption error';
@@ -74,8 +77,10 @@ export class ServerCrypto {
     }
 
     try {
-      const encryptionResult = await EncryptionUtils.encryptData(payload, context.secret);
-      const encryptedPayload = EncryptionUtils.createEncryptedPayload(encryptionResult);
+      // Initialize encryption libraries (especially ChaCha20)
+      await UnifiedEncryption.initialize();
+      
+      const encryptedPayload = await UnifiedEncryption.encryptData(payload, context.secret);
       return { data: encryptedPayload, wasEncrypted: true };
     } catch (error) {
       const errorMessage = error instanceof Error ? error.message : 'Unknown encryption error';

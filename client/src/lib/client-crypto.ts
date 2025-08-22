@@ -1,5 +1,5 @@
 import { ENCRYPTION_CONFIG } from '@shared/crypto-config';
-import { EncryptionUtils } from '@shared/encryption-utils';
+import { UnifiedEncryption } from '@shared/unified-encryption';
 import type { EncryptedPayload, EncryptionContext } from '@shared/encryption-types';
 
 /**
@@ -26,7 +26,7 @@ export class ClientCrypto {
 
     this.encryptionContext = {
       isEnabled,
-      version: 'V1',
+      version: 'V2', // Default to ChaCha20-Poly1305
       secret
     };
 
@@ -71,8 +71,10 @@ export class ClientCrypto {
     }
 
     try {
-      const encryptionResult = await EncryptionUtils.encryptData(payload, context.secret);
-      const encryptedPayload = EncryptionUtils.createEncryptedPayload(encryptionResult);
+      // Initialize encryption libraries (especially ChaCha20)
+      await UnifiedEncryption.initialize();
+      
+      const encryptedPayload = await UnifiedEncryption.encryptData(payload, context.secret);
 
       // Create headers to indicate encrypted request
       const headers = {

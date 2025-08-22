@@ -103,11 +103,18 @@ export class EncryptionUtils {
    */
   static async decryptData(encryptedPayload: EncryptedPayload, secret: string): Promise<DecryptionResult> {
     try {
+      // Only handle v1 payloads in this utility
+      if (encryptedPayload.version !== 'v1') {
+        throw new Error(`Unsupported encryption version: ${encryptedPayload.version}`);
+      }
+
+      const v1Payload = encryptedPayload as any; // Cast to access v1 properties
+      
       // Decode base64 data
-      const ciphertext = this.base64ToArrayBuffer(encryptedPayload.data);
-      const iv = this.base64ToArrayBuffer(encryptedPayload.iv);
-      const tag = this.base64ToArrayBuffer(encryptedPayload.tag);
-      const salt = this.base64ToArrayBuffer(encryptedPayload.salt);
+      const ciphertext = this.base64ToArrayBuffer(v1Payload.data);
+      const iv = this.base64ToArrayBuffer(v1Payload.iv);
+      const tag = this.base64ToArrayBuffer(v1Payload.tag);
+      const salt = this.base64ToArrayBuffer(v1Payload.salt);
 
       // Use the salt from the encrypted payload for key derivation
       const key = await this.deriveKey(secret, new Uint8Array(salt));
@@ -157,33 +164,45 @@ export class EncryptionUtils {
    * Create encrypted payload structure
    */
   static createEncryptedPayload(encryptionResult: EncryptionResult): EncryptedPayload {
+    const v1Result = encryptionResult as any; // Cast to access v1 properties
     return {
-      data: encryptionResult.encryptedData,
-      iv: this.arrayBufferToBase64(encryptionResult.iv),
-      tag: this.arrayBufferToBase64(encryptionResult.tag),
-      salt: this.arrayBufferToBase64(encryptionResult.salt),
+      data: v1Result.encryptedData,
+      iv: this.arrayBufferToBase64(v1Result.iv),
+      tag: this.arrayBufferToBase64(v1Result.tag),
+      salt: this.arrayBufferToBase64(v1Result.salt),
       version: ENCRYPTION_VERSIONS.V1,
       timestamp: Date.now()
-    };
+    } as any;
   }
 
   /**
    * Check if payload is encrypted based on structure
    */
   static isEncryptedPayload(payload: any): payload is EncryptedPayload {
-    const isValid = (
+    // Check for v1 (AES-GCM) payload structure
+    const isV1 = (
       payload &&
       typeof payload === 'object' &&
       typeof payload.data === 'string' &&
       typeof payload.iv === 'string' &&
       typeof payload.tag === 'string' &&
       typeof payload.salt === 'string' &&
-      typeof payload.version === 'string' &&
+      payload.version === 'v1' &&
+      typeof payload.timestamp === 'number'
+    );
+
+    // Check for v2 (ChaCha20) payload structure
+    const isV2 = (
+      payload &&
+      typeof payload === 'object' &&
+      typeof payload.data === 'string' &&
+      typeof payload.nonce === 'string' &&
+      typeof payload.salt === 'string' &&
+      payload.version === 'v2' &&
       typeof payload.timestamp === 'number'
     );
     
-    
-    return isValid;
+    return isV1 || isV2;
   }
 
   /**
