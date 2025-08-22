@@ -1,25 +1,37 @@
 import { EncryptedPayload } from '@shared/crypto-utils';
 
-// Improved crypto import with error handling
-let crypto: any;
-let Buffer: any;
+// Dynamic import approach for better browser compatibility
+let crypto: any = null;
+let Buffer: any = null;
+let cryptoLoaded = false;
 
-try {
-  crypto = require('crypto-browserify');
-  Buffer = require('buffer').Buffer;
+const loadCryptoDependencies = async () => {
+  if (cryptoLoaded) return true;
   
-  // Make Buffer globally available
-  if (typeof globalThis.Buffer === 'undefined') {
-    globalThis.Buffer = Buffer;
+  try {
+    console.log('🔄 [CRYPTO_INIT] Loading crypto dependencies...');
+    
+    // Use dynamic imports for better Vite compatibility
+    const cryptoModule = await import('crypto-browserify');
+    const bufferModule = await import('buffer');
+    
+    crypto = cryptoModule.default || cryptoModule;
+    Buffer = bufferModule.Buffer;
+    
+    // Make Buffer globally available
+    if (typeof globalThis.Buffer === 'undefined') {
+      globalThis.Buffer = Buffer;
+    }
+    
+    cryptoLoaded = true;
+    console.log('✅ [CRYPTO_INIT] crypto-browserify and Buffer loaded successfully');
+    return true;
+  } catch (error) {
+    console.error('❌ [CRYPTO_INIT] Failed to load crypto dependencies:', error);
+    cryptoLoaded = false;
+    return false;
   }
-  
-  console.log('✅ [CRYPTO_INIT] crypto-browserify and Buffer loaded successfully');
-} catch (error) {
-  console.error('❌ [CRYPTO_INIT] Failed to load crypto dependencies:', error);
-  // Fallback - this will cause errors but at least we can see them
-  crypto = null;
-  Buffer = null;
-}
+};
 
 /**
  * Clean Frontend Encryption Service
@@ -35,7 +47,10 @@ export class CleanEncryptionService {
   }
 
   // Initialize for public/login routes (before authentication) - WITH SECRET LOGGING
-  initializePublicSession() {
+  async initializePublicSession() {
+    // Ensure crypto dependencies are loaded first
+    await loadCryptoDependencies();
+    
     // LOG ALL SECRET SOURCES FOR DEBUGGING
     const viteSecret = import.meta.env.VITE_ENCRYPTION_SECRET;
     const fallbackSecret = 'PjUPhlc/b7NXvdlR911x/R8mhCvZwv+u4fljNhnjT7vcEJQ2ctx2Wh36i/3JVL+7';
@@ -48,7 +63,8 @@ export class CleanEncryptionService {
       'fallback secret': fallbackSecret.substring(0, 20) + '...',
       'base secret used': baseSecret.substring(0, 20) + '...',
       'final session key': frontendSessionKey.substring(0, 30) + '...',
-      'full session key length': frontendSessionKey.length
+      'full session key length': frontendSessionKey.length,
+      'crypto loaded': cryptoLoaded
     });
     
     this.sessionKey = frontendSessionKey;
@@ -60,8 +76,10 @@ export class CleanEncryptionService {
       throw new Error('Encryption session not initialized');
     }
 
-    if (!crypto || !Buffer) {
-      throw new Error('Crypto dependencies not available - crypto-browserify or Buffer not loaded');
+    // Ensure crypto is loaded before proceeding
+    const loaded = await loadCryptoDependencies();
+    if (!loaded || !crypto || !Buffer) {
+      throw new Error('Crypto dependencies not available - crypto-browserify or Buffer failed to load');
     }
 
     try {

@@ -22,7 +22,7 @@ export default function SecureLogin() {
 
     try {
       // Initialize public session for login encryption
-      cleanEncryptionService.initializePublicSession();
+      await cleanEncryptionService.initializePublicSession();
       
       const loginData = { email, password };
       

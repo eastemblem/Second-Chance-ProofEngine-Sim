@@ -14,7 +14,8 @@ export default function SimpleCryptoTest() {
     try {
       // Test 1: Basic crypto-browserify import
       console.log("Testing crypto-browserify import...");
-      const crypto = await import('crypto-browserify');
+      const cryptoModule = await import('crypto-browserify');
+      const crypto = cryptoModule.default || cryptoModule;
       console.log("✅ crypto-browserify imported successfully");
       
       // Test 2: Buffer availability
