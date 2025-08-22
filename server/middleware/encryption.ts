@@ -18,13 +18,17 @@ declare global {
 function getSessionSecret(req: Request): string {
   // Extract from JWT token or use a session-based secret
   const user = (req as any).user;
+  
+  // Use VITE_ENCRYPTION_SECRET to match frontend (fallback to ENCRYPTION_SECRET for compatibility)
+  const encryptionSecret = process.env.VITE_ENCRYPTION_SECRET || process.env.ENCRYPTION_SECRET || 'fallback-secret';
+  
   if (user?.founderId) {
     // Use founderId as basis for session secret (in production, use proper session management)
-    return `session-${user.founderId}-${process.env.ENCRYPTION_SECRET || 'fallback-secret'}`;
+    return `session-${user.founderId}-${encryptionSecret}`;
   }
   
-  // Fallback for public endpoints
-  return `public-session-${process.env.ENCRYPTION_SECRET || 'fallback-secret'}`;
+  // Fallback for public endpoints - match frontend exactly
+  return `public-session-${encryptionSecret}`;
 }
 
 // Encryption middleware for incoming requests
