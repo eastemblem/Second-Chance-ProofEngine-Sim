@@ -91,26 +91,65 @@ export function cleanDecryptionMiddleware(req: Request, res: Response, next: Nex
         tagLength: authTag.length
       });
       
-      // AUTO-DETECT FORMAT: Handle both Web Crypto API and Node.js formats
+      // UNIVERSAL FORMAT HANDLER: Auto-detect and normalize both formats
       let finalEncryptedData = encryptedData;
       let finalAuthTag = authTag;
+      let detectedFormat = 'Node.js';
       
-      // Web Crypto API often combines encrypted data + tag in single buffer
-      if (authTag.length !== 16) {
-        console.log('🔧 [CLEAN_ENCRYPT] Detecting Web Crypto API format...');
+      // Strategy 1: Check for separate tag format (Node.js standard)
+      if (authTag.length === 16 && encryptedData.length > 0) {
+        detectedFormat = 'Node.js';
+        console.log('🔧 [CLEAN_ENCRYPT] Node.js format detected - separate encrypted data and tag');
+      }
+      // Strategy 2: Check for Web Crypto API combined format
+      else if (authTag.length !== 16) {
+        detectedFormat = 'Web Crypto API';
+        console.log('🔧 [CLEAN_ENCRYPT] Web Crypto API format detected - analyzing payload structure');
         
-        // Check if encrypted data contains combined format
-        if (encryptedData.length > 16) {
-          // Extract last 16 bytes as auth tag
+        // Case A: Tag is malformed but data contains combined format
+        if (encryptedData.length >= 16) {
           finalAuthTag = encryptedData.slice(-16);
           finalEncryptedData = encryptedData.slice(0, -16);
-          console.log('🔧 [CLEAN_ENCRYPT] Extracted auth tag from combined data');
+          console.log('🔧 [CLEAN_ENCRYPT] Extracted auth tag from combined encrypted data');
+          
+          // Validate the extracted tag length
+          if (finalAuthTag.length !== 16) {
+            console.log('🔧 [CLEAN_ENCRYPT] Warning: Extracted tag length is not 16 bytes, attempting correction...');
+            if (finalAuthTag.length > 16) {
+              finalAuthTag = finalAuthTag.slice(0, 16);
+            } else {
+              const paddedTag = Buffer.alloc(16);
+              finalAuthTag.copy(paddedTag, 0);
+              finalAuthTag = paddedTag;
+            }
+          }
+        }
+        // Case B: Try to reconstruct from available data
+        else if (authTag.length > 0) {
+          console.log('🔧 [CLEAN_ENCRYPT] Attempting tag reconstruction from partial data');
+          // Pad or truncate tag to 16 bytes
+          if (authTag.length > 16) {
+            finalAuthTag = authTag.slice(0, 16);
+          } else {
+            const paddedTag = Buffer.alloc(16);
+            authTag.copy(paddedTag, 0);
+            finalAuthTag = paddedTag;
+          }
         }
       }
+      // Strategy 3: Emergency fallback for unusual formats
+      else {
+        console.log('🔧 [CLEAN_ENCRYPT] Using fallback format handling');
+      }
       
-      console.log('🔧 [CLEAN_ENCRYPT] Final buffer lengths:', {
-        encryptedLength: finalEncryptedData.length,
-        tagLength: finalAuthTag.length
+      console.log('🔧 [CLEAN_ENCRYPT] Format analysis complete:', {
+        detectedFormat,
+        originalDataLength: encryptedData.length,
+        originalTagLength: authTag.length,
+        finalDataLength: finalEncryptedData.length,
+        finalTagLength: finalAuthTag.length,
+        keyLength: key.length,
+        ivLength: iv.length
       });
       
       const decipher = crypto.createDecipheriv('aes-256-gcm', key, iv);

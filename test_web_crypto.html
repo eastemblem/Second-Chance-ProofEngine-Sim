@@ -1,0 +1,71 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Web Crypto API Test</title>
+</head>
+<body>
+    <h1>Web Crypto API Encryption Test</h1>
+    <button onclick="testEncryption()">Test Frontend Encryption</button>
+    <div id="result"></div>
+    
+    <script>
+    async function testEncryption() {
+        const result = document.getElementById('result');
+        result.innerHTML = 'Testing...';
+        
+        try {
+            // Frontend encryption using Web Crypto API
+            const payload = JSON.stringify({email: 'bamne123@gmail.com', password: '123456'});
+            const sessionSecret = 'public-session-PjUPhlc/b7NXvdlR911x/R8mhCvZwv+u4fljNhnjT7vcEJQ2ctx2Wh36i/3JVL+7';
+            
+            // Create key from session secret
+            const encoder = new TextEncoder();
+            const keyData = await crypto.subtle.digest('SHA-256', encoder.encode(sessionSecret));
+            const key = await crypto.subtle.importKey('raw', keyData, {name: 'AES-GCM'}, false, ['encrypt']);
+            
+            // Generate IV
+            const iv = crypto.getRandomValues(new Uint8Array(12));
+            
+            // Encrypt
+            const encryptedData = await crypto.subtle.encrypt(
+                {name: 'AES-GCM', iv: iv},
+                key,
+                encoder.encode(payload)
+            );
+            
+            // Convert to base64
+            const encryptedArray = new Uint8Array(encryptedData);
+            const dataB64 = btoa(String.fromCharCode(...encryptedArray));
+            const ivB64 = btoa(String.fromCharCode(...iv));
+            
+            const encryptedPayload = {
+                data: dataB64,
+                iv: ivB64,
+                tag: 'web-crypto-generated'  // Web Crypto API doesn't separate tag
+            };
+            
+            result.innerHTML = 'Web Crypto Payload:<br><pre>' + JSON.stringify(encryptedPayload, null, 2) + '</pre>';
+            console.log('Web Crypto Payload:', encryptedPayload);
+            
+            // Test with backend
+            const response = await fetch('/api/auth-token/login', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'x-encrypted': 'true',
+                    'x-expect-encrypted': 'true'
+                },
+                body: JSON.stringify(encryptedPayload)
+            });
+            
+            const responseData = await response.json();
+            result.innerHTML += '<br><br>Backend Response:<br><pre>' + JSON.stringify(responseData, null, 2) + '</pre>';
+            
+        } catch (error) {
+            result.innerHTML = 'Error: ' + error.message;
+            console.error(error);
+        }
+    }
+    </script>
+</body>
+</html>
