@@ -9,7 +9,7 @@ export const ENCRYPTION_CONFIG = {
   // ChaCha20-Poly1305 parameters (v2)
   chacha20: {
     keyLength: 32,  // bytes (256 bits)
-    nonceLength: 24, // bytes (192 bits for IETF variant)
+    nonceLength: 12, // bytes (96 bits for IETF variant - FIXED!)
     tagLength: 16   // bytes (128 bits, integrated in libsodium)
   },
   
