@@ -68,9 +68,9 @@ export async function encryptData(data: string, key: CryptoKey): Promise<Encrypt
   const tag = encryptedArray.slice(-ENCRYPTION_CONFIG.tagLength);
 
   return {
-    data: btoa(String.fromCharCode(...dataBytes)),
-    iv: btoa(String.fromCharCode(...iv)),
-    tag: btoa(String.fromCharCode(...tag))
+    data: btoa(String.fromCharCode.apply(null, Array.from(dataBytes))),
+    iv: btoa(String.fromCharCode.apply(null, Array.from(iv))),
+    tag: btoa(String.fromCharCode.apply(null, Array.from(tag)))
   };
 }
 
@@ -80,9 +80,23 @@ export async function decryptData(payload: EncryptedPayload, key: CryptoKey): Pr
     throw new Error('Browser decryption only - use server-crypto-utils.ts for Node.js');
   }
 
-  const dataBytes = new Uint8Array(atob(payload.data).split('').map(char => char.charCodeAt(0)));
-  const iv = new Uint8Array(atob(payload.iv).split('').map(char => char.charCodeAt(0)));
-  const tag = new Uint8Array(atob(payload.tag).split('').map(char => char.charCodeAt(0)));
+  const dataString = atob(payload.data);
+  const ivString = atob(payload.iv);
+  const tagString = atob(payload.tag);
+  
+  const dataBytes = new Uint8Array(dataString.length);
+  const iv = new Uint8Array(ivString.length);
+  const tag = new Uint8Array(tagString.length);
+  
+  for (let i = 0; i < dataString.length; i++) {
+    dataBytes[i] = dataString.charCodeAt(i);
+  }
+  for (let i = 0; i < ivString.length; i++) {
+    iv[i] = ivString.charCodeAt(i);
+  }
+  for (let i = 0; i < tagString.length; i++) {
+    tag[i] = tagString.charCodeAt(i);
+  }
 
   const encryptedWithTag = new Uint8Array(dataBytes.length + tag.length);
   encryptedWithTag.set(dataBytes);

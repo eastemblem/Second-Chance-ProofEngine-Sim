@@ -1,4 +1,5 @@
 import { QueryClient, QueryFunction } from "@tanstack/react-query";
+import { encryptedApiClient } from './encryption';
 
 // API version configuration
 const API_VERSION = 'v1';
@@ -40,7 +41,32 @@ export async function apiRequest(
     console.log('🔥 API-REQUEST-DEBUG: Final API URL:', apiUrl);
   }
   
-  // Get JWT token from localStorage for authentication
+  // Check if encryption is enabled for this endpoint
+  const shouldUseEncryption = !url.includes('/onboarding') && !url.includes('/payment/');
+  
+  if (shouldUseEncryption) {
+    // Use encrypted API client for protected endpoints
+    try {
+      const responseData = await encryptedApiClient.request(apiUrl, {
+        method,
+        body: data ? JSON.stringify(data) : undefined,
+        headers: {
+          "Authorization": `Bearer ${localStorage.getItem('auth_token') || ''}`,
+        }
+      });
+      
+      // Create mock response for compatibility
+      return new Response(JSON.stringify(responseData), {
+        status: 200,
+        headers: { 'Content-Type': 'application/json' }
+      });
+    } catch (error) {
+      console.warn('Encrypted request failed, falling back to standard request:', error);
+      // Fall through to standard request
+    }
+  }
+  
+  // Standard unencrypted request (for onboarding, payments, or fallback)
   const token = localStorage.getItem('auth_token');
   const headers: Record<string, string> = {
     ...(data ? { "Content-Type": "application/json" } : {}),
