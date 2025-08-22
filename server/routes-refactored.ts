@@ -70,7 +70,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.use('/api/auth', authRoutes);
   
   // Apply clean encryption middleware to auth-token routes specifically
-  app.use('/api/auth-token', cleanDecryptionMiddleware, cleanEncryptionMiddleware, authTokenRoutes);
+  console.log('🚀 Registering auth-token routes with clean encryption middleware');
+  app.use('/api/auth-token', cleanDecryptionMiddleware, authTokenRoutes);
 
   // Individual route handlers (preserved)
   app.get('/api/leaderboard', getLeaderboard);

@@ -13,7 +13,7 @@ import { appLogger } from '../utils/logger';
 import { ActivityService } from '../services/activity-service';
 const router = express.Router();
 
-// Clean encryption middleware applied globally - no need for route-level registration
+// Clean encryption middleware applied at routing level
 
 /**
  * Register new user with token-based authentication

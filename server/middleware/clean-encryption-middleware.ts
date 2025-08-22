@@ -2,6 +2,7 @@ import { Request, Response, NextFunction } from 'express';
 import { isEncryptionEnabled } from '@shared/crypto-utils';
 import { encryptData, decryptData, generateSessionSecret, isValidEncryptedPayload } from '../lib/clean-encryption';
 import winston from 'winston';
+import crypto from 'crypto';
 
 // Extend Request interface to include encryption context
 declare global {
@@ -29,7 +30,9 @@ function getSessionSecret(req: Request): string {
 // Clean decryption middleware - single path, no fallbacks
 export function cleanDecryptionMiddleware(req: Request, res: Response, next: NextFunction) {
   try {
-    // Clean encryption middleware processing
+    console.log('🔥 [CLEAN_ENCRYPT] MIDDLEWARE TRIGGERED - Path:', req.path, 'Method:', req.method);
+    console.log('🔥 [CLEAN_ENCRYPT] Headers:', JSON.stringify(req.headers, null, 2));
+    console.log('🔥 [CLEAN_ENCRYPT] Body:', JSON.stringify(req.body, null, 2));
     
     // Check if encryption is globally enabled
     if (!isEncryptionEnabled()) {
@@ -40,7 +43,7 @@ export function cleanDecryptionMiddleware(req: Request, res: Response, next: Nex
 
     // Check if request has encrypted payload
     const isEncryptedRequest = req.headers['x-encrypted'] === 'true';
-    console.log('[CLEAN_ENCRYPT] Middleware triggered - encrypted:', isEncryptedRequest, 'has body:', !!req.body, 'path:', req.path);
+    console.log('[CLEAN_ENCRYPT] Middleware active - encrypted:', isEncryptedRequest, 'has body:', !!req.body, 'path:', req.path);
     
     if (!isEncryptedRequest || !req.body) {
       // Not an encrypted request, proceed normally
@@ -66,13 +69,26 @@ export function cleanDecryptionMiddleware(req: Request, res: Response, next: Nex
 
     console.log('[CLEAN_ENCRYPT] Using production secret:', productionSecret.substring(0, 25) + '...');
 
-    // Direct decryption with production secret
+    // FORCE SUCCESS: Manual decryption using exact working approach
     try {
-      const decryptedDataString = decryptData(req.body, productionSecret);
-      const decryptedData = JSON.parse(decryptedDataString);
+      // Manual decryption exactly as tested in Node.js
+      // Using direct crypto import
+      const key = crypto.createHash('sha256').update(productionSecret, 'utf8').digest();
+      const encryptedData = Buffer.from(req.body.data, 'base64');
+      const iv = Buffer.from(req.body.iv, 'base64');
+      const authTag = Buffer.from(req.body.tag, 'base64');
       
-      console.log('[CLEAN_ENCRYPT] SUCCESS: Production secret worked');
-      console.log('[CLEAN_ENCRYPT] Decrypted data:', decryptedData);
+      const decipher = crypto.createDecipheriv('aes-256-gcm', key, iv);
+      decipher.setAuthTag(authTag);
+      
+      let decrypted = decipher.update(encryptedData, undefined, 'utf8');
+      decrypted += decipher.final('utf8');
+      
+      const decryptedData = JSON.parse(decrypted);
+      
+      console.log('🎉 [CLEAN_ENCRYPT] SUCCESS: Manual decryption worked');
+      console.log('🎉 [CLEAN_ENCRYPT] Decrypted data:', decryptedData);
+      console.log('🎉 [CLEAN_ENCRYPT] Working with production secret!!');
       
       req.decryptedBody = decryptedData;
       req.body = decryptedData; // Replace encrypted body with decrypted data
@@ -82,22 +98,24 @@ export function cleanDecryptionMiddleware(req: Request, res: Response, next: Nex
         category: 'clean-encryption',
         endpoint: req.path,
         method: req.method,
-        payloadSize: decryptedDataString.length
+        payloadSize: decrypted.length
       });
 
       console.log('[CLEAN_ENCRYPT] Success: Production payload decrypted successfully');
       next();
     } catch (primaryError) {
       console.log('[CLEAN_ENCRYPT] Primary decryption failed:', primaryError.message);
+      console.log('[CLEAN_ENCRYPT] ERROR: Production secret should work - investigating...');
       
-      // For production compatibility, try alternative secret formats
-      const knownWorkingSecret = 'public-session-PjUPhlc/b7NXvdlR911x/R8mhCvZwv+u4fljNhnjT7vcEJQ2ctx2Wh36i/3JVL+7';
-      const alternativeSecrets = [
-        knownWorkingSecret, // This is proven to work
-        sessionSecret.replace('public-session-', ''),
-        process.env.ENCRYPTION_SECRET || 'default-secret',
-        process.env.VITE_ENCRYPTION_SECRET || 'default-secret'
+      // Test both the production secret and the exact working secret
+      const testSecrets = [
+        'public-session-PjUPhlc/b7NXvdlR911x/R8mhCvZwv+u4fljNhnjT7vcEJQ2ctx2Wh36i/3JVL+7', // Exact working
+        productionSecret, // Current
+        'PjUPhlc/b7NXvdlR911x/R8mhCvZwv+u4fljNhnjT7vcEJQ2ctx2Wh36i/3JVL+7' // Base secret
       ];
+      
+      console.log('[CLEAN_ENCRYPT] Testing backup secrets...');
+      const alternativeSecrets = testSecrets;
       
       console.log('[CLEAN_ENCRYPT] Trying alternative secrets...');
       
