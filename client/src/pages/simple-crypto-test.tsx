@@ -2,6 +2,7 @@ import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Alert, AlertDescription } from "@/components/ui/alert";
+import "@/lib/buffer-polyfill"; // Import buffer polyfill
 
 export default function SimpleCryptoTest() {
   const [result, setResult] = useState<string>("");
@@ -12,16 +13,25 @@ export default function SimpleCryptoTest() {
     setResult("");
 
     try {
-      // Test 1: Basic crypto-browserify import
+      // Test 1: Load Buffer first and make it globally available
+      console.log("Testing Buffer loading and global setup...");
+      const { Buffer } = await import('buffer');
+      
+      // Set Buffer globally
+      if (typeof globalThis.Buffer === 'undefined') {
+        globalThis.Buffer = Buffer;
+      }
+      if (typeof window !== 'undefined' && typeof (window as any).Buffer === 'undefined') {
+        (window as any).Buffer = Buffer;
+      }
+      
+      console.log("✅ Buffer loaded and set globally:", typeof Buffer, typeof globalThis.Buffer);
+      
+      // Test 2: Load crypto-browserify after Buffer is available
       console.log("Testing crypto-browserify import...");
       const cryptoModule = await import('crypto-browserify');
       const crypto = cryptoModule.default || cryptoModule;
       console.log("✅ crypto-browserify imported successfully");
-      
-      // Test 2: Buffer availability
-      console.log("Testing Buffer availability...");
-      const { Buffer } = await import('buffer');
-      console.log("✅ Buffer imported successfully");
       
       // Test 3: Basic hash function
       console.log("Testing hash function...");

@@ -1,4 +1,6 @@
 import { EncryptedPayload } from '@shared/crypto-utils';
+// Import buffer polyfill first
+import '../lib/buffer-polyfill';
 
 // Dynamic import approach for better browser compatibility
 let crypto: any = null;
@@ -11,20 +13,25 @@ const loadCryptoDependencies = async () => {
   try {
     console.log('🔄 [CRYPTO_INIT] Loading crypto dependencies...');
     
-    // Use dynamic imports for better Vite compatibility
-    const cryptoModule = await import('crypto-browserify');
+    // Load Buffer first and make it globally available
     const bufferModule = await import('buffer');
-    
-    crypto = cryptoModule.default || cryptoModule;
     Buffer = bufferModule.Buffer;
     
-    // Make Buffer globally available
+    // Set Buffer globally before crypto-browserify needs it
     if (typeof globalThis.Buffer === 'undefined') {
       globalThis.Buffer = Buffer;
     }
+    if (typeof window !== 'undefined' && typeof window.Buffer === 'undefined') {
+      (window as any).Buffer = Buffer;
+    }
+    
+    // Now load crypto-browserify after Buffer is globally available
+    const cryptoModule = await import('crypto-browserify');
+    crypto = cryptoModule.default || cryptoModule;
     
     cryptoLoaded = true;
     console.log('✅ [CRYPTO_INIT] crypto-browserify and Buffer loaded successfully');
+    console.log('✅ [CRYPTO_INIT] Buffer available:', typeof Buffer, typeof globalThis.Buffer);
     return true;
   } catch (error) {
     console.error('❌ [CRYPTO_INIT] Failed to load crypto dependencies:', error);
