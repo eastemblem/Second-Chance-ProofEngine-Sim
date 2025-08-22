@@ -1,10 +1,24 @@
 import { EncryptedPayload } from '@shared/crypto-utils';
-import * as crypto from 'crypto-browserify';
-import { Buffer } from 'buffer';
 
-// Make Buffer globally available
-if (typeof globalThis.Buffer === 'undefined') {
-  globalThis.Buffer = Buffer;
+// Improved crypto import with error handling
+let crypto: any;
+let Buffer: any;
+
+try {
+  crypto = require('crypto-browserify');
+  Buffer = require('buffer').Buffer;
+  
+  // Make Buffer globally available
+  if (typeof globalThis.Buffer === 'undefined') {
+    globalThis.Buffer = Buffer;
+  }
+  
+  console.log('✅ [CRYPTO_INIT] crypto-browserify and Buffer loaded successfully');
+} catch (error) {
+  console.error('❌ [CRYPTO_INIT] Failed to load crypto dependencies:', error);
+  // Fallback - this will cause errors but at least we can see them
+  crypto = null;
+  Buffer = null;
 }
 
 /**
@@ -44,6 +58,10 @@ export class CleanEncryptionService {
   async encryptData(data: string): Promise<EncryptedPayload> {
     if (!this.sessionKey) {
       throw new Error('Encryption session not initialized');
+    }
+
+    if (!crypto || !Buffer) {
+      throw new Error('Crypto dependencies not available - crypto-browserify or Buffer not loaded');
     }
 
     try {
