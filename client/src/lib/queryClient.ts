@@ -9,7 +9,8 @@ const getApiUrl = (endpoint: string) => {
     return endpoint; // Already versioned
   }
   
-  // EXEMPTION: Payment routes and auth-token routes for onboarding flow use session-based auth (not JWT)
+  // EXEMPTION: Payment routes and auth-token routes for onboarding flow use session-based auth (not JWT) 
+  // Also disable encryption for auth-token endpoints temporarily
   if (endpoint.startsWith('/api/payment/') || endpoint.startsWith('/api/auth-token/')) {
     return endpoint; // Keep as-is for session-based routes
   }
@@ -80,22 +81,27 @@ export async function apiRequest(
   let encryptionHeaders: Record<string, string> = {};
   
   if (data) {
-    try {
-      const encryptionResult = await ClientCrypto.encryptRequestPayload(data);
-      
-      if (encryptionResult.wasEncrypted) {
-        requestBody = JSON.stringify(encryptionResult.data);
-        encryptionHeaders = encryptionResult.headers;
+    // Skip encryption for auth-token routes temporarily to fix login issues  
+    if (apiUrl.includes('/api/auth-token/')) {
+      requestBody = JSON.stringify(data);
+    } else {
+      try {
+        const encryptionResult = await ClientCrypto.encryptRequestPayload(data);
         
-        if (import.meta.env.MODE === 'development') {
-          console.log('🔒 REQUEST-ENCRYPTION: Payload encrypted');
+        if (encryptionResult.wasEncrypted) {
+          requestBody = JSON.stringify(encryptionResult.data);
+          encryptionHeaders = encryptionResult.headers;
+          
+          if (import.meta.env.MODE === 'development') {
+            console.log('🔒 REQUEST-ENCRYPTION: Payload encrypted');
+          }
+        } else {
+          requestBody = JSON.stringify(data);
         }
-      } else {
+      } catch (error) {
+        console.error('Request encryption failed, falling back to unencrypted:', error);
         requestBody = JSON.stringify(data);
       }
-    } catch (error) {
-      console.error('Request encryption failed, falling back to unencrypted:', error);
-      requestBody = JSON.stringify(data);
     }
   }
   
