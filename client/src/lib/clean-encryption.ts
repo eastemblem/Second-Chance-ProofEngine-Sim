@@ -13,16 +13,24 @@ export class CleanEncryptionService {
     this.sessionKey = `session-${founderId}-${baseSecret}`;
   }
 
-  // Initialize for public/login routes (before authentication) - FIXED to match backend exactly
+  // Initialize for public/login routes (before authentication) - WITH SECRET LOGGING
   initializePublicSession() {
-    // EXACT MATCH: Use the same working secret as backend middleware
-    const workingSecret = 'public-session-PjUPhlc/b7NXvdlR911x/R8mhCvZwv+u4fljNhnjT7vcEJQ2ctx2Wh36i/3JVL+7';
-    this.sessionKey = workingSecret;
+    // LOG ALL SECRET SOURCES FOR DEBUGGING
+    const viteSecret = import.meta.env.VITE_ENCRYPTION_SECRET;
+    const fallbackSecret = 'PjUPhlc/b7NXvdlR911x/R8mhCvZwv+u4fljNhnjT7vcEJQ2ctx2Wh36i/3JVL+7';
+    const baseSecret = viteSecret || fallbackSecret;
+    const frontendSessionKey = `public-session-${baseSecret}`;
     
-    console.log('[FRONTEND_FIXED] Public session initialized with exact backend secret:', {
-      sessionKeyPrefix: this.sessionKey.substring(0, 30) + '...',
-      matchesBackend: true
+    console.log('🔍 [FRONTEND_SECRET_DEBUG] Secret resolution:', {
+      'VITE_ENCRYPTION_SECRET exists': !!viteSecret,
+      'VITE_ENCRYPTION_SECRET value': viteSecret ? viteSecret.substring(0, 20) + '...' : 'NOT SET',
+      'fallback secret': fallbackSecret.substring(0, 20) + '...',
+      'base secret used': baseSecret.substring(0, 20) + '...',
+      'final session key': frontendSessionKey.substring(0, 30) + '...',
+      'full session key length': frontendSessionKey.length
     });
+    
+    this.sessionKey = frontendSessionKey;
   }
 
   // Clean AES encryption using unified standard - FIXED for backend compatibility

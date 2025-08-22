@@ -71,10 +71,13 @@ export function cleanDecryptionMiddleware(req: Request, res: Response, next: Nex
     req.sessionSecret = productionSecret;
     req.encryptionEnabled = true;
 
-    console.log('[CLEAN_ENCRYPT] Using dynamic secret resolution:', {
-      hasEnvSecret: !!envSecret,
-      baseSecretPrefix: baseSecret.substring(0, 15) + '...',
-      finalSecretPrefix: productionSecret.substring(0, 25) + '...'
+    console.log('🔍 [BACKEND_SECRET_DEBUG] Secret resolution:', {
+      'ENCRYPTION_SECRET exists': !!envSecret,
+      'ENCRYPTION_SECRET value': envSecret ? envSecret.substring(0, 20) + '...' : 'NOT SET',
+      'fallback secret': fallbackSecret.substring(0, 20) + '...',
+      'base secret used': baseSecret.substring(0, 20) + '...',
+      'final session key': productionSecret.substring(0, 30) + '...',
+      'full session key length': productionSecret.length
     });
 
     // DIRECT SUCCESS: Use the exact working approach from our Node.js test
