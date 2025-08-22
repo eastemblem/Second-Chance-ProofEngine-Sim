@@ -9,8 +9,8 @@ const getApiUrl = (endpoint: string) => {
     return endpoint; // Already versioned
   }
   
-  // EXEMPTION: Payment routes use session-based auth (not JWT) 
-  if (endpoint.startsWith('/api/payment/')) {
+  // EXEMPTION: Payment routes and auth-token routes use session-based auth (not JWT) 
+  if (endpoint.startsWith('/api/payment/') || endpoint.startsWith('/api/auth-token/')) {
     return endpoint; // Keep as-is for session-based routes
   }
   
