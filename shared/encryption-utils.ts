@@ -195,7 +195,7 @@ export class EncryptionUtils {
    * Check if payload is encrypted based on structure
    */
   static isEncryptedPayload(payload: any): payload is EncryptedPayload {
-    return (
+    const isValid = (
       payload &&
       typeof payload === 'object' &&
       typeof payload.data === 'string' &&
@@ -205,6 +205,26 @@ export class EncryptionUtils {
       typeof payload.version === 'string' &&
       typeof payload.timestamp === 'number'
     );
+    
+    // Debug payload validation
+    if (!isValid) {
+      console.log('🔍 PAYLOAD-VALIDATION: Failed isEncryptedPayload check');
+      console.log('🔍 PAYLOAD-VALIDATION: Payload structure:', {
+        exists: !!payload,
+        isObject: typeof payload === 'object',
+        hasData: !!payload?.data && typeof payload.data === 'string',
+        hasIv: !!payload?.iv && typeof payload.iv === 'string',
+        hasTag: !!payload?.tag && typeof payload.tag === 'string',
+        hasSalt: !!payload?.salt && typeof payload.salt === 'string',
+        hasVersion: !!payload?.version && typeof payload.version === 'string',
+        hasTimestamp: !!payload?.timestamp && typeof payload.timestamp === 'number',
+        timestampType: typeof payload?.timestamp
+      });
+    } else {
+      console.log('🔍 PAYLOAD-VALIDATION: Passed isEncryptedPayload check');
+    }
+    
+    return isValid;
   }
 
   /**
