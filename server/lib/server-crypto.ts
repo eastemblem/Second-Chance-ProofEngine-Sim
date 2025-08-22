@@ -83,7 +83,7 @@ export class ServerCrypto {
    * Check if request headers indicate encryption
    */
   static isEncryptedRequest(headers: Record<string, any>): boolean {
-    return headers[ENCRYPTION_CONFIG.headers.encrypted] === 'true';
+    return headers[ENCRYPTION_CONFIG.headers.encrypted.toLowerCase()] === 'true';
   }
 
   /**
@@ -95,7 +95,7 @@ export class ServerCrypto {
     }
 
     return {
-      [ENCRYPTION_CONFIG.headers.encrypted]: 'true',
+      [ENCRYPTION_CONFIG.headers.encryptedResponse]: 'true',
       [ENCRYPTION_CONFIG.headers.keyVersion]: 'v1'
     };
   }

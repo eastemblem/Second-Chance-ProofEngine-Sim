@@ -16,8 +16,9 @@ export const ENCRYPTION_CONFIG = {
   
   // Request headers
   headers: {
-    encrypted: 'x-encrypted',
-    keyVersion: 'x-key-version',
+    encrypted: 'X-Encrypted-Request',
+    encryptedResponse: 'X-Encrypted-Response',
+    keyVersion: 'X-Key-Version',
   },
   
   // Environment variables

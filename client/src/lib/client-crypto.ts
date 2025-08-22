@@ -130,7 +130,7 @@ export class ClientCrypto {
    * Check if response indicates it was encrypted
    */
   static isEncryptedResponse(headers: Headers): boolean {
-    return headers.get(ENCRYPTION_CONFIG.headers.encrypted) === 'true';
+    return headers.get(ENCRYPTION_CONFIG.headers.encryptedResponse) === 'true';
   }
 
   /**

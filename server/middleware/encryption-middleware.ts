@@ -35,6 +35,18 @@ export function encryptionMiddleware() {
         shouldEncryptResponse: isEncryptedRequest && context.isEnabled
       };
 
+      // Debug logging
+      if (import.meta.env.MODE === 'development' || process.env.NODE_ENV === 'development') {
+        console.log('🔒 ENCRYPTION DEBUG:', {
+          path: req.path,
+          method: req.method,
+          isEncryptedRequest,
+          encryptionEnabled: context.isEnabled,
+          shouldEncryptResponse: req.encryptionContext.shouldEncryptResponse,
+          headers: Object.keys(req.headers).filter(h => h.toLowerCase().includes('encrypt'))
+        });
+      }
+
       // Skip decryption if encryption is disabled
       if (!context.isEnabled) {
         return next();
@@ -49,7 +61,7 @@ export function encryptionMiddleware() {
         });
       }
 
-      // Decrypt request body if encrypted
+      // Decrypt request body if encrypted (only for requests with body)
       if (req.body && isEncryptedRequest) {
         try {
           const decryptionResult = await ServerCrypto.decryptRequestPayload(req.body, context);
@@ -76,44 +88,64 @@ export function encryptionMiddleware() {
           });
         }
       }
+      
+      // Log encrypted requests without body (like GET requests)
+      if (isEncryptedRequest && !req.body) {
+        appLogger.auth('Processing encrypted request (no body)', {
+          path: req.path,
+          method: req.method
+        });
+      }
 
       // Override res.json to handle response encryption
       const originalJson = res.json.bind(res);
-      res.json = function(body: any) {
-        // Check if we should encrypt the response
-        if (req.encryptionContext?.shouldEncryptResponse && context.isEnabled && context.secret) {
-          ServerCrypto.encryptResponsePayload(body, context, true)
-            .then(({ data, wasEncrypted }) => {
-              if (wasEncrypted) {
-                // Add encryption headers
-                const encryptionHeaders = ServerCrypto.createEncryptionHeaders(true);
-                Object.entries(encryptionHeaders).forEach(([key, value]) => {
-                  res.setHeader(key, value);
-                });
-                
-                appLogger.auth('Response payload encrypted', {
-                  path: req.path,
-                  method: req.method
-                });
-              }
-              
-              originalJson(data);
-            })
-            .catch(error => {
-              appLogger.auth('Response encryption failed', {
-                path: req.path,
-                method: req.method,
-                error: error instanceof Error ? error.message : 'Unknown error'
-              });
-              
-              // Fall back to unencrypted response
-              originalJson(body);
-            });
-        } else {
-          originalJson(body);
+      res.json = async function(body: any) {
+        // Debug logging
+        if (import.meta.env.MODE === 'development' || process.env.NODE_ENV === 'development') {
+          console.log('🔒 RESPONSE DEBUG:', {
+            path: req.path,
+            shouldEncrypt: req.encryptionContext?.shouldEncryptResponse,
+            hasSecret: !!context.secret,
+            encryptionEnabled: context.isEnabled
+          });
         }
         
-        return res;
+        // Check if we should encrypt the response
+        if (req.encryptionContext?.shouldEncryptResponse && context.isEnabled && context.secret) {
+          try {
+            const { data, wasEncrypted } = await ServerCrypto.encryptResponsePayload(body, context, true);
+            
+            if (wasEncrypted) {
+              // Add encryption headers
+              const encryptionHeaders = ServerCrypto.createEncryptionHeaders(true);
+              Object.entries(encryptionHeaders).forEach(([key, value]) => {
+                res.setHeader(key, value);
+              });
+              
+              appLogger.auth('Response payload encrypted', {
+                path: req.path,
+                method: req.method
+              });
+              
+              // Send encrypted response
+              return originalJson(data);
+            } else {
+              // Send original response if encryption failed
+              return originalJson(body);
+            }
+          } catch (error) {
+            appLogger.auth('Response encryption failed', {
+              path: req.path,
+              method: req.method,
+              error: error instanceof Error ? error.message : 'Unknown error'
+            });
+            
+            // Fall back to unencrypted response
+            return originalJson(body);
+          }
+        } else {
+          return originalJson(body);
+        }
       };
 
       next();
