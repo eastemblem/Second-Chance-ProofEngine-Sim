@@ -103,32 +103,11 @@ export class EncryptionUtils {
    */
   static async decryptData(encryptedPayload: EncryptedPayload, secret: string): Promise<DecryptionResult> {
     try {
-      // Debug logging for decryption
-      console.log('🔍 DECRYPT-DEBUG: Starting decryption');
-      console.log('🔍 DECRYPT-DEBUG: Payload structure:', {
-        hasData: !!encryptedPayload.data,
-        hasIv: !!encryptedPayload.iv,
-        hasTag: !!encryptedPayload.tag,
-        hasSalt: !!encryptedPayload.salt,
-        dataLength: encryptedPayload.data?.length,
-        ivLength: encryptedPayload.iv?.length,
-        tagLength: encryptedPayload.tag?.length,
-        saltLength: encryptedPayload.salt?.length
-      });
-      
-      console.log('🔍 DECRYPT-DEBUG: Base64 values:');
-      console.log('  data:', JSON.stringify(encryptedPayload.data.substring(0, 30) + '...'));
-      console.log('  iv:', JSON.stringify(encryptedPayload.iv));
-      console.log('  tag:', JSON.stringify(encryptedPayload.tag));
-      console.log('  salt:', JSON.stringify(encryptedPayload.salt.substring(0, 20) + '...'));
-      
       // Decode base64 data
-      console.log('🔍 DECRYPT-DEBUG: Decoding base64...');
       const ciphertext = this.base64ToArrayBuffer(encryptedPayload.data);
       const iv = this.base64ToArrayBuffer(encryptedPayload.iv);
       const tag = this.base64ToArrayBuffer(encryptedPayload.tag);
       const salt = this.base64ToArrayBuffer(encryptedPayload.salt);
-      console.log('🔍 DECRYPT-DEBUG: Base64 decoding successful');
 
       // Use the salt from the encrypted payload for key derivation
       const key = await this.deriveKey(secret, new Uint8Array(salt));
@@ -220,15 +199,42 @@ export class EncryptionUtils {
    */
   private static base64ToArrayBuffer(base64: string): ArrayBuffer {
     try {
-      // Fix URL encoding issues: replace spaces back to + signs for proper base64
-      const cleanBase64 = base64.replace(/\s/g, '+');
-      const binary = atob(cleanBase64);
+      // Multi-environment base64 decoding
+      let binary: string;
+      
+      // Clean and validate base64 string
+      const cleanBase64 = base64.replace(/\s/g, '+').trim();
+      
+      // Use appropriate decoding method based on environment
+      if (typeof Buffer !== 'undefined' && typeof window === 'undefined') {
+        // Node.js environment - prefer Buffer for reliability
+        const buffer = Buffer.from(cleanBase64, 'base64');
+        binary = buffer.toString('binary');
+      } else if (typeof atob === 'function') {
+        // Browser environment or Node.js with atob polyfill
+        binary = atob(cleanBase64);
+      } else {
+        throw new Error('No base64 decoding method available');
+      }
+      
       const bytes = new Uint8Array(binary.length);
       for (let i = 0; i < binary.length; i++) {
         bytes[i] = binary.charCodeAt(i);
       }
       return bytes.buffer;
     } catch (error) {
+      // Enhanced error reporting
+      const errorDetails = {
+        originalString: base64.substring(0, 20) + '...',
+        cleanedString: base64.replace(/\s/g, '+').trim().substring(0, 20) + '...',
+        stringLength: base64.length,
+        environment: typeof window !== 'undefined' ? 'browser' : 'node',
+        hasAtob: typeof atob !== 'undefined',
+        hasBuffer: typeof Buffer !== 'undefined',
+        error: error instanceof Error ? error.message : 'Unknown error'
+      };
+      
+      console.error('🚨 BASE64-DECODE-ERROR:', errorDetails);
       throw new Error(`Invalid character in base64 string: "${base64.substring(0, 20)}..." - ${error instanceof Error ? error.message : 'Unknown error'}`);
     }
   }
