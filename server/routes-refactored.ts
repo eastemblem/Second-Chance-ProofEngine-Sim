@@ -62,10 +62,15 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Health and monitoring routes
   app.use('/api/health', healthRoutes);
 
+  // Import clean encryption middleware
+  const { cleanDecryptionMiddleware, cleanEncryptionMiddleware } = await import('./middleware/clean-encryption-middleware');
+
   // Legacy routes (preserved during transition)
   app.use('/api', apiRoutes);
   app.use('/api/auth', authRoutes);
-  app.use('/api/auth-token', authTokenRoutes);
+  
+  // Apply clean encryption middleware to auth-token routes specifically
+  app.use('/api/auth-token', cleanDecryptionMiddleware, cleanEncryptionMiddleware, authTokenRoutes);
 
   // Individual route handlers (preserved)
   app.get('/api/leaderboard', getLeaderboard);

@@ -134,6 +134,10 @@ router.post('/register', asyncHandler(async (req, res) => {
  * Login with email and password
  */
 router.post('/login', asyncHandler(async (req, res) => {
+  console.log('[AUTH_TOKEN_LOGIN] Raw request body:', req.body);
+  console.log('[AUTH_TOKEN_LOGIN] Decrypted body:', req.decryptedBody);
+  console.log('[AUTH_TOKEN_LOGIN] Encryption enabled:', req.encryptionEnabled);
+  
   appLogger.info('Clean encrypted login attempt', {
     service: 'second-chance-api',
     category: 'auth',
@@ -143,7 +147,10 @@ router.post('/login', asyncHandler(async (req, res) => {
   
   const { email, password } = req.body;
 
+  // Validate required fields with detailed logging
   if (!email || !password) {
+    console.log('[AUTH_TOKEN_LOGIN] Missing fields - email:', !!email, 'password:', !!password);
+    console.log('[AUTH_TOKEN_LOGIN] Full body keys:', Object.keys(req.body || {}));
     return res.status(400).json(createErrorResponse(400, 'Email and password are required'));
   }
 
