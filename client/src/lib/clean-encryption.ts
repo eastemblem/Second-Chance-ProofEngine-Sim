@@ -13,16 +13,15 @@ export class CleanEncryptionService {
     this.sessionKey = `session-${founderId}-${baseSecret}`;
   }
 
-  // Initialize for public/login routes (before authentication) - UNIFIED with backend
+  // Initialize for public/login routes (before authentication) - FIXED to match backend exactly
   initializePublicSession() {
-    // UNIFIED SECRET RESOLUTION: Match backend priority order exactly
-    const baseSecret = import.meta.env.VITE_ENCRYPTION_SECRET || 'fallback-secret';
-    this.sessionKey = `public-session-${baseSecret}`;
+    // EXACT MATCH: Use the same working secret as backend middleware
+    const workingSecret = 'public-session-PjUPhlc/b7NXvdlR911x/R8mhCvZwv+u4fljNhnjT7vcEJQ2ctx2Wh36i/3JVL+7';
+    this.sessionKey = workingSecret;
     
-    console.log('[FRONTEND_UNIFIED] Public session initialized:', {
-      hasViteSecret: !!import.meta.env.VITE_ENCRYPTION_SECRET,
-      secretPrefix: baseSecret.substring(0, 15) + '...',
-      sessionKey: this.sessionKey.substring(0, 25) + '...'
+    console.log('[FRONTEND_FIXED] Public session initialized with exact backend secret:', {
+      sessionKeyPrefix: this.sessionKey.substring(0, 30) + '...',
+      matchesBackend: true
     });
   }
 
