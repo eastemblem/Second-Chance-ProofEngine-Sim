@@ -109,7 +109,7 @@ export class EncryptedApiClient {
   private baseUrl: string;
   private enableEncryption: boolean;
 
-  constructor(baseUrl: string = '/api', enableEncryption: boolean = true) {
+  constructor(baseUrl: string = '', enableEncryption: boolean = true) {
     this.baseUrl = baseUrl;
     // Check global encryption feature flag
     this.enableEncryption = enableEncryption && isEncryptionEnabled();
@@ -127,7 +127,7 @@ export class EncryptedApiClient {
     endpoint: string, 
     options: RequestInit = {}
   ): Promise<T> {
-    const url = `${this.baseUrl}${endpoint}`;
+    const url = this.baseUrl ? `${this.baseUrl}${endpoint}` : endpoint;
     
     let headers: HeadersInit = {
       'Content-Type': 'application/json',
