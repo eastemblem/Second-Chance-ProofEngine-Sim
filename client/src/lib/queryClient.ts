@@ -19,6 +19,36 @@ const getApiUrl = (endpoint: string) => {
     return endpoint; // Keep as-is for test routes
   }
   
+  // EXEMPTION: Auth token routes for JWT authentication
+  if (endpoint.startsWith('/api/auth-token/')) {
+    return endpoint; // Keep as-is for auth token routes
+  }
+  
+  // EXEMPTION: Session auth routes for legacy authentication
+  if (endpoint.startsWith('/api/auth/')) {
+    return endpoint; // Keep as-is for session auth routes
+  }
+  
+  // EXEMPTION: Email routes
+  if (endpoint.startsWith('/api/email/')) {
+    return endpoint; // Keep as-is for email routes
+  }
+  
+  // EXEMPTION: Vault routes (legacy)
+  if (endpoint.startsWith('/api/vault/')) {
+    return endpoint; // Keep as-is for vault routes
+  }
+  
+  // EXEMPTION: Leaderboard routes
+  if (endpoint.startsWith('/api/leaderboard')) {
+    return endpoint; // Keep as-is for leaderboard routes
+  }
+  
+  // EXEMPTION: Direct submit endpoint
+  if (endpoint.startsWith('/api/submit-for-scoring')) {
+    return endpoint; // Keep as-is for direct submit
+  }
+  
   if (endpoint.startsWith('/api/')) {
     // Convert legacy endpoint to v1
     return endpoint.replace('/api/', `/api/${API_VERSION}/`);
