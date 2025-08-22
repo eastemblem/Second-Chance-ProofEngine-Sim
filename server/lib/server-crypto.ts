@@ -49,11 +49,16 @@ export class ServerCrypto {
       hasTag: !!payload?.tag,
       hasSalt: !!payload?.salt,
       hasTimestamp: !!payload?.timestamp,
-      version: payload?.version
+      version: payload?.version,
+      dataLength: payload?.data?.length,
+      ivLength: payload?.iv?.length,
+      tagLength: payload?.tag?.length,
+      saltLength: payload?.salt?.length
     });
     console.log('🔍 DECRYPT-REQUEST: Context:', {
       hasSecret: !!context.secret,
-      secretLength: context.secret?.length
+      secretLength: context.secret?.length,
+      secretFirst10: context.secret?.substring(0, 10)
     });
 
     // Return original payload if encryption is disabled

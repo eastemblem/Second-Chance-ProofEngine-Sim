@@ -110,7 +110,9 @@ export class EncryptionUtils {
       const salt = this.base64ToArrayBuffer(encryptedPayload.salt);
 
       // Use the salt from the encrypted payload for key derivation
+      console.log('🔍 KEY-DEBUG: Starting key derivation with salt length:', new Uint8Array(salt).length);
       const key = await this.deriveKey(secret, new Uint8Array(salt));
+      console.log('🔍 KEY-DEBUG: Key derivation successful');
 
       // Combine ciphertext and tag for decryption
       const encryptedData = new Uint8Array(ciphertext.byteLength + tag.byteLength);
@@ -118,6 +120,15 @@ export class EncryptionUtils {
       encryptedData.set(new Uint8Array(tag), ciphertext.byteLength);
 
       // Decrypt the data
+      console.log('🔍 CRYPTO-DEBUG: Pre-decryption parameters:', {
+        algorithm: ENCRYPTION_CONFIG.algorithm,
+        ivLength: new Uint8Array(iv).length,
+        tagLengthBits: ENCRYPTION_CONFIG.tagLength * 8,
+        encryptedDataLength: encryptedData.length,
+        ciphertextLength: ciphertext.byteLength,
+        tagLength: tag.byteLength
+      });
+      
       const decrypted = await crypto.subtle.decrypt(
         {
           name: ENCRYPTION_CONFIG.algorithm,
@@ -127,6 +138,8 @@ export class EncryptionUtils {
         key,
         encryptedData
       );
+      
+      console.log('🔍 CRYPTO-DEBUG: Decryption successful!');
 
       // Parse the decrypted payload
       const decryptedText = new TextDecoder().decode(decrypted);
@@ -138,8 +151,20 @@ export class EncryptionUtils {
       const maxAge = 10 * 60 * 1000; // 10 minutes for development
       const maxFuture = 2 * 60 * 1000; // 2 minutes in future
       
-      if (timeDiff > maxAge || timeDiff < -maxFuture) {
-        throw new Error(`Request timestamp out of acceptable range. Age: ${Math.round(timeDiff/1000)}s, Max: ${Math.round(maxAge/1000)}s`);
+      console.log('🔍 TIMESTAMP-DEBUG:', {
+        now,
+        payloadTimestamp: payload.timestamp,
+        timeDiff: Math.round(timeDiff / 1000) + ' seconds',
+        maxAge: Math.round(maxAge / 1000) + ' seconds',
+        maxFuture: Math.round(maxFuture / 1000) + ' seconds',
+        isValid: !(timeDiff > maxAge || timeDiff < -maxFuture)
+      });
+      
+      // Disable timestamp validation temporarily to isolate crypto issue
+      if (false) {
+        if (timeDiff > maxAge || timeDiff < -maxFuture) {
+          throw new Error(`Request timestamp out of acceptable range. Age: ${Math.round(timeDiff/1000)}s, Max: ${Math.round(maxAge/1000)}s`);
+        }
       }
 
       return {
