@@ -210,6 +210,11 @@ export class ChaCha20Utils {
 
       if (typeof window !== 'undefined') {
         // Browser: Use libsodium-wrappers
+        console.log('🔓 ChaCha20: Starting browser decryption...');
+        console.log('🔓 ChaCha20: Ciphertext length:', ciphertext.byteLength);
+        console.log('🔓 ChaCha20: Nonce length:', nonce.byteLength);
+        console.log('🔓 ChaCha20: Key length:', derivedKey.key.length);
+        
         plaintext = this.sodium.crypto_aead_chacha20poly1305_ietf_decrypt(
           null, // nsec (not used)
           new Uint8Array(ciphertext),
@@ -217,26 +222,36 @@ export class ChaCha20Utils {
           new Uint8Array(nonce),
           derivedKey.key
         );
+        console.log('✅ ChaCha20: Browser decryption successful');
       } else {
         // Node.js: Use sodium-native
+        console.log('🔓 ChaCha20: Starting Node.js decryption...');
         const ciphertextBytes = new Uint8Array(ciphertext);
         const nonceBytes = new Uint8Array(nonce);
         
+        console.log('🔓 ChaCha20: Server ciphertext length:', ciphertextBytes.length);
+        console.log('🔓 ChaCha20: Server nonce length:', nonceBytes.length);
+        console.log('🔓 ChaCha20: Server key length:', derivedKey.key.length);
+        
         // Validate input sizes
         if (ciphertextBytes.length < this.sodium.crypto_aead_chacha20poly1305_ietf_ABYTES) {
+          console.error('❌ ChaCha20: Ciphertext too short:', ciphertextBytes.length, 'min required:', this.sodium.crypto_aead_chacha20poly1305_ietf_ABYTES);
           throw new Error(`Ciphertext too short: ${ciphertextBytes.length} bytes, minimum required: ${this.sodium.crypto_aead_chacha20poly1305_ietf_ABYTES}`);
         }
         
         if (nonceBytes.length !== this.sodium.crypto_aead_chacha20poly1305_ietf_NPUBBYTES) {
+          console.error('❌ ChaCha20: Invalid nonce length:', nonceBytes.length, 'required:', this.sodium.crypto_aead_chacha20poly1305_ietf_NPUBBYTES);
           throw new Error(`Invalid nonce length: ${nonceBytes.length} bytes, required: ${this.sodium.crypto_aead_chacha20poly1305_ietf_NPUBBYTES}`);
         }
         
         if (derivedKey.key.length !== this.sodium.crypto_aead_chacha20poly1305_ietf_KEYBYTES) {
+          console.error('❌ ChaCha20: Invalid key length:', derivedKey.key.length, 'required:', this.sodium.crypto_aead_chacha20poly1305_ietf_KEYBYTES);
           throw new Error(`Invalid key length: ${derivedKey.key.length} bytes, required: ${this.sodium.crypto_aead_chacha20poly1305_ietf_KEYBYTES}`);
         }
         
         // Calculate plaintext size
         const plaintextLength = ciphertextBytes.length - this.sodium.crypto_aead_chacha20poly1305_ietf_ABYTES;
+        console.log('🔓 ChaCha20: Expected plaintext length:', plaintextLength);
         plaintext = Buffer.alloc(plaintextLength);
         
         try {
@@ -250,9 +265,12 @@ export class ChaCha20Utils {
           );
 
           if (!success) {
+            console.error('❌ ChaCha20: Authentication verification failed');
             throw new Error('Decryption failed - authentication verification failed');
           }
+          console.log('✅ ChaCha20: Node.js decryption successful');
         } catch (error) {
+          console.error('❌ ChaCha20: Sodium decryption error:', error);
           throw new Error(`Sodium decryption error: ${error instanceof Error ? error.message : 'Unknown error'}`);
         }
         
