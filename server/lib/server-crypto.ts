@@ -21,6 +21,9 @@ export class ServerCrypto {
     const isEnabled = process.env[ENCRYPTION_CONFIG.env.server] === 'true';
     const secret = process.env[ENCRYPTION_CONFIG.env.secret];
 
+    // Debug: Print server-side encryption secret
+    console.log('🔐 SERVER ENCRYPTION_SECRET:', secret);
+
     if (isEnabled && !secret) {
       throw new Error(`Encryption is enabled but ${ENCRYPTION_CONFIG.env.secret} environment variable is not set`);
     }

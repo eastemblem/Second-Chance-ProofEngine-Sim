@@ -19,6 +19,9 @@ export class ClientCrypto {
     const isEnabled = import.meta.env[ENCRYPTION_CONFIG.env.client] === 'true';
     const secret = import.meta.env[ENCRYPTION_CONFIG.env.clientSecret];
 
+    // Debug: Print client-side encryption secret
+    console.log('🔐 CLIENT VITE_ENCRYPTION_SECRET:', secret);
+
     if (isEnabled && !secret) {
       console.warn(`Client encryption is enabled but ${ENCRYPTION_CONFIG.env.clientSecret} environment variable is not set`);
     }
