@@ -21,8 +21,6 @@ export class ServerCrypto {
     const isEnabled = process.env[ENCRYPTION_CONFIG.env.server] === 'true';
     const secret = process.env[ENCRYPTION_CONFIG.env.secret];
 
-    // Debug: Print server-side encryption secret
-    console.log('🔐 SERVER ENCRYPTION_SECRET:', secret);
 
     if (isEnabled && !secret) {
       throw new Error(`Encryption is enabled but ${ENCRYPTION_CONFIG.env.secret} environment variable is not set`);
@@ -42,44 +40,21 @@ export class ServerCrypto {
     payload: any, 
     context: EncryptionContext
   ): Promise<{ data: any; wasEncrypted: boolean }> {
-    console.log('🔍 DECRYPT-REQUEST: Starting payload decryption');
-    console.log('🔍 DECRYPT-REQUEST: Payload structure:', {
-      hasData: !!payload?.data,
-      hasIv: !!payload?.iv,
-      hasTag: !!payload?.tag,
-      hasSalt: !!payload?.salt,
-      hasTimestamp: !!payload?.timestamp,
-      version: payload?.version,
-      dataLength: payload?.data?.length,
-      ivLength: payload?.iv?.length,
-      tagLength: payload?.tag?.length,
-      saltLength: payload?.salt?.length
-    });
-    console.log('🔍 DECRYPT-REQUEST: Context:', {
-      hasSecret: !!context.secret,
-      secretLength: context.secret?.length,
-      secretFirst10: context.secret?.substring(0, 10)
-    });
 
     // Return original payload if encryption is disabled
     if (!context.isEnabled || !context.secret) {
-      console.log('🔍 DECRYPT-REQUEST: Encryption disabled or no secret');
       return { data: payload, wasEncrypted: false };
     }
 
     // Check if payload is encrypted
     if (!EncryptionUtils.isEncryptedPayload(payload)) {
-      console.log('🔍 DECRYPT-REQUEST: Not an encrypted payload');
       return { data: payload, wasEncrypted: false };
     }
 
-    console.log('🔍 DECRYPT-REQUEST: Valid encrypted payload, attempting decryption');
     try {
       const decryptionResult = await EncryptionUtils.decryptData(payload, context.secret);
-      console.log('🔍 DECRYPT-REQUEST: Decryption successful');
       return { data: decryptionResult.data, wasEncrypted: true };
     } catch (error) {
-      console.log('🔍 DECRYPT-REQUEST: Decryption failed:', error);
       const errorMessage = error instanceof Error ? error.message : 'Unknown decryption error';
       throw new Error(`Failed to decrypt request payload: ${errorMessage}`);
     }

@@ -52,8 +52,6 @@ export function encryptionMiddleware() {
 
       // Decrypt request body if encrypted (only for requests with body)
       if (req.body && isEncryptedRequest) {
-        console.log('🔥 MIDDLEWARE: About to decrypt encrypted request body');
-        console.log('🔥 MIDDLEWARE: Request body structure:', Object.keys(req.body || {}));
         
         try {
           const decryptionResult = await ServerCrypto.decryptRequestPayload(req.body, context);
