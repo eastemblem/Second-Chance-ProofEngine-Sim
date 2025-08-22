@@ -1,12 +1,8 @@
 import express from 'express';
 import { encryptData, decryptData, generateSessionSecret, isValidEncryptedPayload } from '../lib/clean-encryption';
-import { cleanDecryptionMiddleware, cleanEncryptionMiddleware } from '../middleware/clean-encryption-middleware';
-
 const router = express.Router();
 
-// Apply clean encryption middleware
-router.use(cleanDecryptionMiddleware);
-router.use(cleanEncryptionMiddleware);
+// Clean encryption middleware applied globally - no need for route-level registration
 
 // Test endpoint for clean encryption system
 router.post('/echo', async (req, res) => {

@@ -6,19 +6,19 @@ import { EncryptedPayload } from '@shared/crypto-utils';
  * Single AES-256-GCM implementation with SHA-256 key derivation
  */
 
-// Generate session secret for encryption with debug logging
+// Generate session secret for encryption - UNIFIED approach for frontend/backend compatibility
 export function generateSessionSecret(founderId?: string): string {
-  const viteSecret = process.env.VITE_ENCRYPTION_SECRET;
-  const encSecret = process.env.ENCRYPTION_SECRET;
-  const baseSecret = viteSecret || encSecret || 'fallback-secret';
+  // UNIFIED SECRET RESOLUTION: Use same priority order as frontend
+  const baseSecret = process.env.ENCRYPTION_SECRET || process.env.VITE_ENCRYPTION_SECRET || 'fallback-secret';
   
   // Debug logging for production troubleshooting
   if (process.env.NODE_ENV !== 'production') {
-    console.log('Secret generation debug:', {
-      hasViteSecret: !!viteSecret,
-      hasEncSecret: !!encSecret,
+    console.log('[UNIFIED_SECRET] Secret generation:', {
+      hasEncSecret: !!process.env.ENCRYPTION_SECRET,
+      hasViteSecret: !!process.env.VITE_ENCRYPTION_SECRET,
       secretPrefix: baseSecret.substring(0, 15) + '...',
-      founderId: founderId || 'public'
+      founderId: founderId || 'public',
+      finalSecret: founderId ? `session-${founderId}-${baseSecret.substring(0, 10)}...` : `public-session-${baseSecret.substring(0, 10)}...`
     });
   }
   
@@ -26,7 +26,7 @@ export function generateSessionSecret(founderId?: string): string {
     return `session-${founderId}-${baseSecret}`;
   }
   
-  // For public/login routes
+  // For public/login routes - MUST match frontend exactly
   return `public-session-${baseSecret}`;
 }
 

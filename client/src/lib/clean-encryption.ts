@@ -13,10 +13,17 @@ export class CleanEncryptionService {
     this.sessionKey = `session-${founderId}-${baseSecret}`;
   }
 
-  // Initialize for public/login routes (before authentication)
+  // Initialize for public/login routes (before authentication) - UNIFIED with backend
   initializePublicSession() {
+    // UNIFIED SECRET RESOLUTION: Match backend priority order exactly
     const baseSecret = import.meta.env.VITE_ENCRYPTION_SECRET || 'fallback-secret';
     this.sessionKey = `public-session-${baseSecret}`;
+    
+    console.log('[FRONTEND_UNIFIED] Public session initialized:', {
+      hasViteSecret: !!import.meta.env.VITE_ENCRYPTION_SECRET,
+      secretPrefix: baseSecret.substring(0, 15) + '...',
+      sessionKey: this.sessionKey.substring(0, 25) + '...'
+    });
   }
 
   // Clean AES encryption using unified standard

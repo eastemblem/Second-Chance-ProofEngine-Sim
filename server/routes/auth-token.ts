@@ -11,13 +11,9 @@ import {
 import { asyncHandler, createSuccessResponse, createErrorResponse } from '../utils/error-handler';
 import { appLogger } from '../utils/logger';
 import { ActivityService } from '../services/activity-service';
-import { cleanDecryptionMiddleware, cleanEncryptionMiddleware } from '../middleware/clean-encryption-middleware';
-
 const router = express.Router();
 
-// Apply clean encryption middleware to all auth-token routes
-router.use(cleanDecryptionMiddleware);
-router.use(cleanEncryptionMiddleware);
+// Clean encryption middleware applied globally - no need for route-level registration
 
 /**
  * Register new user with token-based authentication

@@ -1,21 +1,21 @@
 import { Router } from 'express';
-import { unifiedEncrypt, unifiedDecrypt, validateUnifiedPayload } from '../lib/unified-encryption';
+import { encryptData, decryptData, generateSessionSecret, isValidEncryptedPayload } from '../lib/clean-encryption';
 
 const router = Router();
 
 /**
- * Test endpoint for unified encryption standard
+ * Test endpoint for CLEAN encryption standard - unified encryption removed
  */
 router.post('/unified-test/echo', async (req, res) => {
   try {
     const { data } = req.body;
-    const sessionSecret = 'test-unified-secret';
+    const sessionSecret = generateSessionSecret(); // Use clean encryption
     
-    // Test encryption
-    const encrypted = unifiedEncrypt(JSON.stringify({ message: data }), sessionSecret);
+    // Test encryption with clean system
+    const encrypted = encryptData(JSON.stringify({ message: data }), sessionSecret);
     
-    // Test decryption
-    const decrypted = unifiedDecrypt(encrypted, sessionSecret);
+    // Test decryption with clean system
+    const decrypted = decryptData(encrypted, sessionSecret);
     const parsed = JSON.parse(decrypted);
     
     res.json({
@@ -23,11 +23,12 @@ router.post('/unified-test/echo', async (req, res) => {
       original: data,
       encrypted,
       decrypted: parsed,
-      isValidFormat: validateUnifiedPayload(encrypted),
+      isValidFormat: isValidEncryptedPayload(encrypted),
       meta: {
         algorithm: 'aes-256-gcm',
         ivLength: Buffer.from(encrypted.iv, 'base64').length,
-        tagLength: Buffer.from(encrypted.tag, 'base64').length
+        tagLength: Buffer.from(encrypted.tag, 'base64').length,
+        system: 'clean-encryption'
       }
     });
   } catch (error) {
@@ -39,16 +40,16 @@ router.post('/unified-test/echo', async (req, res) => {
 });
 
 /**
- * Test decryption of production request format
+ * Test decryption of production request format using CLEAN encryption
  */
 router.post('/unified-test/production', async (req, res) => {
   try {
     const payload = req.body;
     
-    // Validate format
-    const isValid = validateUnifiedPayload(payload);
+    // Validate format with clean system
+    const isValid = isValidEncryptedPayload(payload);
     
-    // Try decryption with different secrets
+    // Try decryption with different secrets using clean system
     const secrets = [
       'public-session-PjUPhlc/b7NXvdlR911x/R8mhCvZwv+u4fljNhnjT7vcEJQ2ctx2Wh36i/3JVL+7',
       'PjUPhlc/b7NXvdlR911x/R8mhCvZwv+u4fljNhnjT7vcEJQ2ctx2Wh36i/3JVL+7',
@@ -59,7 +60,7 @@ router.post('/unified-test/production', async (req, res) => {
     
     for (const secret of secrets) {
       try {
-        const decrypted = unifiedDecrypt(payload, secret);
+        const decrypted = decryptData(payload, secret); // Use clean decryption
         results.push({
           secret: secret.substring(0, 20) + '...',
           success: true,
@@ -81,7 +82,8 @@ router.post('/unified-test/production', async (req, res) => {
       meta: {
         ivLength: Buffer.from(payload.iv, 'base64').length,
         tagLength: Buffer.from(payload.tag, 'base64').length,
-        dataLength: Buffer.from(payload.data, 'base64').length
+        dataLength: Buffer.from(payload.data, 'base64').length,
+        system: 'clean-encryption'
       }
     });
   } catch (error) {
