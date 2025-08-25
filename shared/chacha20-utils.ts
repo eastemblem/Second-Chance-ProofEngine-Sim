@@ -137,7 +137,7 @@ export class ChaCha20Utils {
       // Derive encryption key
       console.log('🔐 ChaCha20: ENCRYPT deriving key with secret length:', secret.length, 'salt length:', salt.length);
       const derivedKey = await this.deriveKey(secret, salt);
-      console.log('🔐 ChaCha20: ENCRYPT derived key length:', derivedKey.length, 'bytes');
+      console.log('🔐 ChaCha20: ENCRYPT derived key length:', derivedKey.key.length, 'bytes');
 
       // Prepare payload with timestamp for replay protection
       const payload = {
@@ -210,7 +210,7 @@ export class ChaCha20Utils {
       // Derive decryption key using the salt from the payload
       console.log('🔓 ChaCha20: Deriving key with secret length:', secret.length, 'salt length:', salt.byteLength);
       const derivedKey = await this.deriveKey(secret, new Uint8Array(salt));
-      console.log('🔓 ChaCha20: Derived key length:', derivedKey.length, 'bytes');
+      console.log('🔓 ChaCha20: Derived key length:', derivedKey.key.length, 'bytes');
 
       // Decrypt the data
       let plaintext: Uint8Array;
