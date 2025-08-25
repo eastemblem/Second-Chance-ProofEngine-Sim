@@ -225,8 +225,8 @@ export class EncryptionUtils {
       // Multi-environment base64 decoding
       let binary: string;
       
-      // Clean and validate base64 string
-      const cleanBase64 = base64.replace(/\s/g, '+').trim();
+      // Clean and validate base64 string - remove whitespace
+      const cleanBase64 = base64.replace(/\s/g, '').trim();
       
       // Use appropriate decoding method based on environment
       if (typeof Buffer !== 'undefined' && typeof window === 'undefined') {
@@ -249,7 +249,7 @@ export class EncryptionUtils {
       // Enhanced error reporting
       const errorDetails = {
         originalString: base64.substring(0, 20) + '...',
-        cleanedString: base64.replace(/\s/g, '+').trim().substring(0, 20) + '...',
+        cleanedString: base64.replace(/\s/g, '').trim().substring(0, 20) + '...',
         stringLength: base64.length,
         environment: typeof window !== 'undefined' ? 'browser' : 'node',
         hasAtob: typeof atob !== 'undefined',
