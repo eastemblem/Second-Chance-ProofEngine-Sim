@@ -42,7 +42,7 @@ export function DashboardHeader({ user, validationData }: DashboardHeaderProps) 
     <div className="bg-black text-white">
       <div className="max-w-7xl mx-auto px-4 py-6">
         {/* Header Section */}
-        <div className="flex items-center gap-4 mb-6">
+        <div className="flex items-center gap-4">
           {/* Avatar */}
           <div className="w-16 h-16 rounded-full bg-gradient-to-r from-purple-500 to-yellow-500 flex items-center justify-center font-bold text-xl text-white">
             {userInitial}
