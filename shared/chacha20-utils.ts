@@ -262,6 +262,12 @@ export class ChaCha20Utils {
         plaintext = Buffer.alloc(plaintextLength);
         
         try {
+          console.log('🔓 ChaCha20: About to call sodium decrypt with:');
+          console.log('🔓 ChaCha20: - plaintext buffer length:', plaintext.length);
+          console.log('🔓 ChaCha20: - ciphertext length:', ciphertextBytes.length);
+          console.log('🔓 ChaCha20: - nonce length:', nonceBytes.length);
+          console.log('🔓 ChaCha20: - key length:', derivedKey.key.length);
+          
           const success = this.sodium.crypto_aead_chacha20poly1305_ietf_decrypt(
             plaintext,
             null, // nsec (not used) 
@@ -270,6 +276,8 @@ export class ChaCha20Utils {
             nonceBytes,
             derivedKey.key
           );
+          
+          console.log('🔓 ChaCha20: Sodium decrypt returned:', success);
 
           if (!success) {
             console.error('❌ ChaCha20: Authentication verification failed');
