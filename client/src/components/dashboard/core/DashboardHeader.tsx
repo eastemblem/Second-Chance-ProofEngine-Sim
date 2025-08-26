@@ -53,14 +53,14 @@ export function DashboardHeader({ user, validationData }: DashboardHeaderProps) 
             <h2 className="text-lg text-gray-300 mb-1">
               Hi {userName},
             </h2>
-            <h1 className="text-3xl font-bold text-white">
+            <h1 className="text-3xl font-bold text-white mb-0">
               Welcome to Second Chance!
             </h1>
           </div>
         </div>
 
         {/* ProofTags Banner */}
-        <div className="bg-gray-800/60 rounded-lg px-4 py-3 border border-gray-700/50 inline-block mt-4 ml-20">
+        <div className="bg-gray-800/60 rounded-lg px-4 py-3 border border-gray-700/50 inline-block mt-2 ml-20">
           <div className="flex items-center gap-2">
             <span className="text-base">🎉</span>
             <span className="text-white font-medium text-sm">Congratulations!</span>
