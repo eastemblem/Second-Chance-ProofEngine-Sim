@@ -29,6 +29,7 @@ const SimpleResetTest = lazy(() => import("@/pages/simple-reset-test"));
 const LoginPage = lazy(() => import("@/pages/login"));
 const ForgotPasswordPage = lazy(() => import("@/pages/forgot-password"));
 const Dashboard = lazy(() => import("@/pages/dashboard"));
+const DashboardV2 = lazy(() => import("@/pages/dashboard-v2"));
 const TokenExpiredPage = lazy(() => import("@/pages/token-expired"));
 
 // Development-only test pages (conditionally loaded)
@@ -215,6 +216,11 @@ function Router() {
       <Route path="/dashboard" component={() => (
         <Suspense fallback={<SimpleLoader />}>
           <Dashboard />
+        </Suspense>
+      )} />
+      <Route path="/dashboard-v2" component={() => (
+        <Suspense fallback={<SimpleLoader />}>
+          <DashboardV2 />
         </Suspense>
       )} />
       <Route path="/token-expired" component={() => (
