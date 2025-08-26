@@ -40,7 +40,6 @@ const EncryptionDemo = lazy(() => import("@/pages/encryption-demo"));
 const CleanLoginTest = lazy(() => import("@/pages/clean-login-test"));
 const SecureLogin = lazy(() => import("@/pages/secure-login"));
 const SecureFlowDemo = lazy(() => import("@/pages/secure-flow-demo"));
-const SimpleCryptoTest = lazy(() => import("@/pages/simple-crypto-test"));
 
 const SimpleResetPassword = lazy(() => import("@/pages/simple-reset-password"));
 const PaymentSuccessPage = lazy(() => import("@/pages/payment-success"));
@@ -294,11 +293,6 @@ function Router() {
       <Route path="/secure-flow-demo" component={() => (
         <Suspense fallback={<SimpleLoader />}>
           <SecureFlowDemo />
-        </Suspense>
-      )} />
-      <Route path="/crypto-test" component={() => (
-        <Suspense fallback={<SimpleLoader />}>
-          <SimpleCryptoTest />
         </Suspense>
       )} />
 
