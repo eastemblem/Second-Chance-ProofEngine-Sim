@@ -18,13 +18,11 @@ const FeedbackPage = lazy(() => import("@/pages/feedback"));
 const PathwayPage = lazy(() => import("@/pages/pathway"));
 const DealRoomSalesPage = lazy(() => import("@/pages/deal-room-sales"));
 const ProofScalingSalesPage = lazy(() => import("@/pages/proofscaling-sales"));
-const ProofScalingDashboard = lazy(() => import("@/pages/proofscaling-dashboard"));
 const FinalPage = lazy(() => import("@/pages/final"));
 const Privacy = lazy(() => import("@/pages/Privacy"));
 const Terms = lazy(() => import("@/pages/Terms"));
 const SetPasswordPage = lazy(() => import("@/pages/set-password"));
 const ResetPasswordPage = lazy(() => import("@/pages/reset-password"));
-const ResetPasswordDebugPage = lazy(() => import("@/pages/reset-password-debug"));
 const SimpleResetTest = lazy(() => import("@/pages/simple-reset-test"));
 const LoginPage = lazy(() => import("@/pages/login"));
 const ForgotPasswordPage = lazy(() => import("@/pages/forgot-password"));
@@ -122,14 +120,14 @@ function SimulationFlow() {
             proofScore={state.proofScore}
           />
         ) : state.proofScore ? (
-          <ProofScalingDashboard 
+          <ProofScalingSalesPage 
             onNext={() => setCurrentPage(8)}
             proofScore={state.proofScore}
           />
         ) : null;
       case 7:
         return state.proofScore ? (
-          <ProofScalingDashboard 
+          <ProofScalingSalesPage 
             onNext={() => setCurrentPage(8)}
             proofScore={state.proofScore}
           />
@@ -205,14 +203,6 @@ function Router() {
           <ResetPasswordPage />
         </Suspense>
       )} />
-      {/* Development-only reset password debug route */}
-      {import.meta.env.MODE === 'development' && ResetPasswordDebugPage && (
-        <Route path="/reset-password-debug" component={() => (
-          <Suspense fallback={<SimpleLoader />}>
-            <ResetPasswordDebugPage />
-          </Suspense>
-        )} />
-      )}
       <Route path="/dashboard" component={() => (
         <Suspense fallback={<SimpleLoader />}>
           <Dashboard />
@@ -241,11 +231,6 @@ function Router() {
       <Route path="/proof-scaling" component={() => (
         <Suspense fallback={<SimpleLoader />}>
           <ProofScalingSalesPage />
-        </Suspense>
-      )} />
-      <Route path="/proofscaling" component={() => (
-        <Suspense fallback={<SimpleLoader />}>
-          <ProofScalingDashboard />
         </Suspense>
       )} />
       {/* Development-only test routes */}

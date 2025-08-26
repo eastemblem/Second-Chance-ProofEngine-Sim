@@ -1,12 +1,12 @@
 import { motion } from "framer-motion";
-import { Brain, BookOpen, TrendingUp, Target } from "lucide-react";
+import { Crown, TrendingUp, DollarSign, Users } from "lucide-react";
 
 export function FloatingElements() {
   const elements = [
-    { icon: Brain, delay: 0, x: "10%", y: "20%" },
+    { icon: Crown, delay: 0, x: "10%", y: "20%" },
     { icon: TrendingUp, delay: 0.5, x: "85%", y: "15%" },
-    { icon: BookOpen, delay: 1, x: "15%", y: "80%" },
-    { icon: Target, delay: 1.5, x: "90%", y: "75%" }
+    { icon: DollarSign, delay: 1, x: "15%", y: "80%" },
+    { icon: Users, delay: 1.5, x: "90%", y: "75%" }
   ];
 
   return (
@@ -42,7 +42,7 @@ export function FloatingElements() {
               }
             }}
           >
-            <Icon className="w-12 h-12 text-blue-500" />
+            <Icon className="w-12 h-12 text-primary-gold" />
           </motion.div>
         );
       })}

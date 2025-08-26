@@ -22,7 +22,7 @@ export function SuccessIndicator({ metric, description, delay = 0 }: SuccessIndi
         <CheckCircle2 className="w-5 h-5 text-green-500" />
       </motion.div>
       <div>
-        <div className="text-lg font-bold text-blue-500">{metric}</div>
+        <div className="text-lg font-bold text-primary-gold">{metric}</div>
         <div className="text-sm text-muted-foreground">{description}</div>
       </div>
       <motion.div

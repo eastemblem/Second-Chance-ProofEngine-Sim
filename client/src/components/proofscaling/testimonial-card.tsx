@@ -1,16 +1,16 @@
 import { motion } from "framer-motion";
-import { Star } from "lucide-react";
 import { Card } from "@/components/ui/card";
+import { Star } from "lucide-react";
 
-export interface TestimonialData {
+interface TestimonialData {
   name: string;
   title: string;
   company: string;
-  avatar: string;
-  rating: number;
-  quote: string;
-  result: string;
   proofScore: number;
+  quote: string;
+  rating: number;
+  result: string;
+  avatar: string;
 }
 
 interface TestimonialCardProps {
@@ -22,11 +22,11 @@ export function TestimonialCard({ testimonial, delay = 0 }: TestimonialCardProps
   const getFounderImage = (name: string) => {
     // Generate a consistent gradient based on name
     const colors = [
-      'from-blue-500 to-green-500',
-      'from-green-500 to-teal-500', 
-      'from-teal-500 to-blue-500',
-      'from-indigo-500 to-blue-500',
-      'from-blue-500 to-purple-500'
+      'from-purple-500 to-pink-500',
+      'from-blue-500 to-cyan-500', 
+      'from-green-500 to-teal-500',
+      'from-orange-500 to-red-500',
+      'from-indigo-500 to-purple-500'
     ];
     const index = name.split('').reduce((acc, char) => acc + char.charCodeAt(0), 0) % colors.length;
     return colors[index];
@@ -44,26 +44,26 @@ export function TestimonialCard({ testimonial, delay = 0 }: TestimonialCardProps
       }}
       className="h-full group"
     >
-      <Card className="p-6 bg-gradient-to-br from-card/50 to-card/80 backdrop-blur-sm border border-border/50 h-full hover:border-blue-500/30 transition-all duration-300 hover:shadow-2xl hover:shadow-blue-500/10 relative overflow-hidden">
+      <Card className="p-6 bg-gradient-to-br from-card/50 to-card/80 backdrop-blur-sm border border-border/50 h-full hover:border-primary/30 transition-all duration-300 hover:shadow-2xl hover:shadow-primary/10 relative overflow-hidden">
         {/* Background decoration */}
-        <div className="absolute top-0 right-0 w-32 h-32 bg-gradient-to-bl from-blue-500/10 to-transparent rounded-full -translate-y-16 translate-x-16 group-hover:scale-150 transition-transform duration-500" />
+        <div className="absolute top-0 right-0 w-32 h-32 bg-gradient-to-bl from-primary-gold/10 to-transparent rounded-full -translate-y-16 translate-x-16 group-hover:scale-150 transition-transform duration-500" />
         
         <div className="flex items-start space-x-4 mb-6 relative">
           <motion.div 
-            className={`w-14 h-14 rounded-full bg-gradient-to-br ${getFounderImage(testimonial.name)} flex items-center justify-center text-white font-bold text-lg flex-shrink-0 ring-2 ring-blue-500/20 group-hover:ring-blue-500/40 transition-all duration-300`}
+            className={`w-14 h-14 rounded-full bg-gradient-to-br ${getFounderImage(testimonial.name)} flex items-center justify-center text-white font-bold text-lg flex-shrink-0 ring-2 ring-primary-gold/20 group-hover:ring-primary-gold/40 transition-all duration-300`}
             whileHover={{ scale: 1.1, rotate: 5 }}
           >
             {testimonial.avatar}
           </motion.div>
           <div className="text-left flex-1">
-            <h4 className="font-bold text-foreground text-lg group-hover:text-blue-500 transition-colors">{testimonial.name}</h4>
+            <h4 className="font-bold text-foreground text-lg group-hover:text-primary transition-colors">{testimonial.name}</h4>
             <p className="text-sm text-muted-foreground font-medium">{testimonial.title}</p>
             <p className="text-sm font-semibold mt-1">
               <span className="text-muted-foreground">at </span>
-              <span className="text-blue-500">{testimonial.company}</span>
+              <span className="text-primary">{testimonial.company}</span>
             </p>
             <div className="mt-2 flex items-center space-x-2">
-              <div className="text-xs font-bold px-2 py-1 bg-blue-500/20 text-blue-500 rounded-full">
+              <div className="text-xs font-bold px-2 py-1 bg-primary-gold/20 text-primary-gold rounded-full">
                 ProofScore: {testimonial.proofScore}
               </div>
             </div>
@@ -82,15 +82,15 @@ export function TestimonialCard({ testimonial, delay = 0 }: TestimonialCardProps
                   animate={{ scale: 1 }}
                   transition={{ duration: 0.3, delay: delay + 0.1 * i }}
                 >
-                  <Star className="w-4 h-4 fill-blue-500 text-blue-500" />
+                  <Star className="w-4 h-4 fill-primary-gold text-primary-gold" />
                 </motion.div>
               ))}
             </div>
             <div className="text-right">
-              <div className="text-lg font-bold bg-gradient-to-r from-blue-500 to-green-500 bg-clip-text text-transparent">
+              <div className="text-lg font-bold bg-gradient-to-r from-primary-gold to-orange-500 bg-clip-text text-transparent">
                 {testimonial.result}
               </div>
-              <div className="text-xs text-muted-foreground">improvement</div>
+              <div className="text-xs text-muted-foreground">raised</div>
             </div>
           </div>
         </div>

@@ -1,29 +1,30 @@
 import { motion } from "framer-motion";
 import { Button } from "@/components/ui/button";
 import { LucideIcon } from "lucide-react";
+import { ReactNode } from "react";
 
 interface GradientButtonProps {
-  children: React.ReactNode;
-  onClick?: () => void;
+  children: ReactNode;
   leftIcon?: LucideIcon;
   rightIcon?: LucideIcon;
   size?: "sm" | "md" | "lg" | "xl";
   className?: string;
+  onClick?: () => void;
   animate?: boolean;
 }
 
-export function GradientButton({
-  children,
-  onClick,
-  leftIcon: LeftIcon,
+export function GradientButton({ 
+  children, 
+  leftIcon: LeftIcon, 
   rightIcon: RightIcon,
-  size = "md",
+  size = "lg",
   className = "",
+  onClick,
   animate = true
 }: GradientButtonProps) {
   const sizeClasses = {
-    sm: "text-sm px-6 py-2",
-    md: "text-base px-8 py-3",
+    sm: "text-sm px-6 py-3",
+    md: "text-base px-8 py-4", 
     lg: "text-lg px-12 py-4",
     xl: "text-xl px-12 py-6"
   };
@@ -31,7 +32,7 @@ export function GradientButton({
   const buttonContent = (
     <Button
       size="lg"
-      className={`relative bg-gradient-to-r from-blue-500 via-green-500 to-blue-600 hover:from-blue-500/90 hover:via-green-500/90 hover:to-blue-600/90 text-white font-semibold h-auto rounded-full shadow-xl hover:shadow-2xl hover:shadow-blue-500/25 transition-all duration-300 overflow-hidden ${sizeClasses[size]} ${className}`}
+      className={`relative bg-gradient-to-r from-primary via-primary-gold to-orange-500 hover:from-primary/90 hover:via-primary-gold/90 hover:to-orange-500/90 text-white font-semibold h-auto rounded-full shadow-xl hover:shadow-2xl hover:shadow-primary-gold/25 transition-all duration-300 overflow-hidden ${sizeClasses[size]} ${className}`}
       onClick={onClick}
     >
       {/* Animated background shine effect */}

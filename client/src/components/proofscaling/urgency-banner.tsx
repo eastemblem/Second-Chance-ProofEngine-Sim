@@ -1,18 +1,12 @@
-import { motion } from "framer-motion";
-import { Clock } from "lucide-react";
+import { Badge } from "@/components/ui/badge";
+import { Clock, Users } from "lucide-react";
 
 export function UrgencyBanner() {
   return (
-    <motion.div
-      initial={{ opacity: 0, scale: 0.95 }}
-      animate={{ opacity: 1, scale: 1 }}
-      transition={{ duration: 0.5, delay: 0.4 }}
-      className="inline-flex items-center gap-2 bg-orange-500/10 border border-orange-500/30 rounded-full px-6 py-3 mb-12"
-    >
-      <Clock size={18} className="text-orange-400" />
-      <span className="text-orange-300 font-medium">
-        Next cohort starts in 30 days - Limited spots available
-      </span>
-    </motion.div>
+    <Badge variant="outline" className="bg-gradient-to-r from-orange-500/20 to-red-500/20 border-orange-500/50 text-orange-200 px-6 py-2 text-sm font-medium">
+      <Clock className="w-4 h-4 mr-2" />
+      Limited spots available - Join 1,247 founders scaling their startups
+      <Users className="w-4 h-4 ml-2" />
+    </Badge>
   );
 }

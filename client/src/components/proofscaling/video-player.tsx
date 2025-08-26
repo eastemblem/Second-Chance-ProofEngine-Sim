@@ -1,54 +1,42 @@
-import { motion } from "framer-motion";
-import { Play } from "lucide-react";
 import { useState } from "react";
+import { PlayCircle, Volume2 } from "lucide-react";
+import { Button } from "@/components/ui/button";
 
 interface VideoPlayerProps {
-  title: string;
-  subtitle: string;
   thumbnail?: string;
-  onPlay?: () => void;
+  title?: string;
+  duration?: string;
 }
 
-export function VideoPlayer({ title, subtitle, thumbnail, onPlay }: VideoPlayerProps) {
-  const [isHovered, setIsHovered] = useState(false);
+export function VideoPlayer({ thumbnail, title = "ProofScaling Demo", duration = "3:45" }: VideoPlayerProps) {
+  const [isPlaying, setIsPlaying] = useState(false);
 
   return (
-    <motion.div
-      initial={{ opacity: 0, y: 20 }}
-      animate={{ opacity: 1, y: 0 }}
-      transition={{ duration: 0.6 }}
-      className="relative w-full max-w-2xl mx-auto"
-    >
-      <div
-        className="relative bg-gradient-to-br from-purple-600 to-orange-500 rounded-2xl py-24 px-16 cursor-pointer overflow-hidden"
-        onMouseEnter={() => setIsHovered(true)}
-        onMouseLeave={() => setIsHovered(false)}
-        onClick={onPlay}
-      >
-        {/* Background Pattern */}
-        <div className="absolute inset-0 opacity-10">
-          <div className="absolute top-8 left-8 w-32 h-32 bg-white/20 rounded-full blur-xl" />
-          <div className="absolute bottom-8 right-8 w-24 h-24 bg-white/10 rounded-full blur-lg" />
-        </div>
-
-        {/* Play Button */}
-        <motion.div
-          animate={{ scale: isHovered ? 1.1 : 1 }}
-          transition={{ duration: 0.3 }}
-          className="relative z-10 flex flex-col items-center text-center text-white"
-        >
-          <motion.div
-            animate={{ scale: isHovered ? 1.1 : 1 }}
-            transition={{ duration: 0.3 }}
-            className="w-16 h-16 bg-white/20 backdrop-blur-sm rounded-full flex items-center justify-center mb-6 hover:bg-white/30 transition-colors"
+    <div className="relative bg-gradient-to-br from-gray-900 to-gray-800 rounded-xl overflow-hidden shadow-2xl max-w-2xl mx-auto">
+      <div className="aspect-video bg-gradient-to-br from-purple-900/50 to-blue-900/50 flex items-center justify-center">
+        {!isPlaying ? (
+          <Button
+            onClick={() => setIsPlaying(true)}
+            variant="ghost"
+            size="lg"
+            className="text-white hover:text-purple-200 hover:bg-white/10"
           >
-            <Play className="w-8 h-8 ml-1" />
-          </motion.div>
-
-          <h3 className="text-2xl font-bold mb-2">{title}</h3>
-          <p className="text-white/80 text-lg">{subtitle}</p>
-        </motion.div>
+            <PlayCircle className="w-16 h-16" />
+          </Button>
+        ) : (
+          <div className="text-white text-center">
+            <Volume2 className="w-8 h-8 mx-auto mb-2" />
+            <p>Video would play here</p>
+          </div>
+        )}
       </div>
-    </motion.div>
+      
+      <div className="p-4 bg-gray-900/80">
+        <div className="flex items-center justify-between">
+          <h4 className="text-white font-medium">{title}</h4>
+          <span className="text-gray-400 text-sm">{duration}</span>
+        </div>
+      </div>
+    </div>
   );
 }

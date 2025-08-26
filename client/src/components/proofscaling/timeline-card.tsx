@@ -1,4 +1,4 @@
-import { motion } from "framer-motion";
+import { Card } from "@/components/ui/card";
 import { LucideIcon } from "lucide-react";
 
 interface TimelineCardProps {
@@ -6,9 +6,8 @@ interface TimelineCardProps {
   title: string;
   description: string;
   icon: LucideIcon;
-  isLeft: boolean;
-  delay?: number;
   weekColor?: string;
+  isActive?: boolean;
 }
 
 export function TimelineCard({ 
@@ -16,51 +15,28 @@ export function TimelineCard({
   title, 
   description, 
   icon: Icon, 
-  isLeft, 
-  delay = 0,
-  weekColor = "bg-blue-500"
+  weekColor = "bg-blue-500",
+  isActive = false 
 }: TimelineCardProps) {
   return (
-    <div className="relative flex items-center justify-center min-h-[200px] mb-0">
-      {/* Card positioned left or right of center */}
-      <motion.div
-        initial={{ opacity: 0, x: isLeft ? -50 : 50 }}
-        animate={{ opacity: 1, x: 0 }}
-        transition={{ duration: 0.6, delay }}
-        whileHover={{ 
-          scale: 1.02, 
-          y: -5,
-          transition: { duration: 0.3 }
-        }}
-        className={`absolute ${isLeft ? 'right-1/2 mr-8' : 'left-1/2 ml-8'} w-80 max-w-md z-10`}
-      >
-        <div className="bg-card/60 backdrop-blur-sm border border-border/50 rounded-xl p-6 hover:shadow-lg hover:border-border/80 transition-all duration-300">
-          <div className="flex items-start gap-4">
-            {/* Icon */}
-            <div className="p-3 rounded-lg bg-gradient-to-br from-purple-500 to-blue-500 flex-shrink-0">
-              <Icon className="w-6 h-6 text-white" />
-            </div>
-            
-            {/* Content */}
-            <div className="flex-1">
-              {/* Week Badge */}
-              <div className={`inline-flex items-center px-3 py-1 rounded-full text-white text-xs font-medium mb-3 ${weekColor}`}>
-                Week {week}
-              </div>
-              
-              {/* Title */}
-              <h3 className="text-lg font-bold text-foreground mb-2">
-                {title}
-              </h3>
-              
-              {/* Description */}
-              <p className="text-muted-foreground text-sm leading-relaxed">
-                {description}
-              </p>
-            </div>
-          </div>
+    <Card className={`p-6 transition-all duration-300 ${
+      isActive 
+        ? 'bg-gradient-to-br from-purple-900/50 to-blue-900/50 border-purple-500/50 scale-105' 
+        : 'bg-gray-900/30 border-gray-800 hover:border-gray-700'
+    }`}>
+      <div className="flex items-start gap-4">
+        <div className={`${weekColor} w-12 h-12 rounded-full flex items-center justify-center text-white font-bold shrink-0`}>
+          W{week}
         </div>
-      </motion.div>
-    </div>
+        
+        <div className="flex-1">
+          <div className="flex items-center gap-2 mb-2">
+            <Icon className="w-5 h-5 text-purple-400" />
+            <h3 className="text-lg font-semibold text-white">{title}</h3>
+          </div>
+          <p className="text-gray-400 text-sm leading-relaxed">{description}</p>
+        </div>
+      </div>
+    </Card>
   );
 }
