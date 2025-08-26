@@ -8,7 +8,7 @@ import { useToast } from "@/hooks/use-toast";
 import { CheckCircle, Eye, EyeOff, Lock, AlertCircle, XCircle } from "lucide-react";
 
 import { AuthLayout } from "@/components/layout";
-import { encryptedApiClient } from "@/lib/encryption";
+// Removed encryption dependency
 
 
 export default function SetPasswordPage() {
@@ -118,13 +118,18 @@ export default function SetPasswordPage() {
     setIsLoading(true);
 
     try {
-      // Initialize encryption for set password
-      await encryptedApiClient.initializeEncryption('guest-set-password');
-      
-      const data = await encryptedApiClient.post<{success: boolean, error?: string}>('/api/auth/set-password', {
-        email,
-        password,
+      const response = await fetch('/api/auth/set-password', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          email,
+          password,
+        }),
       });
+      
+      const data = await response.json();
 
       if (data.success) {
         toast({

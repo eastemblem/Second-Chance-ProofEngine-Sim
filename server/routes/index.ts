@@ -5,7 +5,7 @@ import onboardingRouter from "./onboarding";
 import vaultRouter from "./vault";
 import paymentsRouter from "./v1/payments";
 import webhooksRouter from "./v1/webhooks";
-import encryptionTestRouter from "./v1/encryption-test";
+// Removed encryption test router
 import paymentNextStepsRouter from "./payment-next-steps";
 import { createRequire } from 'module';
 
@@ -57,11 +57,9 @@ router.use("/vault", vaultRouter);
 router.use("/payment", paymentNextStepsRouter);
 
 // Development/test routes (no authentication required)
-router.use("/encryption-test", encryptionTestRouter);
+// Encryption test routes removed
 
-// Clean encryption test routes
-import cleanTestRoutes from "./clean-test";
-router.use("/clean-test", cleanTestRoutes);
+// Clean test routes removed
 
 // V1 API routes (JWT authentication)
 router.use("/v1/payments", paymentsRouter);

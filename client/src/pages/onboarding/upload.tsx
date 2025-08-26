@@ -4,7 +4,7 @@ import { useMutation } from "@tanstack/react-query";
 import { apiRequest } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
 import { trackEvent } from "@/lib/analytics";
-import { encryptedApiClient } from "@/lib/encryption";
+// Removed encryption dependency
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { ChevronLeft, Upload, FileText, CheckCircle } from "lucide-react";
@@ -30,8 +30,7 @@ export default function DocumentUpload({
 
   const uploadMutation = useMutation({
     mutationFn: async (file: File) => {
-      // Initialize encryption for upload
-      await encryptedApiClient.initializeEncryption('guest-onboarding-upload');
+      // Standard file upload handling
       
       const formData = new FormData();
       formData.append("pitchDeck", file);
@@ -42,10 +41,6 @@ export default function DocumentUpload({
       const res = await fetch("/api/onboarding/upload", {
         method: "POST",
         body: formData,
-        headers: {
-          // Add encryption expectation header for server-side handling
-          'x-expect-encrypted': 'true'
-        }
       });
 
       if (!res.ok) {

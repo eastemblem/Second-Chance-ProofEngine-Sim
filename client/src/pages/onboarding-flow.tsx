@@ -4,7 +4,7 @@ import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { apiRequest } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
 import { trackEvent } from "@/lib/analytics";
-import { encryptedApiClient } from "@/lib/encryption";
+// Removed encryption dependency
 import FounderOnboarding from "./onboarding/founder";
 import VentureOnboarding from "./onboarding/venture";
 import TeamOnboarding from "./onboarding/team";
@@ -105,8 +105,7 @@ export default function OnboardingFlow({ onComplete }: OnboardingFlowProps) {
   // Initialize session on component mount
   const initSessionMutation = useMutation({
     mutationFn: async () => {
-      // Initialize encryption for onboarding flow
-      await encryptedApiClient.initializeEncryption('guest-onboarding');
+      // Standard API request for onboarding flow
       
       const res = await apiRequest("POST", "/api/onboarding/session/init", {});
       return await res.json();
@@ -162,12 +161,7 @@ export default function OnboardingFlow({ onComplete }: OnboardingFlowProps) {
   // Check for existing session on mount
   useEffect(() => {
     const initializeOnboarding = async () => {
-      // Initialize encryption early for onboarding
-      try {
-        await encryptedApiClient.initializeEncryption('guest-onboarding');
-      } catch (error) {
-        console.warn('Failed to initialize encryption for onboarding:', error);
-      }
+      // Standard onboarding initialization
       
       const existingSession = localStorage.getItem('onboardingSession');
       if (existingSession) {

@@ -11,7 +11,7 @@ import { getLeaderboard } from '../../routes/leaderboard';
 import { asyncHandler } from '../middleware/error';
 import { appLogger } from '../../utils/logger';
 import { authenticateToken } from '../../middleware/token-auth';
-import { cleanDecryptionMiddleware, cleanEncryptionMiddleware } from '../../middleware/clean-encryption-middleware';
+// Removed clean encryption middleware
 
 const router = Router();
 
@@ -21,9 +21,7 @@ router.use('/onboarding', onboardingRoutes);
 // Apply JWT authentication with blacklist checking to remaining v1 routes
 router.use(authenticateToken);
 
-// Apply encryption middleware to all authenticated routes
-router.use(cleanDecryptionMiddleware);
-router.use(cleanEncryptionMiddleware);
+// Encryption middleware removed
 
 // Register authenticated v1 routes (all protected by JWT and encryption)
 router.use('/dashboard', dashboardRoutes);

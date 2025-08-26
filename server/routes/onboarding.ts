@@ -9,13 +9,11 @@ import multer from "multer";
 import path from "path";
 import fs from "fs";
 import { appLogger } from "../utils/logger";
-import { cleanDecryptionMiddleware, cleanEncryptionMiddleware } from "../middleware/clean-encryption-middleware";
+// Removed clean encryption middleware
 
 const router = Router();
 
-// Apply encryption middleware to all onboarding routes
-router.use(cleanDecryptionMiddleware);
-router.use(cleanEncryptionMiddleware);
+// Encryption middleware removed
 
 // Configure multer for file uploads
 const upload = multer({

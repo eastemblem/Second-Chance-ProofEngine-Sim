@@ -36,10 +36,6 @@ const PerformanceTest = import.meta.env.MODE === 'development' ? lazy(() => impo
 const SentryTest = import.meta.env.MODE === 'development' ? lazy(() => import("@/pages/sentry-test")) : null;
 const RoutingDebug = import.meta.env.MODE === 'development' ? lazy(() => import("@/pages/routing-debug")) : null;
 const PaymentTestPage = import.meta.env.MODE === 'development' ? lazy(() => import("@/pages/payment-test")) : null;
-const EncryptionDemo = lazy(() => import("@/pages/encryption-demo"));
-const CleanLoginTest = lazy(() => import("@/pages/clean-login-test"));
-const SecureLogin = lazy(() => import("@/pages/secure-login"));
-const SecureFlowDemo = lazy(() => import("@/pages/secure-flow-demo"));
 
 const SimpleResetPassword = lazy(() => import("@/pages/simple-reset-password"));
 const PaymentSuccessPage = lazy(() => import("@/pages/payment-success"));
@@ -275,26 +271,6 @@ function Router() {
           </Suspense>
         )} />
       )}
-      <Route path="/encryption-demo" component={() => (
-        <Suspense fallback={<SimpleLoader />}>
-          <EncryptionDemo />
-        </Suspense>
-      )} />
-      <Route path="/clean-login-test" component={() => (
-        <Suspense fallback={<SimpleLoader />}>
-          <CleanLoginTest />
-        </Suspense>
-      )} />
-      <Route path="/secure-login" component={() => (
-        <Suspense fallback={<SimpleLoader />}>
-          <SecureLogin />
-        </Suspense>
-      )} />
-      <Route path="/secure-flow-demo" component={() => (
-        <Suspense fallback={<SimpleLoader />}>
-          <SecureFlowDemo />
-        </Suspense>
-      )} />
 
       <Route path="/payment/success" component={() => (
         <Suspense fallback={<SimpleLoader />}>

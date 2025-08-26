@@ -12,14 +12,14 @@ import { corsConfig, fileUploadRateLimit, apiRateLimit } from "./middleware/secu
 import { sanitizeInputComprehensive } from "./middleware/comprehensive-validation";
 import { advancedErrorHandler, correlationMiddleware } from "./middleware/advanced-error-handling";
 import { newRelicMiddleware, trackBusinessMetrics, configureNewRelic } from "./middleware/newrelic-observability";
-import { encryptionMiddleware, logEncryptionStatus } from "./middleware/encryption-middleware";
+// Removed encryption middleware
 
 // Modular route imports
 import dashboardRoutes from "./routes/dashboard";
 import vaultRoutes from "./routes/vault";
 import v1ApiRoutes from "./routes/v1";
 import healthRoutes from "./routes/health";
-import unifiedTestRoutes from "./routes/unified-test";
+// Removed unified test routes
 
 // Legacy route imports (preserved during transition)
 import apiRoutes from "./routes/index";
@@ -47,8 +47,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.use(corsConfig);
   app.use(apiRateLimit); // General API rate limiting
   app.use(sanitizeInputComprehensive);
-  app.use(logEncryptionStatus()); // Log encryption status on startup
-  app.use(encryptionMiddleware()); // Handle request/response encryption
+  // Encryption middleware removed
   app.use(apiVersioning);
   app.use(contentNegotiation);
   app.use(newRelicMiddleware);
@@ -65,16 +64,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Health and monitoring routes
   app.use('/api/health', healthRoutes);
 
-  // Import clean encryption middleware
-  const { cleanDecryptionMiddleware, cleanEncryptionMiddleware } = await import('./middleware/clean-encryption-middleware');
-
   // Legacy routes (preserved during transition)
   app.use('/api', apiRoutes);
   app.use('/api/auth', authRoutes);
-  
-  // Apply clean encryption middleware to auth-token routes specifically
-  console.log('🚀 Registering auth-token routes with clean encryption middleware');
-  app.use('/api/auth-token', cleanDecryptionMiddleware, authTokenRoutes);
+  app.use('/api/auth-token', authTokenRoutes);
 
   // Individual route handlers (preserved)
   app.get('/api/leaderboard', getLeaderboard);
@@ -86,8 +79,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Email routes (preserved)
   app.use("/api/email", (await import("./routes/emailRoutes")).default);
   
-  // Unified encryption test routes
-  app.use("/api", unifiedTestRoutes);
+  // Unified test routes removed
 
   // Serve React frontend from build directory temporarily
   app.use(express.static(path.join(process.cwd(), 'dist/public')));
