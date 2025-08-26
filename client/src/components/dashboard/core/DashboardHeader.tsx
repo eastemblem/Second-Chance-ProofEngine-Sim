@@ -50,25 +50,25 @@ export function DashboardHeader({ user, validationData }: DashboardHeaderProps) 
           
           {/* Greeting and Welcome */}
           <div className="flex-1">
-            <h2 className="text-xl text-gray-300 mb-1">
+            <h2 className="text-2xl text-gray-300 mb-2">
               Hi {userName},
             </h2>
-            <h1 className="text-4xl font-bold text-white">
+            <h1 className="text-5xl font-bold text-white">
               Welcome to Second Chance!
             </h1>
           </div>
         </div>
 
         {/* ProofTags Banner */}
-        <div className="bg-gray-800/50 rounded-xl p-4 border border-gray-700">
-          <div className="flex items-center gap-3">
-            <span className="text-xl">🎉</span>
-            <span className="text-white font-medium">Congratulations!</span>
-            <span className="text-gray-300">You unlocked</span>
-            <span className="text-xl">💎</span>
+        <div className="bg-gray-800/60 rounded-lg px-6 py-3 border border-gray-700/50 max-w-2xl">
+          <div className="flex items-center gap-2">
+            <span className="text-lg">🎉</span>
+            <span className="text-white font-medium text-base">Congratulations!</span>
+            <span className="text-gray-300 text-base">You unlocked</span>
+            <span className="text-lg">💎</span>
             <span className="text-blue-400 font-bold text-lg">{proofTagsUnlocked}</span>
-            <span className="text-gray-300">ProofTags</span>
-            <span className="text-gray-400">out of {totalProofTags} total</span>
+            <span className="text-gray-300 text-base">ProofTags</span>
+            <span className="text-gray-400 text-base">out of {totalProofTags} total</span>
           </div>
         </div>
       </div>
