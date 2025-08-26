@@ -75,8 +75,10 @@ export class ChaCha20Utils {
 
         // Export to raw bytes for libsodium
         const keyBuffer = await crypto.subtle.exportKey('raw', cryptoKey);
+        const derivedKey = new Uint8Array(keyBuffer);
+        console.log('🔑 Browser key derivation result:', Array.from(derivedKey.slice(0, 8)).map(b => b.toString(16).padStart(2, '0')).join(''));
         return {
-          key: new Uint8Array(keyBuffer),
+          key: derivedKey,
           salt
         };
       } else {
@@ -89,8 +91,10 @@ export class ChaCha20Utils {
           ENCRYPTION_CONFIG.chacha20.keyLength,
           'sha256'
         );
+        const derivedKey = new Uint8Array(key);
+        console.log('🔑 Server key derivation result:', Array.from(derivedKey.slice(0, 8)).map(b => b.toString(16).padStart(2, '0')).join(''));
         return {
-          key: new Uint8Array(key),
+          key: derivedKey,
           salt
         };
       }
