@@ -50,25 +50,25 @@ export function DashboardHeader({ user, validationData }: DashboardHeaderProps) 
           
           {/* Greeting and Welcome */}
           <div className="flex-1">
-            <h2 className="text-2xl text-gray-300 mb-2">
+            <h2 className="text-xl text-gray-300 mb-1">
               Hi {userName},
             </h2>
-            <h1 className="text-5xl font-bold text-white">
+            <h1 className="text-4xl font-bold text-white">
               Welcome to Second Chance!
             </h1>
           </div>
         </div>
 
         {/* ProofTags Banner */}
-        <div className="bg-gray-800/60 rounded-lg px-6 py-3 border border-gray-700/50 max-w-2xl">
+        <div className="bg-gray-800/60 rounded-lg px-4 py-3 border border-gray-700/50 inline-block mt-4">
           <div className="flex items-center gap-2">
-            <span className="text-lg">🎉</span>
-            <span className="text-white font-medium text-base">Congratulations!</span>
-            <span className="text-gray-300 text-base">You unlocked</span>
-            <span className="text-lg">💎</span>
-            <span className="text-blue-400 font-bold text-lg">{proofTagsUnlocked}</span>
-            <span className="text-gray-300 text-base">ProofTags</span>
-            <span className="text-gray-400 text-base">out of {totalProofTags} total</span>
+            <span className="text-base">🎉</span>
+            <span className="text-white font-medium text-sm">Congratulations!</span>
+            <span className="text-gray-300 text-sm">You unlocked</span>
+            <span className="text-base">💎</span>
+            <span className="text-blue-400 font-bold text-base">{proofTagsUnlocked}</span>
+            <span className="text-gray-300 text-sm">ProofTags</span>
+            <span className="text-gray-400 text-sm">out of {totalProofTags} total</span>
           </div>
         </div>
       </div>
