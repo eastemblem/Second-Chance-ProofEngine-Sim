@@ -72,6 +72,15 @@ export class ChaCha20Utils {
           true,
           ['encrypt']
         );
+        
+        console.log('🔧 Browser PBKDF2 params:', {
+          algorithm: ENCRYPTION_CONFIG.keyDerivation.algorithm,
+          iterations: ENCRYPTION_CONFIG.keyDerivation.iterations,
+          hash: ENCRYPTION_CONFIG.keyDerivation.hash,
+          keyLength: 256,
+          saltLength: salt.length,
+          saltFirst8: Array.from(salt.slice(0, 8)).map(b => b.toString(16).padStart(2, '0')).join('')
+        });
 
         // Export to raw bytes for libsodium
         const keyBuffer = await crypto.subtle.exportKey('raw', cryptoKey);
@@ -84,11 +93,20 @@ export class ChaCha20Utils {
       } else {
         // Node.js: Use crypto module for PBKDF2
         const crypto = await import('crypto');
+        console.log('🔧 Server PBKDF2 params:', {
+          algorithm: 'PBKDF2',
+          iterations: ENCRYPTION_CONFIG.keyDerivation.iterations,
+          hash: 'sha256',
+          keyLength: 32,
+          saltLength: salt.length,
+          saltFirst8: Array.from(salt.slice(0, 8)).map(b => b.toString(16).padStart(2, '0')).join('')
+        });
+        
         const key = crypto.pbkdf2Sync(
           secret,
           salt,
           ENCRYPTION_CONFIG.keyDerivation.iterations,
-          ENCRYPTION_CONFIG.chacha20.keyLength,
+          32, // Use explicit 32 bytes instead of config for consistency
           'sha256'
         );
         const derivedKey = new Uint8Array(key);
