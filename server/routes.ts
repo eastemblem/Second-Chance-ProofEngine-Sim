@@ -880,6 +880,11 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Email routes
   app.use("/api/email", (await import("./routes/emailRoutes")).default);
   
+  // Debug routes (development only)
+  if (process.env.NODE_ENV !== 'production') {
+    app.use("/api/debug-encryption", (await import("./routes/debug-encryption")).default);
+  }
+  
   // Use existing vault routes with updated database-driven logic
   app.use("/api/vault", (await import("./routes/vault")).default);
 

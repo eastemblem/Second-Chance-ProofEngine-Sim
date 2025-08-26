@@ -81,7 +81,7 @@ export default function LoginPage() {
       const data = await handleResponse(response);
       console.log('🔐 Login response:', { ok: response.ok, status: response.status, hasToken: !!data.token });
 
-      if (response.ok && data.success) {
+      if (data.success) {
         // Track successful login event
         trackEvent('login', 'authentication', 'login_success');
         

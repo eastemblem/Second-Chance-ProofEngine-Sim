@@ -1,8 +1,6 @@
 import { QueryClient, QueryFunction } from "@tanstack/react-query";
 import { ClientCrypto } from './client-crypto';
 
-// API version configuration
-const API_VERSION = 'v1';
 const getApiUrl = (endpoint: string) => {
   // Support both legacy and versioned endpoints
   if (endpoint.startsWith('/api/v1/')) {

@@ -15,8 +15,9 @@ import {
 import { emailService } from '../services/emailService';
 import { appLogger } from '../utils/logger';
 import { ActivityService } from '../services/activity-service';
-
 const router = express.Router();
+
+// Clean encryption middleware applied globally - no need for route-level registration
 
 // Extend express session interface
 declare module 'express-session' {
