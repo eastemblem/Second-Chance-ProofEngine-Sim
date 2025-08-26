@@ -368,15 +368,24 @@ export class ChaCha20Utils {
       let binary: string;
       
       // Clean base64 string - remove whitespace and ensure proper padding
-      const cleanBase64 = base64.replace(/\s/g, '').trim();
+      let cleanBase64 = base64.replace(/\s/g, '').trim();
+      
+      // Ensure proper base64 padding
+      while (cleanBase64.length % 4 !== 0) {
+        cleanBase64 += '=';
+      }
       
       if (typeof Buffer !== 'undefined' && typeof window === 'undefined') {
-        // Node.js environment
+        // Node.js environment - use Buffer for consistent decoding
+        console.log('🔍 Server base64 decode - input length:', cleanBase64.length, 'input:', cleanBase64.slice(0, 20) + '...');
         const buffer = Buffer.from(cleanBase64, 'base64');
-        binary = buffer.toString('binary');
+        console.log('🔍 Server base64 decode - output length:', buffer.length);
+        return buffer.buffer.slice(buffer.byteOffset, buffer.byteOffset + buffer.byteLength);
       } else if (typeof atob === 'function') {
         // Browser environment
+        console.log('🔍 Browser base64 decode - input length:', cleanBase64.length, 'input:', cleanBase64.slice(0, 20) + '...');
         binary = atob(cleanBase64);
+        console.log('🔍 Browser base64 decode - output length:', binary.length);
       } else {
         throw new Error('No base64 decoding method available');
       }
