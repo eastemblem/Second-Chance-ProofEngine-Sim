@@ -9,6 +9,7 @@ interface VentureOnboardingData {
   ventureName: string;
   ventureIndustry: string;
   ventureStage: string;
+  ventureStatus?: string;
   ventureDescription: string;
   ventureWebsite?: string;
   boxUrl?: string;
@@ -38,6 +39,7 @@ export class OnboardingNotificationService {
         VENTURE_NAME: data.ventureName,
         VENTURE_INDUSTRY: data.ventureIndustry,
         VENTURE_STAGE: data.ventureStage,
+        VENTURE_STATUS: data.ventureStatus || 'Active',
         VENTURE_DESCRIPTION: data.ventureDescription,
         VENTURE_WEBSITE: data.ventureWebsite || 'N/A',
         BOX_URL: data.boxUrl || 'N/A',
