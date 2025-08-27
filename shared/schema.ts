@@ -254,6 +254,7 @@ export const leaderboard = pgTable("leaderboard", {
   ventureId: uuid("venture_id").references(() => venture.ventureId),
   ventureName: varchar("venture_name", { length: 255 }).notNull(),
   totalScore: integer("total_score").notNull(),
+  proofTagsCount: integer("proof_tags_count").notNull().default(0),
   dimensionScores: jsonb("dimension_scores").$type<{
     desirability: number;
     feasibility: number;

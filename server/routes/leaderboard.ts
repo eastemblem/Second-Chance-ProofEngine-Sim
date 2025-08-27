@@ -33,6 +33,7 @@ export async function getLeaderboard(req: Request, res: Response) {
     const formattedRealData = realData.map((entry, index) => ({
       ventureName: entry.ventureName,
       totalScore: entry.totalScore,
+      proofTagsCount: entry.proofTagsCount || 0,
       rank: index + 1,
       analysisDate: entry.analysisDate,
       isReal: true
@@ -64,6 +65,7 @@ export async function getLeaderboard(req: Request, res: Response) {
         finalData.push({
           ventureName: mockEntry.ventureName,
           totalScore: Math.max(adjustedScore, 50), // Minimum score of 50
+          proofTagsCount: Math.floor(Math.max(adjustedScore, 50) / 15), // Calculate ProofTags for mock data
           rank: finalData.length + 1,
           analysisDate: new Date(Date.now() - (i + 1) * 24 * 60 * 60 * 1000), // Recent dates
           isReal: false
@@ -106,6 +108,7 @@ export async function createLeaderboardEntry(req: Request, res: Response) {
       ventureId: z.string().uuid(),
       ventureName: z.string(),
       totalScore: z.number().min(0).max(100),
+      proofTagsCount: z.number().min(0).optional().default(0),
       dimensionScores: z.object({
         desirability: z.number(),
         feasibility: z.number(),

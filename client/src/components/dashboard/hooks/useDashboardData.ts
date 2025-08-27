@@ -152,10 +152,10 @@ export function useDashboardData() {
         const leaderboard = await leaderboardResponse.json();
         console.log('✅ Leaderboard data loaded successfully:', leaderboard);
         if (leaderboard.success && leaderboard.data) {
-          // Enhance leaderboard data with ProofTags calculation
+          // Use actual ProofTags data from database
           const enhancedData = leaderboard.data.map((entry: any) => ({
             ...entry,
-            proofTags: entry.proofTags || Math.floor(entry.totalScore / 15), // Calculate ProofTags based on score
+            proofTags: entry.proofTagsCount || 0, // Use stored ProofTags count from database
             handle: entry.handle || `@${entry.ventureName.toLowerCase().replace(/\s+/g, '')}`
           }));
           setLeaderboardData(enhancedData);

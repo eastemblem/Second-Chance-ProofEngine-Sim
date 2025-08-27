@@ -63,7 +63,7 @@ export function LeaderboardPanel({ leaderboardData, currentUserProofTags }: Lead
                 };
                 
                 const avatarGradient = getAvatarColor(entry.ventureName);
-                const proofTagsCount = entry.proofTags || Math.floor(entry.totalScore / 15);
+                const proofTagsCount = entry.proofTags || 0;
                 const handle = entry.handle || `@${entry.ventureName.toLowerCase().replace(/\s+/g, '')}`;
                 
                 return (

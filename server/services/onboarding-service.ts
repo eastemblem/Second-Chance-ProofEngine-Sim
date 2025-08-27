@@ -816,10 +816,11 @@ export class OnboardingService {
           if (totalScore > existingEntry.totalScore) {
             await storage.updateLeaderboard(existingEntry.leaderboardId, {
               totalScore,
+              proofTagsCount: Array.isArray(extractedTags) ? extractedTags.length : 0,
               dimensionScores,
               analysisDate: new Date(),
             });
-            console.log(`✓ Updated leaderboard entry for ${venture.name} with higher score: ${totalScore}`);
+            console.log(`✓ Updated leaderboard entry for ${venture.name} with higher score: ${totalScore}, ProofTags: ${Array.isArray(extractedTags) ? extractedTags.length : 0}`);
           }
         } else {
           // Create new leaderboard entry
@@ -827,10 +828,11 @@ export class OnboardingService {
             ventureId: venture.ventureId,
             ventureName: venture.name,
             totalScore,
+            proofTagsCount: Array.isArray(extractedTags) ? extractedTags.length : 0,
             dimensionScores,
             analysisDate: new Date(),
           });
-          console.log(`✓ Created leaderboard entry for ${venture.name} with score: ${totalScore}`);
+          console.log(`✓ Created leaderboard entry for ${venture.name} with score: ${totalScore}, ProofTags: ${Array.isArray(extractedTags) ? extractedTags.length : 0}`);
         }
 
         // Store complete evaluation data in evaluation table
