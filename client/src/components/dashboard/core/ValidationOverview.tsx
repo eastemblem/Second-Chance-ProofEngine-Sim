@@ -27,10 +27,11 @@ export function ValidationOverview({ validationData, proofVaultData, onScrollToV
 
   // Get status text based on score
   const getStatusText = () => {
-    if (proofScore >= 90) return "Status: Investor ready";
-    if (proofScore >= 70) return "Status: Deal room qualified";
-    if (proofScore >= 50) return "Status: Building validation";
-    return "Status: Starting validation";
+    if (proofScore >= 85) return "Status: Investor Ready";
+    if (proofScore >= 75) return "Status: Near Ready";
+    if (proofScore >= 60) return "Status: Emerging Proof";
+    if (proofScore >= 40) return "Status: Early Signals";
+    return "Status: Building Validation";
   };
 
   // Get conditional text based on score
