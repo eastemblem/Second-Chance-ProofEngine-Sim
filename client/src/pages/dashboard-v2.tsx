@@ -12,6 +12,7 @@ import { DashboardLoadingSkeleton } from "@/components/dashboard-loading";
 import {
   DashboardHeader,
   ValidationOverview,
+  DealRoomSection,
   DocumentDownloads,
   DealRoomPanel,
   ActivityFeed,
@@ -269,6 +270,11 @@ export default function DashboardV2Page() {
             <ValidationOverview 
               validationData={validationData} 
               proofVaultData={proofVaultData} 
+            />
+
+            {/* Deal Room Section */}
+            <DealRoomSection 
+              validationData={validationData}
             />
 
             {/* Your Proof Vault */}
