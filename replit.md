@@ -8,6 +8,7 @@ Second Chance is a comprehensive startup validation platform designed to empower
 - Avoid technical jargon in user-facing content
 - Focus on user journey and experience
 - Maintain professional tone without emojis
+- Remove technical language from user notifications (e.g., replaced "JWT token invalidated" with user-friendly logout messages)
 
 ## System Architecture
 
@@ -34,6 +35,7 @@ The frontend is built with TypeScript React and Vite, utilizing React Query for 
 - **Simplified Onboarding:** Streamlined user onboarding by removing intermediate payment steps and directly guiding users to their recommended pathway.
 - **Enhanced Error Handling:** Sophisticated retry logic and detailed error categorization for processes like pitch upload.
 - **End-to-End Encryption:** Transparent payload encryption for API communications using AES-256-GCM encryption with feature flags (ENABLE_ENCRYPTION/VITE_ENABLE_ENCRYPTION) for controlled rollout. Supports both encrypted and unencrypted requests without breaking existing functionality.
+- **Dashboard Architecture:** Restructured dashboard routing system where the new dashboard (DashboardV2) is now the main production dashboard accessible at `/dashboard`. The legacy dashboard remains available at `/dashboard-v1` for development environments only, ensuring backward compatibility during transition periods.
 
 ### Feature Specifications
 - **Deal Room Access:** Provides qualified users (ProofScore >= 70) access to investor matching and premium features for a one-time fee.
