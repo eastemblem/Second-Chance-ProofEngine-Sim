@@ -2,7 +2,7 @@ import { useState } from "react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Button } from "@/components/ui/button";
-import { FolderOpen, ExternalLink } from "lucide-react";
+import { ExternalLink } from "lucide-react";
 import { VaultOverview } from "./VaultOverview";
 import { VaultFileListing } from "./VaultFileListing";
 import { VaultUploadArea } from "./VaultUploadArea";
@@ -126,8 +126,7 @@ export function ProofVaultSection({
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
           {/* Left Column: Title and Description */}
           <div className="lg:col-span-3">
-            <div className="flex items-center gap-2 text-white mb-4">
-              <FolderOpen className="w-5 h-5" />
+            <div className="text-white mb-4">
               <h2 className="text-2xl font-bold">ProofVault Management</h2>
             </div>
             
@@ -149,7 +148,7 @@ export function ProofVaultSection({
           </div>
 
           {/* Center Column: Tabs and Content */}
-          <div className="lg:col-span-6">
+          <div className="lg:col-span-9">
             <Tabs value={activeTab} onValueChange={handleTabChange}>
               <TabsList className="grid w-full grid-cols-3 bg-gray-800">
                 <TabsTrigger value="overview" className="text-gray-300 data-[state=active]:bg-gray-700 data-[state=active]:text-white">Overview</TabsTrigger>
@@ -192,10 +191,6 @@ export function ProofVaultSection({
             </Tabs>
           </div>
 
-          {/* Right Column: Empty */}
-          <div className="lg:col-span-3">
-            {/* Intentionally empty */}
-          </div>
         </div>
       </CardContent>
     </Card>
