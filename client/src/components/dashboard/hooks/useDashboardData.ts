@@ -48,6 +48,8 @@ interface LeaderboardEntry {
   rank: number;
   analysisDate: string;
   isReal: boolean;
+  proofTags?: number;
+  handle?: string;
 }
 
 export function useDashboardData() {
@@ -150,7 +152,13 @@ export function useDashboardData() {
         const leaderboard = await leaderboardResponse.json();
         console.log('✅ Leaderboard data loaded successfully:', leaderboard);
         if (leaderboard.success && leaderboard.data) {
-          setLeaderboardData(leaderboard.data);
+          // Enhance leaderboard data with ProofTags calculation
+          const enhancedData = leaderboard.data.map((entry: any) => ({
+            ...entry,
+            proofTags: entry.proofTags || Math.floor(entry.totalScore / 15), // Calculate ProofTags based on score
+            handle: entry.handle || `@${entry.ventureName.toLowerCase().replace(/\s+/g, '')}`
+          }));
+          setLeaderboardData(enhancedData);
         }
       } else {
         console.error('❌ Leaderboard API failed:', leaderboardResponse.status, leaderboardResponse.statusText);

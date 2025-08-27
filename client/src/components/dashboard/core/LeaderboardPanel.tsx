@@ -14,9 +14,10 @@ interface LeaderboardEntry {
 
 interface LeaderboardPanelProps {
   leaderboardData: LeaderboardEntry[];
+  currentUserProofTags?: number;
 }
 
-export function LeaderboardPanel({ leaderboardData }: LeaderboardPanelProps) {
+export function LeaderboardPanel({ leaderboardData, currentUserProofTags }: LeaderboardPanelProps) {
   // Get medal component based on rank
   const getMedalIcon = (rank: number) => {
     if (rank === 1) return <Medal className="w-5 h-5 text-yellow-400" />;
@@ -62,7 +63,7 @@ export function LeaderboardPanel({ leaderboardData }: LeaderboardPanelProps) {
                 };
                 
                 const avatarGradient = getAvatarColor(entry.ventureName);
-                const proofTagsCount = entry.proofTags || Math.floor(entry.totalScore / 15); // Fallback calculation
+                const proofTagsCount = entry.proofTags || Math.floor(entry.totalScore / 15);
                 const handle = entry.handle || `@${entry.ventureName.toLowerCase().replace(/\s+/g, '')}`;
                 
                 return (

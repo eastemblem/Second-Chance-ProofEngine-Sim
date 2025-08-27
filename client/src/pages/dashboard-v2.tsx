@@ -330,7 +330,10 @@ export default function DashboardV2Page() {
 
           {/* Leaderboard and Recent Activity - Side by Side */}
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-            <LeaderboardPanel leaderboardData={leaderboardData} />
+            <LeaderboardPanel 
+              leaderboardData={leaderboardData} 
+              currentUserProofTags={validationData?.proofTagsUnlocked}
+            />
             <ActivityFeed
               activities={recentActivity}
               totalActivities={totalActivities}
