@@ -477,9 +477,21 @@ export class PaymentService {
 
       const venture = ventures[0]; // Use the first/primary venture
       
-      // Get evaluation data for box URL
+      // Get evaluation data for box URL and ProofScore
       const evaluations = await storage.getEvaluationsByVentureId(venture.ventureId);
       const currentEvaluation = evaluations.find(evaluation => evaluation.isCurrent) || evaluations[0];
+      
+      // Calculate status based on ProofScore
+      const getStatusFromScore = (score: number): string => {
+        if (score >= 85) return 'Investor Ready';
+        if (score >= 75) return 'Near Ready';
+        if (score >= 60) return 'Emerging Proof';
+        if (score >= 40) return 'Early Signals';
+        return 'Building Validation';
+      };
+      
+      const proofScore = currentEvaluation?.proofscore || 0;
+      const status = getStatusFromScore(proofScore);
       
       // Prepare notification data
       const notificationData = {
@@ -493,6 +505,8 @@ export class PaymentService {
         ventureDescription: venture.description || 'Not provided',
         ventureWebsite: venture.website || undefined,
         boxUrl: currentEvaluation?.folderUrl || 'N/A',
+        proofScore: proofScore,
+        ventureStatus: status,
         paymentAmount: transaction.amount ? `${transaction.currency || 'USD'} ${transaction.amount}` : 'N/A',
         paymentDate: new Date(transaction.createdAt).toLocaleString(),
         paymentReference: transaction.orderReference,
