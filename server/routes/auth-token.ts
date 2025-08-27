@@ -79,8 +79,7 @@ router.post('/register', asyncHandler(async (req, res) => {
         ventureId: venture.ventureId,
         name: venture.name,
         industry: venture.industry,
-        geography: venture.geography,
-        status: venture.status
+        geography: venture.geography
       } : null
     });
 
@@ -204,8 +203,7 @@ router.post('/login', asyncHandler(async (req, res) => {
         ventureId: primaryVenture.ventureId,
         name: primaryVenture.name,
         industry: primaryVenture.industry,
-        geography: primaryVenture.geography,
-        status: primaryVenture.status
+        geography: primaryVenture.geography
       } : null
     });
 
@@ -327,8 +325,7 @@ router.get('/verify', asyncHandler(async (req, res) => {
         ventureId: primaryVenture.ventureId,
         name: primaryVenture.name,
         industry: primaryVenture.industry,
-        geography: primaryVenture.geography,
-        status: primaryVenture.status
+        geography: primaryVenture.geography
       } : null,
       tokenValid: true,
       expiresAt: decoded.exp

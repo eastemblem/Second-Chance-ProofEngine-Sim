@@ -220,7 +220,7 @@ router.get("/subscriptions", async (req: AuthenticatedRequest, res) => {
   }
 });
 
-// Check if user has deal room access
+// Check if user has deal room access and get venture status
 router.get("/deal-room-access", async (req: AuthenticatedRequest, res) => {
   try {
     const founderId = req.user?.founderId;
@@ -230,9 +230,24 @@ router.get("/deal-room-access", async (req: AuthenticatedRequest, res) => {
 
     const hasAccess = await paymentService.hasDealRoomAccess(founderId);
     
+    // Get venture status from database
+    let ventureStatus = 'pending';
+    try {
+      const founder = await storage.getFounder(founderId);
+      if (founder?.venture?.status) {
+        ventureStatus = founder.venture.status;
+      }
+    } catch (error) {
+      winston.warn("Could not fetch venture status", { 
+        founderId, 
+        error: error instanceof Error ? error.message : 'Unknown error' 
+      });
+    }
+    
     res.json({
       success: true,
-      hasAccess
+      hasAccess,
+      ventureStatus
     });
 
   } catch (error) {

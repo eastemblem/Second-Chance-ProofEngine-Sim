@@ -15,7 +15,6 @@ interface AuthVenture {
   name: string;
   industry: string;
   geography: string;
-  status: 'pending' | 'reviewing' | 'reviewed' | 'done';
 }
 
 interface AuthResponse {
