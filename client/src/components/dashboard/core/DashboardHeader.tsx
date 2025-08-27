@@ -44,7 +44,7 @@ export function DashboardHeader({
   const totalProofTags = validationData?.totalProofTags || 21;
 
   return (
-    <div className="bg-black text-white">
+    <div className="text-white" style={{ backgroundColor: '#0E0E12' }}>
       <div className="max-w-7xl mx-auto px-4 py-6">
         {/* Header Section */}
         <div className="flex items-center gap-4 mb-4">

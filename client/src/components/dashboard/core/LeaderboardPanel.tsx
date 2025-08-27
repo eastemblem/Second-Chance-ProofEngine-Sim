@@ -27,7 +27,7 @@ export function LeaderboardPanel({ leaderboardData, currentUserProofTags }: Lead
   };
 
   return (
-    <Card className="bg-black/50 border-gray-800">
+    <Card className="border-gray-800" style={{ backgroundColor: '#0E0E12' }}>
       <CardHeader>
         <CardTitle className="text-white text-3xl font-bold">
           Leaderboard
