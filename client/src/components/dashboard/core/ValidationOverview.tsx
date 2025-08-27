@@ -72,7 +72,7 @@ export function ValidationOverview({ validationData, proofVaultData }: Validatio
 
         {/* Center Column: Text Content */}
         <div className="lg:col-span-6 space-y-4">
-          <p className="text-gray-300 text-base leading-relaxed">
+          <p className="text-gray-300 text-lg font-bold leading-relaxed">
             {getPrimaryText()}
           </p>
           

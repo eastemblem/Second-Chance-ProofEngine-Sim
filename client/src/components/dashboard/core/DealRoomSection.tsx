@@ -34,11 +34,11 @@ export function DealRoomSection({ validationData }: DealRoomSectionProps) {
     if (isUnlocked) {
       return (
         <>
-          <span className="text-2xl">🚀</span> You've unlocked the Deal Room! <span className="text-2xl">🚀</span>
+          <span className="text-2xl">🚀</span> <span className="font-bold">You've unlocked the Deal Room!</span> <span className="text-2xl">🚀</span>
           <br />
-          You're a <span className="text-green-400 font-bold">{matchPercentage}%</span> match with 3 tier-1 investors.
+          <span className="font-bold">You're a <span className="text-green-400">{matchPercentage}%</span> match with 3 tier-1 investors.</span>
           <br />
-          Book your first investor call today.
+          <span className="font-bold">Book your first investor call today.</span>
         </>
       );
     }
@@ -104,7 +104,7 @@ export function DealRoomSection({ validationData }: DealRoomSectionProps) {
 
         {/* Center Column: Main Content */}
         <div className="lg:col-span-6 text-center">
-          <div className="text-lg text-gray-300 leading-relaxed mb-6">
+          <div className="text-xl text-gray-300 leading-relaxed mb-6">
             {getMainText()}
           </div>
           
