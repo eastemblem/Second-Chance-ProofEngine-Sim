@@ -105,78 +105,68 @@ export function ProofVaultSection({
   };
 
   return (
-    <div className="bg-gray-900/60 rounded-xl border border-gray-700/50 p-6">
-      <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
-        
-        {/* Left Column: Title and Description */}
-        <div className="lg:col-span-3">
-          <h2 className="text-2xl font-bold text-white mb-2">
-            ProofVault
-            <br />
-            Management
-          </h2>
-          
-          <p className="text-sm text-gray-400 mb-4">
-            Manage and organise your validation documents here
-          </p>
-
+    <Card className="bg-black/50 border-gray-800">
+      <CardHeader>
+        <CardTitle className="flex items-center gap-2 text-white">
+          <FolderOpen className="w-5 h-5" />
+          Your Proof Vault
           <Button 
             variant="ghost" 
             size="sm"
             onClick={handleViewParentFolder}
-            className="text-purple-400 hover:text-purple-300 hover:bg-gray-800 flex items-center gap-2"
+            className="ml-auto text-purple-400 hover:text-purple-300 hover:bg-gray-800"
             disabled={!proofVaultData?.folderUrls?.['root']}
-            title="Access Box Folder"
+            title="View parent folder in Proof Vault"
           >
             <ExternalLink className="w-4 h-4" />
-            Access Box Folder
           </Button>
-        </div>
+        </CardTitle>
+        <CardDescription className="text-gray-400">
+          Manage and organize your validation documents
+        </CardDescription>
+      </CardHeader>
+      <CardContent>
+        <Tabs value={activeTab} onValueChange={setActiveTab}>
+          <TabsList className="grid w-full grid-cols-3 bg-gray-800">
+            <TabsTrigger value="overview" className="text-gray-300 data-[state=active]:bg-gray-700 data-[state=active]:text-white">Overview</TabsTrigger>
+            <TabsTrigger value="files" className="text-gray-300 data-[state=active]:bg-gray-700 data-[state=active]:text-white">Files</TabsTrigger>
+            <TabsTrigger value="upload" className="text-gray-300 data-[state=active]:bg-gray-700 data-[state=active]:text-white">Upload</TabsTrigger>
+          </TabsList>
 
-        {/* Right Column: Content Area */}
-        <div className="lg:col-span-9">
-          <Tabs value={activeTab} onValueChange={setActiveTab}>
-            <TabsList className="grid w-full grid-cols-3 bg-gray-800/60 mb-6">
-              <TabsTrigger value="overview" className="text-gray-300 data-[state=active]:bg-gray-700 data-[state=active]:text-white">Overview</TabsTrigger>
-              <TabsTrigger value="files" className="text-gray-300 data-[state=active]:bg-gray-700 data-[state=active]:text-white">Files</TabsTrigger>
-              <TabsTrigger value="upload" className="text-gray-300 data-[state=active]:bg-gray-700 data-[state=active]:text-white">Upload</TabsTrigger>
-            </TabsList>
+          <TabsContent value="overview" className="mt-6">
+            <VaultOverview proofVaultData={proofVaultData} />
+          </TabsContent>
 
-            <TabsContent value="overview" className="mt-0">
-              <VaultOverview proofVaultData={proofVaultData} />
-            </TabsContent>
+          <TabsContent value="files" className="mt-6">
+            <VaultFileListing
+              files={paginatedFiles}
+              totalFiles={totalFiles}
+              isLoading={filesLoading}
+              isLoadingMore={filesLoadingMore}
+              hasMore={hasMoreFiles}
+              onScroll={onFilesScroll}
+            />
+          </TabsContent>
 
-            <TabsContent value="files" className="mt-0">
-              <VaultFileListing
-                files={paginatedFiles}
-                totalFiles={totalFiles}
-                isLoading={filesLoading}
-                isLoadingMore={filesLoadingMore}
-                hasMore={hasMoreFiles}
-                onScroll={onFilesScroll}
-              />
-            </TabsContent>
-
-            <TabsContent value="upload" className="mt-0">
-              <VaultUploadArea
-                selectedFolder={selectedFolder}
-                onFolderChange={onFolderChange}
-                availableFolders={getAvailableFolders()}
-                getFolderDisplayName={getFolderDisplayName}
-                uploadQueue={uploadQueue}
-                currentUploadIndex={currentUploadIndex}
-                isUploading={isUploading}
-                isCreatingFolders={isCreatingFolders}
-                folderCreationStatus={folderCreationStatus}
-                onFileUpload={onFileUpload}
-                onFolderUpload={onFolderUpload}
-                onRetryFailed={onRetryFailed}
-                onClearQueue={onClearQueue}
-              />
-            </TabsContent>
-          </Tabs>
-        </div>
-      </div>
-    </div>
+          <TabsContent value="upload" className="mt-6">
+            <VaultUploadArea
+              selectedFolder={selectedFolder}
+              onFolderChange={onFolderChange}
+              availableFolders={getAvailableFolders()}
+              getFolderDisplayName={getFolderDisplayName}
+              uploadQueue={uploadQueue}
+              currentUploadIndex={currentUploadIndex}
+              isUploading={isUploading}
+              isCreatingFolders={isCreatingFolders}
+              folderCreationStatus={folderCreationStatus}
+              onFileUpload={onFileUpload}
+              onFolderUpload={onFolderUpload}
+              onRetryFailed={onRetryFailed}
+              onClearQueue={onClearQueue}
+            />
+          </TabsContent>
+        </Tabs>
+      </CardContent>
+    </Card>
   );
 }

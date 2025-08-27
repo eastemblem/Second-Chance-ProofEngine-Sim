@@ -16,9 +16,8 @@ interface VaultOverviewProps {
 
 export function VaultOverview({ proofVaultData }: VaultOverviewProps) {
   return (
-    <div className="grid grid-cols-2 gap-4">
-      {/* First Column */}
-      <div className="space-y-4">
+    <>
+      <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-4">
         <MetricCard
           title="Overview"
           value={proofVaultData?.overviewCount || 0}
@@ -40,9 +39,7 @@ export function VaultOverview({ proofVaultData }: VaultOverviewProps) {
           color="orange"
         />
       </div>
-      
-      {/* Second Column */}
-      <div className="space-y-4">
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
         <MetricCard
           title="Credibility Proofs"
           value={proofVaultData?.credibilityProofCount || 0}
@@ -59,6 +56,6 @@ export function VaultOverview({ proofVaultData }: VaultOverviewProps) {
           color="indigo"
         />
       </div>
-    </div>
+    </>
   );
 }
