@@ -6,30 +6,252 @@
     <title>New Deal Room Access Purchase - Second Chance</title>
     <style>
         * { margin: 0; padding: 0; box-sizing: border-box; }
-        body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; line-height: 1.6; background-color: #0A0A0B; color: #FFFFFF; }
-        .container { max-width: 600px; margin: 0 auto; background-color: #0A0A0B; }
-        .header { background: linear-gradient(135deg, #8B5CF6 0%, #D97706 100%); padding: 30px 40px; text-align: center; }
-        .logo { font-size: 28px; font-weight: bold; color: #FFFFFF; text-decoration: none; }
-        .content { padding: 40px; background-color: #1A1A1B; }
-        .title { font-size: 24px; font-weight: bold; margin-bottom: 20px; color: #FFFFFF; }
-        .subtitle { font-size: 18px; color: #8B5CF6; margin-bottom: 15px; font-weight: 600; }
-        .text { font-size: 16px; color: #D1D5DB; margin-bottom: 15px; }
-        .details-section { background-color: #2A2A2B; padding: 25px; border-radius: 8px; margin: 25px 0; border-left: 4px solid #8B5CF6; }
-        .detail-row { display: flex; justify-content: space-between; margin-bottom: 12px; flex-wrap: wrap; }
-        .detail-label { font-weight: bold; color: #8B5CF6; min-width: 140px; }
-        .detail-value { color: #FFFFFF; flex: 1; word-break: break-word; }
-        .section-title { color: #FFFFFF; margin-bottom: 20px; font-size: 18px; font-weight: bold; display: flex; align-items: center; }
-        .section-icon { margin-right: 8px; }
-        .payment-details { background-color: #2A2A2B; padding: 25px; border-radius: 8px; margin: 25px 0; border-left: 4px solid #10B981; }
-        .amount { font-size: 20px; font-weight: bold; color: #10B981; }
-        .urgent-note { background-color: #FEF3C7; color: #92400E; padding: 15px; border-radius: 8px; margin: 20px 0; border-left: 4px solid #F59E0B; }
-        .footer { background-color: #111111; padding: 30px 40px; text-align: center; border-top: 1px solid #333; }
-        .footer-text { color: #9CA3AF; font-size: 12px; }
+        body { 
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; 
+            line-height: 1.6; 
+            background-color: #f5f5f5;
+            color: #333333; 
+        }
+        
+        .container { 
+            max-width: 600px; 
+            margin: 0 auto; 
+            background-color: #ffffff;
+            box-shadow: 0 0 20px rgba(0,0,0,0.1);
+        }
+        
+        .header { 
+            background: linear-gradient(135deg, #1A1A1B 0%, #2D1B69 100%);
+            padding: 30px; 
+            text-align: center; 
+        }
+        
+        .logo-img { 
+            max-width: 180px; 
+            height: auto; 
+            margin-bottom: 15px;
+        }
+        
+        .header-title { 
+            font-size: 28px; 
+            font-weight: bold; 
+            color: #FFFFFF;
+            margin: 0; 
+        }
+        
+        .header-subtitle { 
+            color: #D97706; 
+            font-size: 16px; 
+            margin-top: 8px; 
+        }
+        
+        .content { 
+            padding: 40px; 
+            background-color: #ffffff;
+        }
+        
+        .welcome-text { 
+            font-size: 18px; 
+            color: #333; 
+            margin-bottom: 25px; 
+            text-align: center; 
+        }
+        
+        .greeting { 
+            font-size: 16px; 
+            color: #666; 
+            margin-bottom: 20px; 
+        }
+        
+        .venture-card { 
+            background: linear-gradient(135deg, #8B5CF6 0%, #D97706 100%);
+            padding: 30px; 
+            border-radius: 15px; 
+            text-align: center; 
+            margin: 30px 0; 
+            color: white; 
+        }
+        
+        .venture-name { 
+            font-size: 32px; 
+            font-weight: bold; 
+            margin-bottom: 5px; 
+            text-shadow: 0 2px 4px rgba(0,0,0,0.3);
+        }
+        
+        .venture-label { 
+            font-size: 18px; 
+            opacity: 0.9; 
+        }
+        
+        .payment-badge { 
+            background: rgba(255,255,255,0.2); 
+            padding: 12px 20px; 
+            border-radius: 25px; 
+            margin-top: 15px; 
+            font-weight: bold;
+        }
+        
+        .action-needed { 
+            background: #fff3cd;
+            border: 2px solid #D97706;
+            border-radius: 12px; 
+            padding: 25px; 
+            margin: 30px 0; 
+            text-align: center; 
+        }
+        
+        .action-title { 
+            color: #D97706; 
+            font-size: 20px; 
+            font-weight: bold; 
+            margin-bottom: 15px; 
+        }
+        
+        .action-text { 
+            color: #856404; 
+            margin-bottom: 20px; 
+            font-size: 16px; 
+        }
+        
+        .action-list { 
+            list-style: none; 
+            padding: 0; 
+            text-align: left;
+            display: inline-block;
+        }
+        
+        .action-list li { 
+            padding: 5px 0; 
+            color: #856404; 
+            position: relative; 
+            padding-left: 25px; 
+        }
+        
+        .action-list li:before { 
+            content: "⚡"; 
+            position: absolute; 
+            left: 0; 
+        }
+        
+        .details-section { 
+            background: #f8f9fa;
+            border-radius: 12px; 
+            padding: 25px; 
+            margin: 30px 0; 
+        }
+        
+        .section-title { 
+            font-size: 20px; 
+            color: #333; 
+            margin-bottom: 15px; 
+            display: flex; 
+            align-items: center;
+        }
+        
+        .section-icon { 
+            margin-right: 8px; 
+        }
+        
+        .detail-row { 
+            display: flex; 
+            justify-content: space-between; 
+            margin-bottom: 12px; 
+            flex-wrap: wrap; 
+        }
+        
+        .detail-label { 
+            font-weight: bold; 
+            color: #8B5CF6; 
+            min-width: 140px; 
+        }
+        
+        .detail-value { 
+            color: #333; 
+            flex: 1; 
+            word-break: break-word; 
+        }
+        
+        .payment-details { 
+            background: linear-gradient(135deg, rgba(139, 92, 246, 0.1) 0%, rgba(217, 119, 6, 0.1) 100%);
+            border-left: 4px solid #8B5CF6;
+            border-radius: 12px; 
+            padding: 25px; 
+            margin: 30px 0; 
+        }
+        
+        .amount { 
+            font-size: 20px; 
+            font-weight: bold; 
+            color: #8B5CF6; 
+        }
+        
+        .reference-code {
+            background: #2D1B69;
+            color: white;
+            padding: 8px 16px;
+            border-radius: 20px;
+            font-family: 'Courier New', monospace;
+            font-size: 14px;
+            display: inline-block;
+            margin-top: 5px;
+        }
+        
+        .support { 
+            background: #f8f9fa; 
+            padding: 20px; 
+            border-radius: 8px; 
+            margin: 25px 0; 
+            text-align: center; 
+        }
+        
+        .support-text { 
+            color: #666; 
+            margin-bottom: 10px; 
+        }
+        
+        .support-email { 
+            color: #8B5CF6; 
+            text-decoration: none; 
+            font-weight: 600; 
+        }
+        
+        .footer { 
+            background: #1A1A1B; 
+            padding: 25px; 
+            text-align: center; 
+        }
+        
+        .footer-links { 
+            margin-bottom: 15px; 
+        }
+        
+        .footer-link { 
+            color: #8B5CF6; 
+            text-decoration: none; 
+            margin: 0 15px; 
+        }
+        
+        .footer-text { 
+            color: #999; 
+            font-size: 12px; 
+            line-height: 1.4; 
+        }
+        
+        .timestamp {
+            color: #666;
+            font-size: 14px;
+            margin-top: 20px;
+            text-align: center;
+            font-style: italic;
+        }
+        
         @media (max-width: 600px) {
-            .header, .content, .footer { padding: 20px; }
-            .details-section, .payment-details { padding: 15px; }
+            .header, .content { padding: 20px; }
+            .venture-name { font-size: 24px; }
             .detail-row { flex-direction: column; }
             .detail-label { margin-bottom: 5px; }
+            .details-section, .payment-details { padding: 15px; }
         }
     </style>
 </head>
@@ -37,16 +259,36 @@
     <div class="container">
         <!-- Header -->
         <div class="header">
-            <a href="{{HOST_URL}}" class="logo">Second Chance</a>
+            <img src="{{LOGO_URL}}" alt="Second Chance Logo" class="logo-img">
+            <h1 class="header-title">New Deal Room Purchase!</h1>
+            <p class="header-subtitle">A startup has joined the Deal Room</p>
         </div>
 
         <!-- Content -->
         <div class="content">
-            <h1 class="title">🎉 New Deal Room Access Purchase!</h1>
-            <p class="subtitle">{{VENTURE_NAME}} has successfully purchased Deal Room access</p>
+            <p class="greeting">Hello Team,</p>
             
-            <p class="text">A new startup has just gained access to our Deal Room. Here are the details:</p>
-            
+            <p class="welcome-text">🎉 Great news! <strong>{{VENTURE_NAME}}</strong> has successfully purchased Deal Room access and is now part of our premium investor network.</p>
+
+            <!-- Venture Highlight -->
+            <div class="venture-card">
+                <div class="venture-name">{{VENTURE_NAME}}</div>
+                <div class="venture-label">{{VENTURE_INDUSTRY}} • {{VENTURE_STAGE}}</div>
+                <div class="payment-badge">💳 Deal Room Access Activated</div>
+            </div>
+
+            <!-- Action Required -->
+            <div class="action-needed">
+                <div class="action-title">⚡ Immediate Action Required</div>
+                <p class="action-text">This venture expects premium treatment and access to:</p>
+                <ul class="action-list">
+                    <li>Investor matching and connections</li>
+                    <li>Deal room onboarding process</li>
+                    <li>Status update (pending → reviewing)</li>
+                    <li>Premium support and guidance</li>
+                </ul>
+            </div>
+
             <!-- Founder Details -->
             <div class="details-section">
                 <h3 class="section-title">
@@ -78,7 +320,7 @@
                     Venture Information
                 </h3>
                 <div class="detail-row">
-                    <span class="detail-label">Company Name:</span>
+                    <span class="detail-label">Company:</span>
                     <span class="detail-value">{{VENTURE_NAME}}</span>
                 </div>
                 <div class="detail-row">
@@ -115,7 +357,12 @@
                 </div>
                 <div class="detail-row">
                     <span class="detail-label">Reference:</span>
-                    <span class="detail-value">{{PAYMENT_REFERENCE}}</span>
+                    <span class="detail-value">
+                        <div class="reference-code">{{PAYMENT_REFERENCE}}</div>
+                        <div style="font-size: 12px; color: #666; margin-top: 8px;">
+                            Format: SC_[timestamp]_[uuid] • Unique identifier for tracking
+                        </div>
+                    </span>
                 </div>
                 <div class="detail-row">
                     <span class="detail-label">Gateway:</span>
@@ -123,27 +370,25 @@
                 </div>
             </div>
 
-            <!-- Action Items -->
-            <div class="urgent-note">
-                <h3 style="margin-bottom: 10px; color: #92400E;">⚡ Action Required</h3>
-                <p style="margin-bottom: 8px; color: #92400E;">This venture now has access to the Deal Room and expects:</p>
-                <ul style="margin-left: 20px; color: #92400E;">
-                    <li>Review of their venture status (pending → reviewing)</li>
-                    <li>Access to investor connections</li>
-                    <li>Premium features and support</li>
-                </ul>
+            <!-- Support -->
+            <div class="support">
+                <p class="support-text">Questions about this notification? Contact the development team.</p>
+                <a href="mailto:support@secondchance.com" class="support-email">support@secondchance.com</a>
             </div>
 
-            <p class="text">Please review their profile and begin the Deal Room onboarding process.</p>
-            <p class="text">Notification sent on: <strong>{{CURRENT_DATE}}</strong></p>
+            <div class="timestamp">
+                Notification sent: {{CURRENT_DATE}}
+            </div>
         </div>
 
         <!-- Footer -->
         <div class="footer">
-            <p class="footer-text">
-                © {{CURRENT_YEAR}} Second Chance Platform. Internal Team Notification.<br>
-                This email was sent to keep you informed of new Deal Room purchases.
-            </p>
+            <div class="footer-links">
+                <a href="{{PRIVACY_URL}}" class="footer-link">Privacy Policy</a>
+                <a href="{{TERMS_URL}}" class="footer-link">Terms & Conditions</a>
+            </div>
+            <p class="footer-text">© {{CURRENT_YEAR}} Second Chance - Internal Team Notification</p>
+            <p class="footer-text">East Emblem Technologies, Masdar City Free Zone, UAE</p>
         </div>
     </div>
 </body>
