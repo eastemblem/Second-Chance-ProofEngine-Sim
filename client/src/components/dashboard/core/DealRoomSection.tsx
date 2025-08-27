@@ -76,7 +76,7 @@ export function DealRoomSection({ validationData }: DealRoomSectionProps) {
         
         {/* Left Column: Title and Features */}
         <div className="lg:col-span-3">
-          <h2 className="text-2xl font-bold text-white mb-6">
+          <h2 className="text-3xl font-bold text-white mb-6">
             Dealroom
           </h2>
           

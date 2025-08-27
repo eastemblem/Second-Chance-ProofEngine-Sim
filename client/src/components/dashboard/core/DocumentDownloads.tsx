@@ -41,7 +41,7 @@ export function DocumentDownloads({
   return (
     <Card className="bg-black/50 border-gray-800">
       <CardHeader>
-        <CardTitle className="text-white">Ready for Download</CardTitle>
+        <CardTitle className="text-white text-3xl font-bold">Ready for Download</CardTitle>
         <CardDescription className="text-gray-400">
           Access your validation certificate and analysis report
         </CardDescription>

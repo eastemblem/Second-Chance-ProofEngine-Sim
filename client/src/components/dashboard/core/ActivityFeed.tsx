@@ -88,8 +88,7 @@ export function ActivityFeed({
   return (
     <Card className="bg-black/50 border-gray-800">
       <CardHeader>
-        <CardTitle className="flex items-center gap-2 text-white">
-          <TrendingUp className="w-5 h-5" />
+        <CardTitle className="text-white text-3xl font-bold">
           Recent Activity
         </CardTitle>
         <CardDescription className="text-gray-400">

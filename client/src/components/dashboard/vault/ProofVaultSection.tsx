@@ -127,7 +127,7 @@ export function ProofVaultSection({
           {/* Left Column: Title and Description */}
           <div className="lg:col-span-3">
             <div className="text-white mb-4">
-              <h2 className="text-2xl font-bold">ProofVault Management</h2>
+              <h2 className="text-3xl font-bold">ProofVault Management</h2>
             </div>
             
             <p className="text-gray-400 text-base leading-relaxed mb-6">

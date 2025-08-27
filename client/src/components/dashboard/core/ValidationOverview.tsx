@@ -57,7 +57,7 @@ export function ValidationOverview({ validationData, proofVaultData, onScrollToV
         
         {/* Left Column: Title and Upload Button */}
         <div className="lg:col-span-3">
-          <h2 className="text-2xl font-bold text-white mb-6">
+          <h2 className="text-3xl font-bold text-white mb-6">
             Validation
             <br />
             Overview

@@ -328,18 +328,18 @@ export default function DashboardV2Page() {
             onDownloadReport={handleDownloadReport}
           />
 
-          {/* Leaderboard */}
-          <LeaderboardPanel leaderboardData={leaderboardData} />
-
-          {/* Recent Activity */}
-          <ActivityFeed
-            activities={recentActivity}
-            totalActivities={totalActivities}
-            isLoading={isActivitiesLoading}
-            isLoadingMore={isLoadingMore}
-            hasMore={hasMore}
-            onLoadMore={loadMore}
-          />
+          {/* Leaderboard and Recent Activity - Side by Side */}
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+            <LeaderboardPanel leaderboardData={leaderboardData} />
+            <ActivityFeed
+              activities={recentActivity}
+              totalActivities={totalActivities}
+              isLoading={isActivitiesLoading}
+              isLoadingMore={isLoadingMore}
+              hasMore={hasMore}
+              onLoadMore={loadMore}
+            />
+          </div>
         </div>
       </div>
       
