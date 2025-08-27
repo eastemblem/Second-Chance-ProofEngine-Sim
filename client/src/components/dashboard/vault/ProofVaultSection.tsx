@@ -57,6 +57,10 @@ interface ProofVaultSectionProps {
   onClearQueue: () => void;
   getFolderDisplayName: (folderId: string) => string;
   getAvailableFolders: () => Array<{ id: string; name: string; count: number }>;
+  
+  // External tab control
+  externalActiveTab?: string;
+  onTabChange?: (tab: string) => void;
 }
 
 export function ProofVaultSection({
@@ -79,9 +83,21 @@ export function ProofVaultSection({
   onRetryFailed,
   onClearQueue,
   getFolderDisplayName,
-  getAvailableFolders
+  getAvailableFolders,
+  externalActiveTab,
+  onTabChange
 }: ProofVaultSectionProps) {
-  const [activeTab, setActiveTab] = useState("overview");
+  const [internalActiveTab, setInternalActiveTab] = useState("overview");
+  
+  // Use external tab control if provided, otherwise use internal state
+  const activeTab = externalActiveTab !== undefined ? externalActiveTab : internalActiveTab;
+  const handleTabChange = (tab: string) => {
+    if (onTabChange) {
+      onTabChange(tab);
+    } else {
+      setInternalActiveTab(tab);
+    }
+  };
   const { toast } = useToast();
 
   // Handle viewing parent folder
@@ -134,7 +150,7 @@ export function ProofVaultSection({
 
           {/* Right Column: Tabs and Content */}
           <div className="lg:col-span-8">
-            <Tabs value={activeTab} onValueChange={setActiveTab}>
+            <Tabs value={activeTab} onValueChange={handleTabChange}>
               <TabsList className="grid w-full grid-cols-3 bg-gray-800">
                 <TabsTrigger value="overview" className="text-gray-300 data-[state=active]:bg-gray-700 data-[state=active]:text-white">Overview</TabsTrigger>
                 <TabsTrigger value="files" className="text-gray-300 data-[state=active]:bg-gray-700 data-[state=active]:text-white">Files</TabsTrigger>

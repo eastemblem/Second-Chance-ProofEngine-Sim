@@ -18,9 +18,10 @@ interface ProofVaultData {
 interface ValidationOverviewProps {
   validationData: ValidationData | null;
   proofVaultData: ProofVaultData | null;
+  onScrollToVault?: () => void;
 }
 
-export function ValidationOverview({ validationData, proofVaultData }: ValidationOverviewProps) {
+export function ValidationOverview({ validationData, proofVaultData, onScrollToVault }: ValidationOverviewProps) {
   const proofScore = validationData?.proofScore || 0;
   const isInvestorReady = proofScore >= 70;
 
@@ -64,6 +65,7 @@ export function ValidationOverview({ validationData, proofVaultData }: Validatio
           
           <Button 
             className="bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white px-6 py-2 rounded-lg flex items-center gap-2 transition-all duration-200"
+            onClick={onScrollToVault}
           >
             <Upload className="w-4 h-4" />
             Upload Files

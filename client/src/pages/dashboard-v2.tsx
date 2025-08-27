@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { useLocation } from "wouter";
 import { PaymentModal } from '@/components/ui/payment-modal';
 import { usePaginatedActivities } from "@/hooks/use-paginated-activities";
@@ -30,6 +30,10 @@ export default function DashboardV2Page() {
   const [selectedFolder, setSelectedFolder] = useState<string>("0_Overview");
   const [selectedCategory, setSelectedCategory] = useState<string>("0_Overview");
   const [isPaymentModalOpen, setIsPaymentModalOpen] = useState(false);
+  const [vaultActiveTab, setVaultActiveTab] = useState("overview");
+  
+  // Ref for scrolling to ProofVault section
+  const proofVaultRef = useRef<HTMLDivElement>(null);
 
   // Use extracted hooks
   const { user, isLoading: authLoading, checkAuthStatus } = useAuthentication();
@@ -247,6 +251,17 @@ export default function DashboardV2Page() {
     setUploadQueue([]);
   };
 
+  // Handle scroll to ProofVault and open upload tab
+  const handleScrollToVault = () => {
+    setVaultActiveTab("upload");
+    if (proofVaultRef.current) {
+      proofVaultRef.current.scrollIntoView({ 
+        behavior: "smooth", 
+        block: "start" 
+      });
+    }
+  };
+
   if (authLoading || dataLoading || !user) {
     return <DashboardLoadingSkeleton />;
   }
@@ -266,6 +281,7 @@ export default function DashboardV2Page() {
           <ValidationOverview 
             validationData={validationData} 
             proofVaultData={proofVaultData} 
+            onScrollToVault={handleScrollToVault}
           />
 
           {/* Deal Room Section */}
@@ -274,31 +290,35 @@ export default function DashboardV2Page() {
           />
 
           {/* Your Proof Vault */}
-          <ProofVaultSection
-            proofVaultData={proofVaultData}
-            paginatedFiles={paginatedFiles}
-            totalFiles={totalFiles}
-            filesLoading={filesLoading}
-            filesLoadingMore={filesLoadingMore}
-            hasMoreFiles={hasMoreFiles}
-            onFilesScroll={handleFilesScroll}
-            selectedFolder={selectedFolder}
-            onFolderChange={(value) => {
-              setSelectedFolder(value);
-              setSelectedCategory(value);
-            }}
-            uploadQueue={uploadQueue}
-            currentUploadIndex={currentUploadIndex}
-            isUploading={isUploading}
-            isCreatingFolders={isCreatingFolders}
-            folderCreationStatus={folderCreationStatus}
-            onFileUpload={handleMultipleFileUpload}
-            onFolderUpload={handleFolderUpload}
-            onRetryFailed={retryFailedUploads}
-            onClearQueue={handleClearQueue}
-            getFolderDisplayName={getFolderDisplayName}
-            getAvailableFolders={() => getAvailableFolders(proofVaultData)}
-          />
+          <div ref={proofVaultRef}>
+            <ProofVaultSection
+              proofVaultData={proofVaultData}
+              paginatedFiles={paginatedFiles}
+              totalFiles={totalFiles}
+              filesLoading={filesLoading}
+              filesLoadingMore={filesLoadingMore}
+              hasMoreFiles={hasMoreFiles}
+              onFilesScroll={handleFilesScroll}
+              selectedFolder={selectedFolder}
+              onFolderChange={(value) => {
+                setSelectedFolder(value);
+                setSelectedCategory(value);
+              }}
+              uploadQueue={uploadQueue}
+              currentUploadIndex={currentUploadIndex}
+              isUploading={isUploading}
+              isCreatingFolders={isCreatingFolders}
+              folderCreationStatus={folderCreationStatus}
+              onFileUpload={handleMultipleFileUpload}
+              onFolderUpload={handleFolderUpload}
+              onRetryFailed={retryFailedUploads}
+              onClearQueue={handleClearQueue}
+              getFolderDisplayName={getFolderDisplayName}
+              getAvailableFolders={() => getAvailableFolders(proofVaultData)}
+              externalActiveTab={vaultActiveTab}
+              onTabChange={setVaultActiveTab}
+            />
+          </div>
 
           {/* Certificate & Report Downloads */}
           <DocumentDownloads
@@ -318,7 +338,7 @@ export default function DashboardV2Page() {
             isLoading={isActivitiesLoading}
             isLoadingMore={isLoadingMore}
             hasMore={hasMore}
-            onLoadMore={handleActivityScroll}
+            onLoadMore={loadMore}
           />
         </div>
       </div>
