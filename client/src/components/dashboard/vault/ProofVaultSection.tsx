@@ -125,7 +125,7 @@ export function ProofVaultSection({
       <CardContent className="p-8">
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
           {/* Left Column: Title and Description */}
-          <div className="lg:col-span-4">
+          <div className="lg:col-span-3">
             <div className="flex items-center gap-2 text-white mb-4">
               <FolderOpen className="w-5 h-5" />
               <h2 className="text-2xl font-bold">ProofVault Management</h2>
@@ -148,8 +148,8 @@ export function ProofVaultSection({
             </Button>
           </div>
 
-          {/* Right Column: Tabs and Content */}
-          <div className="lg:col-span-8">
+          {/* Center Column: Tabs and Content */}
+          <div className="lg:col-span-6">
             <Tabs value={activeTab} onValueChange={handleTabChange}>
               <TabsList className="grid w-full grid-cols-3 bg-gray-800">
                 <TabsTrigger value="overview" className="text-gray-300 data-[state=active]:bg-gray-700 data-[state=active]:text-white">Overview</TabsTrigger>
@@ -190,6 +190,11 @@ export function ProofVaultSection({
                 />
               </TabsContent>
             </Tabs>
+          </div>
+
+          {/* Right Column: Empty */}
+          <div className="lg:col-span-3">
+            {/* Intentionally empty */}
           </div>
         </div>
       </CardContent>
