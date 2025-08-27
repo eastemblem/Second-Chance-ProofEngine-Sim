@@ -131,7 +131,7 @@ export function ValidationOverview({ validationData, proofVaultData, onScrollToV
 
           {/* ProofScore Label */}
           <div className="text-center">
-            <h3 className="text-lg font-semibold text-white mb-1">Proofscore</h3>
+            <h3 className="text-lg font-semibold text-white mb-1">ProofScore</h3>
             <p className="text-sm text-gray-400">
               {getStatusText()}
             </p>
