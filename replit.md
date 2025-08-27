@@ -41,6 +41,7 @@ The frontend is built with TypeScript React and Vite, utilizing React Query for 
 - **Deal Room Access:** Provides qualified users (ProofScore >= 70) access to investor matching and premium features for a one-time fee.
 - **ProofScaling Sales Page:** A dedicated experience for startups with ProofScores below 70, offering tailored guidance.
 - **Direct Pathway Routing:** Eliminates intermediate pages, directly routing users to relevant sales pages post-analysis.
+- **Premium Download Features:** Report downloads and file downloads are protected behind the payment system, ensuring only paying customers can access detailed analysis documents and resources.
 - **Comprehensive Payment Activity Tracking:** Logs all payment-related user interactions for analytics, including initiation, completion, and failure tracking.
 
 ### System Design Choices
