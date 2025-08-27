@@ -9,7 +9,7 @@ interface CommunityAccessProps {
 
 export function CommunityAccess({ hasDealRoomAccess }: CommunityAccessProps) {
   const handleCalendlyClick = () => {
-    window.open('https://calendly.com/yourlink', '_blank');
+    window.open('https://calendly.com/get-secondchance-info/30min', '_blank');
   };
 
   const handleFoundersLiveClick = () => {
