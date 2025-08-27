@@ -1,5 +1,5 @@
 import { Button } from "@/components/ui/button";
-import { CheckCircle } from "lucide-react";
+import { CheckCircle, Clock, Eye, Check } from "lucide-react";
 
 interface ValidationData {
   proofScore: number;
@@ -160,14 +160,32 @@ export function DealRoomSection({ validationData, hasDealRoomAccess = false, onP
           )}
         </div>
 
-        {/* Right Column: Status (only when user has paid) */}
+        {/* Right Column: Status Icons (only when user has paid) */}
         <div className="lg:col-span-3">
           {isUnlocked && hasDealRoomAccess && (
-            <div className="bg-gray-800/60 rounded-lg p-6 border border-gray-600/50">
-              <h3 className="text-lg font-semibold text-white mb-4">Status</h3>
-              <div className="flex items-center gap-3">
-                <div className="w-3 h-3 bg-orange-400 rounded-full animate-pulse"></div>
-                <span className="text-orange-400 font-medium">Reviewing</span>
+            <div className="flex flex-col items-center gap-4 pt-8">
+              {/* Reviewing - Active (currently showing this) */}
+              <div className="flex flex-col items-center gap-2">
+                <div className="w-12 h-12 bg-orange-400/20 rounded-full flex items-center justify-center">
+                  <Clock className="w-6 h-6 text-orange-400 animate-pulse" />
+                </div>
+                <span className="text-orange-400 text-sm font-medium">Reviewing</span>
+              </div>
+              
+              {/* Reviewed - Inactive */}
+              <div className="flex flex-col items-center gap-2 opacity-50">
+                <div className="w-12 h-12 bg-gray-600 rounded-full flex items-center justify-center">
+                  <Eye className="w-6 h-6 text-gray-400" />
+                </div>
+                <span className="text-gray-400 text-sm">Reviewed</span>
+              </div>
+              
+              {/* Done - Inactive */}
+              <div className="flex flex-col items-center gap-2 opacity-50">
+                <div className="w-12 h-12 bg-gray-600 rounded-full flex items-center justify-center">
+                  <Check className="w-6 h-6 text-gray-400" />
+                </div>
+                <span className="text-gray-400 text-sm">Done</span>
               </div>
             </div>
           )}
