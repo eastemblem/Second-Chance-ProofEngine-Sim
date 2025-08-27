@@ -15,9 +15,10 @@ interface DealRoomSectionProps {
   validationData: ValidationData | null;
   hasDealRoomAccess?: boolean;
   onPaymentModalOpen?: () => void;
+  ventureStatus?: 'pending' | 'reviewing' | 'reviewed' | 'done';
 }
 
-export function DealRoomSection({ validationData, hasDealRoomAccess = false, onPaymentModalOpen }: DealRoomSectionProps) {
+export function DealRoomSection({ validationData, hasDealRoomAccess = false, onPaymentModalOpen, ventureStatus = 'pending' }: DealRoomSectionProps) {
   const proofScore = validationData?.proofScore || 0;
   const isUnlocked = proofScore >= 70;
 
@@ -164,28 +165,64 @@ export function DealRoomSection({ validationData, hasDealRoomAccess = false, onP
         <div className="lg:col-span-3">
           {isUnlocked && hasDealRoomAccess && (
             <div className="flex flex-col items-center gap-4 pt-8">
-              {/* Reviewing - Active (currently showing this) */}
-              <div className="flex flex-col items-center gap-2">
-                <div className="w-12 h-12 bg-orange-400/20 rounded-full flex items-center justify-center">
-                  <Clock className="w-6 h-6 text-orange-400 animate-pulse" />
+              {/* Reviewing */}
+              <div className={`flex flex-col items-center gap-2 ${ventureStatus !== 'reviewing' ? 'opacity-50' : ''}`}>
+                <div className={`w-12 h-12 rounded-full flex items-center justify-center ${
+                  ventureStatus === 'reviewing' 
+                    ? 'bg-orange-400/20' 
+                    : 'bg-gray-600'
+                }`}>
+                  <Clock className={`w-6 h-6 ${
+                    ventureStatus === 'reviewing' 
+                      ? 'text-orange-400 animate-pulse' 
+                      : 'text-gray-400'
+                  }`} />
                 </div>
-                <span className="text-orange-400 text-sm font-medium">Reviewing</span>
+                <span className={`text-sm ${
+                  ventureStatus === 'reviewing' 
+                    ? 'text-orange-400 font-medium' 
+                    : 'text-gray-400'
+                }`}>Reviewing</span>
               </div>
               
-              {/* Reviewed - Inactive */}
-              <div className="flex flex-col items-center gap-2 opacity-50">
-                <div className="w-12 h-12 bg-gray-600 rounded-full flex items-center justify-center">
-                  <Eye className="w-6 h-6 text-gray-400" />
+              {/* Reviewed */}
+              <div className={`flex flex-col items-center gap-2 ${ventureStatus !== 'reviewed' ? 'opacity-50' : ''}`}>
+                <div className={`w-12 h-12 rounded-full flex items-center justify-center ${
+                  ventureStatus === 'reviewed' 
+                    ? 'bg-blue-400/20' 
+                    : 'bg-gray-600'
+                }`}>
+                  <Eye className={`w-6 h-6 ${
+                    ventureStatus === 'reviewed' 
+                      ? 'text-blue-400' 
+                      : 'text-gray-400'
+                  }`} />
                 </div>
-                <span className="text-gray-400 text-sm">Reviewed</span>
+                <span className={`text-sm ${
+                  ventureStatus === 'reviewed' 
+                    ? 'text-blue-400 font-medium' 
+                    : 'text-gray-400'
+                }`}>Reviewed</span>
               </div>
               
-              {/* Done - Inactive */}
-              <div className="flex flex-col items-center gap-2 opacity-50">
-                <div className="w-12 h-12 bg-gray-600 rounded-full flex items-center justify-center">
-                  <Check className="w-6 h-6 text-gray-400" />
+              {/* Done */}
+              <div className={`flex flex-col items-center gap-2 ${ventureStatus !== 'done' ? 'opacity-50' : ''}`}>
+                <div className={`w-12 h-12 rounded-full flex items-center justify-center ${
+                  ventureStatus === 'done' 
+                    ? 'bg-green-400/20' 
+                    : 'bg-gray-600'
+                }`}>
+                  <Check className={`w-6 h-6 ${
+                    ventureStatus === 'done' 
+                      ? 'text-green-400' 
+                      : 'text-gray-400'
+                  }`} />
                 </div>
-                <span className="text-gray-400 text-sm">Done</span>
+                <span className={`text-sm ${
+                  ventureStatus === 'done' 
+                    ? 'text-green-400 font-medium' 
+                    : 'text-gray-400'
+                }`}>Done</span>
               </div>
             </div>
           )}

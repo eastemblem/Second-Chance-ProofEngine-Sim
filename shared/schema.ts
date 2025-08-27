@@ -15,6 +15,7 @@ export const artefactTypeEnum = pgEnum('artefact_type', [
   'Technical Documentation',
   'Financial Model'
 ]);
+export const ventureStatusEnum = pgEnum('venture_status', ['pending', 'reviewing', 'reviewed', 'done']);
 
 // Founder table (replaces users)
 export const founder = pgTable("founder", {
@@ -58,6 +59,7 @@ export const venture = pgTable("venture", {
   reportUrl: varchar("report_url", { length: 500 }),
   reportGeneratedAt: timestamp("report_generated_at"),
   folderStructure: jsonb("folder_structure"),
+  status: ventureStatusEnum("status").notNull().default("pending"),
   createdAt: timestamp("created_at").defaultNow().notNull(),
   updatedAt: timestamp("updated_at").defaultNow().notNull(),
 });

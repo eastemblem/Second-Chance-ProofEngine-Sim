@@ -7,6 +7,7 @@ import { trackEvent } from "@/lib/analytics";
 import Navbar from "@/components/navbar";
 import { DashboardLayout } from "@/components/layout";
 import { DashboardLoadingSkeleton } from "@/components/dashboard-loading";
+import confetti from 'canvas-confetti';
 
 // Import all the extracted components
 import {
@@ -114,9 +115,46 @@ export default function DashboardV2Page() {
   };
 
   // Handle payment success
-  const handlePaymentSuccess = () => {
-    setHasDealRoomAccess(true);
-    trackEvent('payment', 'deal_room', 'payment_success');
+  const handlePaymentSuccess = async () => {
+    try {
+      // 1. Trigger confetti animation
+      confetti({
+        particleCount: 100,
+        spread: 70,
+        origin: { y: 0.6 }
+      });
+
+      // 2. Update local state
+      setHasDealRoomAccess(true);
+      
+      // 3. Update venture status in database and send notification
+      if (user?.venture?.ventureId) {
+        await fetch('/api/ventures/update-status', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json'
+          },
+          body: JSON.stringify({
+            ventureId: user.venture.ventureId,
+            status: 'reviewing',
+            paymentData: {
+              amount: '$99 USD',
+              date: new Date().toISOString(),
+              reference: `payment_${Date.now()}`
+            }
+          })
+        });
+      }
+
+      // 4. Track analytics
+      trackEvent('payment', 'deal_room', 'payment_success');
+
+      // 5. Reload dashboard data to reflect changes
+      loadDashboardData(true);
+      
+    } catch (error) {
+      console.error('Error processing payment success:', error);
+    }
   };
 
   // Handle payment modal open
@@ -290,6 +328,7 @@ export default function DashboardV2Page() {
             validationData={validationData}
             hasDealRoomAccess={hasDealRoomAccess}
             onPaymentModalOpen={handlePaymentModalOpen}
+            ventureStatus={user?.venture?.status}
           />
 
           {/* Your Proof Vault */}
