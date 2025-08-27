@@ -33,7 +33,7 @@ export function LeaderboardPanel({ leaderboardData, currentUserProofTags }: Lead
           Leaderboard
         </CardTitle>
         <CardDescription className="text-gray-400">
-          Top performing ventures of the week
+          Top 3 performing ventures
         </CardDescription>
       </CardHeader>
       <CardContent>
@@ -46,25 +46,20 @@ export function LeaderboardPanel({ leaderboardData, currentUserProofTags }: Lead
               <div className="w-24 text-center">ProofTags</div>
             </div>
             
-            {/* Leaderboard Entries */}
+            {/* Leaderboard Entries - Top 3 Only */}
             <div className="space-y-2">
-              {leaderboardData.map((entry) => {
-                // Generate a consistent avatar based on venture name
-                const getAvatarColor = (name: string) => {
-                  const colors = [
-                    'from-purple-500 to-pink-500',
-                    'from-blue-500 to-cyan-500', 
-                    'from-green-500 to-emerald-500',
-                    'from-yellow-500 to-orange-500',
-                    'from-red-500 to-rose-500'
-                  ];
-                  const index = name.charCodeAt(0) % colors.length;
-                  return colors[index];
-                };
-                
-                const avatarGradient = getAvatarColor(entry.ventureName);
+              {leaderboardData.slice(0, 3).map((entry) => {
                 const proofTagsCount = entry.proofTags || 0;
                 const handle = entry.handle || `@${entry.ventureName.toLowerCase().replace(/\s+/g, '')}`;
+                
+                // Medal icon and colors based on rank
+                const getMedalDisplay = (rank: number) => {
+                  if (rank === 1) return { icon: <Trophy className="w-8 h-8 text-yellow-400" />, bg: 'bg-yellow-400/20 border-yellow-400/30' };
+                  if (rank === 2) return { icon: <Medal className="w-8 h-8 text-gray-300" />, bg: 'bg-gray-400/20 border-gray-400/30' };
+                  if (rank === 3) return { icon: <Medal className="w-8 h-8 text-amber-600" />, bg: 'bg-amber-600/20 border-amber-600/30' };
+                };
+                
+                const medalDisplay = getMedalDisplay(entry.rank);
                 
                 return (
                   <div 
@@ -76,9 +71,9 @@ export function LeaderboardPanel({ leaderboardData, currentUserProofTags }: Lead
                       {entry.rank}
                     </div>
                     
-                    {/* Avatar */}
-                    <div className={`w-12 h-12 rounded-full bg-gradient-to-br ${avatarGradient} flex items-center justify-center text-white font-bold text-sm`}>
-                      {entry.ventureName.charAt(0).toUpperCase()}
+                    {/* Medal Icon */}
+                    <div className={`w-12 h-12 rounded-full ${medalDisplay?.bg} flex items-center justify-center border`}>
+                      {medalDisplay?.icon}
                     </div>
                     
                     {/* Venture Info */}
