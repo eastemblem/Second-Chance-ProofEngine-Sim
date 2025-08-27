@@ -62,22 +62,24 @@ export function DashboardHeader({
           </div>
         </div>
 
-        {/* ProofTags Banner - Below welcome text */}
-        <div className="bg-gray-800/60 rounded-lg px-4 py-3 border border-gray-700/50 inline-block">
-          <div className="flex items-center gap-2 flex-wrap">
-            <span className="text-base">🎉</span>
-            <span className="text-white font-medium text-sm">
-              Congratulations!
-            </span>
-            <span className="text-gray-300 text-sm">You unlocked</span>
-            <span className="text-base">💎</span>
-            <span className="text-blue-400 font-bold text-base">
-              {proofTagsUnlocked}
-            </span>
-            <span className="text-gray-300 text-sm">ProofTags</span>
-            <span className="text-gray-400 text-sm">
-              out of {totalProofTags} total
-            </span>
+        {/* ProofTags Banner - Left aligned below welcome text */}
+        <div className="ml-20">
+          <div className="bg-gray-800/60 rounded-lg px-4 py-3 border border-gray-700/50 inline-block">
+            <div className="flex items-center gap-2 flex-wrap">
+              <span className="text-base">🎉</span>
+              <span className="text-white font-medium text-sm">
+                Congratulations!
+              </span>
+              <span className="text-gray-300 text-sm">You unlocked</span>
+              <span className="text-base">💎</span>
+              <span className="text-blue-400 font-bold text-base">
+                {proofTagsUnlocked}
+              </span>
+              <span className="text-gray-300 text-sm">ProofTags</span>
+              <span className="text-gray-400 text-sm">
+                out of {totalProofTags} total
+              </span>
+            </div>
           </div>
         </div>
       </div>
