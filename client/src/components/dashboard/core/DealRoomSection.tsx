@@ -80,7 +80,7 @@ export function DealRoomSection({ validationData }: DealRoomSectionProps) {
             Dealroom
           </h2>
           
-          <div className="space-y-3">
+          <div className="space-y-1">
             <p className="text-sm text-gray-400 mb-4">
               The Deal Room is your gateway to:
             </p>
