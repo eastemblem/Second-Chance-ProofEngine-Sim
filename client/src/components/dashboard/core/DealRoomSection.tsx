@@ -33,7 +33,24 @@ export function DealRoomSection({ validationData, hasDealRoomAccess = false, onP
 
   // Get conditional content based on unlock status
   const getMainText = () => {
-    if (isUnlocked) {
+    if (isUnlocked && hasDealRoomAccess) {
+      // Show congratulations message when user has paid
+      return (
+        <>
+          <div className="mb-6">
+            <div className="flex items-center justify-center gap-2 mb-4">
+              <CheckCircle className="w-6 h-6 text-green-400" />
+              <span className="text-green-400 font-bold text-xl">Access Granted</span>
+            </div>
+            <div className="text-gray-300 text-lg">
+              <span className="font-bold">Congratulations for joining the community!</span>
+              <br />
+              <span>Your venture is now visible to our verified investor network.</span>
+            </div>
+          </div>
+        </>
+      );
+    } else if (isUnlocked) {
       return (
         <>
           <span className="text-2xl">🚀</span> <span className="font-bold">You've unlocked the Deal Room!</span> <span className="text-2xl">🚀</span>
