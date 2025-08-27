@@ -428,8 +428,29 @@ export async function generateCertificate(req: Request, res: Response) {
 export async function downloadCertificate(req: Request, res: Response) {
   try {
     const { filename } = req.params;
-    const filePath = `./uploads/${filename}`;
     
+    // Check for payment access before allowing download
+    const founderId = (req as any).user?.founderId;
+    if (!founderId) {
+      return res.status(401).json({
+        success: false,
+        error: 'Authentication required'
+      });
+    }
+    
+    // Import payment service and check access
+    const { paymentService } = await import('../services/payment-service');
+    const hasAccess = await paymentService.hasDealRoomAccess(founderId);
+    
+    if (!hasAccess) {
+      return res.status(403).json({
+        success: false,
+        error: 'Deal Room access required to download certificate. Please upgrade to access your documents.',
+        requiresPayment: true
+      });
+    }
+    
+    const filePath = `./uploads/${filename}`;
     const fs = await import('fs/promises');
     
     // Check if file exists

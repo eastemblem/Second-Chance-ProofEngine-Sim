@@ -2,7 +2,7 @@ import { useState } from "react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Button } from "@/components/ui/button";
-import { ExternalLink } from "lucide-react";
+import { ExternalLink, Lock, CreditCard } from "lucide-react";
 import { VaultOverview } from "./VaultOverview";
 import { VaultFileListing } from "./VaultFileListing";
 import { VaultUploadArea } from "./VaultUploadArea";
@@ -61,6 +61,10 @@ interface ProofVaultSectionProps {
   // External tab control
   externalActiveTab?: string;
   onTabChange?: (tab: string) => void;
+  
+  // Payment gating
+  hasDealRoomAccess?: boolean;
+  onPaymentModalOpen?: () => void;
 }
 
 export function ProofVaultSection({
@@ -85,7 +89,9 @@ export function ProofVaultSection({
   getFolderDisplayName,
   getAvailableFolders,
   externalActiveTab,
-  onTabChange
+  onTabChange,
+  hasDealRoomAccess = false,
+  onPaymentModalOpen
 }: ProofVaultSectionProps) {
   const [internalActiveTab, setInternalActiveTab] = useState("overview");
   
@@ -102,6 +108,19 @@ export function ProofVaultSection({
 
   // Handle viewing parent folder
   const handleViewParentFolder = () => {
+    if (!hasDealRoomAccess) {
+      if (onPaymentModalOpen) {
+        trackEvent('payment', 'deal_room', 'box_access_payment_prompt');
+        onPaymentModalOpen();
+      }
+      toast({
+        title: "Payment Required",
+        description: "Unlock Box folder access with Deal Room subscription",
+        variant: "destructive",
+      });
+      return;
+    }
+    
     const parentFolderUrl = proofVaultData?.folderUrls?.['root'];
     if (parentFolderUrl) {
       trackEvent('folder_view', 'document_management', 'view_parent_folder');
@@ -138,12 +157,17 @@ export function ProofVaultSection({
               variant="ghost" 
               size="sm"
               onClick={handleViewParentFolder}
-              className="text-purple-400 hover:text-purple-300 hover:bg-gray-800 p-0 h-auto font-normal"
-              disabled={!proofVaultData?.folderUrls?.['root']}
-              title="View parent folder in Proof Vault"
+              className={`p-0 h-auto font-normal ${hasDealRoomAccess 
+                ? 'text-purple-400 hover:text-purple-300 hover:bg-gray-800' 
+                : 'text-gray-500 hover:text-purple-400 hover:bg-gray-800'}`}
+              disabled={!hasDealRoomAccess && !onPaymentModalOpen}
+              title={hasDealRoomAccess ? "View parent folder in Proof Vault" : "Payment required for Box folder access"}
             >
-              <ExternalLink className="w-4 h-4 mr-2" />
-              Access Box Folder
+              {hasDealRoomAccess ? (
+                <><ExternalLink className="w-4 h-4 mr-2" />Access Box Folder</>
+              ) : (
+                <><Lock className="w-4 h-4 mr-2" />Unlock Box Access - $99</>
+              )}
             </Button>
           </div>
 
@@ -168,6 +192,8 @@ export function ProofVaultSection({
                   isLoadingMore={filesLoadingMore}
                   hasMore={hasMoreFiles}
                   onScroll={onFilesScroll}
+                  hasDealRoomAccess={hasDealRoomAccess}
+                  onPaymentModalOpen={onPaymentModalOpen}
                 />
               </TabsContent>
 

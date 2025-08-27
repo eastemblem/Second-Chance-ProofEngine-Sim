@@ -1,5 +1,5 @@
 import { Button } from "@/components/ui/button";
-import { Download, ExternalLink } from "lucide-react";
+import { Download, ExternalLink, Lock } from "lucide-react";
 import { FileIcon, LoadingSpinner, EmptyState, PaginationLoading, EndIndicator } from "../shared";
 
 interface FileItem {
@@ -20,6 +20,8 @@ interface VaultFileListingProps {
   isLoadingMore: boolean;
   hasMore: boolean;
   onScroll: (e: React.UIEvent<HTMLDivElement>) => void;
+  hasDealRoomAccess?: boolean;
+  onPaymentModalOpen?: () => void;
 }
 
 // Format file size helper function
@@ -52,7 +54,9 @@ export function VaultFileListing({
   isLoading, 
   isLoadingMore, 
   hasMore, 
-  onScroll 
+  onScroll,
+  hasDealRoomAccess = false,
+  onPaymentModalOpen
 }: VaultFileListingProps) {
   // Get file category color based on categoryName
   const getCategoryColor = (categoryName: string) => {
@@ -112,20 +116,22 @@ export function VaultFileListing({
                       <Button
                         size="sm"
                         variant="ghost"
-                        onClick={() => window.open(file.downloadUrl, '_blank')}
-                        className="text-gray-400 hover:text-white h-8 w-8 p-0"
-                        title="Download file"
+                        onClick={hasDealRoomAccess ? () => window.open(file.downloadUrl, '_blank') : onPaymentModalOpen}
+                        className={`h-8 w-8 p-0 ${hasDealRoomAccess ? 'text-gray-400 hover:text-white' : 'text-gray-500 hover:text-purple-400'}`}
+                        title={hasDealRoomAccess ? "Download file" : "Payment required for file download"}
+                        disabled={!hasDealRoomAccess && !onPaymentModalOpen}
                       >
-                        <Download className="w-3 h-3" />
+                        {hasDealRoomAccess ? <Download className="w-3 h-3" /> : <Lock className="w-3 h-3" />}
                       </Button>
                       <Button
                         size="sm"
                         variant="ghost"
-                        onClick={() => window.open(file.downloadUrl, '_blank')}
-                        className="text-gray-400 hover:text-white h-8 w-8 p-0"
-                        title="View file"
+                        onClick={hasDealRoomAccess ? () => window.open(file.downloadUrl, '_blank') : onPaymentModalOpen}
+                        className={`h-8 w-8 p-0 ${hasDealRoomAccess ? 'text-gray-400 hover:text-white' : 'text-gray-500 hover:text-purple-400'}`}
+                        title={hasDealRoomAccess ? "View file" : "Payment required for file access"}
+                        disabled={!hasDealRoomAccess && !onPaymentModalOpen}
                       >
-                        <ExternalLink className="w-3 h-3" />
+                        {hasDealRoomAccess ? <ExternalLink className="w-3 h-3" /> : <Lock className="w-3 h-3" />}
                       </Button>
                     </div>
                   </div>

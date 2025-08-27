@@ -1,6 +1,6 @@
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Download, Award, FileText } from "lucide-react";
+import { Download, Award, FileText, Lock, CreditCard } from "lucide-react";
 
 interface User {
   founderId: string;
@@ -30,20 +30,33 @@ interface DocumentDownloadsProps {
   validationData: ValidationData | null;
   onDownloadCertificate: () => void;
   onDownloadReport: () => void;
+  hasDealRoomAccess?: boolean;
+  onPaymentModalOpen?: () => void;
 }
 
 export function DocumentDownloads({ 
   user, 
   validationData, 
   onDownloadCertificate, 
-  onDownloadReport 
+  onDownloadReport,
+  hasDealRoomAccess = false,
+  onPaymentModalOpen
 }: DocumentDownloadsProps) {
+  const hasFiles = (user?.venture?.certificateUrl || validationData?.certificateUrl) && 
+                   (user?.venture?.reportUrl || validationData?.reportUrl);
+  const isDownloadEnabled = hasFiles && hasDealRoomAccess;
+  
   return (
     <Card className="border-gray-800" style={{ backgroundColor: '#0E0E12' }}>
       <CardHeader>
-        <CardTitle className="text-white text-3xl font-bold">Ready for Download</CardTitle>
+        <CardTitle className="text-white text-3xl font-bold">
+          {hasDealRoomAccess ? "Ready for Download" : "Downloads Available"}
+        </CardTitle>
         <CardDescription className="text-gray-400">
-          Access your validation certificate and analysis report
+          {hasDealRoomAccess ? 
+            "Access your validation certificate and analysis report" : 
+            "Unlock your validation certificate and analysis report with Deal Room access"
+          }
         </CardDescription>
       </CardHeader>
       <CardContent>
@@ -62,16 +75,22 @@ export function DocumentDownloads({
                 </div>
               </div>
               <Button 
-                onClick={onDownloadCertificate}
-                className="w-full bg-gradient-to-r from-purple-500 to-purple-600 hover:from-purple-600 hover:to-purple-700 text-white border-0 shadow-lg hover:shadow-purple-500/25 transition-all duration-300"
-                disabled={!user?.venture?.certificateUrl && !validationData?.certificateUrl}
+                onClick={hasDealRoomAccess ? onDownloadCertificate : onPaymentModalOpen}
+                className={`w-full ${hasDealRoomAccess 
+                  ? 'bg-gradient-to-r from-purple-500 to-purple-600 hover:from-purple-600 hover:to-purple-700 text-white' 
+                  : 'bg-gradient-to-r from-gray-600 to-gray-700 hover:from-purple-600 hover:to-purple-700 text-white'} border-0 shadow-lg hover:shadow-purple-500/25 transition-all duration-300`}
+                disabled={!hasFiles}
               >
-                <Download className="w-4 h-4 mr-2" />
-                Download Certificate
+                {hasDealRoomAccess ? (
+                  <><Download className="w-4 h-4 mr-2" />Download Certificate</>
+                ) : (
+                  <><Lock className="w-4 h-4 mr-2" />Unlock Download - $99</>
+                )}
               </Button>
               <div className="mt-3 text-center">
                 <p className="text-xs text-gray-500">
-                  {(user?.venture?.certificateUrl || validationData?.certificateUrl) ? 'Ready for download' : 'Generating certificate...'}
+                  {!hasFiles ? 'Generating certificate...' :
+                   hasDealRoomAccess ? 'Ready for download' : 'Payment required for download'}
                 </p>
               </div>
             </div>
@@ -91,16 +110,22 @@ export function DocumentDownloads({
                 </div>
               </div>
               <Button 
-                onClick={onDownloadReport}
-                className="w-full bg-gradient-to-r from-yellow-500 to-amber-600 hover:from-yellow-600 hover:to-amber-700 text-white border-0 shadow-lg hover:shadow-yellow-500/25 transition-all duration-300"
-                disabled={!user?.venture?.reportUrl && !validationData?.reportUrl}
+                onClick={hasDealRoomAccess ? onDownloadReport : onPaymentModalOpen}
+                className={`w-full ${hasDealRoomAccess 
+                  ? 'bg-gradient-to-r from-yellow-500 to-amber-600 hover:from-yellow-600 hover:to-amber-700 text-white' 
+                  : 'bg-gradient-to-r from-gray-600 to-gray-700 hover:from-yellow-600 hover:to-amber-700 text-white'} border-0 shadow-lg hover:shadow-yellow-500/25 transition-all duration-300`}
+                disabled={!hasFiles}
               >
-                <Download className="w-4 h-4 mr-2" />
-                Download Report
+                {hasDealRoomAccess ? (
+                  <><Download className="w-4 h-4 mr-2" />Download Report</>
+                ) : (
+                  <><Lock className="w-4 h-4 mr-2" />Unlock Download - $99</>
+                )}
               </Button>
               <div className="mt-3 text-center">
                 <p className="text-xs text-gray-500">
-                  {(user?.venture?.reportUrl || validationData?.reportUrl) ? 'Ready for download' : 'Generating report...'}
+                  {!hasFiles ? 'Generating report...' :
+                   hasDealRoomAccess ? 'Ready for download' : 'Payment required for download'}
                 </p>
               </div>
             </div>

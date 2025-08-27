@@ -361,6 +361,8 @@ export default function DashboardV2Page() {
               getAvailableFolders={() => getAvailableFolders(proofVaultData)}
               externalActiveTab={vaultActiveTab}
               onTabChange={setVaultActiveTab}
+              hasDealRoomAccess={hasDealRoomAccess}
+              onPaymentModalOpen={() => setIsPaymentModalOpen(true)}
             />
           </div>
 
@@ -371,6 +373,8 @@ export default function DashboardV2Page() {
               validationData={validationData}
               onDownloadCertificate={handleDownloadCertificate}
               onDownloadReport={handleDownloadReport}
+              hasDealRoomAccess={hasDealRoomAccess}
+              onPaymentModalOpen={() => setIsPaymentModalOpen(true)}
             />
             <CommunityAccess 
               hasDealRoomAccess={hasDealRoomAccess}
