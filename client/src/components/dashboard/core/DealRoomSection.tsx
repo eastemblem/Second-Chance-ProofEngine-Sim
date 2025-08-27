@@ -72,7 +72,7 @@ export function DealRoomSection({ validationData }: DealRoomSectionProps) {
 
   return (
     <div className="bg-gray-900/60 rounded-xl border border-gray-700/50 p-8">
-      <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-center">
+      <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
         
         {/* Left Column: Title and Features */}
         <div className="lg:col-span-3">
