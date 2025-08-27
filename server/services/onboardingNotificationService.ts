@@ -48,8 +48,10 @@ export class OnboardingNotificationService {
         CURRENT_DATE: new Date().toLocaleString()
       };
 
+      const teamEmail = process.env.TEAM_NOTIFICATION_EMAIL || process.env.SUPPORT_EMAIL || 'info@get-secondchance.com';
+      
       const success = await this.emailService.sendEmail(
-        'info@get-secondchance.com',
+        teamEmail,
         `${data.ventureName} has successfully onboarded!`,
         'team-payment-notification',
         templateData
