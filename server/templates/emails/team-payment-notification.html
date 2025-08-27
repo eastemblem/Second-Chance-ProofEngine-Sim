@@ -339,6 +339,19 @@
                     <span class="detail-label">Website:</span>
                     <span class="detail-value">{{VENTURE_WEBSITE}}</span>
                 </div>
+                <div class="detail-row">
+                    <span class="detail-label">Box URL:</span>
+                    <span class="detail-value">
+                        {{#BOX_URL}}
+                        <a href="{{BOX_URL}}" style="color: #8B5CF6; text-decoration: none;" target="_blank">
+                            📁 Access Box Folder
+                        </a>
+                        {{/BOX_URL}}
+                        {{^BOX_URL}}
+                        <span style="color: #999;">Not available</span>
+                        {{/BOX_URL}}
+                    </span>
+                </div>
             </div>
 
             <!-- Payment Details -->

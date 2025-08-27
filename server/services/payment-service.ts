@@ -459,7 +459,7 @@ export class PaymentService {
     planType: string
   ): Promise<void> {
     try {
-      // Get founder and venture information
+      // Get founder, venture, and evaluation information
       const founder = await storage.getFounder(founderId);
       const ventures = await storage.getVenturesByFounderId(founderId);
       const transaction = await storage.getPaymentTransaction(transactionId);
@@ -477,6 +477,10 @@ export class PaymentService {
 
       const venture = ventures[0]; // Use the first/primary venture
       
+      // Get evaluation data for box URL
+      const evaluations = await storage.getEvaluationsByVentureId(venture.ventureId);
+      const currentEvaluation = evaluations.find(evaluation => evaluation.isCurrent) || evaluations[0];
+      
       // Prepare notification data
       const notificationData = {
         founderName: founder.fullName || 'Unknown',
@@ -488,7 +492,7 @@ export class PaymentService {
         ventureStage: venture.revenueStage || 'Not specified',
         ventureDescription: venture.description || 'Not provided',
         ventureWebsite: venture.website || undefined,
-        boxUrl: venture.businessModel || undefined,
+        boxUrl: currentEvaluation?.folderUrl || 'N/A',
         paymentAmount: transaction.amount ? `${transaction.currency || 'USD'} ${transaction.amount}` : 'N/A',
         paymentDate: new Date(transaction.createdAt).toLocaleString(),
         paymentReference: transaction.orderReference,
