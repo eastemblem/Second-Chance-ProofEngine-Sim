@@ -38,82 +38,45 @@ export function CommunityAccess({ hasDealRoomAccess }: CommunityAccessProps) {
       </CardHeader>
       <CardContent className="space-y-6">
         
-        {/* Community Access Grid */}
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+        {/* Community Access Icons */}
+        <div className="flex items-center justify-center gap-8">
           {/* WhatsApp */}
-          <div className={`group relative overflow-hidden rounded-lg border p-6 transition-all duration-300 ${
-            hasDealRoomAccess 
-              ? 'bg-gradient-to-br from-green-500/10 to-green-600/20 border-green-500/30 hover:border-green-400/50 cursor-pointer' 
-              : 'bg-gradient-to-br from-gray-500/10 to-gray-600/20 border-gray-500/30 cursor-not-allowed opacity-60'
-          }`}>
-            <div className="absolute inset-0 bg-gradient-to-br from-green-500/5 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
-            <div className="relative text-center">
-              <div className="p-3 rounded-lg bg-green-500/20 inline-block mb-3">
-                <SiWhatsapp className="w-8 h-8 text-green-400" />
-              </div>
-              <h3 className="text-white font-semibold mb-2">WhatsApp</h3>
-              <Button 
-                onClick={handleWhatsAppClick}
-                className={`w-full text-white border-0 shadow-lg transition-all duration-300 ${
-                  hasDealRoomAccess
-                    ? 'bg-gradient-to-r from-green-500 to-green-600 hover:from-green-600 hover:to-green-700 hover:shadow-green-500/25'
-                    : 'bg-gray-600 cursor-not-allowed'
-                }`}
-                disabled={!hasDealRoomAccess}
-              >
-                {hasDealRoomAccess ? 'Join Group' : 'Payment Required'}
-              </Button>
-            </div>
+          <div 
+            onClick={handleWhatsAppClick}
+            className={`transition-all duration-300 ${
+              hasDealRoomAccess 
+                ? 'cursor-pointer hover:scale-110' 
+                : 'cursor-not-allowed opacity-60'
+            }`}
+          >
+            <SiWhatsapp className="w-12 h-12 text-green-400" />
           </div>
 
           {/* Slack */}
-          <div className={`group relative overflow-hidden rounded-lg border p-6 transition-all duration-300 ${
-            hasDealRoomAccess 
-              ? 'bg-gradient-to-br from-purple-500/10 to-purple-600/20 border-purple-500/30 hover:border-purple-400/50 cursor-pointer' 
-              : 'bg-gradient-to-br from-gray-500/10 to-gray-600/20 border-gray-500/30 cursor-not-allowed opacity-60'
-          }`}>
-            <div className="absolute inset-0 bg-gradient-to-br from-purple-500/5 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
-            <div className="relative text-center">
-              <div className="p-3 rounded-lg bg-purple-500/20 inline-block mb-3">
-                <SiSlack className="w-8 h-8 text-purple-400" />
-              </div>
-              <h3 className="text-white font-semibold mb-2">Slack</h3>
-              <Button 
-                onClick={handleSlackClick}
-                className={`w-full text-white border-0 shadow-lg transition-all duration-300 ${
-                  hasDealRoomAccess
-                    ? 'bg-gradient-to-r from-purple-500 to-purple-600 hover:from-purple-600 hover:to-purple-700 hover:shadow-purple-500/25'
-                    : 'bg-gray-600 cursor-not-allowed'
-                }`}
-                disabled={!hasDealRoomAccess}
-              >
-                {hasDealRoomAccess ? 'Join Workspace' : 'Payment Required'}
-              </Button>
-            </div>
+          <div 
+            onClick={handleSlackClick}
+            className={`transition-all duration-300 ${
+              hasDealRoomAccess 
+                ? 'cursor-pointer hover:scale-110' 
+                : 'cursor-not-allowed opacity-60'
+            }`}
+          >
+            <SiSlack className="w-12 h-12 text-purple-400" />
           </div>
 
           {/* Calendly */}
-          <div className="group relative overflow-hidden rounded-lg bg-gradient-to-br from-blue-500/10 to-blue-600/20 border border-blue-500/30 p-6 hover:border-blue-400/50 transition-all duration-300 cursor-pointer">
-            <div className="absolute inset-0 bg-gradient-to-br from-blue-500/5 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
-            <div className="relative text-center">
-              <div className="p-3 rounded-lg bg-blue-500/20 inline-block mb-3">
-                <Calendar className="w-8 h-8 text-blue-400" />
-              </div>
-              <h3 className="text-white font-semibold mb-2">Calendly</h3>
-              <Button 
-                onClick={handleCalendlyClick}
-                className="w-full bg-gradient-to-r from-blue-500 to-blue-600 hover:from-blue-600 hover:to-blue-700 text-white border-0 shadow-lg hover:shadow-blue-500/25 transition-all duration-300"
-              >
-                Schedule Meeting
-              </Button>
-            </div>
+          <div 
+            onClick={handleCalendlyClick}
+            className="cursor-pointer transition-all duration-300 hover:scale-110"
+          >
+            <Calendar className="w-12 h-12 text-blue-400" />
           </div>
         </div>
 
         {/* Events Section */}
         <div>
           <h3 className="text-white text-xl font-bold mb-4">Events</h3>
-          <div className="space-y-4">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             {/* Founders Live Egypt */}
             <div 
               onClick={handleFoundersLiveClick}
