@@ -356,11 +356,14 @@
                     <span class="detail-value">{{PAYMENT_DATE}}</span>
                 </div>
                 <div class="detail-row">
-                    <span class="detail-label">Reference:</span>
+                    <span class="detail-label">Database Reference:</span>
                     <span class="detail-value">
                         <div class="reference-code">{{PAYMENT_REFERENCE}}</div>
                         <div style="font-size: 12px; color: #666; margin-top: 8px;">
-                            Format: SC_[timestamp]_[uuid] • Unique identifier for tracking
+                            📋 Use this exact reference to search payment_transactions table
+                        </div>
+                        <div style="font-size: 11px; color: #999; margin-top: 4px;">
+                            Query: SELECT * FROM payment_transactions WHERE order_reference = '{{PAYMENT_REFERENCE}}'
                         </div>
                     </span>
                 </div>
