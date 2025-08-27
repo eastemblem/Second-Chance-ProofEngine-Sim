@@ -43,9 +43,10 @@ export function DealRoomSection({ validationData, hasDealRoomAccess = false, onP
               <span className="text-green-400 font-bold text-xl">Access Granted</span>
             </div>
             <div className="text-gray-300 text-lg">
-              <span className="font-bold">Congratulations for joining the community!</span>
+              <span className="font-bold">Congrats! you've just requested to access our deal room of vetted investors, potential customers and partners.</span>
               <br />
-              <span>Your venture is now visible to our verified investor network.</span>
+              <br />
+              <span>Your request is currently being processed by a validation expert, this should take 3-days. Keep an eye on your inbox and checking your profile for a notification that a specialist is ready to discuss your introduction.</span>
             </div>
           </div>
         </>
@@ -159,9 +160,17 @@ export function DealRoomSection({ validationData, hasDealRoomAccess = false, onP
           )}
         </div>
 
-        {/* Right Column: Empty */}
+        {/* Right Column: Status (only when user has paid) */}
         <div className="lg:col-span-3">
-          {/* Intentionally empty */}
+          {isUnlocked && hasDealRoomAccess && (
+            <div className="bg-gray-800/60 rounded-lg p-6 border border-gray-600/50">
+              <h3 className="text-lg font-semibold text-white mb-4">Status</h3>
+              <div className="flex items-center gap-3">
+                <div className="w-3 h-3 bg-orange-400 rounded-full animate-pulse"></div>
+                <span className="text-orange-400 font-medium">Reviewing</span>
+              </div>
+            </div>
+          )}
         </div>
       </div>
     </div>
