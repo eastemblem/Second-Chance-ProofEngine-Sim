@@ -14,7 +14,6 @@ import {
   ValidationOverview,
   DealRoomSection,
   DocumentDownloads,
-  DealRoomPanel,
   ActivityFeed,
   LeaderboardPanel
 } from "@/components/dashboard/core";
@@ -261,81 +260,66 @@ export default function DashboardV2Page() {
 
       {/* Main Dashboard Content */}
       <div className="flex-1 max-w-7xl mx-auto px-4 py-8 w-full bg-black text-white">
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+        <div className="space-y-6">
           
-          {/* Left Column - Main Content */}
-          <div className="lg:col-span-2 space-y-6">
-            
-            {/* Validation Overview */}
-            <ValidationOverview 
-              validationData={validationData} 
-              proofVaultData={proofVaultData} 
-            />
+          {/* Validation Overview */}
+          <ValidationOverview 
+            validationData={validationData} 
+            proofVaultData={proofVaultData} 
+          />
 
-            {/* Deal Room Section */}
-            <DealRoomSection 
-              validationData={validationData}
-            />
+          {/* Deal Room Section */}
+          <DealRoomSection 
+            validationData={validationData}
+          />
 
-            {/* Your Proof Vault */}
-            <ProofVaultSection
-              proofVaultData={proofVaultData}
-              paginatedFiles={paginatedFiles}
-              totalFiles={totalFiles}
-              filesLoading={filesLoading}
-              filesLoadingMore={filesLoadingMore}
-              hasMoreFiles={hasMoreFiles}
-              onFilesScroll={handleFilesScroll}
-              selectedFolder={selectedFolder}
-              onFolderChange={(value) => {
-                setSelectedFolder(value);
-                setSelectedCategory(value);
-              }}
-              uploadQueue={uploadQueue}
-              currentUploadIndex={currentUploadIndex}
-              isUploading={isUploading}
-              isCreatingFolders={isCreatingFolders}
-              folderCreationStatus={folderCreationStatus}
-              onFileUpload={handleMultipleFileUpload}
-              onFolderUpload={handleFolderUpload}
-              onRetryFailed={retryFailedUploads}
-              onClearQueue={handleClearQueue}
-              getFolderDisplayName={getFolderDisplayName}
-              getAvailableFolders={() => getAvailableFolders(proofVaultData)}
-            />
+          {/* Your Proof Vault */}
+          <ProofVaultSection
+            proofVaultData={proofVaultData}
+            paginatedFiles={paginatedFiles}
+            totalFiles={totalFiles}
+            filesLoading={filesLoading}
+            filesLoadingMore={filesLoadingMore}
+            hasMoreFiles={hasMoreFiles}
+            onFilesScroll={handleFilesScroll}
+            selectedFolder={selectedFolder}
+            onFolderChange={(value) => {
+              setSelectedFolder(value);
+              setSelectedCategory(value);
+            }}
+            uploadQueue={uploadQueue}
+            currentUploadIndex={currentUploadIndex}
+            isUploading={isUploading}
+            isCreatingFolders={isCreatingFolders}
+            folderCreationStatus={folderCreationStatus}
+            onFileUpload={handleMultipleFileUpload}
+            onFolderUpload={handleFolderUpload}
+            onRetryFailed={retryFailedUploads}
+            onClearQueue={handleClearQueue}
+            getFolderDisplayName={getFolderDisplayName}
+            getAvailableFolders={() => getAvailableFolders(proofVaultData)}
+          />
 
-            {/* Certificate & Report Downloads */}
-            <DocumentDownloads
-              user={user}
-              validationData={validationData}
-              onDownloadCertificate={handleDownloadCertificate}
-              onDownloadReport={handleDownloadReport}
-            />
-          </div>
+          {/* Certificate & Report Downloads */}
+          <DocumentDownloads
+            user={user}
+            validationData={validationData}
+            onDownloadCertificate={handleDownloadCertificate}
+            onDownloadReport={handleDownloadReport}
+          />
 
-          {/* Right Column - Sidebar */}
-          <div className="space-y-6">
-            
-            {/* Deal Room Access */}
-            <DealRoomPanel
-              validationData={validationData}
-              hasDealRoomAccess={hasDealRoomAccess}
-              onPaymentModalOpen={handlePaymentModalOpen}
-            />
+          {/* Leaderboard */}
+          <LeaderboardPanel leaderboardData={leaderboardData} />
 
-            {/* Leaderboard */}
-            <LeaderboardPanel leaderboardData={leaderboardData} />
-
-            {/* Recent Activity */}
-            <ActivityFeed
-              activities={recentActivity}
-              totalActivities={totalActivities}
-              isLoading={isActivitiesLoading}
-              isLoadingMore={isLoadingMore}
-              hasMore={hasMore}
-              onLoadMore={handleActivityScroll}
-            />
-          </div>
+          {/* Recent Activity */}
+          <ActivityFeed
+            activities={recentActivity}
+            totalActivities={totalActivities}
+            isLoading={isActivitiesLoading}
+            isLoadingMore={isLoadingMore}
+            hasMore={hasMore}
+            onLoadMore={handleActivityScroll}
+          />
         </div>
       </div>
       
