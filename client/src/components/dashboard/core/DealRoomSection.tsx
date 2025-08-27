@@ -75,7 +75,7 @@ export function DealRoomSection({ validationData }: DealRoomSectionProps) {
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-center">
         
         {/* Left Column: Title and Features */}
-        <div className="lg:col-span-4">
+        <div className="lg:col-span-3">
           <h2 className="text-2xl font-bold text-white mb-6">
             Dealroom
           </h2>
@@ -103,7 +103,7 @@ export function DealRoomSection({ validationData }: DealRoomSectionProps) {
         </div>
 
         {/* Center Column: Main Content */}
-        <div className="lg:col-span-5 text-center">
+        <div className="lg:col-span-6 text-center">
           <div className="text-lg text-gray-300 leading-relaxed mb-6">
             {getMainText()}
           </div>
