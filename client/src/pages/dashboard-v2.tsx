@@ -313,7 +313,7 @@ export default function DashboardV2Page() {
       <DashboardHeader user={user} validationData={validationData} />
 
       {/* Main Dashboard Content */}
-      <div className="flex-1 max-w-7xl mx-auto px-4 py-8 w-full bg-black text-white">
+      <div className="flex-1 max-w-7xl mx-auto px-4 py-8 w-full text-white" style={{ backgroundColor: '#0E0E12' }}>
         <div className="space-y-6">
           
           {/* Validation Overview */}
