@@ -205,7 +205,7 @@ function Router() {
       )} />
       <Route path="/dashboard" component={() => (
         <Suspense fallback={<SimpleLoader />}>
-          <Dashboard />
+          <DashboardV2 />
         </Suspense>
       )} />
       <Route path="/dashboard-v2" component={() => (
