@@ -208,11 +208,14 @@ function Router() {
           <DashboardV2 />
         </Suspense>
       )} />
-      <Route path="/dashboard-v2" component={() => (
-        <Suspense fallback={<SimpleLoader />}>
-          <DashboardV2 />
-        </Suspense>
-      )} />
+      {/* Development-only old dashboard */}
+      {import.meta.env.MODE === 'development' && (
+        <Route path="/dashboard-v1" component={() => (
+          <Suspense fallback={<SimpleLoader />}>
+            <Dashboard />
+          </Suspense>
+        )} />
+      )}
       <Route path="/token-expired" component={() => (
         <Suspense fallback={<SimpleLoader />}>
           <TokenExpiredPage />
