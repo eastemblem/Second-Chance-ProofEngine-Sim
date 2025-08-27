@@ -103,7 +103,7 @@ export function DealRoomSection({ validationData }: DealRoomSectionProps) {
         </div>
 
         {/* Center Column: Main Content */}
-        <div className="lg:col-span-8 text-center">
+        <div className="lg:col-span-5 text-center">
           <div className="text-lg text-gray-300 leading-relaxed mb-6">
             {getMainText()}
           </div>
@@ -123,6 +123,11 @@ export function DealRoomSection({ validationData }: DealRoomSectionProps) {
               </div>
             </div>
           )}
+        </div>
+
+        {/* Right Column: Empty */}
+        <div className="lg:col-span-3">
+          {/* Intentionally empty */}
         </div>
       </div>
     </div>
