@@ -46,7 +46,7 @@ export function DealRoomSection({ validationData, hasDealRoomAccess = false, onP
               <span className="font-bold">Congrats! you've just requested to access our deal room of vetted investors, potential customers and partners.</span>
               <br />
               <br />
-              <span>Your request is currently being processed by a validation expert, this should take 3-days. Keep an eye on your inbox and checking your profile for a notification that a specialist is ready to discuss your introduction.</span>
+              <span className="text-sm">Your request is currently being processed by a validation expert, this should take 3-days. Keep an eye on your inbox and checking your profile for a notification that a specialist is ready to discuss your introduction.</span>
             </div>
           </div>
         </>
