@@ -1,0 +1,150 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>New Deal Room Access Purchase - Second Chance</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; line-height: 1.6; background-color: #0A0A0B; color: #FFFFFF; }
+        .container { max-width: 600px; margin: 0 auto; background-color: #0A0A0B; }
+        .header { background: linear-gradient(135deg, #8B5CF6 0%, #D97706 100%); padding: 30px 40px; text-align: center; }
+        .logo { font-size: 28px; font-weight: bold; color: #FFFFFF; text-decoration: none; }
+        .content { padding: 40px; background-color: #1A1A1B; }
+        .title { font-size: 24px; font-weight: bold; margin-bottom: 20px; color: #FFFFFF; }
+        .subtitle { font-size: 18px; color: #8B5CF6; margin-bottom: 15px; font-weight: 600; }
+        .text { font-size: 16px; color: #D1D5DB; margin-bottom: 15px; }
+        .details-section { background-color: #2A2A2B; padding: 25px; border-radius: 8px; margin: 25px 0; border-left: 4px solid #8B5CF6; }
+        .detail-row { display: flex; justify-content: space-between; margin-bottom: 12px; flex-wrap: wrap; }
+        .detail-label { font-weight: bold; color: #8B5CF6; min-width: 140px; }
+        .detail-value { color: #FFFFFF; flex: 1; word-break: break-word; }
+        .section-title { color: #FFFFFF; margin-bottom: 20px; font-size: 18px; font-weight: bold; display: flex; align-items: center; }
+        .section-icon { margin-right: 8px; }
+        .payment-details { background-color: #2A2A2B; padding: 25px; border-radius: 8px; margin: 25px 0; border-left: 4px solid #10B981; }
+        .amount { font-size: 20px; font-weight: bold; color: #10B981; }
+        .urgent-note { background-color: #FEF3C7; color: #92400E; padding: 15px; border-radius: 8px; margin: 20px 0; border-left: 4px solid #F59E0B; }
+        .footer { background-color: #111111; padding: 30px 40px; text-align: center; border-top: 1px solid #333; }
+        .footer-text { color: #9CA3AF; font-size: 12px; }
+        @media (max-width: 600px) {
+            .header, .content, .footer { padding: 20px; }
+            .details-section, .payment-details { padding: 15px; }
+            .detail-row { flex-direction: column; }
+            .detail-label { margin-bottom: 5px; }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <!-- Header -->
+        <div class="header">
+            <a href="{{HOST_URL}}" class="logo">Second Chance</a>
+        </div>
+
+        <!-- Content -->
+        <div class="content">
+            <h1 class="title">🎉 New Deal Room Access Purchase!</h1>
+            <p class="subtitle">{{VENTURE_NAME}} has successfully purchased Deal Room access</p>
+            
+            <p class="text">A new startup has just gained access to our Deal Room. Here are the details:</p>
+            
+            <!-- Founder Details -->
+            <div class="details-section">
+                <h3 class="section-title">
+                    <span class="section-icon">👤</span>
+                    Founder Information
+                </h3>
+                <div class="detail-row">
+                    <span class="detail-label">Name:</span>
+                    <span class="detail-value">{{FOUNDER_NAME}}</span>
+                </div>
+                <div class="detail-row">
+                    <span class="detail-label">Email:</span>
+                    <span class="detail-value">{{FOUNDER_EMAIL}}</span>
+                </div>
+                <div class="detail-row">
+                    <span class="detail-label">Phone:</span>
+                    <span class="detail-value">{{FOUNDER_PHONE}}</span>
+                </div>
+                <div class="detail-row">
+                    <span class="detail-label">Role:</span>
+                    <span class="detail-value">{{FOUNDER_ROLE}}</span>
+                </div>
+            </div>
+
+            <!-- Venture Details -->
+            <div class="details-section">
+                <h3 class="section-title">
+                    <span class="section-icon">🚀</span>
+                    Venture Information
+                </h3>
+                <div class="detail-row">
+                    <span class="detail-label">Company Name:</span>
+                    <span class="detail-value">{{VENTURE_NAME}}</span>
+                </div>
+                <div class="detail-row">
+                    <span class="detail-label">Industry:</span>
+                    <span class="detail-value">{{VENTURE_INDUSTRY}}</span>
+                </div>
+                <div class="detail-row">
+                    <span class="detail-label">Stage:</span>
+                    <span class="detail-value">{{VENTURE_STAGE}}</span>
+                </div>
+                <div class="detail-row">
+                    <span class="detail-label">Description:</span>
+                    <span class="detail-value">{{VENTURE_DESCRIPTION}}</span>
+                </div>
+                <div class="detail-row">
+                    <span class="detail-label">Website:</span>
+                    <span class="detail-value">{{VENTURE_WEBSITE}}</span>
+                </div>
+            </div>
+
+            <!-- Payment Details -->
+            <div class="payment-details">
+                <h3 class="section-title">
+                    <span class="section-icon">💳</span>
+                    Payment Information
+                </h3>
+                <div class="detail-row">
+                    <span class="detail-label">Amount Paid:</span>
+                    <span class="detail-value amount">{{PAYMENT_AMOUNT}}</span>
+                </div>
+                <div class="detail-row">
+                    <span class="detail-label">Payment Date:</span>
+                    <span class="detail-value">{{PAYMENT_DATE}}</span>
+                </div>
+                <div class="detail-row">
+                    <span class="detail-label">Reference:</span>
+                    <span class="detail-value">{{PAYMENT_REFERENCE}}</span>
+                </div>
+                <div class="detail-row">
+                    <span class="detail-label">Gateway:</span>
+                    <span class="detail-value">{{MASKED_PAYMENT_DETAILS}}</span>
+                </div>
+            </div>
+
+            <!-- Action Items -->
+            <div class="urgent-note">
+                <h3 style="margin-bottom: 10px; color: #92400E;">⚡ Action Required</h3>
+                <p style="margin-bottom: 8px; color: #92400E;">This venture now has access to the Deal Room and expects:</p>
+                <ul style="margin-left: 20px; color: #92400E;">
+                    <li>Review of their venture status (pending → reviewing)</li>
+                    <li>Access to investor connections</li>
+                    <li>Premium features and support</li>
+                </ul>
+            </div>
+
+            <p class="text">Please review their profile and begin the Deal Room onboarding process.</p>
+            <p class="text">Notification sent on: <strong>{{CURRENT_DATE}}</strong></p>
+        </div>
+
+        <!-- Footer -->
+        <div class="footer">
+            <p class="footer-text">
+                © {{CURRENT_YEAR}} Second Chance Platform. Internal Team Notification.<br>
+                This email was sent to keep you informed of new Deal Room purchases.
+            </p>
+        </div>
+    </div>
+</body>
+</html>

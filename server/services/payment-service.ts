@@ -4,6 +4,7 @@ import type { PaymentTransaction, InsertPaymentTransaction, InsertUserSubscripti
 import { v4 as uuidv4 } from 'uuid';
 import { ActivityService } from './activity-service.js';
 import winston from 'winston';
+import { onboardingNotificationService } from './onboardingNotificationService';
 
 // Currency conversion service
 class CurrencyConverter {
@@ -443,9 +444,72 @@ export class PaymentService {
         expiresAt: subscriptionData.expiresAt
       });
 
+      // Send team notification for deal room access
+      await this.sendDealRoomNotification(founderId, transactionId, planType);
+
     } catch (error) {
       console.error('Subscription creation error:', error);
       // Don't throw here to avoid failing the main payment flow
+    }
+  }
+
+  private async sendDealRoomNotification(
+    founderId: string, 
+    transactionId: string, 
+    planType: string
+  ): Promise<void> {
+    try {
+      // Get founder and venture information
+      const founder = await storage.getFounder(founderId);
+      const ventures = await storage.getVenturesByFounderId(founderId);
+      const transaction = await storage.getPaymentTransaction(transactionId);
+      
+      if (!founder || !ventures.length || !transaction) {
+        console.warn('Missing data for deal room notification:', {
+          founderId, 
+          transactionId, 
+          hasFounder: !!founder, 
+          venturesCount: ventures.length,
+          hasTransaction: !!transaction
+        });
+        return;
+      }
+
+      const venture = ventures[0]; // Use the first/primary venture
+      
+      // Prepare notification data
+      const notificationData = {
+        founderName: founder.fullName || 'Unknown',
+        founderEmail: founder.email,
+        founderPhone: 'N/A',
+        founderRole: founder.positionRole || 'Founder',
+        ventureName: venture.name,
+        ventureIndustry: venture.industry || 'Not specified',
+        ventureStage: venture.revenueStage || 'Not specified',
+        ventureDescription: venture.description || 'Not provided',
+        ventureWebsite: venture.website || undefined,
+        boxUrl: venture.businessModel || undefined,
+        paymentAmount: transaction.amount ? `${transaction.currency || 'USD'} ${transaction.amount}` : 'N/A',
+        paymentDate: new Date(transaction.createdAt).toLocaleString(),
+        paymentReference: transaction.orderReference,
+        maskedPaymentDetails: `${transaction.gatewayProvider?.toUpperCase() || 'GATEWAY'} - Plan: ${planType}`
+      };
+
+      const success = await onboardingNotificationService.sendOnboardingSuccessNotification(notificationData);
+      
+      if (success) {
+        console.log('Deal room access notification sent to team:', {
+          venture: venture.name,
+          founder: founder.fullName,
+          planType
+        });
+      } else {
+        console.error('Failed to send deal room access notification to team');
+      }
+
+    } catch (error) {
+      console.error('Error sending deal room notification:', error);
+      // Don't throw - this is just a notification, don't fail the main flow
     }
   }
 
