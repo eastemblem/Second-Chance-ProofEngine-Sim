@@ -14,6 +14,7 @@ import {
   ValidationOverview,
   DealRoomSection,
   DocumentDownloads,
+  CommunityAccess,
   ActivityFeed,
   LeaderboardPanel
 } from "@/components/dashboard/core";
@@ -320,13 +321,18 @@ export default function DashboardV2Page() {
             />
           </div>
 
-          {/* Certificate & Report Downloads */}
-          <DocumentDownloads
-            user={user}
-            validationData={validationData}
-            onDownloadCertificate={handleDownloadCertificate}
-            onDownloadReport={handleDownloadReport}
-          />
+          {/* Downloads and Community Access - Side by Side */}
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+            <DocumentDownloads
+              user={user}
+              validationData={validationData}
+              onDownloadCertificate={handleDownloadCertificate}
+              onDownloadReport={handleDownloadReport}
+            />
+            <CommunityAccess 
+              hasDealRoomAccess={hasDealRoomAccess}
+            />
+          </div>
 
           {/* Leaderboard and Recent Activity - Side by Side */}
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
