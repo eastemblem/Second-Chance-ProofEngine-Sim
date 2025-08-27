@@ -36,15 +36,15 @@ export function ValidationOverview({ validationData, proofVaultData, onScrollToV
 
   // Get conditional text based on score
   const getPrimaryText = () => {
-    if (isInvestorReady) {
-      return "Congratulations! You've unlocked Deal Room access. Continue uploading to maximize your ProofScore.";
+    if (proofScore >= 70) {
+      return "Founders with complete ProofVault uploads are 3x more likely to secure their first investor meeting.";
     }
     return "Upload your ProofVault files to increase your ProofScore and access the Deal Room. Required +70 score to unlock access.";
   };
 
   const getSecondaryText = () => {
-    if (isInvestorReady) {
-      return "Founders with comprehensive uploads secure funding 5x faster than incomplete profiles.";
+    if (proofScore >= 70) {
+      return "Your ProofVault makes investor due diligence 50% faster.";
     }
     return "Founders with complete uploads are 3x more likely to secure their first investor meeting.";
   };
