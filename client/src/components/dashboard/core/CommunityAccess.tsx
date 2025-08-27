@@ -9,7 +9,9 @@ interface CommunityAccessProps {
 
 export function CommunityAccess({ hasDealRoomAccess }: CommunityAccessProps) {
   const handleCalendlyClick = () => {
-    window.open('https://calendly.com/get-secondchance-info/30min', '_blank');
+    if (hasDealRoomAccess) {
+      window.open('https://calendly.com/get-secondchance-info/30min', '_blank');
+    }
   };
 
   const handleFoundersLiveClick = () => {
@@ -57,9 +59,15 @@ export function CommunityAccess({ hasDealRoomAccess }: CommunityAccessProps) {
           {/* Calendly */}
           <div 
             onClick={handleCalendlyClick}
-            className="cursor-pointer transition-all duration-300 hover:scale-110"
+            className={hasDealRoomAccess 
+              ? "cursor-pointer transition-all duration-300 hover:scale-110"
+              : "cursor-not-allowed opacity-30 grayscale transition-all duration-300"
+            }
           >
-            <Calendar className="w-12 h-12 text-blue-400" />
+            <Calendar className={hasDealRoomAccess 
+              ? "w-12 h-12 text-blue-400" 
+              : "w-12 h-12 text-gray-500"
+            } />
           </div>
         </div>
 
