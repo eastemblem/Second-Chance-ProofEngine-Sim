@@ -57,6 +57,7 @@ export function useDashboardData() {
   const [proofVaultData, setProofVaultData] = useState<ProofVaultData | null>(null);
   const [leaderboardData, setLeaderboardData] = useState<LeaderboardEntry[]>([]);
   const [hasDealRoomAccess, setHasDealRoomAccess] = useState(false);
+  const [ventureStatus, setVentureStatus] = useState<'pending' | 'reviewing' | 'reviewed' | 'done'>('pending');
   const [isLoading, setIsLoading] = useState(true);
   const { toast } = useToast();
 
@@ -172,7 +173,9 @@ export function useDashboardData() {
         });
         if (dealRoomResponse.ok) {
           const accessResult = await dealRoomResponse.json();
+          console.log('✅ Deal room access result:', accessResult);
           setHasDealRoomAccess(accessResult.hasAccess || false);
+          setVentureStatus(accessResult.ventureStatus || 'pending');
         }
       } catch (error) {
         console.error('❌ Deal room access check failed:', error);
@@ -213,8 +216,10 @@ export function useDashboardData() {
     proofVaultData,
     leaderboardData,
     hasDealRoomAccess,
+    ventureStatus,
     isLoading,
     loadDashboardData,
-    setHasDealRoomAccess
+    setHasDealRoomAccess,
+    setVentureStatus
   };
 }

@@ -44,6 +44,7 @@ export default function DashboardV2Page() {
     proofVaultData,
     leaderboardData,
     hasDealRoomAccess,
+    ventureStatus,
     isLoading: dataLoading,
     loadDashboardData,
     setHasDealRoomAccess
@@ -329,7 +330,7 @@ export default function DashboardV2Page() {
             validationData={validationData}
             hasDealRoomAccess={hasDealRoomAccess}
             onPaymentModalOpen={handlePaymentModalOpen}
-            ventureStatus={user?.venture?.status}
+            ventureStatus={ventureStatus}
           />
 
           {/* Your Proof Vault */}
