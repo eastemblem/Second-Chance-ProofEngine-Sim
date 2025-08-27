@@ -53,7 +53,7 @@ export default function Navbar({ showSignOut = false, showSignIn = false, logoOn
         
         toast({
           title: "Signed Out",
-          description: "JWT token invalidated. Please sign in again to access dashboard.",
+          description: "You have been successfully logged out.",
           duration: 3000,
         });
         

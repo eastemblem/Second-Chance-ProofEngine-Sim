@@ -1183,7 +1183,7 @@ export default function DashboardPage() {
         
         toast({
           title: "Logged Out",
-          description: "JWT token invalidated. You have been successfully logged out.",
+          description: "You have been successfully logged out.",
           duration: 3000,
         });
         
