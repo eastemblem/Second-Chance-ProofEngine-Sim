@@ -230,12 +230,15 @@ router.get("/deal-room-access", async (req: AuthenticatedRequest, res) => {
 
     const hasAccess = await paymentService.hasDealRoomAccess(founderId);
     
-    // Get venture status from database
+    // Get venture status from database - fetch the founder's primary venture
     let ventureStatus = 'pending';
     try {
-      const founder = await storage.getFounder(founderId);
-      if (founder?.venture?.status) {
-        ventureStatus = founder.venture.status;
+      const { databaseService } = await import('../../services/database-service.js');
+      const ventures = await databaseService.getVenturesByFounderId(founderId);
+      const primaryVenture = ventures[0]; // Get the latest/primary venture
+      
+      if (primaryVenture?.status) {
+        ventureStatus = primaryVenture.status;
       }
     } catch (error) {
       winston.warn("Could not fetch venture status", { 
