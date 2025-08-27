@@ -78,7 +78,23 @@ router.post("/update-status", requireBody, asyncHandler(async (req, res) => {
       // Get founder details for the venture
       const founder = await storage.getFounder(updatedVenture.founderId);
       
+      // Get evaluation data to retrieve the actual Box URL
+      const evaluations = await storage.getEvaluationsByVentureId(updatedVenture.id);
+      const currentEvaluation = evaluations.length > 0 ? evaluations[0] : null;
+      
       if (founder) {
+        // Get status from ProofScore
+        const getStatusFromScore = (score: number): string => {
+          if (score >= 85) return 'Investment Ready';
+          if (score >= 75) return 'Near Ready';
+          if (score >= 60) return 'Emerging Proof';
+          if (score >= 40) return 'Early Signals';
+          return 'Building Validation';
+        };
+        
+        const proofScore = currentEvaluation?.proofscore || 0;
+        const ventureStatus = getStatusFromScore(proofScore);
+
         const notificationData = {
           founderName: founder.fullName,
           founderEmail: founder.email,
@@ -86,9 +102,10 @@ router.post("/update-status", requireBody, asyncHandler(async (req, res) => {
           ventureName: updatedVenture.name,
           ventureIndustry: updatedVenture.industry,
           ventureStage: updatedVenture.revenueStage,
+          ventureStatus: ventureStatus,
           ventureDescription: updatedVenture.description,
           ventureWebsite: updatedVenture.website,
-          boxUrl: updatedVenture.folderStructure ? 'Available in ProofVault' : undefined,
+          boxUrl: currentEvaluation?.folderUrl || 'N/A',
           paymentAmount: paymentData.amount,
           paymentDate: new Date(paymentData.date).toLocaleDateString(),
           paymentReference: paymentData.reference,
