@@ -149,8 +149,9 @@ export default function DashboardV2Page() {
       // 4. Track analytics
       trackEvent('payment', 'deal_room', 'payment_success');
 
-      // 5. Reload dashboard data to reflect changes
+      // 5. Reload dashboard data and user data to reflect changes
       loadDashboardData(true);
+      checkAuthStatus(); // Refresh user data to get updated venture status
       
     } catch (error) {
       console.error('Error processing payment success:', error);
