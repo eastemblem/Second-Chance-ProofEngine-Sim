@@ -8,6 +8,8 @@ interface LeaderboardEntry {
   rank: number;
   analysisDate: string;
   isReal: boolean;
+  proofTags?: number;
+  handle?: string;
 }
 
 interface LeaderboardPanelProps {
@@ -30,32 +32,76 @@ export function LeaderboardPanel({ leaderboardData }: LeaderboardPanelProps) {
           Leaderboard
         </CardTitle>
         <CardDescription className="text-gray-400">
-          Top performing ventures
+          Top performing ventures of the week
         </CardDescription>
       </CardHeader>
       <CardContent>
         {leaderboardData.length > 0 ? (
-          <div className="space-y-3">
-            {leaderboardData.map((entry) => (
-              <div 
-                key={entry.rank} 
-                className="group relative overflow-hidden rounded-lg bg-gradient-to-br from-gray-800/30 to-gray-900/50 border border-gray-700/50 p-3 hover:border-gray-600/70 transition-all duration-300"
-              >
-                <div className="absolute inset-0 bg-gradient-to-br from-gray-700/5 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
-                <div className="relative flex items-center gap-3">
-                  {getMedalIcon(entry.rank)}
-                  <div className="flex-1 min-w-0">
-                    <div className="flex items-center justify-between">
-                      <p className="text-white text-sm font-medium truncate">{entry.ventureName}</p>
-                      <span className="text-purple-400 text-sm font-bold">{entry.totalScore}</span>
+          <div className="space-y-4">
+            {/* Column Headers */}
+            <div className="flex items-center text-gray-400 text-sm font-medium px-4">
+              <div className="flex-1"></div>
+              <div className="w-20 text-center">Score</div>
+              <div className="w-24 text-center">ProofTags</div>
+            </div>
+            
+            {/* Leaderboard Entries */}
+            <div className="space-y-2">
+              {leaderboardData.map((entry) => {
+                // Generate a consistent avatar based on venture name
+                const getAvatarColor = (name: string) => {
+                  const colors = [
+                    'from-purple-500 to-pink-500',
+                    'from-blue-500 to-cyan-500', 
+                    'from-green-500 to-emerald-500',
+                    'from-yellow-500 to-orange-500',
+                    'from-red-500 to-rose-500'
+                  ];
+                  const index = name.charCodeAt(0) % colors.length;
+                  return colors[index];
+                };
+                
+                const avatarGradient = getAvatarColor(entry.ventureName);
+                const proofTagsCount = entry.proofTags || Math.floor(entry.totalScore / 15); // Fallback calculation
+                const handle = entry.handle || `@${entry.ventureName.toLowerCase().replace(/\s+/g, '')}`;
+                
+                return (
+                  <div 
+                    key={entry.rank} 
+                    className="flex items-center gap-4 p-4 rounded-lg bg-gradient-to-br from-gray-800/30 to-gray-900/50 border border-gray-700/50 hover:border-gray-600/70 transition-all duration-300"
+                  >
+                    {/* Rank */}
+                    <div className="w-8 text-white text-lg font-bold">
+                      {entry.rank}
                     </div>
-                    <p className="text-gray-500 text-xs">
-                      Rank #{entry.rank} • {new Date(entry.analysisDate).toLocaleDateString()}
-                    </p>
+                    
+                    {/* Avatar */}
+                    <div className={`w-12 h-12 rounded-full bg-gradient-to-br ${avatarGradient} flex items-center justify-center text-white font-bold text-sm`}>
+                      {entry.ventureName.charAt(0).toUpperCase()}
+                    </div>
+                    
+                    {/* Venture Info */}
+                    <div className="flex-1 min-w-0">
+                      <p className="text-white font-medium truncate">{entry.ventureName}</p>
+                      <p className="text-gray-400 text-sm truncate">{handle}</p>
+                    </div>
+                    
+                    {/* Score */}
+                    <div className="w-20 text-center">
+                      <span className="text-white text-lg font-bold">{entry.totalScore}</span>
+                    </div>
+                    
+                    {/* ProofTags */}
+                    <div className="w-24 text-center">
+                      <div className="flex items-center justify-center gap-1">
+                        <span className="text-blue-400">💎</span>
+                        <span className="text-blue-400 font-bold">{proofTagsCount}</span>
+                      </div>
+                    </div>
                   </div>
-                </div>
-              </div>
-            ))}
+                );
+              })}
+            </div>
           </div>
         ) : (
           <EmptyState
