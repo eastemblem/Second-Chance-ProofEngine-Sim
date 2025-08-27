@@ -103,7 +103,7 @@ export function DealRoomSection({ validationData }: DealRoomSectionProps) {
         </div>
 
         {/* Center Column: Main Content */}
-        <div className="lg:col-span-5 text-center">
+        <div className="lg:col-span-8 text-center">
           <div className="text-lg text-gray-300 leading-relaxed mb-6">
             {getMainText()}
           </div>
@@ -114,13 +114,11 @@ export function DealRoomSection({ validationData }: DealRoomSectionProps) {
           >
             {getButtonText()}
           </Button>
-        </div>
 
-        {/* Right Column: Status Badge (for unlocked state) */}
-        <div className="lg:col-span-3 flex justify-center">
+          {/* Status Badge directly below button */}
           {isUnlocked && getExclusiveAccess() && (
-            <div className="text-center">
-              <div className="text-xs text-gray-400 bg-gray-800/50 px-4 py-2 rounded-full border border-gray-600">
+            <div className="mt-3">
+              <div className="text-sm text-gray-400">
                 {getExclusiveAccess()}
               </div>
             </div>
