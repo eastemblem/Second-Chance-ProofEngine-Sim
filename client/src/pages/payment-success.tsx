@@ -134,7 +134,7 @@ export default function PaymentSuccess() {
           className="text-center mb-8"
         >
           <div className="relative">
-            <div className="mx-auto h-24 w-24 bg-gradient-to-br from-green-400 to-emerald-600 rounded-full flex items-center justify-center shadow-2xl">
+            <div className="mx-auto h-24 w-24 bg-gradient-to-br from-purple-500 to-purple-600 rounded-full flex items-center justify-center shadow-2xl">
               <CheckCircle className="h-12 w-12 text-white" />
             </div>
             <motion.div
@@ -158,15 +158,15 @@ export default function PaymentSuccess() {
         >
           <Card className="bg-card border-border shadow-2xl">
             <CardHeader className="text-center pb-4">
-              <Badge variant="secondary" className="mx-auto mb-4 bg-green-500/20 text-green-300 border-green-500/30">
+              <Badge variant="secondary" className="mx-auto mb-4 bg-purple-500/20 text-purple-300 border-purple-500/30">
                 <Trophy className="w-3 h-3 mr-1" />
                 Payment Successful
               </Badge>
               <CardTitle className="text-3xl font-bold text-foreground mb-2">
-                Welcome to ProofScaling! 🎉
+                Congratulations! 🎉
               </CardTitle>
               <p className="text-muted-foreground text-lg">
-                Your payment has been processed successfully. Your journey to investment readiness begins now!
+                Your Deal Room access has been activated! You now have access to:
               </p>
               <div className="mt-4 flex items-center justify-center space-x-2 text-sm text-primary">
                 <Clock className="w-4 h-4" />
@@ -212,7 +212,7 @@ export default function PaymentSuccess() {
                     )}
                     <div className="flex justify-between items-center">
                       <span className="text-muted-foreground">Status:</span>
-                      <Badge className="bg-green-500/20 text-green-300 border-green-500/30">
+                      <Badge className="bg-purple-500/20 text-purple-300 border-purple-500/30">
                         <CheckCircle className="w-3 h-3 mr-1" />
                         {(paymentStatus as any).status}
                       </Badge>
@@ -232,18 +232,18 @@ export default function PaymentSuccess() {
                   <Star className="w-4 h-4 mr-2" />
                   What's Next?
                 </h3>
-                <div className="space-y-2 text-sm text-muted-foreground">
-                  <div className="flex items-center">
-                    <div className="w-2 h-2 bg-primary rounded-full mr-3"></div>
-                    Access your ProofScaling course materials
+                <div className="space-y-3 text-sm">
+                  <div className="flex items-center text-purple-300">
+                    <CheckCircle className="w-4 h-4 mr-3 text-purple-400" />
+                    Verified investor matches
                   </div>
-                  <div className="flex items-center">
-                    <div className="w-2 h-2 bg-primary-gold rounded-full mr-3"></div>
-                    Complete your venture analysis dashboard
+                  <div className="flex items-center text-purple-300">
+                    <CheckCircle className="w-4 h-4 mr-3 text-purple-400" />
+                    Investment certificates and reports
                   </div>
-                  <div className="flex items-center">
-                    <div className="w-2 h-2 bg-green-400 rounded-full mr-3"></div>
-                    Start implementing your personalized roadmap
+                  <div className="flex items-center text-purple-300">
+                    <CheckCircle className="w-4 h-4 mr-3 text-purple-400" />
+                    Direct investor connections
                   </div>
                 </div>
               </motion.div>
@@ -272,7 +272,7 @@ export default function PaymentSuccess() {
                     </div>
                   </div>
                   <p className="text-sm text-muted-foreground mt-2">
-                    This window will close automatically. You can return to your dashboard anytime.
+                    Continue to Dashboard
                   </p>
                 </div>
               </motion.div>
