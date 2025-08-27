@@ -39,29 +39,33 @@ export function CommunityAccess({ hasDealRoomAccess }: CommunityAccessProps) {
       <CardContent className="space-y-6">
         
         {/* Community Access Icons */}
-        <div className="flex items-center justify-center gap-8">
+        <div className="flex items-center justify-center gap-16">
           {/* WhatsApp */}
           <div 
-            onClick={handleWhatsAppClick}
+            onClick={hasDealRoomAccess ? handleWhatsAppClick : undefined}
             className={`transition-all duration-300 ${
               hasDealRoomAccess 
                 ? 'cursor-pointer hover:scale-110' 
-                : 'cursor-not-allowed opacity-60'
+                : 'cursor-not-allowed opacity-30 grayscale'
             }`}
           >
-            <SiWhatsapp className="w-12 h-12 text-green-400" />
+            <SiWhatsapp className={`w-12 h-12 ${
+              hasDealRoomAccess ? 'text-green-400' : 'text-gray-500'
+            }`} />
           </div>
 
           {/* Slack */}
           <div 
-            onClick={handleSlackClick}
+            onClick={hasDealRoomAccess ? handleSlackClick : undefined}
             className={`transition-all duration-300 ${
               hasDealRoomAccess 
                 ? 'cursor-pointer hover:scale-110' 
-                : 'cursor-not-allowed opacity-60'
+                : 'cursor-not-allowed opacity-30 grayscale'
             }`}
           >
-            <SiSlack className="w-12 h-12 text-purple-400" />
+            <SiSlack className={`w-12 h-12 ${
+              hasDealRoomAccess ? 'text-purple-400' : 'text-gray-500'
+            }`} />
           </div>
 
           {/* Calendly */}
