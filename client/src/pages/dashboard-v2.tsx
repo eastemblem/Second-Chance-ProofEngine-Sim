@@ -288,6 +288,8 @@ export default function DashboardV2Page() {
           {/* Deal Room Section */}
           <DealRoomSection 
             validationData={validationData}
+            hasDealRoomAccess={hasDealRoomAccess}
+            onPaymentModalOpen={handlePaymentModalOpen}
           />
 
           {/* Your Proof Vault */}

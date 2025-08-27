@@ -13,9 +13,11 @@ interface ValidationData {
 
 interface DealRoomSectionProps {
   validationData: ValidationData | null;
+  hasDealRoomAccess?: boolean;
+  onPaymentModalOpen?: () => void;
 }
 
-export function DealRoomSection({ validationData }: DealRoomSectionProps) {
+export function DealRoomSection({ validationData, hasDealRoomAccess = false, onPaymentModalOpen }: DealRoomSectionProps) {
   const proofScore = validationData?.proofScore || 0;
   const isUnlocked = proofScore >= 70;
 
@@ -70,6 +72,20 @@ export function DealRoomSection({ validationData }: DealRoomSectionProps) {
     return null;
   };
 
+  // Handle button click
+  const handleButtonClick = () => {
+    if (isUnlocked) {
+      // Check if user has paid for Deal Room access
+      if (hasDealRoomAccess) {
+        // Direct to Calendly booking
+        window.open('https://calendly.com/get-secondchance-info/30min', '_blank');
+      } else {
+        // Trigger payment modal
+        onPaymentModalOpen?.();
+      }
+    }
+  };
+
   return (
     <div className="bg-gray-900/60 rounded-xl border border-gray-700/50 p-8">
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
@@ -111,6 +127,7 @@ export function DealRoomSection({ validationData }: DealRoomSectionProps) {
           <Button 
             className={`px-8 py-3 rounded-lg font-semibold transition-all duration-200 ${getButtonStyle()}`}
             disabled={!isUnlocked}
+            onClick={handleButtonClick}
           >
             {getButtonText()}
           </Button>
