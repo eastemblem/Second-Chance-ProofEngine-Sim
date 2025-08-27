@@ -273,21 +273,10 @@
             <!-- Venture Highlight -->
             <div class="venture-card">
                 <div class="venture-name">{{VENTURE_NAME}}</div>
-                <div class="venture-label">{{VENTURE_INDUSTRY}} • {{VENTURE_STAGE}}</div>
+                <div class="venture-label">{{VENTURE_INDUSTRY}} • {{VENTURE_STAGE}} • Status: Investment Ready</div>
                 <div class="payment-badge">💳 Deal Room Access Activated</div>
             </div>
 
-            <!-- Action Required -->
-            <div class="action-needed">
-                <div class="action-title">⚡ Immediate Action Required</div>
-                <p class="action-text">This venture expects premium treatment and access to:</p>
-                <ul class="action-list">
-                    <li>Investor matching and connections</li>
-                    <li>Deal room onboarding process</li>
-                    <li>Status update (pending → reviewing)</li>
-                    <li>Premium support and guidance</li>
-                </ul>
-            </div>
 
             <!-- Founder Details -->
             <div class="details-section">
@@ -344,7 +333,7 @@
                     <span class="detail-value">
                         {{#BOX_URL}}
                         <a href="{{BOX_URL}}" style="color: #8B5CF6; text-decoration: none;" target="_blank">
-                            📁 Access Box Folder
+                            {{BOX_URL}}
                         </a>
                         {{/BOX_URL}}
                         {{^BOX_URL}}
@@ -372,12 +361,6 @@
                     <span class="detail-label">Database Reference:</span>
                     <span class="detail-value">
                         <div class="reference-code">{{PAYMENT_REFERENCE}}</div>
-                        <div style="font-size: 12px; color: #666; margin-top: 8px;">
-                            📋 Use this exact reference to search payment_transactions table
-                        </div>
-                        <div style="font-size: 11px; color: #999; margin-top: 4px;">
-                            Query: SELECT * FROM payment_transactions WHERE order_reference = '{{PAYMENT_REFERENCE}}'
-                        </div>
                     </span>
                 </div>
                 <div class="detail-row">
@@ -392,9 +375,6 @@
                 <a href="mailto:support@secondchance.com" class="support-email">support@secondchance.com</a>
             </div>
 
-            <div class="timestamp">
-                Notification sent: {{CURRENT_DATE}}
-            </div>
         </div>
 
         <!-- Footer -->
