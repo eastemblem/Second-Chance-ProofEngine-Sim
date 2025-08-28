@@ -381,6 +381,11 @@ class PayTabsGateway extends PaymentGateway {
     };
 
     try {
+      // Temporary logging to debug PayTabs request
+      winston.info('PayTabs request payload for debugging', { 
+        payTabsRequest: JSON.stringify(payTabsRequest, null, 2) 
+      });
+      
       const response = await fetch(this.baseUrl, {
         method: 'POST',
         headers: {
@@ -391,6 +396,13 @@ class PayTabsGateway extends PaymentGateway {
       });
 
       const responseText = await response.text();
+      
+      // Temporary logging to debug PayTabs response
+      winston.info('PayTabs response for debugging', { 
+        status: response.status,
+        statusText: response.statusText,
+        responseText: responseText.substring(0, 500)
+      });
       
       let result;
       try {
