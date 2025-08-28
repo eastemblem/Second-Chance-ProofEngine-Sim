@@ -330,19 +330,9 @@ class PayTabsGateway extends PaymentGateway {
   }
 
   private getEndpointUrl(): string {
-    const endpoints: Record<string, string> = {
-      'ksa': 'https://secure.paytabs.sa/payment/request',
-      'uae': 'https://secure.paytabs.ae/payment/request',
-      'UAE': 'https://secure.paytabs.ae/payment/request', // Support uppercase UAE
-      'egypt': 'https://secure.paytabs.eg/payment/request',
-      'oman': 'https://secure.paytabs.om/payment/request',
-      'jordan': 'https://secure.paytabs.jo/payment/request',
-      'kuwait': 'https://secure.paytabs.com.kw/payment/request',
-      'global': 'https://secure.paytabs.com/payment/request'
-    };
-    
-    const endpoint = endpoints[this.region] || endpoints['global'];
-    console.log(`PayTabs endpoint selected: ${endpoint} for region: ${this.region}`);
+    // UAE PayTabs accounts always use .com endpoint regardless of region setting
+    const endpoint = 'https://secure.paytabs.com/payment/request';
+    console.log(`PayTabs endpoint: ${endpoint} (UAE account - always uses .com)`);
     return endpoint;
   }
 
