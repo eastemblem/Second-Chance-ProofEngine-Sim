@@ -49,6 +49,10 @@ const paymentService = new PaymentService();
  */
 router.post("/create-next-steps-session", sessionPaymentRateLimit, async (req: Request, res: Response) => {
   try {
+    console.log('=== PayTabs Payment Creation Started ===');
+    console.log('Request body:', JSON.stringify(req.body, null, 2));
+    console.log('Request headers:', JSON.stringify(req.headers, null, 2));
+    
     const { sessionId, ventureName, proofScore, amount, packageType }: NextStepsPaymentRequest = req.body;
 
     // Enhanced validation with security checks
@@ -251,8 +255,22 @@ router.post("/create-next-steps-session", sessionPaymentRateLimit, async (req: R
     });
 
   } catch (error) {
-    console.error("Error creating Next Steps payment:", error);
-    PaymentErrorHandler.handleError(error, req, res, 'create-payment');
+    console.error("=== PayTabs Payment Creation Error ===");
+    console.error("Error type:", error?.constructor?.name);
+    console.error("Error message:", (error as Error)?.message);
+    console.error("Error stack:", (error as Error)?.stack);
+    console.error("Full error object:", JSON.stringify(error, Object.getOwnPropertyNames(error), 2));
+    
+    // Return a more detailed error response for debugging
+    return res.status(500).json({
+      success: false,
+      error: {
+        code: "PAYMENT_CREATION_ERROR",
+        message: (error as Error)?.message || "Payment creation failed",
+        details: (error as Error)?.stack?.split('\n')[0] || "Unknown error",
+        timestamp: new Date().toISOString()
+      }
+    });
   }
 });
 
