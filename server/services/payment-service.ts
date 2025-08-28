@@ -157,7 +157,7 @@ export class PaymentService {
       }
 
       // Get payment gateway implementation
-      winston.info('Creating gateway for provider', { gatewayProvider });
+
       const gateway = PaymentGatewayFactory.create(gatewayProvider);
       
       // Currency conversion: Convert USD to AED for Telr
@@ -176,7 +176,7 @@ export class PaymentService {
       
       // Prepare order data for gateway
       const returnUrls = this.getReturnUrls(orderReference);
-      winston.info('Generated return URLs', { returnUrls });
+
       
       const orderData: PaymentOrderData = {
         orderId: orderReference,
@@ -222,12 +222,8 @@ export class PaymentService {
         };
       }
       
-      winston.info('Final order data for gateway', { orderData });
-
       // Create order with gateway
-      winston.info('Calling gateway.createOrder');
       const result = await gateway.createOrder(orderData);
-      winston.info('Gateway response received', { result });
       
       if (!result.success) {
         // Log detailed error information
@@ -313,9 +309,8 @@ export class PaymentService {
           
           if (gatewayResponse.paytabs_tran_ref || gatewayResponse.tran_ref) {
             queryReference = gatewayResponse.paytabs_tran_ref || gatewayResponse.tran_ref;
-            winston.info('Using PayTabs tran_ref for status check', { queryReference });
           } else {
-            winston.warn('No PayTabs tran_ref found, transaction may have failed during creation. Using database status', { orderReference });
+            winston.warn('No PayTabs tran_ref found, using database status', { orderReference });
             return {
               success: true,
               status: transaction.status,
@@ -336,7 +331,7 @@ export class PaymentService {
 
       // Handle cases where PayTabs can't find the transaction (expired/inactive transactions)
       if (statusResult.success && statusResult.status === 'unknown') {
-        winston.warn('PayTabs returned unknown status, using database status', { orderReference, databaseStatus: transaction.status });
+        winston.warn('PayTabs returned unknown status, using database status', { orderReference });
         return {
           success: true,
           status: transaction.status,
@@ -356,8 +351,6 @@ export class PaymentService {
 
         // Send payment status change notification
         await this.sendPaymentStatusNotification(transaction, statusResult.status);
-
-        // Log payment completion activity
         if (statusResult.status === 'completed') {
           try {
             await ActivityService.logActivity(

@@ -328,14 +328,12 @@ class PayTabsGateway extends PaymentGateway {
     
     // Set appropriate endpoint based on region
     this.baseUrl = this.getEndpointUrl();
-    winston.info(`🚀 PayTabs Gateway initialized - Region: ${this.region}, Test Mode: ${this.testMode ? 'ENABLED' : 'DISABLED'}`);
+    winston.info('PayTabs Gateway initialized', { region: this.region, testMode: this.testMode });
   }
 
   private getEndpointUrl(): string {
     // UAE PayTabs accounts always use .com endpoint regardless of region setting
-    const endpoint = 'https://secure.paytabs.com/payment/request';
-    winston.info(`PayTabs endpoint: ${endpoint} (UAE account - always uses .com)`);
-    return endpoint;
+    return 'https://secure.paytabs.com/payment/request';
   }
 
   async createOrder(orderData: PaymentOrderData): Promise<PaymentOrderResponse> {
@@ -383,8 +381,6 @@ class PayTabsGateway extends PaymentGateway {
     };
 
     try {
-      winston.info('PayTabs request payload:', JSON.stringify(payTabsRequest, null, 2));
-      
       const response = await fetch(this.baseUrl, {
         method: 'POST',
         headers: {
@@ -395,17 +391,12 @@ class PayTabsGateway extends PaymentGateway {
       });
 
       const responseText = await response.text();
-      winston.info('PayTabs raw response text:', responseText);
-      winston.info('PayTabs HTTP status:', response.status);
-      winston.info('PayTabs response headers:', JSON.stringify(Object.fromEntries(response.headers), null, 2));
       
       let result;
       try {
         result = JSON.parse(responseText);
-        winston.info('PayTabs parsed response:', JSON.stringify(result, null, 2));
-        winston.info('PayTabs response code received:', result.response_code);
       } catch (parseError) {
-        winston.error('PayTabs response is not valid JSON:', parseError);
+        winston.error('PayTabs API returned invalid JSON', { error: parseError, responseText: responseText.substring(0, 200) });
         throw new Error(`PayTabs API returned invalid JSON: ${responseText.substring(0, 200)}`);
       }
 
@@ -435,22 +426,13 @@ class PayTabsGateway extends PaymentGateway {
   }
 
   async checkStatus(orderRef: string): Promise<PaymentStatusResponse> {
-    // PayTabs query needs the actual tran_ref, not our cart_id
-    // For PayTabs, we need to extract the tran_ref from the stored gateway response
-    winston.info(`PayTabs status check - looking for transaction with order reference: ${orderRef}`);
-    
     const queryRequest = {
       profile_id: parseInt(this.profileId!),
       tran_ref: orderRef  // This should be the PayTabs tran_ref, not our cart_id
     };
 
     try {
-      winston.info(`Making PayTabs status check request for order: ${orderRef}`);
-      winston.info(`Request payload:`, JSON.stringify(queryRequest, null, 2));
-      
       const queryUrl = this.baseUrl.replace('/payment/request', '/payment/query');
-      winston.info(`PayTabs status check URL: ${queryUrl}`);
-      winston.info(`PayTabs base URL: ${this.baseUrl}`);
       
       const response = await fetch(queryUrl, {
         method: 'POST',
@@ -461,13 +443,9 @@ class PayTabsGateway extends PaymentGateway {
         body: JSON.stringify(queryRequest)
       });
 
-      winston.info(`PayTabs status check response status: ${response.status}`);
-      winston.info(`PayTabs status check response headers:`, JSON.stringify(Object.fromEntries(response.headers), null, 2));
-
       let result;
       if (!response.ok) {
         const errorText = await response.text();
-        winston.error(`PayTabs status check error response:`, errorText);
         
         // Try to parse error response as JSON for PayTabs specific handling
         try {
@@ -478,16 +456,12 @@ class PayTabsGateway extends PaymentGateway {
       } else {
         result = await response.json();
       }
-      winston.info(`PayTabs status check response:`, JSON.stringify(result, null, 2));
 
       // Handle PayTabs response codes
       if (result.response_code !== '2000') {
-        winston.error(`PayTabs status check error:`, result);
-        
         // PayTabs returns "Transaction not found" for expired or inactive transactions
         if ((result.code === 2 && result.message === 'No entries found') || 
             (result.code === 113 && result.message?.includes('Transaction not found'))) {
-          winston.info(`PayTabs transaction not found: ${orderRef} - transaction may be expired or inactive, will use database status`);
           return {
             success: true,
             status: 'unknown', // Signal to payment service to use database status
@@ -495,6 +469,7 @@ class PayTabsGateway extends PaymentGateway {
           };
         }
         
+        winston.error('PayTabs status check error', { result });
         return {
           success: false,
           status: 'failed',
@@ -505,8 +480,6 @@ class PayTabsGateway extends PaymentGateway {
       // Map PayTabs status to our generic status using centralized mapper
       const respStatus = result.payment_result?.response_status;
       const status = PaymentStatusMapper.mapPayTabsApiStatus(respStatus);
-      
-      winston.info(`PayTabs transaction status - Response Status: ${respStatus}, Mapped Status: ${status}`);
 
       return {
         success: true,
