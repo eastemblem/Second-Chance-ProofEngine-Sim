@@ -381,6 +381,17 @@ class PayTabsGateway extends PaymentGateway {
     };
 
     try {
+      winston.info('PayTabs API Request', { 
+        url: this.baseUrl,
+        profileId: this.profileId,
+        testMode: this.testMode,
+        cartId: payTabsRequest.cart_id,
+        amount: payTabsRequest.cart_amount,
+        currency: payTabsRequest.cart_currency,
+        returnUrl: payTabsRequest.return,
+        callbackUrl: payTabsRequest.callback
+      });
+      
       const response = await fetch(this.baseUrl, {
         method: 'POST',
         headers: {
@@ -391,6 +402,12 @@ class PayTabsGateway extends PaymentGateway {
       });
 
       const responseText = await response.text();
+      
+      winston.info('PayTabs API Response', { 
+        status: response.status,
+        statusText: response.statusText,
+        responseBody: responseText.substring(0, 300)
+      });
       
       let result;
       try {
