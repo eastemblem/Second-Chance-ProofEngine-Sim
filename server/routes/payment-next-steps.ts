@@ -324,7 +324,7 @@ router.post("/create-next-steps-session", sessionPaymentRateLimit, async (req: R
       telrUrl: paymentResult.paymentUrl, // Keep telrUrl for frontend compatibility
       paymentUrl: paymentResult.paymentUrl, // Add new paymentUrl property
       telrRef: paymentResult.orderReference,
-      message: "Payment created successfully"
+      message: "Next Steps payment created successfully"
     });
 
   } catch (error) {
@@ -384,7 +384,7 @@ router.post("/paytabs/callback", async (req: Request, res: Response) => {
       token
     } = req.body;
 
-    console.log('PayTabs IPN/Callback data:', {
+    appLogger.api('PayTabs IPN/Callback data:', {
       tran_ref,
       cart_id,
       cart_currency,
@@ -394,7 +394,7 @@ router.post("/paytabs/callback", async (req: Request, res: Response) => {
     });
 
     if (!cart_id || !tran_ref) {
-      console.error('PayTabs IPN: Missing required fields (cart_id or tran_ref)');
+      appLogger.error('PayTabs IPN: Missing required fields (cart_id or tran_ref)');
       return res.status(400).json({
         success: false,
         message: 'Missing required fields'
@@ -419,16 +419,16 @@ router.post("/paytabs/callback", async (req: Request, res: Response) => {
       paymentStatus = 'failed';
     }
 
-    console.log(`PayTabs IPN for order ${cart_id}: ${paymentStatus} (${responseMessage})`);
+    appLogger.api(`PayTabs IPN for order ${cart_id}: ${paymentStatus} (${responseMessage})`);
 
     // Update payment transaction status in database
     const paymentService = new PaymentService();
     const updateResult = await paymentService.updatePaymentStatus(cart_id, paymentStatus);
     
     if (!updateResult.success) {
-      console.error('Failed to update payment status from IPN:', updateResult.error);
+      appLogger.error('Failed to update payment status from IPN:', updateResult.error);
     } else {
-      console.log('Payment status successfully updated from PayTabs IPN');
+      appLogger.api('Payment status successfully updated from PayTabs IPN');
     }
 
     // PayTabs expects a simple success response for IPN/Callback
@@ -438,7 +438,7 @@ router.post("/paytabs/callback", async (req: Request, res: Response) => {
     });
 
   } catch (error) {
-    console.error('PayTabs IPN/Callback processing error:', error);
+    appLogger.error('PayTabs IPN/Callback processing error:', error);
     
     // Return error but don't expose internal details
     return res.status(500).json({
@@ -453,9 +453,9 @@ router.post("/paytabs/callback", async (req: Request, res: Response) => {
  * POST /api/payment/paytabs/return (PayTabs sends POST requests)
  */
 router.post("/paytabs/return", async (req: Request, res: Response) => {
-  console.log('=== PayTabs Return Endpoint Hit ===');
-  console.log('Method:', req.method);
-  console.log('Body params:', JSON.stringify(req.body, null, 2));
+  appLogger.api('=== PayTabs Return Endpoint Hit ===');
+  appLogger.api('Method:', req.method);
+  appLogger.api('Body params:', JSON.stringify(req.body, null, 2));
   
   try {
     // PayTabs sends form-encoded data: cartId, respStatus, tranRef, signature, etc.
@@ -472,7 +472,7 @@ router.post("/paytabs/return", async (req: Request, res: Response) => {
       token
     } = req.body;
 
-    console.log('PayTabs response data:', {
+    appLogger.api('PayTabs response data:', {
       cartId,
       respStatus,
       respCode,
@@ -483,7 +483,7 @@ router.post("/paytabs/return", async (req: Request, res: Response) => {
     });
 
     if (!cartId) {
-      console.error('PayTabs return: Missing cartId (order reference)');
+      appLogger.error('PayTabs return: Missing cartId (order reference)');
       return res.status(400).send(`
         <html><body>
           <h2>Payment Error</h2>
@@ -497,7 +497,7 @@ router.post("/paytabs/return", async (req: Request, res: Response) => {
     if (signature) {
       const isValidSignature = verifyPayTabsSignature(req.body);
       if (!isValidSignature) {
-        console.error('PayTabs signature verification failed - potentially fraudulent request');
+        appLogger.error('PayTabs signature verification failed - potentially fraudulent request');
         return res.status(400).send(`
           <html><body>
             <h2>Payment Verification Failed</h2>
@@ -506,9 +506,9 @@ router.post("/paytabs/return", async (req: Request, res: Response) => {
           </body></html>
         `);
       }
-      console.log('PayTabs signature verified successfully');
+      appLogger.api('PayTabs signature verified successfully');
     } else {
-      console.warn('PayTabs response received without signature - consider enabling signature verification');
+      appLogger.warn('PayTabs response received without signature - consider enabling signature verification');
     }
 
     // Determine payment status based on PayTabs respStatus
@@ -524,14 +524,14 @@ router.post("/paytabs/return", async (req: Request, res: Response) => {
       statusReason = respMessage || `Payment failed with status: ${respStatus}`;
     }
 
-    console.log(`PayTabs payment for order ${cartId}: ${paymentStatus} (${statusReason})`);
+    appLogger.api(`PayTabs payment for order ${cartId}: ${paymentStatus} (${statusReason})`);
 
     // Update the payment transaction status
     const paymentService = new PaymentService();
     const updateResult = await paymentService.updatePaymentStatus(cartId, paymentStatus);
     
     if (!updateResult.success) {
-      console.error('Failed to update payment status:', updateResult.error);
+      appLogger.error('Failed to update payment status:', updateResult.error);
     }
 
     // Get redirect URL
@@ -541,16 +541,16 @@ router.post("/paytabs/return", async (req: Request, res: Response) => {
     // Redirect based on payment status
     if (paymentStatus === 'completed') {
       const redirectUrl = `${baseUrl}/payment/success?ref=${cartId}&tranRef=${tranRef}`;
-      console.log('Redirecting to success page:', redirectUrl);
+      appLogger.api('Redirecting to success page:', redirectUrl);
       return res.redirect(redirectUrl);
     } else {
       const redirectUrl = `${baseUrl}/payment/failed?ref=${cartId}&reason=${encodeURIComponent(statusReason)}`;
-      console.log('Redirecting to failure page:', redirectUrl);
+      appLogger.api('Redirecting to failure page:', redirectUrl);
       return res.redirect(redirectUrl);
     }
 
   } catch (error) {
-    console.error('PayTabs return callback error:', error);
+    appLogger.error('PayTabs return callback error:', error);
     
     // Return user-friendly error page instead of JSON
     return res.status(500).send(`
@@ -597,12 +597,12 @@ router.get("/status/:paymentId", paymentStatusRateLimit, async (req: Request, re
     if (transaction.gatewayTransactionId) {
       try {
         const gatewayProvider = transaction.gatewayProvider || 'paytabs';
-        console.log(`Checking live payment status with ${gatewayProvider} for transaction: ${transaction.gatewayTransactionId}`);
+        appLogger.api(`Checking live payment status with ${gatewayProvider} for transaction: ${transaction.gatewayTransactionId}`);
         const gateway = PaymentGatewayFactory.create(gatewayProvider);
         const statusResult = await gateway.checkStatus(transaction.gatewayTransactionId);
         
         if (statusResult.success && statusResult.status !== transaction.status) {
-          console.log(`Payment status changed from ${transaction.status} to ${statusResult.status}`);
+          appLogger.api(`Payment status changed from ${transaction.status} to ${statusResult.status}`);
           // Update transaction status in database
           const paymentServiceForUpdate = new PaymentService();
           await paymentServiceForUpdate.updatePaymentStatus(paymentId, statusResult.status);
@@ -625,16 +625,16 @@ router.get("/status/:paymentId", paymentStatusRateLimit, async (req: Request, re
               }
             );
           } catch (activityError) {
-            console.error("Failed to log payment status activity:", activityError);
+            appLogger.error("Failed to log payment status activity:", activityError);
           }
 
           // Update local transaction object for response
           transaction.status = statusResult.status;
         } else {
-          console.log(`Payment status unchanged: ${transaction.status}`);
+          appLogger.api(`Payment status unchanged: ${transaction.status}`);
         }
       } catch (telrError) {
-        console.error("Error checking Telr payment status:", telrError);
+        appLogger.error("Error checking Telr payment status:", telrError);
         // Continue with stored status
       }
     }
@@ -651,7 +651,7 @@ router.get("/status/:paymentId", paymentStatusRateLimit, async (req: Request, re
     });
 
   } catch (error) {
-    console.error("Error getting payment status:", error);
+    appLogger.error("Error getting payment status:", error);
     return res.status(500).json({
       success: false,
       message: "Failed to get payment status"
@@ -678,7 +678,7 @@ router.get("/test-telr-status/:orderRef", async (req: Request, res: Response) =>
       telrResponse: result
     });
   } catch (error) {
-    console.error("Direct Telr test error:", error);
+    appLogger.error("Direct Telr test error:", error);
     res.status(500).json({
       success: false,
       error: error instanceof Error ? error.message : 'Unknown error'
@@ -693,7 +693,7 @@ router.get("/test-telr-status/:orderRef", async (req: Request, res: Response) =>
  */
 router.post("/webhook/next-steps", webhookRateLimit, async (req: Request, res: Response) => {
   try {
-    console.log("Received Telr webhook for Next Steps:", req.body);
+    appLogger.api("Received Telr webhook for Next Steps:", req.body);
 
     const webhookData = req.body;
     
@@ -701,12 +701,12 @@ router.post("/webhook/next-steps", webhookRateLimit, async (req: Request, res: R
     const clientIP = SecurityUtils.getClientIP(req);
     const signature = req.headers['x-telr-signature'] as string;
     
-    console.log(`Webhook from IP: ${clientIP}, Signature: ${signature ? 'Present' : 'Missing'}`);
+    appLogger.api(`Webhook from IP: ${clientIP}, Signature: ${signature ? 'Present' : 'Missing'}`);
     
     if (process.env.TELR_WEBHOOK_SECRET) {
       const gateway = PaymentGatewayFactory.create('telr');
       if (!gateway.validateWebhook(webhookData, signature)) {
-        console.error(`Invalid webhook signature from IP: ${clientIP}`);
+        appLogger.error(`Invalid webhook signature from IP: ${clientIP}`);
         throw PaymentErrorHandler.webhookError("Invalid signature");
       }
     }
@@ -725,7 +725,7 @@ router.post("/webhook/next-steps", webhookRateLimit, async (req: Request, res: R
     const paymentStatusResult = await paymentService.checkPaymentStatus(paymentId);
 
     if (!paymentStatusResult.success || !paymentStatusResult.transaction) {
-      console.error(`Payment transaction not found for webhook: ${paymentId}`);
+      appLogger.error(`Payment transaction not found for webhook: ${paymentId}`);
       return res.status(404).json({
         success: false,
         message: paymentStatusResult.error || "Payment not found"
@@ -760,10 +760,10 @@ router.post("/webhook/next-steps", webhookRateLimit, async (req: Request, res: R
         }
       );
     } catch (activityError) {
-      console.error("Failed to log webhook activity:", activityError);
+      appLogger.error("Failed to log webhook activity:", activityError);
     }
 
-    console.log(`Next Steps payment ${paymentId} status updated to: ${newStatus}`);
+    appLogger.api(`Next Steps payment ${paymentId} status updated to: ${newStatus}`);
 
     return res.json({
       success: true,
@@ -771,7 +771,7 @@ router.post("/webhook/next-steps", webhookRateLimit, async (req: Request, res: R
     });
 
   } catch (error) {
-    console.error("Error processing Next Steps webhook:", error);
+    appLogger.error("Error processing Next Steps webhook:", error);
     return res.status(500).json({
       success: false,
       message: "Webhook processing failed"
@@ -825,7 +825,7 @@ router.get("/history/:sessionId", async (req: Request, res: Response) => {
     });
 
   } catch (error) {
-    console.error("Error getting payment history:", error);
+    appLogger.error("Error getting payment history:", error);
     return res.status(500).json({
       success: false,
       message: "Failed to get payment history"
@@ -839,7 +839,7 @@ router.get("/history/:sessionId", async (req: Request, res: Response) => {
  */
 router.get("/callback/telr", async (req: Request, res: Response) => {
   try {
-    console.log("Session-based Telr callback received:", {
+    appLogger.api("Session-based Telr callback received:", {
       query: req.query,
       headers: req.headers
     });
@@ -848,14 +848,14 @@ router.get("/callback/telr", async (req: Request, res: Response) => {
     const paymentId = payment_id || cartid || order_ref;
 
     if (!paymentId) {
-      console.error("No payment ID found in callback");
+      appLogger.error("No payment ID found in callback");
       return res.redirect(`${process.env.FRONTEND_URL || 'http://localhost:5000'}/payment/error?error=missing_payment_id`);
     }
 
     // Find the payment transaction from database
     const dbTransaction = await storage.getPaymentTransactionByOrderRef(paymentId);
     if (!dbTransaction) {
-      console.error("Payment transaction not found:", paymentId);
+      appLogger.error("Payment transaction not found:", paymentId);
       return res.redirect(`${process.env.FRONTEND_URL || 'http://localhost:5000'}/payment/error?error=payment_not_found`);
     }
 
@@ -882,13 +882,13 @@ router.get("/callback/telr", async (req: Request, res: Response) => {
         }
       });
 
-      console.log('✅ Database transaction updated via callback:', paymentId);
+      appLogger.api('✅ Database transaction updated via callback:', paymentId);
     } catch (dbError) {
-      console.error('❌ Failed to update database transaction via callback:', dbError);
+      appLogger.error('❌ Failed to update database transaction via callback:', dbError);
       return res.redirect(`${process.env.FRONTEND_URL || 'http://localhost:5000'}/payment/error?error=database_error`);
     }
 
-    console.log("Payment status updated via callback:", {
+    appLogger.api("Payment status updated via callback:", {
       paymentId,
       newStatus,
       callbackStatus: status
@@ -913,7 +913,7 @@ router.get("/callback/telr", async (req: Request, res: Response) => {
         }
       );
     } catch (activityError) {
-      console.error("Failed to log payment callback activity:", activityError);
+      appLogger.error("Failed to log payment callback activity:", activityError);
     }
 
     // Redirect to appropriate page
@@ -929,7 +929,7 @@ router.get("/callback/telr", async (req: Request, res: Response) => {
     }
 
   } catch (error) {
-    console.error("Error processing Telr callback:", error);
+    appLogger.error("Error processing Telr callback:", error);
     const baseUrl = process.env.FRONTEND_URL || 'http://localhost:5000';
     return res.redirect(`${baseUrl}/payment/error?error=callback_processing_failed`);
   }
