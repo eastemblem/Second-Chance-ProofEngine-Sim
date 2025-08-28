@@ -16,6 +16,7 @@ import {
 } from "@shared/schema";
 import { eq, and } from "drizzle-orm";
 import { eastEmblemAPI } from "./eastemblem-api";
+import { appLogger } from "./utils/logger";
 
 // Validation schemas for each onboarding step
 export const founderOnboardingSchema = z.object({
@@ -114,7 +115,7 @@ export class OnboardingManager {
       })
       .returning();
 
-    console.log("Created new onboarding session:", newSession.sessionId);
+    appLogger.auth('Created new onboarding session', { sessionId: newSession.sessionId });
 
     // Send Slack notification for session start (async, no wait)
     if (eastEmblemAPI.isConfigured()) {
@@ -125,7 +126,7 @@ export class OnboardingManager {
           newSession.sessionId,
         )
         .catch((error) => {
-          console.log("Failed to send session start notification:", error);
+          appLogger.warn("Failed to send session start notification:", error);
         });
     }
 
@@ -142,7 +143,7 @@ export class OnboardingManager {
 
       return session || null;
     } catch (error) {
-      console.error("Error getting session:", error);
+      appLogger.error("Error getting session:", error);
       return null;
     }
   }
@@ -180,15 +181,12 @@ export class OnboardingManager {
 
   // Complete founder onboarding step
   async completeFounderStep(sessionId: string, founderData: any) {
-    console.log("Completing founder step for session:", sessionId);
+    appLogger.auth('Completing founder step for session', { sessionId });
 
     // Check if session exists first, create if not
     let session = await this.getSession(sessionId);
     if (!session) {
-      console.log(
-        "Session not found, creating new session with provided ID:",
-        sessionId,
-      );
+      appLogger.auth('Session not found, creating new session with provided ID', { sessionId });
       try {
         // Use the provided sessionId instead of generating a new one
         const [newSession] = await db
@@ -203,7 +201,7 @@ export class OnboardingManager {
 
         session = newSession;
       } catch (error) {
-        console.error("Error creating session:", error);
+        appLogger.error("Error creating session:", error);
         throw new Error("Failed to create session");
       }
     }
@@ -226,7 +224,7 @@ export class OnboardingManager {
         founderId = newFounder.founderId;
       } catch (error: any) {
         // Handle any creation errors
-        console.error("Error creating founder:", error);
+        appLogger.error("Error creating founder:", error);
         throw error;
       }
     }
@@ -240,7 +238,7 @@ export class OnboardingManager {
     // Update session progress
     await this.updateSession(sessionId, "founder", validatedData, true);
 
-    console.log("Founder step completed successfully for session:", sessionId);
+    appLogger.auth('Founder step completed successfully', { sessionId });
 
     // Send Slack notification for founder step completion (async, no wait)
     if (eastEmblemAPI.isConfigured()) {
@@ -251,7 +249,7 @@ export class OnboardingManager {
           sessionId,
         )
         .catch((error) => {
-          console.log("Failed to send founder completion notification:", error);
+          appLogger.warn("Failed to send founder completion notification:", error);
         });
     }
 
@@ -260,14 +258,14 @@ export class OnboardingManager {
 
   // Complete venture onboarding step
   async completeVentureStep(sessionId: string, inputData: any) {
-    console.log("Completing venture step for session:", sessionId);
+    appLogger.auth('Completing venture step for session', { sessionId });
     const session = await this.getSession(sessionId);
     if (!session) {
-      console.log("Session not found for ID:", sessionId);
+      appLogger.warn('Session not found for ID', { sessionId });
       throw new Error("Session not found");
     }
     if (!session.founderId) {
-      console.log("Session data:", session);
+      // Session data retrieved for venture step
       throw new Error("Founder step not completed - no founderId in session");
     }
 
@@ -359,7 +357,7 @@ export class OnboardingManager {
             },
           ];
 
-          console.log(`Creating ${folderMappings.length} proof vault entries for venture ${venture.ventureId}`);
+          appLogger.business(`Creating ${folderMappings.length} proof vault entries`, { ventureId: venture.ventureId });
           
           for (const folder of folderMappings) {
             const subFolderId = folderStructure.folders[folder.key];
@@ -374,29 +372,29 @@ export class OnboardingManager {
                   folderName: folder.name,
                   description: folder.description,
                 });
-                console.log(`✓ Created proof vault entry for ${folder.name}: ${proofVaultEntry.vaultId}`);
+                appLogger.business(`✓ Created proof vault entry for ${folder.name}`, { vaultId: proofVaultEntry.vaultId });
               } catch (proofVaultError) {
-                console.error(`✗ Failed to create proof vault entry for ${folder.name}:`, proofVaultError);
+                appLogger.error(`✗ Failed to create proof vault entry for ${folder.name}:`, proofVaultError);
               }
             } else {
-              console.warn(`⚠ Missing subFolderId for ${folder.key} in folder structure`);
+              appLogger.warn(`⚠ Missing subFolderId for ${folder.key} in folder structure`);
             }
           }
           
-          console.log('Completed proof vault entries creation');
+          appLogger.business('Completed proof vault entries creation');
           
           // Update venture with folder structure
           try {
             await storage.updateVenture(venture.ventureId, {
               folderStructure: folderStructure
             });
-            console.log('Venture updated with folder structure:', folderStructure.id);
+            appLogger.business('Venture updated with folder structure', { folderId: folderStructure.id });
           } catch (error) {
-            console.error('Failed to update venture with folder structure:', error);
+            appLogger.error('Failed to update venture with folder structure:', error);
           }
         }
       } catch (error) {
-        console.error("Failed to create folder structure or proof vault entries:", error);
+        appLogger.error("Failed to create folder structure or proof vault entries:", error);
         // Still continue with venture creation even if folder structure fails
       }
     }
@@ -437,7 +435,7 @@ export class OnboardingManager {
           sessionId,
         )
         .catch((error) => {
-          console.log("Failed to send venture completion notification:", error);
+          appLogger.warn("Failed to send venture completion notification:", error);
         });
     }
 
@@ -530,7 +528,7 @@ export class OnboardingManager {
     const teamMembers = await this.getTeamMembers(sessionId);
 
     // Allow completing team step with any number of members (0-4)
-    console.log(`Completing team step with ${teamMembers.length} team members`);
+    appLogger.auth(`Completing team step with ${teamMembers.length} team members`);
 
     // Update session progress
     await this.updateSession(sessionId, "upload", {}, false);
@@ -545,7 +543,7 @@ export class OnboardingManager {
           sessionId,
         )
         .catch((error) => {
-          console.log("Failed to send team completion notification:", error);
+          appLogger.warn("Failed to send team completion notification:", error);
         });
     }
 

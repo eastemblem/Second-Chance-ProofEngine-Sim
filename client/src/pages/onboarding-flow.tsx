@@ -259,14 +259,14 @@ export default function OnboardingFlow({ onComplete }: OnboardingFlowProps) {
 
     try {
       if (import.meta.env.MODE === 'development') {
-        console.log(`Refreshing session data from server...`);
+        // Session refresh (logged in development mode only)
       }
       const response = await fetch(`/api/onboarding/session/${sessionData.sessionId}`);
       
       if (response.ok) {
         const serverSession = await response.json();
         if (import.meta.env.MODE === 'development') {
-          console.log(`Server session retrieved:`, serverSession.session);
+          // Server session retrieved successfully
         }
         
         // Update local state with server data
@@ -286,7 +286,7 @@ export default function OnboardingFlow({ onComplete }: OnboardingFlowProps) {
         localStorage.setItem('onboardingSession', JSON.stringify(updatedSession));
         
         if (import.meta.env.MODE === 'development') {
-          console.log(`Local session synchronized with server`);
+          // Local session synchronized with server
         }
         return updatedSession;
       } else {
@@ -304,7 +304,7 @@ export default function OnboardingFlow({ onComplete }: OnboardingFlowProps) {
   // Simplified update - just trigger server refresh
   const updateSessionData = (stepKey: string, data: any) => {
     if (import.meta.env.MODE === 'development') {
-      console.log(`Updating session data for step ${stepKey}:`, data);
+      // Updating session data for current step
     }
     
     if (!sessionData) {
@@ -335,7 +335,7 @@ export default function OnboardingFlow({ onComplete }: OnboardingFlowProps) {
     };
     
     if (import.meta.env.MODE === 'development') {
-      console.log('Session updated:', updatedSession);
+      // Session updated successfully
     }
     
     // Update both state and localStorage atomically
@@ -381,7 +381,7 @@ export default function OnboardingFlow({ onComplete }: OnboardingFlowProps) {
   // Additional validation for sessionId
   if (!sessionData.sessionId) {
     if (import.meta.env.MODE === 'development') {
-      console.error('OnboardingFlow: sessionData exists but sessionId is missing', sessionData);
+      // Error: Session data missing required sessionId
     }
     
     // Try to fix the session data structure if it's in API response format
@@ -500,7 +500,7 @@ export default function OnboardingFlow({ onComplete }: OnboardingFlowProps) {
                 onPrev={prevStep}
                 onDataUpdate={(data: any) => {
                   if (import.meta.env.MODE === 'development') {
-                    console.log("VentureOnboarding onDataUpdate called with:", data);
+                    // Venture data updated
                   }
                   updateSessionData("venture", data);
                 }}
@@ -533,13 +533,8 @@ export default function OnboardingFlow({ onComplete }: OnboardingFlowProps) {
                 onNext={nextStep}
                 onBack={prevStep}
                 onDataUpdate={(data) => {
-                  if (import.meta.env.MODE === 'development') {
-                    console.log("🔄 Processing data received in onboarding flow:", data);
-                  }
+                  // Processing data received and session updated
                   updateSessionData("processing", data);
-                  if (import.meta.env.MODE === 'development') {
-                    console.log("🔄 Session data after processing update:", sessionData);
-                  }
                 }}
               />
             )}
@@ -553,9 +548,7 @@ export default function OnboardingFlow({ onComplete }: OnboardingFlowProps) {
                 };
                 setSessionData(updatedSession);
                 localStorage.setItem('onboardingSession', JSON.stringify(updatedSession));
-                if (import.meta.env.MODE === 'development') {
-                  console.log('Analysis step marked as completed for reload persistence');
-                }
+                // Analysis step marked as completed for reload persistence
               }
               
               return (
