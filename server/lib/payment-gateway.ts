@@ -332,7 +332,8 @@ class PayTabsGateway extends PaymentGateway {
   private getEndpointUrl(): string {
     const endpoints: Record<string, string> = {
       'ksa': 'https://secure.paytabs.sa/payment/request',
-      'uae': 'https://secure.paytabs.ae/payment/request', 
+      'uae': 'https://secure.paytabs.ae/payment/request',
+      'UAE': 'https://secure.paytabs.ae/payment/request', // Support uppercase UAE
       'egypt': 'https://secure.paytabs.eg/payment/request',
       'oman': 'https://secure.paytabs.om/payment/request',
       'jordan': 'https://secure.paytabs.jo/payment/request',
@@ -340,7 +341,9 @@ class PayTabsGateway extends PaymentGateway {
       'global': 'https://secure.paytabs.com/payment/request'
     };
     
-    return endpoints[this.region] || endpoints['global'];
+    const endpoint = endpoints[this.region] || endpoints['global'];
+    console.log(`PayTabs endpoint selected: ${endpoint} for region: ${this.region}`);
+    return endpoint;
   }
 
   async createOrder(orderData: PaymentOrderData): Promise<PaymentOrderResponse> {
@@ -399,23 +402,28 @@ class PayTabsGateway extends PaymentGateway {
         body: JSON.stringify(payTabsRequest)
       });
 
-      const result = await response.json();
-      console.log('PayTabs raw response:', JSON.stringify(result, null, 2));
-      console.log('PayTabs response code received:', result.response_code);
-      console.log('PayTabs response status:', response.status);
+      const responseText = await response.text();
+      console.log('PayTabs raw response text:', responseText);
+      console.log('PayTabs HTTP status:', response.status);
+      console.log('PayTabs response headers:', JSON.stringify(Object.fromEntries(response.headers), null, 2));
+      
+      let result;
+      try {
+        result = JSON.parse(responseText);
+        console.log('PayTabs parsed response:', JSON.stringify(result, null, 2));
+        console.log('PayTabs response code received:', result.response_code);
+      } catch (parseError) {
+        console.error('PayTabs response is not valid JSON:', parseError);
+        throw new Error(`PayTabs API returned invalid JSON: ${responseText.substring(0, 200)}`);
+      }
 
       if (!response.ok) {
         throw new Error(`PayTabs API HTTP error: ${response.status} - ${result.result || 'Unknown error'}`);
       }
 
-      // PayTabs response code 4012 = SUCCESS (PayPage created successfully)
-      if (result.response_code !== '4012') {
-        throw new Error(`PayTabs response error: ${result.response_code} - ${result.result || 'Payment creation failed'}`);
-      }
-
-      // Ensure we have the required payment URL
-      if (!result.payment_url) {
-        throw new Error('PayTabs success response missing payment_url');
+      // PayTabs success detection: Look for redirect_url (indicates successful payment page creation)
+      if (!result.redirect_url || !result.tran_ref) {
+        throw new Error(`PayTabs payment creation failed: ${result.result || result.message || 'Missing redirect_url or tran_ref'}`);
       }
 
       return {
