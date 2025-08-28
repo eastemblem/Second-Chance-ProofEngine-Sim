@@ -29,12 +29,6 @@ export const founderOnboardingSchema = z.object({
   personalLinkedin: z.string().optional(),
   residence: z.string().optional(),
   isTechnical: z.boolean().default(false),
-  // Address fields for payment processing
-  phone: z.string().optional(),
-  street: z.string().optional(),
-  city: z.string().optional(),
-  state: z.string().optional(),
-  country: z.string().optional(),
 });
 
 export const ventureOnboardingSchema = z.object({
