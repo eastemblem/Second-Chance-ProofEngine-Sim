@@ -79,7 +79,7 @@ router.post("/update-status", requireBody, asyncHandler(async (req, res) => {
       const founder = await storage.getFounder(updatedVenture.founderId);
       
       // Get evaluation data to retrieve the actual Box URL
-      const evaluations = await storage.getEvaluationsByVentureId(updatedVenture.id);
+      const evaluations = await storage.getEvaluationsByVentureId(updatedVenture.ventureId);
       const currentEvaluation = evaluations.length > 0 ? evaluations[0] : null;
       
       if (founder) {
