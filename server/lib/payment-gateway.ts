@@ -463,22 +463,35 @@ class PayTabsGateway extends PaymentGateway {
       console.log(`PayTabs status check response status: ${response.status}`);
       console.log(`PayTabs status check response headers:`, JSON.stringify(Object.fromEntries(response.headers), null, 2));
 
+      let result;
       if (!response.ok) {
         const errorText = await response.text();
         console.error(`PayTabs status check error response:`, errorText);
-        throw new Error(`PayTabs API responded with status ${response.status}: ${errorText}`);
+        
+        // Try to parse error response as JSON for PayTabs specific handling
+        try {
+          result = JSON.parse(errorText);
+        } catch {
+          throw new Error(`PayTabs API responded with status ${response.status}: ${errorText}`);
+        }
+      } else {
+        result = await response.json();
       }
-
-      const result = await response.json();
       console.log(`PayTabs status check response:`, JSON.stringify(result, null, 2));
 
       // Handle PayTabs response codes
       if (result.response_code !== '2000') {
         console.error(`PayTabs status check error:`, result);
         
-        // PayTabs returns "No entries found" when transaction doesn't exist or wasn't created properly
-        if (result.code === 2 && result.message === 'No entries found') {
-          console.error(`PayTabs transaction not found: ${orderRef} - transaction may have failed during creation`);
+        // PayTabs returns "Transaction not found" for expired or inactive transactions
+        if ((result.code === 2 && result.message === 'No entries found') || 
+            (result.code === 113 && result.message?.includes('Transaction not found'))) {
+          console.log(`PayTabs transaction not found: ${orderRef} - transaction may be expired or inactive, will use database status`);
+          return {
+            success: true,
+            status: 'unknown', // Signal to payment service to use database status
+            gatewayResponse: result
+          };
         }
         
         return {

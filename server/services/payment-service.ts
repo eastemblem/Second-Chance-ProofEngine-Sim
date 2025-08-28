@@ -334,9 +334,17 @@ export class PaymentService {
       
       const statusResult = await gateway.checkStatus(queryReference);
 
+      // Handle cases where PayTabs can't find the transaction (expired/inactive transactions)
+      if (statusResult.success && statusResult.status === 'unknown') {
+        console.log(`PayTabs returned unknown status for ${orderReference}, using database status: ${transaction.status}`);
+        return {
+          success: true,
+          status: transaction.status,
+          transaction
+        };
+      }
 
-
-      if (statusResult.success && statusResult.status !== transaction.status && statusResult.status !== 'unknown') {
+      if (statusResult.success && statusResult.status !== transaction.status) {
         // Update transaction status (skip 'unknown' status as it's not a real status change)
         const updatedTransaction = await storage.updatePaymentTransaction(transaction.id, {
           status: statusResult.status,
