@@ -39,7 +39,7 @@ interface CreatePaymentOptions {
 }
 
 interface PaymentStatusUpdate {
-  status: 'pending' | 'completed' | 'failed' | 'cancelled' | 'expired';
+  status: 'pending' | 'completed' | 'failed' | 'cancelled' | 'expired' | 'unknown';
   gatewayStatus?: string;
   gatewayTransactionId?: string;
   gatewayResponse?: any;
@@ -79,7 +79,7 @@ export class PaymentService {
   }> {
     const { founderId, request, customerEmail, customerName, gatewayProvider = 'telr' } = options;
     
-    console.log('🔥 PaymentService.createPayment called with:', {
+    winston.info('PaymentService.createPayment called', {
       founderId,
       request,
       customerEmail,
@@ -90,7 +90,7 @@ export class PaymentService {
     try {
       // Generate unique order reference
       const orderReference = `SC_${Date.now()}_${uuidv4().substring(0, 8)}`;
-      console.log('🔥 Generated order reference:', orderReference);
+      winston.info('Generated order reference', { orderReference });
       
       // Create transaction record first (store in display currency for user reference)
       const transactionData: InsertPaymentTransaction = {
@@ -113,11 +113,11 @@ export class PaymentService {
         }
       };
       
-      console.log('🔥 Creating transaction with data:', transactionData);
+      winston.info('Creating transaction', { transactionData });
 
       const transaction = await storage.createPaymentTransaction(transactionData);
       
-      console.log('🔥 Transaction created successfully:', {
+      winston.info('Transaction created successfully', {
         id: transaction.id,
         orderReference: transaction.orderReference,
         amount: transaction.amount,
@@ -157,7 +157,7 @@ export class PaymentService {
       }
 
       // Get payment gateway implementation
-      console.log('🔥 Creating gateway for provider:', gatewayProvider);
+      winston.info('Creating gateway for provider', { gatewayProvider });
       const gateway = PaymentGatewayFactory.create(gatewayProvider);
       
       // Currency conversion: Convert USD to AED for Telr
@@ -168,7 +168,7 @@ export class PaymentService {
       const paymentCurrency = displayCurrency === 'USD' ? 
         CurrencyConverter.getPaymentCurrency() : displayCurrency;
       
-      console.log('🔥 Currency conversion:', {
+      winston.info('Currency conversion', {
         displayAmount: `${displayAmount} ${displayCurrency}`,
         paymentAmount: `${paymentAmount} ${paymentCurrency}`,
         conversionRate: displayCurrency === 'USD' ? '3.673' : 'No conversion'
@@ -176,7 +176,7 @@ export class PaymentService {
       
       // Prepare order data for gateway
       const returnUrls = this.getReturnUrls(orderReference);
-      console.log('🔥 Generated return URLs:', returnUrls);
+      winston.info('Generated return URLs', { returnUrls });
       
       const orderData: PaymentOrderData = {
         orderId: orderReference,
@@ -222,16 +222,16 @@ export class PaymentService {
         };
       }
       
-      console.log('🔥 Final order data for gateway:', JSON.stringify(orderData, null, 2));
+      winston.info('Final order data for gateway', { orderData });
 
       // Create order with gateway
-      console.log('🔥 Calling gateway.createOrder...');
+      winston.info('Calling gateway.createOrder');
       const result = await gateway.createOrder(orderData);
-      console.log('🔥 Gateway response:', JSON.stringify(result, null, 2));
+      winston.info('Gateway response received', { result });
       
       if (!result.success) {
         // Log detailed error information
-        console.error('Payment gateway order creation failed:', {
+        winston.error('Payment gateway order creation failed:', {
           orderReference,
           gatewayProvider,
           founderId,
@@ -276,7 +276,7 @@ export class PaymentService {
       };
 
     } catch (error) {
-      console.error('Payment creation error:', error);
+      winston.error('Payment creation error:', error);
       return {
         success: false,
         error: error instanceof Error ? error.message : 'Unknown error'
@@ -313,9 +313,9 @@ export class PaymentService {
           
           if (gatewayResponse.paytabs_tran_ref || gatewayResponse.tran_ref) {
             queryReference = gatewayResponse.paytabs_tran_ref || gatewayResponse.tran_ref;
-            console.log(`Using PayTabs tran_ref for status check: ${queryReference}`);
+            winston.info('Using PayTabs tran_ref for status check', { queryReference });
           } else {
-            console.log(`No PayTabs tran_ref found, transaction may have failed during creation. Using database status.`);
+            winston.warn('No PayTabs tran_ref found, transaction may have failed during creation. Using database status', { orderReference });
             return {
               success: true,
               status: transaction.status,
@@ -323,7 +323,7 @@ export class PaymentService {
             };
           }
         } catch (error) {
-          console.log(`Could not parse gateway response, using database status: ${error}`);
+          winston.warn('Could not parse gateway response, using database status', { error: String(error), orderReference });
           return {
             success: true,
             status: transaction.status,
@@ -336,7 +336,7 @@ export class PaymentService {
 
       // Handle cases where PayTabs can't find the transaction (expired/inactive transactions)
       if (statusResult.success && statusResult.status === 'unknown') {
-        console.log(`PayTabs returned unknown status for ${orderReference}, using database status: ${transaction.status}`);
+        winston.warn('PayTabs returned unknown status, using database status', { orderReference, databaseStatus: transaction.status });
         return {
           success: true,
           status: transaction.status,
@@ -344,7 +344,7 @@ export class PaymentService {
         };
       }
 
-      if (statusResult.success && statusResult.status !== transaction.status) {
+      if (statusResult.success && statusResult.status !== transaction.status && statusResult.status !== 'unknown') {
         // Update transaction status (skip 'unknown' status as it's not a real status change)
         const updatedTransaction = await storage.updatePaymentTransaction(transaction.id, {
           status: statusResult.status,
@@ -404,7 +404,7 @@ export class PaymentService {
       };
 
     } catch (error) {
-      console.error('Payment status check error:', error);
+      winston.error('Payment status check error:', error);
       return {
         success: false,
         error: error instanceof Error ? error.message : 'Unknown error'
@@ -474,7 +474,7 @@ export class PaymentService {
       };
 
     } catch (error) {
-      console.error('Webhook processing error:', error);
+      winston.error('Webhook processing error:', error);
       return {
         success: false,
         error: error instanceof Error ? error.message : 'Unknown error'
@@ -511,7 +511,7 @@ export class PaymentService {
       await this.sendDealRoomNotification(founderId, transactionId, planType);
 
     } catch (error) {
-      console.error('Subscription creation error:', error);
+      winston.error('Subscription creation error:', error);
       // Don't throw here to avoid failing the main payment flow
     }
   }
@@ -579,17 +579,17 @@ export class PaymentService {
       const success = await onboardingNotificationService.sendOnboardingSuccessNotification(notificationData);
       
       if (success) {
-        console.log('Deal room access notification sent to team:', {
+        winston.info('Deal room access notification sent to team', {
           venture: venture.name,
           founder: founder.fullName,
           planType
         });
       } else {
-        console.error('Failed to send deal room access notification to team');
+        winston.error('Failed to send deal room access notification to team');
       }
 
     } catch (error) {
-      console.error('Error sending deal room notification:', error);
+      winston.error('Error sending deal room notification:', error);
       // Don't throw - this is just a notification, don't fail the main flow
     }
   }
@@ -662,14 +662,14 @@ ${statusEmoji} **${statusText}**
         transaction.founderId
       );
 
-      console.log('Payment status notification sent:', {
+      winston.info('Payment status notification sent', {
         founderId: transaction.founderId,
         orderReference: transaction.orderReference,
         status: newStatus
       });
 
     } catch (error) {
-      console.error('Error sending payment status notification:', error);
+      winston.error('Error sending payment status notification:', error);
       // Don't throw - this is just a notification, don't fail the main flow
     }
   }
@@ -732,7 +732,7 @@ ${statusEmoji} **${statusText}**
         transaction.founderId
       );
 
-      console.log('Webhook notification sent:', {
+      winston.info('Webhook notification sent', {
         founderId: transaction.founderId,
         orderReference: transaction.orderReference,
         status: newStatus,
@@ -740,7 +740,7 @@ ${statusEmoji} **${statusText}**
       });
 
     } catch (error) {
-      console.error('Error sending webhook notification:', error);
+      winston.error('Error sending webhook notification:', error);
       // Don't throw - this is just a notification, don't fail the main flow
     }
   }
@@ -762,7 +762,7 @@ ${statusEmoji} **${statusText}**
 
       await storage.createPaymentLog(logData);
     } catch (error) {
-      console.error('Payment logging error:', error);
+      winston.error('Payment logging error:', error);
       // Don't throw here to avoid failing the main flow
     }
   }
@@ -786,7 +786,7 @@ ${statusEmoji} **${statusText}**
       
       return dealRoomPayments.length > 0;
     } catch (error) {
-      console.error('Deal room access check error:', error);
+      winston.error('Deal room access check error:', error);
       return false;
     }
   }
@@ -823,7 +823,7 @@ ${statusEmoji} **${statusText}**
       };
 
     } catch (error) {
-      console.error('Payment status update error:', error);
+      winston.error('Payment status update error:', error);
       return {
         success: false,
         error: error instanceof Error ? error.message : 'Unknown error'

@@ -1,4 +1,5 @@
 import { z } from 'zod';
+import winston from 'winston';
 import { SecurityUtils } from './security-utils';
 import { PaymentStatusMapper, type PaymentStatus } from './payment-status-mapper';
 
@@ -107,7 +108,7 @@ class TelrGateway extends PaymentGateway {
     if (!this.storeId || !this.authKey) {
       throw new Error('Telr credentials not configured');
     }
-    console.log(`🔥 Telr Gateway initialized - Test Mode: ${this.testMode ? 'ENABLED' : 'DISABLED'}`);
+    winston.info(`🔥 Telr Gateway initialized - Test Mode: ${this.testMode ? 'ENABLED' : 'DISABLED'}`);
   }
 
   async createOrder(orderData: PaymentOrderData): Promise<PaymentOrderResponse> {
@@ -145,9 +146,9 @@ class TelrGateway extends PaymentGateway {
     try {
       // Count extra variables to ensure we're within Telr's 7-variable limit
       const extraCount = telrRequest.extra ? Object.keys(telrRequest.extra).length : 0;
-      console.log(`🔥 Telr extra variables count: ${extraCount}/7`);
-      console.log('🔥 Telr extra variables:', telrRequest.extra);
-      console.log('Telr request payload:', JSON.stringify(telrRequest, null, 2));
+      winston.info(`🔥 Telr extra variables count: ${extraCount}/7`);
+      winston.info('🔥 Telr extra variables:', telrRequest.extra);
+      winston.info('Telr request payload:', JSON.stringify(telrRequest, null, 2));
       
       const response = await fetch(this.baseUrl, {
         method: 'POST',
@@ -159,10 +160,10 @@ class TelrGateway extends PaymentGateway {
       });
 
       const result = await response.json();
-      console.log('Telr raw response:', JSON.stringify(result, null, 2));
+      winston.info('Telr raw response:', JSON.stringify(result, null, 2));
 
       if (result.error) {
-        console.error('Telr API error:', result.error);
+        winston.error('Telr API error:', result.error);
         return {
           success: false,
           orderReference: '',
@@ -173,7 +174,7 @@ class TelrGateway extends PaymentGateway {
 
       // Check if we have the expected response structure
       if (!result.order || !result.order.ref || !result.order.url) {
-        console.error('Telr API returned unexpected response structure:', result);
+        winston.error('Telr API returned unexpected response structure:', result);
         return {
           success: false,
           orderReference: '',
@@ -205,8 +206,8 @@ class TelrGateway extends PaymentGateway {
     };
 
     try {
-      console.log(`Making Telr status check request for order: ${orderRef}`);
-      console.log(`Request payload:`, JSON.stringify(telrRequest, null, 2));
+      winston.info(`Making Telr status check request for order: ${orderRef}`);
+      winston.info(`Request payload:`, JSON.stringify(telrRequest, null, 2));
       
       const response = await fetch('https://secure.telr.com/gateway/order.json', {
         method: 'POST',
@@ -222,10 +223,10 @@ class TelrGateway extends PaymentGateway {
       }
 
       const result = await response.json();
-      console.log(`Telr status check response:`, JSON.stringify(result, null, 2));
+      winston.info(`Telr status check response:`, JSON.stringify(result, null, 2));
 
       if (result.error) {
-        console.error(`Telr status check error:`, result.error);
+        winston.error(`Telr status check error:`, result.error);
         return {
           success: false,
           status: 'failed',
@@ -237,11 +238,11 @@ class TelrGateway extends PaymentGateway {
       const statusCode = result.order?.status?.code;
       const statusText = result.order?.status?.text;
       
-      console.log(`Telr order status - Code: ${statusCode}, Text: ${statusText}`);
+      winston.info(`Telr order status - Code: ${statusCode}, Text: ${statusText}`);
       
       const status = PaymentStatusMapper.mapTelrApiStatus(statusCode, statusText);
 
-      console.log(`Mapped status: ${status}`);
+      winston.info(`Mapped status: ${status}`);
 
       return {
         success: true,
@@ -253,7 +254,7 @@ class TelrGateway extends PaymentGateway {
         gatewayResponse: result
       };
     } catch (error) {
-      console.error(`Telr status check error for order ${orderRef}:`, error);
+      winston.error(`Telr status check error for order ${orderRef}:`, error);
       throw new Error(`Telr status check error: ${error}`);
     }
   }
@@ -327,13 +328,13 @@ class PayTabsGateway extends PaymentGateway {
     
     // Set appropriate endpoint based on region
     this.baseUrl = this.getEndpointUrl();
-    console.log(`🚀 PayTabs Gateway initialized - Region: ${this.region}, Test Mode: ${this.testMode ? 'ENABLED' : 'DISABLED'}`);
+    winston.info(`🚀 PayTabs Gateway initialized - Region: ${this.region}, Test Mode: ${this.testMode ? 'ENABLED' : 'DISABLED'}`);
   }
 
   private getEndpointUrl(): string {
     // UAE PayTabs accounts always use .com endpoint regardless of region setting
     const endpoint = 'https://secure.paytabs.com/payment/request';
-    console.log(`PayTabs endpoint: ${endpoint} (UAE account - always uses .com)`);
+    winston.info(`PayTabs endpoint: ${endpoint} (UAE account - always uses .com)`);
     return endpoint;
   }
 
@@ -382,7 +383,7 @@ class PayTabsGateway extends PaymentGateway {
     };
 
     try {
-      console.log('PayTabs request payload:', JSON.stringify(payTabsRequest, null, 2));
+      winston.info('PayTabs request payload:', JSON.stringify(payTabsRequest, null, 2));
       
       const response = await fetch(this.baseUrl, {
         method: 'POST',
@@ -394,17 +395,17 @@ class PayTabsGateway extends PaymentGateway {
       });
 
       const responseText = await response.text();
-      console.log('PayTabs raw response text:', responseText);
-      console.log('PayTabs HTTP status:', response.status);
-      console.log('PayTabs response headers:', JSON.stringify(Object.fromEntries(response.headers), null, 2));
+      winston.info('PayTabs raw response text:', responseText);
+      winston.info('PayTabs HTTP status:', response.status);
+      winston.info('PayTabs response headers:', JSON.stringify(Object.fromEntries(response.headers), null, 2));
       
       let result;
       try {
         result = JSON.parse(responseText);
-        console.log('PayTabs parsed response:', JSON.stringify(result, null, 2));
-        console.log('PayTabs response code received:', result.response_code);
+        winston.info('PayTabs parsed response:', JSON.stringify(result, null, 2));
+        winston.info('PayTabs response code received:', result.response_code);
       } catch (parseError) {
-        console.error('PayTabs response is not valid JSON:', parseError);
+        winston.error('PayTabs response is not valid JSON:', parseError);
         throw new Error(`PayTabs API returned invalid JSON: ${responseText.substring(0, 200)}`);
       }
 
@@ -436,7 +437,7 @@ class PayTabsGateway extends PaymentGateway {
   async checkStatus(orderRef: string): Promise<PaymentStatusResponse> {
     // PayTabs query needs the actual tran_ref, not our cart_id
     // For PayTabs, we need to extract the tran_ref from the stored gateway response
-    console.log(`PayTabs status check - looking for transaction with order reference: ${orderRef}`);
+    winston.info(`PayTabs status check - looking for transaction with order reference: ${orderRef}`);
     
     const queryRequest = {
       profile_id: parseInt(this.profileId!),
@@ -444,12 +445,12 @@ class PayTabsGateway extends PaymentGateway {
     };
 
     try {
-      console.log(`Making PayTabs status check request for order: ${orderRef}`);
-      console.log(`Request payload:`, JSON.stringify(queryRequest, null, 2));
+      winston.info(`Making PayTabs status check request for order: ${orderRef}`);
+      winston.info(`Request payload:`, JSON.stringify(queryRequest, null, 2));
       
       const queryUrl = this.baseUrl.replace('/payment/request', '/payment/query');
-      console.log(`PayTabs status check URL: ${queryUrl}`);
-      console.log(`PayTabs base URL: ${this.baseUrl}`);
+      winston.info(`PayTabs status check URL: ${queryUrl}`);
+      winston.info(`PayTabs base URL: ${this.baseUrl}`);
       
       const response = await fetch(queryUrl, {
         method: 'POST',
@@ -460,13 +461,13 @@ class PayTabsGateway extends PaymentGateway {
         body: JSON.stringify(queryRequest)
       });
 
-      console.log(`PayTabs status check response status: ${response.status}`);
-      console.log(`PayTabs status check response headers:`, JSON.stringify(Object.fromEntries(response.headers), null, 2));
+      winston.info(`PayTabs status check response status: ${response.status}`);
+      winston.info(`PayTabs status check response headers:`, JSON.stringify(Object.fromEntries(response.headers), null, 2));
 
       let result;
       if (!response.ok) {
         const errorText = await response.text();
-        console.error(`PayTabs status check error response:`, errorText);
+        winston.error(`PayTabs status check error response:`, errorText);
         
         // Try to parse error response as JSON for PayTabs specific handling
         try {
@@ -477,16 +478,16 @@ class PayTabsGateway extends PaymentGateway {
       } else {
         result = await response.json();
       }
-      console.log(`PayTabs status check response:`, JSON.stringify(result, null, 2));
+      winston.info(`PayTabs status check response:`, JSON.stringify(result, null, 2));
 
       // Handle PayTabs response codes
       if (result.response_code !== '2000') {
-        console.error(`PayTabs status check error:`, result);
+        winston.error(`PayTabs status check error:`, result);
         
         // PayTabs returns "Transaction not found" for expired or inactive transactions
         if ((result.code === 2 && result.message === 'No entries found') || 
             (result.code === 113 && result.message?.includes('Transaction not found'))) {
-          console.log(`PayTabs transaction not found: ${orderRef} - transaction may be expired or inactive, will use database status`);
+          winston.info(`PayTabs transaction not found: ${orderRef} - transaction may be expired or inactive, will use database status`);
           return {
             success: true,
             status: 'unknown', // Signal to payment service to use database status
@@ -505,7 +506,7 @@ class PayTabsGateway extends PaymentGateway {
       const respStatus = result.payment_result?.response_status;
       const status = PaymentStatusMapper.mapPayTabsApiStatus(respStatus);
       
-      console.log(`PayTabs transaction status - Response Status: ${respStatus}, Mapped Status: ${status}`);
+      winston.info(`PayTabs transaction status - Response Status: ${respStatus}, Mapped Status: ${status}`);
 
       return {
         success: true,
