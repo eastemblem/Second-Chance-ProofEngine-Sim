@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { Mail, CheckCircle, X } from "lucide-react";
+import { useLocation } from "wouter";
 
 interface EmailVerificationPopupProps {
   isOpen: boolean;
@@ -16,11 +17,17 @@ export function EmailVerificationPopup({
   autoCloseDelay = 5000 
 }: EmailVerificationPopupProps) {
   const [countdown, setCountdown] = useState(autoCloseDelay / 1000);
+  const [, setLocation] = useLocation();
+  
+  const handleClose = () => {
+    onClose();
+    setLocation("/");
+  };
 
   useEffect(() => {
     if (isOpen && autoClose) {
       const timer = setTimeout(() => {
-        onClose();
+        handleClose();
       }, autoCloseDelay);
 
       // Countdown timer
@@ -39,7 +46,7 @@ export function EmailVerificationPopup({
         clearInterval(countdownInterval);
       };
     }
-  }, [isOpen, autoClose, autoCloseDelay, onClose]);
+  }, [isOpen, autoClose, autoCloseDelay, handleClose]);
 
   useEffect(() => {
     if (isOpen) {
@@ -56,7 +63,7 @@ export function EmailVerificationPopup({
           exit={{ opacity: 0 }}
           transition={{ duration: 0.3 }}
           className="fixed inset-0 bg-black/50 backdrop-blur-sm z-50 flex items-center justify-center p-4"
-          onClick={onClose}
+          onClick={handleClose}
         >
           <motion.div
             initial={{ scale: 0.8, opacity: 0, y: 20 }}
@@ -68,7 +75,7 @@ export function EmailVerificationPopup({
           >
             {/* Close button */}
             <button
-              onClick={onClose}
+              onClick={handleClose}
               className="absolute top-4 right-4 text-gray-400 hover:text-gray-600 dark:hover:text-gray-300 transition-colors"
             >
               <X className="w-5 h-5" />
