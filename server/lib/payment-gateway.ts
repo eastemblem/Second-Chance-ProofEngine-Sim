@@ -464,9 +464,24 @@ class PayTabsGateway extends PaymentGateway {
 
       // Handle PayTabs response codes
       if (result.response_code !== '2000') {
-        // PayTabs returns "Transaction not found" for expired or inactive transactions
-        if ((result.code === 2 && result.message === 'No entries found') || 
-            (result.code === 113 && result.message?.includes('Transaction not found'))) {
+        // PayTabs returns various error codes for different scenarios
+        // Common codes: 2 (No entries), 113 (Transaction not found), 4600+ (API errors)
+        const errorCode = result.code || result.response_code;
+        const errorMessage = result.message || result.response_message;
+        
+        // For missing/expired transactions, use database status gracefully
+        if ((errorCode === 2 && errorMessage === 'No entries found') || 
+            (errorCode === 113 && errorMessage?.includes('Transaction not found')) ||
+            (errorCode >= 4600 && errorCode <= 4699) || // PayTabs API-related errors
+            errorMessage?.includes('not found') ||
+            errorMessage?.includes('expired')) {
+          
+          appLogger.warn('PayTabs transaction not accessible via API, using database status', {
+            errorCode,
+            errorMessage,
+            orderRef: queryRequest.tran_ref
+          });
+          
           return {
             success: true,
             status: 'unknown', // Signal to payment service to use database status
@@ -474,7 +489,13 @@ class PayTabsGateway extends PaymentGateway {
           };
         }
         
-        appLogger.error('PayTabs status check error', null, { result });
+        // For other errors, log and report failure
+        appLogger.error('PayTabs status check error', null, { 
+          errorCode,
+          errorMessage,
+          result: result,
+          orderRef: queryRequest.tran_ref
+        });
         return {
           success: false,
           status: 'failed',
@@ -496,7 +517,17 @@ class PayTabsGateway extends PaymentGateway {
         gatewayResponse: result
       };
     } catch (error) {
-      throw new Error(`PayTabs status check error: ${error}`);
+      appLogger.error('PayTabs status check exception', error, {
+        orderRef: queryRequest.tran_ref,
+        errorType: error?.constructor?.name
+      });
+      
+      // Don't throw, return unknown status to fall back to database
+      return {
+        success: true,
+        status: 'unknown',
+        gatewayResponse: { error: error instanceof Error ? error.message : String(error) }
+      };
     }
   }
 
