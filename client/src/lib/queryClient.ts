@@ -1,6 +1,8 @@
 import { QueryClient, QueryFunction } from "@tanstack/react-query";
 // Removed encryption dependency
 
+const API_VERSION = 'v1';
+
 const getApiUrl = (endpoint: string) => {
   // Support both legacy and versioned endpoints
   if (endpoint.startsWith('/api/v1/')) {
