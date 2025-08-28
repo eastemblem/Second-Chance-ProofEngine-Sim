@@ -46,7 +46,7 @@ router.post("/create", async (req: AuthenticatedRequest, res) => {
 **Founder:** ${founder.fullName} (${founder.email})
 **Amount:** ${currency} ${amount}
 **Description:** ${description}
-**Gateway:** ${req.body.gatewayProvider || 'telr'}
+**Gateway:** ${req.body.gatewayProvider || 'paytabs'}
 
 ⏳ **Status:** Payment initiation in progress...`;
 
@@ -67,7 +67,7 @@ router.post("/create", async (req: AuthenticatedRequest, res) => {
       request: paymentRequest,
       customerEmail: founder?.email,
       customerName: founder?.fullName,
-      gatewayProvider: req.body.gatewayProvider || 'telr'
+      gatewayProvider: req.body.gatewayProvider || 'paytabs'
     });
 
     if (!result.success) {
@@ -127,7 +127,7 @@ router.post("/create", async (req: AuthenticatedRequest, res) => {
 **Founder:** ${founder.fullName} (${founder.email})
 **Amount:** ${currency} ${amount}
 **Order Reference:** ${result.orderReference}
-**Gateway:** ${req.body.gatewayProvider || 'telr'}
+**Gateway:** ${req.body.gatewayProvider || 'paytabs'}
 
 🔄 **Status:** Redirecting to payment gateway...`;
 

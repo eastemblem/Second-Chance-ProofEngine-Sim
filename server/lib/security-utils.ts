@@ -122,6 +122,36 @@ export class SecurityUtils {
       return false;
     }
   }
+
+  static verifyPayTabsWebhookSignature(payload: any, signature: string, serverKey: string): boolean {
+    try {
+      // PayTabs webhook signature verification follows their documentation
+      // Remove signature from payload for verification
+      const verificationPayload = { ...payload };
+      delete verificationPayload.signature;
+      
+      // Convert payload to URL-encoded string, sorted by keys
+      const sortedKeys = Object.keys(verificationPayload).sort();
+      const queryString = sortedKeys
+        .filter(key => verificationPayload[key] !== undefined && verificationPayload[key] !== '')
+        .map(key => `${encodeURIComponent(key)}=${encodeURIComponent(verificationPayload[key])}`)
+        .join('&');
+      
+      // Generate HMAC SHA256 signature using server key
+      const expectedSignature = crypto
+        .createHmac('sha256', serverKey)
+        .update(queryString)
+        .digest('hex');
+      
+      return crypto.timingSafeEqual(
+        Buffer.from(signature),
+        Buffer.from(expectedSignature)
+      );
+    } catch (error) {
+      console.error('PayTabs webhook signature verification error:', error);
+      return false;
+    }
+  }
   
   /**
    * Extract client IP address from request

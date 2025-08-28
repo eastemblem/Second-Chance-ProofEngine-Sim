@@ -4,7 +4,10 @@
 Second Chance is a comprehensive startup validation platform designed to empower entrepreneurs through intelligent document processing, advanced error management, and user-centric design. It aims to generate revenue through premium features like Deal Room access, while providing valuable insights and a clear pathway for startups based on their ProofScore. The platform utilizes a modern tech stack to ensure scalability, security, and a seamless user experience.
 
 ## Recent Changes (Updated: August 28, 2025)
-- **Payment Notification System**: Implemented comprehensive end-to-end payment flow notifications covering the complete customer journey from payment initiation through final completion or failure
+- **PayTabs Integration**: Implemented PayTabs as the primary payment gateway with comprehensive iframe support, customer data pre-filling, and multi-region endpoint support. PayTabs now handles all new payment processing while Telr remains available as secondary option.
+- **Payment Gateway Architecture**: Extended payment gateway factory pattern to support multiple providers seamlessly. Both PayTabs and Telr operate independently with unified notification system and status tracking.
+- **Enhanced Customer Experience**: PayTabs integration includes automatic customer data pre-filling (name, email, address) to reduce checkout friction and improve conversion rates.
+- **Payment Notification System**: Maintained comprehensive end-to-end payment flow notifications covering the complete customer journey from payment initiation through final completion or failure
 - **Real-time Slack Integration**: All payment activities now trigger instant Slack notifications to the #notifications channel with detailed founder and transaction information
 - **Enhanced Team Visibility**: Development team receives immediate alerts for payment processing, status changes, webhook confirmations, and revenue events
 - **Box URL Fix**: Resolved critical bug in team notification emails where Box folder URLs were displaying "N/A" instead of actual URLs
@@ -39,7 +42,7 @@ The frontend is built with TypeScript React and Vite, utilizing React Query for 
 - **Development Status:** Frontend and backend encryption implementations now functionally identical
 - **Score-Based Routing:** Users are directed to different sales pages (`/deal-room` or `/proof-scaling`) based on their ProofScore (threshold at 70 points).
 - **Component-Based Design:** Core UI elements are refactored into reusable components (e.g., `AnimatedSection`, `MetricCard`, `GradientButton`) to reduce code duplication and improve maintainability.
-- **Payment Integration:** Secure payment processing for premium features (e.g., Deal Room access) via a modal-based flow with comprehensive activity tracking. Uses Telr gateway with automatic USD to AED currency conversion (rate: 3.673) for UAE market compliance while displaying USD prices to users. Supports dedicated TELR_TEST_MODE environment variable for flexible test/live mode switching.
+- **Payment Integration:** Secure payment processing for premium features (e.g., Deal Room access) via a modal-based flow with comprehensive activity tracking. Primary integration with PayTabs gateway featuring iframe embedding, multi-region support, and customer data pre-filling. Secondary Telr gateway integration with automatic USD to AED currency conversion (rate: 3.673) for UAE market compliance. Both gateways support flexible test/live mode switching via environment variables.
 - **Simplified Onboarding:** Streamlined user onboarding by removing intermediate payment steps and directly guiding users to their recommended pathway.
 - **Enhanced Error Handling:** Sophisticated retry logic and detailed error categorization for processes like pitch upload.
 - **End-to-End Encryption:** Transparent payload encryption for API communications using AES-256-GCM encryption with feature flags (ENABLE_ENCRYPTION/VITE_ENABLE_ENCRYPTION) for controlled rollout. Supports both encrypted and unencrypted requests without breaking existing functionality.

@@ -93,6 +93,70 @@ export class PaymentStatusMapper {
         return 'pending';
     }
   }
+
+  /**
+   * Map PayTabs API status to our generic payment status
+   */
+  static mapPayTabsApiStatus(respStatus: string): PaymentStatus {
+    const status = respStatus?.toUpperCase();
+    
+    switch (status) {
+      case 'A': // Approved/Authorised
+        return 'completed';
+        
+      case 'D': // Declined
+        return 'failed';
+        
+      case 'P': // Pending
+        return 'pending';
+        
+      case 'C': // Cancelled
+        return 'cancelled';
+        
+      case 'E': // Error/Expired
+        return 'expired';
+        
+      default:
+        console.warn(`Unknown PayTabs API status: ${respStatus}, defaulting to pending`);
+        return 'pending';
+    }
+  }
+
+  /**
+   * Map PayTabs webhook status to our generic payment status
+   */
+  static mapPayTabsWebhookStatus(respStatus: string): PaymentStatus {
+    const status = respStatus?.toUpperCase();
+    
+    switch (status) {
+      case 'A': // Approved/Authorised
+      case 'APPROVED':
+      case 'AUTHORISED':
+        return 'completed';
+        
+      case 'D': // Declined
+      case 'DECLINED':
+      case 'FAILED':
+        return 'failed';
+        
+      case 'P': // Pending
+      case 'PENDING':
+        return 'pending';
+        
+      case 'C': // Cancelled
+      case 'CANCELLED':
+        return 'cancelled';
+        
+      case 'E': // Error/Expired
+      case 'ERROR':
+      case 'EXPIRED':
+        return 'expired';
+        
+      default:
+        console.warn(`Unknown PayTabs webhook status: ${respStatus}, defaulting to pending`);
+        return 'pending';
+    }
+  }
   
   /**
    * Get user-friendly status message

@@ -79,6 +79,8 @@ export abstract class PaymentGateway {
 export class PaymentGatewayFactory {
   static create(provider: string): PaymentGateway {
     switch (provider) {
+      case 'paytabs':
+        return new PayTabsGateway();
       case 'telr':
         return new TelrGateway();
       default:
@@ -87,7 +89,7 @@ export class PaymentGatewayFactory {
   }
   
   static getSupportedGateways(): string[] {
-    return ['telr'];
+    return ['paytabs', 'telr'];
   }
 }
 
@@ -304,6 +306,214 @@ class TelrGateway extends PaymentGateway {
     }
     
     return SecurityUtils.verifyTelrWebhookSignature(payload, signature, process.env.TELR_WEBHOOK_SECRET);
+  }
+}
+
+// PayTabs Gateway Implementation
+class PayTabsGateway extends PaymentGateway {
+  readonly provider = 'paytabs';
+  private readonly baseUrl: string;
+  private readonly profileId = process.env.PAYTABS_PROFILE_ID;
+  private readonly serverKey = process.env.PAYTABS_SERVER_KEY;
+  private readonly testMode = process.env.PAYTABS_TEST_MODE === 'true';
+  private readonly region = process.env.PAYTABS_REGION || 'global';
+  
+  constructor() {
+    super();
+    if (!this.profileId || !this.serverKey) {
+      throw new Error('PayTabs credentials not configured');
+    }
+    
+    // Set appropriate endpoint based on region
+    this.baseUrl = this.getEndpointUrl();
+    console.log(`🚀 PayTabs Gateway initialized - Region: ${this.region}, Test Mode: ${this.testMode ? 'ENABLED' : 'DISABLED'}`);
+  }
+
+  private getEndpointUrl(): string {
+    const endpoints: Record<string, string> = {
+      'ksa': 'https://secure.paytabs.sa/payment/request',
+      'uae': 'https://secure.paytabs.ae/payment/request', 
+      'egypt': 'https://secure.paytabs.eg/payment/request',
+      'oman': 'https://secure.paytabs.om/payment/request',
+      'jordan': 'https://secure.paytabs.jo/payment/request',
+      'kuwait': 'https://secure.paytabs.com.kw/payment/request',
+      'global': 'https://secure.paytabs.com/payment/request'
+    };
+    
+    return endpoints[this.region] || endpoints['global'];
+  }
+
+  async createOrder(orderData: PaymentOrderData): Promise<PaymentOrderResponse> {
+    const payTabsRequest = {
+      profile_id: parseInt(this.profileId!),
+      tran_type: 'sale',
+      tran_class: 'ecom',
+      cart_id: orderData.orderId,
+      cart_currency: orderData.currency,
+      cart_amount: parseFloat(orderData.amount.toFixed(2)),
+      cart_description: orderData.description,
+      framed: true, // Enable iframe embedding
+      
+      // Return URLs for payment flow
+      return: orderData.returnUrls.authorised,
+      callback: orderData.returnUrls.authorised, // PayTabs uses single callback URL
+      
+      // Customer data to save time for users
+      ...(orderData.customerData && {
+        customer_details: {
+          name: orderData.customerData.name?.forenames || orderData.customerData.name?.surname 
+            ? `${orderData.customerData.name.forenames || ''} ${orderData.customerData.name.surname || ''}`.trim()
+            : undefined,
+          email: orderData.customerData.email,
+          phone: orderData.customerData.phone,
+          street1: orderData.customerData.address?.line1,
+          city: orderData.customerData.address?.city,
+          state: orderData.customerData.address?.state,
+          country: orderData.customerData.address?.country,
+          zip: orderData.customerData.address?.areacode
+        }
+      }),
+
+      // Store metadata for tracking
+      ...(orderData.metadata && {
+        user_defined: {
+          gateway: 'paytabs',
+          founderId: orderData.metadata.founderId,
+          planType: orderData.metadata.planType,
+          purpose: orderData.metadata.purpose,
+          displayAmount: orderData.metadata.displayAmount?.toString(),
+          displayCurrency: orderData.metadata.displayCurrency
+        }
+      })
+    };
+
+    try {
+      console.log('PayTabs request payload:', JSON.stringify(payTabsRequest, null, 2));
+      
+      const response = await fetch(this.baseUrl, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'authorization': this.serverKey!
+        },
+        body: JSON.stringify(payTabsRequest)
+      });
+
+      const result = await response.json();
+      console.log('PayTabs raw response:', JSON.stringify(result, null, 2));
+
+      if (!response.ok || result.response_code !== '4012') {
+        throw new Error(result.result || `PayTabs API error: ${response.status}`);
+      }
+
+      return {
+        success: true,
+        orderReference: result.tran_ref || payTabsRequest.cart_id,
+        paymentUrl: result.redirect_url,
+        expiresAt: new Date(Date.now() + 20 * 60 * 1000), // PayTabs expires in 20 minutes
+        gatewayResponse: result
+      };
+    } catch (error) {
+      throw new Error(`PayTabs API error: ${error}`);
+    }
+  }
+
+  async checkStatus(orderRef: string): Promise<PaymentStatusResponse> {
+    const queryRequest = {
+      profile_id: parseInt(this.profileId!),
+      tran_ref: orderRef
+    };
+
+    try {
+      console.log(`Making PayTabs status check request for order: ${orderRef}`);
+      console.log(`Request payload:`, JSON.stringify(queryRequest, null, 2));
+      
+      const queryUrl = this.baseUrl.replace('/payment/request', '/payment/query');
+      const response = await fetch(queryUrl, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'authorization': this.serverKey!
+        },
+        body: JSON.stringify(queryRequest)
+      });
+
+      if (!response.ok) {
+        throw new Error(`PayTabs API responded with status ${response.status}`);
+      }
+
+      const result = await response.json();
+      console.log(`PayTabs status check response:`, JSON.stringify(result, null, 2));
+
+      if (result.response_code !== '2000') {
+        console.error(`PayTabs status check error:`, result);
+        return {
+          success: false,
+          status: 'failed',
+          gatewayResponse: result
+        };
+      }
+
+      // Map PayTabs status to our generic status using centralized mapper
+      const respStatus = result.payment_result?.response_status;
+      const status = PaymentStatusMapper.mapPayTabsApiStatus(respStatus);
+      
+      console.log(`PayTabs transaction status - Response Status: ${respStatus}, Mapped Status: ${status}`);
+
+      return {
+        success: true,
+        status,
+        gatewayStatus: respStatus,
+        transactionId: result.payment_result?.transaction_id,
+        amount: result.cart_amount,
+        currency: result.cart_currency,
+        gatewayResponse: result
+      };
+    } catch (error) {
+      throw new Error(`PayTabs status check error: ${error}`);
+    }
+  }
+
+  async processWebhook(payload: any, signature?: string): Promise<WebhookResponse> {
+    try {
+      // PayTabs webhook processing for hosted payment page callbacks
+      const orderRef = payload.cartId || payload.cart_id || payload.tran_ref;
+      
+      // PayTabs status mapping for webhook callbacks using centralized mapper
+      const payTabsStatus = payload.respStatus || payload.response_status;
+      const status = PaymentStatusMapper.mapPayTabsWebhookStatus(payTabsStatus);
+
+      return {
+        success: true,
+        orderReference: orderRef,
+        status,
+        transactionId: payload.tranRef || payload.tran_ref,
+        gatewayResponse: payload
+      };
+    } catch (error) {
+      throw new Error(`PayTabs webhook processing error: ${error}`);
+    }
+  }
+
+  validateWebhook(payload: any, signature?: string): boolean {
+    // PayTabs webhook validation with signature verification
+    if (signature && this.serverKey) {
+      return SecurityUtils.verifyPayTabsWebhookSignature(payload, signature, this.serverKey);
+    }
+    
+    // Fall back to basic validation for backward compatibility
+    const hasOrderRef = payload && (
+      payload.cartId || 
+      payload.cart_id || 
+      payload.tran_ref
+    );
+    
+    const hasStatus = payload && (
+      payload.respStatus ||
+      payload.response_status
+    );
+    
+    return !!(hasOrderRef && hasStatus);
   }
 }
 
