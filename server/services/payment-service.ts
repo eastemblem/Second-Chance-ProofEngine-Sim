@@ -5,6 +5,7 @@ import { v4 as uuidv4 } from 'uuid';
 import { ActivityService } from './activity-service.js';
 import winston from 'winston';
 import { onboardingNotificationService } from './onboardingNotificationService';
+import { eastEmblemAPI } from '../eastemblem-api.js';
 
 // Currency conversion service
 class CurrencyConverter {
@@ -297,6 +298,9 @@ export class PaymentService {
 
         await this.logPaymentAction(transaction.id, transaction.gatewayProvider, 'status_updated', statusResult.gatewayResponse);
 
+        // Send payment status change notification
+        await this.sendPaymentStatusNotification(transaction, statusResult.status);
+
         // Log payment completion activity
         if (statusResult.status === 'completed') {
           try {
@@ -396,6 +400,9 @@ export class PaymentService {
         });
 
         await this.logPaymentAction(transaction.id, provider as any, 'webhook_received', webhookResult.gatewayResponse);
+
+        // Send webhook status notification
+        await this.sendWebhookNotification(transaction, webhookResult.status, provider);
 
         // Create subscription if payment completed
         if (webhookResult.status === 'completed' && transaction.metadata && 
@@ -527,6 +534,157 @@ export class PaymentService {
 
     } catch (error) {
       console.error('Error sending deal room notification:', error);
+      // Don't throw - this is just a notification, don't fail the main flow
+    }
+  }
+
+  private async sendPaymentStatusNotification(
+    transaction: PaymentTransaction,
+    newStatus: string
+  ): Promise<void> {
+    try {
+      if (!eastEmblemAPI.isConfigured()) {
+        return;
+      }
+
+      // Get founder information
+      const founder = await storage.getFounder(transaction.founderId);
+      if (!founder) {
+        return;
+      }
+
+      // Create status-specific message
+      let statusEmoji = '';
+      let statusText = '';
+      let statusDescription = '';
+
+      switch (newStatus) {
+        case 'completed':
+          statusEmoji = '✅';
+          statusText = 'Payment Successful';
+          statusDescription = 'Payment has been processed successfully';
+          break;
+        case 'failed':
+          statusEmoji = '❌';
+          statusText = 'Payment Failed';
+          statusDescription = 'Payment processing failed';
+          break;
+        case 'cancelled':
+          statusEmoji = '🚫';
+          statusText = 'Payment Cancelled';
+          statusDescription = 'Payment was cancelled by user';
+          break;
+        case 'expired':
+          statusEmoji = '⏰';
+          statusText = 'Payment Expired';
+          statusDescription = 'Payment link has expired';
+          break;
+        case 'pending':
+          statusEmoji = '⏳';
+          statusText = 'Payment Pending';
+          statusDescription = 'Payment is being processed';
+          break;
+        default:
+          statusEmoji = '🔄';
+          statusText = 'Payment Status Updated';
+          statusDescription = `Payment status changed to: ${newStatus}`;
+      }
+
+      const statusMessage = `\`Founder ID: ${transaction.founderId}\`
+${statusEmoji} **${statusText}**
+
+**Founder:** ${founder.fullName} (${founder.email})
+**Amount:** ${transaction.currency || 'USD'} ${transaction.amount}
+**Order Reference:** ${transaction.orderReference}
+**Gateway:** ${transaction.gatewayProvider?.toUpperCase() || 'UNKNOWN'}
+
+📋 **Status:** ${statusDescription}`;
+
+      await eastEmblemAPI.sendSlackNotification(
+        statusMessage,
+        "#notifications",
+        transaction.founderId
+      );
+
+      console.log('Payment status notification sent:', {
+        founderId: transaction.founderId,
+        orderReference: transaction.orderReference,
+        status: newStatus
+      });
+
+    } catch (error) {
+      console.error('Error sending payment status notification:', error);
+      // Don't throw - this is just a notification, don't fail the main flow
+    }
+  }
+
+  private async sendWebhookNotification(
+    transaction: PaymentTransaction,
+    newStatus: string,
+    provider: string
+  ): Promise<void> {
+    try {
+      if (!eastEmblemAPI.isConfigured()) {
+        return;
+      }
+
+      // Get founder information
+      const founder = await storage.getFounder(transaction.founderId);
+      if (!founder) {
+        return;
+      }
+
+      // Create webhook-specific message
+      let statusEmoji = '';
+      let statusText = '';
+
+      switch (newStatus) {
+        case 'completed':
+          statusEmoji = '🎉';
+          statusText = 'Payment Confirmed (Webhook)';
+          break;
+        case 'failed':
+          statusEmoji = '💥';
+          statusText = 'Payment Failed (Webhook)';
+          break;
+        case 'cancelled':
+          statusEmoji = '🛑';
+          statusText = 'Payment Cancelled (Webhook)';
+          break;
+        case 'expired':
+          statusEmoji = '💤';
+          statusText = 'Payment Expired (Webhook)';
+          break;
+        default:
+          statusEmoji = '📡';
+          statusText = `Payment Webhook: ${newStatus}`;
+      }
+
+      const webhookMessage = `\`Founder ID: ${transaction.founderId}\`
+${statusEmoji} **${statusText}**
+
+**Founder:** ${founder.fullName} (${founder.email})
+**Amount:** ${transaction.currency || 'USD'} ${transaction.amount}
+**Order Reference:** ${transaction.orderReference}
+**Gateway:** ${provider.toUpperCase()}
+
+📡 **Source:** Gateway webhook notification`;
+
+      await eastEmblemAPI.sendSlackNotification(
+        webhookMessage,
+        "#notifications",
+        transaction.founderId
+      );
+
+      console.log('Webhook notification sent:', {
+        founderId: transaction.founderId,
+        orderReference: transaction.orderReference,
+        status: newStatus,
+        provider
+      });
+
+    } catch (error) {
+      console.error('Error sending webhook notification:', error);
       // Don't throw - this is just a notification, don't fail the main flow
     }
   }

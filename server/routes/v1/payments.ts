@@ -3,6 +3,7 @@ import { paymentService } from "../../services/payment-service.js";
 import { createPaymentRequestSchema, checkPaymentStatusSchema } from "../../lib/payment-gateway.js";
 import { authenticateToken, type AuthenticatedRequest } from "../../middleware/token-auth.js";
 import { storage } from "../../storage.js";
+import { eastEmblemAPI } from "../../eastemblem-api.js";
 import winston from "winston";
 
 const router = Router();
@@ -32,6 +33,34 @@ router.post("/create", async (req: AuthenticatedRequest, res) => {
     // Get user info for payment (optional)
     const founder = await storage.getFounder(founderId);
     
+    // Send payment initiation notification
+    if (eastEmblemAPI.isConfigured() && founder) {
+      try {
+        const amount = paymentRequest.amount;
+        const currency = paymentRequest.currency || 'USD';
+        const description = paymentRequest.description || 'Deal Room Access';
+        
+        const initiationMessage = `\`Founder ID: ${founderId}\`
+💳 **Payment Process Started**
+
+**Founder:** ${founder.fullName} (${founder.email})
+**Amount:** ${currency} ${amount}
+**Description:** ${description}
+**Gateway:** ${req.body.gatewayProvider || 'telr'}
+
+⏳ **Status:** Payment initiation in progress...`;
+
+        await eastEmblemAPI.sendSlackNotification(
+          initiationMessage,
+          "#notifications",
+          founderId
+        );
+      } catch (notificationError) {
+        console.error('Payment initiation notification failed:', notificationError);
+        // Don't fail the payment if notification fails
+      }
+    }
+    
     // Create payment with service
     const result = await paymentService.createPayment({
       founderId,
@@ -48,6 +77,31 @@ router.post("/create", async (req: AuthenticatedRequest, res) => {
         service: "second-chance-api",
         category: "payment"
       });
+
+      // Send payment creation failure notification
+      if (eastEmblemAPI.isConfigured() && founder) {
+        try {
+          const amount = paymentRequest.amount;
+          const currency = paymentRequest.currency || 'USD';
+          
+          const failureMessage = `\`Founder ID: ${founderId}\`
+❌ **Payment Creation Failed**
+
+**Founder:** ${founder.fullName} (${founder.email})
+**Amount:** ${currency} ${amount}
+**Error:** ${result.error || 'Unknown error'}
+
+⚠️ **Status:** Payment gateway setup failed`;
+
+          await eastEmblemAPI.sendSlackNotification(
+            failureMessage,
+            "#notifications",
+            founderId
+          );
+        } catch (notificationError) {
+          console.error('Payment failure notification error:', notificationError);
+        }
+      }
       
       return res.status(400).json({ 
         error: result.error || "Failed to create payment"
@@ -60,6 +114,32 @@ router.post("/create", async (req: AuthenticatedRequest, res) => {
       service: "second-chance-api",
       category: "payment"
     });
+
+    // Send payment creation success notification
+    if (eastEmblemAPI.isConfigured() && founder) {
+      try {
+        const amount = paymentRequest.amount;
+        const currency = paymentRequest.currency || 'USD';
+        
+        const successMessage = `\`Founder ID: ${founderId}\`
+✅ **Payment Order Created**
+
+**Founder:** ${founder.fullName} (${founder.email})
+**Amount:** ${currency} ${amount}
+**Order Reference:** ${result.orderReference}
+**Gateway:** ${req.body.gatewayProvider || 'telr'}
+
+🔄 **Status:** Redirecting to payment gateway...`;
+
+        await eastEmblemAPI.sendSlackNotification(
+          successMessage,
+          "#notifications",
+          founderId
+        );
+      } catch (notificationError) {
+        console.error('Payment creation success notification error:', notificationError);
+      }
+    }
 
     res.json({
       success: true,
