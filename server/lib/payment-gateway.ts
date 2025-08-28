@@ -419,10 +419,14 @@ class PayTabsGateway extends PaymentGateway {
 
       return {
         success: true,
-        orderReference: result.tran_ref || payTabsRequest.cart_id,
+        orderReference: payTabsRequest.cart_id, // Keep our internal cart_id as order reference
         paymentUrl: result.redirect_url,
         expiresAt: new Date(Date.now() + 20 * 60 * 1000), // PayTabs expires in 20 minutes
-        gatewayResponse: result
+        gatewayResponse: {
+          ...result,
+          internal_cart_id: payTabsRequest.cart_id, // Store our cart_id
+          paytabs_tran_ref: result.tran_ref // Store PayTabs' tran_ref separately
+        }
       };
     } catch (error) {
       throw new Error(`PayTabs API error: ${error}`);
@@ -430,9 +434,11 @@ class PayTabsGateway extends PaymentGateway {
   }
 
   async checkStatus(orderRef: string): Promise<PaymentStatusResponse> {
+    // PayTabs accepts either tran_ref OR cart_id for status queries
+    // Since we store our internal order reference (cart_id), use that for queries
     const queryRequest = {
       profile_id: parseInt(this.profileId!),
-      tran_ref: orderRef
+      cart_id: orderRef  // Use cart_id instead of tran_ref since we store our internal order reference
     };
 
     try {
@@ -440,6 +446,9 @@ class PayTabsGateway extends PaymentGateway {
       console.log(`Request payload:`, JSON.stringify(queryRequest, null, 2));
       
       const queryUrl = this.baseUrl.replace('/payment/request', '/payment/query');
+      console.log(`PayTabs status check URL: ${queryUrl}`);
+      console.log(`PayTabs base URL: ${this.baseUrl}`);
+      
       const response = await fetch(queryUrl, {
         method: 'POST',
         headers: {
@@ -449,8 +458,13 @@ class PayTabsGateway extends PaymentGateway {
         body: JSON.stringify(queryRequest)
       });
 
+      console.log(`PayTabs status check response status: ${response.status}`);
+      console.log(`PayTabs status check response headers:`, JSON.stringify(Object.fromEntries(response.headers), null, 2));
+
       if (!response.ok) {
-        throw new Error(`PayTabs API responded with status ${response.status}`);
+        const errorText = await response.text();
+        console.error(`PayTabs status check error response:`, errorText);
+        throw new Error(`PayTabs API responded with status ${response.status}: ${errorText}`);
       }
 
       const result = await response.json();
