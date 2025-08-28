@@ -54,8 +54,10 @@ router.post("/create-next-steps-session", sessionPaymentRateLimit, async (req: R
       throw PaymentErrorHandler.validationError("packageType", packageType);
     }
 
-    // Use USD for PayTabs (primary gateway)
-    const paymentAmount = amount; // Keep original USD amount
+    // Check if we're in test mode to determine currency
+    const isTestMode = process.env.PAYTABS_TEST_MODE === 'true';
+    const paymentAmount = isTestMode ? Math.round(amount * 3.67) : amount; // Convert USD to AED in test mode
+    const currency = isTestMode ? 'AED' : 'USD';
     
     // Validate package type and amount
     if (amount !== 100) {
@@ -137,13 +139,14 @@ router.post("/create-next-steps-session", sessionPaymentRateLimit, async (req: R
     // Use PaymentService to create payment transaction in database
     const paymentRequest = {
       amount: paymentAmount,
-      currency: 'USD' as const,
+      currency: currency as 'USD' | 'AED',
       description: `${packageType === 'foundation' ? 'ProofScaling Foundation Course' : 'Investment Ready Package'} - ${ventureName}`,
       metadata: {
         sessionId,
         packageType,
         proofScore,
-        originalUSD: amount
+        originalUSD: amount,
+        testMode: isTestMode
       }
     };
 
@@ -153,7 +156,9 @@ router.post("/create-next-steps-session", sessionPaymentRateLimit, async (req: R
       ventureName,
       packageType,
       amount: paymentAmount,
-      currency: 'USD'
+      currency: currency,
+      testMode: isTestMode,
+      originalUSD: amount
     });
 
     const paymentResult = await paymentService.createPayment({
