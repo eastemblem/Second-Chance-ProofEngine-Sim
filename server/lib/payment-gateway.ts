@@ -355,12 +355,34 @@ class PayTabsGateway extends PaymentGateway {
       framed: true
     };
 
-    // Add minimal customer details if email is available
+    // Add customer details from founder data if available
     if (orderData.customerData?.email) {
+      const customerName = orderData.customerData.name?.forenames && orderData.customerData.name?.surname 
+        ? `${orderData.customerData.name.forenames} ${orderData.customerData.name.surname}`.trim()
+        : orderData.customerData.name?.forenames || 'Customer';
+
       payTabsRequest.customer_details = {
-        name: 'Customer',  // Use simple static name to avoid issues
-        email: orderData.customerData.email
+        name: customerName,
+        email: orderData.customerData.email,
+        phone: orderData.customerData.phone || undefined
+        // Address fields intentionally excluded as per requirements
+        // (country, city, street are collected in onboarding but not used for payment)
       };
+
+      // Remove undefined fields to keep PayTabs request clean
+      Object.keys(payTabsRequest.customer_details).forEach(key => {
+        if (payTabsRequest.customer_details[key] === undefined) {
+          delete payTabsRequest.customer_details[key];
+        }
+      });
+
+      appLogger.business('PayTabs customer details prepared', {
+        customerRef: orderData.customerData.ref,
+        hasName: !!customerName,
+        hasEmail: !!orderData.customerData.email,
+        hasPhone: !!orderData.customerData.phone,
+        excludedAddressFields: 'country, city, street (as per requirements)'
+      });
     }
 
     try {

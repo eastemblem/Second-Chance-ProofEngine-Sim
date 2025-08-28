@@ -193,33 +193,31 @@ export class PaymentService {
         }
       };
 
-      // Add customer data if available - PayTabs requires complete customer details
-      if (customerEmail || customerName) {
-        // Fetch founder data from database to get real address information
-        const founder = await storage.getFounder(founderId);
-        
+      // Always fetch founder data to include in PayTabs customer details (except address fields)
+      const founder = await storage.getFounder(founderId);
+      
+      if (founder || customerEmail || customerName) {
         orderData.customerData = {
           ref: founderId,
-          email: customerEmail,
-          ...(customerName && {
-            name: {
-              forenames: customerName.split(' ').slice(0, -1).join(' ') || customerName,
-              surname: customerName.split(' ').slice(-1)[0] || ''
-            }
-          }),
-          // Use real founder address data if available, otherwise skip address fields
-          ...(founder && (founder.street || founder.city || founder.country) && {
-            address: {
-              line1: founder.street || undefined,
-              city: founder.city || undefined,
-              state: founder.state || undefined,
-              country: founder.country || undefined,
-              areacode: undefined // We don't collect postal code yet
-            }
-          }),
-          // Use real founder phone if available
+          email: customerEmail || founder?.email || `founder-${founderId}@example.com`, // Fallback email for PayTabs
+          name: {
+            forenames: founder?.fullName?.split(' ').slice(0, -1).join(' ') || customerName?.split(' ').slice(0, -1).join(' ') || founder?.fullName || customerName || 'Customer',
+            surname: founder?.fullName?.split(' ').slice(-1)[0] || customerName?.split(' ').slice(-1)[0] || ''
+          },
+          // Include phone if available from founder data
           phone: founder?.phone || undefined
+          // Deliberately excluding address fields (country, city, street) as requested
+          // since these are collected in onboarding but not used for payment processing
         };
+
+        appLogger.business('Founder details prepared for PayTabs', {
+          founderId,
+          hasFounderName: !!founder?.fullName,
+          hasFounderEmail: !!founder?.email,
+          hasFounderPhone: !!founder?.phone,
+          customerEmail: customerEmail || 'from founder data',
+          excludedFields: ['country', 'city', 'address', 'street']
+        });
       }
       
       // Create order with gateway
