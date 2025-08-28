@@ -8,6 +8,7 @@ import { PaymentStatusMapper } from "../lib/payment-status-mapper";
 import { PaymentErrorHandler } from "../lib/error-handler";
 import { SecurityUtils } from "../lib/security-utils";
 import { sessionPaymentRateLimit, paymentStatusRateLimit, webhookRateLimit } from "../middleware/rate-limiter";
+import { appLogger } from "../utils/logger";
 import * as crypto from "crypto";
 
 const router = Router();
@@ -21,13 +22,13 @@ function verifyPayTabsSignature(postData: any): boolean {
     // Get PayTabs server key from environment
     const serverKey = process.env.PAYTABS_SERVER_KEY;
     if (!serverKey) {
-      console.warn('PayTabs server key not configured - skipping signature verification');
+      appLogger.warn('PayTabs server key not configured - skipping signature verification');
       return true; // Allow in development if server key not set
     }
 
     const receivedSignature = postData.signature;
     if (!receivedSignature) {
-      console.warn('No signature received from PayTabs');
+      appLogger.warn('No signature received from PayTabs');
       return false;
     }
 
@@ -61,11 +62,10 @@ function verifyPayTabsSignature(postData: any): boolean {
       .update(queryString)
       .digest('hex');
 
-    console.log('PayTabs signature verification:', {
-      queryString,
-      calculatedSignature,
-      receivedSignature,
-      matches: calculatedSignature === receivedSignature
+    appLogger.api('PayTabs signature verification', {
+      signatureMatch: calculatedSignature === receivedSignature,
+      hasCalculated: !!calculatedSignature,
+      hasReceived: !!receivedSignature
     });
 
     // Step 5: Compare signatures
@@ -75,7 +75,7 @@ function verifyPayTabsSignature(postData: any): boolean {
     );
 
   } catch (error) {
-    console.error('PayTabs signature verification error:', error);
+    appLogger.error('PayTabs signature verification error', { error: error instanceof Error ? error.message : 'Unknown error' });
     return false; // Fail secure - reject on verification errors
   }
 }
@@ -99,7 +99,7 @@ const getUserCountryFromIP = async (ip: string): Promise<string | null> => {
     }
     return null;
   } catch (error) {
-    console.error('IP geolocation error:', error);
+    appLogger.error('IP geolocation error', { error: error instanceof Error ? error.message : 'Unknown error' });
     return null;
   }
 };
@@ -118,9 +118,9 @@ const paymentService = new PaymentService();
  */
 router.post("/create-next-steps-session", sessionPaymentRateLimit, async (req: Request, res: Response) => {
   try {
-    console.log('=== PayTabs Payment Creation Started ===');
-    console.log('Request body:', JSON.stringify(req.body, null, 2));
-    console.log('Request headers:', JSON.stringify(req.headers, null, 2));
+    appLogger.api('PayTabs payment creation started');
+    appLogger.api('PayTabs payment request received', { hasSessionId: !!req.body.sessionId, hasAmount: !!req.body.amount });
+    appLogger.api('PayTabs payment headers received', { userAgent: req.headers['user-agent']?.substring(0, 50) });
     
     const { sessionId, ventureName, proofScore, amount, packageType }: NextStepsPaymentRequest = req.body;
 
