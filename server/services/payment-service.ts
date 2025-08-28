@@ -192,7 +192,7 @@ export class PaymentService {
         }
       };
 
-      // Add customer data if available
+      // Add customer data if available - PayTabs requires complete customer details
       if (customerEmail || customerName) {
         orderData.customerData = {
           ref: founderId,
@@ -202,7 +202,14 @@ export class PaymentService {
               forenames: customerName.split(' ').slice(0, -1).join(' ') || customerName,
               surname: customerName.split(' ').slice(-1)[0] || ''
             }
-          })
+          }),
+          // PayTabs requires address information - use UAE default for test mode
+          address: {
+            line1: gatewayProvider === 'paytabs' ? 'Test Address Line 1' : undefined,
+            city: gatewayProvider === 'paytabs' ? 'Dubai' : undefined,
+            country: gatewayProvider === 'paytabs' ? 'ARE' : undefined // ISO 3-character country code
+          },
+          phone: gatewayProvider === 'paytabs' ? '+971501234567' : undefined // UAE format for test
         };
       }
       

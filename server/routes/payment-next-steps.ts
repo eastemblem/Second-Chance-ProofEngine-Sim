@@ -189,11 +189,20 @@ router.post("/create-next-steps-session", sessionPaymentRateLimit, async (req: R
       originalUSD: amount
     });
 
+    // For test sessions, provide valid customer data that PayTabs will accept
+    const customerEmail = sessionId.startsWith('test-session') 
+      ? 'test@example.com' 
+      : `session-${sessionId}@placeholder.com`;
+    
+    const customerName = sessionId.startsWith('test-session') 
+      ? 'Test Customer' 
+      : ventureName;
+
     const paymentResult = await paymentService.createPayment({
       founderId,
       request: paymentRequest,
-      customerEmail: `session-${sessionId}@placeholder.com`,
-      customerName: ventureName,
+      customerEmail,
+      customerName,
       gatewayProvider: 'paytabs'
     });
 

@@ -401,9 +401,21 @@ class PayTabsGateway extends PaymentGateway {
 
       const result = await response.json();
       console.log('PayTabs raw response:', JSON.stringify(result, null, 2));
+      console.log('PayTabs response code received:', result.response_code);
+      console.log('PayTabs response status:', response.status);
 
-      if (!response.ok || result.response_code !== '4012') {
-        throw new Error(result.result || `PayTabs API error: ${response.status}`);
+      if (!response.ok) {
+        throw new Error(`PayTabs API HTTP error: ${response.status} - ${result.result || 'Unknown error'}`);
+      }
+
+      // PayTabs response code 4012 = SUCCESS (PayPage created successfully)
+      if (result.response_code !== '4012') {
+        throw new Error(`PayTabs response error: ${result.response_code} - ${result.result || 'Payment creation failed'}`);
+      }
+
+      // Ensure we have the required payment URL
+      if (!result.payment_url) {
+        throw new Error('PayTabs success response missing payment_url');
       }
 
       return {
