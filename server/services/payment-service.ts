@@ -195,6 +195,9 @@ export class PaymentService {
 
       // Add customer data if available - PayTabs requires complete customer details
       if (customerEmail || customerName) {
+        // Fetch founder data from database to get real address information
+        const founder = await storage.getFounder(founderId);
+        
         orderData.customerData = {
           ref: founderId,
           email: customerEmail,
@@ -204,13 +207,18 @@ export class PaymentService {
               surname: customerName.split(' ').slice(-1)[0] || ''
             }
           }),
-          // PayTabs requires address information - use UAE default for test mode
-          address: {
-            line1: gatewayProvider === 'paytabs' ? 'Test Address Line 1' : undefined,
-            city: gatewayProvider === 'paytabs' ? 'Dubai' : undefined,
-            country: gatewayProvider === 'paytabs' ? 'ARE' : undefined // ISO 3-character country code
-          },
-          phone: gatewayProvider === 'paytabs' ? '+971501234567' : undefined // UAE format for test
+          // Use real founder address data if available, otherwise skip address fields
+          ...(founder && (founder.street || founder.city || founder.country) && {
+            address: {
+              line1: founder.street || undefined,
+              city: founder.city || undefined,
+              state: founder.state || undefined,
+              country: founder.country || undefined,
+              areacode: undefined // We don't collect postal code yet
+            }
+          }),
+          // Use real founder phone if available
+          phone: founder?.phone || undefined
         };
       }
       

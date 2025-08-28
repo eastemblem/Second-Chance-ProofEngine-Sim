@@ -28,6 +28,12 @@ export const founder = pgTable("founder", {
   positionRole: varchar("position_role", { length: 100 }).notNull(),
   residence: varchar("residence", { length: 100 }),
   isTechnical: boolean("is_technical").notNull().default(false),
+  // Address fields for payment processing
+  phone: varchar("phone", { length: 20 }),
+  street: varchar("street", { length: 200 }),
+  city: varchar("city", { length: 100 }),
+  state: varchar("state", { length: 100 }),
+  country: varchar("country", { length: 100 }),
   // Authentication fields
   passwordHash: varchar("password_hash", { length: 255 }),
   emailVerified: boolean("email_verified").notNull().default(false),
