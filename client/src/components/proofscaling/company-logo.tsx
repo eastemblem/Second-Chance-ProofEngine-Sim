@@ -1,41 +1,33 @@
 import { motion } from "framer-motion";
 
-interface CompanyLogoProps {
-  name: string;
-  delay?: number;
-  className?: string;
-}
-
-export function CompanyLogo({ name, delay = 0, className = "" }: CompanyLogoProps) {
-  return (
-    <motion.div
-      className={`flex items-center justify-center p-4 bg-card/50 rounded-lg border border-border hover:bg-card/80 transition-colors ${className}`}
-      initial={{ opacity: 0, scale: 0.9 }}
-      animate={{ opacity: 1, scale: 1 }}
-      transition={{ duration: 0.5, delay }}
-      whileHover={{ scale: 1.05 }}
-    >
-      <span className="text-sm font-semibold text-muted-foreground">{name}</span>
-    </motion.div>
-  );
-}
-
 interface CompanyLogoGridProps {
   companies: string[];
-  className?: string;
-  startDelay?: number;
+  delay?: number;
 }
 
-export function CompanyLogoGrid({ companies, className = "", startDelay = 0 }: CompanyLogoGridProps) {
+export function CompanyLogoGrid({
+  companies,
+  delay = 0,
+}: CompanyLogoGridProps) {
   return (
-    <div className={`grid grid-cols-2 md:grid-cols-4 lg:grid-cols-6 gap-4 ${className}`}>
+    <motion.div
+      className="flex flex-wrap justify-center items-center gap-8 opacity-60"
+      initial={{ opacity: 0, y: 20 }}
+      animate={{ opacity: 0.6, y: 0 }}
+      transition={{ duration: 0.8, delay }}
+    >
       {companies.map((company, index) => (
-        <CompanyLogo
+        <motion.div
           key={company}
-          name={company}
-          delay={startDelay + index * 0.1}
-        />
+          className="text-muted-foreground font-semibold text-lg hover:text-blue-500 transition-colors cursor-default"
+          initial={{ opacity: 0, scale: 0.8 }}
+          animate={{ opacity: 1, scale: 1 }}
+          transition={{ duration: 0.5, delay: delay + index * 0.1 }}
+          whileHover={{ scale: 1.1 }}
+        >
+          {company}
+        </motion.div>
       ))}
-    </div>
+    </motion.div>
   );
 }

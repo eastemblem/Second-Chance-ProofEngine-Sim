@@ -3,43 +3,37 @@ import { motion } from "framer-motion";
 interface SectionHeaderProps {
   title: string;
   subtitle?: string;
-  titleGradient?: boolean;
-  className?: string;
-  textAlign?: "left" | "center";
+  gradient?: boolean;
+  delay?: number;
 }
 
-export function SectionHeader({ 
-  title, 
-  subtitle, 
-  titleGradient = false,
-  className = "",
-  textAlign = "center"
+export function SectionHeader({
+  title,
+  subtitle,
+  gradient = false,
+  delay = 0,
 }: SectionHeaderProps) {
-  const textAlignClass = textAlign === "center" ? "text-center" : "text-left";
-  const titleClass = titleGradient 
-    ? "bg-gradient-to-r from-primary via-primary-gold to-primary bg-clip-text text-transparent"
-    : "text-foreground";
-
   return (
-    <div className={`${textAlignClass} ${className}`}>
-      <motion.h2 
-        className={`text-4xl md:text-5xl font-bold mb-6 ${titleClass}`}
-        initial={{ opacity: 0, y: 20 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ duration: 0.6, delay: 0.1 }}
+    <motion.div
+      className="text-center mb-16"
+      initial={{ opacity: 0, y: 20 }}
+      animate={{ opacity: 1, y: 0 }}
+      transition={{ duration: 0.6, delay }}
+    >
+      <h2
+        className={`text-4xl md:text-5xl font-bold mb-6 ${
+          gradient
+            ? "bg-gradient-to-r from-blue-500 via-green-500 to-blue-600 bg-clip-text text-transparent"
+            : "text-foreground"
+        }`}
       >
         {title}
-      </motion.h2>
+      </h2>
       {subtitle && (
-        <motion.p 
-          className="text-lg text-muted-foreground max-w-3xl mx-auto"
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.6, delay: 0.2 }}
-        >
+        <p className="text-lg md:text-xl text-muted-foreground max-w-3xl mx-auto leading-relaxed">
           {subtitle}
-        </motion.p>
+        </p>
       )}
-    </div>
+    </motion.div>
   );
 }

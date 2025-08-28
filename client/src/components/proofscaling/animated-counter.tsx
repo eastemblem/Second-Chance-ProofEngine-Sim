@@ -15,11 +15,11 @@ export function AnimatedCounter({
   className = ""
 }: AnimatedCounterProps) {
   const count = useMotionValue(0);
-  
+
   // Extract number from value string (e.g., "87%" -> 87, "$2.4M" -> 2.4)
   const numericValue = parseFloat(value.replace(/[^\d.]/g, '')) || 0;
   const suffix = value.replace(/[\d.]/g, '');
-  
+
   const rounded = useTransform(count, (latest) => {
     if (value.includes('.')) {
       return latest.toFixed(1) + suffix;

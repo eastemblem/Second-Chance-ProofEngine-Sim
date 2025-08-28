@@ -1,12 +1,12 @@
 import { motion } from "framer-motion";
-import { Crown, TrendingUp, DollarSign, Users } from "lucide-react";
+import { Brain, BookOpen, TrendingUp, Target } from "lucide-react";
 
 export function FloatingElements() {
   const elements = [
-    { icon: Crown, delay: 0, x: "10%", y: "20%" },
+    { icon: Brain, delay: 0, x: "10%", y: "20%" },
     { icon: TrendingUp, delay: 0.5, x: "85%", y: "15%" },
-    { icon: DollarSign, delay: 1, x: "15%", y: "80%" },
-    { icon: Users, delay: 1.5, x: "90%", y: "75%" }
+    { icon: BookOpen, delay: 1, x: "15%", y: "80%" },
+    { icon: Target, delay: 1.5, x: "90%", y: "75%" },
   ];
 
   return (
@@ -19,30 +19,30 @@ export function FloatingElements() {
             className="absolute"
             style={{ left: element.x, top: element.y }}
             initial={{ opacity: 0, scale: 0 }}
-            animate={{ 
-              opacity: 0.1, 
+            animate={{
+              opacity: 0.1,
               scale: 1,
               y: [0, -20, 0],
-              rotate: [0, 5, -5, 0]
+              rotate: [0, 5, -5, 0],
             }}
-            transition={{ 
+            transition={{
               opacity: { duration: 1, delay: element.delay },
               scale: { duration: 1, delay: element.delay },
-              y: { 
-                duration: 4, 
-                repeat: Infinity, 
+              y: {
+                duration: 4,
+                repeat: Infinity,
                 ease: "easeInOut",
-                delay: element.delay 
+                delay: element.delay,
               },
-              rotate: { 
-                duration: 6, 
-                repeat: Infinity, 
+              rotate: {
+                duration: 6,
+                repeat: Infinity,
                 ease: "easeInOut",
-                delay: element.delay 
-              }
+                delay: element.delay,
+              },
             }}
           >
-            <Icon className="w-12 h-12 text-primary-gold" />
+            <Icon className="w-12 h-12 text-blue-500" />
           </motion.div>
         );
       })}

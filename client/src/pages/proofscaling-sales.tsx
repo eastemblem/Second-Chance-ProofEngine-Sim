@@ -1,6 +1,36 @@
 import { motion } from "framer-motion";
 import { useState } from "react";
-import { ArrowRight, Star, Users, TrendingUp, Shield, Zap, Crown, Award, DollarSign, Timer, Handshake, CheckCircle2, Target, Trophy, Rocket, PlayCircle, Brain, BookOpen, Lightbulb, Search, BarChart3, MessageSquare, Layers, Presentation, Gauge, CheckCircle, User, Lock, Clock } from "lucide-react";
+import {
+  ArrowRight,
+  Star,
+  Users,
+  TrendingUp,
+  Shield,
+  Zap,
+  Crown,
+  Award,
+  DollarSign,
+  Timer,
+  Handshake,
+  CheckCircle2,
+  Target,
+  Trophy,
+  Rocket,
+  PlayCircle,
+  Brain,
+  BookOpen,
+  Lightbulb,
+  Search,
+  BarChart3,
+  MessageSquare,
+  Layers,
+  Presentation,
+  Gauge,
+  CheckCircle,
+  User,
+  Lock,
+  Clock,
+} from "lucide-react";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -33,52 +63,59 @@ const timelineSteps = [
   {
     week: 0,
     title: "Diagnostic",
-    description: "Comprehensive assessment of your startup's current state, identifying strengths and critical gaps in your business model.",
+    description:
+      "Comprehensive assessment of your startup's current state, identifying strengths and critical gaps in your business model.",
     icon: Search,
-    weekColor: "bg-red-500"
+    weekColor: "bg-red-500",
   },
   {
     week: 1,
     title: "ProofPlan",
-    description: "Strategic roadmap creation with prioritized experiments and validation frameworks tailored to your venture.",
+    description:
+      "Strategic roadmap creation with prioritized experiments and validation frameworks tailored to your venture.",
     icon: Target,
-    weekColor: "bg-orange-500"
+    weekColor: "bg-orange-500",
   },
   {
     week: 2,
     title: "Commercial Test",
-    description: "Execute market validation experiments to prove demand and refine your value proposition with real customers.",
+    description:
+      "Execute market validation experiments to prove demand and refine your value proposition with real customers.",
     icon: BarChart3,
-    weekColor: "bg-yellow-500"
+    weekColor: "bg-yellow-500",
   },
   {
     week: 3,
     title: "Desirability Interviews",
-    description: "Conduct structured customer interviews to validate problem-solution fit and gather actionable insights.",
+    description:
+      "Conduct structured customer interviews to validate problem-solution fit and gather actionable insights.",
     icon: MessageSquare,
-    weekColor: "bg-green-500"
+    weekColor: "bg-green-500",
   },
   {
     week: 4,
     title: "Feasibility Prototype",
-    description: "Build and test minimum viable solutions to demonstrate technical and operational feasibility to investors.",
+    description:
+      "Build and test minimum viable solutions to demonstrate technical and operational feasibility to investors.",
     icon: Layers,
-    weekColor: "bg-blue-500"
+    weekColor: "bg-blue-500",
   },
   {
     week: 5,
     title: "Traction Deck",
-    description: "Compile validated proof points into a compelling investor presentation that showcases measurable progress.",
+    description:
+      "Compile validated proof points into a compelling investor presentation that showcases measurable progress.",
     icon: Presentation,
-    weekColor: "bg-purple-500"
+    weekColor: "bg-purple-500",
   },
   {
     week: 6,
     title: "Momentum Launch",
-    description: "Execute go-to-market strategy with proven metrics, creating sustainable growth momentum for funding rounds.",
+    description:
+      "Execute go-to-market strategy with proven metrics, creating sustainable growth momentum for funding rounds.",
     icon: Gauge,
-    weekColor: "bg-purple-600"
-  }
+    weekColor: "bg-purple-600",
+  },
 ];
 
 // Investor testimonials data
@@ -86,15 +123,17 @@ const investorTestimonials = [
   {
     name: "Sarah Chen",
     title: "Investor @ Beyond Ventures",
-    quote: "I'd funded teams before - ProofScaling gave me the hard numbers I needed to fund this one.",
-    avatar: "SC"
+    quote:
+      "I'd funded teams before - ProofScaling gave me the hard numbers I needed to fund this one.",
+    avatar: "SC",
   },
   {
     name: "Josh B.",
     title: "Cohort #07",
-    quote: "Our landing-page smoke test hit 18% conversion in Week 2. That metric alone got us into Antler.",
-    avatar: "JB"
-  }
+    quote:
+      "Our landing-page smoke test hit 18% conversion in Week 2. That metric alone got us into Antler.",
+    avatar: "JB",
+  },
 ];
 
 // ProofScaling features data
@@ -104,22 +143,22 @@ const proofScalingFeatures = [
     description: "4 weeks with full proof-first traction framework",
     icon: CheckCircle,
     gradientFrom: "from-purple-500",
-    gradientTo: "to-orange-400"
+    gradientTo: "to-orange-400",
   },
   {
     title: "1:1 Office Hours",
     description: "Direct access to exited, serial entrepreneurs",
     icon: User,
     gradientFrom: "from-blue-500",
-    gradientTo: "to-purple-500"
+    gradientTo: "to-purple-500",
   },
   {
     title: "ProofScaling Platform",
     description: "Full access worth over $40k annually",
     icon: Lock,
     gradientFrom: "from-pink-500",
-    gradientTo: "to-red-400"
-  }
+    gradientTo: "to-red-400",
+  },
 ];
 
 // Data for ProofScaling
@@ -127,12 +166,16 @@ const heroMetrics = [
   { value: "94%", label: "Improvement Rate", icon: TrendingUp, delay: 0.4 },
   { value: "12", label: "Weeks Average", icon: Timer, delay: 0.6 },
   { value: "250+", label: "Startups Scaled", icon: Users, delay: 0.8 },
-  { value: "73%", label: "Reach Funding", icon: DollarSign, delay: 1.0 }
+  { value: "73%", label: "Reach Funding", icon: DollarSign, delay: 1.0 },
 ];
 
 const partnerPrograms = [
-  "YC Startup School", "Techstars Accelerator", "500 Global", "Founder Institute", 
-  "MassChallenge", "SOSV"
+  "YC Startup School",
+  "Techstars Accelerator",
+  "500 Global",
+  "Founder Institute",
+  "MassChallenge",
+  "SOSV",
 ];
 
 const testimonials = [
@@ -141,64 +184,73 @@ const testimonials = [
     title: "CEO & Founder",
     company: "EcoTech Solutions",
     proofScore: 47,
-    quote: "ProofScaling helped me identify and fix 8 critical gaps in my business model. My score went from 47 to 78 in just 10 weeks, and I closed my seed round two months later.",
+    quote:
+      "ProofScaling helped me identify and fix 8 critical gaps in my business model. My score went from 47 to 78 in just 10 weeks, and I closed my seed round two months later.",
     rating: 5,
     result: "Score: 47→78",
-    avatar: "AC"
+    avatar: "AC",
   },
   {
-    name: "Maria Santos", 
+    name: "Maria Santos",
     title: "Co-Founder",
     company: "HealthAI Labs",
     proofScore: 52,
-    quote: "The structured curriculum and expert mentorship were game-changers. I finally understood what investors actually look for and built exactly that.",
+    quote:
+      "The structured curriculum and expert mentorship were game-changers. I finally understood what investors actually look for and built exactly that.",
     rating: 5,
     result: "Score: 52→81",
-    avatar: "MS"
+    avatar: "MS",
   },
   {
     name: "David Kim",
     title: "Founder",
     company: "FinanceFlow",
     proofScore: 38,
-    quote: "I was completely stuck at 38 points for months. ProofScaling's systematic approach got me investor-ready in 3 months. Now I'm raising my Series A.",
+    quote:
+      "I was completely stuck at 38 points for months. ProofScaling's systematic approach got me investor-ready in 3 months. Now I'm raising my Series A.",
     rating: 5,
     result: "Score: 38→84",
-    avatar: "DK"
-  }
+    avatar: "DK",
+  },
 ];
 
 const curriculumModules = [
-  { 
-    icon: Target, 
-    title: "Market Validation", 
-    description: "Learn proven frameworks to validate your market size, customer needs, and competitive positioning with real data" 
+  {
+    icon: Target,
+    title: "Market Validation",
+    description:
+      "Learn proven frameworks to validate your market size, customer needs, and competitive positioning with real data",
   },
-  { 
-    icon: Users, 
-    title: "Team Building", 
-    description: "Build the right founding team, advisory board, and early employees that investors want to back" 
+  {
+    icon: Users,
+    title: "Team Building",
+    description:
+      "Build the right founding team, advisory board, and early employees that investors want to back",
   },
-  { 
-    icon: Rocket, 
-    title: "Product Development", 
-    description: "Create MVP strategies, product roadmaps, and development processes that demonstrate execution capability" 
+  {
+    icon: Rocket,
+    title: "Product Development",
+    description:
+      "Create MVP strategies, product roadmaps, and development processes that demonstrate execution capability",
   },
-  { 
-    icon: TrendingUp, 
-    title: "Business Model", 
-    description: "Design sustainable revenue models, pricing strategies, and growth plans that scale profitably" 
+  {
+    icon: TrendingUp,
+    title: "Business Model",
+    description:
+      "Design sustainable revenue models, pricing strategies, and growth plans that scale profitably",
   },
-  { 
-    icon: DollarSign, 
-    title: "Financial Planning", 
-    description: "Master financial modeling, projections, and key metrics that investors use to evaluate startups" 
+  {
+    icon: DollarSign,
+    title: "Financial Planning",
+    description:
+      "Master financial modeling, projections, and key metrics that investors use to evaluate startups",
   },
-  { 
-    icon: Brain, 
-    title: "Investor Readiness", 
-    description: "Prepare compelling pitch materials, due diligence documents, and presentation skills for fundraising" 
-  }
+  {
+    icon: Brain,
+    title: "Investor Readiness",
+    description:
+      "Prepare compelling pitch materials, due diligence documents, and presentation skills for fundraising",
+  },
 ];
 
 interface ProofScalingSalesPageProps {
@@ -206,7 +258,9 @@ interface ProofScalingSalesPageProps {
   proofScore?: any;
 }
 
-export default function ProofScalingSalesPage(props?: ProofScalingSalesPageProps) {
+export default function ProofScalingSalesPage(
+  props?: ProofScalingSalesPageProps,
+) {
   const [showEmailPopup, setShowEmailPopup] = useState(false);
 
   const handleJoinClick = () => {
@@ -223,27 +277,28 @@ export default function ProofScalingSalesPage(props?: ProofScalingSalesPageProps
           <div className="text-center">
             {/* Metric Cards */}
             <MetricCardsHero />
-            
+
             {/* Urgency Banner */}
             <div className="flex justify-center mb-12">
               <UrgencyBanner />
             </div>
 
             {/* Main heading */}
-            <motion.h1 
+            <motion.h1
               className="text-5xl md:text-7xl font-bold mb-6 leading-tight"
               initial={{ opacity: 0, y: 30 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.8, delay: 0.5 }}
             >
-              Turn rejection into<br />
+              Turn rejection into
+              <br />
               <span className="bg-gradient-to-r from-blue-500 via-green-400 to-blue-600 bg-clip-text text-transparent">
                 investor-ready proof
               </span>
             </motion.h1>
 
             {/* Subheading */}
-            <motion.p 
+            <motion.p
               className="text-2xl md:text-3xl font-bold mb-8 text-foreground"
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
@@ -253,13 +308,14 @@ export default function ProofScalingSalesPage(props?: ProofScalingSalesPageProps
             </motion.p>
 
             {/* Description */}
-            <motion.p 
+            <motion.p
               className="text-lg md:text-xl text-muted-foreground mb-12 max-w-3xl mx-auto leading-relaxed"
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.6, delay: 0.7 }}
             >
-              A practical sprint that upgrades your ProofScore, derisks your venture, and magnetizes capital.
+              A practical sprint that upgrades your ProofScore, derisks your
+              venture, and magnetizes capital.
             </motion.p>
 
             {/* Quote Section */}
@@ -273,11 +329,12 @@ export default function ProofScalingSalesPage(props?: ProofScalingSalesPageProps
                 "Investors don't fund ideas – they fund evidence."
               </div>
               <p className="text-muted-foreground text-base md:text-lg">
-                ProofScaling is the only fast-track curriculum that turns gut-feel into data VCs can underwrite. Follow our weekly experiments, upload the artefacts, and watch your ProofTags turn gold.
+                ProofScaling is the only fast-track curriculum that turns
+                gut-feel into data VCs can underwrite. Follow our weekly
+                experiments, upload the artefacts, and watch your ProofTags turn
+                gold.
               </p>
             </motion.div>
-
-
           </div>
         </div>
       </section>
@@ -287,23 +344,24 @@ export default function ProofScalingSalesPage(props?: ProofScalingSalesPageProps
         <div className="container mx-auto max-w-6xl">
           {/* Video Player */}
           <div className="mb-16">
-            <VideoPlayer 
+            <VideoPlayer
               title="Watch: ProofScaling Explained"
               subtitle="See how founders transform rejection into funding"
-              onPlay={() => console.log('Video play clicked')}
+              onPlay={() => console.log("Video play clicked")}
             />
           </div>
 
           {/* Outcomes Text */}
           <div className="text-center mb-12">
             <p className="text-xl text-muted-foreground max-w-2xl mx-auto">
-              ProofScaling doesn't just teach theory – it delivers measurable outcomes
+              ProofScaling doesn't just teach theory – it delivers measurable
+              outcomes
             </p>
           </div>
 
           {/* Outcome Cards */}
           <div className="grid md:grid-cols-3 gap-8">
-            <OutcomeCard 
+            <OutcomeCard
               icon={TrendingUp}
               badge="$1m raised in 30 days"
               title="Founder A jumped from 40 → 70 ProofScore"
@@ -311,7 +369,7 @@ export default function ProofScalingSalesPage(props?: ProofScalingSalesPageProps
               delay={0.1}
               gradientColor="from-purple-500 to-pink-500"
             />
-            <OutcomeCard 
+            <OutcomeCard
               icon={Target}
               badge="Weekly experiments"
               title="One flagship experiment per week"
@@ -319,7 +377,7 @@ export default function ProofScalingSalesPage(props?: ProofScalingSalesPageProps
               delay={0.2}
               gradientColor="from-blue-500 to-purple-500"
             />
-            <OutcomeCard 
+            <OutcomeCard
               icon={Users}
               badge="75% success rate"
               title="75% of alumni receive inbound VC meetings"
@@ -336,16 +394,19 @@ export default function ProofScalingSalesPage(props?: ProofScalingSalesPageProps
         <div className="container mx-auto max-w-6xl relative">
           <FloatingElements />
           <AnimatedSection delay={0.2}>
-            <SectionHeader 
-              title="Your 6-Week Transformation Journey" 
+            <SectionHeader
+              title="Your 6-Week Transformation Journey"
               subtitle="Each week builds systematic proof that investors can't ignore"
             />
           </AnimatedSection>
 
-          <div className="relative mt-16" style={{ height: `${timelineSteps.length * 200}px` }}>
+          <div
+            className="relative mt-16"
+            style={{ height: `${timelineSteps.length * 200}px` }}
+          >
             {/* Timeline Line - positioned behind cards */}
             <TimelineLine totalSteps={timelineSteps.length} />
-            
+
             {/* Timeline Cards - positioned in front of line */}
             <div className="relative z-20">
               {timelineSteps.map((step, index) => (
@@ -369,8 +430,8 @@ export default function ProofScalingSalesPage(props?: ProofScalingSalesPageProps
       <section className="py-20 px-4 bg-card/30">
         <div className="container mx-auto max-w-6xl">
           <AnimatedSection delay={0.2}>
-            <SectionHeader 
-              title="Trusted By The Leading Investors in MENA & GCC" 
+            <SectionHeader
+              title="Trusted By The Leading Investors in MENA & GCC"
               subtitle="See what industry leaders say about ProofScaling graduates"
             />
           </AnimatedSection>
@@ -390,8 +451,8 @@ export default function ProofScalingSalesPage(props?: ProofScalingSalesPageProps
           </div>
 
           <AnimatedSection delay={0.5}>
-            <SectionHeader 
-              title="What You Get Inside ProofScaling" 
+            <SectionHeader
+              title="What You Get Inside ProofScaling"
               subtitle="Everything you need to build investor-ready proof in 6 weeks"
             />
           </AnimatedSection>
@@ -417,8 +478,8 @@ export default function ProofScalingSalesPage(props?: ProofScalingSalesPageProps
       <section className="py-20 px-4">
         <div className="container mx-auto max-w-4xl">
           <AnimatedSection delay={0.2}>
-            <SectionHeader 
-              title="Transform Your Startup for Less Than a Coffee Per Day" 
+            <SectionHeader
+              title="Transform Your Startup for Less Than a Coffee Per Day"
               subtitle="Get $10,000+ worth of expert guidance, tools, and community access"
             />
           </AnimatedSection>
@@ -433,13 +494,15 @@ export default function ProofScalingSalesPage(props?: ProofScalingSalesPageProps
               {/* Background decorative elements */}
               <div className="absolute inset-0 bg-gradient-to-br from-purple-500/20 to-transparent" />
               <div className="absolute top-0 right-0 w-32 h-32 bg-gradient-to-bl from-white/10 to-transparent rounded-full -translate-y-16 translate-x-16" />
-              
+
               <div className="relative z-10">
                 {/* Limited Time Offer Badge */}
                 <div className="flex justify-center mb-6">
                   <div className="inline-flex items-center px-4 py-2 rounded-full bg-white/20 backdrop-blur-sm border border-white/30">
                     <Clock className="w-4 h-4 text-white/80 mr-2" />
-                    <span className="text-white/90 text-sm font-medium">Limited Time Offer</span>
+                    <span className="text-white/90 text-sm font-medium">
+                      Limited Time Offer
+                    </span>
                   </div>
                 </div>
 
@@ -448,12 +511,17 @@ export default function ProofScalingSalesPage(props?: ProofScalingSalesPageProps
                   <div className="flex items-center justify-center gap-3 mb-2">
                     <span className="text-6xl font-bold text-white">$249</span>
                     <div className="text-left">
-                      <div className="text-white/60 line-through text-xl">$10,000</div>
-                      <div className="text-green-400 font-semibold text-sm">97% savings</div>
+                      <div className="text-white/60 line-through text-xl">
+                        $10,000
+                      </div>
+                      <div className="text-green-400 font-semibold text-sm">
+                        97% savings
+                      </div>
                     </div>
                   </div>
                   <p className="text-white/80 text-lg">
-                    One-time payment • Lifetime access • 30-day money-back guarantee
+                    One-time payment • Lifetime access • 30-day money-back
+                    guarantee
                   </p>
                 </div>
 
@@ -461,10 +529,10 @@ export default function ProofScalingSalesPage(props?: ProofScalingSalesPageProps
                 <div className="space-y-3 mb-8">
                   {[
                     "6-week intensive curriculum",
-                    "1:1 office hours with serial entrepreneurs", 
+                    "1:1 office hours with serial entrepreneurs",
                     "Full ProofScaling platform access",
                     "Private founder community",
-                    "Lifetime updates & resources"
+                    "Lifetime updates & resources",
                   ].map((feature, index) => (
                     <motion.div
                       key={feature}
@@ -485,7 +553,7 @@ export default function ProofScalingSalesPage(props?: ProofScalingSalesPageProps
                   animate={{ opacity: 1, y: 0 }}
                   transition={{ duration: 0.6, delay: 0.8 }}
                 >
-                  <button 
+                  <button
                     onClick={handleJoinClick}
                     className="w-full bg-gradient-to-r from-orange-500 to-orange-600 hover:from-orange-400 hover:to-orange-500 text-white font-bold py-4 px-8 rounded-xl text-lg transition-all duration-300 transform hover:scale-105 shadow-lg hover:shadow-xl"
                   >
@@ -498,7 +566,7 @@ export default function ProofScalingSalesPage(props?: ProofScalingSalesPageProps
                 </motion.div>
 
                 {/* Security badges */}
-                <motion.div 
+                <motion.div
                   className="text-center mt-4"
                   initial={{ opacity: 0 }}
                   animate={{ opacity: 1 }}
@@ -529,9 +597,10 @@ export default function ProofScalingSalesPage(props?: ProofScalingSalesPageProps
                 say "no" to your idea
               </span>
             </h2>
-            
+
             <p className="text-xl text-muted-foreground mb-10 max-w-3xl mx-auto">
-              Transform rejection into evidence. Turn evidence into funding. Start building proof today.
+              Transform rejection into evidence. Turn evidence into funding.
+              Start building proof today.
             </p>
 
             <div className="flex flex-col sm:flex-row gap-6 justify-center items-center">
@@ -539,7 +608,7 @@ export default function ProofScalingSalesPage(props?: ProofScalingSalesPageProps
                 whileHover={{ scale: 1.05 }}
                 whileTap={{ scale: 0.95 }}
               >
-                <button 
+                <button
                   onClick={handleJoinClick}
                   className="bg-gradient-to-r from-purple-600 to-orange-500 hover:from-purple-500 hover:to-orange-400 text-white font-bold py-4 px-8 rounded-xl text-lg transition-all duration-300 shadow-lg hover:shadow-xl"
                 >
@@ -549,7 +618,7 @@ export default function ProofScalingSalesPage(props?: ProofScalingSalesPageProps
                   </div>
                 </button>
               </motion.div>
-              
+
               <motion.div
                 initial={{ opacity: 0, x: 20 }}
                 animate={{ opacity: 1, x: 0 }}
@@ -557,7 +626,9 @@ export default function ProofScalingSalesPage(props?: ProofScalingSalesPageProps
                 className="flex items-center text-muted-foreground"
               >
                 <Timer className="w-4 h-4 mr-2 text-orange-500" />
-                <span className="text-sm">Only 20 spots left in this cohort</span>
+                <span className="text-sm">
+                  Only 20 spots left in this cohort
+                </span>
               </motion.div>
             </div>
           </motion.div>
@@ -565,7 +636,7 @@ export default function ProofScalingSalesPage(props?: ProofScalingSalesPageProps
       </section>
 
       {/* Email Verification Popup */}
-      <EmailVerificationPopup 
+      <EmailVerificationPopup
         isOpen={showEmailPopup}
         onClose={() => setShowEmailPopup(false)}
       />
