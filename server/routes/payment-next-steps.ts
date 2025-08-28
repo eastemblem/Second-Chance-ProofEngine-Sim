@@ -19,6 +19,22 @@ interface NextStepsPaymentRequest {
   packageType: 'foundation' | 'investment_ready';
 }
 
+// Simple utility to detect if user is likely from UAE based on common IP patterns
+// In production, you would use a proper IP geolocation service
+const getUserCountryFromIP = async (ip: string): Promise<string | null> => {
+  try {
+    // Check for common UAE IP ranges (simplified check)
+    // In production, use proper geolocation API like MaxMind or IPinfo
+    if (ip.startsWith('185.3.') || ip.startsWith('46.36.') || ip.startsWith('213.42.')) {
+      return 'AE';
+    }
+    return null;
+  } catch (error) {
+    console.error('IP geolocation error:', error);
+    return null;
+  }
+};
+
 type PaymentStatus = 'pending' | 'completed' | 'failed' | 'cancelled' | 'expired';
 
 // Interface removed - using database PaymentTransaction from shared schema
@@ -54,10 +70,25 @@ router.post("/create-next-steps-session", sessionPaymentRateLimit, async (req: R
       throw PaymentErrorHandler.validationError("packageType", packageType);
     }
 
-    // Check if we're in test mode to determine currency
+    // Determine currency based on user location and test mode
     const isTestMode = process.env.PAYTABS_TEST_MODE === 'true';
-    const paymentAmount = isTestMode ? Math.round(amount * 3.67) : amount; // Convert USD to AED in test mode
-    const currency = isTestMode ? 'AED' : 'USD';
+    
+    // Get user's country from request headers or IP geolocation
+    const userCountry = req.headers['cf-ipcountry'] || 
+                       req.headers['x-country'] || 
+                       req.headers['cloudflare-ipcountry'] ||
+                       req.ip && await getUserCountryFromIP(req.ip);
+    
+    const isUAEUser = userCountry === 'AE' || userCountry === 'UAE';
+    
+    // Currency logic: 
+    // Test mode: Always AED
+    // Live mode: AED for UAE users, USD for others
+    const shouldUseAED = isTestMode || isUAEUser;
+    const paymentAmount = shouldUseAED ? Math.round(amount * 3.67) : amount; // Convert USD to AED when needed
+    const currency = shouldUseAED ? 'AED' : 'USD';
+    
+    console.log(`Payment currency decision: Country=${userCountry}, TestMode=${isTestMode}, UAEUser=${isUAEUser}, Currency=${currency}`);
     
     // Validate package type and amount
     if (amount !== 100) {
@@ -146,7 +177,10 @@ router.post("/create-next-steps-session", sessionPaymentRateLimit, async (req: R
         packageType,
         proofScore,
         originalUSD: amount,
-        testMode: isTestMode
+        testMode: isTestMode,
+        userCountry: userCountry,
+        isUAEUser: isUAEUser,
+        currencyReason: isTestMode ? 'test_mode' : (isUAEUser ? 'uae_location' : 'non_uae_location')
       }
     };
 
@@ -158,6 +192,8 @@ router.post("/create-next-steps-session", sessionPaymentRateLimit, async (req: R
       amount: paymentAmount,
       currency: currency,
       testMode: isTestMode,
+      userCountry: userCountry,
+      isUAEUser: isUAEUser,
       originalUSD: amount
     });
 
