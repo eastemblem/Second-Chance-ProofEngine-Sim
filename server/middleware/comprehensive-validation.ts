@@ -239,6 +239,11 @@ export function validateRequestComprehensive(schema: {
 // Input sanitization with SQL injection prevention
 export function sanitizeInputComprehensive(req: Request, res: Response, next: NextFunction) {
   try {
+    // Skip sanitization for payment endpoints to avoid corrupting payment gateway data
+    if (req.path.includes('/payment') || req.path.includes('/v1/payments')) {
+      return next();
+    }
+
     // Sanitize request body
     if (req.body && typeof req.body === 'object') {
       req.body = sanitizeObject(req.body);
