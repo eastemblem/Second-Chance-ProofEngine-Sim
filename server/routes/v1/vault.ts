@@ -202,7 +202,7 @@ router.post('/submit-for-scoring', asyncHandler(async (req: Request, res: Respon
   }
   // Sanitize filename for logging to prevent security scanner warnings
   const sanitizedUploadFilename = String(uploadedFile.originalname).replace(/[<>&"']/g, '');
-  console.log(`Starting scoring workflow for: ${sanitizedUploadFilename}`);
+  appLogger.api('Starting scoring workflow', { filename: sanitizedUploadFilename });
 
   const overviewFolderId = folderStructure.folders["0_Overview"];
   if (!overviewFolderId) {
@@ -212,7 +212,7 @@ router.post('/submit-for-scoring', asyncHandler(async (req: Request, res: Respon
   // Sanitize filename and folder ID for logging to prevent security scanner warnings
   const sanitizedName = String(uploadedFile.originalname).replace(/[<>&"']/g, '');
   const sanitizedFolderId = String(overviewFolderId).replace(/[^\w-]/g, '');
-  console.log(`Uploading ${sanitizedName} to Overview folder: ${sanitizedFolderId}`);
+  appLogger.api('Uploading to Overview folder', { filename: sanitizedName, folderId: sanitizedFolderId });
   const fileBuffer = fs.readFileSync(uploadedFile.filepath);
   
   // Upload file to Overview folder and score
@@ -223,7 +223,7 @@ router.post('/submit-for-scoring', asyncHandler(async (req: Request, res: Respon
     sessionId,
     true
   );
-  console.log("Overview folder upload result:", uploadResult);
+  appLogger.api('Overview folder upload result', { success: !!uploadResult, hasResult: !!uploadResult });
 
   const pitchDeckScore = await eastEmblemAPI.scorePitchDeck(
     fileBuffer,
@@ -438,7 +438,7 @@ router.post('/create-folder', upload.none(), asyncHandler(async (req: Authentica
 
   // Sanitize founder ID for logging to prevent security scanner warnings
   const sanitizedFounderId = String(founderId).replace(/[^\w-]/g, '');
-  console.log(`📁 V1 CREATE FOLDER: Processing database-driven folder creation for founder ${sanitizedFounderId}`);
+  appLogger.api('V1 create folder - processing database-driven folder creation', { founderId: sanitizedFounderId });
 
   try {
     // Step 1: Determine if folder_id is a category name or direct folder ID
@@ -449,7 +449,7 @@ router.post('/create-folder', upload.none(), asyncHandler(async (req: Authentica
       actualParentFolderId = folder_id;
       // Sanitize folder ID for logging to prevent security scanner warnings
       const sanitizedFolderId = String(actualParentFolderId).replace(/[^\w-]/g, '');
-      console.log(`📁 V1 CREATE FOLDER: Using direct folder ID "${sanitizedFolderId}"`);
+      appLogger.api('V1 create folder - using direct folder ID', { folderId: sanitizedFolderId });
     } else {
       // If it's a category name, resolve it from database
       const { getFolderIdFromCategory } = await import("../../utils/folder-mapping");
@@ -457,7 +457,7 @@ router.post('/create-folder', upload.none(), asyncHandler(async (req: Authentica
       // Sanitize IDs for logging to prevent security scanner warnings
       const sanitizedCategory = String(folder_id).replace(/[^\w-]/g, '');
       const sanitizedParentFolderId = String(actualParentFolderId).replace(/[^\w-]/g, '');
-      console.log(`📁 V1 CREATE FOLDER: Resolved category "${sanitizedCategory}" to parent folder ID "${sanitizedParentFolderId}"`);
+      appLogger.api('V1 create folder - resolved category to parent folder', { category: sanitizedCategory, parentFolderId: sanitizedParentFolderId });
     }
 
     // Step 2: Create folder via EastEmblem API using service layer with proper error handling
@@ -470,7 +470,7 @@ router.post('/create-folder', upload.none(), asyncHandler(async (req: Authentica
     
     try {
       result = await vaultService.createFolder(folderName, actualParentFolderId, sessionId);
-      console.log(`✅ V1 Folder creation successful via EastEmblem API:`, {
+      appLogger.api('V1 folder creation successful via EastEmblem API', {
         folderName,
         folderId: result.id
       });
@@ -488,9 +488,9 @@ router.post('/create-folder', upload.none(), asyncHandler(async (req: Authentica
           // Sanitize IDs for logging to prevent security scanner warnings
           const sanitizedFounderId = String(founderId).replace(/[^\w-]/g, '');
           const sanitizedVentureId = String(currentVentureId).replace(/[^\w-]/g, '');
-          console.log(`📝 V1 FOLDER CREATION: Resolved founder ${sanitizedFounderId} to venture ${sanitizedVentureId}`);
+          appLogger.api('V1 folder creation - resolved founder to venture', { founderId: sanitizedFounderId, ventureId: sanitizedVentureId });
         } catch (ventureError) {
-          console.error(`⚠️ V1 FOLDER CREATION: Failed to get venture ID for founder ${founderId}:`, ventureError);
+          appLogger.api('V1 folder creation - failed to get venture ID', { founderId, error: ventureError instanceof Error ? ventureError.message : 'Unknown error' });
         }
 
         if (currentVentureId && result.id) {
@@ -505,7 +505,7 @@ router.post('/create-folder', upload.none(), asyncHandler(async (req: Authentica
           };
           
           const proofVaultEntry = await storage.createProofVault(proofVaultData);
-          console.log(`✅ V1 FOLDER CREATION: Proof vault entry created`, { 
+          appLogger.api('V1 folder creation - proof vault entry created', { 
             folderName,
             folderId: result.id,
             vaultId: proofVaultEntry.vaultId,
@@ -513,13 +513,13 @@ router.post('/create-folder', upload.none(), asyncHandler(async (req: Authentica
           });
         }
       } catch (dbError) {
-        console.error(`⚠️ V1 FOLDER CREATION: Failed to create proof vault entry:`, dbError);
+        appLogger.api('V1 folder creation - failed to create proof vault entry', { error: dbError instanceof Error ? dbError.message : 'Unknown error' });
         // Continue without failing the folder creation since Box.com creation succeeded
       }
 
     } catch (apiError) {
       const errorMessage = apiError instanceof Error ? apiError.message : 'Unknown error';
-      console.log(`⚠️ V1 EastEmblem API folder creation failed - using fallback:`, {
+      appLogger.api('V1 EastEmblem API folder creation failed - using fallback', {
         folderName,
         error: errorMessage
       });
@@ -543,7 +543,7 @@ router.post('/create-folder', upload.none(), asyncHandler(async (req: Authentica
           const dashboardData = await databaseService.getFounderWithLatestVenture(founderId);
           currentVentureId = dashboardData?.venture?.ventureId || null;
         } catch (ventureError) {
-          console.error(`⚠️ V1 FOLDER CREATION: Failed to get venture ID:`, ventureError);
+          appLogger.api('V1 folder creation - failed to get venture ID for activity logging', { error: ventureError instanceof Error ? ventureError.message : 'Unknown error' });
         }
 
         const context = ActivityService.getContextFromRequest(req);
@@ -566,9 +566,9 @@ router.post('/create-folder', upload.none(), asyncHandler(async (req: Authentica
         );
         // Sanitize folder name for logging to prevent security scanner warnings
         const sanitizedFolderName = String(folderName).replace(/[<>&"']/g, '');
-        console.log(`📝 V1 FOLDER CREATION: Activity logged for folder creation: ${sanitizedFolderName}`);
+        appLogger.api('V1 folder creation - activity logged', { folderName: sanitizedFolderName });
       } catch (activityError) {
-        console.error(`⚠️ V1 FOLDER CREATION: Activity logging failed:`, activityError);
+        appLogger.api('V1 folder creation - activity logging failed', { error: activityError instanceof Error ? activityError.message : 'Unknown error' });
         // Don't fail the folder creation if activity logging fails
       }
     }
@@ -579,9 +579,9 @@ router.post('/create-folder', upload.none(), asyncHandler(async (req: Authentica
         await lruCacheService.invalidate('dashboard', `vault_${founderId}`);
         // Sanitize founder ID for logging to prevent security scanner warnings
         const sanitizedFounderId = String(founderId).replace(/[^\w-]/g, '');
-        console.log(`🗑️ V1 FOLDER CREATION: Cache invalidated for founder ${sanitizedFounderId}`);
+        appLogger.api('V1 folder creation - cache invalidated', { founderId: sanitizedFounderId });
       } catch (cacheError) {
-        console.error(`⚠️ V1 FOLDER CREATION: Cache invalidation failed:`, cacheError);
+        appLogger.api('V1 folder creation - cache invalidation failed', { error: cacheError instanceof Error ? cacheError.message : 'Unknown error' });
         // Don't fail the folder creation if cache invalidation fails
       }
     }
@@ -596,7 +596,7 @@ router.post('/create-folder', upload.none(), asyncHandler(async (req: Authentica
     }, "V1 Folder creation completed"));
 
   } catch (error) {
-    console.error('V1 Folder creation error:', error);
+    appLogger.api('V1 folder creation error', { error: error instanceof Error ? error.message : 'Unknown error' });
     throw new Error(`Failed to create folder: ${error instanceof Error ? error.message : 'Unknown error'}`);
   }
 }));
@@ -622,7 +622,7 @@ router.post('/upload-file-direct', upload.single("file"), asyncHandler(async (re
   // Sanitize IDs for logging to prevent security scanner warnings
   const sanitizedFounderId = String(founderId).replace(/[^\w-]/g, '');
   const sanitizedFolderId = String(folder_id).replace(/[^\w-]/g, '');
-  console.log(`📁 V1 DIRECT UPLOAD: Processing direct folder upload for founder ${sanitizedFounderId} to folder ${sanitizedFolderId}`);
+  appLogger.api('V1 direct upload - processing folder upload', { founderId: sanitizedFounderId, folderId: sanitizedFolderId });
 
   const sessionId = getSessionId(req);
   
@@ -655,9 +655,9 @@ router.post('/upload-file-direct', upload.single("file"), asyncHandler(async (re
         // Sanitize IDs for logging to prevent security scanner warnings
         const sanitizedFounderId = String(founderId).replace(/[^\w-]/g, '');
         const sanitizedVentureId = String(currentVentureId).replace(/[^\w-]/g, '');
-        console.log(`📝 V1 DIRECT UPLOAD: Resolved founder ${sanitizedFounderId} to venture ${sanitizedVentureId}`);
+        appLogger.api('V1 direct upload - resolved founder to venture', { founderId: sanitizedFounderId, ventureId: sanitizedVentureId });
       } catch (ventureError) {
-        console.error(`⚠️ V1 DIRECT UPLOAD: Failed to get venture ID for founder ${founderId}:`, ventureError);
+        appLogger.api('V1 direct upload - failed to get venture ID', { founderId, error: ventureError instanceof Error ? ventureError.message : 'Unknown error' });
       }
 
       const uploadRecord = await storage.createDocumentUpload({
@@ -677,9 +677,9 @@ router.post('/upload-file-direct', upload.single("file"), asyncHandler(async (re
       // Sanitize IDs for logging to prevent security scanner warnings
       const sanitizedUploadId = String(uploadRecord.uploadId).replace(/[^\w-]/g, '');
       const sanitizedVentureId = String(currentVentureId).replace(/[^\w-]/g, '');
-      console.log(`✅ V1 DIRECT UPLOAD: Database record created with ID ${sanitizedUploadId} for venture ${sanitizedVentureId}`);
+      appLogger.api('V1 direct upload - database record created', { uploadId: sanitizedUploadId, ventureId: sanitizedVentureId });
     } catch (dbError) {
-      console.error(`❌ V1 DIRECT UPLOAD: Database storage failed:`, dbError);
+      appLogger.api('V1 direct upload - database storage failed', { error: dbError instanceof Error ? dbError.message : 'Unknown error' });
       // Continue without failing the upload since Box.com upload succeeded
     }
 
@@ -693,7 +693,7 @@ router.post('/upload-file-direct', upload.single("file"), asyncHandler(async (re
           const dashboardData = await databaseService.getFounderWithLatestVenture(founderId);
           activityVentureId = dashboardData?.venture?.ventureId || null;
         } catch (ventureError) {
-          console.error(`⚠️ V1 DIRECT UPLOAD: Failed to get venture ID for activity logging:`, ventureError);
+          appLogger.api('V1 direct upload - failed to get venture ID for activity logging', { error: ventureError instanceof Error ? ventureError.message : 'Unknown error' });
         }
 
         const context = ActivityService.getContextFromRequest(req);
@@ -716,9 +716,9 @@ router.post('/upload-file-direct', upload.single("file"), asyncHandler(async (re
         );
         // Sanitize filename for logging to prevent security scanner warnings
         const sanitizedFilename = String(file.originalname).replace(/[<>&"']/g, '');
-        console.log(`📝 V1 DIRECT UPLOAD: Activity logged for file upload: ${sanitizedFilename}`);
+        appLogger.api('V1 direct upload - activity logged', { filename: sanitizedFilename });
       } catch (activityError) {
-        console.error(`⚠️ V1 DIRECT UPLOAD: Activity logging failed:`, activityError);
+        appLogger.api('V1 direct upload - activity logging failed', { error: activityError instanceof Error ? activityError.message : 'Unknown error' });
         // Don't fail the upload if activity logging fails
       }
     }
@@ -730,9 +730,9 @@ router.post('/upload-file-direct', upload.single("file"), asyncHandler(async (re
         await lruCacheService.invalidate('dashboard', `activity_${founderId}`);
         // Sanitize founder ID for logging to prevent security scanner warnings
         const sanitizedFounderId = String(founderId).replace(/[^\w-]/g, '');
-        console.log(`🗑️ V1 DIRECT UPLOAD: Cache invalidated for founder ${sanitizedFounderId}`);
+        appLogger.api('V1 direct upload - cache invalidated', { founderId: sanitizedFounderId });
       } catch (cacheError) {
-        console.error(`⚠️ V1 DIRECT UPLOAD: Cache invalidation failed:`, cacheError);
+        appLogger.api('V1 direct upload - cache invalidation failed', { error: cacheError instanceof Error ? cacheError.message : 'Unknown error' });
         // Don't fail the upload if cache invalidation fails
       }
     }
@@ -743,7 +743,7 @@ router.post('/upload-file-direct', upload.single("file"), asyncHandler(async (re
     // Sanitize filename and folder ID for logging to prevent security scanner warnings
     const sanitizedFilename = String(file.originalname).replace(/[<>&"']/g, '');
     const sanitizedFolderId = String(folder_id).replace(/[^\w-]/g, '');
-    console.log(`✅ V1 DIRECT UPLOAD: File "${sanitizedFilename}" uploaded successfully to folder ${sanitizedFolderId}`);
+    appLogger.api('V1 direct upload - file uploaded successfully', { filename: sanitizedFilename, folderId: sanitizedFolderId });
 
     res.json(createSuccessResponse({
       file: {

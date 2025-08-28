@@ -6,6 +6,7 @@ import { authenticateToken } from "../../middleware/token-auth";
 import { AuthenticatedRequest } from "../middleware/auth";
 import { eq } from "drizzle-orm";
 import { db } from "../../db";
+import { appLogger } from "../../utils/logger";
 
 const router = express.Router();
 
@@ -17,14 +18,14 @@ router.get("/validation", authenticateToken, asyncHandler(async (req: Authentica
     return res.status(401).json({ error: "Not authenticated" });
   }
 
-  console.log(`🔍 DASHBOARD: Fetching validation data for founder ${founderId}`);
+  appLogger.api('Dashboard - fetching validation data', { founderId });
 
   try {
     // Use database service for founder data with caching
     const dashboardData = await databaseService.getDashboardData(founderId);
 
     if (!dashboardData.founder) {
-      console.warn(`⚠️ DASHBOARD: Founder not found for ID ${founderId}`);
+      appLogger.warn('Dashboard - founder not found', { founderId });
       return res.status(404).json({ error: "Founder not found" });
     }
 
@@ -32,7 +33,9 @@ router.get("/validation", authenticateToken, asyncHandler(async (req: Authentica
     const actualProofScore = dashboardData.evaluation?.proofscore || 0;
     const actualProofTags = dashboardData.evaluation?.prooftags || [];
     
-    console.log(`📊 VALIDATION: Found ProofScore ${actualProofScore}, ProofTags: ${actualProofTags.length}`, {
+    appLogger.business('Validation - found ProofScore and ProofTags', {
+      proofScore: actualProofScore,
+      proofTagsCount: actualProofTags.length,
       evaluation: dashboardData.evaluation ? 'exists' : 'missing',
       venture: dashboardData.venture ? 'exists' : 'missing'
     });
@@ -52,14 +55,14 @@ router.get("/validation", authenticateToken, asyncHandler(async (req: Authentica
       investmentReadiness: getInvestmentReadinessStatus(actualProofScore)
     };
 
-    console.log(`✅ DASHBOARD: Validation data retrieved successfully for ${founderId}`);
+    appLogger.api('Dashboard - validation data retrieved successfully', { founderId });
     
     // Set cache headers for dashboard data (5 minutes)
     res.set('Cache-Control', 'public, max-age=300');
     res.json(response);
 
   } catch (error) {
-    console.error("❌ DASHBOARD: Validation data fetch error:", error);
+    appLogger.error('Dashboard - validation data fetch error', { error: error instanceof Error ? error.message : 'Unknown error' });
     res.status(500).json({ 
       error: "Failed to fetch validation data",
       details: error instanceof Error ? error.message : 'Unknown error'
@@ -75,7 +78,7 @@ router.get("/vault", authenticateToken, asyncHandler(async (req: AuthenticatedRe
     return res.status(401).json({ error: "Not authenticated" });
   }
 
-  console.log(`🗃️ VAULT: Fetching vault data for founder ${founderId}`);
+  appLogger.api('Vault - fetching data', { founderId });
 
   try {
     // Get dashboard data with venture info
@@ -137,14 +140,14 @@ router.get("/vault", authenticateToken, asyncHandler(async (req: AuthenticatedRe
       }
     };
 
-    console.log(`✅ VAULT: Data retrieved successfully - ${files.length} files categorized`);
+    appLogger.api('Vault - data retrieved successfully', { fileCount: files.length });
     
     // No caching for vault data as requested (real-time accuracy)
     res.set('Cache-Control', 'no-cache, no-store, must-revalidate');
     res.json(vaultData);
 
   } catch (error) {
-    console.error("❌ VAULT: Data fetch error:", error);
+    appLogger.error('Vault - data fetch error', { error: error instanceof Error ? error.message : 'Unknown error' });
     res.status(500).json({ 
       error: "Failed to fetch vault data",
       details: error instanceof Error ? error.message : 'Unknown error'
@@ -160,7 +163,7 @@ router.get("/activity", authenticateToken, asyncHandler(async (req: Authenticate
     return res.status(401).json({ error: "Not authenticated" });
   }
 
-  console.log(`🔍 ACTIVITY: Fetching activity data for founder ${founderId}`);
+  appLogger.api('Activity - fetching data', { founderId });
 
   try {
     const { userActivity } = await import("@shared/schema");
@@ -172,7 +175,7 @@ router.get("/activity", authenticateToken, asyncHandler(async (req: Authenticate
       .orderBy(userActivity.createdAt)
       .limit(10);
 
-    console.log(`📊 ACTIVITY: Found ${activities.length} activities in database`);
+    appLogger.database('Activity - found activities in database', { count: activities.length });
 
     // Format activities for frontend
     const formattedActivities = activities.map(activity => ({
@@ -185,14 +188,14 @@ router.get("/activity", authenticateToken, asyncHandler(async (req: Authenticate
       color: getActivityColor(activity.activityType)
     }));
 
-    console.log(`📤 ACTIVITY: Returning ${formattedActivities.length} formatted activities`);
+    appLogger.api('Activity - returning formatted activities', { count: formattedActivities.length });
     
     // Cache activity data for 5 minutes
     res.set('Cache-Control', 'public, max-age=300');
     res.json(formattedActivities);
 
   } catch (error) {
-    console.error("❌ ACTIVITY: Data fetch error:", error);
+    appLogger.error('Activity - data fetch error', { error: error instanceof Error ? error.message : 'Unknown error' });
     res.status(500).json({ 
       error: "Failed to fetch activity data",
       details: error instanceof Error ? error.message : 'Unknown error'
