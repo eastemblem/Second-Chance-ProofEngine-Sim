@@ -160,7 +160,7 @@ export const documentUpload = pgTable("document_upload", {
 });
 
 // Payment gateway enums
-export const paymentGatewayEnum = pgEnum('payment_gateway', ['telr', 'stripe', 'paypal']);
+export const paymentGatewayEnum = pgEnum('payment_gateway', ['telr', 'stripe', 'paypal', 'paytabs']);
 export const paymentStatusEnum = pgEnum('payment_status', ['pending', 'completed', 'failed', 'cancelled', 'expired']);
 export const subscriptionStatusEnum = pgEnum('subscription_status', ['active', 'inactive', 'expired', 'cancelled']);
 export const subscriptionPlanEnum = pgEnum('subscription_plan', ['basic', 'premium', 'enterprise']);
