@@ -8,8 +8,77 @@ import { PaymentStatusMapper } from "../lib/payment-status-mapper";
 import { PaymentErrorHandler } from "../lib/error-handler";
 import { SecurityUtils } from "../lib/security-utils";
 import { sessionPaymentRateLimit, paymentStatusRateLimit, webhookRateLimit } from "../middleware/rate-limiter";
+import * as crypto from "crypto";
 
 const router = Router();
+
+/**
+ * Verify PayTabs signature according to official documentation
+ * Reference: https://docs.paytabs.com/manuals/PT-API-Endpoints/Integration-Types-Manuals/Hosted-Payment-Page/HPP-Step-5-handle-the-payment-response/HPP-Step-5-Landing/#verify-response
+ */
+function verifyPayTabsSignature(postData: any): boolean {
+  try {
+    // Get PayTabs server key from environment
+    const serverKey = process.env.PAYTABS_SERVER_KEY;
+    if (!serverKey) {
+      console.warn('PayTabs server key not configured - skipping signature verification');
+      return true; // Allow in development if server key not set
+    }
+
+    const receivedSignature = postData.signature;
+    if (!receivedSignature) {
+      console.warn('No signature received from PayTabs');
+      return false;
+    }
+
+    // Step 1: Remove signature from data and filter out empty values
+    const dataToVerify = { ...postData };
+    delete dataToVerify.signature;
+    
+    // Remove empty parameters as per PayTabs documentation
+    const filteredData: any = {};
+    Object.keys(dataToVerify).forEach(key => {
+      if (dataToVerify[key] !== '' && dataToVerify[key] !== null && dataToVerify[key] !== undefined) {
+        filteredData[key] = dataToVerify[key];
+      }
+    });
+
+    // Step 2: Sort by keys
+    const sortedKeys = Object.keys(filteredData).sort();
+    
+    // Step 3: Build query string with URL encoding
+    const queryParts: string[] = [];
+    sortedKeys.forEach(key => {
+      const encodedKey = encodeURIComponent(key);
+      const encodedValue = encodeURIComponent(filteredData[key]);
+      queryParts.push(`${encodedKey}=${encodedValue}`);
+    });
+    const queryString = queryParts.join('&');
+
+    // Step 4: Generate HMAC-SHA256 signature
+    const calculatedSignature = crypto
+      .createHmac('sha256', serverKey)
+      .update(queryString)
+      .digest('hex');
+
+    console.log('PayTabs signature verification:', {
+      queryString,
+      calculatedSignature,
+      receivedSignature,
+      matches: calculatedSignature === receivedSignature
+    });
+
+    // Step 5: Compare signatures
+    return crypto.timingSafeEqual(
+      Buffer.from(calculatedSignature, 'hex'),
+      Buffer.from(receivedSignature, 'hex')
+    );
+
+  } catch (error) {
+    console.error('PayTabs signature verification error:', error);
+    return false; // Fail secure - reject on verification errors
+  }
+}
 
 interface NextStepsPaymentRequest {
   sessionId: string;
@@ -210,6 +279,7 @@ router.post("/create-next-steps-session", sessionPaymentRateLimit, async (req: R
       ? 'Test Customer' 
       : ventureName;
 
+    const paymentService = new PaymentService();
     const paymentResult = await paymentService.createPayment({
       founderId,
       request: paymentRequest,
@@ -283,62 +353,131 @@ router.post("/create-next-steps-session", sessionPaymentRateLimit, async (req: R
 });
 
 /**
- * PayTabs return endpoint - handles payment callback from PayTabs
- * GET/POST /api/payment/paytabs/return
+ * PayTabs test endpoint for debugging
  */
-router.all("/paytabs/return", async (req: Request, res: Response) => {
+router.get("/paytabs/test", (req: Request, res: Response) => {
+  res.json({ success: true, message: "PayTabs routing works" });
+});
+
+/**
+ * Simple PayTabs POST test
+ */
+router.post("/paytabs/simple", (req: Request, res: Response) => {
+  res.json({ success: true, message: "PayTabs POST works", body: req.body });
+});
+
+/**
+ * PayTabs return endpoint - handles payment callback from PayTabs
+ * POST /api/payment/paytabs/return (PayTabs sends POST requests)
+ */
+router.post("/paytabs/return", async (req: Request, res: Response) => {
+  console.log('=== PayTabs Return Endpoint Hit ===');
+  console.log('Method:', req.method);
+  console.log('Body params:', JSON.stringify(req.body, null, 2));
+  
   try {
-    console.log('=== PayTabs Return Callback ===');
-    console.log('Method:', req.method);
-    console.log('Query params:', JSON.stringify(req.query, null, 2));
-    console.log('Body params:', JSON.stringify(req.body, null, 2));
-    console.log('Headers:', JSON.stringify(req.headers, null, 2));
+    // PayTabs sends form-encoded data: cartId, respStatus, tranRef, signature, etc.
+    const {
+      cartId,           // Our order reference
+      respStatus,       // A = success, others = failure
+      respCode,
+      respMessage,
+      tranRef,          // PayTabs transaction reference
+      customerEmail,
+      acquirerMessage,
+      acquirerRRN,
+      signature,
+      token
+    } = req.body;
 
-    const { status, ref: orderReference } = req.query;
-    
-    if (!orderReference) {
-      console.error('PayTabs return: Missing order reference');
-      return res.status(400).json({
-        success: false,
-        message: 'Missing order reference'
-      });
+    console.log('PayTabs response data:', {
+      cartId,
+      respStatus,
+      respCode,
+      respMessage,
+      tranRef,
+      customerEmail,
+      signature: signature ? 'present' : 'missing'
+    });
+
+    if (!cartId) {
+      console.error('PayTabs return: Missing cartId (order reference)');
+      return res.status(400).send(`
+        <html><body>
+          <h2>Payment Error</h2>
+          <p>Missing order reference. Please contact support.</p>
+          <a href="/">Return to Home</a>
+        </body></html>
+      `);
     }
 
-    console.log(`PayTabs return callback for order: ${orderReference}, status: ${status}`);
+    // Verify PayTabs signature for security (recommended for production)
+    if (signature) {
+      const isValidSignature = verifyPayTabsSignature(req.body);
+      if (!isValidSignature) {
+        console.error('PayTabs signature verification failed - potentially fraudulent request');
+        return res.status(400).send(`
+          <html><body>
+            <h2>Payment Verification Failed</h2>
+            <p>Payment verification failed. Please contact support if this was a legitimate payment.</p>
+            <a href="/">Return to Home</a>
+          </body></html>
+        `);
+      }
+      console.log('PayTabs signature verified successfully');
+    } else {
+      console.warn('PayTabs response received without signature - consider enabling signature verification');
+    }
 
-    // Update payment status based on PayTabs response
+    // Determine payment status based on PayTabs respStatus
+    // According to docs: Only respStatus='A' is successful
     let paymentStatus: 'completed' | 'failed' | 'cancelled' = 'failed';
-    if (status === 'success') {
+    let statusReason = respMessage || 'Unknown status';
+
+    if (respStatus === 'A') {
       paymentStatus = 'completed';
-    } else if (status === 'cancelled') {
-      paymentStatus = 'cancelled';
+      statusReason = 'Payment authorized successfully';
+    } else {
+      paymentStatus = 'failed';
+      statusReason = respMessage || `Payment failed with status: ${respStatus}`;
     }
+
+    console.log(`PayTabs payment for order ${cartId}: ${paymentStatus} (${statusReason})`);
 
     // Update the payment transaction status
-    const updateResult = await paymentService.updatePaymentStatus(orderReference as string, paymentStatus);
+    const paymentService = new PaymentService();
+    const updateResult = await paymentService.updatePaymentStatus(cartId, paymentStatus);
     
     if (!updateResult.success) {
       console.error('Failed to update payment status:', updateResult.error);
     }
 
-    // Redirect to appropriate frontend page
+    // Get redirect URL
     const frontendUrl = process.env.REPLIT_DOMAINS?.split(',')[0];
     const baseUrl = frontendUrl ? `https://${frontendUrl}` : 'https://localhost:5000';
     
-    if (status === 'success') {
-      return res.redirect(`${baseUrl}/payment/success?ref=${orderReference}`);
-    } else if (status === 'cancelled') {
-      return res.redirect(`${baseUrl}/payment/cancelled?ref=${orderReference}`);
+    // Redirect based on payment status
+    if (paymentStatus === 'completed') {
+      const redirectUrl = `${baseUrl}/payment/success?ref=${cartId}&tranRef=${tranRef}`;
+      console.log('Redirecting to success page:', redirectUrl);
+      return res.redirect(redirectUrl);
     } else {
-      return res.redirect(`${baseUrl}/payment/failed?ref=${orderReference}`);
+      const redirectUrl = `${baseUrl}/payment/failed?ref=${cartId}&reason=${encodeURIComponent(statusReason)}`;
+      console.log('Redirecting to failure page:', redirectUrl);
+      return res.redirect(redirectUrl);
     }
 
   } catch (error) {
     console.error('PayTabs return callback error:', error);
-    return res.status(500).json({
-      success: false,
-      error: 'Payment callback processing failed'
-    });
+    
+    // Return user-friendly error page instead of JSON
+    return res.status(500).send(`
+      <html><body>
+        <h2>Payment Processing Error</h2>
+        <p>There was an error processing your payment. Please contact support.</p>
+        <a href="/">Return to Home</a>
+      </body></html>
+    `);
   }
 });
 
@@ -359,6 +498,7 @@ router.get("/status/:paymentId", paymentStatusRateLimit, async (req: Request, re
     }
 
     // Get transaction from database using PaymentService
+    const paymentService = new PaymentService();
     const paymentStatus = await paymentService.checkPaymentStatus(paymentId);
 
     if (!paymentStatus.success || !paymentStatus.transaction) {
@@ -382,7 +522,8 @@ router.get("/status/:paymentId", paymentStatusRateLimit, async (req: Request, re
         if (statusResult.success && statusResult.status !== transaction.status) {
           console.log(`Payment status changed from ${transaction.status} to ${statusResult.status}`);
           // Update transaction status in database
-          await paymentService.updatePaymentStatus(paymentId, statusResult.status);
+          const paymentServiceForUpdate = new PaymentService();
+          await paymentServiceForUpdate.updatePaymentStatus(paymentId, statusResult.status);
 
           // Log status change
           try {
@@ -498,6 +639,7 @@ router.post("/webhook/next-steps", webhookRateLimit, async (req: Request, res: R
     }
 
     // Get transaction from database using PaymentService
+    const paymentService = new PaymentService();
     const paymentStatusResult = await paymentService.checkPaymentStatus(paymentId);
 
     if (!paymentStatusResult.success || !paymentStatusResult.transaction) {

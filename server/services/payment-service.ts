@@ -64,9 +64,9 @@ export class PaymentService {
     }
     
     return {
-      authorised: `${baseUrl}/api/payment/paytabs/return?status=success&ref=${orderReference}`,
-      declined: `${baseUrl}/api/payment/paytabs/return?status=failed&ref=${orderReference}`,
-      cancelled: `${baseUrl}/api/payment/paytabs/return?status=cancelled&ref=${orderReference}`
+      authorised: `${baseUrl}/api/payment/paytabs/return`,
+      declined: `${baseUrl}/api/payment/paytabs/return`,
+      cancelled: `${baseUrl}/api/payment/paytabs/return`
     };
   }
 
