@@ -470,8 +470,20 @@ class PayTabsGateway extends PaymentGateway {
       const result = await response.json();
       console.log(`PayTabs status check response:`, JSON.stringify(result, null, 2));
 
+      // Handle PayTabs response codes
       if (result.response_code !== '2000') {
         console.error(`PayTabs status check error:`, result);
+        
+        // Special handling for "No entries found" - this is normal for completed/archived transactions
+        if (result.code === 2 && result.message === 'No entries found') {
+          console.log(`PayTabs transaction not found - likely completed and archived: ${orderRef}`);
+          return {
+            success: true,
+            status: 'unknown', // Let the payment service handle this with database status
+            gatewayResponse: result
+          };
+        }
+        
         return {
           success: false,
           status: 'failed',

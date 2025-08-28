@@ -304,8 +304,18 @@ export class PaymentService {
       const gateway = PaymentGatewayFactory.create(transaction.gatewayProvider);
       const statusResult = await gateway.checkStatus(transaction.gatewayTransactionId || orderReference);
 
-      if (statusResult.success && statusResult.status !== transaction.status) {
-        // Update transaction status
+      // Handle cases where gateway can't find the transaction (archived/completed transactions)
+      if (statusResult.success && statusResult.status === 'unknown') {
+        console.log(`Gateway returned unknown status for ${orderReference}, using database status: ${transaction.status}`);
+        return {
+          success: true,
+          status: transaction.status,
+          transaction
+        };
+      }
+
+      if (statusResult.success && statusResult.status !== transaction.status && statusResult.status !== 'unknown') {
+        // Update transaction status (skip 'unknown' status as it's not a real status change)
         const updatedTransaction = await storage.updatePaymentTransaction(transaction.id, {
           status: statusResult.status,
           gatewayStatus: statusResult.gatewayStatus,
@@ -407,8 +417,8 @@ export class PaymentService {
         };
       }
 
-      // Update transaction status if changed
-      if (webhookResult.status !== transaction.status) {
+      // Update transaction status if changed (skip 'unknown' status)
+      if (webhookResult.status !== transaction.status && webhookResult.status !== 'unknown') {
         await storage.updatePaymentTransaction(transaction.id, {
           status: webhookResult.status,
           gatewayTransactionId: webhookResult.transactionId,

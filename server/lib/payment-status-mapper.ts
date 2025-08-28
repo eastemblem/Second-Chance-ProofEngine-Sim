@@ -3,7 +3,7 @@
  * Eliminates code duplication across gateway implementations
  */
 
-export type PaymentStatus = 'pending' | 'completed' | 'failed' | 'cancelled' | 'expired';
+export type PaymentStatus = 'pending' | 'completed' | 'failed' | 'cancelled' | 'expired' | 'unknown';
 
 /**
  * Telr status codes and their meanings
