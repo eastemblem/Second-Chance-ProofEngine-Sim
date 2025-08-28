@@ -360,10 +360,97 @@ router.get("/paytabs/test", (req: Request, res: Response) => {
 });
 
 /**
- * Simple PayTabs POST test
+ * PayTabs IPN/Callback endpoint - handles server-to-server POST responses
+ * POST /api/payment/paytabs/callback
+ * 
+ * This endpoint receives the rich JSON payload with complete transaction details
+ * Reference: https://docs.paytabs.com/manuals/PT-API-Endpoints/Integration-Types-Manuals/Hosted-Payment-Page/HPP-Step-6-Handle-post-payment-responses/HPP-Step-Six-Landing
  */
-router.post("/paytabs/simple", (req: Request, res: Response) => {
-  res.json({ success: true, message: "PayTabs POST works", body: req.body });
+router.post("/paytabs/callback", async (req: Request, res: Response) => {
+  try {
+    console.log('=== PayTabs IPN/Callback Received ===');
+    console.log('Method:', req.method);
+    console.log('Content-Type:', req.headers['content-type']);
+    console.log('Full Body:', JSON.stringify(req.body, null, 2));
+
+    const {
+      tran_ref,           // PayTabs transaction reference
+      cart_id,            // Our order reference
+      cart_currency,
+      cart_amount,
+      tran_currency,
+      tran_total,
+      payment_result,     // { response_status, response_code, response_message, transaction_time }
+      payment_info,       // { payment_method, card_type, etc. }
+      customer_details,
+      merchant_id,
+      profile_id,
+      ipn_trace,
+      token
+    } = req.body;
+
+    console.log('PayTabs IPN/Callback data:', {
+      tran_ref,
+      cart_id,
+      cart_currency,
+      cart_amount,
+      payment_result,
+      ipn_trace
+    });
+
+    if (!cart_id || !tran_ref) {
+      console.error('PayTabs IPN: Missing required fields (cart_id or tran_ref)');
+      return res.status(400).json({
+        success: false,
+        message: 'Missing required fields'
+      });
+    }
+
+    // TODO: Implement signature verification for IPN/Callback
+    // PayTabs IPN/Callback may have different signature verification than return page
+
+    // Extract payment status from payment_result object
+    const responseStatus = payment_result?.response_status;
+    const responseMessage = payment_result?.response_message || 'Unknown status';
+    const transactionTime = payment_result?.transaction_time;
+
+    // Determine payment status - PayTabs uses 'A' for approved/successful
+    let paymentStatus: 'completed' | 'failed' | 'cancelled' = 'failed';
+    if (responseStatus === 'A') {
+      paymentStatus = 'completed';
+    } else if (responseStatus === 'C') {
+      paymentStatus = 'cancelled';
+    } else {
+      paymentStatus = 'failed';
+    }
+
+    console.log(`PayTabs IPN for order ${cart_id}: ${paymentStatus} (${responseMessage})`);
+
+    // Update payment transaction status in database
+    const paymentService = new PaymentService();
+    const updateResult = await paymentService.updatePaymentStatus(cart_id, paymentStatus);
+    
+    if (!updateResult.success) {
+      console.error('Failed to update payment status from IPN:', updateResult.error);
+    } else {
+      console.log('Payment status successfully updated from PayTabs IPN');
+    }
+
+    // PayTabs expects a simple success response for IPN/Callback
+    return res.status(200).json({
+      success: true,
+      message: 'IPN processed successfully'
+    });
+
+  } catch (error) {
+    console.error('PayTabs IPN/Callback processing error:', error);
+    
+    // Return error but don't expose internal details
+    return res.status(500).json({
+      success: false,
+      message: 'IPN processing failed'
+    });
+  }
 });
 
 /**

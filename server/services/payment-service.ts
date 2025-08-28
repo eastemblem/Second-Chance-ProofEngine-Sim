@@ -66,7 +66,8 @@ export class PaymentService {
     return {
       authorised: `${baseUrl}/api/payment/paytabs/return`,
       declined: `${baseUrl}/api/payment/paytabs/return`,
-      cancelled: `${baseUrl}/api/payment/paytabs/return`
+      cancelled: `${baseUrl}/api/payment/paytabs/return`,
+      callback: `${baseUrl}/api/payment/paytabs/callback`  // Server-to-server IPN/Callback URL
     };
   }
 

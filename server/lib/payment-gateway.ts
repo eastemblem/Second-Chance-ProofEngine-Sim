@@ -27,6 +27,7 @@ export interface ReturnUrls {
   authorised: string;
   declined: string;
   cancelled: string;
+  callback?: string;  // Optional callback URL for server-to-server IPN
 }
 
 export interface PaymentOrderData {
@@ -348,8 +349,8 @@ class PayTabsGateway extends PaymentGateway {
       framed: true, // Enable iframe embedding
       
       // Return URLs for payment flow
-      return: orderData.returnUrls.authorised,
-      callback: orderData.returnUrls.authorised, // PayTabs uses single callback URL
+      return: orderData.returnUrls.authorised,     // Browser-based return (form-encoded)
+      callback: orderData.returnUrls.callback,     // Server-to-server IPN/Callback (JSON)
       
       // Customer data to save time for users
       ...(orderData.customerData && {
