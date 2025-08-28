@@ -5,18 +5,20 @@ interface InvestorTestimonialProps {
   quote: string;
   name: string;
   title: string;
-  company: string;
+  company?: string;
   avatar?: string;
   rating?: number;
+  delay?: number;
 }
 
 export function InvestorTestimonial({ 
   quote, 
   name, 
   title, 
-  company, 
+  company = "", 
   avatar,
-  rating = 5 
+  rating = 5,
+  delay = 0
 }: InvestorTestimonialProps) {
   return (
     <Card className="p-6 bg-gradient-to-br from-gray-900/50 to-gray-800/50 border-gray-700 hover:border-purple-500/50 transition-colors">
@@ -47,7 +49,7 @@ export function InvestorTestimonial({
             
             <div>
               <div className="text-white font-medium">{name}</div>
-              <div className="text-gray-400 text-sm">{title} at {company}</div>
+              <div className="text-gray-400 text-sm">{company ? `${title} at ${company}` : title}</div>
             </div>
           </div>
         </div>

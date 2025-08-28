@@ -5,13 +5,23 @@ interface FeatureCardSimpleProps {
   icon: LucideIcon;
   title: string;
   description: string;
+  delay?: number;
+  gradientFrom?: string;
+  gradientTo?: string;
 }
 
-export function FeatureCardSimple({ icon: Icon, title, description }: FeatureCardSimpleProps) {
+export function FeatureCardSimple({ 
+  icon: Icon, 
+  title, 
+  description,
+  delay = 0,
+  gradientFrom = "from-purple-500",
+  gradientTo = "to-blue-600"
+}: FeatureCardSimpleProps) {
   return (
     <Card className="p-6 bg-gray-900/30 border-gray-800 hover:border-purple-500/50 transition-all duration-300 group">
       <div className="text-center">
-        <div className="w-12 h-12 bg-gradient-to-r from-purple-500 to-blue-600 rounded-lg p-3 mx-auto mb-4 group-hover:scale-110 transition-transform">
+        <div className={`w-12 h-12 bg-gradient-to-r ${gradientFrom} ${gradientTo} rounded-lg p-3 mx-auto mb-4 group-hover:scale-110 transition-transform`}>
           <Icon className="w-6 h-6 text-white" />
         </div>
         

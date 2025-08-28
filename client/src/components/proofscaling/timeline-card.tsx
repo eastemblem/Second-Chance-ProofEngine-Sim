@@ -8,6 +8,8 @@ interface TimelineCardProps {
   icon: LucideIcon;
   weekColor?: string;
   isActive?: boolean;
+  isLeft?: boolean;
+  delay?: number;
 }
 
 export function TimelineCard({ 
@@ -16,7 +18,9 @@ export function TimelineCard({
   description, 
   icon: Icon, 
   weekColor = "bg-blue-500",
-  isActive = false 
+  isActive = false,
+  isLeft = false,
+  delay = 0
 }: TimelineCardProps) {
   return (
     <Card className={`p-6 transition-all duration-300 ${

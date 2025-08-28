@@ -5,10 +5,12 @@ import { Button } from "@/components/ui/button";
 interface VideoPlayerProps {
   thumbnail?: string;
   title?: string;
+  subtitle?: string;
   duration?: string;
+  onPlay?: () => void;
 }
 
-export function VideoPlayer({ thumbnail, title = "ProofScaling Demo", duration = "3:45" }: VideoPlayerProps) {
+export function VideoPlayer({ thumbnail, title = "ProofScaling Demo", subtitle, duration = "3:45", onPlay }: VideoPlayerProps) {
   const [isPlaying, setIsPlaying] = useState(false);
 
   return (
@@ -16,7 +18,10 @@ export function VideoPlayer({ thumbnail, title = "ProofScaling Demo", duration =
       <div className="aspect-video bg-gradient-to-br from-purple-900/50 to-blue-900/50 flex items-center justify-center">
         {!isPlaying ? (
           <Button
-            onClick={() => setIsPlaying(true)}
+            onClick={() => {
+              setIsPlaying(true);
+              onPlay?.();
+            }}
             variant="ghost"
             size="lg"
             className="text-white hover:text-purple-200 hover:bg-white/10"
@@ -33,7 +38,10 @@ export function VideoPlayer({ thumbnail, title = "ProofScaling Demo", duration =
       
       <div className="p-4 bg-gray-900/80">
         <div className="flex items-center justify-between">
-          <h4 className="text-white font-medium">{title}</h4>
+          <div>
+            <h4 className="text-white font-medium">{title}</h4>
+            {subtitle && <p className="text-gray-400 text-sm">{subtitle}</p>}
+          </div>
           <span className="text-gray-400 text-sm">{duration}</span>
         </div>
       </div>

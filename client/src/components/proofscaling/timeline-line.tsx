@@ -1,9 +1,10 @@
 interface TimelineLineProps {
   isActive?: boolean;
   isCompleted?: boolean;
+  totalSteps?: number;
 }
 
-export function TimelineLine({ isActive = false, isCompleted = false }: TimelineLineProps) {
+export function TimelineLine({ isActive = false, isCompleted = false, totalSteps }: TimelineLineProps) {
   return (
     <div className="flex justify-center py-4">
       <div className={`w-1 h-8 transition-colors duration-300 ${
