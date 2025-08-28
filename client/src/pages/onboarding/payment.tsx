@@ -703,7 +703,7 @@ export default function PaymentOnboarding({ sessionData, onNext, onSkip, onPrev,
         >
           <div className="flex items-center justify-center text-muted-foreground text-sm">
             <Shield className="w-4 h-4 mr-2" />
-            Secure payment processing powered by Telr
+            Secure payment processing powered by PayTabs
           </div>
         </motion.div>
       </div>

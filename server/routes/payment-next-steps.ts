@@ -54,8 +54,8 @@ router.post("/create-next-steps-session", sessionPaymentRateLimit, async (req: R
       throw PaymentErrorHandler.validationError("packageType", packageType);
     }
 
-    // Convert USD to AED for Telr (approximate conversion: $100 USD = 367 AED)
-    const aedAmount = Math.round(amount * 3.67); // USD to AED conversion
+    // Use USD for PayTabs (primary gateway)
+    const paymentAmount = amount; // Keep original USD amount
     
     // Validate package type and amount
     if (amount !== 100) {
@@ -136,8 +136,8 @@ router.post("/create-next-steps-session", sessionPaymentRateLimit, async (req: R
 
     // Use PaymentService to create payment transaction in database
     const paymentRequest = {
-      amount: aedAmount,
-      currency: 'AED' as const,
+      amount: paymentAmount,
+      currency: 'USD' as const,
       description: `${packageType === 'foundation' ? 'ProofScaling Foundation Course' : 'Investment Ready Package'} - ${ventureName}`,
       metadata: {
         sessionId,
@@ -152,8 +152,8 @@ router.post("/create-next-steps-session", sessionPaymentRateLimit, async (req: R
       sessionId,
       ventureName,
       packageType,
-      amount: aedAmount,
-      currency: 'AED'
+      amount: paymentAmount,
+      currency: 'USD'
     });
 
     const paymentResult = await paymentService.createPayment({
@@ -161,7 +161,7 @@ router.post("/create-next-steps-session", sessionPaymentRateLimit, async (req: R
       request: paymentRequest,
       customerEmail: `session-${sessionId}@placeholder.com`,
       customerName: ventureName,
-      gatewayProvider: 'telr'
+      gatewayProvider: 'paytabs'
     });
 
     if (!paymentResult.success || !paymentResult.paymentUrl) {
@@ -196,13 +196,14 @@ router.post("/create-next-steps-session", sessionPaymentRateLimit, async (req: R
 
     console.log("Next Steps payment created successfully:", {
       paymentId: paymentResult.orderReference,
-      telrUrl: paymentResult.paymentUrl
+      paymentUrl: paymentResult.paymentUrl
     });
 
     return res.json({
       success: true,
       paymentId: paymentResult.orderReference,
-      telrUrl: paymentResult.paymentUrl,
+      telrUrl: paymentResult.paymentUrl, // Keep telrUrl for frontend compatibility
+      paymentUrl: paymentResult.paymentUrl, // Add new paymentUrl property
       telrRef: paymentResult.orderReference,
       message: "Payment created successfully"
     });
@@ -242,11 +243,12 @@ router.get("/status/:paymentId", paymentStatusRateLimit, async (req: Request, re
     const transaction = paymentStatus.transaction;
     const metadata = transaction.metadata as any;
 
-    // Always check current status with Telr if we have a gateway transaction ID
+    // Always check current status with gateway if we have a gateway transaction ID
     if (transaction.gatewayTransactionId) {
       try {
-        console.log(`Checking live payment status with Telr for transaction: ${transaction.gatewayTransactionId}`);
-        const gateway = PaymentGatewayFactory.create('telr');
+        const gatewayProvider = transaction.gatewayProvider || 'paytabs';
+        console.log(`Checking live payment status with ${gatewayProvider} for transaction: ${transaction.gatewayTransactionId}`);
+        const gateway = PaymentGatewayFactory.create(gatewayProvider);
         const statusResult = await gateway.checkStatus(transaction.gatewayTransactionId);
         
         if (statusResult.success && statusResult.status !== transaction.status) {
