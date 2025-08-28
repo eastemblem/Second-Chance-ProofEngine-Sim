@@ -24,12 +24,6 @@ const founderSchema = z.object({
   personalLinkedin: z.string().optional(),
   residence: z.string().optional(),
   isTechnical: z.boolean().default(false),
-  // Address fields for payment processing
-  phone: z.string().optional(),
-  street: z.string().optional(),
-  city: z.string().optional(),
-  state: z.string().optional(),
-  country: z.string().optional(),
 });
 
 type FounderFormData = z.infer<typeof founderSchema>;
@@ -63,12 +57,6 @@ export default function FounderOnboarding({
       personalLinkedin: initialData?.personalLinkedin || "",
       residence: initialData?.residence || "",
       isTechnical: initialData?.isTechnical || false,
-      // Address fields
-      phone: initialData?.phone || "",
-      street: initialData?.street || "",
-      city: initialData?.city || "",
-      state: initialData?.state || "",
-      country: initialData?.country || "",
     }
   });
 
@@ -258,70 +246,6 @@ export default function FounderOnboarding({
             className="mt-1"
             placeholder="City, Country"
           />
-        </div>
-
-        {/* Address Information Section */}
-        <div className="border-t pt-6">
-          <h3 className="text-lg font-medium text-foreground mb-4">
-            Contact & Address Information
-          </h3>
-          <p className="text-sm text-muted-foreground mb-4">
-            This information is used for payment processing and communication.
-          </p>
-          
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-            <div>
-              <Label htmlFor="phone">Phone Number</Label>
-              <Input
-                id="phone"
-                {...form.register("phone")}
-                className="mt-1"
-                placeholder="+971501234567"
-              />
-            </div>
-
-            <div>
-              <Label htmlFor="country">Country</Label>
-              <Input
-                id="country"
-                {...form.register("country")}
-                className="mt-1"
-                placeholder="United Arab Emirates"
-              />
-            </div>
-          </div>
-
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mt-4">
-            <div>
-              <Label htmlFor="city">City</Label>
-              <Input
-                id="city"
-                {...form.register("city")}
-                className="mt-1"
-                placeholder="Dubai"
-              />
-            </div>
-
-            <div>
-              <Label htmlFor="state">State/Emirate</Label>
-              <Input
-                id="state"
-                {...form.register("state")}
-                className="mt-1"
-                placeholder="Dubai"
-              />
-            </div>
-          </div>
-
-          <div className="mt-4">
-            <Label htmlFor="street">Street Address</Label>
-            <Input
-              id="street"
-              {...form.register("street")}
-              className="mt-1"
-              placeholder="123 Business Bay, Sheikh Zayed Road"
-            />
-          </div>
         </div>
 
         <div>
