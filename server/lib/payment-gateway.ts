@@ -337,7 +337,7 @@ class PayTabsGateway extends PaymentGateway {
   }
 
   async createOrder(orderData: PaymentOrderData): Promise<PaymentOrderResponse> {
-    // Build the basic PayTabs request according to their API spec
+    // Create a minimal PayTabs request to avoid validation issues
     const payTabsRequest: any = {
       profile_id: parseInt(this.profileId!),
       tran_type: 'sale',
@@ -346,65 +346,20 @@ class PayTabsGateway extends PaymentGateway {
       cart_currency: orderData.currency,
       cart_amount: parseFloat(orderData.amount.toFixed(2)),
       cart_description: orderData.description,
-      framed: true,
       return: orderData.returnUrls.authorised,
-      callback: orderData.returnUrls.callback
+      callback: orderData.returnUrls.callback,
+      framed: true
     };
 
-    // Add customer details only if we have the required fields
+    // Add minimal customer details if email is available
     if (orderData.customerData?.email) {
       payTabsRequest.customer_details = {
-        name: orderData.customerData.name?.forenames || orderData.customerData.name?.surname 
-          ? `${orderData.customerData.name.forenames || ''} ${orderData.customerData.name.surname || ''}`.trim()
-          : 'Customer',
+        name: 'Customer',  // Use simple static name to avoid issues
         email: orderData.customerData.email
-      };
-      
-      // Add optional fields only if they exist
-      if (orderData.customerData.phone) {
-        payTabsRequest.customer_details.phone = orderData.customerData.phone;
-      }
-      if (orderData.customerData.address?.line1) {
-        payTabsRequest.customer_details.street1 = orderData.customerData.address.line1;
-      }
-      if (orderData.customerData.address?.city) {
-        payTabsRequest.customer_details.city = orderData.customerData.address.city;
-      }
-      if (orderData.customerData.address?.state) {
-        payTabsRequest.customer_details.state = orderData.customerData.address.state;
-      }
-      if (orderData.customerData.address?.country) {
-        payTabsRequest.customer_details.country = orderData.customerData.address.country;
-      }
-      if (orderData.customerData.address?.areacode) {
-        payTabsRequest.customer_details.zip = orderData.customerData.address.areacode;
-      }
-    }
-
-    // Add metadata for tracking (only if metadata exists)
-    if (orderData.metadata) {
-      payTabsRequest.user_defined = {
-        gateway: 'paytabs',
-        founderId: orderData.metadata.founderId,
-        planType: orderData.metadata.planType,
-        purpose: orderData.metadata.purpose,
-        displayAmount: orderData.metadata.displayAmount?.toString(),
-        displayCurrency: orderData.metadata.displayCurrency
       };
     }
 
     try {
-      winston.info('PayTabs API Request', { 
-        url: this.baseUrl,
-        profileId: this.profileId,
-        testMode: this.testMode,
-        cartId: payTabsRequest.cart_id,
-        amount: payTabsRequest.cart_amount,
-        currency: payTabsRequest.cart_currency,
-        returnUrl: payTabsRequest.return,
-        callbackUrl: payTabsRequest.callback
-      });
-      
       const response = await fetch(this.baseUrl, {
         method: 'POST',
         headers: {
@@ -415,12 +370,6 @@ class PayTabsGateway extends PaymentGateway {
       });
 
       const responseText = await response.text();
-      
-      winston.info('PayTabs API Response', { 
-        status: response.status,
-        statusText: response.statusText,
-        responseBody: responseText.substring(0, 300)
-      });
       
       let result;
       try {
