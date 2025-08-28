@@ -351,29 +351,12 @@ export class PaymentService {
 
         // Send payment status change notification
         await this.sendPaymentStatusNotification(transaction, statusResult.status);
-        if (statusResult.status === 'completed') {
-          try {
-            await ActivityService.logActivity(
-              { founderId: transaction.founderId },
-              {
-                activityType: 'venture',
-                action: 'payment_completed',
-                title: 'Payment Successful',
-                description: `Payment completed for ${transaction.description}`,
-                metadata: {
-                  orderReference: transaction.orderReference,
-                  amount: transaction.amount,
-                  currency: transaction.currency,
-                  purpose: transaction.metadata && typeof transaction.metadata === 'object' && 'purpose' in transaction.metadata 
-                    ? (transaction.metadata as any).purpose 
-                    : 'Payment',
-                  gatewayProvider: transaction.gatewayProvider
-                }
-              }
-            );
-          } catch (error) {
-            appLogger.error('Payment completion activity logging error', error);
-          }
+        
+        // Log user activity for all payment status changes
+        try {
+          await this.logPaymentStatusActivity(transaction, statusResult.status);
+        } catch (error) {
+          appLogger.error('Payment status activity logging error', error);
         }
 
         // Create subscription if payment completed
@@ -442,13 +425,20 @@ export class PaymentService {
 
       // Update transaction status if changed (skip 'unknown' status)
       if (webhookResult.status !== transaction.status && webhookResult.status !== 'unknown') {
-        await storage.updatePaymentTransaction(transaction.id, {
+        const updatedTransaction = await storage.updatePaymentTransaction(transaction.id, {
           status: webhookResult.status,
           gatewayTransactionId: webhookResult.transactionId,
           gatewayResponse: webhookResult.gatewayResponse
         });
 
         await this.logPaymentAction(transaction.id, provider as any, 'webhook_received', webhookResult.gatewayResponse);
+
+        // Log user activity for webhook status changes
+        try {
+          await this.logPaymentStatusActivity({...transaction, ...updatedTransaction}, webhookResult.status);
+        } catch (error) {
+          appLogger.error('Webhook payment activity logging error', error);
+        }
 
         // Send webhook status notification
         await this.sendWebhookNotification(transaction, webhookResult.status, provider);
@@ -810,6 +800,13 @@ ${statusEmoji} **${statusText}**
         newStatus: status
       });
 
+      // Log user activity for manual status changes
+      try {
+        await this.logPaymentStatusActivity({...transaction, ...updatedTransaction}, status);
+      } catch (error) {
+        appLogger.error('Manual payment status activity logging error', error);
+      }
+
       return {
         success: true,
         transaction: updatedTransaction
@@ -826,6 +823,102 @@ ${statusEmoji} **${statusText}**
 
   async getPaymentHistory(founderId: string) {
     return await storage.getPaymentTransactions(founderId);
+  }
+
+  /**
+   * Log user activity for payment status changes
+   */
+  private async logPaymentStatusActivity(transaction: any, newStatus: string) {
+    const purpose = transaction.metadata && typeof transaction.metadata === 'object' && 'purpose' in transaction.metadata 
+      ? (transaction.metadata as any).purpose 
+      : 'Payment';
+
+    const baseMetadata = {
+      orderReference: transaction.orderReference,
+      amount: transaction.amount,
+      currency: transaction.currency,
+      purpose,
+      gatewayProvider: transaction.gatewayProvider,
+      previousStatus: transaction.status,
+      newStatus
+    };
+
+    let activityData;
+
+    switch (newStatus) {
+      case 'completed':
+        activityData = {
+          activityType: 'venture' as const,
+          action: 'payment_completed',
+          title: 'Payment Successful',
+          description: `Payment completed for ${transaction.description || purpose}`,
+          metadata: baseMetadata
+        };
+        break;
+
+      case 'failed':
+        activityData = {
+          activityType: 'venture' as const,
+          action: 'payment_failed',
+          title: 'Payment Failed',
+          description: `Payment failed for ${transaction.description || purpose}`,
+          metadata: baseMetadata
+        };
+        break;
+
+      case 'cancelled':
+        activityData = {
+          activityType: 'venture' as const,
+          action: 'payment_cancelled',
+          title: 'Payment Cancelled',
+          description: `Payment cancelled for ${transaction.description || purpose}`,
+          metadata: baseMetadata
+        };
+        break;
+
+      case 'expired':
+        activityData = {
+          activityType: 'venture' as const,
+          action: 'payment_expired',
+          title: 'Payment Expired',
+          description: `Payment expired for ${transaction.description || purpose}`,
+          metadata: baseMetadata
+        };
+        break;
+
+      case 'pending':
+        activityData = {
+          activityType: 'venture' as const,
+          action: 'payment_pending',
+          title: 'Payment Pending',
+          description: `Payment is pending for ${transaction.description || purpose}`,
+          metadata: baseMetadata
+        };
+        break;
+
+      default:
+        // For any other status changes, log as general payment status update
+        activityData = {
+          activityType: 'venture' as const,
+          action: 'payment_status_updated',
+          title: 'Payment Status Updated',
+          description: `Payment status changed to ${newStatus} for ${transaction.description || purpose}`,
+          metadata: baseMetadata
+        };
+        break;
+    }
+
+    await ActivityService.logActivity(
+      { founderId: transaction.founderId },
+      activityData
+    );
+
+    appLogger.business(`Payment activity logged: ${activityData.action}`, {
+      founderId: transaction.founderId,
+      orderReference: transaction.orderReference,
+      status: newStatus,
+      action: activityData.action
+    });
   }
 }
 
