@@ -302,17 +302,39 @@ export class PaymentService {
 
       // Always check with gateway for latest status (no caching to prevent status discrepancies)
       const gateway = PaymentGatewayFactory.create(transaction.gatewayProvider);
-      const statusResult = await gateway.checkStatus(transaction.gatewayTransactionId || orderReference);
-
-      // Handle cases where gateway can't find the transaction (archived/completed transactions)
-      if (statusResult.success && statusResult.status === 'unknown') {
-        console.log(`Gateway returned unknown status for ${orderReference}, using database status: ${transaction.status}`);
-        return {
-          success: true,
-          status: transaction.status,
-          transaction
-        };
+      
+      // For PayTabs, we need to use the PayTabs tran_ref, not our cart_id
+      let queryReference = orderReference;
+      if (transaction.gatewayProvider === 'paytabs' && transaction.gatewayResponse) {
+        try {
+          const gatewayResponse = typeof transaction.gatewayResponse === 'string' 
+            ? JSON.parse(transaction.gatewayResponse) 
+            : transaction.gatewayResponse;
+          
+          if (gatewayResponse.paytabs_tran_ref || gatewayResponse.tran_ref) {
+            queryReference = gatewayResponse.paytabs_tran_ref || gatewayResponse.tran_ref;
+            console.log(`Using PayTabs tran_ref for status check: ${queryReference}`);
+          } else {
+            console.log(`No PayTabs tran_ref found, transaction may have failed during creation. Using database status.`);
+            return {
+              success: true,
+              status: transaction.status,
+              transaction
+            };
+          }
+        } catch (error) {
+          console.log(`Could not parse gateway response, using database status: ${error}`);
+          return {
+            success: true,
+            status: transaction.status,
+            transaction
+          };
+        }
       }
+      
+      const statusResult = await gateway.checkStatus(queryReference);
+
+
 
       if (statusResult.success && statusResult.status !== transaction.status && statusResult.status !== 'unknown') {
         // Update transaction status (skip 'unknown' status as it's not a real status change)

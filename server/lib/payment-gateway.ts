@@ -434,11 +434,13 @@ class PayTabsGateway extends PaymentGateway {
   }
 
   async checkStatus(orderRef: string): Promise<PaymentStatusResponse> {
-    // PayTabs accepts either tran_ref OR cart_id for status queries
-    // Since we store our internal order reference (cart_id), use that for queries
+    // PayTabs query needs the actual tran_ref, not our cart_id
+    // For PayTabs, we need to extract the tran_ref from the stored gateway response
+    console.log(`PayTabs status check - looking for transaction with order reference: ${orderRef}`);
+    
     const queryRequest = {
       profile_id: parseInt(this.profileId!),
-      cart_id: orderRef  // Use cart_id instead of tran_ref since we store our internal order reference
+      tran_ref: orderRef  // This should be the PayTabs tran_ref, not our cart_id
     };
 
     try {
@@ -474,14 +476,9 @@ class PayTabsGateway extends PaymentGateway {
       if (result.response_code !== '2000') {
         console.error(`PayTabs status check error:`, result);
         
-        // Special handling for "No entries found" - this is normal for completed/archived transactions
+        // PayTabs returns "No entries found" when transaction doesn't exist or wasn't created properly
         if (result.code === 2 && result.message === 'No entries found') {
-          console.log(`PayTabs transaction not found - likely completed and archived: ${orderRef}`);
-          return {
-            success: true,
-            status: 'unknown', // Let the payment service handle this with database status
-            gatewayResponse: result
-          };
+          console.error(`PayTabs transaction not found: ${orderRef} - transaction may have failed during creation`);
         }
         
         return {
