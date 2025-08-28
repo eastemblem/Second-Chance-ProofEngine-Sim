@@ -7,6 +7,7 @@ import { onboardingService } from '../../services/onboarding-service';
 import { requireSession } from '../../middleware/auth';
 import { founderOnboardingSchema, ventureOnboardingSchema, teamMemberSchema } from '../../onboarding';
 import { lruCacheService } from '../../services/lru-cache-service';
+import { appLogger } from '../../utils/logger';
 
 const router = Router();
 
@@ -47,7 +48,11 @@ router.post("/founder", asyncHandler(async (req: Request, res: Response) => {
   // Use sessionId from request body if provided, otherwise get from middleware
   const { sessionId: requestSessionId, ...founderData } = req.body;
   const sessionId = requestSessionId || getSessionId(req);
-  console.log(`V1 Founder API received sessionId: ${sessionId} (from request: ${requestSessionId})`);
+  appLogger.api('V1 Founder onboarding step', { 
+    sessionId, 
+    requestSessionId, 
+    hasFounderData: !!founderData 
+  });
   
   const validation = safeValidate(founderOnboardingSchema, founderData);
   if (!validation.success) {
@@ -70,9 +75,12 @@ router.post("/founder", asyncHandler(async (req: Request, res: Response) => {
   if (result.founderId) {
     try {
       await lruCacheService.invalidate('founder', result.founderId);
-      console.log(`🗑️ V1 ONBOARDING: Founder cache invalidated for ${result.founderId}`);
+      appLogger.api('V1 onboarding - founder cache invalidated', { founderId: result.founderId });
     } catch (cacheError) {
-      console.error(`⚠️ V1 ONBOARDING: Founder cache invalidation failed:`, cacheError);
+      appLogger.api('V1 onboarding - founder cache invalidation failed', { 
+        founderId: result.founderId, 
+        error: cacheError instanceof Error ? cacheError.message : 'Unknown error' 
+      });
       // Don't fail the onboarding if cache invalidation fails
     }
   }
@@ -89,8 +97,11 @@ router.post("/venture", asyncHandler(async (req: Request, res: Response) => {
   // Use sessionId from request body if provided, otherwise get from middleware
   const { sessionId: requestSessionId, ...ventureData } = req.body;
   const sessionId = requestSessionId || getSessionId(req);
-  console.log(`V1 Venture API received sessionId: ${sessionId} (from request: ${requestSessionId})`);
-  console.log(`V1 Venture data received:`, JSON.stringify(ventureData, null, 2));
+  appLogger.api('V1 Venture onboarding step', { 
+    sessionId, 
+    requestSessionId, 
+    hasVentureData: !!ventureData 
+  });
   
   const validation = safeValidate(ventureOnboardingSchema, ventureData);
   if (!validation.success) {
@@ -105,9 +116,16 @@ router.post("/venture", asyncHandler(async (req: Request, res: Response) => {
       await lruCacheService.invalidate('founder', result.venture.founderId);
       await lruCacheService.invalidate('venture', result.venture.ventureId);
       await lruCacheService.invalidate('dashboard', `vault_${result.venture.founderId}`);
-      console.log(`🗑️ V1 ONBOARDING: Cache invalidated for founder ${result.venture.founderId} and venture ${result.venture.ventureId}`);
+      appLogger.api('V1 onboarding - cache invalidated', { 
+        founderId: result.venture.founderId, 
+        ventureId: result.venture.ventureId 
+      });
     } catch (cacheError) {
-      console.error(`⚠️ V1 ONBOARDING: Cache invalidation failed:`, cacheError);
+      appLogger.api('V1 onboarding - cache invalidation failed', { 
+        founderId: result.venture.founderId, 
+        ventureId: result.venture.ventureId,
+        error: cacheError instanceof Error ? cacheError.message : 'Unknown error' 
+      });
       // Don't fail the onboarding if cache invalidation fails
     }
   }
@@ -121,7 +139,10 @@ router.post("/venture", asyncHandler(async (req: Request, res: Response) => {
 
 // Submit for scoring endpoint - EXACT SAME LOGIC as routes.ts
 router.post('/submit-for-scoring', asyncHandler(async (req: Request, res: Response) => {
-  console.log('V1 submit-for-scoring endpoint called with body:', JSON.stringify(req.body, null, 2));
+  appLogger.api('V1 submit-for-scoring endpoint called', { 
+    hasBody: !!req.body, 
+    sessionId: req.body?.sessionId 
+  });
   const { sessionId } = req.body;
   
   if (!sessionId) {
@@ -136,13 +157,17 @@ router.post('/submit-for-scoring', asyncHandler(async (req: Request, res: Respon
   }
 
   try {
-    console.log('Calling onboardingService.submitForScoring with sessionId:', sessionId);
+    appLogger.api('Calling onboardingService.submitForScoring', { sessionId });
     const result = await onboardingService.submitForScoring(sessionId);
-    console.log('Scoring result received:', result ? 'SUCCESS' : 'NULL');
+    appLogger.api('Scoring result received', { 
+      sessionId, 
+      success: !!result,
+      hasResult: result !== null && result !== undefined 
+    });
     
     // Check if the scoring result contains an error (like user action required)
     if (result.scoringResult?.hasError) {
-      console.log('Scoring result contains user action required error, returning success response with error details');
+      appLogger.api('Scoring result contains user action required error', { sessionId });
       const response = {
         success: true,
         data: {
@@ -177,7 +202,10 @@ router.post('/submit-for-scoring', asyncHandler(async (req: Request, res: Respon
     res.setHeader('Content-Type', 'application/json');
     res.json(response);
   } catch (error) {
-    console.error('Submit for scoring error:', error);
+    appLogger.api('Submit for scoring error', { 
+      sessionId: req.body?.sessionId, 
+      error: error instanceof Error ? error.message : 'Unknown error' 
+    });
     const errorMessage = error instanceof Error ? error.message : 'Unknown error';
     res.setHeader('Content-Type', 'application/json');
     res.status(500).json({
@@ -284,9 +312,13 @@ router.post("/team/complete", asyncHandler(async (req: Request, res: Response) =
 // Legacy onboarding data storage - EXACT SAME LOGIC as routes.ts
 router.post('/store', asyncHandler(async (req: Request, res: Response) => {
   const founderData = req.body;
-  console.log("Storing onboarding data in session:", founderData);
+  const sessionId = getSessionId(req);
+  appLogger.api('Storing onboarding data in session', { 
+    hasFounderData: !!founderData, 
+    sessionId 
+  });
 
-  updateSessionData(req, {
+  updateSessionData(sessionId, {
     founderData,
     startupName: founderData.startupName,
   });

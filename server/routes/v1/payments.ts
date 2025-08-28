@@ -56,7 +56,10 @@ router.post("/create", async (req: AuthenticatedRequest, res) => {
           founderId
         );
       } catch (notificationError) {
-        console.error('Payment initiation notification failed:', notificationError);
+        appLogger.api('Payment initiation notification failed', { 
+          founderId, 
+          error: notificationError instanceof Error ? notificationError.message : 'Unknown error' 
+        });
         // Don't fail the payment if notification fails
       }
     }
@@ -99,7 +102,10 @@ router.post("/create", async (req: AuthenticatedRequest, res) => {
             founderId
           );
         } catch (notificationError) {
-          console.error('Payment failure notification error:', notificationError);
+          appLogger.api('Payment failure notification error', { 
+            founderId, 
+            error: notificationError instanceof Error ? notificationError.message : 'Unknown error' 
+          });
         }
       }
       
@@ -137,7 +143,10 @@ router.post("/create", async (req: AuthenticatedRequest, res) => {
           founderId
         );
       } catch (notificationError) {
-        console.error('Payment creation success notification error:', notificationError);
+        appLogger.api('Payment creation success notification error', { 
+          founderId, 
+          error: notificationError instanceof Error ? notificationError.message : 'Unknown error' 
+        });
       }
     }
 

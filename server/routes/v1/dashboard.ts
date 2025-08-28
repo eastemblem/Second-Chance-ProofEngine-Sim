@@ -311,7 +311,10 @@ router.get('/activity', asyncHandler(async (req: Request, res: Response) => {
     appLogger.api(`PAGINATION: Returning ${formattedActivities.length} activities (page ${page}/${totalPages})`);
     res.json(response);
   } catch (error) {
-    console.error("Dashboard activity error:", error);
+    appLogger.api('Dashboard activity error', { 
+      founderId: (req as any).user?.founderId, 
+      error: error instanceof Error ? error.message : 'Unknown error' 
+    });
     res.status(500).json({ error: "Failed to load activity data" });
   }
 }));
@@ -460,7 +463,10 @@ async function getCategoryFromFolderId(folderId: string, founderId?: string): Pr
       const { getCategoryFromFolderIdDB } = await import('../../utils/folder-mapping');
       return await getCategoryFromFolderIdDB(folderId, founderId);
     } catch (error) {
-      console.error('Error getting category from database:', error);
+      appLogger.api('Error getting category from database', { 
+        folderId, 
+        error: error instanceof Error ? error.message : 'Unknown error' 
+      });
     }
   }
   

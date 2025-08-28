@@ -4,6 +4,7 @@ import { eastEmblemAPI } from '../../eastemblem-api';
 import { getSessionId } from '../../utils/session-manager';
 import { createSuccessResponse } from '../../utils/error-handler';
 import { onboardingService } from '../../services/onboarding-service';
+import { appLogger } from '../../utils/logger';
 
 const router = Router();
 
@@ -57,7 +58,10 @@ router.post('/email/send-manual', async (req, res) => {
     });
     
   } catch (error) {
-    console.error('Manual email send error:', error);
+    appLogger.api('Manual email send error', { 
+      sessionId: req.body?.sessionId, 
+      error: error instanceof Error ? error.message : 'Unknown error' 
+    });
     res.status(500).json({
       success: false,
       error: error instanceof Error ? error.message : 'Unknown error'

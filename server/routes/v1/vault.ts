@@ -116,7 +116,7 @@ router.post('/create-startup-vault', asyncHandler(async (req: Request, res: Resp
 
   // Sanitize startup name for logging to prevent security scanner warnings
   const sanitizedStartupName = String(startupName).replace(/[<>&"']/g, '');
-  console.log(`Creating startup vault for: ${sanitizedStartupName}`);
+  appLogger.api('Creating startup vault', { startupName: sanitizedStartupName });
 
   const folderStructure = await eastEmblemAPI.createFolderStructure(startupName, getSessionId(req));
 
@@ -138,7 +138,7 @@ router.get('/session', asyncHandler(async (req: Request, res: Response) => {
   const sessionId = getSessionId(req);
   const sessionData = await getSessionData(sessionId);
 
-  console.log("Retrieved session data:", {
+  appLogger.api('Retrieved session data', {
     sessionId: getSessionId(req),
     hasStructure: !!sessionData.folderStructure,
     filesCount: sessionData.uploadedFiles?.length || 0,
@@ -161,7 +161,7 @@ router.post('/upload-only', upload.single("file"), asyncHandler(async (req: Requ
 
   // Sanitize filename for logging to prevent security scanner warnings
   const sanitizedFilename = String(file.originalname).replace(/[<>&"']/g, '');
-  console.log(`Storing file for later processing: ${sanitizedFilename}`);
+  appLogger.api('Storing file for later processing', { filename: sanitizedFilename });
 
   const sessionId = getSessionId(req);
   updateSessionData(sessionId, {
@@ -306,7 +306,7 @@ router.post('/upload-file', upload.single("file"), asyncHandler(async (req: Auth
         const sanitizedVentureId = String(currentVentureId).replace(/[^\w-]/g, '');
         appLogger.database(`V1 UPLOAD: Resolved founder ${founderId} to venture ${currentVentureId}`);
       } catch (ventureError) {
-        console.error(`⚠️ V1 UPLOAD: Failed to get venture ID for founder ${founderId}:`, ventureError);
+        appLogger.api('V1 upload - failed to get venture ID', { founderId, error: ventureError instanceof Error ? ventureError.message : 'Unknown error' });
       }
 
       const uploadRecord = await storage.createDocumentUpload({
@@ -328,7 +328,7 @@ router.post('/upload-file', upload.single("file"), asyncHandler(async (req: Auth
       const sanitizedVentureId = String(currentVentureId).replace(/[^\w-]/g, '');
       appLogger.database(`V1 UPLOAD: Database record created with ID ${uploadRecord.uploadId} for venture ${currentVentureId}`);
     } catch (dbError) {
-      console.error(`❌ V1 UPLOAD: Database storage failed:`, dbError);
+      appLogger.api('V1 upload - database storage failed', { founderId, error: dbError instanceof Error ? dbError.message : 'Unknown error' });
       // Continue without failing the upload since Box.com upload succeeded
     }
 
@@ -362,7 +362,7 @@ router.post('/upload-file', upload.single("file"), asyncHandler(async (req: Auth
         const sanitizedFounderId = String(founderId).replace(/[^\w-]/g, '');
         appLogger.cache(`V1 UPLOAD: Cache invalidated for founder ${founderId}`);
       } catch (cacheError) {
-        console.error(`⚠️ V1 UPLOAD: Cache invalidation failed:`, cacheError);
+        appLogger.api('V1 upload - cache invalidation failed', { founderId, error: cacheError instanceof Error ? cacheError.message : 'Unknown error' });
         // Don't fail the upload if cache invalidation fails
       }
     }
@@ -388,7 +388,7 @@ router.post('/upload-file', upload.single("file"), asyncHandler(async (req: Auth
 
   } catch (error) {
     const errorMessage = error instanceof Error ? error.message : String(error);
-    console.error(`❌ V1 UPLOAD: Failed to resolve category to folder ID:`, error);
+    appLogger.api('V1 upload - failed to resolve category to folder ID', { founderId, error: error instanceof Error ? error.message : 'Unknown error' });
     
     // Log activity even on failure (currentVentureId is now accessible)
     try {
@@ -408,7 +408,7 @@ router.post('/upload-file', upload.single("file"), asyncHandler(async (req: Auth
         }
       );
     } catch (activityError) {
-      console.error(`❌ V1 UPLOAD: Failed to log activity:`, activityError);
+      appLogger.api('V1 upload - failed to log activity', { founderId, error: activityError instanceof Error ? activityError.message : 'Unknown error' });
     }
     
     // Cleanup uploaded file on error
@@ -757,7 +757,10 @@ router.post('/upload-file-direct', upload.single("file"), asyncHandler(async (re
 
   } catch (error) {
     const errorMessage = error instanceof Error ? error.message : String(error);
-    console.error(`❌ V1 DIRECT UPLOAD: Failed to upload file:`, error);
+    appLogger.api('V1 direct upload failed', { 
+      error: error instanceof Error ? error.message : 'Unknown error',
+      fileName: file?.originalname 
+    });
     
     // Cleanup uploaded file on error
     if (file.path && fs.existsSync(file.path)) {
@@ -786,7 +789,12 @@ router.get('/files', asyncHandler(async (req: AuthenticatedRequest, res: Respons
   const sanitizedPage = Number(page);
   const sanitizedLimit = Number(limit);
   const sanitizedOffset = Number(offset);
-  console.log(`📡 FILES PAGINATION: Fetching files - page: ${sanitizedPage}, limit: ${sanitizedLimit}, offset: ${sanitizedOffset}`);
+  appLogger.api('Files pagination request', { 
+    founderId, 
+    page: sanitizedPage, 
+    limit: sanitizedLimit, 
+    offset: sanitizedOffset 
+  });
   
   try {
     const { storage } = await import("../../storage");
@@ -848,7 +856,13 @@ router.get('/files', asyncHandler(async (req: AuthenticatedRequest, res: Respons
     const sanitizedPage = Number(page);
     const sanitizedTotalPages = Number(totalPages);
     const filesCount = Number(formattedFiles.length);
-    console.log(`📡 FILES PAGINATION: Returning ${filesCount} files (page ${sanitizedPage}/${sanitizedTotalPages})`);
+    appLogger.api('Files pagination response', { 
+      founderId, 
+      filesCount, 
+      currentPage: sanitizedPage, 
+      totalPages: sanitizedTotalPages,
+      totalFiles 
+    });
     
     res.json({
       files: formattedFiles,
@@ -862,7 +876,10 @@ router.get('/files', asyncHandler(async (req: AuthenticatedRequest, res: Respons
     });
     
   } catch (error) {
-    console.error("Files pagination error:", error);
+    appLogger.api('Files pagination error', { 
+      founderId, 
+      error: error instanceof Error ? error.message : 'Unknown error' 
+    });
     res.status(500).json({ error: "Failed to load files" });
   }
 }));
