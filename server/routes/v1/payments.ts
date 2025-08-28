@@ -4,7 +4,7 @@ import { createPaymentRequestSchema, checkPaymentStatusSchema } from "../../lib/
 import { authenticateToken, type AuthenticatedRequest } from "../../middleware/token-auth.js";
 import { storage } from "../../storage.js";
 import { eastEmblemAPI } from "../../eastemblem-api.js";
-import winston from "winston";
+import { appLogger } from "../../utils/logger";
 
 const router = Router();
 
@@ -71,7 +71,7 @@ router.post("/create", async (req: AuthenticatedRequest, res) => {
     });
 
     if (!result.success) {
-      winston.error("Payment creation failed", { 
+      appLogger.error("Payment creation failed", null, { 
         founderId, 
         error: result.error,
         service: "second-chance-api",
@@ -108,7 +108,7 @@ router.post("/create", async (req: AuthenticatedRequest, res) => {
       });
     }
 
-    winston.info("Payment order created successfully", {
+    appLogger.business("Payment order created successfully", {
       founderId,
       orderReference: result.orderReference,
       service: "second-chance-api",
@@ -148,7 +148,7 @@ router.post("/create", async (req: AuthenticatedRequest, res) => {
     });
 
   } catch (error) {
-    winston.error("Payment creation error", { 
+    appLogger.error("Payment creation error", null, { 
       error: error instanceof Error ? error.message : 'Unknown error',
       service: "second-chance-api",
       category: "payment"
@@ -210,7 +210,7 @@ router.get("/status/:orderReference", async (req: AuthenticatedRequest, res) => 
     });
 
   } catch (error) {
-    winston.error("Payment status check error", { 
+    appLogger.error("Payment status check error", null, { 
       error: error instanceof Error ? error.message : 'Unknown error',
       orderReference: req.params.orderReference,
       service: "second-chance-api",
@@ -250,7 +250,7 @@ router.get("/history", async (req: AuthenticatedRequest, res) => {
     });
 
   } catch (error) {
-    winston.error("Payment history error", { 
+    appLogger.error("Payment history error", null, { 
       error: error instanceof Error ? error.message : 'Unknown error',
       founderId: req.user?.founderId,
       service: "second-chance-api",
@@ -289,7 +289,7 @@ router.get("/subscriptions", async (req: AuthenticatedRequest, res) => {
     });
 
   } catch (error) {
-    winston.error("Subscriptions fetch error", { 
+    appLogger.error("Subscriptions fetch error", null, { 
       error: error instanceof Error ? error.message : 'Unknown error',
       founderId: req.user?.founderId,
       service: "second-chance-api",
@@ -321,7 +321,7 @@ router.get("/deal-room-access", async (req: AuthenticatedRequest, res) => {
         ventureStatus = primaryVenture.status;
       }
     } catch (error) {
-      winston.warn("Could not fetch venture status", { 
+      appLogger.warn("Could not fetch venture status", { 
         founderId, 
         error: error instanceof Error ? error.message : 'Unknown error' 
       });
@@ -334,7 +334,7 @@ router.get("/deal-room-access", async (req: AuthenticatedRequest, res) => {
     });
 
   } catch (error) {
-    winston.error("Deal room access check error", { 
+    appLogger.error("Deal room access check error", null, { 
       error: error instanceof Error ? error.message : 'Unknown error',
       founderId: req.user?.founderId,
       service: "second-chance-api",
@@ -406,7 +406,7 @@ router.get("/activities", async (req: AuthenticatedRequest, res) => {
     });
 
   } catch (error) {
-    winston.error("Failed to get payment activities", { 
+    appLogger.error("Failed to get payment activities", null, { 
       founderId: req.user?.founderId, 
       error: error instanceof Error ? error.message : 'Unknown error',
       service: "second-chance-api",
@@ -429,7 +429,7 @@ router.post('/cancel/:orderRef', async (req: AuthenticatedRequest, res) => {
 
     const { orderRef } = req.params;
     
-    winston.info("Payment cancellation requested", {
+    appLogger.business("Payment cancellation requested", {
       founderId,
       orderRef,
       service: "second-chance-api",
@@ -440,7 +440,7 @@ router.post('/cancel/:orderRef', async (req: AuthenticatedRequest, res) => {
     const result = await storage.cancelPaymentTransaction(orderRef, founderId);
     
     if (result.success) {
-      winston.info("Payment marked as cancelled successfully", {
+      appLogger.business("Payment marked as cancelled successfully", {
         founderId,
         orderRef,
         service: "second-chance-api",
@@ -453,7 +453,7 @@ router.post('/cancel/:orderRef', async (req: AuthenticatedRequest, res) => {
         orderReference: orderRef
       });
     } else {
-      winston.warn("Failed to cancel payment - transaction not found or unauthorized", {
+      appLogger.warn("Failed to cancel payment - transaction not found or unauthorized", {
         founderId,
         orderRef,
         service: "second-chance-api",
@@ -466,7 +466,7 @@ router.post('/cancel/:orderRef', async (req: AuthenticatedRequest, res) => {
     }
 
   } catch (error) {
-    winston.error("Failed to cancel payment", {
+    appLogger.error("Failed to cancel payment", null, {
       founderId: req.user?.founderId,
       orderRef: req.params.orderRef,
       error: error instanceof Error ? error.message : 'Unknown error',

@@ -3,7 +3,7 @@ import { storage } from '../storage.js';
 import type { PaymentTransaction, InsertPaymentTransaction, InsertUserSubscription, InsertPaymentLog } from '@shared/schema';
 import { v4 as uuidv4 } from 'uuid';
 import { ActivityService } from './activity-service.js';
-import winston from 'winston';
+import { appLogger } from '../utils/logger';
 import { onboardingNotificationService } from './onboardingNotificationService';
 import { eastEmblemAPI } from '../eastemblem-api.js';
 
@@ -79,7 +79,7 @@ export class PaymentService {
   }> {
     const { founderId, request, customerEmail, customerName, gatewayProvider = 'telr' } = options;
     
-    winston.info('PaymentService.createPayment called', {
+    appLogger.business('PaymentService.createPayment called', {
       founderId,
       request,
       customerEmail,
@@ -90,7 +90,7 @@ export class PaymentService {
     try {
       // Generate unique order reference
       const orderReference = `SC_${Date.now()}_${uuidv4().substring(0, 8)}`;
-      winston.info('Generated order reference', { orderReference });
+      appLogger.business('Generated order reference', { orderReference });
       
       // Create transaction record first (store in display currency for user reference)
       const transactionData: InsertPaymentTransaction = {
@@ -113,11 +113,11 @@ export class PaymentService {
         }
       };
       
-      winston.info('Creating transaction', { transactionData });
+      appLogger.database('Creating transaction', { transactionData });
 
       const transaction = await storage.createPaymentTransaction(transactionData);
       
-      winston.info('Transaction created successfully', {
+      appLogger.database('Transaction created successfully', {
         id: transaction.id,
         orderReference: transaction.orderReference,
         amount: transaction.amount,
@@ -152,7 +152,7 @@ export class PaymentService {
           }
         );
       } catch (error) {
-        winston.error('Activity logging error:', error);
+        appLogger.error('Activity logging error', error);
         // Don't fail the payment flow for activity logging issues
       }
 
@@ -168,7 +168,7 @@ export class PaymentService {
       const paymentCurrency = displayCurrency === 'USD' ? 
         CurrencyConverter.getPaymentCurrency() : displayCurrency;
       
-      winston.info('Currency conversion', {
+      appLogger.business('Currency conversion', {
         displayAmount: `${displayAmount} ${displayCurrency}`,
         paymentAmount: `${paymentAmount} ${paymentCurrency}`,
         conversionRate: displayCurrency === 'USD' ? '3.673' : 'No conversion'
@@ -227,7 +227,7 @@ export class PaymentService {
       
       if (!result.success) {
         // Log detailed error information
-        winston.error('Payment gateway order creation failed:', {
+        appLogger.error('Payment gateway order creation failed', null, {
           orderReference,
           gatewayProvider,
           founderId,
@@ -272,7 +272,7 @@ export class PaymentService {
       };
 
     } catch (error) {
-      winston.error('Payment creation error:', error);
+      appLogger.error('Payment creation error', error);
       return {
         success: false,
         error: error instanceof Error ? error.message : 'Unknown error'
@@ -310,7 +310,7 @@ export class PaymentService {
           if (gatewayResponse.paytabs_tran_ref || gatewayResponse.tran_ref) {
             queryReference = gatewayResponse.paytabs_tran_ref || gatewayResponse.tran_ref;
           } else {
-            winston.warn('No PayTabs tran_ref found, using database status', { orderReference });
+            appLogger.warn('No PayTabs tran_ref found, using database status', { orderReference });
             return {
               success: true,
               status: transaction.status,
@@ -318,7 +318,7 @@ export class PaymentService {
             };
           }
         } catch (error) {
-          winston.warn('Could not parse gateway response, using database status', { error: String(error), orderReference });
+          appLogger.warn('Could not parse gateway response, using database status', { error: String(error), orderReference });
           return {
             success: true,
             status: transaction.status,
@@ -331,7 +331,7 @@ export class PaymentService {
 
       // Handle cases where PayTabs can't find the transaction (expired/inactive transactions)
       if (statusResult.success && statusResult.status === 'unknown') {
-        winston.warn('PayTabs returned unknown status, using database status', { orderReference });
+        appLogger.warn('PayTabs returned unknown status, using database status', { orderReference });
         return {
           success: true,
           status: transaction.status,
@@ -372,7 +372,7 @@ export class PaymentService {
               }
             );
           } catch (error) {
-            winston.error('Payment completion activity logging error:', error);
+            appLogger.error('Payment completion activity logging error', error);
           }
         }
 
@@ -397,7 +397,7 @@ export class PaymentService {
       };
 
     } catch (error) {
-      winston.error('Payment status check error:', error);
+      appLogger.error('Payment status check error', error);
       return {
         success: false,
         error: error instanceof Error ? error.message : 'Unknown error'
@@ -467,7 +467,7 @@ export class PaymentService {
       };
 
     } catch (error) {
-      winston.error('Webhook processing error:', error);
+      appLogger.error('Webhook processing error', error);
       return {
         success: false,
         error: error instanceof Error ? error.message : 'Unknown error'
@@ -504,7 +504,7 @@ export class PaymentService {
       await this.sendDealRoomNotification(founderId, transactionId, planType);
 
     } catch (error) {
-      winston.error('Subscription creation error:', error);
+      appLogger.error('Subscription creation error', error);
       // Don't throw here to avoid failing the main payment flow
     }
   }
@@ -572,17 +572,17 @@ export class PaymentService {
       const success = await onboardingNotificationService.sendOnboardingSuccessNotification(notificationData);
       
       if (success) {
-        winston.info('Deal room access notification sent to team', {
+        appLogger.business('Deal room access notification sent to team', {
           venture: venture.name,
           founder: founder.fullName,
           planType
         });
       } else {
-        winston.error('Failed to send deal room access notification to team');
+        appLogger.error('Failed to send deal room access notification to team');
       }
 
     } catch (error) {
-      winston.error('Error sending deal room notification:', error);
+      appLogger.error('Error sending deal room notification', error);
       // Don't throw - this is just a notification, don't fail the main flow
     }
   }
@@ -655,14 +655,14 @@ ${statusEmoji} **${statusText}**
         transaction.founderId
       );
 
-      winston.info('Payment status notification sent', {
+      appLogger.external('Payment status notification sent', {
         founderId: transaction.founderId,
         orderReference: transaction.orderReference,
         status: newStatus
       });
 
     } catch (error) {
-      winston.error('Error sending payment status notification:', error);
+      appLogger.error('Error sending payment status notification', error);
       // Don't throw - this is just a notification, don't fail the main flow
     }
   }
@@ -725,7 +725,7 @@ ${statusEmoji} **${statusText}**
         transaction.founderId
       );
 
-      winston.info('Webhook notification sent', {
+      appLogger.external('Webhook notification sent', {
         founderId: transaction.founderId,
         orderReference: transaction.orderReference,
         status: newStatus,
@@ -733,7 +733,7 @@ ${statusEmoji} **${statusText}**
       });
 
     } catch (error) {
-      winston.error('Error sending webhook notification:', error);
+      appLogger.error('Error sending webhook notification', error);
       // Don't throw - this is just a notification, don't fail the main flow
     }
   }
@@ -755,7 +755,7 @@ ${statusEmoji} **${statusText}**
 
       await storage.createPaymentLog(logData);
     } catch (error) {
-      winston.error('Payment logging error:', error);
+      appLogger.error('Payment logging error', error);
       // Don't throw here to avoid failing the main flow
     }
   }
@@ -779,7 +779,7 @@ ${statusEmoji} **${statusText}**
       
       return dealRoomPayments.length > 0;
     } catch (error) {
-      winston.error('Deal room access check error:', error);
+      appLogger.error('Deal room access check error', error);
       return false;
     }
   }
@@ -816,7 +816,7 @@ ${statusEmoji} **${statusText}**
       };
 
     } catch (error) {
-      winston.error('Payment status update error:', error);
+      appLogger.error('Payment status update error', error);
       return {
         success: false,
         error: error instanceof Error ? error.message : 'Unknown error'

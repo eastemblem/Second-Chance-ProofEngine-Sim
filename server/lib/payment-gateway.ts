@@ -1,5 +1,5 @@
 import { z } from 'zod';
-import winston from 'winston';
+import { appLogger } from '../utils/logger';
 import { SecurityUtils } from './security-utils';
 import { PaymentStatusMapper, type PaymentStatus } from './payment-status-mapper';
 
@@ -108,7 +108,7 @@ class TelrGateway extends PaymentGateway {
     if (!this.storeId || !this.authKey) {
       throw new Error('Telr credentials not configured');
     }
-    winston.info(`🔥 Telr Gateway initialized - Test Mode: ${this.testMode ? 'ENABLED' : 'DISABLED'}`);
+    appLogger.business(`🔥 Telr Gateway initialized - Test Mode: ${this.testMode ? 'ENABLED' : 'DISABLED'}`);
   }
 
   async createOrder(orderData: PaymentOrderData): Promise<PaymentOrderResponse> {
@@ -146,9 +146,9 @@ class TelrGateway extends PaymentGateway {
     try {
       // Count extra variables to ensure we're within Telr's 7-variable limit
       const extraCount = telrRequest.extra ? Object.keys(telrRequest.extra).length : 0;
-      winston.info(`🔥 Telr extra variables count: ${extraCount}/7`);
-      winston.info('🔥 Telr extra variables:', telrRequest.extra);
-      winston.info('Telr request payload:', JSON.stringify(telrRequest, null, 2));
+      appLogger.business(`🔥 Telr extra variables count: ${extraCount}/7`);
+      appLogger.business('🔥 Telr extra variables:', telrRequest.extra);
+      appLogger.business('Telr request payload:', JSON.stringify(telrRequest, null, 2));
       
       const response = await fetch(this.baseUrl, {
         method: 'POST',
@@ -160,10 +160,10 @@ class TelrGateway extends PaymentGateway {
       });
 
       const result = await response.json();
-      winston.info('Telr raw response:', JSON.stringify(result, null, 2));
+      appLogger.external('Telr raw response:', JSON.stringify(result, null, 2));
 
       if (result.error) {
-        winston.error('Telr API error:', result.error);
+        appLogger.error('Telr API error', result.error);
         return {
           success: false,
           orderReference: '',
@@ -174,7 +174,7 @@ class TelrGateway extends PaymentGateway {
 
       // Check if we have the expected response structure
       if (!result.order || !result.order.ref || !result.order.url) {
-        winston.error('Telr API returned unexpected response structure:', result);
+        appLogger.error('Telr API returned unexpected response structure', null, result);
         return {
           success: false,
           orderReference: '',
@@ -206,8 +206,8 @@ class TelrGateway extends PaymentGateway {
     };
 
     try {
-      winston.info(`Making Telr status check request for order: ${orderRef}`);
-      winston.info(`Request payload:`, JSON.stringify(telrRequest, null, 2));
+      appLogger.external(`Making Telr status check request for order: ${orderRef}`);
+      appLogger.external(`Request payload:`, JSON.stringify(telrRequest, null, 2));
       
       const response = await fetch('https://secure.telr.com/gateway/order.json', {
         method: 'POST',
@@ -223,10 +223,10 @@ class TelrGateway extends PaymentGateway {
       }
 
       const result = await response.json();
-      winston.info(`Telr status check response:`, JSON.stringify(result, null, 2));
+      appLogger.external(`Telr status check response:`, JSON.stringify(result, null, 2));
 
       if (result.error) {
-        winston.error(`Telr status check error:`, result.error);
+        appLogger.error(`Telr status check error`, result.error);
         return {
           success: false,
           status: 'failed',
@@ -238,11 +238,11 @@ class TelrGateway extends PaymentGateway {
       const statusCode = result.order?.status?.code;
       const statusText = result.order?.status?.text;
       
-      winston.info(`Telr order status - Code: ${statusCode}, Text: ${statusText}`);
+      appLogger.external(`Telr order status - Code: ${statusCode}, Text: ${statusText}`);
       
       const status = PaymentStatusMapper.mapTelrApiStatus(statusCode, statusText);
 
-      winston.info(`Mapped status: ${status}`);
+      appLogger.external(`Mapped status: ${status}`);
 
       return {
         success: true,
@@ -254,7 +254,7 @@ class TelrGateway extends PaymentGateway {
         gatewayResponse: result
       };
     } catch (error) {
-      winston.error(`Telr status check error for order ${orderRef}:`, error);
+      appLogger.error(`Telr status check error for order ${orderRef}`, error);
       throw new Error(`Telr status check error: ${error}`);
     }
   }
@@ -328,7 +328,11 @@ class PayTabsGateway extends PaymentGateway {
     
     // Set appropriate endpoint based on region
     this.baseUrl = this.getEndpointUrl();
-    winston.info('PayTabs Gateway initialized', { region: this.region, testMode: this.testMode });
+    appLogger.external('PayTabs Gateway initialized', { 
+      region: this.region, 
+      testMode: this.testMode,
+      endpoint: this.baseUrl
+    });
   }
 
   private getEndpointUrl(): string {
@@ -375,7 +379,7 @@ class PayTabsGateway extends PaymentGateway {
       try {
         result = JSON.parse(responseText);
       } catch (parseError) {
-        winston.error('PayTabs API returned invalid JSON', { error: parseError, responseText: responseText.substring(0, 200) });
+        appLogger.error('PayTabs API returned invalid JSON', null, { error: parseError, responseText: responseText.substring(0, 200) });
         throw new Error(`PayTabs API returned invalid JSON: ${responseText.substring(0, 200)}`);
       }
 
@@ -448,7 +452,7 @@ class PayTabsGateway extends PaymentGateway {
           };
         }
         
-        winston.error('PayTabs status check error', { result });
+        appLogger.error('PayTabs status check error', null, { result });
         return {
           success: false,
           status: 'failed',

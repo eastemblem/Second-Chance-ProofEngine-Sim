@@ -1,13 +1,13 @@
 import { Router } from "express";
 import { paymentService } from "../../services/payment-service.js";
-import winston from "winston";
+import { appLogger } from "../../utils/logger";
 
 const router = Router();
 
 // Webhook handler for Telr payment notifications (POST)
 router.post("/telr", async (req, res) => {
   try {
-    winston.info("Telr webhook received (POST)", {
+    appLogger.external("Telr webhook received (POST)", {
       body: req.body,
       headers: req.headers,
       service: "second-chance-api",
@@ -18,7 +18,7 @@ router.post("/telr", async (req, res) => {
     const result = await paymentService.handleWebhook('telr', req.body);
     
     if (!result.success) {
-      winston.error("Telr webhook processing failed", {
+      appLogger.error("Telr webhook processing failed", null, {
         error: result.error,
         body: req.body,
         service: "second-chance-api",
@@ -30,7 +30,7 @@ router.post("/telr", async (req, res) => {
       });
     }
 
-    winston.info("Telr webhook processed successfully", {
+    appLogger.external("Telr webhook processed successfully", {
       processed: result.processed,
       service: "second-chance-api",
       category: "webhook"
@@ -40,7 +40,7 @@ router.post("/telr", async (req, res) => {
     res.status(200).send('OK');
 
   } catch (error) {
-    winston.error("Telr webhook error", {
+    appLogger.error("Telr webhook error", null, {
       error: error instanceof Error ? error.message : 'Unknown error',
       body: req.body,
       service: "second-chance-api",
@@ -54,7 +54,7 @@ router.post("/telr", async (req, res) => {
 // Callback handler for Telr hosted page callbacks (GET)
 router.get("/telr", async (req, res) => {
   try {
-    winston.info("Telr callback received (GET)", {
+    appLogger.external("Telr callback received (GET)", {
       query: req.query,
       headers: req.headers,
       service: "second-chance-api",
@@ -65,7 +65,7 @@ router.get("/telr", async (req, res) => {
     const result = await paymentService.handleWebhook('telr', req.query);
     
     if (!result.success) {
-      winston.error("Telr callback processing failed", {
+      appLogger.error("Telr callback processing failed", null, {
         error: result.error,
         query: req.query,
         service: "second-chance-api",
@@ -76,7 +76,7 @@ router.get("/telr", async (req, res) => {
       return res.redirect(`${process.env.FRONTEND_URL || 'http://localhost:5000'}/payment/error?error=${encodeURIComponent(result.error || 'Processing failed')}`);
     }
 
-    winston.info("Telr callback processed successfully", {
+    appLogger.external("Telr callback processed successfully", {
       processed: result.processed,
       service: "second-chance-api",
       category: "webhook"
@@ -98,7 +98,7 @@ router.get("/telr", async (req, res) => {
     }
 
   } catch (error) {
-    winston.error("Telr callback error", {
+    appLogger.error("Telr callback error", null, {
       error: error instanceof Error ? error.message : 'Unknown error',
       query: req.query,
       service: "second-chance-api",
@@ -119,7 +119,7 @@ router.post("/:provider", async (req: Request, res: Response) => {
       return res.status(404).json({ error: "Use dedicated Telr webhook endpoint" });
     }
 
-    winston.info(`${provider} webhook received`, {
+    appLogger.external(`${provider} webhook received`, {
       provider,
       body: req.body,
       headers: req.headers,
@@ -140,7 +140,7 @@ router.post("/:provider", async (req: Request, res: Response) => {
     );
     
     if (!result.success) {
-      winston.error(`${provider} webhook processing failed`, {
+      appLogger.error(`${provider} webhook processing failed`, null, {
         provider,
         error: result.error,
         body: req.body,
@@ -153,7 +153,7 @@ router.post("/:provider", async (req: Request, res: Response) => {
       });
     }
 
-    winston.info(`${provider} webhook processed successfully`, {
+    appLogger.external(`${provider} webhook processed successfully`, {
       provider,
       processed: result.processed,
       service: "second-chance-api",
@@ -163,7 +163,7 @@ router.post("/:provider", async (req: Request, res: Response) => {
     res.status(200).json({ success: true });
 
   } catch (error) {
-    winston.error(`Webhook error for ${req.params.provider}`, {
+    appLogger.error(`Webhook error for ${req.params.provider}`, null, {
       provider: req.params.provider,
       error: error instanceof Error ? error.message : 'Unknown error',
       body: req.body,

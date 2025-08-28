@@ -1,5 +1,5 @@
 import { Request, Response } from 'express';
-import winston from 'winston';
+import { appLogger } from '../utils/logger';
 
 /**
  * Standardized error handling for payment operations
@@ -87,7 +87,7 @@ export class PaymentErrorHandler {
     }
     
     // Log the error
-    winston.error(`Payment error in ${context}`, {
+    appLogger.error(`Payment error in ${context}`, null, {
       code: paymentError.code,
       message: paymentError.message,
       url: req.url,
