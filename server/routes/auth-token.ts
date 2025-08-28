@@ -134,23 +134,22 @@ router.post('/register', asyncHandler(async (req, res) => {
  * Login with email and password
  */
 router.post('/login', asyncHandler(async (req, res) => {
-  console.log('[AUTH_TOKEN_LOGIN] Raw request body:', req.body);
-  console.log('[AUTH_TOKEN_LOGIN] Decrypted body:', req.decryptedBody);
-  console.log('[AUTH_TOKEN_LOGIN] Encryption enabled:', req.encryptionEnabled);
-  
-  appLogger.info('Clean encrypted login attempt', {
-    service: 'second-chance-api',
-    category: 'auth',
-    email: req.body?.email,
-    encrypted: req.encryptionEnabled || false
+  appLogger.auth('Login request received', {
+    hasRawBody: !!req.body,
+    hasDecryptedBody: !!req.decryptedBody,
+    encryptionEnabled: req.encryptionEnabled || false,
+    email: req.body?.email
   });
   
   const { email, password } = req.body;
 
   // Validate required fields with detailed logging
   if (!email || !password) {
-    console.log('[AUTH_TOKEN_LOGIN] Missing fields - email:', !!email, 'password:', !!password);
-    console.log('[AUTH_TOKEN_LOGIN] Full body keys:', Object.keys(req.body || {}));
+    appLogger.auth('Login validation failed - missing required fields', {
+      hasEmail: !!email,
+      hasPassword: !!password,
+      bodyKeys: Object.keys(req.body || {})
+    });
     return res.status(400).json(createErrorResponse(400, 'Email and password are required'));
   }
 
@@ -294,11 +293,13 @@ router.get('/verify', asyncHandler(async (req, res) => {
   const token = req.headers.authorization?.replace('Bearer ', '') || req.cookies?.authToken;
 
   if (!token) {
+    appLogger.auth('Token verification failed - no token provided');
     return res.status(401).json(createErrorResponse(401, 'No token provided'));
   }
 
   const decoded = verifyAuthToken(token);
   if (!decoded) {
+    appLogger.auth('Token verification failed - invalid token');
     return res.status(401).json(createErrorResponse(401, 'Invalid token'));
   }
 
@@ -306,12 +307,19 @@ router.get('/verify', asyncHandler(async (req, res) => {
     // Verify user still exists
     const founder = await databaseService.getFounderById(decoded.founderId);
     if (!founder) {
+      appLogger.auth('Token verification failed - user not found in database', { founderId: decoded.founderId });
       return res.status(401).json(createErrorResponse(401, 'User not found'));
     }
 
     // Get associated venture
     const ventures = await databaseService.getVenturesByFounderId(founder.founderId);
     const primaryVenture = ventures[0] || null;
+
+    appLogger.auth('Token verification successful', {
+      founderId: founder.founderId,
+      email: founder.email,
+      hasVenture: !!primaryVenture
+    });
 
     res.json(createSuccessResponse({
       user: {
@@ -344,11 +352,13 @@ router.post('/refresh', asyncHandler(async (req, res) => {
   const token = req.headers.authorization?.replace('Bearer ', '') || req.cookies?.authToken;
 
   if (!token) {
+    appLogger.auth('Token refresh failed - no token provided');
     return res.status(401).json(createErrorResponse(401, 'No token provided'));
   }
 
   const decoded = verifyAuthToken(token);
   if (!decoded) {
+    appLogger.auth('Token refresh failed - invalid token');
     return res.status(401).json(createErrorResponse(401, 'Invalid token'));
   }
 
@@ -356,6 +366,7 @@ router.post('/refresh', asyncHandler(async (req, res) => {
     // Verify user still exists
     const founder = await databaseService.getFounderById(decoded.founderId);
     if (!founder) {
+      appLogger.auth('Token refresh failed - user not found in database', { founderId: decoded.founderId });
       return res.status(401).json(createErrorResponse(401, 'User not found'));
     }
 
