@@ -691,7 +691,7 @@ ${statusEmoji} **${statusText}**
 
   private async logPaymentAction(
     transactionId: string,
-    gatewayProvider: 'telr' | 'stripe' | 'paypal',
+    gatewayProvider: 'telr' | 'stripe' | 'paypal' | 'paytabs',
     action: string,
     data: any
   ): Promise<void> {

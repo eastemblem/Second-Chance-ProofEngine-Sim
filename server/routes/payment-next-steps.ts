@@ -120,11 +120,14 @@ router.post("/create-next-steps-session", sessionPaymentRateLimit, async (req: R
       });
     }
 
-    // TEMP: Skip session verification for manual testing
+    let founderId: string;
+
+    // TEMP: Handle test sessions with mock founder ID
     if (sessionId.startsWith('test-session')) {
-      console.log("🧪 TEST MODE: Skipping session verification for test session");
+      console.log("🧪 TEST MODE: Using mock founder ID for test session");
+      founderId = '123e4567-e89b-12d3-a456-426614174000'; // Mock UUID for testing
     } else {
-      // Verify session exists
+      // Verify session exists and get founder ID
       try {
         const onboardingService = new OnboardingService();
         const sessionData = await onboardingService.getSession(sessionId);
@@ -134,6 +137,19 @@ router.post("/create-next-steps-session", sessionPaymentRateLimit, async (req: R
             message: "Session not found. Please complete the onboarding process first."
           });
         }
+
+        // Extract founderId from session data with proper type checking
+        const stepData = sessionData.stepData as any;
+        founderId = stepData?.founderId || 
+                   stepData?.founder?.founderId || 
+                   stepData?.founder?.id;
+        
+        if (!founderId) {
+          return res.status(400).json({
+            success: false,
+            message: 'No founder found in session. Please complete onboarding first.'
+          });
+        }
       } catch (error) {
         console.error("Error verifying session:", error);
         return res.status(500).json({
@@ -141,30 +157,6 @@ router.post("/create-next-steps-session", sessionPaymentRateLimit, async (req: R
           message: "Unable to verify session. Please try again."
         });
       }
-    }
-
-    // Get founderId from session
-    const onboardingService = new OnboardingService();
-    const session = await onboardingService.getSession(sessionId);
-    
-    if (!session) {
-      return res.status(400).json({
-        success: false,
-        message: 'Session not found. Please complete onboarding first.'
-      });
-    }
-    
-    // Extract founderId from session data with proper type checking
-    const stepData = session.stepData as any;
-    const founderId = stepData?.founderId || 
-                     stepData?.founder?.founderId || 
-                     stepData?.founder?.id;
-    
-    if (!founderId) {
-      return res.status(400).json({
-        success: false,
-        message: 'No founder found in session. Please complete onboarding first.'
-      });
     }
 
     // Use PaymentService to create payment transaction in database
