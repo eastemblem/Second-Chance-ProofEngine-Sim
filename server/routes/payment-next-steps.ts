@@ -126,7 +126,7 @@ router.post("/create-next-steps-session", sessionPaymentRateLimit, async (req: R
 
     // TEMP: Handle test sessions early - PayTabs integration verified
     if (sessionId?.startsWith('test-session')) {
-      console.log("🧪 TEST MODE: PayTabs integration test completed successfully");
+      appLogger.api('PayTabs test mode - integration completed successfully');
       
       return res.json({
         success: true,
@@ -175,7 +175,7 @@ router.post("/create-next-steps-session", sessionPaymentRateLimit, async (req: R
     const paymentAmount = shouldUseAED ? Math.round(amount * 3.67) : amount; // Convert USD to AED when needed
     const currency = shouldUseAED ? 'AED' : 'USD';
     
-    console.log(`Payment currency decision: Country=${userCountry}, TestMode=${isTestMode}, UAEUser=${isUAEUser}, Currency=${currency}`);
+    appLogger.business('Payment currency decision', { country: userCountry, testMode: isTestMode, uaeUser: isUAEUser, currency });
     
     // Validate package type and amount
     if (amount !== 100) {
@@ -233,7 +233,7 @@ router.post("/create-next-steps-session", sessionPaymentRateLimit, async (req: R
         });
       }
     } catch (error) {
-      console.error("Error verifying session:", error);
+      appLogger.error('Session verification error', { error: error instanceof Error ? error.message : 'Unknown error' });
       return res.status(500).json({
         success: false,
         message: "Unable to verify session. Please try again."
@@ -257,17 +257,13 @@ router.post("/create-next-steps-session", sessionPaymentRateLimit, async (req: R
       }
     };
 
-    console.log("Creating database payment transaction:", {
-      founderId,
-      sessionId,
-      ventureName,
-      packageType,
-      amount: paymentAmount,
-      currency: currency,
-      testMode: isTestMode,
-      userCountry: userCountry,
-      isUAEUser: isUAEUser,
-      originalUSD: amount
+    appLogger.database('Creating payment transaction', { 
+      founderId, 
+      sessionId, 
+      packageType, 
+      amount: paymentAmount, 
+      currency, 
+      testMode: isTestMode 
     });
 
     // For test sessions, provide valid customer data that PayTabs will accept
@@ -289,11 +285,11 @@ router.post("/create-next-steps-session", sessionPaymentRateLimit, async (req: R
     });
 
     if (!paymentResult.success || !paymentResult.paymentUrl) {
-      console.error('Payment creation failed:', paymentResult.error);
+      appLogger.error('Payment creation failed', { error: paymentResult.error });
       throw new Error(paymentResult.error || "Payment creation failed");
     }
 
-    console.log('✅ Payment transaction created in database:', paymentResult.orderReference);
+    appLogger.database('Payment transaction created', { orderReference: paymentResult.orderReference });
 
     // Log activity using database transaction data
     try {
@@ -314,13 +310,12 @@ router.post("/create-next-steps-session", sessionPaymentRateLimit, async (req: R
         }
       );
     } catch (activityError) {
-      console.error("Failed to log payment activity:", activityError);
+      appLogger.error('Failed to log payment activity', { error: activityError instanceof Error ? activityError.message : 'Unknown error' });
       // Don't fail the payment for logging errors
     }
 
-    console.log("Next Steps payment created successfully:", {
-      paymentId: paymentResult.orderReference,
-      paymentUrl: paymentResult.paymentUrl
+    appLogger.business('Next Steps payment created successfully', {
+      paymentId: paymentResult.orderReference
     });
 
     return res.json({
@@ -333,11 +328,11 @@ router.post("/create-next-steps-session", sessionPaymentRateLimit, async (req: R
     });
 
   } catch (error) {
-    console.error("=== PayTabs Payment Creation Error ===");
-    console.error("Error type:", error?.constructor?.name);
-    console.error("Error message:", (error as Error)?.message);
-    console.error("Error stack:", (error as Error)?.stack);
-    console.error("Full error object:", JSON.stringify(error, Object.getOwnPropertyNames(error), 2));
+    appLogger.error('PayTabs payment creation error', {
+      errorType: error?.constructor?.name,
+      message: (error as Error)?.message,
+      timestamp: new Date().toISOString()
+    });
     
     // Return a more detailed error response for debugging
     return res.status(500).json({
@@ -368,10 +363,10 @@ router.get("/paytabs/test", (req: Request, res: Response) => {
  */
 router.post("/paytabs/callback", async (req: Request, res: Response) => {
   try {
-    console.log('=== PayTabs IPN/Callback Received ===');
-    console.log('Method:', req.method);
-    console.log('Content-Type:', req.headers['content-type']);
-    console.log('Full Body:', JSON.stringify(req.body, null, 2));
+    appLogger.api('PayTabs IPN/Callback received');
+    appLogger.api('PayTabs callback method', { method: req.method });
+    appLogger.api('PayTabs callback content type', { contentType: req.headers['content-type'] });
+    appLogger.api('PayTabs callback body received', { hasCartId: !!req.body.cart_id, hasTranRef: !!req.body.tran_ref });
 
     const {
       tran_ref,           // PayTabs transaction reference
