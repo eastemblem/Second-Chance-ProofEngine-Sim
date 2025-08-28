@@ -6,6 +6,7 @@ import { validateUUID, requireBody } from "../middleware/auth";
 import { createInsertSchema } from "drizzle-zod";
 import { venture } from "@shared/schema";
 import { onboardingNotificationService } from "../services/onboardingNotificationService";
+import { eastEmblemAPI } from "../eastemblem-api";
 import { z } from "zod";
 
 const router = Router();
@@ -113,6 +114,34 @@ router.post("/update-status", requireBody, asyncHandler(async (req, res) => {
         };
 
         await onboardingNotificationService.sendOnboardingSuccessNotification(notificationData);
+
+        // Send Slack notification for payment success
+        if (eastEmblemAPI.isConfigured()) {
+          try {
+            const slackMessage = `\`Venture ID: ${updatedVenture.ventureId}\`
+💰 **Deal Room Purchase Complete!**
+
+**Venture:** ${updatedVenture.name}
+**Founder:** ${founder.fullName} (${founder.email})
+**Amount:** ${paymentData.amount}
+**Status:** ${ventureStatus} (ProofScore: ${proofScore})
+**Reference:** ${paymentData.reference}
+
+📁 **Box Folder:** ${currentEvaluation?.folderUrl || 'N/A'}
+🌐 **Website:** ${updatedVenture.website || 'N/A'}`;
+
+            await eastEmblemAPI.sendSlackNotification(
+              slackMessage,
+              "#notifications",
+              updatedVenture.ventureId
+            );
+          } catch (slackError) {
+            console.error('Failed to send Slack payment notification:', slackError);
+            // Don't fail the request if Slack fails
+          }
+        } else {
+          console.log('East Emblem API not configured - Slack notification skipped');
+        }
       }
     } catch (emailError) {
       console.error('Failed to send onboarding notification:', emailError);
