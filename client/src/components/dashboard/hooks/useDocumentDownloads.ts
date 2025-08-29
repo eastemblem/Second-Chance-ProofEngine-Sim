@@ -30,8 +30,27 @@ interface ValidationData {
 export function useDocumentDownloads(user: User | null, validationData: ValidationData | null) {
   const { toast } = useToast();
 
+  // Check if user has sufficient score for Deal Room access
+  const checkScoreRequirement = (): boolean => {
+    const proofScore = validationData?.proofScore || 0;
+    if (proofScore < 70) {
+      toast({
+        title: "Access Restricted",
+        description: "You have to achieve more than 70 in order to access deal room",
+        variant: "destructive",
+      });
+      return false;
+    }
+    return true;
+  };
+
   const handleDownloadCertificate = useCallback(async () => {
     try {
+      // Check score requirement first
+      if (!checkScoreRequirement()) {
+        return;
+      }
+
       if (!user?.venture?.ventureId) {
         toast({
           title: "Download Error",
@@ -71,6 +90,11 @@ export function useDocumentDownloads(user: User | null, validationData: Validati
 
   const handleDownloadReport = useCallback(async () => {
     try {
+      // Check score requirement first
+      if (!checkScoreRequirement()) {
+        return;
+      }
+
       if (!user?.venture?.ventureId) {
         toast({
           title: "Download Error", 

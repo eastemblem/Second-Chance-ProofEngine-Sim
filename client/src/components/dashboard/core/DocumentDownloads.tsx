@@ -1,6 +1,7 @@
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Download, Award, FileText, Lock, CreditCard } from "lucide-react";
+import { useToast } from "@/hooks/use-toast";
 
 interface User {
   founderId: string;
@@ -42,9 +43,24 @@ export function DocumentDownloads({
   hasDealRoomAccess = false,
   onPaymentModalOpen
 }: DocumentDownloadsProps) {
+  const { toast } = useToast();
   const hasFiles = (user?.venture?.certificateUrl || validationData?.certificateUrl) && 
                    (user?.venture?.reportUrl || validationData?.reportUrl);
   const isDownloadEnabled = hasFiles && hasDealRoomAccess;
+  
+  // Check if user has sufficient score for Deal Room access
+  const checkScoreAndTriggerPayment = () => {
+    const proofScore = validationData?.proofScore || 0;
+    if (proofScore < 70) {
+      toast({
+        title: "Access Restricted",
+        description: "You have to achieve more than 70 in order to access deal room",
+        variant: "destructive",
+      });
+      return;
+    }
+    onPaymentModalOpen?.();
+  };
   
   return (
     <Card className="border-gray-800" style={{ backgroundColor: '#0E0E12' }}>
@@ -75,7 +91,7 @@ export function DocumentDownloads({
                 </div>
               </div>
               <Button 
-                onClick={hasDealRoomAccess ? onDownloadCertificate : onPaymentModalOpen}
+                onClick={hasDealRoomAccess ? onDownloadCertificate : checkScoreAndTriggerPayment}
                 className={`w-full ${hasDealRoomAccess 
                   ? 'bg-gradient-to-r from-purple-500 to-purple-600 hover:from-purple-600 hover:to-purple-700 text-white' 
                   : 'bg-gradient-to-r from-gray-600 to-gray-700 hover:from-purple-600 hover:to-purple-700 text-white'} border-0 shadow-lg hover:shadow-purple-500/25 transition-all duration-300`}
@@ -110,7 +126,7 @@ export function DocumentDownloads({
                 </div>
               </div>
               <Button 
-                onClick={hasDealRoomAccess ? onDownloadReport : onPaymentModalOpen}
+                onClick={hasDealRoomAccess ? onDownloadReport : checkScoreAndTriggerPayment}
                 className={`w-full ${hasDealRoomAccess 
                   ? 'bg-gradient-to-r from-yellow-500 to-amber-600 hover:from-yellow-600 hover:to-amber-700 text-white' 
                   : 'bg-gradient-to-r from-gray-600 to-gray-700 hover:from-yellow-600 hover:to-amber-700 text-white'} border-0 shadow-lg hover:shadow-yellow-500/25 transition-all duration-300`}

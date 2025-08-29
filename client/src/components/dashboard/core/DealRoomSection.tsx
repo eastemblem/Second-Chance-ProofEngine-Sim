@@ -1,5 +1,6 @@
 import { Button } from "@/components/ui/button";
 import { CheckCircle, Clock, Eye, Check } from "lucide-react";
+import { useToast } from "@/hooks/use-toast";
 
 interface ValidationData {
   proofScore: number;
@@ -19,6 +20,7 @@ interface DealRoomSectionProps {
 }
 
 export function DealRoomSection({ validationData, hasDealRoomAccess = false, onPaymentModalOpen, ventureStatus = 'pending' }: DealRoomSectionProps) {
+  const { toast } = useToast();
   const proofScore = validationData?.proofScore || 0;
   const isUnlocked = proofScore >= 70;
 
@@ -93,6 +95,16 @@ export function DealRoomSection({ validationData, hasDealRoomAccess = false, onP
 
   // Handle button click
   const handleButtonClick = () => {
+    // Check score requirement first
+    if (proofScore < 70) {
+      toast({
+        title: "Access Restricted",
+        description: "You have to achieve more than 70 in order to access deal room",
+        variant: "destructive",
+      });
+      return;
+    }
+
     if (isUnlocked) {
       // Check if user has paid for Deal Room access
       if (hasDealRoomAccess) {
