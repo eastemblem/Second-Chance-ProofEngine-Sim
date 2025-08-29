@@ -299,7 +299,7 @@ export class EmailService {
       CURRENT_YEAR: new Date().getFullYear(),
       PRIVACY_URL: `${frontendUrl}/privacy`,
       TERMS_URL: `${frontendUrl}/terms`,
-      LOGO_URL: `${frontendUrl}/logo.png`
+      LOGO_URL: `${frontendUrl}/assets/second_chance_logo_main.png`
     };
     
     return this.sendEmail(
@@ -331,7 +331,7 @@ export class EmailService {
       CURRENT_YEAR: new Date().getFullYear(),
       PRIVACY_URL: `${frontendUrl}/privacy`,
       TERMS_URL: `${frontendUrl}/terms`,
-      LOGO_URL: `${frontendUrl}/logo.png`
+      LOGO_URL: `${frontendUrl}/assets/second_chance_logo_main.png`
     };
     
     return this.sendEmail(
