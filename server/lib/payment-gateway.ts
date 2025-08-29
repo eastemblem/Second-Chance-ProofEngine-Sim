@@ -486,23 +486,37 @@ class PayTabsGateway extends PaymentGateway {
         result = await response.json();
       }
 
-      appLogger.external('PayTabs status query response', {
-        orderRef,
-        responseCode: result.response_code,
-        responseMessage: result.response_message,
-        hasError: result.response_code !== '200'
-      });
+      // Log response appropriately based on response type
+      if (result.code && result.message && !result.tran_ref) {
+        // This is an error response
+        appLogger.external('PayTabs status query response - Error', {
+          orderRef,
+          errorCode: result.code,
+          errorMessage: result.message,
+          hasError: true
+        });
+      } else {
+        // This is a successful transaction response
+        appLogger.external('PayTabs status query response - Success', {
+          orderRef,
+          tranRef: result.tran_ref,
+          paymentStatus: result.payment_result?.response_status,
+          paymentMessage: result.payment_result?.response_message,
+          hasError: false
+        });
+      }
 
-      // Handle PayTabs response codes
-      if (result.response_code !== '200') {
-        // PayTabs returns various error codes for different scenarios
-        // Common codes: 2 (No entries), 113 (Transaction not found), 4600+ (API errors)
-        const errorCode = result.code || result.response_code;
-        const errorMessage = result.message || result.response_message;
+      // Check if this is an error response (has PayTabs error structure)
+      // Successful transaction responses have 'tran_ref' and transaction details
+      // Error responses have 'code' and 'message' fields
+      if (result.code && result.message && !result.tran_ref) {
+        const errorCode = result.code;
+        const errorMessage = result.message;
         
         // For missing/expired transactions, use database status gracefully
         if ((errorCode === 2 && errorMessage === 'No entries found') || 
             (errorCode === 113 && errorMessage?.includes('Transaction not found')) ||
+            (errorCode === 113 && errorMessage?.includes('Invalid transaction reference')) ||
             (errorCode >= 4600 && errorCode <= 4699) || // PayTabs API-related errors
             errorMessage?.includes('not found') ||
             errorMessage?.includes('expired')) {
@@ -533,6 +547,9 @@ class PayTabsGateway extends PaymentGateway {
           gatewayResponse: result
         };
       }
+
+      // If we reach here, this is a successful transaction query response
+      // PayTabs returns transaction details when query is successful
 
       // Map PayTabs status to our generic status using centralized mapper
       const respStatus = result.payment_result?.response_status;
