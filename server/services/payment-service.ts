@@ -476,16 +476,37 @@ export class PaymentService {
     gatewayProvider: string
   ): Promise<void> {
     try {
+      // Double-check: Use payment logs to prevent duplicate subscription creation
+      const paymentLogs = await storage.getPaymentLogs(transactionId);
+      const subscriptionCreatedLog = paymentLogs.find(log => 
+        log.action === 'subscription_created' || 
+        log.notes?.includes('subscription_created')
+      );
+      
+      if (subscriptionCreatedLog) {
+        appLogger.business('Subscription creation already logged, preventing duplicate notifications and emails', {
+          transactionId,
+          founderId,
+          existingLogId: subscriptionCreatedLog.id,
+          loggedAt: subscriptionCreatedLog.createdAt,
+          preventedDuplicateEmails: true,
+          preventedDuplicateTeamNotifications: true,
+          actionsPrevented: ['subscription_creation', 'team_notification', 'user_emails']
+        });
+        return;
+      }
+
       // Check if subscription already exists for this transaction to prevent duplicates
       const existingSubscriptions = await storage.getUserSubscriptions(founderId);
       const existingSubscription = existingSubscriptions.find(sub => sub.paymentTransactionId === transactionId);
       if (existingSubscription) {
-        appLogger.business('Subscription already exists for transaction, preventing duplicate emails', {
+        appLogger.business('Subscription already exists for transaction, preventing duplicate notifications and emails', {
           transactionId,
           founderId,
           existingSubscriptionId: existingSubscription.id,
           preventedDuplicateEmails: true,
-          emailsPrevented: ['payment_confirmation', 'investor_matching_next_steps']
+          preventedDuplicateTeamNotifications: true,
+          emailsPrevented: ['payment_confirmation', 'investor_matching_next_steps', 'team_deal_room_notification']
         });
         return;
       }
