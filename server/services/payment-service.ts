@@ -544,22 +544,32 @@ export class PaymentService {
         return;
       }
 
-      // Check if emails have already been sent by looking at payment actions log
-      // This prevents duplicate emails during multiple webhook/status check calls
-      const paymentActions = await storage.getPaymentActions(transaction.id);
-      const emailsSentAction = paymentActions.find(action => action.actionType === 'emails_sent');
+      // Simple duplicate prevention: check if this is a repeat call within a short time window
+      // This prevents duplicate emails during rapid webhook/status check calls
+      const emailKey = `payment_emails_${transaction.id}`;
+      const currentTime = Date.now();
       
-      if (emailsSentAction) {
-        appLogger.warn('Preventing duplicate payment confirmation emails', {
+      // Store a simple timestamp to prevent rapid duplicate calls (use a basic in-memory check)
+      if (!global.emailSentTracker) {
+        global.emailSentTracker = {};
+      }
+      
+      const lastEmailTime = global.emailSentTracker[emailKey];
+      if (lastEmailTime && (currentTime - lastEmailTime) < 60000) { // 1 minute cooldown
+        appLogger.warn('Preventing duplicate payment confirmation emails (too soon)', {
           transactionId: transaction.id,
           founderId: transaction.founderId,
           email: founder.email,
-          reason: 'Payment confirmation emails already sent',
-          previouslySentAt: emailsSentAction.timestamp,
+          reason: 'Emails sent less than 1 minute ago',
+          lastSentAt: new Date(lastEmailTime).toISOString(),
+          cooldownRemaining: `${Math.round((60000 - (currentTime - lastEmailTime)) / 1000)}s`,
           preventedEmails: ['payment_confirmation', 'investor_matching_next_steps']
         });
         return;
       }
+      
+      // Mark that we're sending emails now
+      global.emailSentTracker[emailKey] = currentTime;
 
       // Format payment details
       const paymentAmount = `${transaction.currency || 'USD'} ${transaction.amount}`;
@@ -598,7 +608,7 @@ export class PaymentService {
         }
       }, 3000);
 
-      // Log that emails were sent to prevent future duplicates
+      // Log that emails were sent (using existing logPaymentAction method)
       await this.logPaymentAction(transaction.id, transaction.gatewayProvider as any, 'emails_sent', {
         paymentEmailSent,
         investorMatchingEmailScheduled: true,
