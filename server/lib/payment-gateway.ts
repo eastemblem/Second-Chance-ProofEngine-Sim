@@ -355,18 +355,21 @@ class PayTabsGateway extends PaymentGateway {
       cart_currency: orderData.currency,
       cart_amount: parseFloat(orderData.amount.toFixed(2)),
       cart_description: orderData.description,
-      return: orderData.returnUrls.authorised,
       callback: orderData.returnUrls.callback,
       framed: true,
       framed_return_top: false,
-      framed_return_parent: false
+      framed_return_parent: false,
+      hide_shipping: true,
+      return: "None"
     };
 
     appLogger.business('PayTabs iframe configuration applied', {
       framed: true,
       framed_return_top: false,
       framed_return_parent: false,
-      description: 'Embedded payment page with iframe-level navigation control'
+      hide_shipping: true,
+      return: "None",
+      description: 'Embedded payment page with iframe-level navigation control, shipping hidden'
     });
 
     // Add customer details from founder data if available
