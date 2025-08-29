@@ -60,7 +60,7 @@ export function LogoCarousel({ companies, autoScrollSpeed = 3000 }: LogoCarousel
   return (
     <div className="relative overflow-hidden">
       <motion.div 
-        className="grid grid-cols-2 md:grid-cols-4 gap-4 max-w-4xl mx-auto"
+        className="grid grid-cols-2 md:grid-cols-4 gap-8 max-w-5xl mx-auto"
         key={currentIndex}
         initial={{ opacity: 0, x: 50 }}
         animate={{ opacity: 1, x: 0 }}
@@ -75,23 +75,12 @@ export function LogoCarousel({ companies, autoScrollSpeed = 3000 }: LogoCarousel
             whileHover={{ scale: 1.05 }}
             className="relative group"
           >
-            <div className="bg-gradient-to-r from-gray-800/30 to-gray-900/50 border border-gray-700/50 rounded-lg p-6 backdrop-blur-sm hover:border-gray-600/70 transition-all duration-300">
-              <div className="absolute inset-0 bg-gradient-to-br from-gray-700/5 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300 rounded-lg" />
-              
-              <div className="relative flex items-center justify-center h-16">
-                <img
-                  src={company.logo}
-                  alt={`${company.name} logo`}
-                  className="max-h-full max-w-full object-contain filter brightness-90 group-hover:brightness-100 transition-all duration-300"
-                  style={{ aspectRatio: '16/9' }}
-                />
-              </div>
-              
-              <div className="mt-3 text-center">
-                <div className="text-sm font-medium text-gray-300 group-hover:text-white transition-colors duration-300">
-                  {company.name}
-                </div>
-              </div>
+            <div className="relative flex items-center justify-center h-20 md:h-24">
+              <img
+                src={company.logo}
+                alt={`${company.name} logo`}
+                className="max-h-full max-w-full object-contain filter brightness-90 group-hover:brightness-100 transition-all duration-300"
+              />
             </div>
           </motion.div>
         ))}
