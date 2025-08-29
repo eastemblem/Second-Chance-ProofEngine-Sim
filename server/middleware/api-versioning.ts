@@ -46,8 +46,14 @@ export function contentNegotiation(req: Request, res: Response, next: NextFuncti
   if (req.path.startsWith('/api/')) {
     res.type('application/json');
     
-    // Handle JSON-only endpoints
-    if (req.headers['content-type'] && !req.headers['content-type'].includes('application/json') && !req.headers['content-type'].includes('multipart/form-data')) {
+    // Payment gateway endpoints need to accept form-encoded data
+    const isPaymentGatewayEndpoint = req.path.includes('/payment/') && 
+      (req.path.includes('/return') || req.path.includes('/callback') || req.path.includes('/webhook'));
+    
+    // Handle JSON-only endpoints (except payment gateway callbacks)
+    if (req.headers['content-type'] && !isPaymentGatewayEndpoint && 
+        !req.headers['content-type'].includes('application/json') && 
+        !req.headers['content-type'].includes('multipart/form-data')) {
       return res.status(415).json({
         error: 'Unsupported Media Type',
         message: 'API endpoints only accept application/json or multipart/form-data',
