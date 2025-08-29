@@ -24,7 +24,24 @@ const getApiUrl = (endpoint: string) => {
 async function throwIfResNotOk(res: Response) {
   if (!res.ok) {
     const text = (await res.text()) || res.statusText;
-    throw new Error(`${res.status}: ${text}`);
+    
+    // Try to parse error response to extract user-friendly message
+    try {
+      const errorData = JSON.parse(text);
+      
+      // Extract the actual error message from various possible structures
+      const errorMessage = 
+        errorData.error?.message ||  // {"error": {"message": "Invalid credentials"}}
+        errorData.message ||         // {"message": "Invalid credentials"}
+        errorData.error ||           // {"error": "Invalid credentials"}
+        res.statusText ||            // HTTP status text
+        'An error occurred';         // Fallback
+      
+      throw new Error(errorMessage);
+    } catch (parseError) {
+      // If JSON parsing fails, use the raw text or status text
+      throw new Error(text || res.statusText || 'An error occurred');
+    }
   }
 }
 
