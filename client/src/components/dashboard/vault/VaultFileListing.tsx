@@ -1,6 +1,7 @@
 import { Button } from "@/components/ui/button";
 import { Download, ExternalLink, Lock } from "lucide-react";
 import { FileIcon, LoadingSpinner, EmptyState, PaginationLoading, EndIndicator } from "../shared";
+import { useToast } from "@/hooks/use-toast";
 
 interface FileItem {
   id: string;
@@ -22,6 +23,7 @@ interface VaultFileListingProps {
   onScroll: (e: React.UIEvent<HTMLDivElement>) => void;
   hasDealRoomAccess?: boolean;
   onPaymentModalOpen?: () => void;
+  validationData?: { proofScore: number } | null;
 }
 
 // Format file size helper function
@@ -56,8 +58,24 @@ export function VaultFileListing({
   hasMore, 
   onScroll,
   hasDealRoomAccess = false,
-  onPaymentModalOpen
+  onPaymentModalOpen,
+  validationData
 }: VaultFileListingProps) {
+  const { toast } = useToast();
+
+  // Check score and trigger payment/error flow
+  const checkScoreAndTriggerPayment = () => {
+    const proofScore = validationData?.proofScore || 0;
+    if (proofScore < 70) {
+      toast({
+        title: "Access Restricted",
+        description: "You have to achieve more than 70 in order to access deal room",
+        variant: "destructive",
+      });
+      return;
+    }
+    onPaymentModalOpen?.();
+  };
   // Get file category color based on categoryName
   const getCategoryColor = (categoryName: string) => {
     const categoryColors = {
@@ -116,7 +134,7 @@ export function VaultFileListing({
                       <Button
                         size="sm"
                         variant="ghost"
-                        onClick={hasDealRoomAccess ? () => window.open(file.downloadUrl, '_blank') : onPaymentModalOpen}
+                        onClick={hasDealRoomAccess ? () => window.open(file.downloadUrl, '_blank') : checkScoreAndTriggerPayment}
                         className={`h-8 w-8 p-0 ${hasDealRoomAccess ? 'text-gray-400 hover:text-white' : 'text-gray-500 hover:text-purple-400'}`}
                         title={hasDealRoomAccess ? "Download file" : "Payment required for file download"}
                         disabled={!hasDealRoomAccess && !onPaymentModalOpen}
@@ -126,7 +144,7 @@ export function VaultFileListing({
                       <Button
                         size="sm"
                         variant="ghost"
-                        onClick={hasDealRoomAccess ? () => window.open(file.downloadUrl, '_blank') : onPaymentModalOpen}
+                        onClick={hasDealRoomAccess ? () => window.open(file.downloadUrl, '_blank') : checkScoreAndTriggerPayment}
                         className={`h-8 w-8 p-0 ${hasDealRoomAccess ? 'text-gray-400 hover:text-white' : 'text-gray-500 hover:text-purple-400'}`}
                         title={hasDealRoomAccess ? "View file" : "Payment required for file access"}
                         disabled={!hasDealRoomAccess && !onPaymentModalOpen}

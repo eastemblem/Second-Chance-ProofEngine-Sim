@@ -207,6 +207,7 @@ export function ProofVaultSection({
                   onScroll={onFilesScroll}
                   hasDealRoomAccess={hasDealRoomAccess}
                   onPaymentModalOpen={onPaymentModalOpen}
+                  validationData={validationData}
                 />
               </TabsContent>
 
