@@ -861,6 +861,14 @@ ${statusEmoji} **${statusText}**
         };
       }
 
+      // Only proceed if status has actually changed
+      if (transaction.status === status) {
+        return {
+          success: true,
+          transaction
+        };
+      }
+
       // Update status
       const updatedTransaction = await storage.updatePaymentTransaction(transaction.id, {
         status: status as any
@@ -877,6 +885,16 @@ ${statusEmoji} **${statusText}**
         await this.logPaymentStatusActivity({...transaction, ...updatedTransaction}, status);
       } catch (error) {
         appLogger.error('Manual payment status activity logging error', error);
+      }
+
+      // Send payment status notifications (Slack + emails if completed)
+      await this.sendPaymentStatusNotification(updatedTransaction, status);
+
+      // Create subscription if payment completed
+      if (status === 'completed' && transaction.metadata && 
+          typeof transaction.metadata === 'object' && transaction.metadata !== null && 
+          'planType' in transaction.metadata) {
+        await this.createSubscription(transaction.founderId, transaction.id, transaction.metadata.planType as string, transaction.gatewayProvider);
       }
 
       return {

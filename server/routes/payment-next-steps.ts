@@ -409,15 +409,8 @@ router.post("/paytabs/callback", async (req: Request, res: Response) => {
     const responseMessage = payment_result?.response_message || 'Unknown status';
     const transactionTime = payment_result?.transaction_time;
 
-    // Determine payment status - PayTabs uses 'A' for approved/successful
-    let paymentStatus: 'completed' | 'failed' | 'cancelled' = 'failed';
-    if (responseStatus === 'A') {
-      paymentStatus = 'completed';
-    } else if (responseStatus === 'C') {
-      paymentStatus = 'cancelled';
-    } else {
-      paymentStatus = 'failed';
-    }
+    // Use centralized PayTabs status mapper for consistency
+    const paymentStatus = PaymentStatusMapper.mapPayTabsWebhookStatus(responseStatus);
 
     appLogger.api(`PayTabs IPN for order ${cart_id}: ${paymentStatus} (${responseMessage})`);
 
@@ -511,17 +504,14 @@ router.post("/paytabs/return", async (req: Request, res: Response) => {
       appLogger.warn('PayTabs response received without signature - consider enabling signature verification');
     }
 
-    // Determine payment status based on PayTabs respStatus
-    // According to docs: Only respStatus='A' is successful
-    let paymentStatus: 'completed' | 'failed' | 'cancelled' = 'failed';
+    // Use centralized PayTabs status mapper for consistency
+    const paymentStatus = PaymentStatusMapper.mapPayTabsWebhookStatus(respStatus);
     let statusReason = respMessage || 'Unknown status';
 
-    if (respStatus === 'A') {
-      paymentStatus = 'completed';
+    if (paymentStatus === 'completed') {
       statusReason = 'Payment authorized successfully';
     } else {
-      paymentStatus = 'failed';
-      statusReason = respMessage || `Payment failed with status: ${respStatus}`;
+      statusReason = respMessage || `Payment ${paymentStatus} with status: ${respStatus}`;
     }
 
     appLogger.api(`PayTabs payment for order ${cartId}: ${paymentStatus} (${statusReason})`);
@@ -629,7 +619,7 @@ router.get("/status/:paymentId", paymentStatusRateLimit, async (req: Request, re
           }
 
           // Update local transaction object for response
-          transaction.status = statusResult.status;
+          transaction.status = statusResult.status as any;
         } else {
           appLogger.api(`Payment status unchanged: ${transaction.status}`);
         }
@@ -860,12 +850,13 @@ router.get("/callback/telr", async (req: Request, res: Response) => {
     }
 
     // Update transaction status using centralized status mapper
-    const newStatus = PaymentStatusMapper.mapTelrWebhookStatus(status);
+    const mappedStatus = PaymentStatusMapper.mapTelrWebhookStatus(status);
+    const newStatus = mappedStatus === 'unknown' ? 'pending' : mappedStatus;
 
     // Update database transaction
     try {
       await storage.updatePaymentTransaction(dbTransaction.id, {
-        status: newStatus,
+        status: newStatus as any,
         gatewayStatus: status,
         gatewayResponse: { callbackData: req.query }
       });
