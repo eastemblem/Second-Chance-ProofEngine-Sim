@@ -480,10 +480,12 @@ export class PaymentService {
       const existingSubscriptions = await storage.getUserSubscriptions(founderId);
       const existingSubscription = existingSubscriptions.find(sub => sub.paymentTransactionId === transactionId);
       if (existingSubscription) {
-        appLogger.business('Subscription already exists for transaction, skipping creation', {
+        appLogger.business('Subscription already exists for transaction, preventing duplicate emails', {
           transactionId,
           founderId,
-          existingSubscriptionId: existingSubscription.id
+          existingSubscriptionId: existingSubscription.id,
+          preventedDuplicateEmails: true,
+          emailsPrevented: ['payment_confirmation', 'investor_matching_next_steps']
         });
         return;
       }
