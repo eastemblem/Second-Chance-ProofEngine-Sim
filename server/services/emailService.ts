@@ -271,6 +271,78 @@ export class EmailService {
   }
 
   /**
+   * Send payment success confirmation email with payment details
+   */
+  async sendPaymentSuccessEmail(
+    to: string,
+    userName: string,
+    paymentAmount: string,
+    orderReference: string,
+    paymentDate: string
+  ): Promise<boolean> {
+    appLogger.email('PaymentSuccessEmail: Sending payment success email', {
+      to,
+      userName,
+      paymentAmount,
+      orderReference
+    });
+    
+    const frontendUrl = process.env.FRONTEND_URL || `https://${process.env.REPLIT_DOMAINS?.split(',')[0]}`;
+    
+    const templateData = {
+      USER_NAME: userName,
+      PAYMENT_AMOUNT: paymentAmount,
+      ORDER_REFERENCE: orderReference,
+      PAYMENT_DATE: paymentDate,
+      DASHBOARD_URL: `${frontendUrl.replace(/\/+$/, '')}/dashboard`,
+      HOST_URL: frontendUrl,
+      CURRENT_YEAR: new Date().getFullYear(),
+      PRIVACY_URL: `${frontendUrl}/privacy`,
+      TERMS_URL: `${frontendUrl}/terms`,
+      LOGO_URL: `${frontendUrl}/logo.png`
+    };
+    
+    return this.sendEmail(
+      to,
+      '💳 Payment Confirmed - Deal Room Access Activated',
+      'payment-success',
+      templateData
+    );
+  }
+
+  /**
+   * Send investor matching next steps email
+   */
+  async sendInvestorMatchingNextStepsEmail(
+    to: string,
+    userName: string
+  ): Promise<boolean> {
+    appLogger.email('InvestorMatchingNextSteps: Sending investor matching next steps email', {
+      to,
+      userName
+    });
+    
+    const frontendUrl = process.env.FRONTEND_URL || `https://${process.env.REPLIT_DOMAINS?.split(',')[0]}`;
+    
+    const templateData = {
+      USER_NAME: userName,
+      DASHBOARD_URL: `${frontendUrl.replace(/\/+$/, '')}/dashboard`,
+      HOST_URL: frontendUrl,
+      CURRENT_YEAR: new Date().getFullYear(),
+      PRIVACY_URL: `${frontendUrl}/privacy`,
+      TERMS_URL: `${frontendUrl}/terms`,
+      LOGO_URL: `${frontendUrl}/logo.png`
+    };
+    
+    return this.sendEmail(
+      to,
+      '🚀 You\'re in – investor matching request received!',
+      'investor-matching-next-steps',
+      templateData
+    );
+  }
+
+  /**
    * Get milestone level based on ProofScore
    */
   private getMilestoneLevel(score: number): string {

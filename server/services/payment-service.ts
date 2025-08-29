@@ -6,6 +6,7 @@ import { ActivityService } from './activity-service.js';
 import { appLogger } from '../utils/logger';
 import { onboardingNotificationService } from './onboardingNotificationService';
 import { eastEmblemAPI } from '../eastemblem-api.js';
+import { EmailService } from './emailService.js';
 
 // Currency conversion service
 class CurrencyConverter {
@@ -46,6 +47,11 @@ interface PaymentStatusUpdate {
 }
 
 export class PaymentService {
+  private emailService: EmailService;
+
+  constructor() {
+    this.emailService = new EmailService();
+  }
   private getReturnUrls(orderReference: string) {
     const frontendUrl = process.env.FRONTEND_URL;
     const replitDomain = process.env.REPLIT_DOMAINS?.split(',')[0];
@@ -497,6 +503,71 @@ export class PaymentService {
     }
   }
 
+  private async sendPaymentConfirmationEmails(
+    founder: any,
+    transaction: PaymentTransaction
+  ): Promise<void> {
+    try {
+      if (!founder.email || !founder.fullName) {
+        appLogger.warn('Cannot send payment confirmation email: missing founder data', {
+          founderId: transaction.founderId,
+          hasEmail: !!founder.email,
+          hasName: !!founder.fullName
+        });
+        return;
+      }
+
+      // Format payment details
+      const paymentAmount = `${transaction.currency || 'USD'} ${transaction.amount}`;
+      const paymentDate = new Date(transaction.createdAt).toLocaleDateString('en-US', {
+        year: 'numeric',
+        month: 'long',
+        day: 'numeric',
+        hour: '2-digit',
+        minute: '2-digit'
+      });
+
+      // Send payment confirmation email immediately
+      const paymentEmailSent = await this.emailService.sendPaymentSuccessEmail(
+        founder.email,
+        founder.fullName,
+        paymentAmount,
+        transaction.orderReference,
+        paymentDate
+      );
+
+      // Send investor matching next steps email after a short delay (3 seconds)
+      setTimeout(async () => {
+        try {
+          const nextStepsEmailSent = await this.emailService.sendInvestorMatchingNextStepsEmail(
+            founder.email,
+            founder.fullName
+          );
+          
+          appLogger.email('Investor matching next steps email sent', {
+            founderId: transaction.founderId,
+            email: founder.email,
+            success: nextStepsEmailSent
+          });
+        } catch (error) {
+          appLogger.error('Failed to send investor matching next steps email', error);
+        }
+      }, 3000);
+
+      appLogger.email('Payment confirmation emails initiated', {
+        founderId: transaction.founderId,
+        email: founder.email,
+        paymentEmailSent,
+        paymentAmount,
+        orderReference: transaction.orderReference
+      });
+
+    } catch (error) {
+      appLogger.error('Error sending payment confirmation emails', error);
+      // Don't throw - this is just email notification, don't fail the main payment flow
+    }
+  }
+
   private async sendDealRoomNotification(
     founderId: string, 
     transactionId: string, 
@@ -600,6 +671,9 @@ export class PaymentService {
           statusEmoji = '✅';
           statusText = 'Payment Successful';
           statusDescription = 'Payment has been processed successfully';
+          
+          // Send payment confirmation emails when payment is completed
+          await this.sendPaymentConfirmationEmails(founder, transaction);
           break;
         case 'failed':
           statusEmoji = '❌';

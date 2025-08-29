@@ -38,6 +38,7 @@ Key technical decisions include:
 - **Premium Download Features**: Report downloads and file downloads are protected behind the payment system, requiring payment for access to detailed analysis documents and resources.
 - **Comprehensive Payment Activity Tracking**: Logs all payment-related user interactions (initiation, completion, failure) for analytics.
 - **Team Notification System**: Automated email and Slack notifications to the development team upon Deal Room purchases, including Box folder URLs and calculated venture status. All payment activities trigger instant Slack notifications to the #notifications channel with detailed founder and transaction information, covering the entire payment journey.
+- **Dual Payment Email System**: Upon successful payment, users receive two sequential emails: (1) immediate payment confirmation with transaction details, and (2) investor matching next steps email (sent 3 seconds later) with guidance on the review process and dashboard access.
 
 ### System Design Choices
 The system prioritizes a modular, component-driven approach for the frontend and a serverless architecture for the backend to ensure scalability and efficient resource utilization. Drizzle ORM is used for type-safe database interactions, emphasizing schema-driven development. The email service is designed for flexibility, allowing for different email templates based on user flow.
