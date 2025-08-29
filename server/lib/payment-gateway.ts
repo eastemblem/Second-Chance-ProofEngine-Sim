@@ -467,6 +467,17 @@ class PayTabsGateway extends PaymentGateway {
         throw new Error(`PayTabs API returned invalid JSON: ${responseText.substring(0, 200)}`);
       }
 
+      // Log the complete PayTabs API response to analyze all returned fields
+      appLogger.external('PayTabs /request endpoint response', {
+        statusCode: response.status,
+        responseFields: Object.keys(result),
+        fullResponse: result,
+        hasInvoiceUrl: !!result.invoice_url,
+        hasRedirectUrl: !!result.redirect_url,
+        hasTranRef: !!result.tran_ref,
+        description: 'Complete response from PayTabs /request endpoint - checking for invoice URL'
+      });
+
       if (!response.ok) {
         throw new Error(`PayTabs API HTTP error: ${response.status} - ${result.result || 'Unknown error'}`);
       }
