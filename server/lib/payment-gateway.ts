@@ -347,20 +347,43 @@ class PayTabsGateway extends PaymentGateway {
 
   async createOrder(orderData: PaymentOrderData): Promise<PaymentOrderResponse> {
     // Create a minimal PayTabs request to avoid validation issues
+    const orderAmount = parseFloat(orderData.amount.toFixed(2));
+    
     const payTabsRequest: any = {
       profile_id: parseInt(this.profileId!),
       tran_type: 'sale',
       tran_class: 'ecom',
       cart_id: orderData.orderId,
       cart_currency: orderData.currency,
-      cart_amount: parseFloat(orderData.amount.toFixed(2)),
+      cart_amount: orderAmount,
       cart_description: orderData.description,
       callback: orderData.returnUrls.callback,
       framed: true,
       framed_return_top: false,
       framed_return_parent: false,
       hide_shipping: true,
-      return: "None"
+      return: "None",
+      invoice: {
+        shipping_charges: 0,
+        extra_charges: 0,
+        extra_discount: 0,
+        total: orderAmount,
+        line_items: [
+          {
+            sku: "DEAL_ROOM_ACCESS",
+            description: orderData.description || "Deal Room Access - Second Chance",
+            url: "https://secondchance.com/deal-room",
+            unit_cost: orderAmount,
+            quantity: 1,
+            net_total: orderAmount,
+            discount_rate: 0,
+            discount_amount: 0,
+            tax_rate: 0,
+            tax_total: 0,
+            total: orderAmount
+          }
+        ]
+      }
     };
 
     appLogger.business('PayTabs iframe configuration applied', {
@@ -370,6 +393,16 @@ class PayTabsGateway extends PaymentGateway {
       hide_shipping: true,
       return: "None",
       description: 'Embedded payment page with iframe-level navigation control, shipping hidden'
+    });
+
+    appLogger.business('PayTabs invoice details prepared', {
+      invoiceTotal: orderAmount,
+      lineItemSku: 'DEAL_ROOM_ACCESS',
+      lineItemDescription: orderData.description || "Deal Room Access - Second Chance",
+      shippingCharges: 0,
+      extraCharges: 0,
+      extraDiscount: 0,
+      description: 'Invoice line items for Deal Room access with no additional charges'
     });
 
     // Add customer details from founder data if available
