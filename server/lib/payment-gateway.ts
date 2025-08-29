@@ -340,6 +340,11 @@ class PayTabsGateway extends PaymentGateway {
     return 'https://secure.paytabs.com/payment/request';
   }
 
+  private getQueryUrl(): string {
+    // PayTabs status query endpoint
+    return 'https://secure.paytabs.com/payment/query';
+  }
+
   async createOrder(orderData: PaymentOrderData): Promise<PaymentOrderResponse> {
     // Create a minimal PayTabs request to avoid validation issues
     const payTabsRequest: any = {
@@ -446,7 +451,13 @@ class PayTabsGateway extends PaymentGateway {
     };
 
     try {
-      const queryUrl = this.baseUrl.replace('/payment/request', '/payment/query');
+      const queryUrl = this.getQueryUrl();
+      
+      appLogger.external('PayTabs status query initiated', {
+        orderRef,
+        queryUrl,
+        profileId: parseInt(this.profileId!)
+      });
       
       const response = await fetch(queryUrl, {
         method: 'POST',
@@ -458,7 +469,6 @@ class PayTabsGateway extends PaymentGateway {
       });
 
       let result;
-      console.log(result);
       
       if (!response.ok) {
         const errorText = await response.text();
@@ -472,6 +482,13 @@ class PayTabsGateway extends PaymentGateway {
       } else {
         result = await response.json();
       }
+
+      appLogger.external('PayTabs status query response', {
+        orderRef,
+        responseCode: result.response_code,
+        responseMessage: result.response_message,
+        hasError: result.response_code !== '200'
+      });
 
       // Handle PayTabs response codes
       if (result.response_code !== '200') {
@@ -530,14 +547,22 @@ class PayTabsGateway extends PaymentGateway {
     } catch (error) {
       appLogger.error('PayTabs status check exception', error, {
         orderRef: queryRequest.tran_ref,
-        errorType: error?.constructor?.name
+        errorType: error?.constructor?.name,
+        queryUrl: this.getQueryUrl(),
+        requestPayload: queryRequest
       });
       
       // Don't throw, return unknown status to fall back to database
       return {
         success: true,
         status: 'unknown',
-        gatewayResponse: { error: error instanceof Error ? error.message : String(error) }
+        gatewayResponse: { 
+          error: error instanceof Error ? error.message : String(error),
+          errorDetails: {
+            type: error?.constructor?.name,
+            stack: error instanceof Error ? error.stack : undefined
+          }
+        }
       };
     }
   }
