@@ -459,6 +459,11 @@ export default function DashboardPage() {
 
   // Check for newly available documents and show toast notifications
   const checkDocumentReadiness = (validation: any) => {
+    // Only show document ready notifications if user has made payment (has deal room access)
+    if (!hasDealRoomAccess) {
+      return; // Don't show notifications until payment is completed
+    }
+
     // Check for certificate availability
     if (validation.certificateUrl && !sessionStorage.getItem('certificate_ready_notified')) {
       toast({

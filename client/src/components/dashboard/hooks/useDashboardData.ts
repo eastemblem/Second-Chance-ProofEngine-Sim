@@ -62,6 +62,11 @@ export function useDashboardData() {
   const { toast } = useToast();
 
   const checkDocumentReadiness = useCallback((validation: ValidationData) => {
+    // Only show document ready notifications if user has made payment (has deal room access)
+    if (!hasDealRoomAccess) {
+      return; // Don't show notifications until payment is completed
+    }
+
     // Check for certificate availability
     if (validation.certificateUrl && !sessionStorage.getItem('certificate_ready_notified')) {
       toast({
@@ -85,7 +90,7 @@ export function useDashboardData() {
       trackEvent('notification', 'document', 'report_ready');
       sessionStorage.setItem('report_ready_notified', 'true');
     }
-  }, [toast]);
+  }, [toast, hasDealRoomAccess]);
 
   const loadDashboardData = useCallback(async (forceRefresh = false) => {
     console.log('🔄 Starting dashboard data load...', { forceRefresh });
