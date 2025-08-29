@@ -3,7 +3,8 @@
 ## Overview
 Second Chance is a comprehensive startup validation platform designed to empower entrepreneurs through intelligent document processing, advanced error management, and user-centric design. It aims to generate revenue through premium features like Deal Room access, while providing valuable insights and a clear pathway for startups based on their ProofScore. The platform utilizes a modern tech stack to ensure scalability, security, and a seamless user experience.
 
-## Recent Changes (Updated: August 28, 2025)
+## Recent Changes (Updated: August 29, 2025)
+- **Auto-Scrolling Logo Carousel**: Implemented elegant auto-scrolling carousel for partner company logos on deal-room sales page. Features smooth animations, responsive design (4 logos on desktop, 2 on mobile), progress indicators, and consistent aspect ratios. Showcases 8 key partners: Plug and Play Tech Centre, Founders Live, 500Global, Katha VC, The Founders Sanctuary, Antler, Innoway, and East Emblem.
 - **Enhanced File Access Control**: Extended score-based validation to file view and download actions in VaultFileListing component. Both file download and view buttons now validate ProofScore >= 70 before allowing payment flow, ensuring consistent access control across all file operations.
 - **Updated Deal Room Button Text**: Changed "Enter the Dealroom" to "Enter the Dealroom - $99" to clearly communicate pricing information upfront.
 - **Score-Based Deal Room Access Control**: Implemented comprehensive score validation across all payment flows on dashboard. Users with ProofScore below 70 now receive toast message "You have to achieve more than 70 in order to access deal room" before any payment processing begins. Applied to DealRoomSection button clicks, DocumentDownloads certificate/report unlocks, ProofVaultSection Box access, and all file operations.

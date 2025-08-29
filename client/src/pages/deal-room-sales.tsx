@@ -13,7 +13,7 @@ import { MetricCard } from "@/components/deal-room/metric-card";
 import { FeatureList } from "@/components/deal-room/feature-list";
 import { GradientButton } from "@/components/deal-room/gradient-button";
 import { TestimonialCard } from "@/components/deal-room/testimonial-card";
-import { CompanyLogoGrid } from "@/components/deal-room/company-logo";
+import { LogoCarousel } from "@/components/deal-room/logo-carousel";
 import { BadgeWithIcon } from "@/components/deal-room/badge-with-icon";
 import { AnimatedCounter } from "@/components/deal-room/animated-counter";
 import { FloatingElements } from "@/components/deal-room/floating-elements";
@@ -29,8 +29,14 @@ const heroMetrics = [
 ];
 
 const partnerCompanies = [
-  "500Global", "Plug and Play", "Techstars", "Y Combinator", 
-  "AngelList", "Seedcamp"
+  { name: "Plug and Play Tech Centre", logo: "/assets/logos/plug-and-play.svg" },
+  { name: "Founders Live", logo: "/assets/logos/founders-live.svg" },
+  { name: "500Global", logo: "/assets/logos/500global.svg" },
+  { name: "Katha VC", logo: "/assets/logos/katha-vc.svg" },
+  { name: "The Founders Sanctuary", logo: "/assets/logos/founders-sanctuary.svg" },
+  { name: "Antler", logo: "/assets/logos/antler.svg" },
+  { name: "Innoway", logo: "/assets/logos/innoway.svg" },
+  { name: "East Emblem", logo: "/assets/logos/east-emblem.svg" }
 ];
 
 const testimonials = [
@@ -286,30 +292,7 @@ export default function DealRoomSalesPage() {
                 Trusted by leading accelerators and partners:
               </p>
               
-              <div className="grid grid-cols-2 md:grid-cols-4 gap-4 max-w-4xl mx-auto mb-8">
-                {[
-                  { name: '500Global', color: 'bg-gradient-to-r from-purple-500/20 to-blue-500/20 border-purple-500/30' },
-                  { name: 'Plug and Play Tech Centre', color: 'bg-gradient-to-r from-blue-500/20 to-purple-500/20 border-blue-500/30' },
-                  { name: 'Antler', color: 'bg-gradient-to-r from-primary-gold/20 to-yellow-500/20 border-primary-gold/30' },
-                  { name: 'FlateLabs', color: 'bg-gradient-to-r from-purple-500/20 to-pink-500/20 border-purple-500/30' },
-                  { name: 'Innoway', color: 'bg-gradient-to-r from-green-500/20 to-blue-500/20 border-green-500/30' },
-                  { name: 'Pleny', color: 'bg-gradient-to-r from-purple-500/20 to-primary-gold/20 border-purple-500/30' },
-                  { name: 'East Emblem', color: 'bg-gradient-to-r from-primary-gold/20 to-orange-500/20 border-primary-gold/30' },
-                  { name: 'Beyond Impact', color: 'bg-gradient-to-r from-blue-500/20 to-green-500/20 border-blue-500/30' }
-                ].map((partner, index) => (
-                  <motion.div
-                    key={index}
-                    initial={{ opacity: 0, scale: 0.9 }}
-                    animate={{ opacity: 1, scale: 1 }}
-                    transition={{ duration: 0.4, delay: 0.4 + index * 0.05 }}
-                    whileHover={{ scale: 1.05 }}
-                  >
-                    <Card className={`p-4 text-center ${partner.color} border backdrop-blur-sm hover:bg-card/80 transition-all duration-300`}>
-                      <div className="text-sm font-medium text-foreground">{partner.name}</div>
-                    </Card>
-                  </motion.div>
-                ))}
-              </div>
+              <LogoCarousel companies={partnerCompanies} autoScrollSpeed={4000} />
             </motion.div>
             
             {/* Success story cards */}
