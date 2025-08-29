@@ -435,6 +435,18 @@ class PayTabsGateway extends PaymentGateway {
       });
     }
 
+    // Log the complete payload being sent to PayTabs
+    appLogger.external('PayTabs /request endpoint payload', {
+      endpoint: this.baseUrl,
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'authorization': '[REDACTED]'
+      },
+      payload: payTabsRequest,
+      description: 'Complete request payload sent to PayTabs /request endpoint'
+    });
+
     try {
       const response = await fetch(this.baseUrl, {
         method: 'POST',
