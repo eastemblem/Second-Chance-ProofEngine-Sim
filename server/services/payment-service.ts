@@ -476,6 +476,18 @@ export class PaymentService {
     gatewayProvider: string
   ): Promise<void> {
     try {
+      // Check if subscription already exists for this transaction to prevent duplicates
+      const existingSubscriptions = await storage.getUserSubscriptions(founderId);
+      const existingSubscription = existingSubscriptions.find(sub => sub.paymentTransactionId === transactionId);
+      if (existingSubscription) {
+        appLogger.business('Subscription already exists for transaction, skipping creation', {
+          transactionId,
+          founderId,
+          existingSubscriptionId: existingSubscription.id
+        });
+        return;
+      }
+
       const subscriptionData: InsertUserSubscription = {
         founderId,
         paymentTransactionId: transactionId,
@@ -496,6 +508,13 @@ export class PaymentService {
 
       // Send team notification for deal room access
       await this.sendDealRoomNotification(founderId, transactionId, planType);
+      
+      // Send payment confirmation emails (only once when subscription is created)
+      const founder = await storage.getFounder(founderId);
+      const transaction = await storage.getPaymentTransaction(transactionId);
+      if (founder && transaction) {
+        await this.sendPaymentConfirmationEmails(founder, transaction);
+      }
 
     } catch (error) {
       appLogger.error('Subscription creation error', error);
