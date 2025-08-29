@@ -515,6 +515,12 @@ export class PaymentService {
       const founder = await storage.getFounder(founderId);
       const transaction = await storage.getPaymentTransaction(transactionId);
       if (founder && transaction) {
+        appLogger.email('Sending user payment confirmation emails for new subscription', {
+          transactionId,
+          founderId,
+          email: founder.email,
+          newSubscription: true
+        });
         await this.sendPaymentConfirmationEmails(founder, transaction);
       }
 
@@ -534,6 +540,23 @@ export class PaymentService {
           founderId: transaction.founderId,
           hasEmail: !!founder.email,
           hasName: !!founder.fullName
+        });
+        return;
+      }
+
+      // Check if emails have already been sent by looking at payment actions log
+      // This prevents duplicate emails during multiple webhook/status check calls
+      const paymentActions = await storage.getPaymentActions(transaction.id);
+      const emailsSentAction = paymentActions.find(action => action.actionType === 'emails_sent');
+      
+      if (emailsSentAction) {
+        appLogger.warn('Preventing duplicate payment confirmation emails', {
+          transactionId: transaction.id,
+          founderId: transaction.founderId,
+          email: founder.email,
+          reason: 'Payment confirmation emails already sent',
+          previouslySentAt: emailsSentAction.timestamp,
+          preventedEmails: ['payment_confirmation', 'investor_matching_next_steps']
         });
         return;
       }
@@ -575,12 +598,21 @@ export class PaymentService {
         }
       }, 3000);
 
-      appLogger.email('Payment confirmation emails initiated', {
+      // Log that emails were sent to prevent future duplicates
+      await this.logPaymentAction(transaction.id, transaction.gatewayProvider as any, 'emails_sent', {
+        paymentEmailSent,
+        investorMatchingEmailScheduled: true,
+        email: founder.email,
+        timestamp: new Date().toISOString()
+      });
+
+      appLogger.email('Payment confirmation emails initiated and logged', {
         founderId: transaction.founderId,
         email: founder.email,
         paymentEmailSent,
         paymentAmount,
-        orderReference: transaction.orderReference
+        orderReference: transaction.orderReference,
+        duplicatePrevention: 'emails_sent action logged'
       });
 
     } catch (error) {
