@@ -28,7 +28,7 @@ Key technical decisions include:
 - **End-to-End Encryption**: Transparent payload encryption for API communications using AES-256-GCM, with feature flags for controlled rollout.
 - **Dashboard Architecture**: The new DashboardV2 is the main production dashboard at `/dashboard`, while the legacy `/dashboard-v1` remains for development only.
 - **Unified Logging Architecture**: Standardized logging using a unified `appLogger` pattern across the platform, replacing various `console.log` and `winston` calls. Logging covers business logic, database operations, external API calls, errors, and warnings, including structured metadata for enhanced observability.
-- **PayTabs Invoice Integration**: Complete invoice details sent to PayTabs /request endpoint including line items, SKU, descriptions, pricing, and totals. Zero shipping charges, extra charges, and discounts for Deal Room access purchases with comprehensive logging.
+- **PayTabs Invoice Integration**: Complete invoice details sent to PayTabs /request endpoint including line items, SKU, descriptions, pricing, and totals. Zero shipping charges, extra charges, and discounts for Deal Room access purchases with comprehensive logging. PayTabs returns `invoice.id` in responses which enables PDF invoice downloads via `https://secure.paytabs.com/payment/invoice/{InvoiceId}/download/pdf`.
 - **Payment-Gated Document Notifications**: Toast notifications for certificate and report readiness only appear after users complete Deal Room payment (hasDealRoomAccess=true), preventing premature notification confusion.
 - **Subscription Plan Schema**: Database schema supports "one-time" subscription plans for Deal Room access, in addition to standard "basic", "premium", and "enterprise" recurring plans.
 

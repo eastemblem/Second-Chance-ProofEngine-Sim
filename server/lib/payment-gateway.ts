@@ -487,6 +487,17 @@ class PayTabsGateway extends PaymentGateway {
         throw new Error(`PayTabs payment creation failed: ${result.result || result.message || 'Missing redirect_url or tran_ref'}`);
       }
 
+      // Extract invoice ID from PayTabs response for future PDF downloads
+      const invoiceId = result.invoice?.id;
+      if (invoiceId) {
+        appLogger.business('PayTabs invoice ID captured for PDF downloads', {
+          invoiceId,
+          cartId: payTabsRequest.cart_id,
+          tranRef: result.tran_ref,
+          pdfDownloadUrl: `https://secure.paytabs.com/payment/invoice/${invoiceId}/download/pdf`
+        });
+      }
+
       return {
         success: true,
         orderReference: payTabsRequest.cart_id, // Keep our internal cart_id as order reference
@@ -495,7 +506,8 @@ class PayTabsGateway extends PaymentGateway {
         gatewayResponse: {
           ...result,
           internal_cart_id: payTabsRequest.cart_id, // Store our cart_id
-          paytabs_tran_ref: result.tran_ref // Store PayTabs' tran_ref separately
+          paytabs_tran_ref: result.tran_ref, // Store PayTabs' tran_ref separately
+          paytabs_invoice_id: invoiceId // Store invoice ID for PDF downloads
         }
       };
     } catch (error) {
