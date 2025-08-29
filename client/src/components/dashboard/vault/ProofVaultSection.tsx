@@ -65,6 +65,7 @@ interface ProofVaultSectionProps {
   // Payment gating
   hasDealRoomAccess?: boolean;
   onPaymentModalOpen?: () => void;
+  validationData?: { proofScore: number } | null;
 }
 
 export function ProofVaultSection({
@@ -91,7 +92,8 @@ export function ProofVaultSection({
   externalActiveTab,
   onTabChange,
   hasDealRoomAccess = false,
-  onPaymentModalOpen
+  onPaymentModalOpen,
+  validationData
 }: ProofVaultSectionProps) {
   const [internalActiveTab, setInternalActiveTab] = useState("overview");
   
@@ -108,6 +110,17 @@ export function ProofVaultSection({
 
   // Handle viewing parent folder
   const handleViewParentFolder = () => {
+    // Check score requirement first
+    const proofScore = validationData?.proofScore || 0;
+    if (proofScore < 70) {
+      toast({
+        title: "Access Restricted",
+        description: "You have to achieve more than 70 in order to access deal room",
+        variant: "destructive",
+      });
+      return;
+    }
+
     if (!hasDealRoomAccess) {
       if (onPaymentModalOpen) {
         trackEvent('payment', 'deal_room', 'box_access_payment_prompt');

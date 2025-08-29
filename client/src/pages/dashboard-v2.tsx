@@ -363,6 +363,7 @@ export default function DashboardV2Page() {
               onTabChange={setVaultActiveTab}
               hasDealRoomAccess={hasDealRoomAccess}
               onPaymentModalOpen={() => setIsPaymentModalOpen(true)}
+              validationData={validationData}
             />
           </div>
 
