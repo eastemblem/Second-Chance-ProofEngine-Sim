@@ -649,16 +649,29 @@ export class PaymentService {
         maskedPaymentDetails: `${transaction.gatewayProvider?.toUpperCase() || 'GATEWAY'} - Plan: ${planType}`
       };
 
-      const success = await onboardingNotificationService.sendOnboardingSuccessNotification(notificationData);
+      // Add unique transaction ID to prevent duplicate notifications
+      const notificationWithId = {
+        ...notificationData,
+        transactionId: transactionId,
+        uniqueId: `deal_room_${transactionId}_${Date.now()}`
+      };
+
+      const success = await onboardingNotificationService.sendOnboardingSuccessNotification(notificationWithId);
       
       if (success) {
-        appLogger.business('Deal room access notification sent to team', {
+        appLogger.business('Deal room access notification sent to team (unique)', {
           venture: venture.name,
           founder: founder.fullName,
-          planType
+          planType,
+          transactionId,
+          uniqueNotificationId: notificationWithId.uniqueId,
+          preventsDuplicates: true
         });
       } else {
-        appLogger.error('Failed to send deal room access notification to team');
+        appLogger.error('Failed to send deal room access notification to team', {
+          transactionId,
+          venture: venture.name
+        });
       }
 
     } catch (error) {

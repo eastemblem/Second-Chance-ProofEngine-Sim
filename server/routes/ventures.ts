@@ -113,7 +113,8 @@ router.post("/update-status", requireBody, asyncHandler(async (req, res) => {
           maskedPaymentDetails: `Transaction completed successfully - Ref: ${paymentData.reference.slice(-8)}`
         };
 
-        await onboardingNotificationService.sendOnboardingSuccessNotification(notificationData);
+        // Note: Onboarding notification is now handled by PaymentService.sendDealRoomNotification 
+        // to prevent duplicate notifications. This ensures single notification per transaction.
 
         // Send Slack notification for payment success
         if (eastEmblemAPI.isConfigured()) {
