@@ -29,14 +29,13 @@ const heroMetrics = [
 ];
 
 const partnerCompanies = [
-  { name: "Plug and Play Tech Centre", logo: "/assets/logos/plug-and-play.svg" },
-  { name: "Founders Live", logo: "/assets/logos/founders-live.svg" },
-  { name: "500Global", logo: "/assets/logos/500global.svg" },
-  { name: "Katha VC", logo: "/assets/logos/katha-vc.svg" },
-  { name: "The Founders Sanctuary", logo: "/assets/logos/founders-sanctuary.svg" },
-  { name: "Antler", logo: "/assets/logos/antler.svg" },
-  { name: "Innoway", logo: "/assets/logos/innoway.svg" },
-  { name: "East Emblem", logo: "/assets/logos/east-emblem.svg" }
+  { name: "Plug and Play Tech Centre", logo: "/assets/logos/plug-and-play-logo.png" },
+  { name: "Founders Live", logo: "/assets/logos/founders-live.png" },
+  { name: "500Global", logo: "/assets/logos/500-global.png" },
+  { name: "Katha VC", logo: "/assets/logos/katha-vc-logo.jpg" },
+  { name: "Antler", logo: "/assets/logos/antler-logo.png" },
+  { name: "Innoway", logo: "/assets/logos/innoway-logo.png" },
+  { name: "East Emblem", logo: "/assets/logos/east-emblem-logo.png" }
 ];
 
 const testimonials = [
