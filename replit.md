@@ -31,6 +31,7 @@ Key technical decisions include:
 - **PayTabs Invoice Integration**: Complete invoice details sent to PayTabs /request endpoint including line items, SKU, descriptions, pricing, and totals. Zero shipping charges, extra charges, and discounts for Deal Room access purchases with comprehensive logging. PayTabs returns `invoice.id` in responses which enables PDF invoice downloads via `https://secure.paytabs.com/payment/invoice/{InvoiceId}/download/pdf`.
 - **Payment-Gated Document Notifications**: Toast notifications for certificate and report readiness only appear after users complete Deal Room payment (hasDealRoomAccess=true), preventing premature notification confusion.
 - **Subscription Plan Schema**: Database schema supports "one-time" subscription plans for Deal Room access, in addition to standard "basic", "premium", and "enterprise" recurring plans.
+- **Environment-Based Email Logo Configuration**: All email templates (payment success, investor matching, team notifications) dynamically use LOGO_URL from environment variables instead of hardcoded paths, with fallback to project assets when environment variable is not set.
 
 ### Feature Specifications
 - **Deal Room Access**: Provides qualified users (ProofScore >= 70) access to investor matching and premium features for a one-time fee.

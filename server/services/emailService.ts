@@ -5,6 +5,7 @@ import { appLogger } from "../utils/logger";
 interface EmailTemplateData {
   [key: string]: any;
   HOST_URL: string;
+  LOGO_URL?: string;
 }
 
 export class EmailService {
@@ -18,10 +19,11 @@ export class EmailService {
       const templatePath = path.join(this.templatesPath, `${templateName}.html`);
       let template = await fs.readFile(templatePath, 'utf-8');
       
-      // Ensure HOST_URL is always set
+      // Ensure HOST_URL and LOGO_URL are always set
       const processedData = {
         ...data,
-        HOST_URL: data.HOST_URL || process.env.FRONTEND_URL || `https://${process.env.REPLIT_DOMAINS?.split(',')[0]}`
+        HOST_URL: data.HOST_URL || process.env.FRONTEND_URL || `https://${process.env.REPLIT_DOMAINS?.split(',')[0]}`,
+        LOGO_URL: data.LOGO_URL || process.env.LOGO_URL || `${data.HOST_URL || process.env.FRONTEND_URL || `https://${process.env.REPLIT_DOMAINS?.split(',')[0]}`}/attached_assets/second_chance_logo_main.png`
       };
 
       // Replace all template variables with actual data
@@ -298,8 +300,8 @@ export class EmailService {
       HOST_URL: frontendUrl,
       CURRENT_YEAR: new Date().getFullYear(),
       PRIVACY_URL: `${frontendUrl}/privacy`,
-      TERMS_URL: `${frontendUrl}/terms`,
-      LOGO_URL: `${frontendUrl}/assets/second_chance_logo_main.png`
+      TERMS_URL: `${frontendUrl}/terms`
+      // LOGO_URL will be automatically added by loadTemplate method from environment variables
     };
     
     return this.sendEmail(
@@ -330,8 +332,8 @@ export class EmailService {
       HOST_URL: frontendUrl,
       CURRENT_YEAR: new Date().getFullYear(),
       PRIVACY_URL: `${frontendUrl}/privacy`,
-      TERMS_URL: `${frontendUrl}/terms`,
-      LOGO_URL: `${frontendUrl}/assets/second_chance_logo_main.png`
+      TERMS_URL: `${frontendUrl}/terms`
+      // LOGO_URL will be automatically added by loadTemplate method from environment variables
     };
     
     return this.sendEmail(
