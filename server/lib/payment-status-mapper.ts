@@ -102,18 +102,27 @@ export class PaymentStatusMapper {
     
     switch (status) {
       case 'A': // Approved/Authorised
+      case 'PAID': // PayTabs success status
+      case 'APPROVED':
+      case 'AUTHORISED':
         return 'completed';
         
       case 'D': // Declined
+      case 'DECLINED': // PayTabs decline status
+      case 'FAILED':
         return 'failed';
         
       case 'P': // Pending
+      case 'PENDING':
         return 'pending';
         
       case 'C': // Cancelled
+      case 'CANCELLED': // PayTabs cancel status
         return 'cancelled';
         
       case 'E': // Error/Expired
+      case 'ERROR':
+      case 'EXPIRED':
         return 'expired';
         
       default:
@@ -130,12 +139,13 @@ export class PaymentStatusMapper {
     
     switch (status) {
       case 'A': // Approved/Authorised
+      case 'PAID': // PayTabs success status
       case 'APPROVED':
       case 'AUTHORISED':
         return 'completed';
         
       case 'D': // Declined
-      case 'DECLINED':
+      case 'DECLINED': // PayTabs decline status
       case 'FAILED':
         return 'failed';
         
@@ -144,7 +154,7 @@ export class PaymentStatusMapper {
         return 'pending';
         
       case 'C': // Cancelled
-      case 'CANCELLED':
+      case 'CANCELLED': // PayTabs cancel status
         return 'cancelled';
         
       case 'E': // Error/Expired
