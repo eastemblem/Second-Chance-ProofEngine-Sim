@@ -169,7 +169,7 @@ export const documentUpload = pgTable("document_upload", {
 export const paymentGatewayEnum = pgEnum('payment_gateway', ['telr', 'stripe', 'paypal', 'paytabs']);
 export const paymentStatusEnum = pgEnum('payment_status', ['pending', 'completed', 'failed', 'cancelled', 'expired']);
 export const subscriptionStatusEnum = pgEnum('subscription_status', ['active', 'inactive', 'expired', 'cancelled']);
-export const subscriptionPlanEnum = pgEnum('subscription_plan', ['basic', 'premium', 'enterprise']);
+export const subscriptionPlanEnum = pgEnum('subscription_plan', ['basic', 'premium', 'enterprise', 'one-time']);
 
 // Activity types enum for better type safety
 export const activityTypeEnum = pgEnum('activity_type', [

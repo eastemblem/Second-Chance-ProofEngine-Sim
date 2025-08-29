@@ -28,6 +28,8 @@ Key technical decisions include:
 - **End-to-End Encryption**: Transparent payload encryption for API communications using AES-256-GCM, with feature flags for controlled rollout.
 - **Dashboard Architecture**: The new DashboardV2 is the main production dashboard at `/dashboard`, while the legacy `/dashboard-v1` remains for development only.
 - **Unified Logging Architecture**: Standardized logging using a unified `appLogger` pattern across the platform, replacing various `console.log` and `winston` calls. Logging covers business logic, database operations, external API calls, errors, and warnings, including structured metadata for enhanced observability.
+- **Payment-Gated Document Notifications**: Toast notifications for certificate and report readiness only appear after users complete Deal Room payment (hasDealRoomAccess=true), preventing premature notification confusion.
+- **Subscription Plan Schema**: Database schema supports "one-time" subscription plans for Deal Room access, in addition to standard "basic", "premium", and "enterprise" recurring plans.
 
 ### Feature Specifications
 - **Deal Room Access**: Provides qualified users (ProofScore >= 70) access to investor matching and premium features for a one-time fee.
