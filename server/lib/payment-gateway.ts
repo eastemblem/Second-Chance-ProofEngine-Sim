@@ -352,8 +352,17 @@ class PayTabsGateway extends PaymentGateway {
       cart_description: orderData.description,
       return: orderData.returnUrls.authorised,
       callback: orderData.returnUrls.callback,
-      framed: true
+      framed: true,
+      framed_return_top: true,
+      framed_return_parent: true
     };
+
+    appLogger.business('PayTabs iframe configuration applied', {
+      framed: true,
+      framed_return_top: true,
+      framed_return_parent: true,
+      description: 'Embedded payment page with parent-level navigation control'
+    });
 
     // Add customer details from founder data if available
     if (orderData.customerData?.email) {
@@ -449,6 +458,8 @@ class PayTabsGateway extends PaymentGateway {
       });
 
       let result;
+      console.log(result);
+      
       if (!response.ok) {
         const errorText = await response.text();
         
@@ -463,7 +474,7 @@ class PayTabsGateway extends PaymentGateway {
       }
 
       // Handle PayTabs response codes
-      if (result.response_code !== '2000') {
+      if (result.response_code !== '200') {
         // PayTabs returns various error codes for different scenarios
         // Common codes: 2 (No entries), 113 (Transaction not found), 4600+ (API errors)
         const errorCode = result.code || result.response_code;
