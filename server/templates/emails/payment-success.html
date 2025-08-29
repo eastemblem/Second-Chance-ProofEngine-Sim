@@ -1,0 +1,213 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>🚀 You're in – investor matching request received!</title>
+    <style>
+        body {
+            margin: 0;
+            padding: 0;
+            background-color: #0f0f23;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            color: #ffffff;
+            line-height: 1.6;
+        }
+        .container {
+            max-width: 600px;
+            margin: 0 auto;
+            background: linear-gradient(135deg, #1a1a3e 0%, #0f0f23 100%);
+            border-radius: 12px;
+            overflow: hidden;
+        }
+        .header {
+            background: linear-gradient(135deg, #8b5cf6 0%, #d4af37 100%);
+            text-align: center;
+            padding: 40px 20px;
+            color: white;
+        }
+        .logo {
+            width: 80px;
+            height: 80px;
+            margin: 0 auto 20px;
+            border-radius: 50%;
+            background: white;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: bold;
+            font-size: 24px;
+            color: #8b5cf6;
+        }
+        .content {
+            padding: 40px 30px;
+            background: #1a1a3e;
+        }
+        .greeting {
+            font-size: 24px;
+            font-weight: 700;
+            margin-bottom: 20px;
+            background: linear-gradient(135deg, #8b5cf6, #d4af37);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+        .main-text {
+            font-size: 16px;
+            margin-bottom: 25px;
+            color: #e5e5f0;
+        }
+        .highlight-box {
+            background: rgba(139, 92, 246, 0.1);
+            border: 1px solid #8b5cf6;
+            border-radius: 8px;
+            padding: 20px;
+            margin: 25px 0;
+            color: #e5e5f0;
+        }
+        .dashboard-button {
+            display: inline-block;
+            padding: 15px 30px;
+            background: linear-gradient(135deg, #8b5cf6, #d4af37);
+            color: white;
+            text-decoration: none;
+            border-radius: 8px;
+            font-weight: 600;
+            margin: 20px 0;
+            text-align: center;
+        }
+        .dashboard-button:hover {
+            opacity: 0.9;
+        }
+        .signature {
+            margin-top: 30px;
+            color: #e5e5f0;
+            font-style: italic;
+        }
+        .social-section {
+            background: rgba(139, 92, 246, 0.05);
+            border-radius: 8px;
+            padding: 20px;
+            margin: 25px 0;
+            text-align: center;
+        }
+        .social-title {
+            font-weight: 600;
+            margin-bottom: 15px;
+            color: #d4af37;
+        }
+        .social-links {
+            display: flex;
+            justify-content: center;
+            gap: 20px;
+            flex-wrap: wrap;
+        }
+        .social-link {
+            color: #8b5cf6;
+            text-decoration: none;
+            padding: 8px 15px;
+            border: 1px solid #8b5cf6;
+            border-radius: 6px;
+            transition: all 0.3s ease;
+        }
+        .social-link:hover {
+            background: #8b5cf6;
+            color: white;
+        }
+        .footer {
+            text-align: center;
+            padding: 30px;
+            background: #0f0f23;
+            color: #888;
+            font-size: 14px;
+        }
+        .footer a {
+            color: #8b5cf6;
+            text-decoration: none;
+        }
+        @media (max-width: 600px) {
+            .container {
+                margin: 10px;
+            }
+            .content {
+                padding: 20px;
+            }
+            .social-links {
+                flex-direction: column;
+                align-items: center;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <!-- Header -->
+        <div class="header">
+            <div class="logo">SC</div>
+            <h1 style="margin: 0; font-size: 28px;">🚀 You're In!</h1>
+            <p style="margin: 10px 0 0; opacity: 0.9;">Investor matching request received</p>
+        </div>
+
+        <!-- Main Content -->
+        <div class="content">
+            <div class="greeting">Hi {{USER_NAME}},</div>
+            
+            <div class="main-text">
+                Thanks for submitting your investor connection request – it's now in our system and undergoing expert review.
+            </div>
+            
+            <div class="main-text">
+                We'll match you with high-fit investors based on your traction, ProofTags, and stage. You'll get an update within <strong>3 working days</strong>.
+            </div>
+
+            <div class="highlight-box">
+                <strong>💡 Pro Tip:</strong> Remember, to speed up investor due diligence it is highly advised to submit your data room and current traction proof to your ProofVault using Dashboard.
+            </div>
+
+            <div style="text-align: center;">
+                <a href="{{DASHBOARD_URL}}" class="dashboard-button">
+                    👉 Check Your Request Status
+                </a>
+            </div>
+            
+            <div class="main-text">
+                You can check your request status anytime on your founder dashboard.
+            </div>
+
+            <div class="signature">
+                – The Second Chance Team
+            </div>
+
+            <!-- Social Media Section -->
+            <div class="social-section">
+                <div class="social-title">Follow Us on Socials!</div>
+                <div class="social-links">
+                    <a href="https://www.tiktok.com/@Secondchance.founders" class="social-link" target="_blank">
+                        TikTok: @Secondchance.founders
+                    </a>
+                    <a href="https://www.instagram.com/SecondChanceFounders" class="social-link" target="_blank">
+                        Instagram: @SecondChanceFounders
+                    </a>
+                    <a href="https://www.linkedin.com/company/get-second-chance" class="social-link" target="_blank">
+                        LinkedIn: @get-second-chance
+                    </a>
+                </div>
+            </div>
+        </div>
+
+        <!-- Footer -->
+        <div class="footer">
+            <p>
+                You're receiving this email because you made a payment for Deal Room access on Second Chance.
+            </p>
+            <p>
+                <a href="{{PRIVACY_URL}}">Privacy Policy</a> • 
+                <a href="{{TERMS_URL}}">Terms of Service</a>
+            </p>
+            <p>
+                © {{CURRENT_YEAR}} Second Chance. All rights reserved.
+            </p>
+        </div>
+    </div>
+</body>
+</html>
