@@ -37,10 +37,26 @@ async function throwIfResNotOk(res: Response) {
         res.statusText ||            // HTTP status text
         'An error occurred';         // Fallback
       
-      throw new Error(errorMessage);
+      // Ensure we never throw raw JSON strings to users
+      const cleanMessage = typeof errorMessage === 'string' ? errorMessage : 'An error occurred';
+      throw new Error(cleanMessage);
     } catch (parseError) {
-      // If JSON parsing fails, use the raw text or status text
-      throw new Error(text || res.statusText || 'An error occurred');
+      // If JSON parsing fails, provide user-friendly messages based on status
+      let friendlyMessage = 'An error occurred';
+      
+      if (res.status === 401) {
+        friendlyMessage = 'Invalid credentials';
+      } else if (res.status === 400) {
+        friendlyMessage = 'Invalid request';
+      } else if (res.status === 403) {
+        friendlyMessage = 'Access denied';
+      } else if (res.status === 404) {
+        friendlyMessage = 'Resource not found';
+      } else if (res.status >= 500) {
+        friendlyMessage = 'Server error. Please try again later.';
+      }
+      
+      throw new Error(friendlyMessage);
     }
   }
 }

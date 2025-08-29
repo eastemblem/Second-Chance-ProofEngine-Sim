@@ -111,9 +111,27 @@ export default function LoginPage() {
       console.error('Login error:', error);
       // Track failed login event
       trackEvent('login_failed', 'authentication', 'login_error');
+      
+      // Extract user-friendly error message
+      let errorMessage = "Please check your credentials and try again";
+      
+      if (error instanceof Error) {
+        // Clean up the error message to be user-friendly
+        if (error.message.includes("Invalid credentials")) {
+          errorMessage = "Invalid email or password. Please check your credentials and try again.";
+        } else if (error.message.includes("required")) {
+          errorMessage = "Email and password are required.";
+        } else if (error.message.includes("network") || error.message.includes("fetch")) {
+          errorMessage = "Network error. Please check your connection and try again.";
+        } else {
+          // For any other error, provide a generic but helpful message
+          errorMessage = "Login failed. Please check your credentials and try again.";
+        }
+      }
+      
       toast({
         title: "Login Failed",
-        description: error instanceof Error ? error.message : "Please check your credentials and try again",
+        description: errorMessage,
         variant: "destructive",
       });
     } finally {
