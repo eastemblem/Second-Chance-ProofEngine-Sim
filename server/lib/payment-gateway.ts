@@ -353,15 +353,15 @@ class PayTabsGateway extends PaymentGateway {
       return: orderData.returnUrls.authorised,
       callback: orderData.returnUrls.callback,
       framed: true,
-      framed_return_top: true,
-      framed_return_parent: true
+      framed_return_top: false,
+      framed_return_parent: false
     };
 
     appLogger.business('PayTabs iframe configuration applied', {
       framed: true,
-      framed_return_top: true,
-      framed_return_parent: true,
-      description: 'Embedded payment page with parent-level navigation control'
+      framed_return_top: false,
+      framed_return_parent: false,
+      description: 'Embedded payment page with iframe-level navigation control'
     });
 
     // Add customer details from founder data if available
