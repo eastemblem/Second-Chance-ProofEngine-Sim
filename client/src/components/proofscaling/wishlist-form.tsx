@@ -4,6 +4,7 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { useMutation } from "@tanstack/react-query";
 import { motion, AnimatePresence } from "framer-motion";
 import { CheckCircle, Loader2, Users, Building, User, Mail, Phone, Briefcase } from "lucide-react";
+import PhoneInput from "react-phone-number-input";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
@@ -12,6 +13,7 @@ import { insertProofScalingWishlistSchema } from "@shared/schema";
 import { apiRequest } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
 import type { z } from "zod";
+import "react-phone-number-input/style.css";
 
 type WishlistFormData = z.infer<typeof insertProofScalingWishlistSchema>;
 
@@ -178,10 +180,18 @@ export function WishlistForm({ onSuccess }: WishlistFormProps) {
                     Phone Number
                   </FormLabel>
                   <FormControl>
-                    <Input
+                    <PhoneInput
+                      international
+                      countryCallingCodeEditable={false}
+                      defaultCountry="US"
+                      value={field.value}
+                      onChange={field.onChange}
                       placeholder="Enter your phone number"
-                      {...field}
-                      className="bg-background/50 border-white/20"
+                      className="phone-input bg-background/50 border border-white/20 rounded-md px-3 py-2"
+                      style={{
+                        '--PhoneInputCountryFlag-height': '1em',
+                        '--PhoneInputCountrySelectArrow-color': '#6b7280',
+                      }}
                     />
                   </FormControl>
                   <FormMessage />
