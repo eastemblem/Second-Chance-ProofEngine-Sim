@@ -580,6 +580,18 @@ router.post("/paytabs/return", async (req: Request, res: Response) => {
                     reason: '${errorReason}',
                     status: '${respStatus}'
                   }, '*');
+                  
+                  // Auto-close after 3 seconds if parent doesn't handle it
+                  setTimeout(() => {
+                    console.log('Auto-closing cancellation iframe...');
+                    window.parent.postMessage({
+                      type: 'PAYMENT_CANCELLED',
+                      orderReference: '${cartId}',
+                      reason: '${errorReason}',
+                      status: '${respStatus}',
+                      autoClose: true
+                    }, '*');
+                  }, 3000);
                 } else {
                   // Direct redirect if not in iframe
                   const redirectUrl = '${baseUrl}/payment/cancelled?ref=${cartId}&reason=${encodeURIComponent(statusReason)}';
