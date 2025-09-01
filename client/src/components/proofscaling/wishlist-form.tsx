@@ -5,6 +5,7 @@ import { useMutation } from "@tanstack/react-query";
 import { motion, AnimatePresence } from "framer-motion";
 import { CheckCircle, Loader2, Users, Building, User, Mail, Phone, Briefcase } from "lucide-react";
 import PhoneInput from "react-phone-number-input";
+import confetti from "canvas-confetti";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
@@ -48,11 +49,22 @@ export function WishlistForm({ onSuccess }: WishlistFormProps) {
     },
     onSuccess: (data) => {
       console.log("Mutation success:", data);
+      
+      // Trigger confetti animation
+      confetti({
+        particleCount: 100,
+        spread: 70,
+        origin: { y: 0.6 },
+        colors: ['#8b5cf6', '#fbbf24', '#ffffff']
+      });
+      
+      // Show success toast
       toast({
         title: "Success!",
         description: "You've successfully joined the ProofScaling waitlist!",
         variant: "default",
       });
+      
       setShowSuccess(true);
       form.reset();
       onSuccess?.();
