@@ -62,7 +62,7 @@ export function WishlistForm({ onSuccess }: WishlistFormProps) {
       toast({
         title: "Success!",
         description: "You've successfully joined the ProofScaling waitlist!",
-        variant: "default",
+        className: "bg-green-100 border-green-400 text-green-800",
       });
       
       setShowSuccess(true);
@@ -78,7 +78,7 @@ export function WishlistForm({ onSuccess }: WishlistFormProps) {
         toast({
           title: "Already registered",
           description: "You're already on our waitlist! We'll contact you soon.",
-          variant: "default",
+          className: "bg-green-100 border-green-400 text-green-800",
         });
       } else {
         toast({
