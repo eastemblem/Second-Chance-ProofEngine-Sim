@@ -477,7 +477,14 @@ export const insertPaymentLogSchema = createInsertSchema(paymentLogs, {
 export const insertProofScalingWishlistSchema = createInsertSchema(proofScalingWishlist, {
   fullName: z.string().min(1, "Full name is required").max(100),
   email: z.string().email("Invalid email address").max(100),
-  phoneNumber: z.string().min(1, "Phone number is required").max(20),
+  phoneNumber: z.string()
+    .min(8, "Please enter a complete phone number")
+    .max(20)
+    .refine((val) => {
+      // Check if it's more than just a country code (should have at least 8 chars including +)
+      const digitsOnly = val.replace(/\D/g, '');
+      return digitsOnly.length >= 7; // At least 7 digits for a complete number
+    }, "Please enter a complete phone number with area code"),
   companyName: z.string().min(1, "Company/Organization name is required").max(200),
   role: z.string().min(1, "Role is required").max(100),
   organizationStage: z.enum(['Idea Stage', 'Pre-Product', 'MVP', 'Early Traction', 'Growth Stage', 'Scaling']),

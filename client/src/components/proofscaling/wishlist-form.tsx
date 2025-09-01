@@ -204,6 +204,7 @@ export function WishlistForm({ onSuccess }: WishlistFormProps) {
                         '--PhoneInputCountryFlag-height': '1em',
                         '--PhoneInputCountrySelectArrow-color': '#6b7280',
                       }}
+                      error={field.value && field.value.replace(/\D/g, '').length < 7 ? 'INVALID' : undefined}
                     />
                   </FormControl>
                   <FormMessage />
