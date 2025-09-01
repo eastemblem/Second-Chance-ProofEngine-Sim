@@ -203,6 +203,15 @@ export function PaymentModal({
             description: event.data.error || 'Payment could not be completed',
             variant: "destructive",
           });
+        } else if (event.data.type === 'PAYMENT_CANCELLED') {
+          console.log('🔥 PayTabs payment cancelled message received:', event.data);
+          setStep('cancelled');
+          
+          toast({
+            title: "Payment Cancelled",
+            description: "You cancelled the payment process",
+            variant: "default",
+          });
         } else if (event.data.type === 'telr_payment_result') {
           console.log('🔥 Telr payment result received:', event.data);
           if (event.data.status === 'success') {

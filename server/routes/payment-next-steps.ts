@@ -560,35 +560,71 @@ router.post("/paytabs/return", async (req: Request, res: Response) => {
       const errorReason = statusReason.replace(/'/g, "\\'"); // Escape single quotes for JavaScript
       appLogger.api('Payment failed - sending iframe error message:', errorReason);
       
-      // Send HTML with JavaScript to handle iframe error communication
-      return res.send(`
-        <html>
-          <body>
-            <script>
-              // Check if we're in an iframe
-              if (window.parent && window.parent !== window) {
-                // Send error message to parent window
-                window.parent.postMessage({
-                  type: 'PAYMENT_ERROR',
-                  orderReference: '${cartId}',
-                  error: '${errorReason}',
-                  status: '${respStatus}',
-                  code: '${respCode}'
-                }, '*');
-              } else {
-                // Direct redirect if not in iframe
-                const redirectUrl = '${baseUrl}/payment/failed?ref=${cartId}&reason=${encodeURIComponent(statusReason)}';
-                window.location.href = redirectUrl;
-              }
-            </script>
-            <div style="padding: 20px; text-align: center; font-family: Arial, sans-serif;">
-              <h3 style="color: #dc3545;">Payment Failed</h3>
-              <p>${errorReason}</p>
-              <p style="font-size: 14px; color: #666;">This window will close automatically...</p>
-            </div>
-          </body>
-        </html>
-      `);
+      // Check if this is a user cancellation
+      const isCancellation = (respStatus === 'C' || respStatus === 'X' || 
+                             statusReason.toLowerCase().includes('cancel') ||
+                             statusReason.toLowerCase().includes('abort'));
+      
+      if (isCancellation) {
+        // Handle user cancellation specifically
+        return res.send(`
+          <html>
+            <body>
+              <script>
+                // Check if we're in an iframe
+                if (window.parent && window.parent !== window) {
+                  // Send cancellation message to parent window
+                  window.parent.postMessage({
+                    type: 'PAYMENT_CANCELLED',
+                    orderReference: '${cartId}',
+                    reason: '${errorReason}',
+                    status: '${respStatus}'
+                  }, '*');
+                } else {
+                  // Direct redirect if not in iframe
+                  const redirectUrl = '${baseUrl}/payment/cancelled?ref=${cartId}&reason=${encodeURIComponent(statusReason)}';
+                  window.location.href = redirectUrl;
+                }
+              </script>
+              <div style="padding: 20px; text-align: center; font-family: Arial, sans-serif;">
+                <h3 style="color: #f59e0b;">Payment Cancelled</h3>
+                <p>You cancelled the payment process</p>
+                <p style="font-size: 14px; color: #666;">This window will close automatically...</p>
+              </div>
+            </body>
+          </html>
+        `);
+      } else {
+        // Handle payment errors
+        return res.send(`
+          <html>
+            <body>
+              <script>
+                // Check if we're in an iframe
+                if (window.parent && window.parent !== window) {
+                  // Send error message to parent window
+                  window.parent.postMessage({
+                    type: 'PAYMENT_ERROR',
+                    orderReference: '${cartId}',
+                    error: '${errorReason}',
+                    status: '${respStatus}',
+                    code: '${respCode}'
+                  }, '*');
+                } else {
+                  // Direct redirect if not in iframe
+                  const redirectUrl = '${baseUrl}/payment/failed?ref=${cartId}&reason=${encodeURIComponent(statusReason)}';
+                  window.location.href = redirectUrl;
+                }
+              </script>
+              <div style="padding: 20px; text-align: center; font-family: Arial, sans-serif;">
+                <h3 style="color: #dc3545;">Payment Failed</h3>
+                <p>${errorReason}</p>
+                <p style="font-size: 14px; color: #666;">This window will close automatically...</p>
+              </div>
+            </body>
+          </html>
+        `);
+      }
     }
 
   } catch (error) {
