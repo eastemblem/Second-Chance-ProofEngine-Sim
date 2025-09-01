@@ -38,7 +38,7 @@ export function WishlistForm({ onSuccess }: WishlistFormProps) {
   const joinWishlistMutation = useMutation({
     mutationFn: async (data: WishlistFormData) => {
       console.log("Sending wishlist data:", data);
-      const result = await apiRequest("/api/proofscaling-wishlist", "POST", data);
+      const result = await apiRequest("POST", "/api/proofscaling-wishlist", data);
       console.log("API response:", result);
       return result;
     },
