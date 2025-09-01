@@ -22,20 +22,17 @@ import { ProgressVisualization } from "@/components/deal-room/progress-visualiza
 
 // Data constants
 const heroMetrics = [
-  { value: "87%", label: "Success Rate", delay: 0.7 },
-  { value: "$2.4M", label: "Avg. Raise", delay: 0.8 },
+  { value: "300%", label: "Success Rate", delay: 0.7 },
+  { value: "Founders", label: "more likely to get first meeting", delay: 0.8 },
   { value: "14", label: "Days", delay: 0.9 },
-  { value: "300+", label: "Active Investors", delay: 1.0 }
+  { value: "50+", label: "Active Investors", delay: 1.0 }
 ];
 
 const partnerCompanies = [
+  { name: "East Emblem", logo: "/assets/logos/east-emblem-logo.png" },
   { name: "Plug and Play Tech Centre", logo: "/assets/logos/plug-and-play-logo.png" },
   { name: "Founders Live", logo: "/assets/logos/founders-live.png" },
-  { name: "500Global", logo: "/assets/logos/500-global.png" },
-  { name: "Katha VC", logo: "/assets/logos/katha-vc-logo.jpg" },
-  { name: "Antler", logo: "/assets/logos/antler-logo.png" },
-  { name: "Innoway", logo: "/assets/logos/innoway-logo.png" },
-  { name: "East Emblem", logo: "/assets/logos/east-emblem-logo.png" }
+  { name: "500Global", logo: "/assets/logos/500-global.png" }
 ];
 
 const testimonials = [
@@ -168,15 +165,7 @@ export default function DealRoomSalesPage() {
                 </Button>
               </motion.div>
               
-              <motion.div
-                whileHover={{ scale: 1.05 }}
-                whileTap={{ scale: 0.95 }}
-              >
-                <Button size="lg" variant="outline" className="border-2 border-foreground text-foreground hover:bg-foreground hover:text-background text-lg px-8 py-4 h-auto rounded-full shadow-lg hover:shadow-xl transition-all duration-300">
-                  <PlayCircle className="w-5 h-5 mr-2" />
-                  Watch Success Stories
-                </Button>
-              </motion.div>
+
             </motion.div>
             
             {/* Stats cards with icons */}
@@ -188,9 +177,9 @@ export default function DealRoomSalesPage() {
             >
               {[
                 { 
-                  number: '87%', 
+                  number: '300%', 
                   label: 'SUCCESS RATE', 
-                  sublabel: 'Founders get funded within 90 days',
+                  sublabel: 'Founders more likely to get first meeting',
                   color: 'text-green-400',
                   bgColor: 'bg-green-500/10',
                   borderColor: 'border-green-500/20',
@@ -215,7 +204,7 @@ export default function DealRoomSalesPage() {
                   icon: <Timer className="w-6 h-6" />
                 },
                 { 
-                  number: '300+', 
+                  number: '50+', 
                   label: 'ACTIVE INVESTORS', 
                   sublabel: 'Ready to invest right now',
                   color: 'text-blue-400',
@@ -294,84 +283,7 @@ export default function DealRoomSalesPage() {
               <LogoCarousel companies={partnerCompanies} autoScrollSpeed={4000} />
             </motion.div>
             
-            {/* Success story cards */}
-            <motion.div 
-              className="grid md:grid-cols-3 gap-8 mb-16"
-              initial={{ opacity: 0, y: 40 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.8, delay: 0.5 }}
-            >
-              {[
-                {
-                  company: 'TechFlow AI',
-                  achievement: 'Raised $3.2M Series A in 45 days',
-                  description: 'Used Deal Room validation data to secure oversubscribed funding round',
-                  raised: '$3.2M',
-                  timeline: '45 days',
-                  investors: '5',
-                  icon: <TrendingUp className="w-8 h-8" />,
-                  bgColor: 'bg-purple-500/10',
-                  borderColor: 'border-purple-500/20',
-                  accentColor: 'text-purple-400'
-                },
-                {
-                  company: 'GreenEnergy Corp',
-                  achievement: 'Secured 3 strategic investors same week',
-                  description: 'Corporate partnerships led to immediate funding opportunities',
-                  raised: '$1.8M',
-                  timeline: '7 days',
-                  investors: '3',
-                  icon: <Target className="w-8 h-8" />,
-                  bgColor: 'bg-green-500/10',
-                  borderColor: 'border-green-500/20',
-                  accentColor: 'text-green-400'
-                },
-                {
-                  company: 'HealthTech Innovations',
-                  achievement: 'Closed oversubscribed seed round',
-                  description: 'Proof-based metrics convinced 12 investors to participate',
-                  raised: '$2.1M',
-                  timeline: '21 days',
-                  investors: '12',
-                  icon: <Target className="w-8 h-8" />,
-                  bgColor: 'bg-primary-gold/10',
-                  borderColor: 'border-primary-gold/20',
-                  accentColor: 'text-primary-gold'
-                }
-              ].map((story, index) => (
-                <motion.div
-                  key={index}
-                  initial={{ opacity: 0, y: 30 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  transition={{ duration: 0.6, delay: 0.6 + index * 0.1 }}
-                  whileHover={{ y: -10, scale: 1.02 }}
-                >
-                  <Card className={`p-8 ${story.bgColor} ${story.borderColor} border bg-card/50 backdrop-blur-sm hover:bg-card/80 transition-all duration-300 h-full`}>
-                    <div className={`w-16 h-16 mx-auto mb-6 rounded-2xl ${story.bgColor} flex items-center justify-center ${story.accentColor}`}>
-                      {story.icon}
-                    </div>
-                    <h3 className="text-xl font-bold mb-3 text-foreground">{story.company}</h3>
-                    <p className={`text-lg font-semibold mb-4 ${story.accentColor}`}>{story.achievement}</p>
-                    <p className="text-sm text-muted-foreground mb-6">{story.description}</p>
-                    
-                    <div className="flex justify-between items-center pt-4 border-t border-border">
-                      <div className="text-center">
-                        <div className={`text-2xl font-bold ${story.accentColor}`}>{story.raised}</div>
-                        <div className="text-xs text-muted-foreground">Raised</div>
-                      </div>
-                      <div className="text-center">
-                        <div className={`text-2xl font-bold ${story.accentColor}`}>{story.timeline}</div>
-                        <div className="text-xs text-muted-foreground">Timeline</div>
-                      </div>
-                      <div className="text-center">
-                        <div className={`text-2xl font-bold ${story.accentColor}`}>{story.investors}</div>
-                        <div className="text-xs text-muted-foreground">Investors</div>
-                      </div>
-                    </div>
-                  </Card>
-                </motion.div>
-              ))}
-            </motion.div>
+
 
             {/* Testimonials */}
             <AnimatedSection delay={0.8} className="grid md:grid-cols-3 gap-8">
@@ -428,7 +340,7 @@ export default function DealRoomSalesPage() {
               {
                 icon: <Crown className="w-8 h-8" />,
                 title: 'VIP Investor Network',
-                description: 'Direct access to 300+ pre-qualified, actively investing VCs and angels',
+                description: 'Direct access to 50+ pre-qualified, actively investing VCs and angels',
                 benefit: 'Skip the cold outreach',
                 bgColor: 'bg-purple-500/10',
                 iconBgColor: 'bg-gradient-to-br from-purple-500 to-primary-gold',
@@ -438,7 +350,7 @@ export default function DealRoomSalesPage() {
               {
                 icon: <Zap className="w-8 h-8" />,
                 title: 'Lightning-Fast Introductions',
-                description: 'Get warm introductions within 48 hours of joining the Deal Room',
+                description: 'Get warm introductions within 3 days of your Deal Room application being submitted',
                 benefit: '2x faster than traditional methods',
                 bgColor: 'bg-primary-gold/10',
                 iconBgColor: 'bg-gradient-to-br from-primary-gold to-orange-500',
@@ -586,7 +498,7 @@ export default function DealRoomSalesPage() {
                 </div>
                 <div>
                   <h4 className="font-bold text-lg">100% Success Guarantee</h4>
-                  <p className="text-muted-foreground text-sm">Get matched with investors or full refund within 90 days</p>
+                  <p className="text-muted-foreground text-sm">Unlock your proof or full refund within 90 days</p>
                 </div>
               </div>
             </Card>
