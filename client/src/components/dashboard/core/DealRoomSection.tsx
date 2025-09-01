@@ -77,7 +77,7 @@ export function DealRoomSection({ validationData, hasDealRoomAccess = false, onP
   };
 
   const getButtonText = () => {
-    return isUnlocked ? "Book your first meeting!" : "Enter the Dealroom - $1";
+    return isUnlocked ? "Book your first meeting!" : "Enter the Dealroom - $99";
   };
 
   const getButtonStyle = () => {

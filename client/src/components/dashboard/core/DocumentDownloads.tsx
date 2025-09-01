@@ -100,7 +100,7 @@ export function DocumentDownloads({
                 {hasDealRoomAccess ? (
                   <><Download className="w-4 h-4 mr-2" />Download Certificate</>
                 ) : (
-                  <><Lock className="w-4 h-4 mr-2" />Unlock Download - $1</>
+                  <><Lock className="w-4 h-4 mr-2" />Unlock Download - $99</>
                 )}
               </Button>
               <div className="mt-3 text-center">
@@ -135,7 +135,7 @@ export function DocumentDownloads({
                 {hasDealRoomAccess ? (
                   <><Download className="w-4 h-4 mr-2" />Download Report</>
                 ) : (
-                  <><Lock className="w-4 h-4 mr-2" />Unlock Download - $1</>
+                  <><Lock className="w-4 h-4 mr-2" />Unlock Download - $99</>
                 )}
               </Button>
               <div className="mt-3 text-center">

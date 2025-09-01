@@ -1954,7 +1954,7 @@ export default function DashboardPage() {
                             </div>
                           </div>
                           <p className="text-gray-400 text-sm text-center">
-                            Access investor matches, personalized certificates, and detailed reports for $1
+                            Access investor matches, personalized certificates, and detailed reports for $99
                           </p>
                           <Button 
                             className="w-full bg-gradient-to-r from-purple-500 to-yellow-500 text-white hover:from-purple-600 hover:to-yellow-600 flex items-center justify-center gap-2"

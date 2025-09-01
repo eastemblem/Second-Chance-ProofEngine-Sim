@@ -97,7 +97,7 @@ export default function PathwayPage({ onNext, proofScore }: PathwayPageProps) {
               <div className="gradient-border rounded-lg mb-6">
                 <div className="gradient-border-inner p-4 text-center">
                   <div className="text-sm text-muted-foreground mb-2">Special Offer</div>
-                  <div className="text-2xl font-bold text-primary-gold mb-2">$1 Credit Applied</div>
+                  <div className="text-2xl font-bold text-primary-gold mb-2">$99 Credit Applied</div>
                   <div className="text-sm text-muted-foreground">
                     For being part of the Second Chance program
                   </div>
