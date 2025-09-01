@@ -40,16 +40,11 @@ export function WishlistForm({ onSuccess }: WishlistFormProps) {
 
   const joinWishlistMutation = useMutation({
     mutationFn: async (data: WishlistFormData) => {
-      console.log("Sending wishlist data:", data);
       const response = await apiRequest("POST", "/api/proofscaling-wishlist", data);
-      console.log("Raw API response:", response);
       const result = await response.json();
-      console.log("Parsed API result:", result);
       return result;
     },
     onSuccess: (data) => {
-      console.log("Mutation success:", data);
-      
       // Trigger confetti animation
       confetti({
         particleCount: 100,
@@ -71,8 +66,6 @@ export function WishlistForm({ onSuccess }: WishlistFormProps) {
       setTimeout(() => setShowSuccess(false), 5000);
     },
     onError: (error: any) => {
-      console.error("Mutation error:", error);
-      console.error("Error details:", JSON.stringify(error, null, 2));
       const errorMessage = error?.message || error?.error || "Failed to join waitlist. Please try again.";
       if (errorMessage === "Email already exists in the waitlist") {
         toast({
