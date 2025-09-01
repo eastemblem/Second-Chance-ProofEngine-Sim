@@ -37,17 +37,22 @@ export function WishlistForm({ onSuccess }: WishlistFormProps) {
 
   const joinWishlistMutation = useMutation({
     mutationFn: async (data: WishlistFormData) => {
-      return apiRequest("/api/proofscaling-wishlist", "POST", data);
+      console.log("Sending wishlist data:", data);
+      const result = await apiRequest("/api/proofscaling-wishlist", "POST", data);
+      console.log("API response:", result);
+      return result;
     },
-    onSuccess: () => {
+    onSuccess: (data) => {
+      console.log("Mutation success:", data);
       setShowSuccess(true);
       form.reset();
       onSuccess?.();
       setTimeout(() => setShowSuccess(false), 5000);
     },
     onError: (error: any) => {
-      const errorMessage = error?.error || "Failed to join waitlist. Please try again.";
-      if (error?.error === "Email already exists in the waitlist") {
+      console.error("Mutation error:", error);
+      const errorMessage = error?.message || error?.error || "Failed to join waitlist. Please try again.";
+      if (errorMessage === "Email already exists in the waitlist") {
         toast({
           title: "Already registered",
           description: "You're already on our waitlist! We'll contact you soon.",
