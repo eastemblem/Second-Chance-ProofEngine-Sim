@@ -528,15 +528,67 @@ router.post("/paytabs/return", async (req: Request, res: Response) => {
     const frontendUrl = process.env.REPLIT_DOMAINS?.split(',')[0];
     const baseUrl = frontendUrl ? `https://${frontendUrl}` : 'https://localhost:5000';
     
-    // Redirect based on payment status
+    // Handle iframe-based responses for PayTabs
     if (paymentStatus === 'completed') {
       const redirectUrl = `${baseUrl}/payment/success?ref=${cartId}&tranRef=${tranRef}`;
-      appLogger.api('Redirecting to success page:', redirectUrl);
-      return res.redirect(redirectUrl);
+      appLogger.api('Payment success - sending iframe redirect:', redirectUrl);
+      
+      // Send HTML with JavaScript to handle iframe navigation
+      return res.send(`
+        <html>
+          <body>
+            <script>
+              // Check if we're in an iframe
+              if (window.parent && window.parent !== window) {
+                // Send success message to parent window
+                window.parent.postMessage({
+                  type: 'PAYMENT_SUCCESS',
+                  orderReference: '${cartId}',
+                  transactionId: '${tranRef}',
+                  redirectUrl: '${redirectUrl}'
+                }, '*');
+              } else {
+                // Direct redirect if not in iframe
+                window.location.href = '${redirectUrl}';
+              }
+            </script>
+            <p>Payment successful! Redirecting...</p>
+          </body>
+        </html>
+      `);
     } else {
-      const redirectUrl = `${baseUrl}/payment/failed?ref=${cartId}&reason=${encodeURIComponent(statusReason)}`;
-      appLogger.api('Redirecting to failure page:', redirectUrl);
-      return res.redirect(redirectUrl);
+      const errorReason = statusReason.replace(/'/g, "\\'"); // Escape single quotes for JavaScript
+      appLogger.api('Payment failed - sending iframe error message:', errorReason);
+      
+      // Send HTML with JavaScript to handle iframe error communication
+      return res.send(`
+        <html>
+          <body>
+            <script>
+              // Check if we're in an iframe
+              if (window.parent && window.parent !== window) {
+                // Send error message to parent window
+                window.parent.postMessage({
+                  type: 'PAYMENT_ERROR',
+                  orderReference: '${cartId}',
+                  error: '${errorReason}',
+                  status: '${respStatus}',
+                  code: '${respCode}'
+                }, '*');
+              } else {
+                // Direct redirect if not in iframe
+                const redirectUrl = '${baseUrl}/payment/failed?ref=${cartId}&reason=${encodeURIComponent(statusReason)}';
+                window.location.href = redirectUrl;
+              }
+            </script>
+            <div style="padding: 20px; text-align: center; font-family: Arial, sans-serif;">
+              <h3 style="color: #dc3545;">Payment Failed</h3>
+              <p>${errorReason}</p>
+              <p style="font-size: 14px; color: #666;">This window will close automatically...</p>
+            </div>
+          </body>
+        </html>
+      `);
     }
 
   } catch (error) {

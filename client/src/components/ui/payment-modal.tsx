@@ -162,9 +162,48 @@ export function PaymentModal({
         }
       }
 
-      // Also check for URL changes in iframe that indicate success/failure
+      // Handle PayTabs postMessage events
       if (event.data && typeof event.data === 'object') {
-        if (event.data.type === 'telr_payment_result') {
+        if (event.data.type === 'PAYMENT_SUCCESS') {
+          console.log('🔥 PayTabs payment success message received:', event.data);
+          setStep('processing');
+          
+          setTimeout(async () => {
+            try {
+              console.log('🔥 Verifying PayTabs payment status for:', event.data.orderReference);
+              const response = await apiRequest("GET", `/api/v1/payments/status/${event.data.orderReference}`);
+              const result = await response.json();
+              console.log('🔥 PayTabs payment verification result:', result);
+              
+              if (result.success && result.transaction?.status === 'completed') {
+                console.log('🔥 PayTabs payment verified as completed!');
+                setStep('success');
+                toast({
+                  title: "Payment Successful!",
+                  description: "Deal Room access has been activated!",
+                });
+                onSuccess();
+              } else {
+                setStep('failed');
+                setError(result.transaction?.error || result.error || 'Payment verification failed');
+              }
+            } catch (error) {
+              console.error('🔥 PayTabs payment verification error:', error);
+              setStep('failed');
+              setError('Payment verification failed');
+            }
+          }, 2000);
+        } else if (event.data.type === 'PAYMENT_ERROR') {
+          console.log('🔥 PayTabs payment error message received:', event.data);
+          setStep('failed');
+          setError(event.data.error || 'Payment failed');
+          
+          toast({
+            title: "Payment Failed",
+            description: event.data.error || 'Payment could not be completed',
+            variant: "destructive",
+          });
+        } else if (event.data.type === 'telr_payment_result') {
           console.log('🔥 Telr payment result received:', event.data);
           if (event.data.status === 'success') {
             setStep('processing');
