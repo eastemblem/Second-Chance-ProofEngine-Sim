@@ -69,6 +69,9 @@ export function WishlistForm({ onSuccess }: WishlistFormProps) {
   });
 
   const onSubmit = (data: WishlistFormData) => {
+    console.log("Form submitted with data:", data);
+    console.log("Form errors:", form.formState.errors);
+    console.log("Form is valid:", form.formState.isValid);
     joinWishlistMutation.mutate(data);
   };
 
@@ -108,7 +111,12 @@ export function WishlistForm({ onSuccess }: WishlistFormProps) {
         </div>
 
         <Form {...form}>
-          <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
+          <form onSubmit={(e) => {
+            console.log("Form submit event triggered");
+            console.log("Form state:", form.getValues());
+            console.log("Form errors before submit:", form.formState.errors);
+            form.handleSubmit(onSubmit)(e);
+          }} className="space-y-4">
             <FormField
               control={form.control}
               name="fullName"
