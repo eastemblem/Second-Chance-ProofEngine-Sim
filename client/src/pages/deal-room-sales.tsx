@@ -461,7 +461,7 @@ export default function DealRoomSalesPage() {
               <div className="text-center mb-8">
                 <h3 className="text-3xl font-bold mb-4 text-foreground">Deal Room Access</h3>
                 <div className="mb-2">
-                  <span className="text-6xl font-bold text-foreground">$99</span>
+                  <span className="text-6xl font-bold text-foreground">$1</span>
                 </div>
                 <div className="text-muted-foreground mb-1">
                   <span className="line-through text-lg">$199</span>

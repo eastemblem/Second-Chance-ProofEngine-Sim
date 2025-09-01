@@ -139,7 +139,7 @@ export default function DashboardV2Page() {
             ventureId: user.venture.ventureId,
             status: 'reviewing',
             paymentData: {
-              amount: '$99 USD',
+              amount: '$1 USD',
               date: new Date().toISOString(),
               reference: `payment_${Date.now()}`
             }
@@ -405,7 +405,7 @@ export default function DashboardV2Page() {
         isOpen={isPaymentModalOpen}
         onClose={() => setIsPaymentModalOpen(false)}
         onSuccess={handlePaymentSuccess}
-        amount={99}
+        amount={1}
         currency="USD"
         description="Deal Room Access - Connect with verified investors"
         customerEmail={user?.email || ''}
