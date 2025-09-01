@@ -50,7 +50,7 @@ export function MetricCardsHero() {
     <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-8 max-w-4xl mx-auto">
       <MetricCardHero
         icon={<Star size={20} />}
-        value="1,200+"
+        value="1,000+"
         label="founders enrolled"
         delay={0.1}
         gradientColors="bg-gradient-to-br from-blue-500 to-green-400"
@@ -64,8 +64,8 @@ export function MetricCardsHero() {
       />
       <MetricCardHero
         icon={<DollarSign size={20} />}
-        value="$68m"
-        label="raised after completion"
+        value="$50m+"
+        label="value created"
         delay={0.3}
         gradientColors="bg-gradient-to-br from-blue-600 to-green-400"
       />

@@ -86,7 +86,7 @@ const timelineSteps = [
   },
   {
     week: 3,
-    title: "Desirability Interviews",
+    title: "Desirability Test",
     description:
       "Conduct structured customer interviews to validate problem-solution fit and gather actionable insights.",
     icon: MessageSquare,
@@ -94,7 +94,7 @@ const timelineSteps = [
   },
   {
     week: 4,
-    title: "Feasibility Prototype",
+    title: "Feasibility Test",
     description:
       "Build and test minimum viable solutions to demonstrate technical and operational feasibility to investors.",
     icon: Layers,
@@ -102,7 +102,7 @@ const timelineSteps = [
   },
   {
     week: 5,
-    title: "Traction Deck",
+    title: "Generate ProofVault",
     description:
       "Compile validated proof points into a compelling investor presentation that showcases measurable progress.",
     icon: Presentation,
@@ -110,7 +110,7 @@ const timelineSteps = [
   },
   {
     week: 6,
-    title: "Momentum Launch",
+    title: "Execute No Raise",
     description:
       "Execute go-to-market strategy with proven metrics, creating sustainable growth momentum for funding rounds.",
     icon: Gauge,
@@ -364,7 +364,7 @@ export default function ProofScalingSalesPage(
             <OutcomeCard
               icon={TrendingUp}
               badge="$1m raised in 30 days"
-              title="Founder A jumped from 40 → 70 ProofScore"
+              title="Founder Fatima jumped from 40 → 70 ProofScore"
               description="and closed a $1m pre-seed round within 30 days."
               delay={0.1}
               gradientColor="from-purple-500 to-pink-500"
