@@ -1,4 +1,4 @@
-import { founder, venture, teamMember, proofVault, leaderboard, evaluation, documentUpload, userActivity, paymentTransactions, userSubscriptions, paymentLogs, type Founder, type InsertFounder, type Venture, type InsertVenture, type TeamMember, type InsertTeamMember, type ProofVault, type InsertProofVault, type Leaderboard, type InsertLeaderboard, type Evaluation, type InsertEvaluation, type DocumentUpload, type InsertDocumentUpload, type UserActivity, type InsertUserActivity, type PaymentTransaction, type InsertPaymentTransaction, type UserSubscription, type InsertUserSubscription, type PaymentLog, type InsertPaymentLog } from "@shared/schema";
+import { founder, venture, teamMember, proofVault, leaderboard, evaluation, documentUpload, userActivity, paymentTransactions, userSubscriptions, paymentLogs, proofScalingWishlist, type Founder, type InsertFounder, type Venture, type InsertVenture, type TeamMember, type InsertTeamMember, type ProofVault, type InsertProofVault, type Leaderboard, type InsertLeaderboard, type Evaluation, type InsertEvaluation, type DocumentUpload, type InsertDocumentUpload, type UserActivity, type InsertUserActivity, type PaymentTransaction, type InsertPaymentTransaction, type UserSubscription, type InsertUserSubscription, type PaymentLog, type InsertPaymentLog, type ProofScalingWishlist, type InsertProofScalingWishlist } from "@shared/schema";
 import { db } from "./db";
 import { eq, desc, and } from "drizzle-orm";
 
@@ -72,6 +72,12 @@ export interface IStorage {
   getPaymentLog(id: string): Promise<PaymentLog | undefined>;
   getPaymentLogs(transactionId: string): Promise<PaymentLog[]>;
   createPaymentLog(log: InsertPaymentLog): Promise<PaymentLog>;
+
+  // ProofScaling Wishlist methods
+  getProofScalingWishlistEntry(id: string): Promise<ProofScalingWishlist | undefined>;
+  getAllProofScalingWishlistEntries(): Promise<ProofScalingWishlist[]>;
+  createProofScalingWishlistEntry(entry: InsertProofScalingWishlist): Promise<ProofScalingWishlist>;
+  checkProofScalingWishlistEmailExists(email: string): Promise<boolean>;
 }
 
 export class DatabaseStorage implements IStorage {
@@ -425,6 +431,30 @@ export class DatabaseStorage implements IStorage {
   async createPaymentLog(log: InsertPaymentLog): Promise<PaymentLog> {
     const [logRecord] = await db.insert(paymentLogs).values(log).returning();
     return logRecord;
+  }
+
+  // ProofScaling Wishlist methods
+  async getProofScalingWishlistEntry(id: string): Promise<ProofScalingWishlist | undefined> {
+    const [wishlistEntry] = await db.select().from(proofScalingWishlist).where(eq(proofScalingWishlist.id, id));
+    return wishlistEntry;
+  }
+
+  async getAllProofScalingWishlistEntries(): Promise<ProofScalingWishlist[]> {
+    return db.select()
+      .from(proofScalingWishlist)
+      .orderBy(desc(proofScalingWishlist.createdAt));
+  }
+
+  async createProofScalingWishlistEntry(entry: InsertProofScalingWishlist): Promise<ProofScalingWishlist> {
+    const [wishlistEntry] = await db.insert(proofScalingWishlist).values(entry).returning();
+    return wishlistEntry;
+  }
+
+  async checkProofScalingWishlistEmailExists(email: string): Promise<boolean> {
+    const [existingEntry] = await db.select({ id: proofScalingWishlist.id })
+      .from(proofScalingWishlist)
+      .where(eq(proofScalingWishlist.email, email));
+    return !!existingEntry;
   }
 }
 

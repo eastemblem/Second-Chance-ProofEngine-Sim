@@ -35,6 +35,7 @@ import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { EmailVerificationPopup } from "@/components/ui/email-verification-popup";
+import { WishlistModal } from "@/components/proofscaling/wishlist-modal";
 
 // Import ProofScaling components
 import { AnimatedSection } from "@/components/proofscaling/animated-section";
@@ -262,9 +263,10 @@ export default function ProofScalingSalesPage(
   props?: ProofScalingSalesPageProps,
 ) {
   const [showEmailPopup, setShowEmailPopup] = useState(false);
+  const [showWishlistModal, setShowWishlistModal] = useState(false);
 
   const handleJoinClick = () => {
-    setShowEmailPopup(true);
+    setShowWishlistModal(true);
   };
 
   return (
@@ -639,6 +641,12 @@ export default function ProofScalingSalesPage(
       <EmailVerificationPopup
         isOpen={showEmailPopup}
         onClose={() => setShowEmailPopup(false)}
+      />
+
+      {/* ProofScaling Wishlist Modal */}
+      <WishlistModal
+        isOpen={showWishlistModal}
+        onClose={() => setShowWishlistModal(false)}
       />
     </div>
   );

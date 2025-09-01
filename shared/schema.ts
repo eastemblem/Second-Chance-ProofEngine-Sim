@@ -274,6 +274,29 @@ export const leaderboard = pgTable("leaderboard", {
   createdAt: timestamp("created_at").notNull().defaultNow(),
 });
 
+// Organization stage enum for ProofScaling wishlist
+export const organizationStageEnum = pgEnum('organization_stage', [
+  'Idea Stage',
+  'Pre-Product',
+  'MVP',
+  'Early Traction',
+  'Growth Stage',
+  'Scaling'
+]);
+
+// ProofScaling wishlist table for tracking interested cohort participants
+export const proofScalingWishlist = pgTable("proof_scaling_wishlist", {
+  id: uuid("id").primaryKey().defaultRandom(),
+  fullName: varchar("full_name", { length: 100 }).notNull(),
+  email: varchar("email", { length: 100 }).notNull(),
+  phoneNumber: varchar("phone_number", { length: 20 }).notNull(),
+  companyName: varchar("company_name", { length: 200 }).notNull(),
+  role: varchar("role", { length: 100 }).notNull(),
+  organizationStage: organizationStageEnum("organization_stage").notNull(),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+  updatedAt: timestamp("updated_at").defaultNow().notNull(),
+});
+
 // Relations
 export const founderRelations = relations(founder, ({ many }) => ({
   ventures: many(venture),
@@ -401,6 +424,10 @@ export type InsertUserSubscription = typeof userSubscriptions.$inferInsert;
 export type PaymentLog = typeof paymentLogs.$inferSelect;
 export type InsertPaymentLog = typeof paymentLogs.$inferInsert;
 
+// ProofScaling Wishlist types
+export type ProofScalingWishlist = typeof proofScalingWishlist.$inferSelect;
+export type InsertProofScalingWishlist = typeof proofScalingWishlist.$inferInsert;
+
 // Activity insert schema for validation
 export const insertUserActivitySchema = createInsertSchema(userActivity, {
   activityType: z.enum(['account', 'venture', 'document', 'evaluation', 'authentication', 'navigation', 'payment', 'system']),
@@ -444,6 +471,20 @@ export const insertPaymentLogSchema = createInsertSchema(paymentLogs, {
 }).omit({
   id: true,
   createdAt: true,
+});
+
+// ProofScaling Wishlist schema for validation
+export const insertProofScalingWishlistSchema = createInsertSchema(proofScalingWishlist, {
+  fullName: z.string().min(1, "Full name is required").max(100),
+  email: z.string().email("Invalid email address").max(100),
+  phoneNumber: z.string().min(1, "Phone number is required").max(20),
+  companyName: z.string().min(1, "Company/Organization name is required").max(200),
+  role: z.string().min(1, "Role is required").max(100),
+  organizationStage: z.enum(['Idea Stage', 'Pre-Product', 'MVP', 'Early Traction', 'Growth Stage', 'Scaling']),
+}).omit({
+  id: true,
+  createdAt: true,
+  updatedAt: true,
 });
 export type Leaderboard = typeof leaderboard.$inferSelect;
 export type InsertLeaderboard = typeof leaderboard.$inferInsert;
