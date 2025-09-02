@@ -153,7 +153,9 @@ export async function convertCurrency(usdAmount: number, targetCurrency: 'USD' |
  */
 export function formatCurrency(currencyInfo: CurrencyInfo): string {
   if (currencyInfo.code === 'AED') {
-    return `${currencyInfo.amount} ${currencyInfo.code}`;
+    // Add comma formatting for larger AED amounts
+    const formattedAmount = currencyInfo.amount.toLocaleString();
+    return `${formattedAmount} ${currencyInfo.code}`;
   }
   return `${currencyInfo.symbol}${currencyInfo.amount}`;
 }

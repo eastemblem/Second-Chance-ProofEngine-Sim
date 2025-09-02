@@ -431,7 +431,7 @@ export default function DashboardV2Page() {
         isOpen={isPaymentModalOpen}
         onClose={() => setIsPaymentModalOpen(false)}
         onSuccess={handlePaymentSuccess}
-        amount={pricing.current.amount}
+        amount={pricing?.current?.amount || 99}
         currency={currency}
         description="Deal Room Access - Connect with verified investors"
         customerEmail={user?.email || ''}
