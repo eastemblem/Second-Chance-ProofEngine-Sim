@@ -389,6 +389,7 @@ export default function DashboardV2Page() {
               hasDealRoomAccess={hasDealRoomAccess}
               onPaymentModalOpen={() => setIsPaymentModalOpen(true)}
               validationData={validationData}
+              priceDisplay={pricing?.formatted?.current || '$99 USD'}
             />
           </div>
 

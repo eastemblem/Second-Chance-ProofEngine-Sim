@@ -66,6 +66,7 @@ interface ProofVaultSectionProps {
   hasDealRoomAccess?: boolean;
   onPaymentModalOpen?: () => void;
   validationData?: { proofScore: number } | null;
+  priceDisplay?: string;
 }
 
 export function ProofVaultSection({
@@ -93,7 +94,8 @@ export function ProofVaultSection({
   onTabChange,
   hasDealRoomAccess = false,
   onPaymentModalOpen,
-  validationData
+  validationData,
+  priceDisplay = '$99 USD'
 }: ProofVaultSectionProps) {
   const [internalActiveTab, setInternalActiveTab] = useState("overview");
   
@@ -179,7 +181,7 @@ export function ProofVaultSection({
               {hasDealRoomAccess ? (
                 <><ExternalLink className="w-4 h-4 mr-2" />Access Box Folder</>
               ) : (
-                <><Lock className="w-4 h-4 mr-2" />Unlock Box Access - $99</>
+                <><Lock className="w-4 h-4 mr-2" />Unlock Box Access - {priceDisplay}</>
               )}
             </Button>
           </div>

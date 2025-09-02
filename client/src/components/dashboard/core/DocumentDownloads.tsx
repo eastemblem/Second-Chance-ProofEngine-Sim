@@ -94,7 +94,7 @@ export function DocumentDownloads({
               </div>
               <Button 
                 onClick={hasDealRoomAccess ? onDownloadCertificate : checkScoreAndTriggerPayment}
-                className={`w-full ${hasDealRoomAccess 
+                className={`w-full h-auto py-3 ${hasDealRoomAccess 
                   ? 'bg-gradient-to-r from-purple-500 to-purple-600 hover:from-purple-600 hover:to-purple-700 text-white' 
                   : 'bg-gradient-to-r from-gray-600 to-gray-700 hover:from-purple-600 hover:to-purple-700 text-white'} border-0 shadow-lg hover:shadow-purple-500/25 transition-all duration-300`}
                 disabled={!hasFiles}
@@ -102,7 +102,13 @@ export function DocumentDownloads({
                 {hasDealRoomAccess ? (
                   <><Download className="w-4 h-4 mr-2" />Download Certificate</>
                 ) : (
-                  <><Lock className="w-4 h-4 mr-2" />Unlock Download - {priceDisplay}</>
+                  <div className="flex flex-col items-center gap-1">
+                    <div className="flex items-center">
+                      <Lock className="w-4 h-4 mr-2" />
+                      Unlock Download
+                    </div>
+                    <span className="text-sm font-semibold">{priceDisplay}</span>
+                  </div>
                 )}
               </Button>
               <div className="mt-3 text-center">
@@ -129,7 +135,7 @@ export function DocumentDownloads({
               </div>
               <Button 
                 onClick={hasDealRoomAccess ? onDownloadReport : checkScoreAndTriggerPayment}
-                className={`w-full ${hasDealRoomAccess 
+                className={`w-full h-auto py-3 ${hasDealRoomAccess 
                   ? 'bg-gradient-to-r from-yellow-500 to-amber-600 hover:from-yellow-600 hover:to-amber-700 text-white' 
                   : 'bg-gradient-to-r from-gray-600 to-gray-700 hover:from-yellow-600 hover:to-amber-700 text-white'} border-0 shadow-lg hover:shadow-yellow-500/25 transition-all duration-300`}
                 disabled={!hasFiles}
@@ -137,7 +143,13 @@ export function DocumentDownloads({
                 {hasDealRoomAccess ? (
                   <><Download className="w-4 h-4 mr-2" />Download Report</>
                 ) : (
-                  <><Lock className="w-4 h-4 mr-2" />Unlock Download - {priceDisplay}</>
+                  <div className="flex flex-col items-center gap-1">
+                    <div className="flex items-center">
+                      <Lock className="w-4 h-4 mr-2" />
+                      Unlock Download
+                    </div>
+                    <span className="text-sm font-semibold">{priceDisplay}</span>
+                  </div>
                 )}
               </Button>
               <div className="mt-3 text-center">
