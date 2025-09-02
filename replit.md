@@ -33,6 +33,7 @@ Key technical decisions include:
 - **Subscription Plan Schema**: Database schema supports "one-time" subscription plans for Deal Room access, in addition to standard "basic", "premium", and "enterprise" recurring plans.
 - **Environment-Based Email Logo Configuration**: All email templates (payment success, investor matching, team notifications) dynamically use LOGO_URL from environment variables instead of hardcoded paths, with fallback to project assets when environment variable is not set. The EmailService automatically injects the LOGO_URL from process.env.LOGO_URL into all email templates using the {{LOGO_URL}} placeholder.
 - **Live Exchange Rate Integration**: Real-time USD to AED currency conversion using multiple fallback APIs (ExchangeRate-API, ExchangeRate.host, Fawaz Ahmed API) with 1-hour caching to reduce API calls. Replaces hardcoded 3.673 rate with live market rates, ensuring accurate pricing for UAE users. Features graceful fallback to cached/default rates if all APIs fail.
+- **Enhanced UI Currency Display**: Improved button layouts with price on separate lines for better readability. All dashboard sections (DocumentDownloads, ProofVault) now use consistent live currency pricing with proper formatting and comma separators for AED amounts.
 
 ### Feature Specifications
 - **Deal Room Access**: Provides qualified users (ProofScore >= 70) access to investor matching and premium features for a one-time fee.
