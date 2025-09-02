@@ -1,10 +1,11 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useLocation } from "wouter";
 import { Button } from "@/components/ui/button";
-import { LogOut, User } from "lucide-react";
+import { LogOut, User, MapPin } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import Logo from "@/components/logo";
 import { trackEvent } from "@/lib/analytics";
+import { detectUserCurrency } from "@/lib/currency-utils";
 
 interface NavbarProps {
   showSignOut?: boolean;
@@ -15,7 +16,33 @@ interface NavbarProps {
 export default function Navbar({ showSignOut = false, showSignIn = false, logoOnly = false }: NavbarProps) {
   const [, setLocation] = useLocation();
   const [isLoggingOut, setIsLoggingOut] = useState(false);
+  const [userCountry, setUserCountry] = useState<string | null>(null);
+  const [isLoadingLocation, setIsLoadingLocation] = useState(true);
   const { toast } = useToast();
+
+  // Detect user's geo location
+  useEffect(() => {
+    const detectLocation = async () => {
+      try {
+        setIsLoadingLocation(true);
+        
+        // Use the existing IP geolocation API
+        const response = await fetch('https://ipapi.co/json/');
+        if (response.ok) {
+          const data = await response.json();
+          setUserCountry(data.country_name || data.country || null);
+        } else {
+          console.warn('Location detection failed');
+        }
+      } catch (error) {
+        console.warn('Location detection error:', error);
+      } finally {
+        setIsLoadingLocation(false);
+      }
+    };
+
+    detectLocation();
+  }, []);
 
   const handleSignOut = async () => {
     try {
@@ -97,6 +124,16 @@ export default function Navbar({ showSignOut = false, showSignIn = false, logoOn
           {/* Navigation Items */}
           {!logoOnly && (
             <div className="flex items-center space-x-2 sm:space-x-4">
+              {/* Location Display */}
+              {userCountry && (
+                <div className="flex items-center space-x-1 px-3 py-1 bg-primary/10 rounded-lg border border-primary/20">
+                  <MapPin className="w-4 h-4 text-primary" />
+                  <span className="text-sm font-medium text-primary">
+                    {isLoadingLocation ? 'Detecting...' : userCountry}
+                  </span>
+                </div>
+              )}
+              
               {showSignIn && (
                 <Button
                   variant="outline"
