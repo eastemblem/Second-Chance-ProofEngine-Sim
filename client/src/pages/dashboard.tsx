@@ -1954,7 +1954,7 @@ export default function DashboardPage() {
                             </div>
                           </div>
                           <p className="text-gray-400 text-sm text-center">
-                            Access investor matches, personalized certificates, and detailed reports for $99
+                            Access investor matches, personalized certificates, and detailed reports for $1
                           </p>
                           <Button 
                             className="w-full bg-gradient-to-r from-purple-500 to-yellow-500 text-white hover:from-purple-600 hover:to-yellow-600 flex items-center justify-center gap-2"
@@ -1965,7 +1965,7 @@ export default function DashboardPage() {
                             }}
                           >
                             <CreditCard className="w-4 h-4" />
-                            Unlock Deal Room - $99
+                            Unlock Deal Room - $1
                           </Button>
                         </>
                       )}
@@ -2204,7 +2204,7 @@ export default function DashboardPage() {
         isOpen={isPaymentModalOpen}
         onClose={() => setIsPaymentModalOpen(false)}
         onSuccess={handlePaymentSuccess}
-        amount={99}
+        amount={1}
         currency="USD"
         description="Deal Room Access - Connect with verified investors"
         customerEmail={user?.email || ''}

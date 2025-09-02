@@ -57,14 +57,14 @@ export function DealRoomPanel({ validationData, hasDealRoomAccess, onPaymentModa
                     </div>
                   </div>
                   <p className="text-gray-400 text-sm text-center">
-                    Access investor matches, personalized certificates, and detailed reports for $99
+                    Access investor matches, personalized certificates, and detailed reports for $1
                   </p>
                   <Button 
                     className="w-full bg-gradient-to-r from-purple-500 to-yellow-500 text-white hover:from-purple-600 hover:to-yellow-600 flex items-center justify-center gap-2"
                     onClick={onPaymentModalOpen}
                   >
                     <CreditCard className="w-4 h-4" />
-                    Unlock Deal Room - $99
+                    Unlock Deal Room - $1
                   </Button>
                 </>
               )}
