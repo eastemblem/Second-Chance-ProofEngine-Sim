@@ -178,10 +178,10 @@ router.post("/create-next-steps-session", sessionPaymentRateLimit, async (req: R
     appLogger.business('Payment currency decision', { country: userCountry, testMode: isTestMode, uaeUser: isUAEUser, currency });
     
     // Validate package type and amount
-    if (amount !== 1) {
+    if (amount !== 100) {
       return res.status(400).json({
         success: false,
-        message: "Invalid amount. Next Steps packages cost $1 (testing mode)."
+        message: "Invalid amount. Next Steps packages cost $100."
       });
     }
 

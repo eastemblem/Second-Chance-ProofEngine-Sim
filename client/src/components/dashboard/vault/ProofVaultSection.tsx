@@ -179,7 +179,7 @@ export function ProofVaultSection({
               {hasDealRoomAccess ? (
                 <><ExternalLink className="w-4 h-4 mr-2" />Access Box Folder</>
               ) : (
-                <><Lock className="w-4 h-4 mr-2" />Unlock Box Access - $1</>
+                <><Lock className="w-4 h-4 mr-2" />Unlock Box Access - $99</>
               )}
             </Button>
           </div>

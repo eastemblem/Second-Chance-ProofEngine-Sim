@@ -199,7 +199,7 @@ export default function PaymentOnboarding({ sessionData, onNext, onSkip, onPrev,
   const packageData = (isEarlyPayment || !isHighScore) ? {
     type: "foundation",
     title: "ProofScaling Foundation Course",
-    price: 1,
+    price: 100,
     tagline: isEarlyPayment ? "Early Access • Foundation Course" : "Strengthen Your Venture Fundamentals",
     description: isEarlyPayment 
       ? "Start immediately with comprehensive validation course while we analyze your venture"
@@ -224,7 +224,7 @@ export default function PaymentOnboarding({ sessionData, onNext, onSkip, onPrev,
   } : {
     type: "investment",
     title: "Investment Ready Package",
-    price: 1,
+    price: 100,
     tagline: "Accelerate Your Path to Investment",
     description: "Advanced tools and strategies for investment-ready ventures",
     icon: TrendingUp,
