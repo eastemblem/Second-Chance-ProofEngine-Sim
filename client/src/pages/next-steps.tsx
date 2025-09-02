@@ -149,7 +149,7 @@ export default function NextSteps() {
         sessionId: nextStepsData.sessionId,
         ventureName: nextStepsData.ventureName,
         proofScore: nextStepsData.proofScore,
-        amount: 100,
+        amount: 1,
         packageType: nextStepsData.proofScore < 70 ? 'foundation' : 'investment_ready'
       });
 
@@ -421,7 +421,7 @@ export default function NextSteps() {
                   <div className="flex items-center justify-center mb-6">
                     <div className="text-center">
                       <div className="flex items-baseline justify-center">
-                        <span className="text-5xl font-bold text-foreground">$100</span>
+                        <span className="text-5xl font-bold text-foreground">$1</span>
                         <span className="text-lg text-muted-foreground ml-2">USD</span>
                       </div>
                       <div className="text-sm text-muted-foreground mt-1">One-time payment</div>
@@ -505,7 +505,7 @@ export default function NextSteps() {
                         size="lg"
                       >
                         <CreditCard className="w-5 h-5 mr-2" />
-                        Get Started - $100 USD
+                        Get Started - $1 USD
                         <ArrowRight className="w-5 h-5 ml-2" />
                       </Button>
                       
