@@ -103,8 +103,11 @@ export default function DashboardV2Page() {
     const detectCurrency = async () => {
       try {
         const detectedCurrency = await detectUserCurrency();
+        console.log('Dashboard currency detection result:', detectedCurrency);
         setCurrency(detectedCurrency);
-        setPricing(getDealRoomPricing(detectedCurrency));
+        const newPricing = getDealRoomPricing(detectedCurrency);
+        console.log('Dashboard pricing calculated:', newPricing);
+        setPricing(newPricing);
       } catch (error) {
         console.error('Currency detection failed:', error);
         // Keep default USD values
@@ -350,6 +353,7 @@ export default function DashboardV2Page() {
             hasDealRoomAccess={hasDealRoomAccess}
             onPaymentModalOpen={handlePaymentModalOpen}
             ventureStatus={ventureStatus}
+            priceDisplay={pricing.formatted.current}
           />
 
           {/* Your Proof Vault */}
@@ -395,6 +399,7 @@ export default function DashboardV2Page() {
               onDownloadReport={handleDownloadReport}
               hasDealRoomAccess={hasDealRoomAccess}
               onPaymentModalOpen={() => setIsPaymentModalOpen(true)}
+              priceDisplay={pricing.formatted.current}
             />
             <CommunityAccess 
               hasDealRoomAccess={hasDealRoomAccess}

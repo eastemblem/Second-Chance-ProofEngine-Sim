@@ -33,6 +33,7 @@ interface DocumentDownloadsProps {
   onDownloadReport: () => void;
   hasDealRoomAccess?: boolean;
   onPaymentModalOpen?: () => void;
+  priceDisplay?: string;
 }
 
 export function DocumentDownloads({ 
@@ -41,7 +42,8 @@ export function DocumentDownloads({
   onDownloadCertificate, 
   onDownloadReport,
   hasDealRoomAccess = false,
-  onPaymentModalOpen
+  onPaymentModalOpen,
+  priceDisplay = '$99 USD'
 }: DocumentDownloadsProps) {
   const { toast } = useToast();
   const hasFiles = (user?.venture?.certificateUrl || validationData?.certificateUrl) && 
@@ -100,7 +102,7 @@ export function DocumentDownloads({
                 {hasDealRoomAccess ? (
                   <><Download className="w-4 h-4 mr-2" />Download Certificate</>
                 ) : (
-                  <><Lock className="w-4 h-4 mr-2" />Unlock Download - $99</>
+                  <><Lock className="w-4 h-4 mr-2" />Unlock Download - {priceDisplay}</>
                 )}
               </Button>
               <div className="mt-3 text-center">
@@ -135,7 +137,7 @@ export function DocumentDownloads({
                 {hasDealRoomAccess ? (
                   <><Download className="w-4 h-4 mr-2" />Download Report</>
                 ) : (
-                  <><Lock className="w-4 h-4 mr-2" />Unlock Download - $99</>
+                  <><Lock className="w-4 h-4 mr-2" />Unlock Download - {priceDisplay}</>
                 )}
               </Button>
               <div className="mt-3 text-center">

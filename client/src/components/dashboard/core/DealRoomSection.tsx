@@ -17,9 +17,10 @@ interface DealRoomSectionProps {
   hasDealRoomAccess?: boolean;
   onPaymentModalOpen?: () => void;
   ventureStatus?: 'pending' | 'reviewing' | 'reviewed' | 'done';
+  priceDisplay?: string;
 }
 
-export function DealRoomSection({ validationData, hasDealRoomAccess = false, onPaymentModalOpen, ventureStatus = 'pending' }: DealRoomSectionProps) {
+export function DealRoomSection({ validationData, hasDealRoomAccess = false, onPaymentModalOpen, ventureStatus = 'pending', priceDisplay = '$99 USD' }: DealRoomSectionProps) {
   const { toast } = useToast();
   const proofScore = validationData?.proofScore || 0;
   const isUnlocked = proofScore >= 70;
@@ -77,7 +78,7 @@ export function DealRoomSection({ validationData, hasDealRoomAccess = false, onP
   };
 
   const getButtonText = () => {
-    return isUnlocked ? "Book your first meeting!" : "Enter the Dealroom - $99";
+    return isUnlocked ? "Book your first meeting!" : `Enter the Dealroom - ${priceDisplay}`;
   };
 
   const getButtonStyle = () => {
