@@ -9,6 +9,7 @@ import { PaymentErrorHandler } from "../lib/error-handler";
 import { SecurityUtils } from "../lib/security-utils";
 import { sessionPaymentRateLimit, paymentStatusRateLimit, webhookRateLimit } from "../middleware/rate-limiter";
 import { appLogger } from "../utils/logger";
+import { CurrencyService } from "../services/currency-service";
 import * as crypto from "crypto";
 
 const router = Router();
@@ -181,9 +182,11 @@ router.post("/create-next-steps-session", sessionPaymentRateLimit, async (req: R
       appLogger.business('Using server-side geolocation currency decision', { country: userCountry, testMode: isTestMode, uaeUser: isUAEUser });
     }
     
-    // Adjust amount based on currency (frontend should send correct amount, but validate)
+    // Adjust amount based on currency using live exchange rates
     if (currency === 'AED' && amount === 100) {
-      paymentAmount = Math.round(100 * 3.67); // Convert $100 USD to AED
+      const liveRate = await CurrencyService.fetchLiveExchangeRate();
+      paymentAmount = Math.round(100 * liveRate); // Convert $100 USD to AED with live rate
+      appLogger.business('Live USD to AED conversion applied', { usdAmount: 100, liveRate, aedAmount: paymentAmount });
     } else if (currency === 'USD' && amount > 300) {
       paymentAmount = 100; // Convert from AED to USD if needed
     } else {

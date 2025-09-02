@@ -7,15 +7,13 @@ import { appLogger } from '../utils/logger';
 import { onboardingNotificationService } from './onboardingNotificationService';
 import { eastEmblemAPI } from '../eastemblem-api.js';
 import { EmailService } from './emailService.js';
+import { CurrencyService } from './currency-service.js';
 
-// Currency conversion service
+// Legacy currency conversion methods - now using CurrencyService for live rates
 class CurrencyConverter {
-  // Current rate: 1 USD = 3.673 AED (as of August 18, 2025)
-  // In production, this should come from a real-time API
-  private static readonly USD_TO_AED_RATE = 3.673;
-
-  static convertUsdToAed(usdAmount: number): number {
-    return Math.round(usdAmount * this.USD_TO_AED_RATE * 100) / 100; // Round to 2 decimal places
+  static async convertUsdToAed(usdAmount: number): Promise<number> {
+    const result = await CurrencyService.convertCurrency(usdAmount, 'AED');
+    return result.amount;
   }
 
   static getDisplayCurrency(): string {
@@ -27,7 +25,7 @@ class CurrencyConverter {
   }
 
   static formatPrice(amount: number, currency: string): string {
-    return currency === 'USD' ? `$${amount}` : `${amount} ${currency}`;
+    return CurrencyService.formatCurrency(amount, currency);
   }
 }
 
@@ -113,9 +111,9 @@ export class PaymentService {
           planType: request.planType,
           displayAmount: request.amount,
           displayCurrency: request.currency,
-          paymentAmount: request.currency === 'USD' ? CurrencyConverter.convertUsdToAed(request.amount) : request.amount,
+          paymentAmount: request.currency === 'USD' ? await CurrencyConverter.convertUsdToAed(request.amount) : request.amount,
           paymentCurrency: request.currency === 'USD' ? 'AED' : request.currency,
-          conversionRate: request.currency === 'USD' ? 3.673 : 1
+          conversionRate: request.currency === 'USD' ? await CurrencyService.fetchLiveExchangeRate() : 1
         }
       };
       
@@ -166,11 +164,11 @@ export class PaymentService {
 
       const gateway = PaymentGatewayFactory.create(gatewayProvider);
       
-      // Currency conversion: Convert USD to AED for Telr
+      // Currency conversion: Convert USD to AED using live rates
       const displayAmount = request.amount; // Amount shown to user (USD)
       const displayCurrency = request.currency; // Currency shown to user (USD)
       const paymentAmount = displayCurrency === 'USD' ? 
-        CurrencyConverter.convertUsdToAed(displayAmount) : displayAmount;
+        await CurrencyConverter.convertUsdToAed(displayAmount) : displayAmount;
       const paymentCurrency = displayCurrency === 'USD' ? 
         CurrencyConverter.getPaymentCurrency() : displayCurrency;
       
