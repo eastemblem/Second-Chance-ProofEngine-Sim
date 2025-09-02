@@ -1,6 +1,7 @@
 import { useState, useEffect, useRef } from "react";
 import { useLocation } from "wouter";
 import { PaymentModal } from '@/components/ui/payment-modal';
+import { detectUserCurrency, getDealRoomPricing } from "@/lib/currency-utils";
 import { usePaginatedActivities } from "@/hooks/use-paginated-activities";
 import { usePaginatedFiles } from "@/hooks/use-paginated-files";
 import { trackEvent } from "@/lib/analytics";
@@ -33,6 +34,8 @@ export default function DashboardV2Page() {
   const [selectedCategory, setSelectedCategory] = useState<string>("0_Overview");
   const [isPaymentModalOpen, setIsPaymentModalOpen] = useState(false);
   const [vaultActiveTab, setVaultActiveTab] = useState("overview");
+  const [currency, setCurrency] = useState<'USD' | 'AED'>('USD');
+  const [pricing, setPricing] = useState(() => getDealRoomPricing('USD'));
   
   // Ref for scrolling to ProofVault section
   const proofVaultRef = useRef<HTMLDivElement>(null);
@@ -95,6 +98,22 @@ export default function DashboardV2Page() {
     loadDashboardData();
   }, [checkAuthStatus, loadDashboardData]);
 
+  // Detect user currency
+  useEffect(() => {
+    const detectCurrency = async () => {
+      try {
+        const detectedCurrency = await detectUserCurrency();
+        setCurrency(detectedCurrency);
+        setPricing(getDealRoomPricing(detectedCurrency));
+      } catch (error) {
+        console.error('Currency detection failed:', error);
+        // Keep default USD values
+      }
+    };
+
+    detectCurrency();
+  }, []);
+
   // Handle scroll-based pagination for activities
   const handleActivityScroll = (e: React.UIEvent<HTMLDivElement>) => {
     const container = e.currentTarget;
@@ -139,7 +158,7 @@ export default function DashboardV2Page() {
             ventureId: user.venture.ventureId,
             status: 'reviewing',
             paymentData: {
-              amount: '$99 USD',
+              amount: pricing.formatted.current,
               date: new Date().toISOString(),
               reference: `payment_${Date.now()}`
             }
@@ -405,8 +424,8 @@ export default function DashboardV2Page() {
         isOpen={isPaymentModalOpen}
         onClose={() => setIsPaymentModalOpen(false)}
         onSuccess={handlePaymentSuccess}
-        amount={99}
-        currency="USD"
+        amount={pricing.current.amount}
+        currency={currency}
         description="Deal Room Access - Connect with verified investors"
         customerEmail={user?.email || ''}
         customerName={user?.fullName || ''}

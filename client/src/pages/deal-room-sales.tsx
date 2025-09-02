@@ -1,5 +1,5 @@
 import { motion } from "framer-motion";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { ArrowRight, Star, Users, TrendingUp, Shield, Zap, Crown, Award, DollarSign, Timer, Handshake, CheckCircle2, Target, Trophy, Rocket, PlayCircle } from "lucide-react";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -19,6 +19,7 @@ import { AnimatedCounter } from "@/components/deal-room/animated-counter";
 import { FloatingElements } from "@/components/deal-room/floating-elements";
 import { SuccessIndicator } from "@/components/deal-room/success-indicator";
 import { ProgressVisualization } from "@/components/deal-room/progress-visualization";
+import { detectUserCurrency, getDealRoomPricing } from "@/lib/currency-utils";
 
 // Data constants
 const heroMetrics = [
@@ -81,6 +82,18 @@ const features = [
 
 export default function DealRoomSalesPage() {
   const [showEmailPopup, setShowEmailPopup] = useState(false);
+  const [currency, setCurrency] = useState<'USD' | 'AED'>('USD');
+  const [pricing, setPricing] = useState(() => getDealRoomPricing('USD'));
+  const [isLoadingCurrency, setIsLoadingCurrency] = useState(true);
+
+  // Detect user currency on component mount
+  useEffect(() => {
+    detectUserCurrency().then((detectedCurrency) => {
+      setCurrency(detectedCurrency);
+      setPricing(getDealRoomPricing(detectedCurrency));
+      setIsLoadingCurrency(false);
+    });
+  }, []);
 
   const handleJoinClick = () => {
     setShowEmailPopup(true);
@@ -461,12 +474,24 @@ export default function DealRoomSalesPage() {
               <div className="text-center mb-8">
                 <h3 className="text-3xl font-bold mb-4 text-foreground">Deal Room Access</h3>
                 <div className="mb-2">
-                  <span className="text-6xl font-bold text-foreground">$99</span>
+                  {isLoadingCurrency ? (
+                    <span className="text-6xl font-bold text-foreground animate-pulse">$99</span>
+                  ) : (
+                    <span className="text-6xl font-bold text-foreground">{pricing.formatted.current}</span>
+                  )}
                 </div>
                 <div className="text-muted-foreground mb-1">
-                  <span className="line-through text-lg">$199</span>
+                  {isLoadingCurrency ? (
+                    <span className="line-through text-lg">$199</span>
+                  ) : (
+                    <span className="line-through text-lg">{pricing.formatted.original}</span>
+                  )}
                 </div>
-                <p className="text-muted-foreground">per year</p>
+                <p className="text-muted-foreground">
+                  per year {!isLoadingCurrency && (
+                    <span className="text-xs">({currency === 'AED' ? 'UAE' : 'International'} pricing)</span>
+                  )}
+                </p>
               </div>
 
               <FeatureList 

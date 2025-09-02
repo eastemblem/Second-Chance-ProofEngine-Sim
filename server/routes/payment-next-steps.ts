@@ -85,6 +85,7 @@ interface NextStepsPaymentRequest {
   ventureName: string;
   proofScore: number;
   amount: number;
+  currency?: 'USD' | 'AED';
   packageType: 'foundation' | 'investment_ready';
 }
 
@@ -122,7 +123,7 @@ router.post("/create-next-steps-session", sessionPaymentRateLimit, async (req: R
     appLogger.api('PayTabs payment request received', { hasSessionId: !!req.body.sessionId, hasAmount: !!req.body.amount });
     appLogger.api('PayTabs payment headers received', { userAgent: req.headers['user-agent']?.substring(0, 50) });
     
-    const { sessionId, ventureName, proofScore, amount, packageType }: NextStepsPaymentRequest = req.body;
+    const { sessionId, ventureName, proofScore, amount, currency: requestCurrency, packageType }: NextStepsPaymentRequest = req.body;
 
     // TEMP: Handle test sessions early - PayTabs integration verified
     if (sessionId?.startsWith('test-session')) {
@@ -157,25 +158,39 @@ router.post("/create-next-steps-session", sessionPaymentRateLimit, async (req: R
       throw PaymentErrorHandler.validationError("packageType", packageType);
     }
 
-    // Determine currency based on user location and test mode
+    // Determine currency - prioritize frontend-provided currency, fallback to geolocation
     const isTestMode = process.env.PAYTABS_TEST_MODE === 'true';
+    let currency: 'USD' | 'AED' = 'USD';
+    let paymentAmount = amount;
     
-    // Get user's country from request headers or IP geolocation
+    // Get user's country for metadata (used regardless of currency detection method)
     const userCountry = req.headers['cf-ipcountry'] || 
                        req.headers['x-country'] || 
                        req.headers['cloudflare-ipcountry'] ||
                        req.ip && await getUserCountryFromIP(req.ip);
-    
     const isUAEUser = userCountry === 'AE' || userCountry === 'UAE';
     
-    // Currency logic: 
-    // Test mode: Always AED
-    // Live mode: AED for UAE users, USD for others
-    const shouldUseAED = isTestMode || isUAEUser;
-    const paymentAmount = shouldUseAED ? Math.round(amount * 3.67) : amount; // Convert USD to AED when needed
-    const currency = shouldUseAED ? 'AED' : 'USD';
+    if (requestCurrency) {
+      // Use currency provided by frontend currency detection
+      currency = requestCurrency;
+      appLogger.business('Using frontend-provided currency', { requestCurrency, detectedCountry: userCountry });
+    } else {
+      // Fallback to server-side geolocation detection
+      const shouldUseAED = isTestMode || isUAEUser;
+      currency = shouldUseAED ? 'AED' : 'USD';
+      appLogger.business('Using server-side geolocation currency decision', { country: userCountry, testMode: isTestMode, uaeUser: isUAEUser });
+    }
     
-    appLogger.business('Payment currency decision', { country: userCountry, testMode: isTestMode, uaeUser: isUAEUser, currency });
+    // Adjust amount based on currency (frontend should send correct amount, but validate)
+    if (currency === 'AED' && amount === 100) {
+      paymentAmount = Math.round(100 * 3.67); // Convert $100 USD to AED
+    } else if (currency === 'USD' && amount > 300) {
+      paymentAmount = 100; // Convert from AED to USD if needed
+    } else {
+      paymentAmount = amount; // Use provided amount if it matches currency
+    }
+    
+    appLogger.business('Final payment details', { currency, amount: paymentAmount, originalAmount: amount });
     
     // Validate package type and amount
     if (amount !== 100) {
