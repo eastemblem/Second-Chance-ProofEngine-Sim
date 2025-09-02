@@ -51,16 +51,25 @@ export default function NextSteps() {
   const [paymentStatus, setPaymentStatus] = useState<PaymentStatus>({ status: 'idle' });
   const [isLoading, setIsLoading] = useState(true);
   const [currency, setCurrency] = useState<'USD' | 'AED'>('USD');
-  const [pricing, setPricing] = useState(() => getDealRoomPricing('USD'));
+  const [pricing, setPricing] = useState<any>(null);
   const [isLoadingCurrency, setIsLoadingCurrency] = useState(true);
 
   // Detect user currency
   useEffect(() => {
-    detectUserCurrency().then((detectedCurrency) => {
-      setCurrency(detectedCurrency);
-      setPricing(getDealRoomPricing(detectedCurrency));
-      setIsLoadingCurrency(false);
-    });
+    const detectAndSetPricing = async () => {
+      try {
+        const detectedCurrency = await detectUserCurrency();
+        setCurrency(detectedCurrency);
+        const newPricing = await getDealRoomPricing(detectedCurrency);
+        setPricing(newPricing);
+        setIsLoadingCurrency(false);
+      } catch (error) {
+        console.error('Currency detection failed:', error);
+        setIsLoadingCurrency(false);
+      }
+    };
+    
+    detectAndSetPricing();
   }, []);
 
   // Extract session ID from URL parameters
@@ -162,7 +171,7 @@ export default function NextSteps() {
         sessionId: nextStepsData.sessionId,
         ventureName: nextStepsData.ventureName,
         proofScore: nextStepsData.proofScore,
-        amount: pricing.current.amount,
+        amount: pricing?.current?.amount || 99,
         currency: currency,
         packageType: nextStepsData.proofScore < 70 ? 'foundation' : 'investment_ready'
       });
@@ -435,7 +444,7 @@ export default function NextSteps() {
                   <div className="flex items-center justify-center mb-6">
                     <div className="text-center">
                       <div className="flex items-baseline justify-center">
-                        {isLoadingCurrency ? (
+                        {isLoadingCurrency || !pricing ? (
                           <>
                             <span className="text-5xl font-bold text-foreground animate-pulse">$100</span>
                             <span className="text-lg text-muted-foreground ml-2">USD</span>

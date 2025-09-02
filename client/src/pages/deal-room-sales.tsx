@@ -83,16 +83,25 @@ const features = [
 export default function DealRoomSalesPage() {
   const [showEmailPopup, setShowEmailPopup] = useState(false);
   const [currency, setCurrency] = useState<'USD' | 'AED'>('USD');
-  const [pricing, setPricing] = useState(() => getDealRoomPricing('USD'));
+  const [pricing, setPricing] = useState<any>(null);
   const [isLoadingCurrency, setIsLoadingCurrency] = useState(true);
 
   // Detect user currency on component mount
   useEffect(() => {
-    detectUserCurrency().then((detectedCurrency) => {
-      setCurrency(detectedCurrency);
-      setPricing(getDealRoomPricing(detectedCurrency));
-      setIsLoadingCurrency(false);
-    });
+    const detectAndSetPricing = async () => {
+      try {
+        const detectedCurrency = await detectUserCurrency();
+        setCurrency(detectedCurrency);
+        const newPricing = await getDealRoomPricing(detectedCurrency);
+        setPricing(newPricing);
+        setIsLoadingCurrency(false);
+      } catch (error) {
+        console.error('Currency detection failed:', error);
+        setIsLoadingCurrency(false);
+      }
+    };
+    
+    detectAndSetPricing();
   }, []);
 
   const handleJoinClick = () => {

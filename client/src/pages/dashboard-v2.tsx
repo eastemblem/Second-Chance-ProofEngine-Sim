@@ -35,7 +35,7 @@ export default function DashboardV2Page() {
   const [isPaymentModalOpen, setIsPaymentModalOpen] = useState(false);
   const [vaultActiveTab, setVaultActiveTab] = useState("overview");
   const [currency, setCurrency] = useState<'USD' | 'AED'>('USD');
-  const [pricing, setPricing] = useState(() => getDealRoomPricing('USD'));
+  const [pricing, setPricing] = useState<any>(null);
   
   // Ref for scrolling to ProofVault section
   const proofVaultRef = useRef<HTMLDivElement>(null);
@@ -98,15 +98,17 @@ export default function DashboardV2Page() {
     loadDashboardData();
   }, [checkAuthStatus, loadDashboardData]);
 
-  // Detect user currency
+  // Detect user currency and fetch live pricing
   useEffect(() => {
     const detectCurrency = async () => {
       try {
         const detectedCurrency = await detectUserCurrency();
         console.log('Dashboard currency detection result:', detectedCurrency);
         setCurrency(detectedCurrency);
-        const newPricing = getDealRoomPricing(detectedCurrency);
-        console.log('Dashboard pricing calculated:', newPricing);
+        
+        // Fetch pricing with live exchange rates
+        const newPricing = await getDealRoomPricing(detectedCurrency);
+        console.log('Dashboard pricing calculated with live rates:', newPricing);
         setPricing(newPricing);
       } catch (error) {
         console.error('Currency detection failed:', error);
@@ -353,7 +355,7 @@ export default function DashboardV2Page() {
             hasDealRoomAccess={hasDealRoomAccess}
             onPaymentModalOpen={handlePaymentModalOpen}
             ventureStatus={ventureStatus}
-            priceDisplay={pricing.formatted.current}
+            priceDisplay={pricing?.formatted?.current || '$99 USD'}
           />
 
           {/* Your Proof Vault */}
@@ -399,7 +401,7 @@ export default function DashboardV2Page() {
               onDownloadReport={handleDownloadReport}
               hasDealRoomAccess={hasDealRoomAccess}
               onPaymentModalOpen={() => setIsPaymentModalOpen(true)}
-              priceDisplay={pricing.formatted.current}
+              priceDisplay={pricing?.formatted?.current || '$99 USD'}
             />
             <CommunityAccess 
               hasDealRoomAccess={hasDealRoomAccess}

@@ -32,6 +32,7 @@ Key technical decisions include:
 - **Payment-Gated Document Notifications**: Toast notifications for certificate and report readiness only appear after users complete Deal Room payment (hasDealRoomAccess=true), preventing premature notification confusion.
 - **Subscription Plan Schema**: Database schema supports "one-time" subscription plans for Deal Room access, in addition to standard "basic", "premium", and "enterprise" recurring plans.
 - **Environment-Based Email Logo Configuration**: All email templates (payment success, investor matching, team notifications) dynamically use LOGO_URL from environment variables instead of hardcoded paths, with fallback to project assets when environment variable is not set. The EmailService automatically injects the LOGO_URL from process.env.LOGO_URL into all email templates using the {{LOGO_URL}} placeholder.
+- **Live Exchange Rate Integration**: Real-time USD to AED currency conversion using multiple fallback APIs (ExchangeRate-API, ExchangeRate.host, Fawaz Ahmed API) with 1-hour caching to reduce API calls. Replaces hardcoded 3.673 rate with live market rates, ensuring accurate pricing for UAE users. Features graceful fallback to cached/default rates if all APIs fail.
 
 ### Feature Specifications
 - **Deal Room Access**: Provides qualified users (ProofScore >= 70) access to investor matching and premium features for a one-time fee.
