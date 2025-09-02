@@ -1,5 +1,6 @@
 import { motion } from "framer-motion";
-import { useState } from "react";
+import { useState, useEffect } from "react";
+import { detectUserCurrency, getDealRoomPricing } from "@/lib/currency-utils";
 import {
   ArrowRight,
   Star,
@@ -264,6 +265,46 @@ export default function ProofScalingSalesPage(
 ) {
   const [showEmailPopup, setShowEmailPopup] = useState(false);
   const [showWishlistModal, setShowWishlistModal] = useState(false);
+  const [currency, setCurrency] = useState<'USD' | 'AED'>('USD');
+  const [pricing, setPricing] = useState<any>(null);
+  const [isLoadingCurrency, setIsLoadingCurrency] = useState(true);
+
+  // Detect user currency and set pricing on component mount
+  useEffect(() => {
+    const detectAndSetPricing = async () => {
+      try {
+        const detectedCurrency = await detectUserCurrency();
+        console.log('ProofScaling currency detection result:', detectedCurrency);
+        setCurrency(detectedCurrency);
+        
+        // Calculate ProofScaling pricing ($249 base price)
+        const proofScalingPricing = await getDealRoomPricing(detectedCurrency);
+        // Convert to ProofScaling pricing (249 instead of 99)
+        const adjustedPricing = {
+          current: {
+            ...proofScalingPricing.current,
+            amount: detectedCurrency === 'USD' ? 249 : Math.round(249 * (proofScalingPricing.current.amount / 99))
+          },
+          original: {
+            ...proofScalingPricing.original,
+            amount: detectedCurrency === 'USD' ? 10000 : Math.round(10000 * (proofScalingPricing.current.amount / 99))
+          },
+          formatted: {
+            current: detectedCurrency === 'USD' ? '$249' : `${Math.round(249 * (proofScalingPricing.current.amount / 99))} AED`,
+            original: detectedCurrency === 'USD' ? '$10,000' : `${Math.round(10000 * (proofScalingPricing.current.amount / 99))} AED`
+          }
+        };
+        console.log('ProofScaling pricing calculated with live rates:', adjustedPricing);
+        setPricing(adjustedPricing);
+        setIsLoadingCurrency(false);
+      } catch (error) {
+        console.error('Currency detection failed:', error);
+        setIsLoadingCurrency(false);
+      }
+    };
+    
+    detectAndSetPricing();
+  }, []);
 
   const handleJoinClick = () => {
     setShowWishlistModal(true);
@@ -482,7 +523,7 @@ export default function ProofScalingSalesPage(
           <AnimatedSection delay={0.2}>
             <SectionHeader
               title="Transform Your Startup for Less Than a Coffee Per Day"
-              subtitle="Get $10,000+ worth of expert guidance, tools, and community access"
+              subtitle={`Get ${isLoadingCurrency || !pricing ? '$10,000+' : pricing.formatted.original.replace(',', ',')}+ worth of expert guidance, tools, and community access`}
             />
           </AnimatedSection>
 
@@ -511,10 +552,14 @@ export default function ProofScalingSalesPage(
                 {/* Price */}
                 <div className="text-center mb-6">
                   <div className="flex items-center justify-center gap-3 mb-2">
-                    <span className="text-6xl font-bold text-white">$249</span>
+                    {isLoadingCurrency || !pricing ? (
+                      <span className="text-6xl font-bold text-white animate-pulse">$249</span>
+                    ) : (
+                      <span className="text-6xl font-bold text-white">{pricing.formatted.current}</span>
+                    )}
                     <div className="text-left">
                       <div className="text-white/60 line-through text-xl">
-                        $10,000
+                        {isLoadingCurrency || !pricing ? '$10,000' : pricing.formatted.original}
                       </div>
                       <div className="text-green-400 font-semibold text-sm">
                         97% savings
@@ -522,8 +567,10 @@ export default function ProofScalingSalesPage(
                     </div>
                   </div>
                   <p className="text-white/80 text-lg">
-                    One-time payment • Lifetime access • 30-day money-back
-                    guarantee
+                    One-time payment • Lifetime access • 30-day money-back guarantee
+                    {!isLoadingCurrency && pricing && (
+                      <span className="text-xs block mt-1">({currency === 'AED' ? 'UAE' : 'International'} pricing)</span>
+                    )}
                   </p>
                 </div>
 
