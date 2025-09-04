@@ -78,7 +78,8 @@ export default function ProcessingScreen({
   const validateScoringResponse = (data: any) => {
     console.log("🔍 Processing validation - checking scoring response:", {
       timestamp: new Date().toISOString(),
-      data,
+      fullResponse: data,
+      dataLevel: data.data,
       retryCount,
       sessionId
     });
@@ -86,19 +87,31 @@ export default function ProcessingScreen({
     const missingData = [];
     
     // Check for venture_name in submit-for-scoring response
-    const hasVentureName = data.data?.venture_name || 
-                          data.venture_name;
+    const ventureName = data.data?.venture_name || data.venture_name;
+    console.log("🏢 Venture name check:", {
+      ventureName,
+      dataVentureName: data.data?.venture_name,
+      rootVentureName: data.venture_name
+    });
     
-    if (!hasVentureName) {
+    if (!ventureName) {
       missingData.push('venture');
     }
     
     // Check for team array with name field in submit-for-scoring response
-    const teamData = data.data?.team || 
-                    data.team;
+    const teamData = data.data?.team || data.team;
+    console.log("👥 Team data check:", {
+      teamData,
+      isArray: Array.isArray(teamData),
+      teamLength: teamData?.length,
+      firstMember: teamData?.[0]
+    });
     
     const hasFounderData = teamData && Array.isArray(teamData) && teamData.length > 0 && 
-                          teamData.some(member => member?.name);
+                          teamData.some(member => {
+                            console.log("🔍 Checking team member:", member);
+                            return member?.name;
+                          });
     
     if (!hasFounderData) {
       missingData.push('team');
@@ -106,7 +119,7 @@ export default function ProcessingScreen({
 
     console.log("📊 Processing validation results:", {
       timestamp: new Date().toISOString(),
-      hasVentureName,
+      ventureName: ventureName,
       hasFounderData,
       teamData,
       missingData,
