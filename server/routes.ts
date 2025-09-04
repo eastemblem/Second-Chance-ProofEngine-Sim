@@ -4,7 +4,7 @@ import { createServer, type Server } from "http";
 import session from "express-session";
 import { eastEmblemAPI, type FolderStructureResponse, type FileUploadResponse } from "./eastemblem-api";
 import { getSessionId, getSessionData, updateSessionData } from "./utils/session-manager";
-import { asyncHandler, createSuccessResponse } from "./utils/error-handler";
+import { asyncHandler, createSuccessResponse, createErrorResponse } from "./utils/error-handler";
 import { cleanupUploadedFile } from "./utils/file-cleanup";
 import { onboardingService } from "./services/onboarding-service";
 import apiRoutes from "./routes/index";
@@ -100,13 +100,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     
     if (!sessionId) {
       res.setHeader('Content-Type', 'application/json');
-      return res.status(400).json({
-        success: false,
-        error: {
-          message: "sessionId is required",
-          status: 400
-        }
-      });
+      return res.status(400).json(createErrorResponse(400, "sessionId is required"));
     }
 
     try {
@@ -131,14 +125,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       appLogger.api('Submit for scoring error:', error);
       const errorMessage = error instanceof Error ? error.message : 'Unknown error';
       res.setHeader('Content-Type', 'application/json');
-      res.status(500).json({
-        success: false,
-        error: {
-          message: errorMessage,
-          status: 500
-        },
-        sessionId
-      });
+      res.status(500).json(createErrorResponse(500, errorMessage));
     }
   }));
 
@@ -156,7 +143,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     const founderId = req.user?.founderId;
     
     if (!founderId) {
-      return res.status(401).json({ error: "Not authenticated" });
+      return res.status(401).json(createErrorResponse(401, "Not authenticated"));
     }
 
     try {
@@ -164,7 +151,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const dashboardData = await databaseService.getFounderWithLatestVenture(founderId);
 
       if (!dashboardData) {
-        return res.status(404).json({ error: "Founder not found" });
+        return res.status(404).json(createErrorResponse(404, "Founder not found"));
       }
 
       const { founder: founderData, venture: latestVenture, latestEvaluation } = dashboardData;
@@ -206,7 +193,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       res.json(validationData);
     } catch (error) {
       appLogger.api("FIXED: Dashboard validation error:", error);
-      res.status(500).json({ error: "Failed to load validation data" });
+      res.status(500).json(createErrorResponse(500, "Failed to load validation data"));
     }
   }));
 
@@ -215,7 +202,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     const founderId = req.user?.founderId;
     
     if (!founderId) {
-      return res.status(401).json({ error: "Not authenticated" });
+      return res.status(401).json(createErrorResponse(401, "Not authenticated"));
     }
 
     appLogger.api(`VAULT DEBUG: Processing vault request for founder: ${founderId}`);
@@ -223,7 +210,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     try {
       const dashboardData = await databaseService.getFounderWithLatestVenture(founderId);
       if (!dashboardData || !dashboardData.venture) {
-        return res.status(404).json({ error: "Venture not found" });
+        return res.status(404).json(createErrorResponse(404, "Venture not found"));
       }
 
       // RETRIEVE ACTUAL FILES FROM DATABASE
@@ -396,7 +383,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       res.json(vaultData);
     } catch (error) {
       appLogger.api("Dashboard vault error:", error);
-      res.status(500).json({ error: "Failed to load vault data" });
+      res.status(500).json(createErrorResponse(500, "Failed to load vault data"));
     }
   }));
 
@@ -405,7 +392,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     const founderId = req.user?.founderId;
     
     if (!founderId) {
-      return res.status(401).json({ error: "Not authenticated" });
+      return res.status(401).json(createErrorResponse(401, "Not authenticated"));
     }
 
     try {
@@ -442,7 +429,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       res.json(formattedActivities);
     } catch (error) {
       appLogger.api("Dashboard activity error:", error);
-      res.status(500).json({ error: "Failed to load activity data" });
+      res.status(500).json(createErrorResponse(500, "Failed to load activity data"));
     }
   }));
 
@@ -451,7 +438,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.post("/api/certificate/create", asyncHandler(async (req: Request, res: Response) => {
     const { sessionId } = req.body;
     if (!sessionId) {
-      return res.status(400).json({ success: false, error: 'sessionId is required' });
+      return res.status(400).json(createErrorResponse(400, 'sessionId is required'));
     }
     
     const { createCertificateForSession } = await import('./routes/certificate');
@@ -466,7 +453,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.post("/api/report/create", asyncHandler(async (req: Request, res: Response) => {
     const { sessionId } = req.body;
     if (!sessionId) {
-      return res.status(400).json({ success: false, error: 'sessionId is required' });
+      return res.status(400).json(createErrorResponse(400, 'sessionId is required'));
     }
     
     const { createReportForSession } = await import('./routes/report');
@@ -479,7 +466,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     app.post("/api/onboarding/trigger-email-flow", asyncHandler(async (req, res) => {
       const { sessionId } = req.body;
       if (!sessionId) {
-        return res.status(400).json({ success: false, error: 'sessionId is required' });
+        return res.status(400).json(createErrorResponse(400, 'sessionId is required'));
       }
       
       try {
@@ -523,7 +510,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         });
       } catch (error) {
         appLogger.email("Email flow test failed:", error);
-        res.status(500).json({ success: false, error: error instanceof Error ? error.message : 'Unknown error' });
+        res.status(500).json(createErrorResponse(500, error instanceof Error ? error.message : 'Unknown error'));
       }
     }));
   }
@@ -543,7 +530,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         .where(eq(onboardingSession.sessionId, sessionId));
 
       if (!session) {
-        return res.status(404).json({ success: false, error: 'Session not found' });
+        return res.status(404).json(createErrorResponse(404, 'Session not found'));
       }
 
       const stepData = session.stepData as any;
@@ -552,7 +539,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const reportUrl = stepData?.processing?.reportUrl;
 
       if (!ventureId) {
-        return res.status(400).json({ success: false, error: 'No venture found in session' });
+        return res.status(400).json(createErrorResponse(400, 'No venture found in session'));
       }
 
       let updates: any = { updatedAt: new Date() };
@@ -855,7 +842,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       });
     } catch (error) {
       appLogger.database("Database test error:", error);
-      res.status(500).json({ error: error instanceof Error ? error.message : 'Unknown error' });
+      res.status(500).json(createErrorResponse(500, error instanceof Error ? error.message : 'Unknown error'));
     }
   }));
 

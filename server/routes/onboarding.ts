@@ -1,6 +1,6 @@
 import { Router } from "express";
 import { onboardingService } from "../services/onboarding-service";
-import { asyncHandler, createSuccessResponse } from "../utils/error-handler";
+import { asyncHandler, createSuccessResponse, createErrorResponse } from "../utils/error-handler";
 import { validateRequestBody, safeValidate } from "../utils/validation";
 import { requireSession, requireFields } from "../middleware/auth";
 import { getSessionId } from "../utils/session-manager";
@@ -111,11 +111,7 @@ router.post("/founder", asyncHandler(async (req, res) => {
   } catch (error: any) {
     // Handle email duplicate error as validation error, not server error
     if (error.message === "Email already taken") {
-      return res.status(400).json({
-        success: false,
-        message: "Email already taken",
-        statusCode: 400
-      });
+      return res.status(400).json(createErrorResponse(400, "Email already taken"));
     }
     // Re-throw other errors to be handled by asyncHandler
     throw error;

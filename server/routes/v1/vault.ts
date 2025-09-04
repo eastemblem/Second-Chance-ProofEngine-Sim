@@ -3,7 +3,7 @@ import { requireAuth, AuthenticatedRequest } from '../middleware/auth';
 import { asyncHandler } from '../middleware/error';
 import { eastEmblemAPI } from '../../eastemblem-api';
 import { getSessionId, getSessionData, updateSessionData } from '../../utils/session-manager';
-import { createSuccessResponse } from '../../utils/error-handler';
+import { createSuccessResponse, createErrorResponse } from '../../utils/error-handler';
 import { cleanupUploadedFile } from '../../utils/file-cleanup';
 import { ActivityService } from '../../services/activity-service';
 import { lruCacheService } from '../../services/lru-cache-service';
@@ -257,7 +257,7 @@ router.post('/upload-file', upload.single("file"), asyncHandler(async (req: Auth
   const founderId = req.user?.founderId;
 
   if (!founderId) {
-    return res.status(401).json({ success: false, error: "JWT authentication required for file upload" });
+    return res.status(401).json(createErrorResponse(401, "JWT authentication required for file upload"));
   }
 
   if (!file) {
@@ -429,7 +429,7 @@ router.post('/create-folder', upload.none(), asyncHandler(async (req: Authentica
   const founderId = req.user?.founderId;
   
   if (!founderId) {
-    return res.status(401).json({ success: false, error: "JWT authentication required for folder creation" });
+    return res.status(401).json(createErrorResponse(401, "JWT authentication required for folder creation"));
   }
   
   if (!folderName || !folder_id) {
@@ -608,7 +608,7 @@ router.post('/upload-file-direct', upload.single("file"), asyncHandler(async (re
   const founderId = req.user?.founderId;
 
   if (!founderId) {
-    return res.status(401).json({ success: false, error: "JWT authentication required for file upload" });
+    return res.status(401).json(createErrorResponse(401, "JWT authentication required for file upload"));
   }
 
   if (!file) {

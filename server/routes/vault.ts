@@ -2,7 +2,7 @@ import { Router } from "express";
 import { vaultService } from "../services/vault-service";
 import { eastEmblemAPI } from "../eastemblem-api";
 import { getSessionId, getSessionData, updateSessionData } from "../utils/session-manager";
-import { asyncHandler, createSuccessResponse } from "../utils/error-handler";
+import { asyncHandler, createSuccessResponse, createErrorResponse } from "../utils/error-handler";
 import { cleanupUploadedFile } from "../utils/file-cleanup";
 import { requireFields } from "../middleware/auth";
 import { ActivityService } from "../services/activity-service";
@@ -210,7 +210,7 @@ router.post("/upload-file", upload.single("file"), requireFields(['folder_id']),
   const founderId = req.session?.founderId;
 
   if (!founderId) {
-    return res.status(401).json({ success: false, error: "Authentication required for file upload" });
+    return res.status(401).json(createErrorResponse(401, "Authentication required for file upload"));
   }
 
   if (!file) {
@@ -318,7 +318,7 @@ router.post("/create-folder", requireFields(['folderName', 'folder_id']), asyncH
   const founderId = req.session?.founderId;
 
   if (!founderId) {
-    return res.status(401).json({ success: false, error: "Authentication required for folder creation" });
+    return res.status(401).json(createErrorResponse(401, "Authentication required for folder creation"));
   }
 
   appLogger.business('Processing 100% database-driven folder creation', { 
@@ -458,7 +458,7 @@ router.post("/upload-multiple", upload.array('files', 20), asyncHandler(async (r
   const files = req.files as Express.Multer.File[];
 
   if (!founderId) {
-    return res.status(401).json({ success: false, error: "Authentication required for file upload" });
+    return res.status(401).json(createErrorResponse(401, "Authentication required for file upload"));
   }
 
   if (!files || files.length === 0) {
