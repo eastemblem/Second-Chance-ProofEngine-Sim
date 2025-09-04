@@ -693,7 +693,10 @@ export default function ProofScalingSalesPage(
       {/* ProofScaling Wishlist Modal */}
       <WishlistModal
         isOpen={showWishlistModal}
-        onClose={() => setShowWishlistModal(false)}
+        onClose={() => {
+          setShowWishlistModal(false);
+          setShowEmailPopup(true); // Show email popup after wishlist form completion
+        }}
       />
     </div>
   );

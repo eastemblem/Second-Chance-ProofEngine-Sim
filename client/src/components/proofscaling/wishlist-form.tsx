@@ -62,19 +62,7 @@ export function WishlistForm({ onSuccess }: WishlistFormProps) {
       
       setShowSuccess(true);
       form.reset();
-      
-      // Clear local storage and redirect to main website after success message
-      setTimeout(() => {
-        localStorage.clear();
-        if ('caches' in window) {
-          caches.keys().then(names => {
-            names.forEach(name => {
-              caches.delete(name);
-            });
-          });
-        }
-        window.location.href = 'https://get-secondchance.com/';
-      }, 2000);
+      onSuccess?.(); // This will trigger the email popup in parent component
     },
     onError: (error: any) => {
       const errorMessage = error?.message || error?.error || "Failed to join waitlist. Please try again.";
