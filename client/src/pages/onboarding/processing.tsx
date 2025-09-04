@@ -86,6 +86,13 @@ export default function ProcessingScreen({
       sessionId
     });
 
+    // Log all keys in processing data to see what's actually available
+    const processingData = data.data?.session?.stepData?.processing;
+    if (processingData) {
+      console.log("🔧 Available keys in processing data:", Object.keys(processingData));
+      console.log("🔧 Full processing data:", processingData);
+    }
+
     const missingData = [];
     
     // Check for venture_name in various locations in the response
