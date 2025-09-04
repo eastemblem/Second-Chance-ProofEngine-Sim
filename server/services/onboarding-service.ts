@@ -4,8 +4,8 @@ import { ActivityService } from "./activity-service";
 import { eastEmblemAPI, type EmailNotificationData } from "../eastemblem-api";
 import { getSessionId, getSessionData, updateSessionData } from "../utils/session-manager";
 import { db } from "../db";
-import { onboardingSession, documentUpload } from "@shared/schema";
-import { eq } from "drizzle-orm";
+import { onboardingSession, documentUpload, founder } from "@shared/schema";
+import { eq, and } from "drizzle-orm";
 
 // Utility function to extract MIME type from file extension
 function getMimeTypeFromExtension(fileName: string): string {
@@ -117,6 +117,29 @@ export class OnboardingService {
   }
 
   /**
+   * Check if a founder has any incomplete onboarding sessions
+   */
+  async hasIncompleteOnboardingSession(founderId: string): Promise<boolean> {
+    try {
+      const [session] = await db
+        .select()
+        .from(onboardingSession)
+        .where(
+          and(
+            eq(onboardingSession.founderId, founderId),
+            eq(onboardingSession.isComplete, false)
+          )
+        )
+        .limit(1);
+      
+      return !!session;
+    } catch (error) {
+      console.error("❌ Error checking incomplete sessions:", error);
+      return false; // Default to false on error to be safe
+    }
+  }
+
+  /**
    * Complete founder onboarding step
    */
   async completeFounderStep(sessionId: string | null, founderData: any) {
@@ -145,8 +168,56 @@ export class OnboardingService {
         throw new Error(`Failed to create founder: ${error instanceof Error ? error.message : 'Unknown error'}`);
       }
     } else {
-      // Email already exists - throw error to prevent silent data overwriting
-      throw new Error("Email already taken");
+      // Founder exists - check if they have any incomplete sessions
+      const hasIncompleteSession = await this.hasIncompleteOnboardingSession(founder.founderId);
+      
+      if (hasIncompleteSession) {
+        // Allow re-registration by updating existing founder data
+        try {
+          if (process.env.NODE_ENV === 'development') {
+            console.log("Updating existing founder with incomplete session:", founder.founderId);
+          }
+          
+          // Update the existing founder with new data
+          await db
+            .update(founder)
+            .set({
+              fullName: founderData.fullName,
+              email: founderData.email,
+              linkedinProfile: founderData.linkedinProfile,
+              gender: founderData.gender,
+              age: founderData.age,
+              positionRole: founderData.positionRole,
+              residence: founderData.residence,
+              isTechnical: founderData.isTechnical,
+              phone: founderData.phone,
+              street: founderData.street,
+              city: founderData.city,
+              state: founderData.state,
+              country: founderData.country,
+              updatedAt: new Date(),
+            })
+            .where(eq(founder.founderId, founder.founderId));
+          
+          // Get updated founder data
+          const [updatedFounder] = await db
+            .select()
+            .from(founder)
+            .where(eq(founder.founderId, founder.founderId));
+          
+          founder = updatedFounder;
+          
+          if (process.env.NODE_ENV === 'development') {
+            console.log("Founder updated successfully for restart:", founder.founderId);
+          }
+        } catch (error) {
+          console.error("❌ Failed to update founder:", error);
+          throw new Error(`Failed to update founder data: ${error instanceof Error ? error.message : 'Unknown error'}`);
+        }
+      } else {
+        // Email already exists and has completed sessions - throw error
+        throw new Error("Email already taken");
+      }
     }
 
     // Update session with founder data and ID
