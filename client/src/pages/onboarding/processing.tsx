@@ -67,6 +67,89 @@ export default function ProcessingScreen({
     certificate: false,
     report: false
   });
+  const [validationError, setValidationError] = useState<string | null>(null);
+  const [showFileUpload, setShowFileUpload] = useState(false);
+
+  const MAX_RETRIES = 3;
+
+  // Validation function to check if scoring response has sufficient venture and founder data
+  const validateScoringResponse = (data: any) => {
+    console.log("🔍 Processing validation - checking scoring response:", {
+      timestamp: new Date().toISOString(),
+      data,
+      retryCount,
+      sessionId
+    });
+
+    const missingData = [];
+    
+    // Check for venture data in various possible locations
+    const hasVentureData = data.data?.venture || 
+                          data.venture || 
+                          data.data?.startup || 
+                          data.startup ||
+                          data.data?.business ||
+                          data.business ||
+                          data.data?.session?.stepData?.processing?.venture ||
+                          data.data?.session?.stepData?.processing?.startup ||
+                          data.data?.scoringResult?.venture ||
+                          data.scoringResult?.venture;
+    
+    if (!hasVentureData) {
+      missingData.push('venture');
+    }
+    
+    // Check for founder/team data in various possible locations
+    const hasFounderData = data.data?.founder || 
+                          data.founder || 
+                          data.data?.team || 
+                          data.team ||
+                          data.data?.founders ||
+                          data.founders ||
+                          data.data?.session?.stepData?.processing?.founder ||
+                          data.data?.session?.stepData?.processing?.team ||
+                          data.data?.scoringResult?.founder ||
+                          data.scoringResult?.founder;
+    
+    if (!hasFounderData) {
+      missingData.push('team');
+    }
+
+    console.log("📊 Processing validation results:", {
+      timestamp: new Date().toISOString(),
+      hasVentureData,
+      hasFounderData,
+      missingData,
+      retryCount,
+      sessionId
+    });
+
+    return {
+      isValid: missingData.length === 0,
+      missingData
+    };
+  };
+
+  // Generate error message based on missing data and retry count
+  const getValidationErrorMessage = (missingData: string[], attempt: number) => {
+    const messages = {
+      1: "Please upload a file with venture and team details.",
+      2: "Please ensure your file includes both business information and founder profiles.",
+      3: "Your file should contain company details and team member information. Try uploading a pitch deck or business plan."
+    };
+
+    const baseMessage = messages[Math.min(attempt, 3) as keyof typeof messages];
+    
+    if (missingData.length === 2) {
+      return `Analysis failed: We couldn't find venture and team details in your document. ${baseMessage}`;
+    } else if (missingData.includes('venture')) {
+      return `Analysis failed: We couldn't find venture details in your document. ${baseMessage}`;
+    } else if (missingData.includes('team')) {
+      return `Analysis failed: We couldn't find team details in your document. ${baseMessage}`;
+    }
+    
+    return `Analysis failed: We couldn't process your document. ${baseMessage}`;
+  };
 
   const submitForScoringMutation = useMutation({
     mutationFn: async () => {
@@ -154,6 +237,81 @@ export default function ProcessingScreen({
       }
 
       if (data?.success) {
+        console.log("✅ Processing API success - validating response:", {
+          timestamp: new Date().toISOString(),
+          data,
+          retryCount,
+          sessionId
+        });
+
+        // Validate if response contains sufficient venture and founder data
+        const validation = validateScoringResponse(data);
+        
+        if (!validation.isValid) {
+          // Validation failed - increment retry count and show error
+          const newRetryCount = retryCount + 1;
+          setRetryCount(newRetryCount);
+          
+          if (newRetryCount >= MAX_RETRIES) {
+            const maxRetryMessage = "Maximum retry attempts reached. Please contact support if you continue having issues.";
+            setValidationError(maxRetryMessage);
+            setHasError(true);
+            setErrorMessage(maxRetryMessage);
+            
+            console.warn("❌ Processing validation failed - max retries reached:", {
+              timestamp: new Date().toISOString(),
+              retryCount: newRetryCount,
+              maxRetries: MAX_RETRIES,
+              sessionId
+            });
+
+            toast({
+              title: "Maximum Retries Reached",
+              description: "Please contact support for assistance with your document.",
+              variant: "destructive"
+            });
+            
+            return;
+          }
+          
+          const errorMessage = getValidationErrorMessage(validation.missingData, newRetryCount);
+          setValidationError(errorMessage);
+          setShowFileUpload(true);
+          setHasError(true);
+          setErrorMessage(errorMessage);
+          
+          console.warn("❌ Processing validation failed:", {
+            timestamp: new Date().toISOString(),
+            missingData: validation.missingData,
+            retryCount: newRetryCount,
+            errorMessage,
+            sessionId
+          });
+
+          // Update session with retry count and error state
+          onDataUpdate({ 
+            retryCount: newRetryCount,
+            hasError: true,
+            errorMessage,
+            validationError: errorMessage
+          });
+
+          toast({
+            title: "File Analysis Failed",
+            description: errorMessage,
+            variant: "destructive"
+          });
+          
+          return; // Don't proceed with normal success flow
+        }
+
+        // Validation passed - proceed with normal success flow
+        console.log("✅ Processing validation passed - proceeding with success:", {
+          timestamp: new Date().toISOString(),
+          retryCount,
+          sessionId
+        });
+
         // Track processing completion
         trackEvent('onboarding_processing_complete', 'user_journey', 'ai_analysis_complete');
         
@@ -206,8 +364,6 @@ export default function ProcessingScreen({
       }
     }
   });
-
-  const MAX_RETRIES = 3;
 
   const handleRetry = () => {
     // Check if maximum retries reached
