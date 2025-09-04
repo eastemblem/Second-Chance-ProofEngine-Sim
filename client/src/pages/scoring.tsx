@@ -1,6 +1,6 @@
-import { useEffect, useState } from "react";
+import { useEffect, useState, useRef } from "react";
 import { motion } from "framer-motion";
-import { Brain, CheckCircle, Clock, Loader, Folder, FileText, Target } from "lucide-react";
+import { Brain, CheckCircle, Clock, Loader, Folder, FileText, Target, Upload, AlertCircle } from "lucide-react";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import ProgressBar from "@/components/progress-bar";
@@ -71,8 +71,191 @@ export default function ScoringPage({
 }: ScoringPageProps) {
   const [currentStep, setCurrentStep] = useState(0);
   const [proofScore, setProofScore] = useState<number | null>(null);
+  const [validationError, setValidationError] = useState<string | null>(null);
+  const [retryCount, setRetryCount] = useState(0);
+  const [maxRetries] = useState(3);
+  const [showFileUpload, setShowFileUpload] = useState(false);
+  const [uploading, setUploading] = useState(false);
+  const [selectedFile, setSelectedFile] = useState<File | null>(null);
+  const fileInputRef = useRef<HTMLInputElement>(null);
   const queryClient = useQueryClient();
   const { toast } = useToast();
+
+  // Validation function to check if scoring response has sufficient venture and founder data
+  const validateScoringResponse = (data: any) => {
+    console.log("🔍 Validating scoring response:", {
+      timestamp: new Date().toISOString(),
+      data,
+      retryCount
+    });
+
+    const missingData = [];
+    
+    // Check for venture data
+    const hasVentureData = data.data?.venture || 
+                          data.venture || 
+                          data.data?.startup || 
+                          data.startup ||
+                          data.data?.business ||
+                          data.business ||
+                          (data.data?.pitchDeckScore?.venture) ||
+                          (data.pitchDeckScore?.venture);
+    
+    if (!hasVentureData) {
+      missingData.push('venture');
+    }
+    
+    // Check for founder/team data
+    const hasFounderData = data.data?.founder || 
+                          data.founder || 
+                          data.data?.team || 
+                          data.team ||
+                          data.data?.founders ||
+                          data.founders ||
+                          (data.data?.pitchDeckScore?.founder) ||
+                          (data.pitchDeckScore?.founder);
+    
+    if (!hasFounderData) {
+      missingData.push('team');
+    }
+
+    console.log("📊 Validation results:", {
+      timestamp: new Date().toISOString(),
+      hasVentureData,
+      hasFounderData,
+      missingData,
+      retryCount
+    });
+
+    return {
+      isValid: missingData.length === 0,
+      missingData
+    };
+  };
+
+  // Generate error message based on missing data and retry count
+  const getErrorMessage = (missingData: string[], attempt: number) => {
+    const messages = {
+      1: "Please upload a file with venture and team details.",
+      2: "Please ensure your file includes both business information and founder profiles.",
+      3: "Your file should contain company details and team member information. Try uploading a pitch deck or business plan."
+    };
+
+    const baseMessage = messages[Math.min(attempt, 3) as keyof typeof messages];
+    
+    if (missingData.length === 2) {
+      return `Analysis failed: We couldn't find venture and team details in your document. ${baseMessage}`;
+    } else if (missingData.includes('venture')) {
+      return `Analysis failed: We couldn't find venture details in your document. ${baseMessage}`;
+    } else if (missingData.includes('team')) {
+      return `Analysis failed: We couldn't find team details in your document. ${baseMessage}`;
+    }
+    
+    return `Analysis failed: We couldn't process your document. ${baseMessage}`;
+  };
+
+  // Reset validation state when starting new upload
+  const resetValidationState = () => {
+    setValidationError(null);
+    setShowFileUpload(false);
+    setProofScore(null);
+    setSelectedFile(null);
+    setUploading(false);
+  };
+
+  // File upload mutation
+  const uploadFileMutation = useMutation({
+    mutationFn: async (file: File) => {
+      const formData = new FormData();
+      formData.append("file", file);
+
+      const token = localStorage.getItem('auth_token');
+      const headers: Record<string, string> = {};
+      if (token) {
+        headers['Authorization'] = `Bearer ${token}`;
+      }
+
+      const response = await fetch("/api/v1/vault/upload-only", {
+        method: "POST",
+        headers,
+        body: formData,
+      });
+
+      if (!response.ok) {
+        throw new Error(`Upload failed with status: ${response.status}`);
+      }
+
+      return response.json();
+    },
+    onSuccess: (data) => {
+      console.log("📁 File upload successful, triggering new scoring:", {
+        timestamp: new Date().toISOString(),
+        fileName: selectedFile?.name,
+        retryCount
+      });
+
+      toast({
+        title: "File Uploaded",
+        description: "Starting analysis of your new file...",
+      });
+
+      // Reset upload state
+      setUploading(false);
+      setShowFileUpload(false);
+      setValidationError(null);
+
+      // Trigger new scoring
+      submitForScoring.mutate();
+    },
+    onError: (error) => {
+      setUploading(false);
+      console.error("❌ File upload failed:", {
+        timestamp: new Date().toISOString(),
+        error,
+        retryCount
+      });
+
+      toast({
+        title: "Upload Failed",
+        description: error instanceof Error ? error.message : "Please try again",
+        variant: "destructive"
+      });
+    }
+  });
+
+  // Handle file selection
+  const handleFileSelect = (event: React.ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0];
+    if (file) {
+      setSelectedFile(file);
+      console.log("📄 File selected for retry:", {
+        timestamp: new Date().toISOString(),
+        fileName: file.name,
+        fileSize: file.size,
+        retryCount
+      });
+    }
+  };
+
+  // Handle retry file upload
+  const handleRetryUpload = () => {
+    if (selectedFile) {
+      setUploading(true);
+      uploadFileMutation.mutate(selectedFile);
+    } else {
+      fileInputRef.current?.click();
+    }
+  };
+
+  // Handle reaching max retries
+  const handleMaxRetriesReached = () => {
+    setValidationError("Maximum retry attempts reached. Please contact support if you continue having issues.");
+    toast({
+      title: "Maximum Retries Reached",
+      description: "Please contact support for assistance with your document.",
+      variant: "destructive"
+    });
+  };
 
   // Query ProofVault session data
   const { data: sessionData } = useQuery<SessionResponse>({
@@ -105,9 +288,57 @@ export default function ScoringPage({
       return response.json();
     },
     onSuccess: (data) => {
+      console.log("✅ Scoring API success - validating response:", {
+        timestamp: new Date().toISOString(),
+        data,
+        retryCount
+      });
+
+      // Validate if response contains sufficient venture and founder data
+      const validation = validateScoringResponse(data);
+      
+      if (!validation.isValid) {
+        // Validation failed - increment retry count and show error
+        const newRetryCount = retryCount + 1;
+        setRetryCount(newRetryCount);
+        
+        if (newRetryCount >= maxRetries) {
+          handleMaxRetriesReached();
+          return;
+        }
+        
+        const errorMessage = getErrorMessage(validation.missingData, newRetryCount);
+        setValidationError(errorMessage);
+        setShowFileUpload(true);
+        
+        console.warn("❌ Scoring validation failed:", {
+          timestamp: new Date().toISOString(),
+          missingData: validation.missingData,
+          retryCount: newRetryCount,
+          errorMessage,
+          maxRetries
+        });
+
+        toast({
+          title: "File Analysis Failed",
+          description: errorMessage,
+          variant: "destructive"
+        });
+        
+        return; // Don't proceed with normal success flow
+      }
+
+      // Validation passed - proceed with normal success flow
       const score = data.data?.proofScore || data.proofScore || 0;
       setProofScore(score);
       queryClient.invalidateQueries({ queryKey: ['/api/v1/vault/session'] });
+      
+      console.log("✅ Scoring validation passed - proceeding with success:", {
+        timestamp: new Date().toISOString(),
+        score,
+        retryCount
+      });
+
       toast({
         title: "Scoring Complete",
         description: "Your pitch deck has been analyzed successfully"
@@ -178,6 +409,23 @@ export default function ScoringPage({
                     Your pitch deck has been analyzed and scored successfully
                   </p>
                 </>
+              ) : validationError ? (
+                <>
+                  <div className="w-20 h-20 bg-red-500 rounded-full flex items-center justify-center mx-auto mb-6">
+                    <AlertCircle className="text-white text-2xl w-8 h-8" />
+                  </div>
+                  <h2 className="text-3xl font-bold mb-4 text-red-600">File Analysis Failed</h2>
+                  <p className="text-muted-foreground mb-8">
+                    {validationError}
+                  </p>
+                  {retryCount < maxRetries && (
+                    <div className="mb-4 p-3 bg-yellow-50 dark:bg-yellow-900/20 rounded-lg border border-yellow-200 dark:border-yellow-800">
+                      <p className="text-sm text-yellow-800 dark:text-yellow-200 text-center">
+                        Attempt {retryCount} of {maxRetries}
+                      </p>
+                    </div>
+                  )}
+                </>
               ) : (
                 <>
                   <h2 className="text-3xl font-bold mb-4">Ready for Analysis</h2>
@@ -188,8 +436,64 @@ export default function ScoringPage({
               )}
             </div>
 
-            {/* Submit for Scoring or Show Analysis Progress */}
-            {proofScore === null && !submitForScoring.isPending ? (
+            {/* Submit for Scoring, Show Analysis Progress, or Show File Upload for Retry */}
+            {validationError && showFileUpload ? (
+              <div className="mb-8">
+                <div className="border-2 border-dashed border-gray-300 dark:border-gray-600 rounded-lg p-8 text-center">
+                  <Upload className="w-12 h-12 text-gray-400 mx-auto mb-4" />
+                  
+                  {selectedFile ? (
+                    <div className="mb-4">
+                      <p className="text-sm font-medium mb-2">Selected file:</p>
+                      <p className="text-sm text-muted-foreground mb-4">{selectedFile.name}</p>
+                      <Button
+                        onClick={handleRetryUpload}
+                        disabled={uploading}
+                        className="w-full bg-gradient-to-r from-primary to-primary-gold hover:from-primary/90 hover:to-primary-gold/90 text-white font-semibold py-3 px-6 rounded-lg"
+                      >
+                        {uploading ? (
+                          <>
+                            <Loader className="mr-2 w-4 h-4 animate-spin" />
+                            Uploading...
+                          </>
+                        ) : (
+                          <>
+                            <Upload className="mr-2 w-4 h-4" />
+                            Upload New File
+                          </>
+                        )}
+                      </Button>
+                    </div>
+                  ) : (
+                    <div className="mb-4">
+                      <p className="text-lg font-medium mb-2">Upload a new file</p>
+                      <p className="text-sm text-muted-foreground mb-4">
+                        Choose a different document that contains venture and team details
+                      </p>
+                      <Button
+                        onClick={() => fileInputRef.current?.click()}
+                        className="bg-gradient-to-r from-primary to-primary-gold hover:from-primary/90 hover:to-primary-gold/90 text-white font-semibold py-3 px-6 rounded-lg"
+                      >
+                        <Upload className="mr-2 w-4 h-4" />
+                        Choose File
+                      </Button>
+                    </div>
+                  )}
+                  
+                  <input
+                    ref={fileInputRef}
+                    type="file"
+                    accept=".pdf,.ppt,.pptx,.doc,.docx"
+                    onChange={handleFileSelect}
+                    className="hidden"
+                  />
+                  
+                  <p className="text-xs text-muted-foreground mt-4">
+                    Supported formats: PDF, PPT, PPTX, DOC, DOCX
+                  </p>
+                </div>
+              </div>
+            ) : proofScore === null && !submitForScoring.isPending ? (
               <div className="mb-8">
                 {sessionData?.data?.founderData?.startupName && (
                   <div className="mb-4 p-3 bg-primary/10 rounded-lg border border-primary/20">
