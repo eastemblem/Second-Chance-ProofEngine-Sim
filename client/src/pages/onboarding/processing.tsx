@@ -375,25 +375,12 @@ export default function ProcessingScreen({
       });
       return;
     }
-
-    // For validation errors (missing venture/team details) or image-based PDF errors, navigate back to upload
-    if (validationError || 
-        errorMessage.includes('venture and team details') ||
-        errorMessage.includes('venture details') ||
-        errorMessage.includes('team details') ||
-        errorMessage.includes('business information') ||
-        errorMessage.includes('founder profiles') ||
-        errorMessage.includes('image-based') || 
-        errorMessage.includes('couldn\'t score it')) {
-      console.log(`[PROCESSING] Navigating back to upload due to validation/file error: ${errorMessage || validationError}`);
-      onBack && onBack();
-      return;
-    }
     
-    // For other errors, retry the processing (don't increment counter here, it's done in mutation handlers)
+    // For retry attempts on processing errors (not validation errors which use Upload New File button)
     console.log(`[PROCESSING] Manual retry triggered, retryCount: ${retryCount}`);
     setHasError(false);
     setErrorMessage("");
+    setValidationError(null);
     setProcessingComplete(false);
     setCurrentStep(0); // Start from beginning for retry
     
@@ -599,14 +586,21 @@ export default function ProcessingScreen({
             }
           </p>
           <div className="flex flex-col sm:flex-row gap-3 justify-center">
-            {/* For image-based PDF errors, show "Upload Different File" button */}
-            {errorMessage.includes('image-based') || errorMessage.includes('couldn\'t score it') ? (
+            {/* For validation errors (missing venture/team details) or image-based PDF errors, show "Upload New File" button */}
+            {validationError || 
+             errorMessage.includes('venture and team details') ||
+             errorMessage.includes('venture details') ||
+             errorMessage.includes('team details') ||
+             errorMessage.includes('business information') ||
+             errorMessage.includes('founder profiles') ||
+             errorMessage.includes('image-based') || 
+             errorMessage.includes('couldn\'t score it') ? (
               <Button 
                 onClick={() => onBack && onBack()}
                 className="bg-primary hover:bg-primary/90 text-primary-foreground"
               >
                 <Upload className="w-4 h-4 mr-2" />
-                Upload Different File
+                Upload New File
               </Button>
             ) : (
               /* For other errors, show "Try Again" button */
