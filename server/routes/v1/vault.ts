@@ -433,7 +433,7 @@ router.post('/create-folder', upload.none(), asyncHandler(async (req: Authentica
   }
   
   if (!folderName || !folder_id) {
-    return res.status(400).json({ error: 'folderName and folder_id are required' });
+    return res.status(400).json(createErrorResponse(400, 'folderName and folder_id are required', 'MISSING_PARAMS'));
   }
 
   // Sanitize founder ID for logging to prevent security scanner warnings
@@ -782,7 +782,7 @@ router.get('/files', asyncHandler(async (req: AuthenticatedRequest, res: Respons
   const offset = (page - 1) * limit;
   
   if (!founderId) {
-    return res.status(401).json({ error: "Authentication required" });
+    return res.status(401).json(createErrorResponse(401, "Authentication required", "AUTH_REQUIRED"));
   }
   
   // Sanitize pagination values for logging to prevent security scanner warnings
@@ -805,7 +805,7 @@ router.get('/files', asyncHandler(async (req: AuthenticatedRequest, res: Respons
     const currentVentureId = dashboardData?.venture?.ventureId;
     
     if (!currentVentureId) {
-      return res.status(404).json({ error: "No venture found for this founder" });
+      return res.status(404).json(createErrorResponse(404, "No venture found for this founder", "VENTURE_NOT_FOUND"));
     }
     
     // Get total count for pagination metadata
@@ -880,7 +880,7 @@ router.get('/files', asyncHandler(async (req: AuthenticatedRequest, res: Respons
       founderId, 
       error: error instanceof Error ? error.message : 'Unknown error' 
     });
-    res.status(500).json({ error: "Failed to load files" });
+    res.status(500).json(createErrorResponse(500, "Failed to load files", "LOAD_FILES_ERROR"));
   }
 }));
 

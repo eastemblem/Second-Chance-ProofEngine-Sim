@@ -256,7 +256,7 @@ router.get("/team/:sessionId", asyncHandler(async (req: Request, res: Response) 
   
   // Validate sessionId is not undefined or invalid
   if (!sessionId || sessionId === 'undefined') {
-    return res.status(400).json({ error: "Invalid session ID" });
+    return res.status(400).json(createErrorResponse(400, "Invalid session ID", "INVALID_SESSION"));
   }
   
   const teamMembers = await onboardingService.getTeamMembers(sessionId);

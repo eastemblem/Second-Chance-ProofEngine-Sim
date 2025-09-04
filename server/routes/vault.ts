@@ -531,7 +531,7 @@ router.delete("/remove-file/:fileId", asyncHandler(async (req, res) => {
   const { fileId } = req.params;
   
   if (!req.session?.founderId) {
-    return res.status(401).json({ error: "Not authenticated" });
+    return res.status(401).json(createErrorResponse(401, "Not authenticated", "AUTH_REQUIRED"));
   }
 
   try {
@@ -542,12 +542,12 @@ router.delete("/remove-file/:fileId", asyncHandler(async (req, res) => {
     const latestVenture = ventures.length > 0 ? ventures[ventures.length - 1] : null;
     
     if (!latestVenture) {
-      return res.status(404).json({ error: "No venture found" });
+      return res.status(404).json(createErrorResponse(404, "No venture found", "VENTURE_NOT_FOUND"));
     }
 
     const document = await storage.getDocumentUpload(fileId);
     if (!document || document.ventureId !== latestVenture.ventureId) {
-      return res.status(404).json({ error: "File not found or access denied" });
+      return res.status(404).json(createErrorResponse(404, "File not found or access denied", "FILE_NOT_FOUND"));
     }
 
     await storage.deleteDocumentUpload(fileId);
@@ -555,7 +555,7 @@ router.delete("/remove-file/:fileId", asyncHandler(async (req, res) => {
     res.json(createSuccessResponse({}, "File removed successfully"));
   } catch (error) {
     appLogger.business('Failed to remove file', { fileId, error });
-    res.status(500).json({ error: "Failed to remove file" });
+    res.status(500).json(createErrorResponse(500, "Failed to remove file", "INTERNAL_ERROR"));
   }
 }));
 
