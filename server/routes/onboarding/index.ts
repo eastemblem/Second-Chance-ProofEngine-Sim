@@ -10,6 +10,7 @@ import { getSessionId, getSessionData, updateSessionData } from "../../utils/ses
 import { cleanupUploadedFile } from "../../utils/file-cleanup";
 import { validateRequest, fileUploadSchema } from "../../middleware/validation";
 import { EmailValidationService } from "../../services/email-validation-service";
+import { storage } from "../../storage";
 
 const router = express.Router();
 
@@ -70,9 +71,9 @@ router.post("/founder", asyncHandler(async (req, res) => {
         suggestion: EmailValidationService.getEmailSuggestion(emailValidation.errorType || 'invalid_format')
       });
     }
+    
 
     // Check if email already exists in database
-    const { storage } = await import('../../storage');
     const existingFounder = await storage.getFounderByEmail(founderData.email);
     if (existingFounder) {
       return res.status(409).json({
