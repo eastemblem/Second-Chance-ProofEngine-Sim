@@ -1,6 +1,7 @@
 import { useState, useEffect } from "react";
 import { motion } from "framer-motion";
 import { useMutation } from "@tanstack/react-query";
+import { useLocation } from "wouter";
 import { apiRequest } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
 import { trackEvent } from "@/lib/analytics";
@@ -50,6 +51,7 @@ export default function ProcessingScreen({
   sessionData
 }: ProcessingScreenProps) {
   const { toast } = useToast();
+  const [, setLocation] = useLocation();
   const [currentStep, setCurrentStep] = useState(0);
   const [processingComplete, setProcessingComplete] = useState(false);
   const [hasError, setHasError] = useState(false);
@@ -627,7 +629,22 @@ export default function ProcessingScreen({
                 )}
               </Button>
             )}
-            <Button variant="outline" onClick={() => window.location.reload()}>
+            <Button variant="outline" onClick={() => {
+              // Clear all localStorage data
+              localStorage.clear();
+              
+              // Clear browser cache if supported
+              if ('caches' in window) {
+                caches.keys().then(names => {
+                  names.forEach(name => {
+                    caches.delete(name);
+                  });
+                });
+              }
+              
+              // Navigate to start of onboarding flow
+              setLocation('/onboarding-flow');
+            }}>
               Start Over
             </Button>
           </div>
