@@ -22,11 +22,24 @@ const getApiUrl = (endpoint: string) => {
   return `/api/${API_VERSION}${endpoint}`;
 };
 
+// Custom error class to preserve full error response
+class ApiError extends Error {
+  response: any;
+  status: number;
+  
+  constructor(message: string, response: any, status: number) {
+    super(message);
+    this.name = 'ApiError';
+    this.response = response;
+    this.status = status;
+  }
+}
+
 async function throwIfResNotOk(res: Response) {
   if (!res.ok) {
     const text = (await res.text()) || res.statusText;
     
-    // Try to parse error response to extract user-friendly message
+    // Try to parse error response to preserve full structure
     try {
       const errorData = JSON.parse(text);
       
@@ -40,7 +53,9 @@ async function throwIfResNotOk(res: Response) {
       
       // Ensure we never throw raw JSON strings to users
       const cleanMessage = typeof errorMessage === 'string' ? errorMessage : 'An error occurred';
-      throw new Error(cleanMessage);
+      
+      // Create ApiError with full response data preserved
+      throw new ApiError(cleanMessage, errorData, res.status);
     } catch (parseError) {
       // If JSON parsing fails, provide user-friendly messages based on status
       let friendlyMessage = 'An error occurred';
@@ -57,7 +72,7 @@ async function throwIfResNotOk(res: Response) {
         friendlyMessage = 'Server error. Please try again later.';
       }
       
-      throw new Error(friendlyMessage);
+      throw new ApiError(friendlyMessage, null, res.status);
     }
   }
 }

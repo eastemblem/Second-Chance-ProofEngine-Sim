@@ -93,9 +93,78 @@ export default function FounderOnboarding({
       // Track founder step error
       trackEvent('onboarding_founder_error', 'user_journey', 'founder_details_error');
       
-      const errorMessage = error.message || "Failed to save founder information";
+      let errorResponse;
+      let errorMessage = "Failed to save founder information";
       
-      // Check if this is an email duplicate error
+      // Handle ApiError (custom error class with preserved response data)
+      if (error.name === 'ApiError' && error.response) {
+        errorResponse = error.response;
+        errorMessage = error.message;
+      } else if (error.response) {
+        try {
+          errorResponse = error.response;
+        } catch (e) {
+          console.error("Failed to parse error response:", e);
+        }
+      } else if (error.message) {
+        errorMessage = error.message;
+      }
+      
+      // Handle structured error responses from our backend
+      if (errorResponse) {
+        const { error: responseError, errorType, suggestion, message } = errorResponse;
+        
+        // Handle email validation errors (personal, temp, suspicious)
+        if (errorType && ['personal_email', 'temp_email', 'suspicious_pattern'].includes(errorType)) {
+          // Set field-specific error
+          setEmailError(responseError || message || "Invalid email address");
+          
+          // Set form field error for styling
+          form.setError("email", {
+            type: "manual",
+            message: responseError || message || "Invalid email address"
+          });
+          
+          // Show toast with specific guidance
+          const errorTitles = {
+            personal_email: "Business Email Required",
+            temp_email: "Permanent Email Required", 
+            suspicious_pattern: "Invalid Email Address"
+          };
+          
+          toast({
+            title: errorTitles[errorType] || "Email Validation Error",
+            description: suggestion || responseError || message || "Please use a valid business email address.",
+            variant: "destructive",
+          });
+          return;
+        }
+        
+        // Handle email already taken error (409 status)
+        if (responseError === "Email already taken" || message === "A user with this email address already exists") {
+          // Set field-specific error
+          setEmailError("Email already taken");
+          
+          // Set form field error for styling
+          form.setError("email", {
+            type: "manual",
+            message: "Email already taken"
+          });
+          
+          // Show toast notification with helpful message
+          toast({
+            title: "Email Already Registered",
+            description: "This email address is already in use. Please use a different email address.",
+            variant: "destructive",
+          });
+          return;
+        }
+        
+        // Handle other structured errors
+        errorMessage = responseError || message || errorMessage;
+      }
+      
+      // Check if this is an email duplicate error (fallback for string-based detection)
       if (errorMessage.includes("Email already taken")) {
         // Set field-specific error
         setEmailError("Email already taken");
