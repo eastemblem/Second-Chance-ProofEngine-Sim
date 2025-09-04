@@ -213,24 +213,15 @@ export class OnboardingManager {
       throw error;
     }
 
-    // Create or update founder
+    // Create founder (email uniqueness already validated at API level)
     let founderId: string;
-    const existingFounder = await storage.getFounderByEmail(
-      validatedData.email,
-    );
-
-    if (existingFounder) {
-      // Email already exists - throw error to prevent silent data overwriting
-      throw new Error("Email already taken");
-    } else {
-      try {
-        const newFounder = await storage.createFounder(validatedData);
-        founderId = newFounder.founderId;
-      } catch (error: any) {
-        // Handle any creation errors
-        appLogger.error("Error creating founder:", error);
-        throw error;
-      }
+    try {
+      const newFounder = await storage.createFounder(validatedData);
+      founderId = newFounder.founderId;
+    } catch (error: any) {
+      // Handle any creation errors
+      appLogger.error("Error creating founder:", error);
+      throw error;
     }
 
     // Update session with founder ID

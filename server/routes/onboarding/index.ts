@@ -71,6 +71,16 @@ router.post("/founder", asyncHandler(async (req, res) => {
       });
     }
 
+    // Check if email already exists in database
+    const { storage } = await import('../../storage');
+    const existingFounder = await storage.getFounderByEmail(founderData.email);
+    if (existingFounder) {
+      return res.status(409).json({
+        error: "Email already taken",
+        message: "A user with this email address already exists"
+      });
+    }
+
     // Process founder data through onboarding service
     const result = await onboardingService.completeFounderStep(sessionId, founderData);
 
@@ -116,14 +126,6 @@ router.post("/founder", asyncHandler(async (req, res) => {
           error: error.message,
           errorType: (error as any).errorType,
           suggestion: (error as any).suggestion
-        });
-      }
-      
-      // Handle email already taken error
-      if (error.message === "Email already taken") {
-        return res.status(409).json({
-          error: "Email already taken",
-          message: "A user with this email address already exists"
         });
       }
     }
