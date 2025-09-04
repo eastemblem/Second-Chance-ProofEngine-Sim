@@ -6,7 +6,7 @@ import { apiRequest } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
 import { trackEvent } from "@/lib/analytics";
 import { Button } from "@/components/ui/button";
-import { Loader2, FileText, Brain, BarChart3, CheckCircle, RefreshCw, AlertCircle, Upload } from "lucide-react";
+import { Loader2, FileText, Brain, BarChart3, CheckCircle, RefreshCw, AlertCircle, Upload, Mail } from "lucide-react";
 
 interface ProcessingScreenProps {
   sessionId: string;
@@ -597,14 +597,27 @@ export default function ProcessingScreen({
              errorMessage.includes('founder profiles') ||
              errorMessage.includes('image-based') || 
              errorMessage.includes('couldn\'t score it') ? (
-              <Button 
-                onClick={() => onBack && onBack()}
-                disabled={retryCount >= MAX_RETRIES}
-                className="bg-primary hover:bg-primary/90 text-primary-foreground disabled:opacity-50 disabled:cursor-not-allowed"
-              >
-                <Upload className="w-4 h-4 mr-2" />
-                {retryCount >= MAX_RETRIES ? "Max Retries Reached" : "Upload New File"}
-              </Button>
+              retryCount >= MAX_RETRIES ? (
+                <Button 
+                  onClick={() => {
+                    const subject = encodeURIComponent("Need Support - Document Analysis Issue");
+                    const body = encodeURIComponent("Hi Support Team,\n\nI'm experiencing issues with document analysis on Second Chance platform. After multiple attempts, my document couldn't be processed successfully.\n\nSession ID: " + sessionId + "\n\nPlease help me resolve this issue.\n\nBest regards");
+                    window.open(`mailto:info@get-secondchance.com?subject=${subject}&body=${body}`, '_blank');
+                  }}
+                  className="bg-primary hover:bg-primary/90 text-primary-foreground"
+                >
+                  <Mail className="w-4 h-4 mr-2" />
+                  Contact Support
+                </Button>
+              ) : (
+                <Button 
+                  onClick={() => onBack && onBack()}
+                  className="bg-primary hover:bg-primary/90 text-primary-foreground"
+                >
+                  <Upload className="w-4 h-4 mr-2" />
+                  Upload New File
+                </Button>
+              )
             ) : (
               /* For other errors, show "Try Again" button */
               <Button 
