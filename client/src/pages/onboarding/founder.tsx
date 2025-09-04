@@ -112,17 +112,20 @@ export default function FounderOnboarding({
       
       // Handle structured error responses from our backend
       if (errorResponse) {
+        // The API returns { error: "message", errorType: "type", suggestion: "suggestion" }
         const { error: responseError, errorType, suggestion, message } = errorResponse;
         
         // Handle email validation errors (personal, temp, suspicious)
         if (errorType && ['personal_email', 'temp_email', 'suspicious_pattern'].includes(errorType)) {
+          const errorMsg = responseError || message || "Invalid email address";
+          
           // Set field-specific error
-          setEmailError(responseError || message || "Invalid email address");
+          setEmailError(errorMsg);
           
           // Set form field error for styling
           form.setError("email", {
             type: "manual",
-            message: responseError || message || "Invalid email address"
+            message: errorMsg
           });
           
           // Show toast with specific guidance
@@ -134,7 +137,32 @@ export default function FounderOnboarding({
           
           toast({
             title: errorTitles[errorType] || "Email Validation Error",
-            description: suggestion || responseError || message || "Please use a valid business email address.",
+            description: suggestion || errorMsg,
+            variant: "destructive",
+          });
+          return;
+        }
+        
+        // Handle email validation errors without errorType (fallback check)
+        if (responseError && (
+          responseError.includes('business email') || 
+          responseError.includes('personal email') ||
+          responseError.includes('temporary') ||
+          responseError.includes('temp')
+        )) {
+          // Set field-specific error
+          setEmailError(responseError);
+          
+          // Set form field error for styling
+          form.setError("email", {
+            type: "manual",
+            message: responseError
+          });
+          
+          // Show toast with specific guidance
+          toast({
+            title: "Business Email Required",
+            description: suggestion || responseError,
             variant: "destructive",
           });
           return;
