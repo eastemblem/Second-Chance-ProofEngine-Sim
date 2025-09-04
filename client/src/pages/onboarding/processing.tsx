@@ -85,23 +85,17 @@ export default function ProcessingScreen({
 
     const missingData = [];
     
-    // Check for venture_name in various possible locations
+    // Check for venture_name in submit-for-scoring response
     const hasVentureName = data.data?.venture_name || 
-                          data.venture_name || 
-                          data.data?.session?.stepData?.processing?.venture_name ||
-                          data.data?.scoringResult?.venture_name ||
-                          data.scoringResult?.venture_name;
+                          data.venture_name;
     
     if (!hasVentureName) {
       missingData.push('venture');
     }
     
-    // Check for team array with name field
+    // Check for team array with name field in submit-for-scoring response
     const teamData = data.data?.team || 
-                    data.team ||
-                    data.data?.session?.stepData?.processing?.team ||
-                    data.data?.scoringResult?.team ||
-                    data.scoringResult?.team;
+                    data.team;
     
     const hasFounderData = teamData && Array.isArray(teamData) && teamData.length > 0 && 
                           teamData.some(member => member?.name);
