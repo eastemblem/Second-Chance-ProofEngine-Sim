@@ -80,31 +80,45 @@ export default function ProcessingScreen({
       timestamp: new Date().toISOString(),
       fullResponse: data,
       dataLevel: data.data,
+      sessionData: data.data?.session,
+      processingData: data.data?.session?.stepData?.processing,
       retryCount,
       sessionId
     });
 
     const missingData = [];
     
-    // Check for venture_name in submit-for-scoring response
-    const ventureName = data.data?.venture_name || data.venture_name;
+    // Check for venture_name in various locations in the response
+    const ventureName = data.data?.venture_name || 
+                       data.venture_name ||
+                       data.data?.session?.stepData?.processing?.venture_name ||
+                       data.data?.scoringResult?.venture_name;
+    
     console.log("🏢 Venture name check:", {
       ventureName,
       dataVentureName: data.data?.venture_name,
-      rootVentureName: data.venture_name
+      rootVentureName: data.venture_name,
+      processingVentureName: data.data?.session?.stepData?.processing?.venture_name,
+      scoringVentureName: data.data?.scoringResult?.venture_name
     });
     
     if (!ventureName) {
       missingData.push('venture');
     }
     
-    // Check for team array with name field in submit-for-scoring response
-    const teamData = data.data?.team || data.team;
+    // Check for team array with name field in various locations
+    const teamData = data.data?.team || 
+                     data.team ||
+                     data.data?.session?.stepData?.processing?.team ||
+                     data.data?.scoringResult?.team;
+    
     console.log("👥 Team data check:", {
       teamData,
       isArray: Array.isArray(teamData),
       teamLength: teamData?.length,
-      firstMember: teamData?.[0]
+      firstMember: teamData?.[0],
+      processingTeam: data.data?.session?.stepData?.processing?.team,
+      scoringTeam: data.data?.scoringResult?.team
     });
     
     const hasFounderData = teamData && Array.isArray(teamData) && teamData.length > 0 && 
