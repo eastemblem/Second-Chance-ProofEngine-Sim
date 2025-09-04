@@ -376,8 +376,16 @@ export default function ProcessingScreen({
       return;
     }
 
-    // For image-based PDF errors, navigate back to upload instead of retrying
-    if (errorMessage.includes('image-based') || errorMessage.includes('couldn\'t score it')) {
+    // For validation errors (missing venture/team details) or image-based PDF errors, navigate back to upload
+    if (validationError || 
+        errorMessage.includes('venture and team details') ||
+        errorMessage.includes('venture details') ||
+        errorMessage.includes('team details') ||
+        errorMessage.includes('business information') ||
+        errorMessage.includes('founder profiles') ||
+        errorMessage.includes('image-based') || 
+        errorMessage.includes('couldn\'t score it')) {
+      console.log(`[PROCESSING] Navigating back to upload due to validation/file error: ${errorMessage || validationError}`);
       onBack && onBack();
       return;
     }
