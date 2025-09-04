@@ -90,13 +90,120 @@ export default function FounderOnboarding({
       }
     },
     onError: (error: any) => {
+      console.error("❌ Founder onboarding API error received:", {
+        timestamp: new Date().toISOString(),
+        sessionId,
+        error: error,
+        errorName: error.name,
+        errorMessage: error.message,
+        errorStack: error.stack,
+        hasResponse: !!error.response,
+        originalRequest: {
+          endpoint: "/api/onboarding/founder",
+          method: "POST",
+          sessionId
+        }
+      });
+
       // Track founder step error
       trackEvent('onboarding_founder_error', 'user_journey', 'founder_details_error');
       
-      const errorMessage = error.message || "Failed to save founder information";
+      let errorResponse;
+      let errorMessage = "Failed to save founder information";
       
-      // Check if this is an email duplicate error
+      // Handle ApiError (custom error class with preserved response data)
+      if (error.name === 'ApiError' && error.response) {
+        errorResponse = error.response;
+        errorMessage = error.message;
+      } else if (error.response) {
+        try {
+          errorResponse = error.response;
+        } catch (e) {
+          console.error("Failed to parse error response:", e);
+        }
+      } else if (error.message) {
+        errorMessage = error.message;
+      }
+      
+      // Handle structured error responses from our backend
+      if (errorResponse) {
+        console.log("🔍 Processing structured error response:", {
+          timestamp: new Date().toISOString(),
+          sessionId,
+          errorResponse,
+          responseKeys: Object.keys(errorResponse),
+          hasSuccessField: 'success' in errorResponse,
+          hasErrorField: 'error' in errorResponse,
+          hasMessageField: 'message' in errorResponse,
+          nestedError: errorResponse.error
+        });
+
+        // Handle the new nested error structure: {"success":false,"error":{"status":400,"message":"Email already taken"}}
+        if (errorResponse.error && typeof errorResponse.error === 'object') {
+          const nestedError = errorResponse.error;
+          const nestedErrorMessage = nestedError.message || nestedError.error || "Unknown error";
+          
+          console.log("🔍 Processing nested error structure:", {
+            timestamp: new Date().toISOString(),
+            sessionId,
+            nestedError,
+            nestedErrorMessage,
+            status: nestedError.status,
+            emailValue: form.getValues("email")
+          });
+          
+          // Check if this is an email duplicate error
+          if (nestedErrorMessage === "Email already taken" || nestedErrorMessage.includes("Email already taken")) {
+            console.warn("📧 Email already exists error detected:", {
+              timestamp: new Date().toISOString(),
+              sessionId,
+              errorMessage: nestedErrorMessage,
+              emailValue: form.getValues("email"),
+              responseData: errorResponse
+            });
+            
+            // Set field-specific error
+            setEmailError("Email already taken");
+            
+            // Set form field error for styling
+            form.setError("email", {
+              type: "manual",
+              message: "Email already taken"
+            });
+            
+            // Show toast notification with helpful message
+            toast({
+              title: "Email Already Registered",
+              description: "This email address is already in use. Please use a different email address.",
+              variant: "destructive",
+            });
+            return;
+          }
+          
+          // Handle other nested error messages
+          errorMessage = nestedErrorMessage;
+        }
+        
+        // Fallback: Handle direct error field
+        if (errorResponse.error && typeof errorResponse.error === 'string') {
+          errorMessage = errorResponse.error;
+        }
+        
+        // Fallback: Handle direct message field
+        if (errorResponse.message) {
+          errorMessage = errorResponse.message;
+        }
+      }
+      
+      // Check if this is an email duplicate error (fallback for string-based detection)
       if (errorMessage.includes("Email already taken")) {
+        console.warn("📧 Email duplicate error (fallback detection):", {
+          timestamp: new Date().toISOString(),
+          sessionId,
+          errorMessage,
+          emailValue: form.getValues("email")
+        });
+        
         // Set field-specific error
         setEmailError("Email already taken");
         
@@ -114,6 +221,13 @@ export default function FounderOnboarding({
         });
       } else {
         // Handle other errors normally
+        console.warn("⚠️ General error handling:", {
+          timestamp: new Date().toISOString(),
+          sessionId,
+          errorMessage,
+          originalError: error
+        });
+        
         toast({
           title: "Error",
           description: errorMessage,
