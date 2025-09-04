@@ -56,20 +56,10 @@ router.post("/founder", asyncHandler(async (req: Request, res: Response) => {
   
   const validation = safeValidate(founderOnboardingSchema, founderData);
   if (!validation.success) {
-    return res.status(400).json(createErrorResponse(400, "Invalid input data", "VALIDATION_ERROR", validation.errors.errors));
+    throw validation.errors;
   }
 
-  let result;
-  try {
-    result = await onboardingService.completeFounderStep(sessionId, validation.data);
-  } catch (error: any) {
-    // Handle email duplicate error as validation error, not server error
-    if (error.message === "Email already taken") {
-      return res.status(400).json(createErrorResponse(400, "Email already taken"));
-    }
-    // Re-throw other errors to be handled by asyncHandler
-    throw error;
-  }
+  const result = await onboardingService.completeFounderStep(sessionId, validation.data);
 
   // Invalidate founder cache when new founder is created
   if (result.founderId) {
@@ -256,7 +246,7 @@ router.get("/team/:sessionId", asyncHandler(async (req: Request, res: Response) 
   
   // Validate sessionId is not undefined or invalid
   if (!sessionId || sessionId === 'undefined') {
-    return res.status(400).json(createErrorResponse(400, "Invalid session ID", "INVALID_SESSION"));
+    return res.status(400).json({ error: "Invalid session ID" });
   }
   
   const teamMembers = await onboardingService.getTeamMembers(sessionId);

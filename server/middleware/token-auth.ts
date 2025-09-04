@@ -2,7 +2,6 @@ import { Request, Response, NextFunction } from 'express';
 import jwt from 'jsonwebtoken';
 import { databaseService } from '../services/database-service';
 import { appLogger } from "../utils/logger";
-import { createErrorResponse } from '../utils/error-handler';
 
 // JWT secret from environment or fallback
 const JWT_SECRET = process.env.JWT_SECRET || 'dev-jwt-secret-key-change-in-production';
@@ -114,12 +113,18 @@ export function authenticateToken(req: AuthenticatedRequest, res: Response, next
   const token = extractToken(req);
 
   if (!token) {
-    return res.status(401).json(createErrorResponse(401, 'Authentication token required', 'TOKEN_MISSING'));
+    return res.status(401).json({ 
+      error: 'Authentication token required',
+      code: 'TOKEN_MISSING'
+    });
   }
 
   const decoded = verifyAuthToken(token);
   if (!decoded) {
-    return res.status(401).json(createErrorResponse(401, 'Invalid or expired token', 'TOKEN_INVALID'));
+    return res.status(401).json({ 
+      error: 'Invalid or expired token',
+      code: 'TOKEN_INVALID'
+    });
   }
 
   // Attach user info and token to request

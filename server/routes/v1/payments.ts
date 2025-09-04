@@ -5,7 +5,6 @@ import { authenticateToken, type AuthenticatedRequest } from "../../middleware/t
 import { storage } from "../../storage.js";
 import { eastEmblemAPI } from "../../eastemblem-api.js";
 import { appLogger } from "../../utils/logger";
-import { createErrorResponse } from "../../utils/error-handler";
 
 const router = Router();
 
@@ -17,7 +16,7 @@ router.post("/create", async (req: AuthenticatedRequest, res) => {
   try {
     const founderId = req.user?.founderId;
     if (!founderId) {
-      return res.status(401).json(createErrorResponse(401, "User not authenticated", "AUTH_REQUIRED"));
+      return res.status(401).json({ error: "User not authenticated" });
     }
 
     // Validate request body
@@ -175,7 +174,7 @@ router.get("/status/:orderReference", async (req: AuthenticatedRequest, res) => 
     const founderId = req.user?.founderId;
     
     if (!founderId) {
-      return res.status(401).json(createErrorResponse(401, "User not authenticated", "AUTH_REQUIRED"));
+      return res.status(401).json({ error: "User not authenticated" });
     }
 
     // Validate order reference
@@ -236,7 +235,7 @@ router.get("/history", async (req: AuthenticatedRequest, res) => {
   try {
     const founderId = req.user?.founderId;
     if (!founderId) {
-      return res.status(401).json(createErrorResponse(401, "User not authenticated", "AUTH_REQUIRED"));
+      return res.status(401).json({ error: "User not authenticated" });
     }
 
     const transactions = await paymentService.getPaymentHistory(founderId);
@@ -276,7 +275,7 @@ router.get("/subscriptions", async (req: AuthenticatedRequest, res) => {
   try {
     const founderId = req.user?.founderId;
     if (!founderId) {
-      return res.status(401).json(createErrorResponse(401, "User not authenticated", "AUTH_REQUIRED"));
+      return res.status(401).json({ error: "User not authenticated" });
     }
 
     const subscriptions = await paymentService.getUserSubscriptions(founderId);
@@ -315,7 +314,7 @@ router.get("/deal-room-access", async (req: AuthenticatedRequest, res) => {
   try {
     const founderId = req.user?.founderId;
     if (!founderId) {
-      return res.status(401).json(createErrorResponse(401, "User not authenticated", "AUTH_REQUIRED"));
+      return res.status(401).json({ error: "User not authenticated" });
     }
 
     const hasAccess = await paymentService.hasDealRoomAccess(founderId);
@@ -360,7 +359,7 @@ router.get("/activities", async (req: AuthenticatedRequest, res) => {
   try {
     const founderId = req.user?.founderId;
     if (!founderId) {
-      return res.status(401).json(createErrorResponse(401, "User not authenticated", "AUTH_REQUIRED"));
+      return res.status(401).json({ error: "User not authenticated" });
     }
 
     // Get all payment-related activities for the user (limit to 50 most recent)
@@ -434,7 +433,7 @@ router.post('/cancel/:orderRef', async (req: AuthenticatedRequest, res) => {
   try {
     const founderId = req.user?.founderId;
     if (!founderId) {
-      return res.status(401).json(createErrorResponse(401, "User not authenticated", "AUTH_REQUIRED"));
+      return res.status(401).json({ error: "User not authenticated" });
     }
 
     const { orderRef } = req.params;

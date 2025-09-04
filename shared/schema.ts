@@ -15,7 +15,7 @@ export const artefactTypeEnum = pgEnum('artefact_type', [
   'Technical Documentation',
   'Financial Model'
 ]);
-export const ventureStatusEnum = pgEnum('venture_status', ['pending', 'reviewing', 'reviewed', 'done']);
+export const ventureStatusEnum = pgEnum('venture_status', ['pending', 'reviewing', 'reviewed', 'done', 'manual_review']);
 
 // Founder table (replaces users)
 export const founder = pgTable("founder", {
@@ -66,6 +66,12 @@ export const venture = pgTable("venture", {
   reportGeneratedAt: timestamp("report_generated_at"),
   folderStructure: jsonb("folder_structure"),
   status: ventureStatusEnum("status").notNull().default("pending"),
+  // Manual review tracking fields
+  manualReviewReason: text("manual_review_reason"),
+  manualReviewRequestedAt: timestamp("manual_review_requested_at"),
+  consistencyCheckAttempts: integer("consistency_check_attempts").default(0),
+  consistencyCheckScore: integer("consistency_check_score"),
+  validationErrors: jsonb("validation_errors"),
   createdAt: timestamp("created_at").defaultNow().notNull(),
   updatedAt: timestamp("updated_at").defaultNow().notNull(),
 });

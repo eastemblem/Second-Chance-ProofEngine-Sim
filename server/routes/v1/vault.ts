@@ -3,7 +3,7 @@ import { requireAuth, AuthenticatedRequest } from '../middleware/auth';
 import { asyncHandler } from '../middleware/error';
 import { eastEmblemAPI } from '../../eastemblem-api';
 import { getSessionId, getSessionData, updateSessionData } from '../../utils/session-manager';
-import { createSuccessResponse, createErrorResponse } from '../../utils/error-handler';
+import { createSuccessResponse } from '../../utils/error-handler';
 import { cleanupUploadedFile } from '../../utils/file-cleanup';
 import { ActivityService } from '../../services/activity-service';
 import { lruCacheService } from '../../services/lru-cache-service';
@@ -257,7 +257,7 @@ router.post('/upload-file', upload.single("file"), asyncHandler(async (req: Auth
   const founderId = req.user?.founderId;
 
   if (!founderId) {
-    return res.status(401).json(createErrorResponse(401, "JWT authentication required for file upload"));
+    return res.status(401).json({ success: false, error: "JWT authentication required for file upload" });
   }
 
   if (!file) {
@@ -429,11 +429,11 @@ router.post('/create-folder', upload.none(), asyncHandler(async (req: Authentica
   const founderId = req.user?.founderId;
   
   if (!founderId) {
-    return res.status(401).json(createErrorResponse(401, "JWT authentication required for folder creation"));
+    return res.status(401).json({ success: false, error: "JWT authentication required for folder creation" });
   }
   
   if (!folderName || !folder_id) {
-    return res.status(400).json(createErrorResponse(400, 'folderName and folder_id are required', 'MISSING_PARAMS'));
+    return res.status(400).json({ error: 'folderName and folder_id are required' });
   }
 
   // Sanitize founder ID for logging to prevent security scanner warnings
@@ -608,7 +608,7 @@ router.post('/upload-file-direct', upload.single("file"), asyncHandler(async (re
   const founderId = req.user?.founderId;
 
   if (!founderId) {
-    return res.status(401).json(createErrorResponse(401, "JWT authentication required for file upload"));
+    return res.status(401).json({ success: false, error: "JWT authentication required for file upload" });
   }
 
   if (!file) {
@@ -782,7 +782,7 @@ router.get('/files', asyncHandler(async (req: AuthenticatedRequest, res: Respons
   const offset = (page - 1) * limit;
   
   if (!founderId) {
-    return res.status(401).json(createErrorResponse(401, "Authentication required", "AUTH_REQUIRED"));
+    return res.status(401).json({ error: "Authentication required" });
   }
   
   // Sanitize pagination values for logging to prevent security scanner warnings
@@ -805,7 +805,7 @@ router.get('/files', asyncHandler(async (req: AuthenticatedRequest, res: Respons
     const currentVentureId = dashboardData?.venture?.ventureId;
     
     if (!currentVentureId) {
-      return res.status(404).json(createErrorResponse(404, "No venture found for this founder", "VENTURE_NOT_FOUND"));
+      return res.status(404).json({ error: "No venture found for this founder" });
     }
     
     // Get total count for pagination metadata
@@ -880,7 +880,7 @@ router.get('/files', asyncHandler(async (req: AuthenticatedRequest, res: Respons
       founderId, 
       error: error instanceof Error ? error.message : 'Unknown error' 
     });
-    res.status(500).json(createErrorResponse(500, "Failed to load files", "LOAD_FILES_ERROR"));
+    res.status(500).json({ error: "Failed to load files" });
   }
 }));
 

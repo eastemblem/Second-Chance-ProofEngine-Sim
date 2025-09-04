@@ -4,7 +4,6 @@ import { databaseService } from '../../services/database-service';
 import { lruCacheService } from '../../services/lru-cache-service';
 import { appLogger } from '../../utils/logger';
 import { authenticateToken } from '../../middleware/token-auth';
-import { createSuccessResponse, createErrorResponse } from '../../utils/error-handler';
 
 const router = Router();
 
@@ -36,13 +35,13 @@ router.get('/validation', asyncHandler(async (req: Request, res: Response) => {
   
   if (!founderId) {
     appLogger.api('Authentication failed - no founderId');
-    return res.status(401).json(createErrorResponse(401, "Authentication required"));
+    return res.status(401).json({ error: "Authentication required" });
   }
   
   try {
     const dashboardData = await databaseService.getFounderWithLatestVenture(founderId);
     if (!dashboardData) {
-      return res.status(404).json(createErrorResponse(404, "Founder not found"));
+      return res.status(404).json({ error: "Founder not found" });
     }
 
     const { founder: founderData, venture: latestVenture, latestEvaluation } = dashboardData;
@@ -108,7 +107,7 @@ router.get('/validation', asyncHandler(async (req: Request, res: Response) => {
     res.json(validationData);
   } catch (error) {
     appLogger.api("FIXED: Dashboard validation error:", error);
-    res.status(500).json(createErrorResponse(500, "Failed to load validation data"));
+    res.status(500).json({ error: "Failed to load validation data" });
   }
 }));
 
@@ -117,7 +116,7 @@ router.get('/vault', asyncHandler(async (req: Request, res: Response) => {
   const founderId = (req as any).user?.founderId;
   
   if (!founderId) {
-    return res.status(401).json(createErrorResponse(401, "Authentication token required"));
+    return res.status(401).json({ error: "Authentication token required" });
   }
   
   const cacheKey = `vault_${founderId}`;
@@ -133,7 +132,7 @@ router.get('/vault', asyncHandler(async (req: Request, res: Response) => {
     
     const dashboardData = await databaseService.getFounderWithLatestVenture(founderId);
     if (!dashboardData || !dashboardData.venture) {
-      return res.status(404).json(createErrorResponse(404, "Venture not found"));
+      return res.status(404).json({ error: "Venture not found" });
     }
 
     // Get file counts by category using the same proven logic as before (but without returning files)
@@ -246,7 +245,7 @@ router.get('/vault', asyncHandler(async (req: Request, res: Response) => {
     res.json(vaultData);
   } catch (error) {
     appLogger.api("Dashboard vault error:", error);
-    res.status(500).json(createErrorResponse(500, "Failed to load vault data"));
+    res.status(500).json({ error: "Failed to load vault data" });
   }
 }));
 
@@ -255,7 +254,7 @@ router.get('/activity', asyncHandler(async (req: Request, res: Response) => {
   const founderId = (req as any).user?.founderId;
   
   if (!founderId) {
-    return res.status(401).json(createErrorResponse(401, "Authentication token required"));
+    return res.status(401).json({ error: "Authentication token required" });
   }
   
   try {
@@ -316,7 +315,7 @@ router.get('/activity', asyncHandler(async (req: Request, res: Response) => {
       founderId: (req as any).user?.founderId, 
       error: error instanceof Error ? error.message : 'Unknown error' 
     });
-    res.status(500).json(createErrorResponse(500, "Failed to load activity data"));
+    res.status(500).json({ error: "Failed to load activity data" });
   }
 }));
 

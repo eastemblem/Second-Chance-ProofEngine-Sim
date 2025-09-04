@@ -2,7 +2,7 @@ import { Router } from "express";
 import { vaultService } from "../services/vault-service";
 import { eastEmblemAPI } from "../eastemblem-api";
 import { getSessionId, getSessionData, updateSessionData } from "../utils/session-manager";
-import { asyncHandler, createSuccessResponse, createErrorResponse } from "../utils/error-handler";
+import { asyncHandler, createSuccessResponse } from "../utils/error-handler";
 import { cleanupUploadedFile } from "../utils/file-cleanup";
 import { requireFields } from "../middleware/auth";
 import { ActivityService } from "../services/activity-service";
@@ -210,7 +210,7 @@ router.post("/upload-file", upload.single("file"), requireFields(['folder_id']),
   const founderId = req.session?.founderId;
 
   if (!founderId) {
-    return res.status(401).json(createErrorResponse(401, "Authentication required for file upload"));
+    return res.status(401).json({ success: false, error: "Authentication required for file upload" });
   }
 
   if (!file) {
@@ -318,7 +318,7 @@ router.post("/create-folder", requireFields(['folderName', 'folder_id']), asyncH
   const founderId = req.session?.founderId;
 
   if (!founderId) {
-    return res.status(401).json(createErrorResponse(401, "Authentication required for folder creation"));
+    return res.status(401).json({ success: false, error: "Authentication required for folder creation" });
   }
 
   appLogger.business('Processing 100% database-driven folder creation', { 
@@ -458,7 +458,7 @@ router.post("/upload-multiple", upload.array('files', 20), asyncHandler(async (r
   const files = req.files as Express.Multer.File[];
 
   if (!founderId) {
-    return res.status(401).json(createErrorResponse(401, "Authentication required for file upload"));
+    return res.status(401).json({ success: false, error: "Authentication required for file upload" });
   }
 
   if (!files || files.length === 0) {
@@ -531,7 +531,7 @@ router.delete("/remove-file/:fileId", asyncHandler(async (req, res) => {
   const { fileId } = req.params;
   
   if (!req.session?.founderId) {
-    return res.status(401).json(createErrorResponse(401, "Not authenticated", "AUTH_REQUIRED"));
+    return res.status(401).json({ error: "Not authenticated" });
   }
 
   try {
@@ -542,12 +542,12 @@ router.delete("/remove-file/:fileId", asyncHandler(async (req, res) => {
     const latestVenture = ventures.length > 0 ? ventures[ventures.length - 1] : null;
     
     if (!latestVenture) {
-      return res.status(404).json(createErrorResponse(404, "No venture found", "VENTURE_NOT_FOUND"));
+      return res.status(404).json({ error: "No venture found" });
     }
 
     const document = await storage.getDocumentUpload(fileId);
     if (!document || document.ventureId !== latestVenture.ventureId) {
-      return res.status(404).json(createErrorResponse(404, "File not found or access denied", "FILE_NOT_FOUND"));
+      return res.status(404).json({ error: "File not found or access denied" });
     }
 
     await storage.deleteDocumentUpload(fileId);
@@ -555,7 +555,7 @@ router.delete("/remove-file/:fileId", asyncHandler(async (req, res) => {
     res.json(createSuccessResponse({}, "File removed successfully"));
   } catch (error) {
     appLogger.business('Failed to remove file', { fileId, error });
-    res.status(500).json(createErrorResponse(500, "Failed to remove file", "INTERNAL_ERROR"));
+    res.status(500).json({ error: "Failed to remove file" });
   }
 }));
 

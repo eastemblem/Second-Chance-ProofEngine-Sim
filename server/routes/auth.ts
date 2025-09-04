@@ -15,7 +15,6 @@ import {
 import { emailService } from '../services/emailService';
 import { appLogger } from '../utils/logger';
 import { ActivityService } from '../services/activity-service';
-import { createErrorResponse, createSuccessResponse } from '../utils/error-handler';
 const router = express.Router();
 
 // Clean encryption middleware applied globally - no need for route-level registration
@@ -36,7 +35,7 @@ router.get('/verify-email/:token?', async (req: Request, res: Response) => {
     const token = req.params.token || req.query.token as string;
     
     if (!token) {
-      return res.status(400).json(createErrorResponse(400, 'Verification token is required', 'TOKEN_REQUIRED'));
+      return res.status(400).json({ error: 'Verification token is required' });
     }
 
     // Find founder with matching token
@@ -74,7 +73,7 @@ router.get('/verify-email/:token?', async (req: Request, res: Response) => {
     res.redirect(`/set-password?verified=true&email=${encodeURIComponent(founderRecord.email)}`);
   } catch (error) {
     appLogger.auth('Email verification error:', { error: error instanceof Error ? error.message : String(error), token: req.params.token || req.query.token });
-    res.status(500).json(createErrorResponse(500, 'Email verification failed', 'VERIFICATION_ERROR'));
+    res.status(500).json({ error: 'Email verification failed' });
   }
 });
 
@@ -107,7 +106,7 @@ router.post('/set-password', async (req: Request, res: Response) => {
       ));
 
     if (!founderRecord) {
-      return res.status(400).json(createErrorResponse(400, 'Email not found or not verified', 'EMAIL_NOT_VERIFIED'));
+      return res.status(400).json({ error: 'Email not found or not verified' });
     }
 
     // Hash password and update record
@@ -139,9 +138,9 @@ router.post('/set-password', async (req: Request, res: Response) => {
   } catch (error) {
     appLogger.auth('Set password error:', { error: error instanceof Error ? error.message : String(error), email: req.body.email });
     if (error instanceof z.ZodError) {
-      return res.status(400).json(createErrorResponse(400, 'Invalid input', 'VALIDATION_ERROR', error.errors));
+      return res.status(400).json({ error: 'Invalid input', details: error.errors });
     }
-    res.status(500).json(createErrorResponse(500, 'Failed to set password', 'PASSWORD_ERROR'));
+    res.status(500).json({ error: 'Failed to set password' });
   }
 });
 
@@ -162,23 +161,23 @@ router.post('/login', async (req: Request, res: Response) => {
       .where(eq(founder.email, email));
 
     if (!founderRecord) {
-      return res.status(401).json(createErrorResponse(401, 'Invalid email or password', 'INVALID_CREDENTIALS'));
+      return res.status(401).json({ error: 'Invalid email or password' });
     }
 
     // Check if email is verified
     if (!founderRecord.emailVerified) {
-      return res.status(401).json(createErrorResponse(401, 'Please verify your email first', 'EMAIL_NOT_VERIFIED'));
+      return res.status(401).json({ error: 'Please verify your email first' });
     }
 
     // Check if password is set
     if (!founderRecord.passwordHash) {
-      return res.status(401).json(createErrorResponse(401, 'Please set your password first', 'PASSWORD_NOT_SET'));
+      return res.status(401).json({ error: 'Please set your password first' });
     }
 
     // Verify password
     const isValidPassword = await comparePasswords(password, founderRecord.passwordHash);
     if (!isValidPassword) {
-      return res.status(401).json(createErrorResponse(401, 'Invalid email or password', 'INVALID_CREDENTIALS'));
+      return res.status(401).json({ error: 'Invalid email or password' });
     }
 
     // Update last login time
@@ -207,9 +206,9 @@ router.post('/login', async (req: Request, res: Response) => {
   } catch (error) {
     appLogger.auth('Login error:', { error: error instanceof Error ? error.message : String(error), email: req.body.email });
     if (error instanceof z.ZodError) {
-      return res.status(400).json(createErrorResponse(400, 'Invalid input', 'VALIDATION_ERROR', error.errors));
+      return res.status(400).json({ error: 'Invalid input', details: error.errors });
     }
-    res.status(500).json(createErrorResponse(500, 'Login failed', 'LOGIN_ERROR'));
+    res.status(500).json({ error: 'Login failed' });
   }
 });
 
@@ -218,7 +217,7 @@ router.post('/logout', (req: Request, res: Response) => {
   req.session.destroy((err) => {
     if (err) {
       appLogger.auth('Logout error:', { error: err instanceof Error ? err.message : String(err), sessionId: req.sessionID });
-      return res.status(500).json(createErrorResponse(500, 'Logout failed', 'LOGOUT_ERROR'));
+      return res.status(500).json({ error: 'Logout failed' });
     }
     res.json({ success: true, message: 'Logout successful' });
   });
@@ -228,7 +227,7 @@ router.post('/logout', (req: Request, res: Response) => {
 router.get('/me', async (req: Request, res: Response) => {
   try {
     if (!req.session.isAuthenticated || !req.session.founderId) {
-      return res.status(401).json(createErrorResponse(401, 'Not authenticated', 'AUTH_REQUIRED'));
+      return res.status(401).json({ error: 'Not authenticated' });
     }
 
     const founderId = req.session.founderId;
@@ -236,7 +235,7 @@ router.get('/me', async (req: Request, res: Response) => {
     // Get founder details
     const founderRecord = await storage.getFounder(founderId);
     if (!founderRecord) {
-      return res.status(404).json(createErrorResponse(404, 'Founder not found', 'FOUNDER_NOT_FOUND'));
+      return res.status(404).json({ error: 'Founder not found' });
     }
 
     // Get founder's latest venture
@@ -254,7 +253,7 @@ router.get('/me', async (req: Request, res: Response) => {
     });
   } catch (error) {
     appLogger.auth('Get user data error:', { error: error instanceof Error ? error.message : String(error), founderId: req.session.founderId });
-    res.status(500).json(createErrorResponse(500, 'Failed to retrieve user data', 'USER_DATA_ERROR'));
+    res.status(500).json({ error: 'Failed to retrieve user data' });
   }
 });
 
@@ -315,9 +314,9 @@ router.post('/forgot-password', async (req: Request, res: Response) => {
   } catch (error) {
     appLogger.auth('Forgot password error:', { error: error instanceof Error ? error.message : String(error), email: req.body.email });
     if (error instanceof z.ZodError) {
-      return res.status(400).json(createErrorResponse(400, 'Invalid email format', 'EMAIL_VALIDATION_ERROR', error.errors));
+      return res.status(400).json({ error: 'Invalid email format', details: error.errors });
     }
-    res.status(500).json(createErrorResponse(500, 'Failed to process password reset request', 'RESET_REQUEST_ERROR'));
+    res.status(500).json({ error: 'Failed to process password reset request' });
   }
 });
 
@@ -366,7 +365,7 @@ router.post('/reset-password/:token', async (req: Request, res: Response) => {
     const { password } = resetPasswordSchema.parse(req.body);
     
     if (!token) {
-      return res.status(400).json(createErrorResponse(400, 'Invalid reset token', 'INVALID_TOKEN'));
+      return res.status(400).json({ error: 'Invalid reset token' });
     }
 
     // Find founder with matching reset token
@@ -376,12 +375,12 @@ router.post('/reset-password/:token', async (req: Request, res: Response) => {
       .where(eq(founder.verificationToken, token));
 
     if (!founderRecord) {
-      return res.status(400).json(createErrorResponse(400, 'Invalid or expired reset token', 'TOKEN_EXPIRED'));
+      return res.status(400).json({ error: 'Invalid or expired reset token' });
     }
 
     // Check if token is expired
     if (founderRecord.tokenExpiresAt && isTokenExpired(founderRecord.tokenExpiresAt)) {
-      return res.status(400).json(createErrorResponse(400, 'Reset token has expired', 'TOKEN_EXPIRED'));
+      return res.status(400).json({ error: 'Reset token has expired' });
     }
 
     // Hash the new password
@@ -419,16 +418,16 @@ router.post('/reset-password/:token', async (req: Request, res: Response) => {
   } catch (error) {
     appLogger.auth('Reset password POST error:', { error: error instanceof Error ? error.message : String(error), token: req.params.token });
     if (error instanceof z.ZodError) {
-      return res.status(400).json(createErrorResponse(400, 'Invalid input', 'VALIDATION_ERROR', error.errors));
+      return res.status(400).json({ error: 'Invalid input', details: error.errors });
     }
-    res.status(500).json(createErrorResponse(500, 'Failed to reset password', 'RESET_PASSWORD_ERROR'));
+    res.status(500).json({ error: 'Failed to reset password' });
   }
 });
 
 // Middleware to check authentication
 export function requireAuth(req: Request, res: Response, next: any) {
   if (!req.session.isAuthenticated || !req.session.founderId) {
-    return res.status(401).json(createErrorResponse(401, 'Authentication required', 'AUTH_REQUIRED'));
+    return res.status(401).json({ error: 'Authentication required' });
   }
   next();
 }

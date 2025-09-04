@@ -1,0 +1,332 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Manual Verification Required - Second Chance</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { 
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; 
+            line-height: 1.6; 
+            background-color: #f8f9fa;
+            color: #333333; 
+        }
+        
+        .container { 
+            max-width: 600px; 
+            margin: 0 auto; 
+            background: #ffffff;
+            border-radius: 12px;
+            overflow: hidden;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+        }
+        
+        .header { 
+            background: linear-gradient(135deg, #8b5cf6 0%, #d4af37 100%);
+            padding: 40px 20px; 
+            text-align: center; 
+            color: white;
+        }
+        
+        .logo-img { 
+            width: 230px; 
+            height: auto; 
+            object-fit: contain;
+            margin-bottom: 15px;
+            display: block;
+            margin-left: auto;
+            margin-right: auto;
+        }
+        
+        .header-title { 
+            font-size: 28px; 
+            font-weight: bold; 
+            color: #FFFFFF;
+            margin: 0; 
+        }
+        
+        .header-subtitle { 
+            color: rgba(255, 255, 255, 0.9); 
+            font-size: 16px; 
+            margin-top: 8px; 
+        }
+        
+        .content { 
+            padding: 40px 30px; 
+            background: #ffffff;
+        }
+        
+        .alert-text { 
+            font-size: 18px; 
+            color: #dc3545; 
+            margin-bottom: 25px; 
+            text-align: center; 
+            font-weight: 600;
+        }
+        
+        .greeting { 
+            font-size: 16px; 
+            color: #666; 
+            margin-bottom: 20px; 
+        }
+        
+        .founder-card { 
+            background: linear-gradient(135deg, #8B5CF6 0%, #D97706 100%);
+            padding: 30px; 
+            margin: 30px 0; 
+            border-radius: 12px; 
+            color: white; 
+            text-align: center;
+        }
+        
+        .founder-card h3 { 
+            font-size: 24px; 
+            margin-bottom: 15px; 
+            color: #FFFFFF;
+        }
+        
+        .founder-details { 
+            background: rgba(255, 255, 255, 0.15); 
+            padding: 20px; 
+            border-radius: 8px; 
+            margin: 20px 0; 
+        }
+        
+        .detail-row { 
+            display: flex; 
+            justify-content: space-between; 
+            margin-bottom: 10px; 
+            flex-wrap: wrap;
+        }
+        
+        .detail-label { 
+            font-weight: bold; 
+            color: #FFFFFF;
+            min-width: 120px;
+        }
+        
+        .detail-value { 
+            color: rgba(255, 255, 255, 0.9); 
+            word-break: break-word;
+        }
+        
+        .consistency-section {
+            background: #f8f9fa;
+            padding: 25px;
+            border-radius: 8px;
+            margin: 25px 0;
+            border-left: 4px solid #dc3545;
+        }
+        
+        .consistency-title {
+            font-size: 18px;
+            font-weight: bold;
+            color: #dc3545;
+            margin-bottom: 15px;
+        }
+        
+        .error-item {
+            background: #fff5f5;
+            padding: 15px;
+            border-radius: 6px;
+            margin-bottom: 10px;
+            border-left: 3px solid #dc3545;
+        }
+        
+        .error-type {
+            font-weight: bold;
+            color: #dc3545;
+            text-transform: uppercase;
+            font-size: 12px;
+            margin-bottom: 5px;
+        }
+        
+        .error-message {
+            color: #666;
+            font-size: 14px;
+        }
+        
+        .file-section {
+            background: #f8f9fa;
+            padding: 20px;
+            border-radius: 8px;
+            margin: 20px 0;
+        }
+        
+        .file-title {
+            font-weight: bold;
+            margin-bottom: 10px;
+            color: #333;
+        }
+        
+        .action-section { 
+            background: #e3f2fd;
+            padding: 25px;
+            border-radius: 8px;
+            margin: 30px 0;
+            text-align: center;
+        }
+        
+        .action-title {
+            font-size: 18px;
+            font-weight: bold;
+            color: #1976d2;
+            margin-bottom: 15px;
+        }
+        
+        .action-text {
+            color: #333;
+            margin-bottom: 20px;
+        }
+        
+        .action-list {
+            text-align: left;
+            color: #555;
+            margin-bottom: 20px;
+        }
+        
+        .action-list li {
+            margin-bottom: 8px;
+        }
+        
+        .footer { 
+            background: #f8f9fa; 
+            padding: 30px; 
+            text-align: center; 
+            color: #666; 
+            border-top: 1px solid #e9ecef;
+        }
+        
+        .footer-text { 
+            font-size: 14px; 
+            margin-bottom: 10px; 
+        }
+        
+        .footer-contact { 
+            font-size: 12px; 
+            color: #999; 
+        }
+        
+        @media (max-width: 600px) {
+            .container { margin: 10px; }
+            .content { padding: 20px; }
+            .header { padding: 20px; }
+            .detail-row { flex-direction: column; }
+            .detail-label { min-width: auto; margin-bottom: 5px; }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <img src="{{LOGO_URL}}" alt="Second Chance Logo" class="logo-img">
+            <h1 class="header-title">🚨 Manual Verification Required</h1>
+            <p class="header-subtitle">Pitch deck consistency validation failed</p>
+        </div>
+        
+        <div class="content">
+            <p class="alert-text">Consistency validation failed after multiple attempts</p>
+            
+            <p class="greeting">Team,</p>
+            
+            <p>A founder has submitted a pitch deck that failed our automated consistency validation checks. Manual review is required to determine if this is a legitimate case or a validation error.</p>
+            
+            <div class="founder-card">
+                <h3>👤 Founder Information</h3>
+                <div class="founder-details">
+                    <div class="detail-row">
+                        <span class="detail-label">Name:</span>
+                        <span class="detail-value">{{FOUNDER_NAME}}</span>
+                    </div>
+                    <div class="detail-row">
+                        <span class="detail-label">Email:</span>
+                        <span class="detail-value">{{FOUNDER_EMAIL}}</span>
+                    </div>
+                    <div class="detail-row">
+                        <span class="detail-label">Role:</span>
+                        <span class="detail-value">{{FOUNDER_ROLE}}</span>
+                    </div>
+                    <div class="detail-row">
+                        <span class="detail-label">Company:</span>
+                        <span class="detail-value">{{VENTURE_NAME}}</span>
+                    </div>
+                    <div class="detail-row">
+                        <span class="detail-label">Industry:</span>
+                        <span class="detail-value">{{VENTURE_INDUSTRY}}</span>
+                    </div>
+                    <div class="detail-row">
+                        <span class="detail-label">Session ID:</span>
+                        <span class="detail-value">{{SESSION_ID}}</span>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="consistency-section">
+                <div class="consistency-title">❌ Validation Errors Found</div>
+                <p style="margin-bottom: 15px; color: #666;">Consistency Score: <strong style="color: #dc3545;">{{CONSISTENCY_SCORE}}/100</strong></p>
+                
+                {{#each VALIDATION_ERRORS}}
+                <div class="error-item">
+                    <div class="error-type">{{type}}</div>
+                    <div class="error-message">{{message}}</div>
+                </div>
+                {{/each}}
+                
+                {{#if VALIDATION_WARNINGS}}
+                <div style="margin-top: 20px;">
+                    <strong style="color: #f57c00;">⚠️ Additional Warnings:</strong>
+                    {{#each VALIDATION_WARNINGS}}
+                    <div style="margin: 10px 0; padding: 10px; background: #fff8e1; border-radius: 4px; border-left: 3px solid #f57c00;">
+                        <div style="font-weight: bold; color: #f57c00; font-size: 12px; text-transform: uppercase;">{{type}}</div>
+                        <div style="color: #666; font-size: 14px;">{{message}}</div>
+                    </div>
+                    {{/each}}
+                </div>
+                {{/if}}
+            </div>
+            
+            <div class="file-section">
+                <div class="file-title">📄 Uploaded File</div>
+                <p><strong>Filename:</strong> {{FILE_NAME}}</p>
+                <p><strong>Upload Time:</strong> {{UPLOAD_TIME}}</p>
+                <p><strong>Retry Attempts:</strong> {{RETRY_ATTEMPTS}}/3</p>
+            </div>
+            
+            <div class="action-section">
+                <div class="action-title">🔍 Required Actions</div>
+                <div class="action-text">Please review this case and take appropriate action:</div>
+                
+                <div style="margin: 20px 0; padding: 20px; background: #fff3cd; border: 1px solid #ffeaa7; border-radius: 8px;">
+                    <div style="font-weight: bold; color: #856404; margin-bottom: 10px;">📁 Access Files on Box</div>
+                    <a href="{{BOX_FOLDER_URL}}" style="display: inline-block; padding: 12px 25px; background: linear-gradient(135deg, #0061d5, #0078d4); color: white; text-decoration: none; border-radius: 6px; font-weight: 600;">Open Box Folder →</a>
+                    <p style="font-size: 12px; color: #6c757d; margin-top: 10px; margin-bottom: 0;">Review all uploaded documents and verify against registration details</p>
+                </div>
+                
+                <ul class="action-list">
+                    <li><strong>Review the pitch deck</strong> against the founder's registration information</li>
+                    <li><strong>Verify founder identity</strong> - check if they're actually part of the team</li>
+                    <li><strong>Validate company information</strong> - ensure names and details match</li>
+                    <li><strong>Check for potential fraud</strong> - look for red flags or suspicious patterns</li>
+                    <li><strong>Make a decision</strong> - approve manually or flag as fraudulent</li>
+                </ul>
+                
+                <p style="margin-top: 20px; color: #666; font-style: italic;">
+                    If this appears to be a false positive, please update our validation rules accordingly.
+                </p>
+            </div>
+        </div>
+        
+        <div class="footer">
+            <p class="footer-text">
+                <strong>Second Chance Platform</strong><br>
+                Automated Validation System
+            </p>
+            <p class="footer-contact">
+                This is an automated notification. Please contact the development team if you need assistance.<br>
+                For support: <a href="mailto:info@get-secondchance.com" style="color: #8b5cf6;">info@get-secondchance.com</a>
+            </p>
+        </div>
+    </div>
+</body>
+</html>

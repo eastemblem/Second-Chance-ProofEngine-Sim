@@ -1,7 +1,6 @@
 import { z } from "zod";
 import { Request, Response, NextFunction } from "express";
 import { appLogger } from "../utils/logger";
-import { createErrorResponse } from "../utils/error-handler";
 
 // Comprehensive validation schemas for all endpoints
 export const validationSchemas = {
@@ -215,13 +214,24 @@ export function validateRequestComprehensive(schema: {
       // Return validation errors if any
       if (errors.length > 0) {
         appLogger.api(`Validation failed for ${req.method} ${req.path}:`, errors);
-        return res.status(400).json(createErrorResponse(400, "Validation failed", "VALIDATION_ERROR", errors));
+        return res.status(400).json({
+          error: "Validation failed",
+          statusCode: 400,
+          timestamp: new Date().toISOString(),
+          path: req.path,
+          method: req.method,
+          details: errors
+        });
       }
 
       next();
     } catch (error) {
       appLogger.api(`Validation middleware error:`, error);
-      res.status(500).json(createErrorResponse(500, "Validation system error", "INTERNAL_ERROR"));
+      res.status(500).json({
+        error: "Validation system error",
+        statusCode: 500,
+        timestamp: new Date().toISOString()
+      });
     }
   };
 }

@@ -1,6 +1,5 @@
 import { Request, Response, NextFunction } from "express";
 import { appLogger } from "../utils/logger";
-import { createErrorResponse } from "../utils/error-handler";
 
 // Enhanced error types
 export class ApiError extends Error {
@@ -141,29 +140,36 @@ export function advancedErrorHandler(
   // Determine if error is operational or programming error
   const isOperational = error.isOperational !== undefined ? error.isOperational : error.statusCode < 500;
 
-  // Create standard error response format
-  const statusCode = error.statusCode || 500;
-  const message = isOperational ? error.message : 'Internal server error';
-  const code = error.code || (statusCode >= 500 ? 'INTERNAL_ERROR' : 'CLIENT_ERROR');
-  
-  const errorResponse = createErrorResponse(statusCode, message, code, error.details);
+  // Create error response
+  const errorResponse: any = {
+    error: isOperational ? error.message : 'Internal server error',
+    statusCode: error.statusCode || 500,
+    timestamp: new Date().toISOString(),
+    path: req.path,
+    method: req.method,
+    correlationId
+  };
 
-  // Add debug metadata in development mode
-  if (process.env.NODE_ENV === 'development') {
-    errorResponse.debug = {
-      correlationId,
-      timestamp: new Date().toISOString(),
-      path: req.path,
-      method: req.method,
-      circuitBreaker: error.statusCode >= 500 ? {
-        eastEmblem: circuitBreakers.eastEmblem.getStatus(),
-        database: circuitBreakers.database.getStatus()
-      } : undefined,
-      retryAfter: [502, 503, 504].includes(error.statusCode) ? 60 : undefined
+  // Add circuit breaker status for service errors
+  if (error.statusCode >= 500) {
+    errorResponse.circuitBreaker = {
+      eastEmblem: circuitBreakers.eastEmblem.getStatus(),
+      database: circuitBreakers.database.getStatus()
     };
   }
 
-  res.status(statusCode).json(errorResponse);
+  // Add details in development or for operational errors
+  if (process.env.NODE_ENV === 'development' || (isOperational && error.details)) {
+    errorResponse.details = error.details;
+  }
+
+  // Add retry information for retryable errors
+  if ([502, 503, 504].includes(error.statusCode)) {
+    errorResponse.retryAfter = 60; // seconds
+    errorResponse.retryable = true;
+  }
+
+  res.status(error.statusCode || 500).json(errorResponse);
 }
 
 // Graceful degradation middleware
