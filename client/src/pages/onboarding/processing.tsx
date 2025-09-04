@@ -599,10 +599,11 @@ export default function ProcessingScreen({
              errorMessage.includes('couldn\'t score it') ? (
               <Button 
                 onClick={() => onBack && onBack()}
-                className="bg-primary hover:bg-primary/90 text-primary-foreground"
+                disabled={retryCount >= MAX_RETRIES}
+                className="bg-primary hover:bg-primary/90 text-primary-foreground disabled:opacity-50 disabled:cursor-not-allowed"
               >
                 <Upload className="w-4 h-4 mr-2" />
-                Upload New File
+                {retryCount >= MAX_RETRIES ? "Max Retries Reached" : "Upload New File"}
               </Button>
             ) : (
               /* For other errors, show "Try Again" button */
