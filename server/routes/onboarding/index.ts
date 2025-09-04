@@ -9,8 +9,6 @@ import { eastEmblemAPI } from "../../eastemblem-api";
 import { getSessionId, getSessionData, updateSessionData } from "../../utils/session-manager";
 import { cleanupUploadedFile } from "../../utils/file-cleanup";
 import { validateRequest, fileUploadSchema } from "../../middleware/validation";
-import { EmailValidationService } from "../../services/email-validation-service";
-import { storage } from "../../storage";
 
 const router = express.Router();
 
@@ -62,26 +60,6 @@ router.post("/founder", asyncHandler(async (req, res) => {
       });
     }
 
-    // Validate email (block personal and temporary emails)
-    const emailValidation = EmailValidationService.validateEmail(founderData.email);
-    if (!emailValidation.isValid) {
-      return res.status(400).json({
-        error: emailValidation.error || 'Invalid email address',
-        errorType: emailValidation.errorType,
-        suggestion: EmailValidationService.getEmailSuggestion(emailValidation.errorType || 'invalid_format')
-      });
-    }
-    
-
-    // Check if email already exists in database
-    const existingFounder = await storage.getFounderByEmail(founderData.email);
-    if (existingFounder) {
-      return res.status(409).json({
-        error: "Email already taken",
-        message: "A user with this email address already exists"
-      });
-    }
-
     // Process founder data through onboarding service
     const result = await onboardingService.completeFounderStep(sessionId, founderData);
 
@@ -118,22 +96,8 @@ router.post("/founder", asyncHandler(async (req, res) => {
 
   } catch (error) {
     console.error("❌ ONBOARDING: Founder data processing failed:", error);
-    
-    // Handle specific error types
-    if (error instanceof Error) {
-      // Handle email validation errors
-      if ((error as any).errorType) {
-        return res.status(400).json({
-          error: error.message,
-          errorType: (error as any).errorType,
-          suggestion: (error as any).suggestion
-        });
-      }
-    }
-    
-    // Handle all other errors as 500
     res.status(500).json({
-      error: "Failed to process founder data", 
+      error: "Failed to process founder data",
       details: error instanceof Error ? error.message : 'Unknown error'
     });
   }

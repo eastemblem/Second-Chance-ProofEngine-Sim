@@ -6,7 +6,6 @@ import { getSessionId, getSessionData, updateSessionData } from "../utils/sessio
 import { db } from "../db";
 import { onboardingSession, documentUpload } from "@shared/schema";
 import { eq } from "drizzle-orm";
-import { EmailValidationService } from "./email-validation-service";
 
 // Utility function to extract MIME type from file extension
 function getMimeTypeFromExtension(fileName: string): string {
@@ -127,15 +126,6 @@ export class OnboardingService {
 
     // Ensure session exists in database (this handles both new and existing sessions)
     await this.ensureSession(sessionId);
-
-    // Validate email (block personal and temporary emails)
-    const emailValidation = EmailValidationService.validateEmail(founderData.email);
-    if (!emailValidation.isValid) {
-      const error = new Error(emailValidation.error || 'Invalid email address');
-      (error as any).errorType = emailValidation.errorType;
-      (error as any).suggestion = EmailValidationService.getEmailSuggestion(emailValidation.errorType || 'invalid_format');
-      throw error;
-    }
 
     // Check if founder exists by email
     let founder = await storage.getFounderByEmail(founderData.email);

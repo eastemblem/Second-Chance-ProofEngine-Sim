@@ -62,55 +62,14 @@ export default function FounderOnboarding({
 
   const submitMutation = useMutation({
     mutationFn: async (data: FounderFormData) => {
-      console.log("🚀 Initiating founder onboarding API request:", {
-        timestamp: new Date().toISOString(),
-        sessionId,
-        endpoint: "/api/onboarding/founder",
-        method: "POST",
-        requestData: {
-          ...data,
-          email: data.email // Log email for debugging
-        }
-      });
-
       const res = await apiRequest("POST", "/api/onboarding/founder", {
         sessionId,
         ...data
       });
-      
-      console.log("📨 Raw API response received:", {
-        timestamp: new Date().toISOString(),
-        sessionId,
-        status: res.status,
-        statusText: res.statusText,
-        headers: Object.fromEntries(res.headers.entries()),
-        ok: res.ok
-      });
-
       return await res.json();
     },
     onSuccess: async (data) => {
-      console.log("🔄 Founder onboarding API response received:", {
-        timestamp: new Date().toISOString(),
-        success: data.success,
-        sessionId,
-        responseData: data,
-        responseStructure: {
-          hasSuccess: 'success' in data,
-          hasError: 'error' in data,
-          hasMessage: 'message' in data,
-          keys: Object.keys(data)
-        }
-      });
-
       if (data.success) {
-        console.log("✅ Founder onboarding successful:", {
-          timestamp: new Date().toISOString(),
-          sessionId,
-          founderData: data.founder || 'No founder data in response',
-          nextStep: 'venture_info'
-        });
-
         // Track founder step completion
         trackEvent('onboarding_founder_complete', 'user_journey', 'founder_details_saved');
         
@@ -128,162 +87,15 @@ export default function FounderOnboarding({
         
         // Navigate to next step
         onNext();
-      } else {
-        console.warn("❌ Founder onboarding response indicates failure:", {
-          timestamp: new Date().toISOString(),
-          sessionId,
-          response: data,
-          message: data.message || 'No message provided'
-        });
       }
     },
     onError: (error: any) => {
-      console.error("❌ Founder onboarding API error received:", {
-        timestamp: new Date().toISOString(),
-        sessionId,
-        error: error,
-        errorName: error.name,
-        errorMessage: error.message,
-        errorStack: error.stack,
-        hasResponse: !!error.response,
-        originalRequest: {
-          endpoint: "/api/onboarding/founder",
-          method: "POST",
-          sessionId
-        }
-      });
-
       // Track founder step error
       trackEvent('onboarding_founder_error', 'user_journey', 'founder_details_error');
       
-      let errorResponse;
-      let errorMessage = "Failed to save founder information";
+      const errorMessage = error.message || "Failed to save founder information";
       
-      // Handle ApiError (custom error class with preserved response data)
-      if (error.name === 'ApiError' && error.response) {
-        errorResponse = error.response;
-        errorMessage = error.message;
-      } else if (error.response) {
-        try {
-          errorResponse = error.response;
-        } catch (e) {
-          console.error("Failed to parse error response:", e);
-        }
-      } else if (error.message) {
-        errorMessage = error.message;
-      }
-      
-      // Handle structured error responses from our backend
-      if (errorResponse) {
-        console.log("🔍 Processing structured error response:", {
-          timestamp: new Date().toISOString(),
-          sessionId,
-          errorResponse,
-          responseKeys: Object.keys(errorResponse),
-          errorType: errorResponse.errorType,
-          hasErrorField: 'error' in errorResponse,
-          hasMessageField: 'message' in errorResponse,
-          hasSuggestionField: 'suggestion' in errorResponse
-        });
-
-        // The API returns { error: "message", errorType: "type", suggestion: "suggestion" }
-        const { error: responseError, errorType, suggestion, message } = errorResponse;
-        
-        // Handle email validation errors (personal, temp, suspicious)
-        if (errorType && ['personal_email', 'temp_email', 'suspicious_pattern'].includes(errorType)) {
-          const errorMsg = responseError || message || "Invalid email address";
-          
-          console.warn("📧 Email validation error detected:", {
-            timestamp: new Date().toISOString(),
-            sessionId,
-            errorType,
-            errorMessage: errorMsg,
-            suggestion,
-            emailValue: form.getValues("email")
-          });
-          
-          // Set field-specific error
-          setEmailError(errorMsg);
-          
-          // Set form field error for styling
-          form.setError("email", {
-            type: "manual",
-            message: errorMsg
-          });
-          
-          // Show toast with specific guidance
-          const errorTitles = {
-            personal_email: "Business Email Required",
-            temp_email: "Permanent Email Required", 
-            suspicious_pattern: "Invalid Email Address"
-          };
-          
-          toast({
-            title: errorTitles[errorType] || "Email Validation Error",
-            description: suggestion || errorMsg,
-            variant: "destructive",
-          });
-          return;
-        }
-        
-        // Handle email validation errors without errorType (fallback check)
-        if (responseError && (
-          responseError.includes('business email') || 
-          responseError.includes('personal email') ||
-          responseError.includes('temporary') ||
-          responseError.includes('temp')
-        )) {
-          // Set field-specific error
-          setEmailError(responseError);
-          
-          // Set form field error for styling
-          form.setError("email", {
-            type: "manual",
-            message: responseError
-          });
-          
-          // Show toast with specific guidance
-          toast({
-            title: "Business Email Required",
-            description: suggestion || responseError,
-            variant: "destructive",
-          });
-          return;
-        }
-        
-        // Handle email already taken error (409 status)
-        if (responseError === "Email already taken" || message === "A user with this email address already exists") {
-          console.warn("📧 Email already exists error:", {
-            timestamp: new Date().toISOString(),
-            sessionId,
-            errorMessage: responseError || message,
-            emailValue: form.getValues("email"),
-            responseData: errorResponse
-          });
-          
-          // Set field-specific error
-          setEmailError("Email already taken");
-          
-          // Set form field error for styling
-          form.setError("email", {
-            type: "manual",
-            message: "Email already taken"
-          });
-          
-          // Show toast notification with helpful message
-          toast({
-            title: "Email Already Registered",
-            description: "This email address is already in use. Please use a different email address.",
-            variant: "destructive",
-          });
-          return;
-        }
-        
-        // Handle other structured errors
-        errorMessage = responseError || message || errorMessage;
-      }
-      
-      // Check if this is an email duplicate error (fallback for string-based detection)
+      // Check if this is an email duplicate error
       if (errorMessage.includes("Email already taken")) {
         // Set field-specific error
         setEmailError("Email already taken");

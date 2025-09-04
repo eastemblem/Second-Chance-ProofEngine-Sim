@@ -17,7 +17,6 @@ import {
 import { eq, and } from "drizzle-orm";
 import { eastEmblemAPI } from "./eastemblem-api";
 import { appLogger } from "./utils/logger";
-import { EmailValidationService } from "./services/email-validation-service";
 
 // Validation schemas for each onboarding step
 export const founderOnboardingSchema = z.object({
@@ -204,24 +203,24 @@ export class OnboardingManager {
     // Validate data
     const validatedData = founderOnboardingSchema.parse(founderData);
 
-    // Validate email (block personal and temporary emails)
-    const emailValidation = EmailValidationService.validateEmail(validatedData.email);
-    if (!emailValidation.isValid) {
-      const error = new Error(emailValidation.error || 'Invalid email address');
-      (error as any).errorType = emailValidation.errorType;
-      (error as any).suggestion = EmailValidationService.getEmailSuggestion(emailValidation.errorType || 'invalid_format');
-      throw error;
-    }
-
-    // Create founder (email uniqueness already validated at API level)
+    // Create or update founder
     let founderId: string;
-    try {
-      const newFounder = await storage.createFounder(validatedData);
-      founderId = newFounder.founderId;
-    } catch (error: any) {
-      // Handle any creation errors
-      appLogger.error("Error creating founder:", error);
-      throw error;
+    const existingFounder = await storage.getFounderByEmail(
+      validatedData.email,
+    );
+
+    if (existingFounder) {
+      // Email already exists - throw error to prevent silent data overwriting
+      throw new Error("Email already taken");
+    } else {
+      try {
+        const newFounder = await storage.createFounder(validatedData);
+        founderId = newFounder.founderId;
+      } catch (error: any) {
+        // Handle any creation errors
+        appLogger.error("Error creating founder:", error);
+        throw error;
+      }
     }
 
     // Update session with founder ID
