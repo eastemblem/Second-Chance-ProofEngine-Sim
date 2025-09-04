@@ -11,7 +11,6 @@ import {
 import { asyncHandler, createSuccessResponse, createErrorResponse } from '../utils/error-handler';
 import { appLogger } from '../utils/logger';
 import { ActivityService } from '../services/activity-service';
-import { EmailValidationService } from '../services/email-validation-service';
 const router = express.Router();
 
 // Clean encryption middleware applied at routing level
@@ -25,15 +24,6 @@ router.post('/register', asyncHandler(async (req, res) => {
   // Validate required fields
   if (!email || !fullName || !password || !positionRole) {
     return res.status(400).json(createErrorResponse(400, 'Missing required fields'));
-  }
-
-  // Validate email (block personal and temporary emails)
-  const emailValidation = EmailValidationService.validateEmail(email);
-  if (!emailValidation.isValid) {
-    return res.status(400).json(createErrorResponse(400, emailValidation.error || 'Invalid email address', {
-      errorType: emailValidation.errorType,
-      suggestion: EmailValidationService.getEmailSuggestion(emailValidation.errorType || 'invalid_format')
-    }));
   }
 
   // Check if user already exists
