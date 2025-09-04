@@ -21,7 +21,16 @@ export function EmailVerificationPopup({
   
   const handleClose = () => {
     onClose();
-    setLocation("/");
+    // Clear local storage and redirect to main website
+    localStorage.clear();
+    if ('caches' in window) {
+      caches.keys().then(names => {
+        names.forEach(name => {
+          caches.delete(name);
+        });
+      });
+    }
+    window.location.href = 'https://get-secondchance.com/';
   };
 
   useEffect(() => {
