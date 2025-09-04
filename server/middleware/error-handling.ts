@@ -1,5 +1,6 @@
 import { Request, Response, NextFunction } from "express";
 import { appLogger } from "../utils/logger";
+import { createErrorResponse } from "../utils/error-handler";
 
 // Standard error response interface
 export interface ApiError extends Error {
@@ -28,18 +29,19 @@ export function errorHandler(
   // Determine status code
   const statusCode = error.statusCode || 500;
   
-  // Create error response
-  const errorResponse = {
-    error: error.message || 'Internal server error',
-    statusCode,
-    timestamp: new Date().toISOString(),
-    path: req.path,
-    method: req.method
-  };
+  // Create standard error response format
+  const message = error.message || 'Internal server error';
+  const code = (error as any).code || (statusCode >= 500 ? 'INTERNAL_ERROR' : 'CLIENT_ERROR');
+  
+  const errorResponse = createErrorResponse(statusCode, message, code, error.details);
 
-  // Add details in development
-  if (process.env.NODE_ENV === 'development' && error.details) {
-    (errorResponse as any).details = error.details;
+  // Add debug metadata in development
+  if (process.env.NODE_ENV === 'development') {
+    errorResponse.debug = {
+      timestamp: new Date().toISOString(),
+      path: req.path,
+      method: req.method
+    };
   }
 
   res.status(statusCode).json(errorResponse);
@@ -59,14 +61,8 @@ export function createApiError(
 
 // Not found middleware
 export function notFoundHandler(req: Request, res: Response) {
-  const error = createApiError(`Route ${req.method} ${req.path} not found`, 404);
-  res.status(404).json({
-    error: error.message,
-    statusCode: 404,
-    timestamp: new Date().toISOString(),
-    path: req.path,
-    method: req.method
-  });
+  const errorResponse = createErrorResponse(404, `Route ${req.method} ${req.path} not found`, 'NOT_FOUND');
+  res.status(404).json(errorResponse);
 }
 
 // Request timeout middleware
