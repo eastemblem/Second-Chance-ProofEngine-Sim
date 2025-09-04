@@ -95,20 +95,21 @@ export default function ProcessingScreen({
 
     const missingData = [];
     
-    // Check for venture_name in scoringResult (where the actual data is)
-    const ventureName = data.data?.scoringResult?.venture_name;
+    // Check for venture_name in processing output (where the actual data is)
+    const processingOutput = data.data?.session?.stepData?.processing?.output;
+    const ventureName = processingOutput?.venture_name;
     
     console.log("🏢 Venture name check:", {
       ventureName,
-      scoringResult: data.data?.scoringResult
+      processingOutput: processingOutput
     });
     
     if (!ventureName) {
       missingData.push('venture');
     }
     
-    // Check for team array with name field in scoringResult
-    const teamData = data.data?.scoringResult?.team;
+    // Check for team array with name field in processing output
+    const teamData = processingOutput?.team;
     
     console.log("👥 Team data check:", {
       teamData,
