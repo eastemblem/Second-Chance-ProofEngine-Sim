@@ -6,6 +6,7 @@ import { Request } from "express";
 import { ConsistencyValidationService, ConsistencyCheckResult, OnboardingData, PitchDeckAnalysis } from "./consistency-validation-service";
 import { appLogger } from "../utils/logger";
 import { emailService } from "./emailService";
+import { storage } from "../storage";
 
 export class VaultService {
   /**
@@ -72,8 +73,8 @@ export class VaultService {
    * Complete scoring workflow: upload file and score with consistency validation
    */
   async completeScoring(req: Request) {
-    const sessionData = await getSessionData(req);
     const sessionId = getSessionId(req);
+    const sessionData = await getSessionData(sessionId);
     const uploadedFile = sessionData.uploadedFile;
     const folderStructure = sessionData.folderStructure;
 
@@ -176,7 +177,8 @@ export class VaultService {
 
     // Handle final result
     if (consistencyResult && !consistencyResult.isValid && attempt >= maxRetries) {
-      // Max retries reached and validation still failing - send to team for manual review
+      // Max retries reached and validation still failing - mark for manual review and notify team
+      await this.markVentureForManualReview(sessionData, consistencyResult, maxRetries);
       await this.sendManualReviewNotification(sessionData, uploadedFile, consistencyResult, sessionId);
       
       const errorMessage = ConsistencyValidationService.getDisplayMessage(consistencyResult);
@@ -237,6 +239,73 @@ export class VaultService {
   }
 
   /**
+   * Mark venture for manual review in database
+   */
+  private async markVentureForManualReview(
+    sessionData: any, 
+    consistencyResult: ConsistencyCheckResult,
+    attemptCount: number
+  ): Promise<void> {
+    try {
+      const onboardingData = this.extractOnboardingData(sessionData);
+      if (!onboardingData) {
+        appLogger.business('Cannot mark venture for manual review - onboarding data missing');
+        return;
+      }
+
+      // Find venture by email/founder information
+      const founder = await storage.getFounderByEmail(onboardingData.founder.email);
+      if (!founder) {
+        appLogger.business('Cannot mark venture for manual review - founder not found', { 
+          email: onboardingData.founder.email 
+        });
+        return;
+      }
+
+      const ventures = await storage.getVenturesByFounderId(founder.founderId);
+      const currentVenture = ventures.find(v => v.name === onboardingData.venture.name);
+      
+      if (!currentVenture) {
+        appLogger.business('Cannot mark venture for manual review - venture not found', { 
+          founderId: founder.founderId,
+          ventureName: onboardingData.venture.name
+        });
+        return;
+      }
+
+      // Update venture with manual review information
+      const manualReviewReason = `Consistency validation failed after ${attemptCount} attempts. ` +
+        `Errors: ${consistencyResult.errors.map(e => e.type).join(', ')}. ` +
+        `Score: ${consistencyResult.score}/100.`;
+
+      await storage.updateVenture(currentVenture.ventureId, {
+        status: 'manual_review',
+        manualReviewReason,
+        manualReviewRequestedAt: new Date(),
+        consistencyCheckAttempts: attemptCount,
+        consistencyCheckScore: consistencyResult.score,
+        validationErrors: {
+          errors: consistencyResult.errors,
+          warnings: consistencyResult.warnings,
+          timestamp: new Date().toISOString()
+        }
+      });
+
+      appLogger.business('Venture marked for manual review', {
+        ventureId: currentVenture.ventureId,
+        ventureName: currentVenture.name,
+        reason: manualReviewReason,
+        consistencyScore: consistencyResult.score
+      });
+
+    } catch (error) {
+      appLogger.business('Failed to mark venture for manual review', {
+        error: error instanceof Error ? error.message : 'Unknown error'
+      });
+    }
+  }
+
+  /**
    * Send manual review notification to team
    */
   private async sendManualReviewNotification(
@@ -259,8 +328,13 @@ export class VaultService {
         return;
       }
 
+      // Get Box folder URL from session data
+      const folderStructure = sessionData.folderStructure;
+      const boxFolderUrl = folderStructure?.url || folderStructure?.folderUrl || '#';
+
       const templateData = {
         HOST_URL: process.env.FRONTEND_URL || `https://${process.env.REPLIT_DOMAINS?.split(',')[0]}`,
+        BOX_FOLDER_URL: boxFolderUrl,
         FOUNDER_NAME: onboardingData.founder.fullName,
         FOUNDER_EMAIL: onboardingData.founder.email,
         FOUNDER_ROLE: onboardingData.founder.positionRole,
