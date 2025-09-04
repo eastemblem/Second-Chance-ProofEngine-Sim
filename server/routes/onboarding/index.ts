@@ -107,8 +107,30 @@ router.post("/founder", asyncHandler(async (req, res) => {
 
   } catch (error) {
     console.error("❌ ONBOARDING: Founder data processing failed:", error);
+    
+    // Handle specific error types
+    if (error instanceof Error) {
+      // Handle email validation errors
+      if ((error as any).errorType) {
+        return res.status(400).json({
+          error: error.message,
+          errorType: (error as any).errorType,
+          suggestion: (error as any).suggestion
+        });
+      }
+      
+      // Handle email already taken error
+      if (error.message === "Email already taken") {
+        return res.status(409).json({
+          error: "Email already taken",
+          message: "A user with this email address already exists"
+        });
+      }
+    }
+    
+    // Handle all other errors as 500
     res.status(500).json({
-      error: "Failed to process founder data",
+      error: "Failed to process founder data", 
       details: error instanceof Error ? error.message : 'Unknown error'
     });
   }
