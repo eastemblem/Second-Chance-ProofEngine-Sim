@@ -642,8 +642,8 @@ export default function ProcessingScreen({
                 });
               }
               
-              // Navigate to start of onboarding flow
-              setLocation('/onboarding-flow');
+              // Reload the page
+              window.location.reload();
             }}>
               Start Over
             </Button>
