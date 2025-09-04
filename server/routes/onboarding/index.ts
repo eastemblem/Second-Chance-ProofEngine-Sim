@@ -9,6 +9,7 @@ import { eastEmblemAPI } from "../../eastemblem-api";
 import { getSessionId, getSessionData, updateSessionData } from "../../utils/session-manager";
 import { cleanupUploadedFile } from "../../utils/file-cleanup";
 import { validateRequest, fileUploadSchema } from "../../middleware/validation";
+import { EmailValidationService } from "../../services/email-validation-service";
 
 const router = express.Router();
 
@@ -57,6 +58,16 @@ router.post("/founder", asyncHandler(async (req, res) => {
       return res.status(400).json({
         error: "Missing required fields",
         missingFields
+      });
+    }
+
+    // Validate email (block personal and temporary emails)
+    const emailValidation = EmailValidationService.validateEmail(founderData.email);
+    if (!emailValidation.isValid) {
+      return res.status(400).json({
+        error: emailValidation.error || 'Invalid email address',
+        errorType: emailValidation.errorType,
+        suggestion: EmailValidationService.getEmailSuggestion(emailValidation.errorType || 'invalid_format')
       });
     }
 
