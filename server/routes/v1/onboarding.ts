@@ -59,38 +59,7 @@ router.post("/founder", asyncHandler(async (req: Request, res: Response) => {
     throw validation.errors;
   }
 
-  let result;
-  try {
-    result = await onboardingService.completeFounderStep(sessionId, validation.data);
-  } catch (error: any) {
-    // Handle email validation errors as validation errors, not server errors
-    if (error.errorType && ['personal_email', 'temp_email', 'suspicious_pattern', 'invalid_format'].includes(error.errorType)) {
-      return res.status(400).json({
-        error: error.message || 'Invalid email address',
-        errorType: error.errorType,
-        suggestion: error.suggestion
-      });
-    }
-    // Handle email duplicate error as validation error, not server error
-    if (error.message === "Email already taken") {
-      return res.status(400).json(createErrorResponse(400, "Email already taken"));
-    }
-    // Handle generic email validation errors (if errorType isn't set but message indicates validation)
-    if (error.message && (
-      error.message.includes('business email') || 
-      error.message.includes('personal email') ||
-      error.message.includes('temporary') ||
-      error.message.includes('temp') ||
-      error.message.includes('Invalid email')
-    )) {
-      return res.status(400).json({
-        error: error.message,
-        errorType: 'personal_email'
-      });
-    }
-    // Re-throw other errors to be handled by asyncHandler
-    throw error;
-  }
+  const result = await onboardingService.completeFounderStep(sessionId, validation.data);
 
   // Invalidate founder cache when new founder is created
   if (result.founderId) {
