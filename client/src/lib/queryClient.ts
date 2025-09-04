@@ -26,38 +26,79 @@ async function throwIfResNotOk(res: Response) {
   if (!res.ok) {
     const text = (await res.text()) || res.statusText;
     
+    console.log("🔍 API Error Response Debug:", {
+      status: res.status,
+      statusText: res.statusText,
+      responseText: text,
+      url: res.url
+    });
+    
     // Try to parse error response to extract user-friendly message
     try {
       const errorData = JSON.parse(text);
       
+      console.log("📋 Parsed Error Data:", {
+        errorData,
+        hasError: 'error' in errorData,
+        hasMessage: 'message' in errorData,
+        hasSuccess: 'success' in errorData,
+        errorType: typeof errorData.error,
+        messageType: typeof errorData.message
+      });
+      
       // Extract the actual error message from various possible structures
-      const errorMessage = 
-        errorData.error?.message ||  // {"error": {"message": "Invalid credentials"}}
-        errorData.message ||         // {"message": "Invalid credentials"}
-        errorData.error ||           // {"error": "Invalid credentials"}
-        res.statusText ||            // HTTP status text
-        'An error occurred';         // Fallback
+      let errorMessage = 'An error occurred';
       
-      // Ensure we never throw raw JSON strings to users
-      const cleanMessage = typeof errorMessage === 'string' ? errorMessage : 'An error occurred';
-      throw new Error(cleanMessage);
-    } catch (parseError) {
-      // If JSON parsing fails, provide user-friendly messages based on status
-      let friendlyMessage = 'An error occurred';
-      
-      if (res.status === 401) {
-        friendlyMessage = 'Invalid credentials';
-      } else if (res.status === 400) {
-        friendlyMessage = 'Invalid request';
-      } else if (res.status === 403) {
-        friendlyMessage = 'Access denied';
-      } else if (res.status === 404) {
-        friendlyMessage = 'Resource not found';
-      } else if (res.status >= 500) {
-        friendlyMessage = 'Server error. Please try again later.';
+      if (errorData.error?.message) {
+        // {"success": false, "error": {"status": 400, "message": "Email already taken"}}
+        errorMessage = errorData.error.message;
+      } else if (errorData.message) {
+        // {"message": "Invalid credentials"}
+        errorMessage = errorData.message;
+      } else if (typeof errorData.error === 'string') {
+        // {"error": "Invalid credentials"}
+        errorMessage = errorData.error;
+      } else if (errorData.error && typeof errorData.error === 'object') {
+        // Handle any other nested error structures
+        errorMessage = errorData.error.error || errorData.error.description || 'An error occurred';
       }
       
-      throw new Error(friendlyMessage);
+      console.log("✅ Extracted Error Message:", errorMessage);
+      
+      // Create a custom error that preserves the original response for detailed error handling
+      const apiError = new Error(errorMessage);
+      apiError.name = 'ApiError';
+      (apiError as any).response = errorData;
+      (apiError as any).status = res.status;
+      
+      throw apiError;
+    } catch (parseError) {
+      console.warn("❌ JSON Parse Error:", parseError);
+      console.log("📝 Raw response text:", text);
+      
+      // If JSON parsing fails, try to extract error from raw text or provide status-based message
+      let friendlyMessage = text || 'An error occurred';
+      
+      // Only use generic messages if we have no meaningful text
+      if (!text || text.length < 3) {
+        if (res.status === 401) {
+          friendlyMessage = 'Invalid credentials';
+        } else if (res.status === 400) {
+          friendlyMessage = 'Invalid request';
+        } else if (res.status === 403) {
+          friendlyMessage = 'Access denied';
+        } else if (res.status === 404) {
+          friendlyMessage = 'Resource not found';
+        } else if (res.status >= 500) {
+          friendlyMessage = 'Server error. Please try again later.';
+        }
+      }
+      
+      const apiError = new Error(friendlyMessage);
+      apiError.name = 'ApiError';
+      (apiError as any).status = res.status;
+      
+      throw apiError;
     }
   }
 }
