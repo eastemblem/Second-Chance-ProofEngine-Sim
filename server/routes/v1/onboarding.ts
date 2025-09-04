@@ -56,7 +56,7 @@ router.post("/founder", asyncHandler(async (req: Request, res: Response) => {
   
   const validation = safeValidate(founderOnboardingSchema, founderData);
   if (!validation.success) {
-    throw validation.errors;
+    return res.status(400).json(createErrorResponse(400, "Invalid input data", "VALIDATION_ERROR", validation.errors.errors));
   }
 
   let result;
