@@ -85,33 +85,26 @@ export default function ProcessingScreen({
 
     const missingData = [];
     
-    // Check for venture data in various possible locations
-    const hasVentureData = data.data?.venture || 
-                          data.venture || 
-                          data.data?.startup || 
-                          data.startup ||
-                          data.data?.business ||
-                          data.business ||
-                          data.data?.session?.stepData?.processing?.venture ||
-                          data.data?.session?.stepData?.processing?.startup ||
-                          data.data?.scoringResult?.venture ||
-                          data.scoringResult?.venture;
+    // Check for venture_name in various possible locations
+    const hasVentureName = data.data?.venture_name || 
+                          data.venture_name || 
+                          data.data?.session?.stepData?.processing?.venture_name ||
+                          data.data?.scoringResult?.venture_name ||
+                          data.scoringResult?.venture_name;
     
-    if (!hasVentureData) {
+    if (!hasVentureName) {
       missingData.push('venture');
     }
     
-    // Check for founder/team data in various possible locations
-    const hasFounderData = data.data?.founder || 
-                          data.founder || 
-                          data.data?.team || 
-                          data.team ||
-                          data.data?.founders ||
-                          data.founders ||
-                          data.data?.session?.stepData?.processing?.founder ||
-                          data.data?.session?.stepData?.processing?.team ||
-                          data.data?.scoringResult?.founder ||
-                          data.scoringResult?.founder;
+    // Check for team array with name field
+    const teamData = data.data?.team || 
+                    data.team ||
+                    data.data?.session?.stepData?.processing?.team ||
+                    data.data?.scoringResult?.team ||
+                    data.scoringResult?.team;
+    
+    const hasFounderData = teamData && Array.isArray(teamData) && teamData.length > 0 && 
+                          teamData.some(member => member?.name);
     
     if (!hasFounderData) {
       missingData.push('team');
@@ -119,8 +112,9 @@ export default function ProcessingScreen({
 
     console.log("📊 Processing validation results:", {
       timestamp: new Date().toISOString(),
-      hasVentureData,
+      hasVentureName,
       hasFounderData,
+      teamData,
       missingData,
       retryCount,
       sessionId
