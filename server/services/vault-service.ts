@@ -54,6 +54,61 @@ export class VaultService {
   }
 
   /**
+   * Validate scoring response against expected founder and venture names
+   */
+  private validateScoringResponse(
+    scoringResult: any, 
+    expectedFounderName?: string,
+    expectedVentureName?: string
+  ) {
+    const missingData: string[] = [];
+    let message = "";
+
+    // Check for venture data
+    if (expectedVentureName) {
+      const hasVentureData = scoringResult?.venture || 
+                            scoringResult?.startup || 
+                            scoringResult?.business ||
+                            scoringResult?.output?.venture ||
+                            scoringResult?.output?.startup ||
+                            scoringResult?.output?.business;
+      
+      if (!hasVentureData) {
+        missingData.push('venture');
+      }
+    }
+
+    // Check for founder/team data  
+    if (expectedFounderName) {
+      const hasFounderData = scoringResult?.founder || 
+                            scoringResult?.team || 
+                            scoringResult?.founders ||
+                            scoringResult?.output?.founder ||
+                            scoringResult?.output?.team ||
+                            scoringResult?.output?.founders;
+      
+      if (!hasFounderData) {
+        missingData.push('team');
+      }
+    }
+
+    // Generate appropriate error message
+    if (missingData.length === 2) {
+      message = "Analysis failed: We couldn't find venture and team details in your document. Please upload a file with venture and team details.";
+    } else if (missingData.includes('venture')) {
+      message = "Analysis failed: We couldn't find venture details in your document. Please ensure your file includes business information.";
+    } else if (missingData.includes('team')) {
+      message = "Analysis failed: We couldn't find team details in your document. Please ensure your file includes founder profiles.";
+    }
+
+    return {
+      isValid: missingData.length === 0,
+      missingData,
+      message
+    };
+  }
+
+  /**
    * Score pitch deck with validation
    */
   async scorePitchDeck(
