@@ -36,29 +36,29 @@ import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { EmailVerificationPopup } from "@/components/ui/email-verification-popup";
-import { WishlistModal } from "@/components/proofscaling/wishlist-modal";
+import { WishlistModal } from "@/components/features/sales/wishlist-modal";
 
 // Import ProofScaling components
-import { AnimatedSection } from "@/components/proofscaling/animated-section";
-import { SectionHeader } from "@/components/proofscaling/section-header";
-import { MetricCard } from "@/components/proofscaling/metric-card";
-import { FeatureList } from "@/components/proofscaling/feature-list";
-import { GradientButton } from "@/components/proofscaling/gradient-button";
-import { TestimonialCard } from "@/components/proofscaling/testimonial-card";
-import { CompanyLogoGrid } from "@/components/proofscaling/company-logo";
-import { BadgeWithIcon } from "@/components/proofscaling/badge-with-icon";
-import { AnimatedCounter } from "@/components/proofscaling/animated-counter";
-import { FloatingElements } from "@/components/proofscaling/floating-elements";
-import { SuccessIndicator } from "@/components/proofscaling/success-indicator";
-import { ProgressVisualization } from "@/components/proofscaling/progress-visualization";
-import { MetricCardsHero } from "@/components/proofscaling/metric-card-hero";
-import { UrgencyBanner } from "@/components/proofscaling/urgency-banner";
-import { VideoPlayer } from "@/components/proofscaling/video-player";
-import { OutcomeCard } from "@/components/proofscaling/outcome-card";
-import { TimelineCard } from "@/components/proofscaling/timeline-card";
-import { TimelineLine } from "@/components/proofscaling/timeline-line";
-import { InvestorTestimonial } from "@/components/proofscaling/investor-testimonial";
-import { FeatureCardSimple } from "@/components/proofscaling/feature-card-simple";
+import { AnimatedSection } from "@/components/features/sales/animated-section";
+import { SectionHeader } from "@/components/features/sales/section-header";
+import { MetricCard } from "@/components/features/sales/metric-card";
+import { FeatureList } from "@/components/features/sales/feature-list";
+import { GradientButton } from "@/components/features/sales/gradient-button";
+import { TestimonialCard } from "@/components/features/sales/testimonial-card";
+import { CompanyLogoGrid } from "@/components/features/sales/company-logo";
+import { BadgeWithIcon } from "@/components/features/sales/badge-with-icon";
+import { AnimatedCounter } from "@/components/features/sales/animated-counter";
+import { FloatingElements } from "@/components/features/sales/floating-elements";
+import { SuccessIndicator } from "@/components/features/sales/success-indicator";
+import { ProgressVisualization } from "@/components/features/sales/progress-visualization";
+import { MetricCardsHero } from "@/components/features/sales/metric-card-hero";
+import { UrgencyBanner } from "@/components/features/sales/urgency-banner";
+import { VideoPlayer } from "@/components/features/sales/video-player";
+import { OutcomeCard } from "@/components/features/sales/outcome-card";
+import { TimelineCard } from "@/components/features/sales/timeline-card";
+import { TimelineLine } from "@/components/features/sales/timeline-line";
+import { InvestorTestimonial } from "@/components/features/sales/investor-testimonial";
+import { FeatureCardSimple } from "@/components/features/sales/feature-card-simple";
 
 // Timeline data
 const timelineSteps = [

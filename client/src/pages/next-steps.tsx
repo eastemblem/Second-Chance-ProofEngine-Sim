@@ -24,8 +24,8 @@ import {
 } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { apiRequest } from "@/lib/queryClient";
-import Layout from "@/components/layout";
-import Navbar from "@/components/navbar";
+import Layout from "@/components/layout/layout";
+import Navbar from "@/components/layout/navbar";
 import { detectUserCurrency, getDealRoomPricing } from "@/lib/currency-utils";
 
 interface NextStepsData {

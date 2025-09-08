@@ -11,30 +11,25 @@ import { useAnalytics } from "./hooks/use-analytics";
 
 // Lazy load page components with preload hints
 const OnboardingFlow = lazy(() => import("@/pages/onboarding-flow"));
-const DealRoomSalesPage = lazy(() => import("@/pages/deal-room-sales"));
-const ProofScalingSalesPage = lazy(() => import("@/pages/proofscaling-sales"));
-const Privacy = lazy(() => import("@/pages/Privacy"));
-const Terms = lazy(() => import("@/pages/Terms"));
-const SetPasswordPage = lazy(() => import("@/pages/set-password"));
-const ResetPasswordPage = lazy(() => import("@/pages/reset-password"));
-const SimpleResetTest = lazy(() => import("@/pages/simple-reset-test"));
-const LoginPage = lazy(() => import("@/pages/login"));
-const ForgotPasswordPage = lazy(() => import("@/pages/forgot-password"));
-const Dashboard = lazy(() => import("@/pages/dashboard"));
-const DashboardV2 = lazy(() => import("@/pages/dashboard-v2"));
-const TokenExpiredPage = lazy(() => import("@/pages/token-expired"));
+const DealRoomSalesPage = lazy(() => import("@/pages/sales/deal-room"));
+const ProofScalingSalesPage = lazy(() => import("@/pages/sales/proof-scaling"));
+const Privacy = lazy(() => import("@/pages/legal/Privacy"));
+const Terms = lazy(() => import("@/pages/legal/Terms"));
+const SetPasswordPage = lazy(() => import("@/pages/auth/set-password"));
+const ResetPasswordPage = lazy(() => import("@/pages/auth/reset-password"));
+const LoginPage = lazy(() => import("@/pages/auth/login"));
+const ForgotPasswordPage = lazy(() => import("@/pages/auth/forgot-password"));
+const Dashboard = lazy(() => import("@/pages/dashboard/legacy"));
+const DashboardV2 = lazy(() => import("@/pages/dashboard/main"));
+const TokenExpiredPage = lazy(() => import("@/pages/auth/token-expired"));
 
 // Development-only test pages (conditionally loaded)
-const PerformanceTest = import.meta.env.MODE === 'development' ? lazy(() => import("@/pages/performance-test")) : null;
-const SentryTest = import.meta.env.MODE === 'development' ? lazy(() => import("@/pages/sentry-test")) : null;
-const RoutingDebug = import.meta.env.MODE === 'development' ? lazy(() => import("@/pages/routing-debug")) : null;
-const PaymentTestPage = import.meta.env.MODE === 'development' ? lazy(() => import("@/pages/payment-test")) : null;
 
-const SimpleResetPassword = lazy(() => import("@/pages/simple-reset-password"));
-const PaymentSuccessPage = lazy(() => import("@/pages/payment-success"));
-const PaymentFailedPage = lazy(() => import("@/pages/payment-failed"));
-const PaymentCancelledPage = lazy(() => import("@/pages/payment-cancelled"));
-const PaymentErrorPage = lazy(() => import("@/pages/payment-error"));
+const SimpleResetPassword = lazy(() => import("@/pages/auth/simple-reset-password"));
+const PaymentSuccessPage = lazy(() => import("@/pages/payment/success"));
+const PaymentFailedPage = lazy(() => import("@/pages/payment/failed"));
+const PaymentCancelledPage = lazy(() => import("@/pages/payment/cancelled"));
+const PaymentErrorPage = lazy(() => import("@/pages/payment/error"));
 const NextSteps = lazy(() => import("@/pages/next-steps"));
 
 // Disable preloading to reduce initial bundle size and blocking
@@ -127,35 +122,6 @@ function Router() {
           <ProofScalingSalesPage />
         </Suspense>
       )} />
-      {/* Development-only test routes */}
-      {import.meta.env.MODE === 'development' && PerformanceTest && (
-        <Route path="/performance-test" component={() => (
-          <Suspense fallback={<SimpleLoader />}>
-            <PerformanceTest />
-          </Suspense>
-        )} />
-      )}
-      {import.meta.env.MODE === 'development' && SentryTest && (
-        <Route path="/sentry-test" component={() => (
-          <Suspense fallback={<SimpleLoader />}>
-            <SentryTest />
-          </Suspense>
-        )} />
-      )}
-      {import.meta.env.MODE === 'development' && RoutingDebug && (
-        <Route path="/routing-debug" component={() => (
-          <Suspense fallback={<SimpleLoader />}>
-            <RoutingDebug />
-          </Suspense>
-        )} />
-      )}
-      {import.meta.env.MODE === 'development' && PaymentTestPage && (
-        <Route path="/payment-test" component={() => (
-          <Suspense fallback={<SimpleLoader />}>
-            <PaymentTestPage />
-          </Suspense>
-        )} />
-      )}
 
       <Route path="/payment/success" component={() => (
         <Suspense fallback={<SimpleLoader />}>
