@@ -54,14 +54,33 @@ export class VaultService {
   }
 
   /**
-   * Score pitch deck
+   * Score pitch deck with validation
    */
-  async scorePitchDeck(fileBuffer: Buffer, fileName: string, sessionId: string) {
+  async scorePitchDeck(
+    fileBuffer: Buffer, 
+    fileName: string, 
+    sessionId: string,
+    expectedFounderName?: string,
+    expectedVentureName?: string
+  ) {
     if (!eastEmblemAPI.isConfigured()) {
       throw new Error("EastEmblem API not configured");
     }
 
     const scoringResult = await eastEmblemAPI.scorePitchDeck(fileBuffer, fileName, sessionId);
+    
+    // Validate scoring result if expected names are provided
+    if (expectedFounderName || expectedVentureName) {
+      const validationResult = this.validateScoringResponse(scoringResult, expectedFounderName, expectedVentureName);
+      if (!validationResult.isValid) {
+        const error = new Error(validationResult.message);
+        (error as any).validationError = true;
+        (error as any).missingData = validationResult.missingData;
+        (error as any).canRetry = true;
+        throw error;
+      }
+    }
+    
     return scoringResult;
   }
 
