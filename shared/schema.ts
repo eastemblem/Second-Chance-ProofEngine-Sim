@@ -138,6 +138,11 @@ export const onboardingSession = pgTable("onboarding_session", {
   stepData: json("step_data").default({}),
   completedSteps: json("completed_steps").default([]),
   isComplete: boolean("is_complete").default(false),
+  // Start over workflow tracking
+  uploadAttemptCount: integer("upload_attempt_count").default(0), // Total upload attempts across all start-overs
+  startOverCount: integer("start_over_count").default(0), // Number of times user has used start over
+  startOverDisabled: boolean("start_over_disabled").default(false), // Whether start over is disabled after max attempts
+  founderEmail: varchar("founder_email", { length: 100 }), // Track email for start-over email reuse validation
   createdAt: timestamp("created_at").defaultNow().notNull(),
   updatedAt: timestamp("updated_at").defaultNow().notNull(),
 });
