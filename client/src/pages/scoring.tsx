@@ -288,17 +288,41 @@ export default function ScoringPage({
       return response.json();
     },
     onSuccess: (data) => {
-      console.log("✅ Scoring API success - validating response:", {
+      console.log("✅ Scoring API success:", {
         timestamp: new Date().toISOString(),
         data,
         retryCount
       });
 
-      // Validate if response contains sufficient venture and founder data
-      const validation = validateScoringResponse(data);
+      // Backend now handles validation - proceed with success flow
+      const score = data.data?.proofScore || data.proofScore || 0;
+      setProofScore(score);
+      queryClient.invalidateQueries({ queryKey: ['/api/v1/vault/session'] });
       
-      if (!validation.isValid) {
-        // Validation failed - increment retry count and show error
+      console.log("✅ Scoring completed successfully:", {
+        timestamp: new Date().toISOString(),
+        score,
+        retryCount
+      });
+
+      toast({
+        title: "Scoring Complete",
+        description: "Your pitch deck has been analyzed successfully"
+      });
+    },
+    onError: (error: any) => {
+      console.error("❌ Scoring API error:", {
+        timestamp: new Date().toISOString(),
+        error,
+        retryCount
+      });
+
+      // Check if this is a backend validation error
+      const errorMessage = error?.response?.data?.error?.message || error?.message || "Please try again";
+      const isValidationError = errorMessage.includes("Analysis failed: We couldn't find");
+
+      if (isValidationError) {
+        // Handle backend validation error with retry logic
         const newRetryCount = retryCount + 1;
         setRetryCount(newRetryCount);
         
@@ -306,14 +330,12 @@ export default function ScoringPage({
           handleMaxRetriesReached();
           return;
         }
-        
-        const errorMessage = getErrorMessage(validation.missingData, newRetryCount);
+
         setValidationError(errorMessage);
         setShowFileUpload(true);
         
-        console.warn("❌ Scoring validation failed:", {
+        console.warn("❌ Backend validation failed - triggering retry:", {
           timestamp: new Date().toISOString(),
-          missingData: validation.missingData,
           retryCount: newRetryCount,
           errorMessage,
           maxRetries
@@ -325,29 +347,13 @@ export default function ScoringPage({
           variant: "destructive"
         });
         
-        return; // Don't proceed with normal success flow
+        return;
       }
 
-      // Validation passed - proceed with normal success flow
-      const score = data.data?.proofScore || data.proofScore || 0;
-      setProofScore(score);
-      queryClient.invalidateQueries({ queryKey: ['/api/v1/vault/session'] });
-      
-      console.log("✅ Scoring validation passed - proceeding with success:", {
-        timestamp: new Date().toISOString(),
-        score,
-        retryCount
-      });
-
-      toast({
-        title: "Scoring Complete",
-        description: "Your pitch deck has been analyzed successfully"
-      });
-    },
-    onError: (error) => {
+      // Handle other errors normally
       toast({
         title: "Scoring Failed",
-        description: error instanceof Error ? error.message : "Please try again",
+        description: errorMessage,
         variant: "destructive"
       });
     }
