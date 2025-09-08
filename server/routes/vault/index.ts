@@ -9,7 +9,7 @@ import { businessLogicService } from "../../services/business-logic-service";
 import { eastEmblemAPI } from "../../eastemblem-api";
 import { getSessionId, getSessionData, updateSessionData } from "../../utils/session-manager";
 import { cleanupUploadedFile } from "../../utils/file-cleanup";
-import { activityService } from "../../services/activity-service";
+import { ActivityService } from "../../services/activity-service";
 
 const router = express.Router();
 

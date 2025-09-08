@@ -2,7 +2,7 @@ import { z } from "zod";
 import { eastEmblemAPI } from "../eastemblem-api";
 import { onboardingService } from "./onboarding-service";
 import { databaseService } from "./database-service";
-import { activityService } from "./activity-service";
+import { ActivityService } from "./activity-service";
 import { circuitBreakers, retryWithBackoff } from "../middleware/advanced-error-handling";
 
 // Business logic service - separates business rules from API routes
@@ -207,8 +207,8 @@ export class BusinessLogicService {
     const cutoffTime = new Date(Date.now() - timeWindow);
     const evaluations = await databaseService.getEvaluationsByVentureId(ventureId);
     
-    return evaluations.find(eval => 
-      eval.createdAt && eval.createdAt > cutoffTime
+    return evaluations.find(evaluation => 
+      evaluation.createdAt && evaluation.createdAt > cutoffTime
     );
   }
 
