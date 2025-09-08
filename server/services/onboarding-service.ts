@@ -35,6 +35,61 @@ import { certificateService } from "./certificate-service";
 
 export class OnboardingService {
   /**
+   * Validate scoring response against expected founder and venture names
+   */
+  private validateScoringResponse(
+    scoringResult: any, 
+    expectedFounderName?: string,
+    expectedVentureName?: string
+  ) {
+    const missingData: string[] = [];
+    let message = "";
+
+    // Check for venture data
+    if (expectedVentureName) {
+      const hasVentureData = scoringResult?.venture || 
+                            scoringResult?.startup || 
+                            scoringResult?.business ||
+                            scoringResult?.output?.venture ||
+                            scoringResult?.output?.startup ||
+                            scoringResult?.output?.business;
+      
+      if (!hasVentureData) {
+        missingData.push('venture');
+      }
+    }
+
+    // Check for founder/team data  
+    if (expectedFounderName) {
+      const hasFounderData = scoringResult?.founder || 
+                            scoringResult?.team || 
+                            scoringResult?.founders ||
+                            scoringResult?.output?.founder ||
+                            scoringResult?.output?.team ||
+                            scoringResult?.output?.founders;
+      
+      if (!hasFounderData) {
+        missingData.push('team');
+      }
+    }
+
+    // Generate appropriate error message
+    if (missingData.length === 2) {
+      message = "Analysis failed: We couldn't find venture and team details in your document. Please upload a file with venture and team details.";
+    } else if (missingData.includes('venture')) {
+      message = "Analysis failed: We couldn't find venture details in your document. Please ensure your file includes business information.";
+    } else if (missingData.includes('team')) {
+      message = "Analysis failed: We couldn't find team details in your document. Please ensure your file includes founder profiles.";
+    }
+
+    return {
+      isValid: missingData.length === 0,
+      missingData,
+      message
+    };
+  }
+
+  /**
    * Initialize onboarding session
    */
   async initializeSession(req: Request): Promise<string> {
@@ -723,6 +778,61 @@ export class OnboardingService {
             sessionId
           );
           console.log(`[SCORING] Received scoring result:`, scoringResult);
+
+          // Validate scoring result against expected founder and venture names
+          const expectedFounderName = stepData?.founder?.fullName;
+          const expectedVentureName = stepData?.venture?.name;
+          
+          if (expectedFounderName || expectedVentureName) {
+            console.log(`[SCORING] Validating result against expected names:`, {
+              expectedFounderName,
+              expectedVentureName,
+              sessionId
+            });
+            
+            const validationResult = this.validateScoringResponse(scoringResult, expectedFounderName, expectedVentureName);
+            
+            if (!validationResult.isValid) {
+              console.log(`[SCORING] Validation failed:`, {
+                sessionId,
+                missingData: validationResult.missingData,
+                message: validationResult.message
+              });
+              
+              // Update document record with validation error
+              await db
+                .update(documentUpload)
+                .set({
+                  processingStatus: 'failed',
+                  errorMessage: validationResult.message,
+                  retryCount: (upload.retryCount || 0) + 1,
+                  canRetry: true
+                })
+                .where(eq(documentUpload.uploadId, upload.uploadId));
+              
+              // Create validation error result
+              scoringResult = {
+                hasError: true,
+                errorMessage: validationResult.message,
+                errorType: 'validation_failed',
+                canRetry: true,
+                missingData: validationResult.missingData,
+                statusCode: 400
+              };
+            } else {
+              console.log(`[SCORING] Validation passed:`, {
+                sessionId,
+                expectedFounderName,
+                expectedVentureName
+              });
+            }
+          } else {
+            console.log(`[SCORING] No validation performed - missing expected names:`, {
+              sessionId,
+              expectedFounderName,
+              expectedVentureName
+            });
+          }
         } else {
           throw new Error("Uploaded file no longer exists - file may have been cleaned up");
         }
