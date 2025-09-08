@@ -49,8 +49,8 @@ router.post("/founder", asyncHandler(async (req, res) => {
   console.log(`👤 ONBOARDING: Processing founder data for session ${sessionId}`);
 
   try {
-    // Validate required fields
-    const requiredFields = ['fullName', 'email', 'startupName', 'stage'];
+    // Validate required fields to match the actual schema
+    const requiredFields = ['fullName', 'email', 'positionRole'];
     const missingFields = requiredFields.filter(field => !founderData[field]);
     
     if (missingFields.length > 0) {
