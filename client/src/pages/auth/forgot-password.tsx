@@ -7,7 +7,7 @@ import { Alert, AlertDescription } from '@/components/ui/alert';
 import { Mail, AlertCircle, CheckCircle2 } from 'lucide-react';
 import { Link } from 'wouter';
 import Logo from '@/components/logo';
-import { AuthLayout } from '@/components/layout';
+import { AuthLayout } from '@/components/layout/layout';
 import { useToast } from '@/hooks/use-toast';
 
 export default function ForgotPasswordPage() {
