@@ -10,15 +10,9 @@ import { initGA } from "./lib/analytics";
 import { useAnalytics } from "./hooks/use-analytics";
 
 // Lazy load page components with preload hints
-const LandingPage = lazy(() => import("@/pages/landing"));
-const OnboardingPage = lazy(() => import("@/pages/onboarding"));
 const OnboardingFlow = lazy(() => import("@/pages/onboarding-flow"));
-const ScoringPage = lazy(() => import("@/pages/scoring"));
-const FeedbackPage = lazy(() => import("@/pages/feedback"));
-const PathwayPage = lazy(() => import("@/pages/pathway"));
 const DealRoomSalesPage = lazy(() => import("@/pages/deal-room-sales"));
 const ProofScalingSalesPage = lazy(() => import("@/pages/proofscaling-sales"));
-const FinalPage = lazy(() => import("@/pages/final"));
 const Privacy = lazy(() => import("@/pages/Privacy"));
 const Terms = lazy(() => import("@/pages/Terms"));
 const SetPasswordPage = lazy(() => import("@/pages/set-password"));
@@ -47,8 +41,6 @@ const NextSteps = lazy(() => import("@/pages/next-steps"));
 const preloadComponents = () => {
   // Disabled to improve LCP performance
 };
-import { useSimulation } from "@/hooks/use-simulation";
-import { useAuthCheck } from "@/hooks/use-auth-check";
 import NotFound from "@/pages/not-found";
 import { initSentry, SentryErrorBoundary } from "./lib/sentry";
 import { TokenAuthProvider } from "@/hooks/use-token-auth";
@@ -56,114 +48,13 @@ import { TokenAuthProvider } from "@/hooks/use-token-auth";
 // Initialize preloading after component definition
 preloadComponents();
 
-function SimulationFlow() {
-  const { 
-    state, 
-    setCurrentPage, 
-    updateFounderData, 
-    startAnalysis, 
-    resetSimulation 
-  } = useSimulation();
-  
-  const { isAuthenticated } = useAuthCheck();
-
-  // Track page views when routes change
-  useAnalytics();
-
-  // Removed animations to reduce bundle size and improve performance
-
-  const renderCurrentPage = () => {
-    switch (state.currentPage) {
-      case 1:
-        return (
-          <Suspense fallback={<SimpleLoader />}>
-            <LandingPage 
-              onNext={() => setCurrentPage(2)} 
-            />
-          </Suspense>
-        );
-      case 2:
-        return (
-          <Suspense fallback={<SimpleLoader />}>
-            <OnboardingPage 
-              onNext={() => setCurrentPage(3)}
-              onDataUpdate={updateFounderData}
-            />
-          </Suspense>
-        );
-      case 3:
-        return (
-          <ScoringPage 
-            onNext={() => setCurrentPage(4)}
-            analysisProgress={state.analysisProgress}
-            isAnalyzing={state.isAnalyzing}
-          />
-        );
-      case 4:
-        return state.proofScore ? (
-          <FeedbackPage 
-            onNext={() => setCurrentPage(5)}
-            proofScore={state.proofScore}
-          />
-        ) : null;
-      case 5:
-        return state.proofScore ? (
-          <PathwayPage 
-            onNext={() => setCurrentPage(state.proofScore!.total >= 70 ? 6 : 7)}
-            proofScore={state.proofScore}
-          />
-        ) : null;
-      case 6:
-        return state.proofScore && state.proofScore.total >= 70 ? (
-          <DealRoomSalesPage 
-            onNext={() => setCurrentPage(8)}
-            proofScore={state.proofScore}
-          />
-        ) : state.proofScore ? (
-          <ProofScalingSalesPage 
-            onNext={() => setCurrentPage(8)}
-            proofScore={state.proofScore}
-          />
-        ) : null;
-      case 7:
-        return state.proofScore ? (
-          <ProofScalingSalesPage 
-            onNext={() => setCurrentPage(8)}
-            proofScore={state.proofScore}
-          />
-        ) : null;
-      case 8:
-        return (
-          <FinalPage 
-            onReset={resetSimulation}
-          />
-        );
-      default:
-        return (
-          <Suspense fallback={<SimpleLoader />}>
-            <LandingPage 
-              onNext={() => setCurrentPage(2)} 
-            />
-          </Suspense>
-        );
-    }
-  };
-
-  return (
-    <div className="min-h-screen bg-background text-foreground">
-      {renderCurrentPage()}
-    </div>
-  );
-}
-
 function Router() {
   // Track page views when routes change
   useAnalytics();
   
   return (
     <Switch>
-      <Route path="/" component={SimulationFlow} />
-      <Route path="/onboarding-flow" component={() => (
+      <Route path="/" component={() => (
         <Suspense fallback={<SimpleLoader />}>
           <OnboardingFlow onComplete={() => window.location.href = '/'} />
         </Suspense>
