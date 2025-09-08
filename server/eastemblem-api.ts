@@ -1,5 +1,6 @@
 import fetch from "node-fetch";
 import FormData from "form-data";
+import { appLogger } from "./utils/logger";
 
 interface FolderStructureResponse {
   id: string;
@@ -740,8 +741,8 @@ class EastEmblemAPI {
           formData.append("onboarding_id", onboardingId);
         }
 
-        console.log(`Scoring pitch deck: ${fileName}`);
-        console.log(`API endpoint: ${this.getEndpoint("/webhook/score/pitch-deck")}`);
+        appLogger.external("Scoring pitch deck:", fileName);
+        appLogger.external("API endpoint:", this.getEndpoint("/webhook/score/pitch-deck"));
 
         const controller = new AbortController();
         const timeoutId = setTimeout(() => controller.abort(), 180000); // Increase to 3 minutes for scoring with retries
@@ -757,7 +758,7 @@ class EastEmblemAPI {
 
           if (!response.ok) {
             const errorText = await response.text();
-            console.error(`Pitch deck scoring failed with status ${response.status}:`, errorText);
+            appLogger.error("Pitch deck scoring failed with status", response.status, errorText);
             
             if (response.status >= 500 || response.status === 524) {
               throw new Error(`EastEmblem scoring service unavailable (${response.status}). Service may be overloaded.`);
@@ -786,22 +787,22 @@ class EastEmblemAPI {
           }
 
           const responseText = await response.text();
-          console.log("Raw scoring response:", responseText);
+          appLogger.external("Raw scoring response:", responseText);
           
           try {
             const result = JSON.parse(responseText) as any;
-            console.log("Pitch deck scored successfully:", result);
+            appLogger.external("Pitch deck scored successfully:", result);
             
             // Handle the new response format - extract the first item from array if needed
             if (Array.isArray(result) && result.length > 0) {
-              console.log("Extracting first result from array response");
+              appLogger.external("Extracting first result from array response");
               return result[0];
             }
             
             return result;
           } catch (parseError) {
-            console.error("Failed to parse scoring response JSON:", parseError);
-            console.log("Response was:", responseText);
+            appLogger.error("Failed to parse scoring response JSON:", parseError);
+            appLogger.external("Response was:", responseText);
             
             // Try to fix common JSON issues
             try {
@@ -810,7 +811,7 @@ class EastEmblemAPI {
                 '"onboarding_id": "$1"'
               );
               const result = JSON.parse(fixedJson);
-              console.log("Successfully parsed fixed scoring JSON:", result);
+              appLogger.external("Successfully parsed fixed scoring JSON:", result);
               
               // Handle array format
               if (Array.isArray(result) && result.length > 0) {
@@ -819,7 +820,7 @@ class EastEmblemAPI {
               
               return result;
             } catch (fixError) {
-              console.error("Even fixed scoring JSON parsing failed:", fixError);
+              appLogger.error("Even fixed scoring JSON parsing failed:", fixError);
               throw new Error(`Pitch deck scoring succeeded but response parsing failed: ${parseError instanceof Error ? parseError.message : 'Invalid JSON'}`);
             }
           }
@@ -832,7 +833,7 @@ class EastEmblemAPI {
       2000, // Start with 2 second delay
       'Pitch deck scoring'
     ).catch(error => {
-      console.error("Error scoring pitch deck after retries:", error);
+      appLogger.error("Error scoring pitch deck after retries:", error);
       if (!this.isConfigured()) {
         throw new Error("EastEmblem API is not configured. Please provide EASTEMBLEM_API_URL and EASTEMBLEM_API_KEY.");
       }
