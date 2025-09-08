@@ -1289,6 +1289,174 @@ export class OnboardingService {
     console.log(`✅ Scoring retry completed for session: ${sessionId}`);
     return scoringResult;
   }
+
+  /**
+   * Start Over Workflow Methods
+   */
+
+  /**
+   * Check if user can start over (not exceeded max start-overs)
+   */
+  async canStartOver(sessionId: string): Promise<{ canStartOver: boolean; reason?: string; showContactSupport: boolean }> {
+    const session = await this.getSession(sessionId);
+    if (!session) {
+      return { canStartOver: false, reason: "Session not found", showContactSupport: true };
+    }
+
+    // Check if start over is explicitly disabled
+    if (session.startOverDisabled) {
+      return { canStartOver: false, reason: "Start over disabled after maximum attempts", showContactSupport: true };
+    }
+
+    // Check start over count (max 1 start over allowed)
+    const startOverCount = session.startOverCount || 0;
+    if (startOverCount >= 1) {
+      return { canStartOver: false, reason: "Maximum start over attempts reached", showContactSupport: true };
+    }
+
+    // Check upload attempt count (should be >= 3 to show start over)
+    const uploadAttemptCount = session.uploadAttemptCount || 0;
+    if (uploadAttemptCount < 3) {
+      return { canStartOver: false, reason: "Not enough failed attempts to start over", showContactSupport: false };
+    }
+
+    return { canStartOver: true, showContactSupport: false };
+  }
+
+  /**
+   * Track upload attempt (increment count)
+   */
+  async trackUploadAttempt(sessionId: string): Promise<void> {
+    await db
+      .update(onboardingSession)
+      .set({
+        uploadAttemptCount: sql`COALESCE(upload_attempt_count, 0) + 1`,
+        updatedAt: new Date()
+      })
+      .where(eq(onboardingSession.sessionId, sessionId));
+  }
+
+  /**
+   * Determine if upload failed 3 times and show start over
+   */
+  async getUploadStatus(sessionId: string): Promise<{ 
+    uploadAttemptCount: number; 
+    showStartOver: boolean; 
+    showContactSupport: boolean;
+    canStartOver: boolean;
+  }> {
+    const session = await this.getSession(sessionId);
+    if (!session) {
+      return { uploadAttemptCount: 0, showStartOver: false, showContactSupport: true, canStartOver: false };
+    }
+
+    const uploadAttemptCount = session.uploadAttemptCount || 0;
+    const startOverCount = session.startOverCount || 0;
+    const startOverDisabled = session.startOverDisabled || false;
+
+    // Show start over if:
+    // 1. Failed 3+ times
+    // 2. Haven't used start over yet (max 1)
+    // 3. Start over not disabled
+    const showStartOver = uploadAttemptCount >= 3 && startOverCount === 0 && !startOverDisabled;
+
+    // Show contact support if:
+    // 1. Start over disabled, OR
+    // 2. Already used start over once and failed again
+    const showContactSupport = startOverDisabled || (startOverCount >= 1 && uploadAttemptCount >= 6);
+
+    const canStartOver = showStartOver;
+
+    return {
+      uploadAttemptCount,
+      showStartOver,
+      showContactSupport,
+      canStartOver
+    };
+  }
+
+  /**
+   * Execute start over - reset session while preserving attempt history
+   */
+  async executeStartOver(sessionId: string, founderEmail: string): Promise<{ newSessionId: string; message: string }> {
+    const oldSession = await this.getSession(sessionId);
+    if (!oldSession) {
+      throw new Error("Session not found");
+    }
+
+    // Check if start over is allowed
+    const { canStartOver, reason } = await this.canStartOver(sessionId);
+    if (!canStartOver) {
+      throw new Error(reason || "Start over not allowed");
+    }
+
+    // Increment start over count and preserve attempt history
+    const newUploadAttemptCount = (oldSession.uploadAttemptCount || 0);
+    const newStartOverCount = (oldSession.startOverCount || 0) + 1;
+    
+    // Disable start over if this is the second time (after first start over)
+    const shouldDisableStartOver = newStartOverCount >= 1;
+
+    // Update current session to mark it as start-over
+    await db
+      .update(onboardingSession)
+      .set({
+        startOverCount: newStartOverCount,
+        startOverDisabled: shouldDisableStartOver,
+        founderEmail: founderEmail,
+        updatedAt: new Date(),
+        // Reset progress but preserve attempt counts
+        currentStep: "founder",
+        stepData: {},
+        completedSteps: [],
+        isComplete: false
+      })
+      .where(eq(onboardingSession.sessionId, sessionId));
+
+    return { 
+      newSessionId: sessionId, // Reuse same session ID
+      message: `Start over initiated. You have ${3 - newUploadAttemptCount} remaining attempts before requiring support contact.`
+    };
+  }
+
+  /**
+   * Check if email can be reused during start over
+   */
+  async canReuseEmail(email: string, sessionId?: string): Promise<{ canReuse: boolean; reason?: string }> {
+    // Look for existing founder with this email
+    const existingFounder = await db
+      .select()
+      .from(founder)
+      .where(eq(founder.email, email))
+      .limit(1);
+
+    if (existingFounder.length === 0) {
+      return { canReuse: true }; // Email not in use
+    }
+
+    // Check if there's an incomplete onboarding session for this email
+    const incompleteSession = await db
+      .select()
+      .from(onboardingSession)
+      .where(
+        and(
+          eq(onboardingSession.founderEmail, email),
+          eq(onboardingSession.isComplete, false)
+        )
+      )
+      .limit(1);
+
+    if (incompleteSession.length > 0) {
+      // If this is the same session ID, allow reuse
+      if (sessionId && incompleteSession[0].sessionId === sessionId) {
+        return { canReuse: true };
+      }
+      // Otherwise, allow reuse since onboarding is incomplete
+      return { canReuse: true, reason: "Email associated with incomplete onboarding - allowing reuse" };
+    }
+
+    return { canReuse: false, reason: "Email already associated with completed founder profile" };
+  }
 }
 
 export const onboardingService = new OnboardingService();
