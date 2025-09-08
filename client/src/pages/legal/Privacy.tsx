@@ -4,8 +4,8 @@ import { ArrowUp, Mail, ExternalLink } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { motion } from "framer-motion";
-import Layout from "@/components/layout";
-import Navbar from "@/components/navbar";
+import Layout from "@/components/layout/layout";
+import Navbar from "@/components/layout/navbar";
 
 const Privacy = () => {
   const [showBackToTop, setShowBackToTop] = useState(false);

@@ -13,8 +13,8 @@ import ProcessingScreen from "./onboarding/processing";
 import Analysis from "./onboarding/analysis";
 // PaymentOnboarding removed - no longer part of flow
 import ProgressBar from "@/components/progress-bar";
-import Navbar from "@/components/navbar";
-import Layout from "@/components/layout";
+import Navbar from "@/components/layout/navbar";
+import Layout from "@/components/layout/layout";
 import { Button } from "@/components/ui/button";
 
 interface OnboardingFlowProps {

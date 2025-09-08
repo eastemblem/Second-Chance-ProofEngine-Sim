@@ -5,7 +5,7 @@ import { Label } from "@/components/ui/label";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { useToast } from "@/hooks/use-toast";
 import { CheckCircle, Eye, EyeOff, Lock, AlertCircle, XCircle } from "lucide-react";
-import { AuthLayout } from "@/components/layout";
+import { AuthLayout } from "@/components/layout/layout";
 
 export default function ResetPasswordDirect() {
   const [password, setPassword] = useState("");

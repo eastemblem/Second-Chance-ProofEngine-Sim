@@ -4,7 +4,7 @@ import { motion } from "framer-motion";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Home, ArrowLeft, Compass, Star, Sparkles } from "lucide-react";
-import Layout from "@/components/layout";
+import Layout from "@/components/layout/layout";
 
 export default function NotFound() {
   const [mounted, setMounted] = useState(false);

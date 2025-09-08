@@ -7,18 +7,18 @@ import { Badge } from "@/components/ui/badge";
 import { EmailVerificationPopup } from "@/components/ui/email-verification-popup";
 
 // Import reusable components
-import { AnimatedSection } from "@/components/deal-room/animated-section";
-import { SectionHeader } from "@/components/deal-room/section-header";
-import { MetricCard } from "@/components/deal-room/metric-card";
-import { FeatureList } from "@/components/deal-room/feature-list";
-import { GradientButton } from "@/components/deal-room/gradient-button";
-import { TestimonialCard } from "@/components/deal-room/testimonial-card";
-import { LogoCarousel } from "@/components/deal-room/logo-carousel";
-import { BadgeWithIcon } from "@/components/deal-room/badge-with-icon";
-import { AnimatedCounter } from "@/components/deal-room/animated-counter";
-import { FloatingElements } from "@/components/deal-room/floating-elements";
-import { SuccessIndicator } from "@/components/deal-room/success-indicator";
-import { ProgressVisualization } from "@/components/deal-room/progress-visualization";
+import { AnimatedSection } from "@/components/features/sales/animated-section";
+import { SectionHeader } from "@/components/features/sales/section-header";
+import { MetricCard } from "@/components/features/sales/metric-card";
+import { FeatureList } from "@/components/features/sales/feature-list";
+import { GradientButton } from "@/components/features/sales/gradient-button";
+import { TestimonialCard } from "@/components/features/sales/testimonial-card";
+// import { LogoCarousel } from "@/components/features/sales/logo-carousel"; // TODO: Fix component compatibility
+import { BadgeWithIcon } from "@/components/features/sales/badge-with-icon";
+import { AnimatedCounter } from "@/components/features/sales/animated-counter";
+import { FloatingElements } from "@/components/features/sales/floating-elements";
+import { SuccessIndicator } from "@/components/features/sales/success-indicator";
+import { ProgressVisualization } from "@/components/features/sales/progress-visualization";
 import { detectUserCurrency, getDealRoomPricing } from "@/lib/currency-utils";
 
 // Data constants

@@ -7,7 +7,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { useToast } from "@/hooks/use-toast";
 import { CheckCircle, Eye, EyeOff, Lock, AlertCircle, XCircle } from "lucide-react";
 
-import { AuthLayout } from "@/components/layout";
+import { AuthLayout } from "@/components/layout/layout";
 
 
 export default function ResetPasswordPage() {

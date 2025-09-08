@@ -5,8 +5,8 @@ import { detectUserCurrency, getDealRoomPricing } from "@/lib/currency-utils";
 import { usePaginatedActivities } from "@/hooks/use-paginated-activities";
 import { usePaginatedFiles } from "@/hooks/use-paginated-files";
 import { trackEvent } from "@/lib/analytics";
-import Navbar from "@/components/navbar";
-import { DashboardLayout } from "@/components/layout";
+import Navbar from "@/components/layout/navbar";
+import { DashboardLayout } from "@/components/layout/layout";
 import { DashboardLoadingSkeleton } from "@/components/dashboard-loading";
 import confetti from 'canvas-confetti';
 

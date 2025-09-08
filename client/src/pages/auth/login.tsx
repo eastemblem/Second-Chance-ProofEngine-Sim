@@ -7,7 +7,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { useToast } from "@/hooks/use-toast";
 import { Eye, EyeOff, LogIn } from "lucide-react";
 import Logo from "@/components/logo";
-import { AuthLayout } from "@/components/layout";
+import { AuthLayout } from "@/components/layout/layout";
 import { trackEvent } from "@/lib/analytics";
 import { apiRequest, handleResponse } from "@/lib/queryClient";
 

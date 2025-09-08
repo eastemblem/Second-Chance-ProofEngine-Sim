@@ -2,7 +2,7 @@ import { ArrowRight } from "lucide-react";
 import { useLocation } from "wouter";
 import Logo from "@/components/logo";
 import { Button } from "@/components/ui/button";
-import Layout from "@/components/layout";
+import Layout from "@/components/layout/layout";
 
 interface LandingPageProps {
   onNext: () => void;

@@ -4,7 +4,7 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { AlertCircle, Mail, ArrowLeft, RefreshCw } from "lucide-react";
 import Logo from "@/components/logo";
-import { AuthLayout } from "@/components/layout";
+import { AuthLayout } from "@/components/layout/layout";
 
 interface TokenExpiredPageProps {
   reason?: 'expired' | 'already_verified' | 'invalid';

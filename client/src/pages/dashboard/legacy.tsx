@@ -47,8 +47,8 @@ import {
   FileArchive,
   CreditCard
 } from "lucide-react";
-import Navbar from "@/components/navbar";
-import { DashboardLayout } from "@/components/layout";
+import Navbar from "@/components/layout/navbar";
+import { DashboardLayout } from "@/components/layout/layout";
 import { DashboardLoadingSkeleton } from "@/components/dashboard-loading";
 import { PaymentModal } from '@/components/ui/payment-modal';
 
