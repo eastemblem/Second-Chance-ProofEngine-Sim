@@ -270,8 +270,14 @@ export class OnboardingService {
           throw new Error(`Failed to update founder data: ${error instanceof Error ? error.message : 'Unknown error'}`);
         }
       } else {
-        // Email already exists and has completed sessions - throw error
-        throw new Error("Email already taken");
+        // Email already exists and has completed sessions - check if start over allows reuse
+        const emailCheck = await this.canReuseEmail(founderData.email, sessionId);
+        if (!emailCheck.canReuse) {
+          throw new Error(emailCheck.reason || "Email already taken");
+        }
+        
+        // Email can be reused during start over - use existing founder
+        console.log("Email reused during start over:", founderData.email, emailCheck.reason);
       }
     }
 
@@ -809,6 +815,9 @@ export class OnboardingService {
                   canRetry: true
                 })
                 .where(eq(documentUpload.uploadId, upload.uploadId));
+
+              // Track upload attempt in session for start over workflow
+              await this.trackUploadAttempt(sessionId);
               
               // Create validation error result
               scoringResult = {
@@ -853,6 +862,9 @@ export class OnboardingService {
               canRetry: true // Allow user to retry with different file
             })
             .where(eq(documentUpload.uploadId, upload.uploadId));
+
+          // Track upload attempt in session for start over workflow
+          await this.trackUploadAttempt(sessionId);
           
           // Create error result instead of throwing - this allows frontend to handle gracefully
           scoringResult = {
