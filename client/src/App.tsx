@@ -10,6 +10,7 @@ import { initGA } from "./lib/analytics";
 import { useAnalytics } from "./hooks/use-analytics";
 
 // Lazy load page components with preload hints
+const LandingPage = lazy(() => import("@/pages/landing"));
 const OnboardingFlow = lazy(() => import("@/pages/onboarding-flow"));
 const DealRoomSalesPage = lazy(() => import("@/pages/sales/deal-room"));
 const ProofScalingSalesPage = lazy(() => import("@/pages/sales/proof-scaling"));
@@ -50,6 +51,16 @@ function Router() {
   return (
     <Switch>
       <Route path="/" component={() => (
+        <Suspense fallback={<SimpleLoader />}>
+          <LandingPage onNext={() => {}} />
+        </Suspense>
+      )} />
+      <Route path="/onboarding" component={() => (
+        <Suspense fallback={<SimpleLoader />}>
+          <OnboardingFlow onComplete={() => window.location.href = '/'} />
+        </Suspense>
+      )} />
+      <Route path="/onboarding-flow" component={() => (
         <Suspense fallback={<SimpleLoader />}>
           <OnboardingFlow onComplete={() => window.location.href = '/'} />
         </Suspense>
