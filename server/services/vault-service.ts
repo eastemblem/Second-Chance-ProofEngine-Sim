@@ -158,6 +158,25 @@ export class VaultService {
       throw new Error("Overview folder not found");
     }
 
+    // Get expected names from session for validation
+    let expectedFounderName: string | undefined;
+    let expectedVentureName: string | undefined;
+
+    try {
+      // Get session data from database for validation
+      const { onboardingService } = await import('./onboarding-service');
+      const session = await onboardingService.getSession(sessionId);
+      
+      if (session?.stepData) {
+        const stepData = session.stepData as any;
+        expectedFounderName = stepData?.founder?.fullName;
+        expectedVentureName = stepData?.venture?.name;
+      }
+    } catch (error) {
+      // Continue without validation if session data unavailable
+      console.warn("Could not retrieve session data for validation:", error);
+    }
+
     // Read file and upload
     const fileBuffer = fs.readFileSync(uploadedFile.filepath);
     
@@ -168,11 +187,13 @@ export class VaultService {
       sessionId
     );
 
-    // Score the pitch deck
+    // Score the pitch deck with validation
     const pitchDeckScore = await this.scorePitchDeck(
       fileBuffer,
       uploadedFile.originalname,
-      sessionId
+      sessionId,
+      expectedFounderName,
+      expectedVentureName
     );
 
     // Update session
