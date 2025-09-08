@@ -304,4 +304,85 @@ router.post("/create-startup-vault", asyncHandler(async (req, res) => {
   }
 }));
 
+// Start over endpoint - allows users to restart onboarding after failed uploads
+router.post("/start-over", asyncHandler(async (req, res) => {
+  const sessionId = getSessionId(req);
+  const { founderEmail } = req.body;
+
+  if (!founderEmail) {
+    return res.status(400).json({
+      error: "Founder email is required for start over"
+    });
+  }
+
+  console.log(`🔄 ONBOARDING: Start over requested for session ${sessionId}, email: ${founderEmail}`);
+
+  try {
+    // Check if start over is allowed
+    const statusCheck = await onboardingService.canStartOver(sessionId);
+    if (!statusCheck.canStartOver) {
+      return res.status(400).json({
+        error: statusCheck.reason || "Start over not allowed",
+        showContactSupport: statusCheck.showContactSupport
+      });
+    }
+
+    // Check if email can be reused
+    const emailCheck = await onboardingService.canReuseEmail(founderEmail, sessionId);
+    if (!emailCheck.canReuse) {
+      return res.status(400).json({
+        error: emailCheck.reason || "Email cannot be reused"
+      });
+    }
+
+    // Execute start over
+    const result = await onboardingService.executeStartOver(sessionId, founderEmail);
+
+    console.log(`✅ ONBOARDING: Start over completed successfully`, {
+      sessionId: result.newSessionId,
+      founderEmail
+    });
+
+    res.json(createSuccessResponse({
+      sessionId: result.newSessionId,
+      message: result.message,
+      canStartOver: false // Start over used up
+    }, "Start over completed successfully"));
+
+  } catch (error) {
+    console.error("❌ ONBOARDING: Start over failed:", error);
+    res.status(500).json({
+      error: "Start over process failed",
+      details: error instanceof Error ? error.message : 'Unknown error'
+    });
+  }
+}));
+
+// Get upload status endpoint - check if start over or contact support should be shown
+router.get("/upload-status", asyncHandler(async (req, res) => {
+  const sessionId = getSessionId(req);
+
+  console.log(`📊 ONBOARDING: Checking upload status for session ${sessionId}`);
+
+  try {
+    const uploadStatus = await onboardingService.getUploadStatus(sessionId);
+
+    console.log(`✅ ONBOARDING: Upload status retrieved`, {
+      sessionId,
+      uploadAttemptCount: uploadStatus.uploadAttemptCount,
+      showStartOver: uploadStatus.showStartOver,
+      showContactSupport: uploadStatus.showContactSupport
+    });
+
+    res.json(createSuccessResponse(uploadStatus, "Upload status retrieved"));
+
+  } catch (error) {
+    console.error("❌ ONBOARDING: Upload status check failed:", error);
+    res.status(500).json({
+      error: "Failed to check upload status",
+      details: error instanceof Error ? error.message : 'Unknown error'
+    });
+  }
+}));
+
 export default router;

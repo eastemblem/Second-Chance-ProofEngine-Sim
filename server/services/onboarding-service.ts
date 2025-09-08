@@ -5,7 +5,7 @@ import { eastEmblemAPI, type EmailNotificationData } from "../eastemblem-api";
 import { getSessionId, getSessionData, updateSessionData } from "../utils/session-manager";
 import { db } from "../db";
 import { onboardingSession, documentUpload, founder } from "@shared/schema";
-import { eq, and } from "drizzle-orm";
+import { eq, and, sql } from "drizzle-orm";
 
 // Utility function to extract MIME type from file extension
 function getMimeTypeFromExtension(fileName: string): string {
