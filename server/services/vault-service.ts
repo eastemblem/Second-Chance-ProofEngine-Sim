@@ -2,6 +2,7 @@ import fs from "fs";
 import { eastEmblemAPI } from "../eastemblem-api";
 import { getSessionData, updateSessionData, getSessionId } from "../utils/session-manager";
 import { cleanupUploadedFile } from "../utils/file-cleanup";
+import { appLogger } from "../utils/logger";
 import { Request } from "express";
 
 export class VaultService {
@@ -126,14 +127,39 @@ export class VaultService {
     
     // Validate scoring result if expected names are provided
     if (expectedFounderName || expectedVentureName) {
+      appLogger.vault(`🔍 Running validation with expected names:`, {
+        expectedFounderName,
+        expectedVentureName,
+        sessionId
+      });
+      
       const validationResult = this.validateScoringResponse(scoringResult, expectedFounderName, expectedVentureName);
+      
       if (!validationResult.isValid) {
+        appLogger.vault(`❌ Validation failed:`, {
+          sessionId,
+          missingData: validationResult.missingData,
+          message: validationResult.message
+        });
+        
         const error = new Error(validationResult.message);
         (error as any).validationError = true;
         (error as any).missingData = validationResult.missingData;
         (error as any).canRetry = true;
         throw error;
+      } else {
+        appLogger.vault(`✅ Validation passed:`, {
+          sessionId,
+          expectedFounderName,
+          expectedVentureName
+        });
       }
+    } else {
+      appLogger.vault(`⚠️ No validation performed - missing expected names:`, {
+        sessionId,
+        expectedFounderName,
+        expectedVentureName
+      });
     }
     
     return scoringResult;
@@ -143,7 +169,8 @@ export class VaultService {
    * Complete scoring workflow: upload file and score
    */
   async completeScoring(req: Request) {
-    const sessionData = await getSessionData(req);
+    const sessionId = getSessionId(req);
+    const sessionData = await getSessionData(sessionId);
     const uploadedFile = sessionData.uploadedFile;
     const folderStructure = sessionData.folderStructure;
 
@@ -151,7 +178,6 @@ export class VaultService {
       throw new Error("Missing required data for scoring");
     }
 
-    const sessionId = getSessionId(req);
     const overviewFolderId = folderStructure.folders?.["0_Overview"];
 
     if (!overviewFolderId) {
@@ -167,14 +193,30 @@ export class VaultService {
       const { onboardingService } = await import('./onboarding-service');
       const session = await onboardingService.getSession(sessionId);
       
+      appLogger.vault("🔍 Retrieved session for validation:", {
+        sessionId,
+        hasSession: !!session,
+        hasStepData: !!session?.stepData
+      });
+      
       if (session?.stepData) {
         const stepData = session.stepData as any;
         expectedFounderName = stepData?.founder?.fullName;
         expectedVentureName = stepData?.venture?.name;
+        
+        appLogger.vault("📋 Extracted names for validation:", {
+          expectedFounderName,
+          expectedVentureName,
+          hasFounderData: !!stepData?.founder,
+          hasVentureData: !!stepData?.venture
+        });
       }
     } catch (error) {
       // Continue without validation if session data unavailable
-      console.warn("Could not retrieve session data for validation:", error);
+      appLogger.vault("⚠️ Could not retrieve session data for validation:", { 
+        error: error instanceof Error ? error.message : String(error), 
+        sessionId 
+      });
     }
 
     // Read file and upload
