@@ -70,14 +70,14 @@ const testimonials = [
 ];
 
 const features = [
-  'Unlimited investor introductions',
-  'Complete ProofVault access',
-  'Priority deal flow placement',
-  'Dedicated success support',
-  'Corporate partnership opportunities',
-  'Quarterly demo day invitations',
-  'Expert network access',
-  'Due diligence fast-track'
+  { text: 'Unlimited investor introductions' },
+  { text: 'Complete ProofVault access' },
+  { text: 'Priority deal flow placement' },
+  { text: 'Dedicated success support' },
+  { text: 'Corporate partnership opportunities' },
+  { text: 'Quarterly demo day invitations' },
+  { text: 'Expert network access' },
+  { text: 'Due diligence fast-track' }
 ];
 
 export default function DealRoomSalesPage() {
@@ -302,7 +302,17 @@ export default function DealRoomSalesPage() {
                 Trusted by leading accelerators and partners:
               </p>
               
-              <LogoCarousel companies={partnerCompanies} autoScrollSpeed={4000} />
+              {/* <LogoCarousel companies={partnerCompanies} autoScrollSpeed={4000} /> */}
+              <div className="grid grid-cols-2 md:grid-cols-4 gap-8 items-center opacity-60">
+                {partnerCompanies.map((company, index) => (
+                  <img
+                    key={company.name}
+                    src={company.logo}
+                    alt={company.name}
+                    className="h-8 object-contain grayscale hover:grayscale-0 transition-all duration-300"
+                  />
+                ))}
+              </div>
             </motion.div>
             
 
@@ -503,12 +513,20 @@ export default function DealRoomSalesPage() {
                 </p>
               </div>
 
-              <FeatureList 
-                features={features}
-                startDelay={0.6}
-                className="mb-8"
-                iconColor="text-green-500"
-              />
+              <div className="space-y-4 mb-8">
+                {features.map((feature, index) => (
+                  <motion.div
+                    key={feature.text}
+                    initial={{ opacity: 0, x: -20 }}
+                    animate={{ opacity: 1, x: 0 }}
+                    transition={{ duration: 0.6, delay: 0.6 + index * 0.1 }}
+                    className="flex items-center space-x-3"
+                  >
+                    <CheckCircle2 className="w-5 h-5 text-green-500 flex-shrink-0" />
+                    <span className="text-foreground">{feature.text}</span>
+                  </motion.div>
+                ))}
+              </div>
 
               <div className="flex justify-center">
                 <GradientButton rightIcon={ArrowRight} size="lg" onClick={handleJoinClick}>
@@ -575,9 +593,9 @@ export default function DealRoomSalesPage() {
             </AnimatedSection>
             
             <AnimatedSection delay={0.4} className="flex flex-col md:flex-row items-center justify-center gap-8 mb-12 text-sm">
-              <BadgeWithIcon text="No setup fees" icon={CheckCircle2} variant="default" />
-              <BadgeWithIcon text="Cancel anytime" icon={CheckCircle2} variant="default" />
-              <BadgeWithIcon text="Money-back guarantee" icon={CheckCircle2} variant="default" />
+              <BadgeWithIcon icon={CheckCircle2} variant="default">No setup fees</BadgeWithIcon>
+              <BadgeWithIcon icon={CheckCircle2} variant="default">Cancel anytime</BadgeWithIcon>
+              <BadgeWithIcon icon={CheckCircle2} variant="default">Money-back guarantee</BadgeWithIcon>
             </AnimatedSection>
 
             {/* Limited spots banner */}
