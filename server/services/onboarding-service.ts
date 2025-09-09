@@ -206,17 +206,17 @@ export class OnboardingService {
     await this.ensureSession(sessionId);
 
     // Check if founder exists by email
-    let founder = await storage.getFounderByEmail(founderData.email);
+    let founderRecord = await storage.getFounderByEmail(founderData.email);
     
-    if (!founder) {
+    if (!founderRecord) {
       // Create new founder
       try {
         if (process.env.NODE_ENV === 'development') {
           console.log("Creating founder with data:", JSON.stringify(founderData, null, 2));
         }
-        founder = await storage.createFounder(founderData);
+        founderRecord = await storage.createFounder(founderData);
         if (process.env.NODE_ENV === 'development') {
-          console.log("Founder created successfully:", founder.founderId);
+          console.log("Founder created successfully:", founderRecord.founderId);
         }
       } catch (error) {
         console.error("❌ Failed to create founder:", error);
@@ -224,13 +224,13 @@ export class OnboardingService {
       }
     } else {
       // Founder exists - check if they have any incomplete sessions
-      const hasIncompleteSession = await this.hasIncompleteOnboardingSession(founder.founderId);
+      const hasIncompleteSession = await this.hasIncompleteOnboardingSession(founderRecord.founderId);
       
       if (hasIncompleteSession) {
         // Allow re-registration by updating existing founder data
         try {
           if (process.env.NODE_ENV === 'development') {
-            console.log("Updating existing founder with incomplete session:", founder.founderId);
+            console.log("Updating existing founder with incomplete session:", founderRecord.founderId);
           }
           
           // Update the existing founder with new data
@@ -252,18 +252,18 @@ export class OnboardingService {
               country: founderData.country,
               updatedAt: new Date(),
             })
-            .where(eq(founder.founderId, founder.founderId));
+            .where(eq(founder.founderId, founderRecord.founderId));
           
           // Get updated founder data
           const [updatedFounder] = await db
             .select()
             .from(founder)
-            .where(eq(founder.founderId, founder.founderId));
+            .where(eq(founder.founderId, founderRecord.founderId));
           
-          founder = updatedFounder;
+          founderRecord = updatedFounder;
           
           if (process.env.NODE_ENV === 'development') {
-            console.log("Founder updated successfully for restart:", founder.founderId);
+            console.log("Founder updated successfully for restart:", founderRecord.founderId);
           }
         } catch (error) {
           console.error("❌ Failed to update founder:", error);
@@ -282,7 +282,7 @@ export class OnboardingService {
     }
 
     // Update session with founder data and ID
-    const founderId = founder.founderId;
+    const founderId = founderRecord.founderId;
     
     if (!founderId) {
       throw new Error("Failed to create founder - no ID returned");
@@ -292,7 +292,7 @@ export class OnboardingService {
     await this.updateSession(sessionId, {
       currentStep: "venture",
       stepData: { 
-        founder: founder,
+        founder: founderRecord,
         founderId: founderId,
       },
       completedSteps: ["founder"],
@@ -302,7 +302,7 @@ export class OnboardingService {
     if (eastEmblemAPI.isConfigured()) {
       eastEmblemAPI
         .sendSlackNotification(
-          `\`Onboarding Id : ${sessionId}\`\n👤 Founder Profile Completed - ${founder.fullName} (${founder.email})`,
+          `\`Onboarding Id : ${sessionId}\`\n👤 Founder Profile Completed - ${founderRecord.fullName} (${founderRecord.email})`,
           "#notifications",
           sessionId,
         )
