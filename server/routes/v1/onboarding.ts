@@ -74,7 +74,7 @@ router.post("/founder", asyncHandler(async (req: Request, res: Response) => {
   // Invalidate founder cache when new founder is created
   if (result.founderId) {
     try {
-      await lruCacheService.invalidate('founder', String(result.founderId));
+      await lruCacheService.invalidate('founder', result.founderId);
       appLogger.api('V1 onboarding - founder cache invalidated', { founderId: result.founderId });
     } catch (cacheError) {
       appLogger.api('V1 onboarding - founder cache invalidation failed', { 

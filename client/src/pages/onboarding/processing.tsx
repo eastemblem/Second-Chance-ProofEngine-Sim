@@ -65,39 +65,12 @@ export default function ProcessingScreen({
     const sessionRetryCount = sessionData?.stepData?.processing?.retryCount || 0;
     setRetryCount(sessionRetryCount);
   }, [sessionData?.stepData?.processing?.retryCount]);
-
-  // Fetch upload status for start over workflow
-  useEffect(() => {
-    const fetchUploadStatus = async () => {
-      try {
-        const res = await apiRequest("GET", `/api/onboarding/upload-status`);
-        const data = await res.json();
-        if (data.success) {
-          setUploadStatus(data.data);
-        }
-      } catch (error) {
-        console.error("Failed to fetch upload status:", error);
-      }
-    };
-    
-    // Only fetch if we have errors (failed uploads)
-    if (hasError) {
-      fetchUploadStatus();
-    }
-  }, [hasError]);
   const [documentsNotified, setDocumentsNotified] = useState({
     certificate: false,
     report: false
   });
   const [validationError, setValidationError] = useState<string | null>(null);
   const [showFileUpload, setShowFileUpload] = useState(false);
-  // Start over workflow state
-  const [uploadStatus, setUploadStatus] = useState<{
-    uploadAttemptCount: number;
-    showStartOver: boolean;
-    showContactSupport: boolean;
-    canStartOver: boolean;
-  } | null>(null);
 
   const MAX_RETRIES = 3;
 
@@ -350,74 +323,6 @@ export default function ProcessingScreen({
     }, 1000);
   };
 
-  const handleStartOver = async () => {
-    try {
-      // Get founder email from session data
-      const founderEmail = sessionData?.stepData?.founder?.email;
-      if (!founderEmail) {
-        toast({
-          title: "Error",
-          description: "Founder email not found. Please refresh and try again.",
-          variant: "destructive",
-        });
-        return;
-      }
-
-      const res = await apiRequest("POST", "/api/onboarding/start-over", {
-        founderEmail: founderEmail
-      });
-      
-      if (res.ok) {
-        const data = await res.json();
-        const newSessionId = data.data.newSessionId;
-        
-        if (newSessionId) {
-          // Create fresh session data with new session ID
-          const freshSessionData = {
-            sessionId: newSessionId,
-            currentStep: "founder",
-            stepData: {},
-            completedSteps: [],
-            isComplete: false,
-            lastUpdated: new Date().toISOString()
-          };
-          
-          // Save new session to localStorage
-          localStorage.setItem('onboardingSession', JSON.stringify(freshSessionData));
-          
-          toast({
-            title: "Start Over Initiated",
-            description: data.data.message,
-            duration: 5000,
-          });
-          
-          // Navigate back to start of onboarding with new session
-          setLocation("/onboarding-flow");
-        } else {
-          toast({
-            title: "Start Over Error",
-            description: "New session ID not received. Please refresh and try again.",
-            variant: "destructive",
-          });
-        }
-      } else {
-        const errorData = await res.json();
-        toast({
-          title: "Start Over Failed",
-          description: errorData.error || "Unable to start over at this time",
-          variant: "destructive",
-        });
-      }
-    } catch (error) {
-      console.error("Start over error:", error);
-      toast({
-        title: "Error",
-        description: "Failed to start over. Please try again.",
-        variant: "destructive",
-      });
-    }
-  };
-
   // Polling for document completion
   useEffect(() => {
     let documentCheckInterval: NodeJS.Timeout;
@@ -654,50 +559,24 @@ export default function ProcessingScreen({
                 )}
               </Button>
             )}
-            {/* Smart Start Over and Contact Support buttons based on upload status */}
-            {uploadStatus?.showStartOver && uploadStatus?.canStartOver ? (
-              <Button variant="outline" onClick={handleStartOver}>
-                Start Over
-              </Button>
-            ) : uploadStatus?.showContactSupport ? (
-              <Button 
-                variant="outline"
-                onClick={() => {
-                  const subject = encodeURIComponent("Need Support - Maximum Upload Attempts Reached");
-                  const body = encodeURIComponent(`Hi Support Team,
-
-I've reached the maximum upload attempts on Second Chance platform and need assistance.
-
-Session ID: ${sessionId}
-Upload attempts: ${uploadStatus.uploadAttemptCount}
-
-Please help me resolve this issue.
-
-Best regards`);
-                  window.open(`mailto:info@get-secondchance.com?subject=${subject}&body=${body}`, '_blank');
-                }}
-              >
-                <Mail className="w-4 h-4 mr-2" />
-                Contact Support
-              </Button>
-            ) : (
-              <Button variant="outline" onClick={() => {
-                // Fallback start over - clear localStorage and reload
-                localStorage.clear();
-                
-                if ('caches' in window) {
-                  caches.keys().then(names => {
-                    names.forEach(name => {
-                      caches.delete(name);
-                    });
+            <Button variant="outline" onClick={() => {
+              // Clear all localStorage data
+              localStorage.clear();
+              
+              // Clear browser cache if supported
+              if ('caches' in window) {
+                caches.keys().then(names => {
+                  names.forEach(name => {
+                    caches.delete(name);
                   });
-                }
-                
-                window.location.reload();
-              }}>
-                Start Over
-              </Button>
-            )}
+                });
+              }
+              
+              // Reload the page
+              window.location.reload();
+            }}>
+              Start Over
+            </Button>
           </div>
           {retryCount > 0 && (
             <p className="text-xs text-muted-foreground mt-3">

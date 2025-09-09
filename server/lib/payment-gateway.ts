@@ -160,7 +160,7 @@ class TelrGateway extends PaymentGateway {
       });
 
       const result = await response.json();
-      appLogger.external('Telr raw response:', { result });
+      appLogger.external('Telr raw response:', JSON.stringify(result, null, 2));
 
       if (result.error) {
         appLogger.error('Telr API error', result.error);
@@ -207,7 +207,7 @@ class TelrGateway extends PaymentGateway {
 
     try {
       appLogger.external(`Making Telr status check request for order: ${orderRef}`);
-      appLogger.external(`Request payload:`, { telrRequest });
+      appLogger.external(`Request payload:`, JSON.stringify(telrRequest, null, 2));
       
       const response = await fetch('https://secure.telr.com/gateway/order.json', {
         method: 'POST',
@@ -223,7 +223,7 @@ class TelrGateway extends PaymentGateway {
       }
 
       const result = await response.json();
-      appLogger.external(`Telr status check response:`, { result });
+      appLogger.external(`Telr status check response:`, JSON.stringify(result, null, 2));
 
       if (result.error) {
         appLogger.error(`Telr status check error`, result.error);

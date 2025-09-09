@@ -5,7 +5,7 @@ import { eastEmblemAPI, type EmailNotificationData } from "../eastemblem-api";
 import { getSessionId, getSessionData, updateSessionData } from "../utils/session-manager";
 import { db } from "../db";
 import { onboardingSession, documentUpload, founder } from "@shared/schema";
-import { eq, and, sql } from "drizzle-orm";
+import { eq, and } from "drizzle-orm";
 
 // Utility function to extract MIME type from file extension
 function getMimeTypeFromExtension(fileName: string): string {
@@ -206,17 +206,17 @@ export class OnboardingService {
     await this.ensureSession(sessionId);
 
     // Check if founder exists by email
-    let founderRecord = await storage.getFounderByEmail(founderData.email);
+    let founder = await storage.getFounderByEmail(founderData.email);
     
-    if (!founderRecord) {
+    if (!founder) {
       // Create new founder
       try {
         if (process.env.NODE_ENV === 'development') {
           console.log("Creating founder with data:", JSON.stringify(founderData, null, 2));
         }
-        founderRecord = await storage.createFounder(founderData);
+        founder = await storage.createFounder(founderData);
         if (process.env.NODE_ENV === 'development') {
-          console.log("Founder created successfully:", founderRecord.founderId);
+          console.log("Founder created successfully:", founder.founderId);
         }
       } catch (error) {
         console.error("❌ Failed to create founder:", error);
@@ -224,13 +224,13 @@ export class OnboardingService {
       }
     } else {
       // Founder exists - check if they have any incomplete sessions
-      const hasIncompleteSession = await this.hasIncompleteOnboardingSession(founderRecord.founderId);
+      const hasIncompleteSession = await this.hasIncompleteOnboardingSession(founder.founderId);
       
       if (hasIncompleteSession) {
         // Allow re-registration by updating existing founder data
         try {
           if (process.env.NODE_ENV === 'development') {
-            console.log("Updating existing founder with incomplete session:", founderRecord.founderId);
+            console.log("Updating existing founder with incomplete session:", founder.founderId);
           }
           
           // Update the existing founder with new data
@@ -252,37 +252,31 @@ export class OnboardingService {
               country: founderData.country,
               updatedAt: new Date(),
             })
-            .where(eq(founder.founderId, founderRecord.founderId));
+            .where(eq(founder.founderId, founder.founderId));
           
           // Get updated founder data
           const [updatedFounder] = await db
             .select()
             .from(founder)
-            .where(eq(founder.founderId, founderRecord.founderId));
+            .where(eq(founder.founderId, founder.founderId));
           
-          founderRecord = updatedFounder;
+          founder = updatedFounder;
           
           if (process.env.NODE_ENV === 'development') {
-            console.log("Founder updated successfully for restart:", founderRecord.founderId);
+            console.log("Founder updated successfully for restart:", founder.founderId);
           }
         } catch (error) {
           console.error("❌ Failed to update founder:", error);
           throw new Error(`Failed to update founder data: ${error instanceof Error ? error.message : 'Unknown error'}`);
         }
       } else {
-        // Email already exists and has completed sessions - check if start over allows reuse
-        const emailCheck = await this.canReuseEmail(founderData.email, sessionId);
-        if (!emailCheck.canReuse) {
-          throw new Error(emailCheck.reason || "Email already taken");
-        }
-        
-        // Email can be reused during start over - use existing founder
-        console.log("Email reused during start over:", founderData.email, emailCheck.reason);
+        // Email already exists and has completed sessions - throw error
+        throw new Error("Email already taken");
       }
     }
 
     // Update session with founder data and ID
-    const founderId = founderRecord.founderId;
+    const founderId = founder.founderId;
     
     if (!founderId) {
       throw new Error("Failed to create founder - no ID returned");
@@ -292,7 +286,7 @@ export class OnboardingService {
     await this.updateSession(sessionId, {
       currentStep: "venture",
       stepData: { 
-        founder: founderRecord,
+        founder: founder,
         founderId: founderId,
       },
       completedSteps: ["founder"],
@@ -302,7 +296,7 @@ export class OnboardingService {
     if (eastEmblemAPI.isConfigured()) {
       eastEmblemAPI
         .sendSlackNotification(
-          `\`Onboarding Id : ${sessionId}\`\n👤 Founder Profile Completed - ${founderRecord.fullName} (${founderRecord.email})`,
+          `\`Onboarding Id : ${sessionId}\`\n👤 Founder Profile Completed - ${founder.fullName} (${founder.email})`,
           "#notifications",
           sessionId,
         )
@@ -313,8 +307,8 @@ export class OnboardingService {
 
     return {
       sessionId,
-      founderId: founderRecord.founderId,
-      founder: founderRecord,
+      founderId: founder.founderId,
+      founder,
     };
   }
 
@@ -815,9 +809,6 @@ export class OnboardingService {
                   canRetry: true
                 })
                 .where(eq(documentUpload.uploadId, upload.uploadId));
-
-              // Track upload attempt in session for start over workflow
-              await this.trackUploadAttempt(sessionId);
               
               // Create validation error result
               scoringResult = {
@@ -862,9 +853,6 @@ export class OnboardingService {
               canRetry: true // Allow user to retry with different file
             })
             .where(eq(documentUpload.uploadId, upload.uploadId));
-
-          // Track upload attempt in session for start over workflow
-          await this.trackUploadAttempt(sessionId);
           
           // Create error result instead of throwing - this allows frontend to handle gracefully
           scoringResult = {
@@ -1300,230 +1288,6 @@ export class OnboardingService {
 
     console.log(`✅ Scoring retry completed for session: ${sessionId}`);
     return scoringResult;
-  }
-
-  /**
-   * Start Over Workflow Methods
-   */
-
-  /**
-   * Check if user can start over (not exceeded max start-overs)
-   */
-  async canStartOver(sessionId: string): Promise<{ canStartOver: boolean; reason?: string; showContactSupport: boolean }> {
-    const session = await this.getSession(sessionId);
-    if (!session) {
-      return { canStartOver: false, reason: "Session not found", showContactSupport: true };
-    }
-
-    // Check if start over is explicitly disabled
-    if (session.startOverDisabled) {
-      return { canStartOver: false, reason: "Start over disabled after maximum attempts", showContactSupport: true };
-    }
-
-    // Check start over count (max 1 start over allowed)
-    const startOverCount = session.startOverCount || 0;
-    if (startOverCount >= 1) {
-      return { canStartOver: false, reason: "Maximum start over attempts reached", showContactSupport: true };
-    }
-
-    // Check upload attempt count (should be >= 3 to show start over)
-    const uploadAttemptCount = session.uploadAttemptCount || 0;
-    if (uploadAttemptCount < 3) {
-      return { canStartOver: false, reason: "Not enough failed attempts to start over", showContactSupport: false };
-    }
-
-    return { canStartOver: true, showContactSupport: false };
-  }
-
-  /**
-   * Track upload attempt (increment count)
-   */
-  async trackUploadAttempt(sessionId: string): Promise<void> {
-    await db
-      .update(onboardingSession)
-      .set({
-        uploadAttemptCount: sql`COALESCE(upload_attempt_count, 0) + 1`,
-        updatedAt: new Date()
-      })
-      .where(eq(onboardingSession.sessionId, sessionId));
-  }
-
-  /**
-   * Determine if upload failed 3 times and show start over
-   */
-  async getUploadStatus(sessionId: string): Promise<{ 
-    uploadAttemptCount: number; 
-    showStartOver: boolean; 
-    showContactSupport: boolean;
-    canStartOver: boolean;
-  }> {
-    const session = await this.getSession(sessionId);
-    if (!session) {
-      return { uploadAttemptCount: 0, showStartOver: false, showContactSupport: true, canStartOver: false };
-    }
-
-    const uploadAttemptCount = session.uploadAttemptCount || 0;
-    const startOverCount = session.startOverCount || 0;
-    const startOverDisabled = session.startOverDisabled || false;
-
-    // Show start over if:
-    // 1. Failed 3+ times
-    // 2. Haven't used start over yet (max 1)
-    // 3. Start over not disabled
-    const showStartOver = uploadAttemptCount >= 3 && startOverCount === 0 && !startOverDisabled;
-
-    // Show contact support if:
-    // 1. Start over disabled, OR
-    // 2. Already used start over once and failed again
-    const showContactSupport = startOverDisabled || (startOverCount >= 1 && uploadAttemptCount >= 6);
-
-    const canStartOver = showStartOver;
-
-    return {
-      uploadAttemptCount,
-      showStartOver,
-      showContactSupport,
-      canStartOver
-    };
-  }
-
-  /**
-   * Execute start over - reset session while preserving attempt history
-   */
-  async executeStartOver(sessionId: string, founderEmail: string): Promise<{ newSessionId: string; message: string }> {
-    const oldSession = await this.getSession(sessionId);
-    if (!oldSession) {
-      throw new Error("Session not found");
-    }
-
-    // Check if start over is allowed
-    const { canStartOver, reason } = await this.canStartOver(sessionId);
-    if (!canStartOver) {
-      throw new Error(reason || "Start over not allowed");
-    }
-
-    // Increment start over count and preserve attempt history
-    const newUploadAttemptCount = (oldSession.uploadAttemptCount || 0);
-    const newStartOverCount = (oldSession.startOverCount || 0) + 1;
-    
-    // Disable start over if this is the second time (after first start over)
-    const shouldDisableStartOver = newStartOverCount >= 1;
-
-    // Create a new session for start over (clean slate approach)
-    const newSessionId = crypto.randomUUID();
-    
-    // Update old session to mark it as abandoned but preserve attempt tracking
-    await db
-      .update(onboardingSession)
-      .set({
-        startOverCount: newStartOverCount,
-        startOverDisabled: shouldDisableStartOver,
-        founderEmail: founderEmail,
-        updatedAt: new Date(),
-        isComplete: false
-      })
-      .where(eq(onboardingSession.sessionId, sessionId));
-
-    // Create new fresh session with preserved attempt counts
-    await db
-      .insert(onboardingSession)
-      .values({
-        sessionId: newSessionId,
-        currentStep: "founder",
-        stepData: {},
-        completedSteps: [],
-        isComplete: false,
-        uploadAttemptCount: newUploadAttemptCount,
-        startOverCount: newStartOverCount,
-        startOverDisabled: shouldDisableStartOver,
-        founderEmail: founderEmail,
-        founderId: null,
-        createdAt: new Date(),
-        updatedAt: new Date()
-      });
-
-    return { 
-      newSessionId: newSessionId, // Return new session ID
-      message: `Start over initiated with fresh session. You have ${3 - newUploadAttemptCount} remaining attempts before requiring support contact.`
-    };
-  }
-
-  /**
-   * Check if email can be reused during start over
-   */
-  async canReuseEmail(email: string, sessionId?: string): Promise<{ canReuse: boolean; reason?: string }> {
-    // Look for existing founder with this email
-    const existingFounder = await db
-      .select()
-      .from(founder)
-      .where(eq(founder.email, email))
-      .limit(1);
-
-    if (existingFounder.length === 0) {
-      return { canReuse: true }; // Email not in use
-    }
-
-    // Check if there's an incomplete onboarding session for this email
-    const incompleteSession = await db
-      .select()
-      .from(onboardingSession)
-      .where(
-        and(
-          eq(onboardingSession.founderEmail, email),
-          eq(onboardingSession.isComplete, false)
-        )
-      )
-      .limit(1);
-
-    if (incompleteSession.length > 0) {
-      // If this is the same session ID, allow reuse
-      if (sessionId && incompleteSession[0].sessionId === sessionId) {
-        return { canReuse: true };
-      }
-      // Otherwise, allow reuse since onboarding is incomplete
-      return { canReuse: true, reason: "Email associated with incomplete onboarding - allowing reuse" };
-    }
-
-    // Check if this is a start over session by looking for sessions with this email
-    if (sessionId) {
-      // Check if current session is a start over session (has startOverCount > 0)
-      const currentSession = await db
-        .select()
-        .from(onboardingSession)
-        .where(eq(onboardingSession.sessionId, sessionId))
-        .limit(1);
-
-      if (currentSession.length > 0) {
-        const session = currentSession[0];
-        // Allow reuse if this is a start over session
-        if (session.startOverCount && session.startOverCount > 0) {
-          return { canReuse: true, reason: "Email reuse allowed during start over workflow" };
-        }
-        
-        // Check if the session has the same founder email (start over in progress)
-        if (session.founderEmail === email) {
-          return { canReuse: true, reason: "Email matches current start over session" };
-        }
-      }
-
-      // Also check if there are any start over sessions for this email
-      const startOverSession = await db
-        .select()
-        .from(onboardingSession)
-        .where(
-          and(
-            eq(onboardingSession.founderEmail, email),
-            sql`start_over_count > 0`
-          )
-        )
-        .limit(1);
-
-      if (startOverSession.length > 0) {
-        return { canReuse: true, reason: "Email associated with start over workflow - allowing reuse" };
-      }
-    }
-
-    return { canReuse: false, reason: "Email already associated with completed founder profile" };
   }
 }
 

@@ -741,8 +741,8 @@ class EastEmblemAPI {
           formData.append("onboarding_id", onboardingId);
         }
 
-        appLogger.external(`Scoring pitch deck: ${fileName}`);
-        appLogger.external(`API endpoint: ${this.getEndpoint("/webhook/score/pitch-deck")}`);
+        appLogger.external("Scoring pitch deck:", fileName);
+        appLogger.external("API endpoint:", this.getEndpoint("/webhook/score/pitch-deck"));
 
         const controller = new AbortController();
         const timeoutId = setTimeout(() => controller.abort(), 180000); // Increase to 3 minutes for scoring with retries
@@ -787,11 +787,11 @@ class EastEmblemAPI {
           }
 
           const responseText = await response.text();
-          appLogger.external(`Raw scoring response: ${responseText}`);
+          appLogger.external("Raw scoring response:", responseText);
           
           try {
             const result = JSON.parse(responseText) as any;
-            appLogger.external(`Pitch deck scored successfully:`, { result });
+            appLogger.external("Pitch deck scored successfully:", result);
             
             // Handle the new response format - extract the first item from array if needed
             if (Array.isArray(result) && result.length > 0) {
@@ -802,7 +802,7 @@ class EastEmblemAPI {
             return result;
           } catch (parseError) {
             appLogger.error("Failed to parse scoring response JSON:", parseError);
-            appLogger.external(`Response was: ${responseText}`);
+            appLogger.external("Response was:", responseText);
             
             // Try to fix common JSON issues
             try {
@@ -811,7 +811,7 @@ class EastEmblemAPI {
                 '"onboarding_id": "$1"'
               );
               const result = JSON.parse(fixedJson);
-              appLogger.external(`Successfully parsed fixed scoring JSON:`, { result });
+              appLogger.external("Successfully parsed fixed scoring JSON:", result);
               
               // Handle array format
               if (Array.isArray(result) && result.length > 0) {
