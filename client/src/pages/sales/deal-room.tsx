@@ -303,13 +303,13 @@ export default function DealRoomSalesPage() {
               </p>
               
               {/* <LogoCarousel companies={partnerCompanies} autoScrollSpeed={4000} /> */}
-              <div className="grid grid-cols-2 md:grid-cols-4 gap-8 items-center opacity-60">
+              <div className="grid grid-cols-2 md:grid-cols-4 gap-8 items-center">
                 {partnerCompanies.map((company, index) => (
                   <img
                     key={company.name}
                     src={company.logo}
                     alt={company.name}
-                    className="h-8 object-contain grayscale hover:grayscale-0 transition-all duration-300"
+                    className="h-8 object-contain hover:scale-105 transition-all duration-300"
                   />
                 ))}
               </div>
