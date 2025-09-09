@@ -47,9 +47,11 @@ export class OnboardingService {
 
     // Check for venture data
     if (expectedVentureName) {
-      const hasVentureData = scoringResult?.venture || 
+      const hasVentureData = scoringResult?.venture_name || 
+                            scoringResult?.venture || 
                             scoringResult?.startup || 
                             scoringResult?.business ||
+                            scoringResult?.output?.venture_name ||
                             scoringResult?.output?.venture ||
                             scoringResult?.output?.startup ||
                             scoringResult?.output?.business;
@@ -61,12 +63,16 @@ export class OnboardingService {
 
     // Check for founder/team data  
     if (expectedFounderName) {
-      const hasFounderData = scoringResult?.founder || 
+      const hasFounderData = scoringResult?.founder_name || 
+                            scoringResult?.founder || 
                             scoringResult?.team || 
                             scoringResult?.founders ||
+                            scoringResult?.founder_stage ||
+                            scoringResult?.output?.founder_name ||
                             scoringResult?.output?.founder ||
                             scoringResult?.output?.team ||
-                            scoringResult?.output?.founders;
+                            scoringResult?.output?.founders ||
+                            scoringResult?.output?.founder_stage;
       
       if (!hasFounderData) {
         missingData.push('team');
