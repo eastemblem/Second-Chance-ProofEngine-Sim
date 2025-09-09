@@ -844,8 +844,7 @@ export class OnboardingManager {
 
     // Send email notification to founder about completion and ProofScore
     try {
-      const { EmailService } = await import('./services/emailService');
-      const emailService = new EmailService();
+      const { emailService } = await import('./services/emailService');
       
       const totalScore = scoringResult?.output?.total_score || 0;
       const scoreBreakdown = scoringResult?.output || {};
