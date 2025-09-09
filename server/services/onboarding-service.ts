@@ -1467,6 +1467,28 @@ export class OnboardingService {
       return { canReuse: true, reason: "Email associated with incomplete onboarding - allowing reuse" };
     }
 
+    // Check if there's an active start over session for this email (even if marked complete)
+    if (sessionId) {
+      const currentSession = await db
+        .select()
+        .from(onboardingSession)
+        .where(eq(onboardingSession.sessionId, sessionId))
+        .limit(1);
+
+      if (currentSession.length > 0) {
+        const session = currentSession[0];
+        // Allow reuse if this is a start over session or start over is not disabled
+        if ((session.startOverCount && session.startOverCount > 0) || !session.startOverDisabled) {
+          return { canReuse: true, reason: "Email reuse allowed during start over workflow" };
+        }
+        
+        // Also check if the session has the same founder email (start over in progress)
+        if (session.founderEmail === email) {
+          return { canReuse: true, reason: "Email matches current start over session" };
+        }
+      }
+    }
+
     return { canReuse: false, reason: "Email already associated with completed founder profile" };
   }
 }
