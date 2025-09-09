@@ -162,20 +162,20 @@ export default function ResetPasswordPage() {
     return (
       <AuthLayout>
         <div className="flex items-center justify-center px-4">
-          <Card className="w-full max-w-md shadow-xl border-red-200 bg-red-50">
+          <Card className="w-full max-w-md shadow-xl border-destructive/20 bg-destructive/5">
             <CardHeader className="text-center">
-              <div className="mx-auto mb-4 w-12 h-12 rounded-full bg-red-100 flex items-center justify-center">
-                <XCircle className="w-6 h-6 text-red-600" />
+              <div className="mx-auto mb-4 w-12 h-12 rounded-full bg-destructive/10 flex items-center justify-center">
+                <XCircle className="w-6 h-6 text-destructive" />
               </div>
-              <CardTitle className="text-red-900">Invalid Reset Link</CardTitle>
-              <CardDescription className="text-red-700">
+              <CardTitle className="text-destructive">Invalid Reset Link</CardTitle>
+              <CardDescription className="text-muted-foreground">
                 {tokenError || "Reset token is missing or invalid"}
               </CardDescription>
             </CardHeader>
             <CardContent className="text-center">
               <Button 
                 onClick={() => setLocation('/forgot-password')}
-                className="w-full bg-red-600 hover:bg-red-700"
+                className="w-full bg-destructive hover:bg-destructive/90"
               >
                 Request New Reset Link
               </Button>
