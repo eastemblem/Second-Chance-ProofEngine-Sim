@@ -25,12 +25,12 @@ export function LogoCarousel({ companies, autoScrollSpeed = 1000 }: LogoCarousel
   // Function to get appropriate height for each logo
   const getLogoHeight = (companyName: string) => {
     const heights = {
-      "Plug and Play Tech Centre": "h-16", // Large
-      "Founders Live": "h-12", // Medium  
-      "500Global": "h-14", // Large rectangular
-      "East Emblem": "h-10" // Smaller circular
+      "Plug and Play Tech Centre": "h-24", // Large - 96px
+      "Founders Live": "h-20", // Medium - 80px  
+      "500Global": "h-24", // Large rectangular - 96px
+      "East Emblem": "h-16" // Smaller circular - 64px
     };
-    return heights[companyName as keyof typeof heights] || "h-12";
+    return heights[companyName as keyof typeof heights] || "h-20";
   };
 
   return (
