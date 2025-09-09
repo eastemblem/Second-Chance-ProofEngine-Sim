@@ -1409,7 +1409,10 @@ export class OnboardingService {
     // Disable start over if this is the second time (after first start over)
     const shouldDisableStartOver = newStartOverCount >= 1;
 
-    // Update current session to mark it as start-over
+    // Create a new session for start over (clean slate approach)
+    const newSessionId = crypto.randomUUID();
+    
+    // Update old session to mark it as abandoned but preserve attempt tracking
     await db
       .update(onboardingSession)
       .set({
@@ -1417,17 +1420,31 @@ export class OnboardingService {
         startOverDisabled: shouldDisableStartOver,
         founderEmail: founderEmail,
         updatedAt: new Date(),
-        // Reset progress but preserve attempt counts
-        currentStep: "founder",
-        stepData: {},
-        completedSteps: [],
         isComplete: false
       })
       .where(eq(onboardingSession.sessionId, sessionId));
 
+    // Create new fresh session with preserved attempt counts
+    await db
+      .insert(onboardingSession)
+      .values({
+        sessionId: newSessionId,
+        currentStep: "founder",
+        stepData: {},
+        completedSteps: [],
+        isComplete: false,
+        uploadAttemptCount: newUploadAttemptCount,
+        startOverCount: newStartOverCount,
+        startOverDisabled: shouldDisableStartOver,
+        founderEmail: founderEmail,
+        founderId: null,
+        createdAt: new Date(),
+        updatedAt: new Date()
+      });
+
     return { 
-      newSessionId: sessionId, // Reuse same session ID
-      message: `Start over initiated. You have ${3 - newUploadAttemptCount} remaining attempts before requiring support contact.`
+      newSessionId: newSessionId, // Return new session ID
+      message: `Start over initiated with fresh session. You have ${3 - newUploadAttemptCount} remaining attempts before requiring support contact.`
     };
   }
 
@@ -1467,8 +1484,9 @@ export class OnboardingService {
       return { canReuse: true, reason: "Email associated with incomplete onboarding - allowing reuse" };
     }
 
-    // Check if there's an active start over session for this email (even if marked complete)
+    // Check if this is a start over session by looking for sessions with this email
     if (sessionId) {
+      // Check if current session is a start over session (has startOverCount > 0)
       const currentSession = await db
         .select()
         .from(onboardingSession)
@@ -1477,15 +1495,31 @@ export class OnboardingService {
 
       if (currentSession.length > 0) {
         const session = currentSession[0];
-        // Allow reuse if this is a start over session or start over is not disabled
-        if ((session.startOverCount && session.startOverCount > 0) || !session.startOverDisabled) {
+        // Allow reuse if this is a start over session
+        if (session.startOverCount && session.startOverCount > 0) {
           return { canReuse: true, reason: "Email reuse allowed during start over workflow" };
         }
         
-        // Also check if the session has the same founder email (start over in progress)
+        // Check if the session has the same founder email (start over in progress)
         if (session.founderEmail === email) {
           return { canReuse: true, reason: "Email matches current start over session" };
         }
+      }
+
+      // Also check if there are any start over sessions for this email
+      const startOverSession = await db
+        .select()
+        .from(onboardingSession)
+        .where(
+          and(
+            eq(onboardingSession.founderEmail, email),
+            sql`start_over_count > 0`
+          )
+        )
+        .limit(1);
+
+      if (startOverSession.length > 0) {
+        return { canReuse: true, reason: "Email associated with start over workflow - allowing reuse" };
       }
     }
 
