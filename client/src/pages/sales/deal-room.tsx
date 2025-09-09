@@ -13,7 +13,7 @@ import { MetricCard } from "@/components/features/sales/metric-card";
 import { FeatureList } from "@/components/features/sales/feature-list";
 import { GradientButton } from "@/components/features/sales/gradient-button";
 import { TestimonialCard } from "@/components/features/sales/testimonial-card";
-// import { LogoCarousel } from "@/components/features/sales/logo-carousel"; // TODO: Fix component compatibility
+import { LogoCarousel } from "@/components/features/sales/logo-carousel";
 import { BadgeWithIcon } from "@/components/features/sales/badge-with-icon";
 import { AnimatedCounter } from "@/components/features/sales/animated-counter";
 import { FloatingElements } from "@/components/features/sales/floating-elements";
@@ -302,27 +302,7 @@ export default function DealRoomSalesPage() {
                 Trusted by leading accelerators and partners:
               </p>
               
-              {/* <LogoCarousel companies={partnerCompanies} autoScrollSpeed={4000} /> */}
-              <div className="grid grid-cols-2 md:grid-cols-4 gap-8 items-center">
-                {partnerCompanies.map((company, index) => {
-                  // Different heights for each logo to match the screenshot
-                  const logoHeight = {
-                    "Plug and Play Tech Centre": "h-16", // Large
-                    "Founders Live": "h-12", // Medium  
-                    "500Global": "h-14", // Large rectangular
-                    "East Emblem": "h-10" // Smaller circular
-                  }[company.name] || "h-12";
-                  
-                  return (
-                    <img
-                      key={company.name}
-                      src={company.logo}
-                      alt={company.name}
-                      className={`${logoHeight} object-contain hover:scale-105 transition-all duration-300`}
-                    />
-                  );
-                })}
-              </div>
+              <LogoCarousel companies={partnerCompanies} autoScrollSpeed={4000} />
             </motion.div>
             
 
