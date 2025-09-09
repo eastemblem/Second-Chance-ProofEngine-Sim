@@ -6,7 +6,7 @@ import { Label } from "@/components/ui/label";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { useToast } from "@/hooks/use-toast";
 import { CheckCircle, Eye, EyeOff, Lock, AlertCircle, XCircle } from "lucide-react";
-
+import Logo from "@/components/logo";
 import { AuthLayout } from "@/components/layout/layout";
 
 
@@ -190,16 +190,23 @@ export default function ResetPasswordPage() {
 
   return (
     <AuthLayout>
-      <div className="flex items-center justify-center px-4 py-8">
-        <div className="w-full max-w-md">
-          {/* Reset Password Form */}
-          <Card>
-            <CardHeader>
-              <CardTitle className="gradient-text">Reset Your Password</CardTitle>
-              <CardDescription>
-                Enter a new secure password for your account
-              </CardDescription>
-            </CardHeader>
+      <div className="w-full max-w-md">
+        {/* Logo */}
+        <div className="text-center mb-8">
+          <Logo size="lg" showTagline={false} />
+        </div>
+
+        {/* Reset Password Form */}
+        <Card>
+          <CardHeader className="text-center">
+            <div className="w-12 h-12 mx-auto mb-4 rounded-full bg-gradient-to-r from-primary to-primary-gold flex items-center justify-center">
+              <Lock className="w-6 h-6 text-white" />
+            </div>
+            <CardTitle className="text-xl sm:text-2xl gradient-text">Reset Your Password</CardTitle>
+            <CardDescription className="text-sm sm:text-base">
+              Enter a new secure password for your account
+            </CardDescription>
+          </CardHeader>
             <CardContent>
               <form onSubmit={handleSubmit} className="space-y-4">
                 <div className="space-y-2">
@@ -278,7 +285,7 @@ export default function ResetPasswordPage() {
 
                 <Button
                   type="submit"
-                  className="w-full gradient-button"
+                  className="w-full gradient-button py-3 text-base"
                   disabled={isLoading || passwordErrors.length > 0 || password !== confirmPassword}
                 >
                   {isLoading ? "Resetting Password..." : "Reset Password"}
@@ -299,8 +306,6 @@ export default function ResetPasswordPage() {
             </CardContent>
           </Card>
         </div>
-      </div>
-      
     </AuthLayout>
   );
 }
