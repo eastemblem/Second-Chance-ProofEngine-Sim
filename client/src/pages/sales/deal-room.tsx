@@ -309,7 +309,7 @@ export default function DealRoomSalesPage() {
                     key={company.name}
                     src={company.logo}
                     alt={company.name}
-                    className="h-8 object-contain hover:scale-105 transition-all duration-300"
+                    className="h-12 object-contain hover:scale-105 transition-all duration-300"
                   />
                 ))}
               </div>
