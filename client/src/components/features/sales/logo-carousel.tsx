@@ -11,7 +11,7 @@ interface LogoCarouselProps {
   autoScrollSpeed?: number;
 }
 
-export function LogoCarousel({ companies, autoScrollSpeed = 4000 }: LogoCarouselProps) {
+export function LogoCarousel({ companies, autoScrollSpeed = 1000 }: LogoCarouselProps) {
   const [currentIndex, setCurrentIndex] = useState(0);
 
   useEffect(() => {
@@ -34,7 +34,7 @@ export function LogoCarousel({ companies, autoScrollSpeed = 4000 }: LogoCarousel
   };
 
   return (
-    <div className="relative w-full h-20 flex items-center justify-center overflow-hidden">
+    <div className="relative w-full h-32 flex items-center justify-center overflow-hidden">
       {/* Carousel container */}
       <div className="flex items-center justify-center w-full">
         {companies.map((company, index) => {

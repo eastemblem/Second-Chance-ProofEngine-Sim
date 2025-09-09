@@ -302,7 +302,7 @@ export default function DealRoomSalesPage() {
                 Trusted by leading accelerators and partners:
               </p>
               
-              <LogoCarousel companies={partnerCompanies} autoScrollSpeed={4000} />
+              <LogoCarousel companies={partnerCompanies} autoScrollSpeed={1000} />
             </motion.div>
             
 
