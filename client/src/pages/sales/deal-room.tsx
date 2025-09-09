@@ -304,14 +304,24 @@ export default function DealRoomSalesPage() {
               
               {/* <LogoCarousel companies={partnerCompanies} autoScrollSpeed={4000} /> */}
               <div className="grid grid-cols-2 md:grid-cols-4 gap-8 items-center">
-                {partnerCompanies.map((company, index) => (
-                  <img
-                    key={company.name}
-                    src={company.logo}
-                    alt={company.name}
-                    className="h-12 object-contain hover:scale-105 transition-all duration-300"
-                  />
-                ))}
+                {partnerCompanies.map((company, index) => {
+                  // Different heights for each logo to match the screenshot
+                  const logoHeight = {
+                    "Plug and Play Tech Centre": "h-16", // Large
+                    "Founders Live": "h-12", // Medium  
+                    "500Global": "h-14", // Large rectangular
+                    "East Emblem": "h-10" // Smaller circular
+                  }[company.name] || "h-12";
+                  
+                  return (
+                    <img
+                      key={company.name}
+                      src={company.logo}
+                      alt={company.name}
+                      className={`${logoHeight} object-contain hover:scale-105 transition-all duration-300`}
+                    />
+                  );
+                })}
               </div>
             </motion.div>
             
