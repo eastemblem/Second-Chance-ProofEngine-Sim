@@ -313,8 +313,8 @@ export class OnboardingService {
 
     return {
       sessionId,
-      founderId: founder.founderId,
-      founder,
+      founderId: founderRecord.founderId,
+      founder: founderRecord,
     };
   }
 

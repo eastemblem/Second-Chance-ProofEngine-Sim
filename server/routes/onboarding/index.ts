@@ -74,12 +74,12 @@ router.post("/founder", asyncHandler(async (req, res) => {
     // Log founder creation activity
     const context = ActivityService.getContextFromRequest(req);
     await ActivityService.logAccountActivity(
-      { ...context, founderId: result.founderId },
+      { ...context, founderId: String(result.founderId) },
       'signup',
       'Founder profile created',
       `Founder ${founderData.fullName} created profile during onboarding`,
       {
-        founderId: result.founderId,
+        founderId: String(result.founderId),
         email: founderData.email,
         sessionId
       }
