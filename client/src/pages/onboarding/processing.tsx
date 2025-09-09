@@ -369,14 +369,37 @@ export default function ProcessingScreen({
       
       if (res.ok) {
         const data = await res.json();
-        toast({
-          title: "Start Over Initiated",
-          description: data.data.message,
-          duration: 5000,
-        });
+        const newSessionId = data.data.newSessionId;
         
-        // Navigate back to start of onboarding
-        setLocation("/onboarding-flow");
+        if (newSessionId) {
+          // Create fresh session data with new session ID
+          const freshSessionData = {
+            sessionId: newSessionId,
+            currentStep: "founder",
+            stepData: {},
+            completedSteps: [],
+            isComplete: false,
+            lastUpdated: new Date().toISOString()
+          };
+          
+          // Save new session to localStorage
+          localStorage.setItem('onboardingSession', JSON.stringify(freshSessionData));
+          
+          toast({
+            title: "Start Over Initiated",
+            description: data.data.message,
+            duration: 5000,
+          });
+          
+          // Navigate back to start of onboarding with new session
+          setLocation("/onboarding-flow");
+        } else {
+          toast({
+            title: "Start Over Error",
+            description: "New session ID not received. Please refresh and try again.",
+            variant: "destructive",
+          });
+        }
       } else {
         const errorData = await res.json();
         toast({
