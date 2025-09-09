@@ -741,8 +741,8 @@ class EastEmblemAPI {
           formData.append("onboarding_id", onboardingId);
         }
 
-        appLogger.external("Scoring pitch deck:", fileName);
-        appLogger.external("API endpoint:", this.getEndpoint("/webhook/score/pitch-deck"));
+        appLogger.external(`Scoring pitch deck: ${fileName}`);
+        appLogger.external(`API endpoint: ${this.getEndpoint("/webhook/score/pitch-deck")}`);
 
         const controller = new AbortController();
         const timeoutId = setTimeout(() => controller.abort(), 180000); // Increase to 3 minutes for scoring with retries
