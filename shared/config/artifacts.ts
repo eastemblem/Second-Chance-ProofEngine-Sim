@@ -1,5 +1,5 @@
 export const PROOF_VAULT_ARTIFACTS = {
-  overview: {
+  '0_Overview': {
     name: "Overview",
     description: "Core business overview documents",
     artifacts: {
@@ -61,7 +61,7 @@ export const PROOF_VAULT_ARTIFACTS = {
       }
     }
   },
-  problem_proofs: {
+  '1_Problem_Proof': {
     name: "Problem Proofs",
     description: "Evidence of problem validation and market research",
     artifacts: {
@@ -91,7 +91,7 @@ export const PROOF_VAULT_ARTIFACTS = {
       }
     }
   },
-  solution_proofs: {
+  '2_Solution_Proof': {
     name: "Solution Proofs",
     description: "Evidence of solution validation and technical capabilities",
     artifacts: {
@@ -145,7 +145,7 @@ export const PROOF_VAULT_ARTIFACTS = {
       }
     }
   },
-  demand_proofs: {
+  '3_Demand_Proof': {
     name: "Demand Proofs",
     description: "Evidence of market demand and customer validation",
     artifacts: {
@@ -183,7 +183,7 @@ export const PROOF_VAULT_ARTIFACTS = {
       }
     }
   },
-  credibility_proofs: {
+  '4_Credibility_Proof': {
     name: "Credibility Proofs",
     description: "Legal and compliance documentation establishing credibility",
     artifacts: {
@@ -237,7 +237,7 @@ export const PROOF_VAULT_ARTIFACTS = {
       }
     }
   },
-  commercial_proofs: {
+  '5_Commercial_Proof': {
     name: "Commercial Proofs",
     description: "Financial performance and commercial viability documentation",
     artifacts: {
@@ -299,7 +299,7 @@ export const PROOF_VAULT_ARTIFACTS = {
       }
     }
   },
-  investor_pack: {
+  '6_Investor_Pack': {
     name: "Investor Pack",
     description: "Investor-ready documentation and funding materials",
     artifacts: {

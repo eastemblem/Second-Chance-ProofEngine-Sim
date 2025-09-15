@@ -438,22 +438,18 @@ export function VaultUploadArea({
           <li className="flex items-start gap-2">
             <span>•</span>
             <span>
-              <strong>Supported formats:</strong> {
-                getCurrentArtifact() 
-                  ? getCurrentArtifact()!.allowedFormats.join(', ')
-                  : 'Select document type to see supported formats'
-              }
+              <strong>Supported formats:</strong> PDF, PPT, PPTX, DOC, DOCX, JPG, PNG, MP4, MOV
             </span>
           </li>
           <li className="flex items-start gap-2">
             <span>•</span>
             <span>
-              <strong>Maximum file size:</strong> {
-                getCurrentArtifact() 
-                  ? FileValidator.formatFileSize(getCurrentArtifact()!.maxSizeBytes)
-                  : 'Select document type to see size limit'
-              }
+              <strong>Maximum file size:</strong> 10 MB per file
             </span>
+          </li>
+          <li className="flex items-start gap-2">
+            <span>•</span>
+            <span>Select multiple files at once or drag & drop for batch upload</span>
           </li>
           <li className="flex items-start gap-2">
             <span>•</span>
@@ -465,7 +461,7 @@ export function VaultUploadArea({
           </li>
           <li className="flex items-start gap-2">
             <span>•</span>
-            <span>Folder upload: Make sure you upload folder with files as per file format allowed</span>
+            <span>Folder upload: Organizes your files into the selected category folder</span>
           </li>
           <li className="flex items-start gap-2">
             <span>•</span>
