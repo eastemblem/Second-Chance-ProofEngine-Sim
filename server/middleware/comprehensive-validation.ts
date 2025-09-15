@@ -22,7 +22,13 @@ export const validationSchemas = {
         '4_Credibility_Proof',
         '5_Commercial_Proof',
         '6_Investor_Pack'
-      ], { required_error: "Valid category is required" })
+      ], { required_error: "Valid category is required" }),
+      artifactType: z.string()
+        .min(1, "Artifact type is required")
+        .max(100, "Artifact type name too long"),
+      description: z.string()
+        .min(1, "Description is required")
+        .max(500, "Description too long (maximum 500 characters)")
     }),
     
     folderCreate: z.object({

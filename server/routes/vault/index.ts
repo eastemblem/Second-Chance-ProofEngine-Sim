@@ -10,6 +10,8 @@ import { eastEmblemAPI } from "../../eastemblem-api";
 import { getSessionId, getSessionData, updateSessionData } from "../../utils/session-manager";
 import { cleanupUploadedFile } from "../../utils/file-cleanup";
 import { ActivityService } from "../../services/activity-service";
+import { PROOF_VAULT_ARTIFACTS } from "../../../shared/config/artifacts";
+import { FileValidator } from "../../../shared/utils/fileValidation";
 
 const router = express.Router();
 
@@ -105,8 +107,7 @@ router.post("/upload",
   fileUploadRateLimit,
   vaultUpload.single("file"),
   validateRequestComprehensive({ 
-    body: validationSchemas.vault.fileUpload,
-    files: validationSchemas.file.document 
+    body: validationSchemas.vault.fileUpload
   }),
   asyncHandler(async (req, res) => {
   if (!eastEmblemAPI.isConfigured()) {
@@ -117,22 +118,47 @@ router.post("/upload",
     return res.status(400).json({ error: "No file uploaded" });
   }
 
-  const { category } = req.body;
+  const { category, artifactType, description } = req.body;
   const sessionId = getSessionId(req);
   
-  console.log(`📤 VAULT UPLOAD: Processing file ${req.file.originalname} for category ${category}`);
+  console.log(`📤 VAULT UPLOAD: Processing file ${req.file.originalname} for category ${category}, artifact type: ${artifactType}`);
 
   try {
+    // Validate artifact type exists in configuration
+    const validator = new FileValidator();
+    const validationResult = validator.validateArtifactType(artifactType);
+    
+    if (!validationResult.isValid) {
+      return res.status(400).json({ 
+        error: "Invalid artifact type",
+        details: validationResult.errors 
+      });
+    }
+
+    // Validate file against selected artifact type
+    const fileValidation = validator.validateFileForArtifact(req.file, artifactType);
+    
+    if (!fileValidation.isValid) {
+      return res.status(400).json({ 
+        error: "File does not meet artifact requirements",
+        details: fileValidation.errors 
+      });
+    }
     // Use business logic service for file upload processing
     const uploadResult = await businessLogicService.processFileUpload(
       req.file,
       category,
       req.session?.founderId || 'unknown',
-      sessionId
+      sessionId,
+      artifactType,
+      description
     );
 
     console.log(`✅ VAULT UPLOAD: File uploaded successfully`, uploadResult);
 
+    const sessionData = await getSessionData(sessionId);
+    const activityService = new ActivityService();
+    
     // Track activity
     await activityService.trackActivity({
       founderId: req.session?.founderId || 'unknown',
@@ -146,22 +172,26 @@ router.post("/upload",
         fileName: req.file.originalname,
         fileSize: req.file.size,
         fileType: req.file.mimetype,
-        folderId: folderId,
-        category: category
+        folderId: uploadResult.folderId || 'unknown',
+        category: category,
+        artifactType: artifactType,
+        description: description.substring(0, 100) // Truncate for activity log
       },
       ipAddress: req.ip,
       userAgent: req.headers['user-agent']
     });
 
     // Cleanup local file
-    await cleanupUploadedFile(req.file.path);
+    await cleanupUploadedFile(req.file.path, 'upload_success');
 
     res.json(createSuccessResponse({
       uploadId: uploadResult.id,
       fileName: req.file.originalname,
-      sharedUrl: uploadResult.shared_url,
-      folderId: folderId,
+      sharedUrl: uploadResult.url || uploadResult.shared_url || '#',
+      folderId: uploadResult.folderId || 'unknown',
       category: category,
+      artifactType: artifactType,
+      description: description,
       fileSize: req.file.size,
       mimeType: req.file.mimetype
     }, "File uploaded successfully"));
@@ -171,7 +201,7 @@ router.post("/upload",
     
     // Cleanup on error
     if (req.file?.path) {
-      await cleanupUploadedFile(req.file.path);
+      await cleanupUploadedFile(req.file.path, 'upload_error');
     }
 
     res.status(500).json({ 
@@ -182,7 +212,13 @@ router.post("/upload",
 }));
 
 // Multiple file upload endpoint - extracted from main routes.ts
-router.post("/upload-multiple", vaultUpload.array("files", 10), asyncHandler(async (req, res) => {
+router.post("/upload-multiple", 
+  fileUploadRateLimit,
+  vaultUpload.array("files", 10), 
+  validateRequestComprehensive({ 
+    body: validationSchemas.vault.fileUpload
+  }),
+  asyncHandler(async (req, res) => {
   if (!eastEmblemAPI.isConfigured()) {
     return res.status(500).json({ error: "EastEmblem API not configured" });
   }
@@ -191,12 +227,34 @@ router.post("/upload-multiple", vaultUpload.array("files", 10), asyncHandler(asy
     return res.status(400).json({ error: "No files uploaded" });
   }
 
-  const { category } = req.body;
+  const { category, artifactType, description } = req.body;
   const sessionId = getSessionId(req);
   
-  console.log(`📤 VAULT MULTIPLE UPLOAD: Processing ${req.files.length} files for category ${category}`);
+  console.log(`📤 VAULT MULTIPLE UPLOAD: Processing ${req.files.length} files for category ${category}, artifact type: ${artifactType}`);
 
   try {
+    // Validate artifact type exists in configuration
+    const validator = new FileValidator();
+    const validationResult = validator.validateArtifactType(artifactType);
+    
+    if (!validationResult.isValid) {
+      return res.status(400).json({ 
+        error: "Invalid artifact type",
+        details: validationResult.errors 
+      });
+    }
+
+    // Validate each file against selected artifact type
+    for (const file of req.files) {
+      const fileValidation = validator.validateFileForArtifact(file, artifactType);
+      
+      if (!fileValidation.isValid) {
+        return res.status(400).json({ 
+          error: `File ${file.originalname} does not meet artifact requirements`,
+          details: fileValidation.errors 
+        });
+      }
+    }
     const sessionData = await getSessionData(sessionId);
     
     if (!sessionData?.folderStructure) {
@@ -221,7 +279,8 @@ router.post("/upload-multiple", vaultUpload.array("files", 10), asyncHandler(asy
           folderId
         );
 
-        // Track activity for each file
+        // Track activity for each file  
+        const activityService = new ActivityService();
         await activityService.trackActivity({
           founderId: req.session?.founderId || 'unknown',
           ventureId: sessionData.founderData?.ventureId || 'unknown', 
@@ -234,8 +293,10 @@ router.post("/upload-multiple", vaultUpload.array("files", 10), asyncHandler(asy
             fileName: file.originalname,
             fileSize: file.size,
             fileType: file.mimetype,
-            folderId: folderId,
-            category: category
+            folderId: uploadResult.folderId || 'unknown',
+            category: category,
+            artifactType: artifactType,
+            description: description.substring(0, 100) // Truncate for activity log
           },
           ipAddress: req.ip,
           userAgent: req.headers['user-agent']
@@ -244,16 +305,18 @@ router.post("/upload-multiple", vaultUpload.array("files", 10), asyncHandler(asy
         results.push({
           uploadId: uploadResult.id,
           fileName: file.originalname,
-          sharedUrl: uploadResult.shared_url,
-          folderId: folderId,
+          sharedUrl: uploadResult.url || uploadResult.shared_url || '#',
+          folderId: uploadResult.folderId || folderId,
           category: category,
+          artifactType: artifactType,
+          description: description,
           fileSize: file.size,
           mimeType: file.mimetype,
           status: 'success'
         });
 
         // Cleanup successful upload
-        await cleanupUploadedFile(file.path);
+        await cleanupUploadedFile(file.path, 'multiple_upload_success');
 
       } catch (error) {
         console.error(`❌ VAULT UPLOAD: Failed to upload ${file.originalname}:`, error);
@@ -265,7 +328,7 @@ router.post("/upload-multiple", vaultUpload.array("files", 10), asyncHandler(asy
         });
 
         // Cleanup failed upload
-        await cleanupUploadedFile(file.path);
+        await cleanupUploadedFile(file.path, 'multiple_upload_error');
       }
     }
 
@@ -285,7 +348,7 @@ router.post("/upload-multiple", vaultUpload.array("files", 10), asyncHandler(asy
     // Cleanup all files on batch error
     if (req.files && Array.isArray(req.files)) {
       for (const file of req.files) {
-        await cleanupUploadedFile(file.path);
+        await cleanupUploadedFile(file.path, 'batch_upload_error');
       }
     }
 
@@ -331,6 +394,7 @@ router.post("/create-folder", asyncHandler(async (req, res) => {
     console.log(`✅ VAULT FOLDER: Created successfully`, folderResult);
 
     // Track folder creation activity
+    const activityService = new ActivityService(); 
     await activityService.trackActivity({
       founderId: req.session?.founderId || 'unknown',
       ventureId: sessionData.founderData?.ventureId || 'unknown',
