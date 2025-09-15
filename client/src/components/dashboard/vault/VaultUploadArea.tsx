@@ -1,8 +1,12 @@
-import { useState } from "react";
+import { useState, useRef } from "react";
 import { Button } from "@/components/ui/button";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Progress } from "@/components/ui/progress";
-import { Upload, FolderPlus, Plus, Folder, AlertCircle, RefreshCw, X } from "lucide-react";
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
+import { Upload, FolderPlus, Plus, Folder, AlertCircle, RefreshCw, X, Info } from "lucide-react";
+import { PROOF_VAULT_ARTIFACTS } from "../../../../../shared/config/artifacts";
+import { FileValidator } from "../../../../../shared/utils/fileValidation";
+import { useToast } from "@/hooks/use-toast";
 
 interface VaultUploadAreaProps {
   selectedFolder: string;
@@ -24,6 +28,13 @@ interface VaultUploadAreaProps {
   onFolderUpload: (event: React.ChangeEvent<HTMLInputElement>) => Promise<void>;
   onRetryFailed: () => Promise<void>;
   onClearQueue: () => void;
+  // NEW: Required fields for ProofVault enhancement
+  selectedArtifact: string;
+  onArtifactChange: (artifactId: string) => void;
+  description: string;
+  onDescriptionChange: (description: string) => void;
+  validationErrors: string[];
+  onClearValidation: () => void;
 }
 
 export function VaultUploadArea({
@@ -39,14 +50,63 @@ export function VaultUploadArea({
   onFileUpload,
   onFolderUpload,
   onRetryFailed,
-  onClearQueue
+  onClearQueue,
+  selectedArtifact,
+  onArtifactChange,
+  description,
+  onDescriptionChange,
+  validationErrors,
+  onClearValidation
 }: VaultUploadAreaProps) {
   const [dragOver, setDragOver] = useState(false);
+  const fileInputRef = useRef<HTMLInputElement>(null);
+  const folderInputRef = useRef<HTMLInputElement>(null);
+  const { toast } = useToast();
+
+  // Helper functions for artifact handling
+  const getCurrentArtifact = () => {
+    if (!selectedArtifact || !selectedFolder) return null;
+    return (PROOF_VAULT_ARTIFACTS as any)[selectedFolder]?.artifacts[selectedArtifact];
+  };
+
+  const getArtifactsForFolder = (folderId: string) => {
+    return FileValidator.getArtifactsForCategory(folderId);
+  };
+
+  const validateRequirements = () => {
+    const errors: string[] = [];
+    
+    if (!selectedArtifact) {
+      errors.push("Please select a document type");
+    }
+    
+    if (!description || description.trim().length < 1) {
+      errors.push("Please provide a description");
+    }
+    
+    if (description && description.length > 500) {
+      errors.push("Description must be 500 characters or less");
+    }
+    
+    return errors;
+  };
+
+  const canUpload = selectedArtifact && description && description.trim().length > 0 && description.length <= 500;
 
   const handleDrop = async (e: React.DragEvent) => {
     e.preventDefault();
     setDragOver(false);
     if (!isCreatingFolders && !isUploading) {
+      const errors = validateRequirements();
+      if (errors.length > 0) {
+        toast({
+          title: "Upload Requirements Missing",
+          description: errors.join(", "),
+          variant: "destructive",
+        });
+        return;
+      }
+      
       const files = Array.from(e.dataTransfer.files);
       if (files.length > 0) {
         await onFileUpload(files, selectedFolder);
@@ -57,9 +117,32 @@ export function VaultUploadArea({
   const handleFileSelect = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const files = e.target.files;
     if (files && files.length > 0) {
+      const errors = validateRequirements();
+      if (errors.length > 0) {
+        toast({
+          title: "Upload Requirements Missing",
+          description: errors.join(", "),
+          variant: "destructive",
+        });
+        e.target.value = '';
+        return;
+      }
+      
       await onFileUpload(Array.from(files), selectedFolder);
       e.target.value = '';
     }
+  };
+
+  const handleDragOver = (e: React.DragEvent) => {
+    e.preventDefault();
+    if (!isCreatingFolders && !isUploading && canUpload) {
+      setDragOver(true);
+    }
+  };
+
+  const handleDragLeave = (e: React.DragEvent) => {
+    e.preventDefault();
+    setDragOver(false);
   };
 
   return (
@@ -94,28 +177,87 @@ export function VaultUploadArea({
         </div>
       </div>
 
-      {/* Upload Area */}
-      <div 
-        className={`border-2 border-dashed rounded-lg p-8 text-center transition-all ${
-          isCreatingFolders
-            ? 'border-blue-500 bg-blue-500/5'
-            : isUploading 
-              ? 'border-purple-500 bg-purple-500/5' 
-              : dragOver
-                ? 'border-purple-400 bg-purple-500/10'
-                : 'border-gray-600 hover:border-gray-500'
-        }`}
-        onDragOver={(e) => {
-          e.preventDefault();
-          if (!isCreatingFolders && !isUploading) {
-            setDragOver(true);
-          }
-        }}
-        onDragLeave={(e) => {
-          e.preventDefault();
-          setDragOver(false);
-        }}
+      {/* NEW: REQUIRED Document Type Selector with Info Tooltip */}
+      <div className="space-y-2">
+        <div className="flex items-center gap-2">
+          <label className="text-sm font-medium text-gray-300">
+            Document Type <span className="text-red-400">*</span>
+          </label>
+          
+          {/* Info Tooltip - Shows artifact description from config */}
+          {selectedArtifact && getCurrentArtifact() && (
+            <TooltipProvider>
+              <Tooltip>
+                <TooltipTrigger>
+                  <Info className="w-4 h-4 text-blue-400 hover:text-blue-300 cursor-help" />
+                </TooltipTrigger>
+                <TooltipContent side="right" className="max-w-xs">
+                  <p className="text-sm">{getCurrentArtifact()?.description}</p>
+                </TooltipContent>
+              </Tooltip>
+            </TooltipProvider>
+          )}
+        </div>
+        
+        <Select value={selectedArtifact} onValueChange={onArtifactChange} required>
+          <SelectTrigger className={`bg-gray-800 border-gray-600 text-white ${
+            !selectedArtifact ? 'border-red-500' : ''
+          }`}>
+            <SelectValue placeholder="Select document type (required)" />
+          </SelectTrigger>
+          <SelectContent className="bg-gray-800 border-gray-600">
+            {getArtifactsForFolder(selectedFolder).map((artifact: any) => (
+              <SelectItem key={artifact.id} value={artifact.id} className="text-white hover:bg-gray-700">
+                <div className="flex justify-between w-full">
+                  <span>{artifact.name}</span>
+                  <span className="text-green-400">+{artifact.score}pts</span>
+                </div>
+              </SelectItem>
+            ))}
+          </SelectContent>
+        </Select>
+        {!selectedArtifact && (
+          <p className="text-red-400 text-xs">Please select a document type</p>
+        )}
+      </div>
+
+      {/* NEW: REQUIRED Description Input */}
+      <div className="space-y-2">
+        <label className="text-sm font-medium text-gray-300">
+          Description <span className="text-red-400">*</span>
+        </label>
+        <textarea 
+          className={`w-full p-3 bg-gray-800 border rounded-lg text-white resize-none ${
+            !description || description.length < 1 ? 'border-red-500' : 'border-gray-600'
+          }`}
+          placeholder="Describe what this document contains (required)..."
+          value={description}
+          onChange={(e) => onDescriptionChange(e.target.value)}
+          maxLength={500}
+          rows={3}
+          required
+        />
+        <div className="flex justify-between text-xs">
+          <span className={!description ? 'text-red-400' : 'text-gray-400'}>
+            {!description ? 'Description is required' : ''}
+          </span>
+          <span className="text-gray-400">{description.length}/500</span>
+        </div>
+      </div>
+
+      {/* Upload Area with Validation */}
+      <div
+        className={`
+          border-2 border-dashed rounded-lg p-8 text-center transition-colors
+          ${canUpload ? 'border-gray-600 hover:border-purple-500' : 'border-red-500'}
+          ${dragOver && canUpload ? 'border-purple-500 bg-purple-500/10' : ''}
+          ${!canUpload ? 'opacity-60' : ''}
+          ${isCreatingFolders ? 'border-blue-500 bg-blue-500/5' : ''}
+          ${isUploading ? 'border-purple-500 bg-purple-500/5' : ''}
+        `}
         onDrop={handleDrop}
+        onDragOver={handleDragOver}
+        onDragLeave={handleDragLeave}
       >
         {isCreatingFolders ? (
           <div className="space-y-6">
@@ -175,44 +317,53 @@ export function VaultUploadArea({
           </div>
         ) : (
           <>
-            <Upload className="w-12 h-12 mx-auto mb-4 text-gray-400" />
-            <p className="text-gray-300 mb-2">Drag and drop files here or click to browse</p>
-            <p className="text-gray-500 text-sm mb-4">
-              Files will be uploaded to: <span className="text-purple-400 font-medium">{getFolderDisplayName(selectedFolder)}</span>
+            <Upload className={`w-12 h-12 mx-auto mb-4 ${canUpload ? 'text-gray-400' : 'text-red-400'}`} />
+            <p className="text-lg font-medium text-white mb-2">
+              {canUpload ? 'Drag and drop files here or click to browse' : 'Complete requirements above to upload'}
             </p>
-            <input
-              type="file"
-              multiple
-              accept=".pdf,.doc,.docx,.xls,.xlsx,.ppt,.pptx,.bmp,.png,.jpg,.jpeg,.gif,.tif,.tiff,.svg,.webp,.mp4,.mov,.avi,.webm,.3gp,.flv,.wmv,.mp3,.wav,.ogg,.aac,.m4a,.txt,.ods,.xltx,.csv,.xlsb,.xlsm,.xml,.eml,.mpp,.msg,.rtf,.odt,.ppsx,.vsd,.vsdx,.xps,.dwg,.dwf"
-              className="hidden"
-              id="file-upload"
-              onChange={handleFileSelect}
-            />
-            <input
-              type="file"
-              multiple
-              {...({ webkitdirectory: "" } as any)}
-              className="hidden"
-              id="folder-upload"
-              onChange={onFolderUpload}
-            />
-            <div className="flex gap-2 flex-wrap justify-center">
+            <p className="text-sm text-gray-400 mb-4">
+              Files will be uploaded to: <span className="text-purple-400">{getFolderDisplayName(selectedFolder)}</span>
+            </p>
+            
+            {/* Upload Buttons */}
+            <div className="flex gap-3 justify-center">
+              <input
+                type="file"
+                ref={fileInputRef}
+                onChange={handleFileSelect}
+                className="hidden"
+                multiple
+                accept={getCurrentArtifact()?.allowedFormats.join(',') || '*'}
+                disabled={!canUpload}
+              />
+              
               <Button 
-                onClick={() => document.getElementById('file-upload')?.click()} 
+                onClick={() => fileInputRef.current?.click()}
+                disabled={!canUpload || isUploading}
                 className="bg-gradient-to-r from-purple-500 to-yellow-500 text-white hover:from-purple-600 hover:to-yellow-600"
-                disabled={isCreatingFolders || isUploading}
               >
                 <Plus className="w-4 h-4 mr-2" />
-                Choose Files
+                {canUpload ? "Choose Files" : "Complete Requirements First"}
               </Button>
+              
+              <input
+                type="file"
+                ref={folderInputRef}
+                onChange={onFolderUpload}
+                className="hidden"
+                multiple
+                {...({ webkitdirectory: "" } as any)}
+                disabled={!canUpload}
+              />
+              
               <Button 
-                onClick={() => document.getElementById('folder-upload')?.click()} 
+                onClick={() => folderInputRef.current?.click()}
+                disabled={!canUpload || isUploading}
                 variant="outline"
-                className="border-purple-400 text-purple-400 hover:bg-purple-500 hover:text-white"
-                disabled={isCreatingFolders || isUploading}
+                className="border-gray-600 text-white hover:bg-gray-700"
               >
                 <FolderPlus className="w-4 h-4 mr-2" />
-                {isCreatingFolders ? 'Creating Folders...' : 'Upload Folder'}
+                Upload Folder
               </Button>
             </div>
           </>
@@ -273,19 +424,67 @@ export function VaultUploadArea({
         </div>
       )}
 
-      {/* Upload Guidelines */}
-      <div className="bg-gray-800/50 rounded-lg p-4 space-y-2">
-        <h4 className="text-sm font-medium text-gray-300">Upload Guidelines</h4>
+      {/* NEW: Dynamic Upload Guidelines */}
+      <div className="bg-gray-800/50 border border-gray-700 rounded-lg p-4">
+        <h4 className="text-sm font-medium text-gray-300 mb-3 flex items-center gap-2">
+          Upload Guidelines
+          {getCurrentArtifact() && (
+            <span className="text-xs text-green-400 bg-green-400/10 px-2 py-1 rounded">
+              {getCurrentArtifact()!.name}
+            </span>
+          )}
+        </h4>
         <ul className="text-xs text-gray-400 space-y-1">
-          <li>• Supported formats: PDF, PPT, PPTX, DOC, DOCX, JPG, PNG, MP4, MOV</li>
-          <li>• Maximum file size: 10 MB per file</li>
-          <li>• Select multiple files at once or drag & drop for batch upload</li>
-          <li>• Files process sequentially to ensure reliable uploads</li>
-          <li>• Upload high-quality documents to maximize your ProofScore</li>
-          <li>• Folder upload: Organizes your files into the selected category folder</li>
-          <li>• Failed uploads can be retried individually or cleared from the interface</li>
+          <li className="flex items-start gap-2">
+            <span>•</span>
+            <span>
+              <strong>Supported formats:</strong> {
+                getCurrentArtifact() 
+                  ? getCurrentArtifact()!.allowedFormats.join(', ')
+                  : 'Select document type to see supported formats'
+              }
+            </span>
+          </li>
+          <li className="flex items-start gap-2">
+            <span>•</span>
+            <span>
+              <strong>Maximum file size:</strong> {
+                getCurrentArtifact() 
+                  ? FileValidator.formatFileSize(getCurrentArtifact()!.maxSizeBytes)
+                  : 'Select document type to see size limit'
+              }
+            </span>
+          </li>
+          <li className="flex items-start gap-2">
+            <span>•</span>
+            <span>Files process sequentially to ensure reliable uploads</span>
+          </li>
+          <li className="flex items-start gap-2">
+            <span>•</span>
+            <span>Upload high-quality documents to maximize your ProofScore</span>
+          </li>
+          <li className="flex items-start gap-2">
+            <span>•</span>
+            <span>Folder upload: Make sure you upload folder with files as per file format allowed</span>
+          </li>
+          <li className="flex items-start gap-2">
+            <span>•</span>
+            <span>Failed uploads can be retried individually or cleared from the interface</span>
+          </li>
         </ul>
       </div>
+
+      {/* Validation Errors Display */}
+      {validationErrors.length > 0 && (
+        <div className="bg-red-900/20 border border-red-500 rounded-lg p-3">
+          <h4 className="text-red-400 font-medium mb-2">Upload Requirements:</h4>
+          <ul className="text-red-400 text-sm space-y-1">
+            {validationErrors.map((error, index) => (
+              <li key={index}>• {error}</li>
+            ))}
+          </ul>
+        </div>
+      )}
     </div>
   );
 }

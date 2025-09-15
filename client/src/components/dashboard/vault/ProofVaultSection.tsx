@@ -99,6 +99,33 @@ export function ProofVaultSection({
 }: ProofVaultSectionProps) {
   const [internalActiveTab, setInternalActiveTab] = useState("overview");
   
+  // NEW: State management for ProofVault enhancement fields
+  const [selectedArtifact, setSelectedArtifact] = useState("");
+  const [description, setDescription] = useState("");
+  const [validationErrors, setValidationErrors] = useState<string[]>([]);
+  
+  // Clear artifact and description when folder changes
+  const handleFolderChange = (folderId: string) => {
+    onFolderChange(folderId);
+    setSelectedArtifact(""); // Reset artifact when folder changes
+    setDescription(""); // Reset description when folder changes
+    setValidationErrors([]); // Clear validation errors
+  };
+  
+  const handleArtifactChange = (artifactId: string) => {
+    setSelectedArtifact(artifactId);
+    setValidationErrors([]); // Clear validation errors when artifact changes
+  };
+  
+  const handleDescriptionChange = (desc: string) => {
+    setDescription(desc);
+    setValidationErrors([]); // Clear validation errors when description changes
+  };
+  
+  const handleClearValidation = () => {
+    setValidationErrors([]);
+  };
+  
   // Use external tab control if provided, otherwise use internal state
   const activeTab = externalActiveTab !== undefined ? externalActiveTab : internalActiveTab;
   const handleTabChange = (tab: string) => {
@@ -216,7 +243,7 @@ export function ProofVaultSection({
               <TabsContent value="upload" className="mt-6">
                 <VaultUploadArea
                   selectedFolder={selectedFolder}
-                  onFolderChange={onFolderChange}
+                  onFolderChange={handleFolderChange}
                   availableFolders={getAvailableFolders()}
                   getFolderDisplayName={getFolderDisplayName}
                   uploadQueue={uploadQueue}
@@ -228,6 +255,12 @@ export function ProofVaultSection({
                   onFolderUpload={onFolderUpload}
                   onRetryFailed={onRetryFailed}
                   onClearQueue={onClearQueue}
+                  selectedArtifact={selectedArtifact}
+                  onArtifactChange={handleArtifactChange}
+                  description={description}
+                  onDescriptionChange={handleDescriptionChange}
+                  validationErrors={validationErrors}
+                  onClearValidation={handleClearValidation}
                 />
               </TabsContent>
             </Tabs>
