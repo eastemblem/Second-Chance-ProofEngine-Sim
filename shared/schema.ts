@@ -498,6 +498,19 @@ export const insertProofScalingWishlistSchema = createInsertSchema(proofScalingW
   createdAt: true,
   updatedAt: true,
 });
+
+// Document Upload insert schema with validation for ProofVault enhancements
+export const insertDocumentUploadSchema = createInsertSchema(documentUpload, {
+  description: z.string().min(1, "Description is required").max(500, "Description must be 500 characters or less"),
+  artifactType: z.string().min(1, "Document type is required"),
+  categoryId: z.string().optional(),
+  scoreAwarded: z.number().default(0),
+}).omit({
+  uploadId: true,
+  createdAt: true,
+});
+
+export type InsertDocumentUploadType = z.infer<typeof insertDocumentUploadSchema>;
 export type Leaderboard = typeof leaderboard.$inferSelect;
 export type InsertLeaderboard = typeof leaderboard.$inferInsert;
 
