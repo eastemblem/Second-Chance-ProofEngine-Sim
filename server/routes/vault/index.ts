@@ -255,28 +255,22 @@ router.post("/upload-multiple",
         });
       }
     }
-    const sessionData = await getSessionData(sessionId);
-    
-    if (!sessionData?.folderStructure) {
-      throw new Error("Folder structure not found in session");
-    }
-
-    const folderId = getCategoryFolderId(category, sessionData);
-    
-    if (!folderId) {
-      throw new Error(`Invalid category: ${category}`);
-    }
-
     const results = [];
     const errors = [];
+    
+    const sessionData = await getSessionData(sessionId);
 
     // Process files sequentially for stability
     for (const file of req.files) {
       try {
-        const uploadResult = await eastEmblemAPI.uploadFile(
-          file.path,
-          file.originalname,
-          folderId
+        // Use business logic service for consistent file upload processing
+        const uploadResult = await businessLogicService.processFileUpload(
+          file,
+          category,
+          req.session?.founderId || 'unknown',
+          sessionId,
+          artifactType,
+          description
         );
 
         // Track activity for each file  
@@ -306,12 +300,13 @@ router.post("/upload-multiple",
           uploadId: uploadResult.id,
           fileName: file.originalname,
           sharedUrl: uploadResult.url || uploadResult.shared_url || '#',
-          folderId: uploadResult.folderId || folderId,
+          folderId: uploadResult.folderId || 'unknown',
           category: category,
           artifactType: artifactType,
           description: description,
           fileSize: file.size,
           mimeType: file.mimetype,
+          databaseId: uploadResult.databaseId,
           status: 'success'
         });
 

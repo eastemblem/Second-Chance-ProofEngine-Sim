@@ -24,7 +24,7 @@ interface VaultUploadAreaProps {
   isUploading: boolean;
   isCreatingFolders: boolean;
   folderCreationStatus: string;
-  onFileUpload: (files: File[], folderId: string) => Promise<void>;
+  onFileUpload: (files: File[], folderId: string, onSuccess?: () => void) => Promise<void>;
   onFolderUpload: (event: React.ChangeEvent<HTMLInputElement>) => Promise<void>;
   onRetryFailed: () => Promise<void>;
   onClearQueue: () => void;
@@ -109,7 +109,13 @@ export function VaultUploadArea({
       
       const files = Array.from(e.dataTransfer.files);
       if (files.length > 0) {
-        await onFileUpload(files, selectedFolder);
+        // Pass success callback to clear form after successful upload
+        await onFileUpload(files, selectedFolder, () => {
+          // Clear form fields on successful upload
+          onArtifactChange("");
+          onDescriptionChange("");
+          onClearValidation();
+        });
       }
     }
   };
@@ -128,7 +134,13 @@ export function VaultUploadArea({
         return;
       }
       
-      await onFileUpload(Array.from(files), selectedFolder);
+      // Pass success callback to clear form after successful upload
+      await onFileUpload(Array.from(files), selectedFolder, () => {
+        // Clear form fields on successful upload
+        onArtifactChange("");
+        onDescriptionChange("");
+        onClearValidation();
+      });
       e.target.value = '';
     }
   };
@@ -430,44 +442,91 @@ export function VaultUploadArea({
           Upload Guidelines
           {getCurrentArtifact() && (
             <span className="text-xs text-green-400 bg-green-400/10 px-2 py-1 rounded">
-              {getCurrentArtifact()!.name}
+              {getCurrentArtifact()!.name} (+{getCurrentArtifact()!.score}pts)
             </span>
           )}
         </h4>
-        <ul className="text-xs text-gray-400 space-y-1">
-          <li className="flex items-start gap-2">
-            <span>•</span>
-            <span>
-              <strong>Supported formats:</strong> PDF, PPT, PPTX, DOC, DOCX, JPG, PNG, MP4, MOV
-            </span>
-          </li>
-          <li className="flex items-start gap-2">
-            <span>•</span>
-            <span>
-              <strong>Maximum file size:</strong> 10 MB per file
-            </span>
-          </li>
-          <li className="flex items-start gap-2">
-            <span>•</span>
-            <span>Select multiple files at once or drag & drop for batch upload</span>
-          </li>
-          <li className="flex items-start gap-2">
-            <span>•</span>
-            <span>Files process sequentially to ensure reliable uploads</span>
-          </li>
-          <li className="flex items-start gap-2">
-            <span>•</span>
-            <span>Upload high-quality documents to maximize your ProofScore</span>
-          </li>
-          <li className="flex items-start gap-2">
-            <span>•</span>
-            <span>Folder upload: Organizes your files into the selected category folder</span>
-          </li>
-          <li className="flex items-start gap-2">
-            <span>•</span>
-            <span>Failed uploads can be retried individually or cleared from the interface</span>
-          </li>
-        </ul>
+        
+        {getCurrentArtifact() ? (
+          // Artifact-specific guidelines
+          <div className="space-y-3">
+            {/* Artifact description */}
+            <div className="bg-blue-500/10 border border-blue-500/20 rounded p-3">
+              <p className="text-sm text-blue-300 mb-2">
+                <strong>Document Type:</strong> {getCurrentArtifact()!.name}
+              </p>
+              <p className="text-xs text-blue-200">
+                {getCurrentArtifact()!.description}
+              </p>
+            </div>
+            
+            {/* Specific requirements */}
+            <ul className="text-xs text-gray-400 space-y-1">
+              <li className="flex items-start gap-2">
+                <span className="text-green-400">✓</span>
+                <span>
+                  <strong>Allowed formats:</strong> {getCurrentArtifact()!.allowedFormats.join(', ')}
+                </span>
+              </li>
+              <li className="flex items-start gap-2">
+                <span className="text-green-400">✓</span>
+                <span>
+                  <strong>Maximum size:</strong> {Math.round(getCurrentArtifact()!.maxSizeBytes / (1024 * 1024))}MB
+                </span>
+              </li>
+              <li className="flex items-start gap-2">
+                <span className="text-purple-400">⭐</span>
+                <span>
+                  <strong>ProofScore value:</strong> +{getCurrentArtifact()!.score} points
+                </span>
+              </li>
+              {getCurrentArtifact()!.mandatory && (
+                <li className="flex items-start gap-2">
+                  <span className="text-red-400">!</span>
+                  <span className="text-red-300">
+                    <strong>Required document</strong> for this category
+                  </span>
+                </li>
+              )}
+              <li className="flex items-start gap-2">
+                <span>•</span>
+                <span>Upload high-quality documents to maximize scoring potential</span>
+              </li>
+            </ul>
+          </div>
+        ) : (
+          // General guidelines when no artifact selected
+          <ul className="text-xs text-gray-400 space-y-1">
+            <li className="flex items-start gap-2">
+              <span>•</span>
+              <span>
+                <strong>General formats:</strong> PDF, PPT, PPTX, DOC, DOCX, JPG, PNG, MP4, MOV
+              </span>
+            </li>
+            <li className="flex items-start gap-2">
+              <span>•</span>
+              <span>
+                <strong>Typical size limit:</strong> 10-50 MB depending on document type
+              </span>
+            </li>
+            <li className="flex items-start gap-2">
+              <span>•</span>
+              <span>Select a document type above to see specific requirements</span>
+            </li>
+            <li className="flex items-start gap-2">
+              <span>•</span>
+              <span>Each document type has different scoring potential</span>
+            </li>
+            <li className="flex items-start gap-2">
+              <span>•</span>
+              <span>Files process sequentially to ensure reliable uploads</span>
+            </li>
+            <li className="flex items-start gap-2">
+              <span>•</span>
+              <span>Folder upload: Organizes your files into the selected category folder</span>
+            </li>
+          </ul>
+        )}
       </div>
 
       {/* Validation Errors Display */}

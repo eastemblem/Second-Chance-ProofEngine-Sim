@@ -185,7 +185,7 @@ export function useFileUpload(user: User | null, onUploadComplete?: () => void) 
   }, [getFolderDisplayName, toast]);
 
   // Handle multiple file uploads with queue processing
-  const handleMultipleFileUpload = useCallback(async (files: File[], folderId: string, isRetry: boolean = false) => {
+  const handleMultipleFileUpload = useCallback(async (files: File[], folderId: string, isRetry: boolean = false, onSuccess?: () => void) => {
     const newQueue = Array.from(files).map(file => ({
       file,
       folderId,
@@ -222,12 +222,27 @@ export function useFileUpload(user: User | null, onUploadComplete?: () => void) 
     }
     
     const failedUploads = uploadResults.filter(result => result.status === 'failed');
+    const successfulUploads = uploadResults.filter(result => result.status === 'completed');
+    
     if (failedUploads.length > 0) {
       toast({
         title: "Some Uploads Failed",
         description: `${failedUploads.length} file(s) failed to upload. You can retry them below.`,
         variant: "destructive",
       });
+    }
+    
+    // Show success message and trigger success callback if any files were uploaded successfully
+    if (successfulUploads.length > 0) {
+      toast({
+        title: "Files Uploaded Successfully",
+        description: `${successfulUploads.length} file(s) uploaded successfully.`,
+      });
+      
+      // Call success callback to clear form
+      if (onSuccess) {
+        onSuccess();
+      }
     }
     
     setIsUploading(false);

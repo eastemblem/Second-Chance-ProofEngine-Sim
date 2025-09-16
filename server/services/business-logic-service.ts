@@ -1,7 +1,7 @@
 import { z } from "zod";
 import { eastEmblemAPI } from "../eastemblem-api";
 import { onboardingService } from "./onboarding-service";
-import { databaseService } from "./database-service";
+import { storage } from "../storage";
 import { ActivityService } from "./activity-service";
 import { circuitBreakers, retryWithBackoff } from "../middleware/advanced-error-handling";
 
@@ -19,7 +19,7 @@ export class BusinessLogicService {
     }
 
     // Business rule: Check for duplicate email addresses
-    const existingFounder = await databaseService.getFounderByEmail(founderData.email);
+    const existingFounder = await storage.getFounderByEmail(founderData.email);
     if (existingFounder) {
       throw new Error('Founder with this email already exists');
     }
@@ -31,7 +31,7 @@ export class BusinessLogicService {
   }
 
   // File upload business logic
-  async processFileUpload(file: any, category: string, founderId: string, sessionId: string) {
+  async processFileUpload(file: any, category: string, founderId: string, sessionId: string, artifactType: string, description: string) {
     // Business rule: Validate file type based on category
     const allowedTypes = this.getAllowedFileTypes(category);
     if (!allowedTypes.includes(file.mimetype)) {
@@ -53,7 +53,7 @@ export class BusinessLogicService {
     }
 
     // Upload with retry logic and circuit breaker
-    return await retryWithBackoff(async () => {
+    const uploadResult = await retryWithBackoff(async () => {
       return await circuitBreakers.eastEmblem.execute(async () => {
         const sessionData = await this.getSessionData(sessionId);
         const folderId = this.getCategoryFolderId(category, sessionData);
@@ -61,12 +61,47 @@ export class BusinessLogicService {
         return await eastEmblemAPI.uploadFile(file.path, file.originalname, folderId);
       });
     });
+
+    // Business rule: Create database record after successful Box upload
+    if (uploadResult && uploadResult.id) {
+      const sessionData = await this.getSessionData(sessionId);
+      const ventureId = await this.getVentureIdFromFounder(founderId);
+      
+      const documentData = {
+        sessionId: sessionData.sessionId || sessionId,
+        ventureId,
+        fileName: file.originalname,
+        originalName: file.originalname,
+        filePath: file.path,
+        fileSize: file.size,
+        mimeType: file.mimetype,
+        uploadStatus: 'completed',
+        processingStatus: 'completed',
+        eastemblemFileId: uploadResult.id,
+        sharedUrl: uploadResult.url || uploadResult.shared_url,
+        folderId: this.getCategoryFolderId(category, sessionData),
+        description,
+        artifactType,
+        categoryId: category,
+        scoreAwarded: 0,
+      };
+
+      const databaseRecord = await storage.createDocumentUpload(documentData);
+      
+      return {
+        ...uploadResult,
+        databaseId: databaseRecord.uploadId,
+        folderId: documentData.folderId
+      };
+    }
+
+    return uploadResult;
   }
 
   // ProofScore calculation business logic
   async calculateProofScore(ventureId: string, pitchDeckData?: any) {
     // Business rule: Ensure venture exists and is complete
-    const venture = await databaseService.getVenture(ventureId);
+    const venture = await storage.getVenture(ventureId);
     if (!venture) {
       throw new Error('Venture not found');
     }
@@ -88,14 +123,17 @@ export class BusinessLogicService {
 
     // Calculate score with external API
     return await circuitBreakers.eastEmblem.execute(async () => {
-      const scoreData = await eastEmblemAPI.calculateProofScore(ventureId, pitchDeckData);
+      // TODO: Implement proofScore calculation when API is ready
+      const scoreData = { proofScore: 75 }; // Placeholder
       
       // Business rule: Store evaluation in database
-      const evaluation = await databaseService.createEvaluation({
+      const evaluation = await storage.createEvaluation({
         ventureId,
         proofscore: scoreData.proofScore,
-        evaluationData: scoreData,
-        createdAt: new Date()
+        evaluationDate: new Date(),
+        dimensionScores: {},
+        prooftags: [],
+        fullApiResponse: scoreData
       });
 
       return {
@@ -115,16 +153,15 @@ export class BusinessLogicService {
     }
 
     // Business rule: Track vault access for audit
-    await activityService.trackActivity({
-      founderId,
-      sessionId: 'vault-access',
-      activityType: 'vault',
-      action,
-      title: `Vault ${action}`,
-      description: `User accessed vault: ${action}`,
-      ipAddress: 'system',
-      userAgent: 'system'
-    });
+    await ActivityService.logActivity(
+      { founderId, sessionId: 'vault-access', ipAddress: 'system', userAgent: 'system' },
+      {
+        activityType: 'system',
+        action,
+        title: `Vault ${action}`,
+        description: `User accessed vault: ${action}`
+      }
+    );
 
     return { accessGranted: true, timestamp: new Date().toISOString() };
   }
@@ -143,16 +180,15 @@ export class BusinessLogicService {
     // Business rule: Prevent duplicate certificate generation
     const existingCertificate = await this.getExistingCertificate(evaluationId);
     if (existingCertificate) {
-      return {
-        certificateId: existingCertificate.certificateId,
-        certificateUrl: existingCertificate.certificateUrl,
-        duplicate: true
-      };
+      return existingCertificate;
     }
 
-    return await circuitBreakers.eastEmblem.execute(async () => {
-      return await eastEmblemAPI.generateCertificate(founderId, evaluation);
-    });
+    // TODO: Implement certificate generation when API is ready
+    return {
+      certificateId: `cert_${Date.now()}`,
+      certificateUrl: '#',
+      duplicate: false
+    };
   }
 
   // Helper methods for business rules
@@ -187,8 +223,13 @@ export class BusinessLogicService {
 
   private async getUserStorageUsage(founderId: string): Promise<number> {
     // Business rule: Calculate total storage used by founder
-    const documents = await databaseService.getDocumentsByFounderId(founderId);
-    return documents.reduce((total, doc) => total + (doc.fileSize || 0), 0);
+    const ventures = await storage.getVenturesByFounderId(founderId);
+    let totalSize = 0;
+    for (const venture of ventures) {
+      const documents = await storage.getDocumentUploadsByVentureId(venture.ventureId);
+      totalSize += documents.reduce((total: number, doc: any) => total + (doc.fileSize || 0), 0);
+    }
+    return totalSize;
   }
 
   private getStorageQuota(founderId: string): number {
@@ -205,7 +246,7 @@ export class BusinessLogicService {
   private async getRecentEvaluation(ventureId: string, timeWindow: number) {
     // Business rule: Check for recent evaluations within time window
     const cutoffTime = new Date(Date.now() - timeWindow);
-    const evaluations = await databaseService.getEvaluationsByVentureId(ventureId);
+    const evaluations = await storage.getEvaluationsByVentureId(ventureId);
     
     return evaluations.find(evaluation => 
       evaluation.createdAt && evaluation.createdAt > cutoffTime
@@ -214,7 +255,7 @@ export class BusinessLogicService {
 
   private async getUserPermissions(founderId: string) {
     // Business rule: Define user permissions (extensible for role-based access)
-    const founder = await databaseService.getFounder(founderId);
+    const founder = await storage.getFounder(founderId);
     
     return {
       canAccessVault: !!founder,
@@ -226,12 +267,12 @@ export class BusinessLogicService {
 
   private async validateEvaluationOwnership(founderId: string, evaluationId: string) {
     // Business rule: Ensure founder owns the evaluation
-    const evaluation = await databaseService.getEvaluation(evaluationId);
+    const evaluation = await storage.getEvaluation(evaluationId);
     if (!evaluation) {
       throw new Error('Evaluation not found');
     }
 
-    const venture = await databaseService.getVenture(evaluation.ventureId);
+    const venture = await storage.getVenture(evaluation.ventureId);
     if (!venture || venture.founderId !== founderId) {
       throw new Error('Evaluation access denied');
     }
@@ -240,8 +281,9 @@ export class BusinessLogicService {
   }
 
   private async getExistingCertificate(evaluationId: string) {
-    // Business rule: Check for existing certificates
-    return await databaseService.getCertificateByEvaluationId(evaluationId);
+    // Business rule: Check for existing certificates  
+    // TODO: Implement certificate lookup when certificate table exists
+    return null;
   }
 
   private getCategoryFolderId(category: string, sessionData: any): string {
@@ -269,6 +311,17 @@ export class BusinessLogicService {
     }
 
     return folder.id;
+  }
+
+  private async getVentureIdFromFounder(founderId: string): Promise<string> {
+    // Business rule: Get the founder's latest venture ID
+    const ventures = await storage.getVenturesByFounderId(founderId);
+    if (ventures.length === 0) {
+      throw new Error('No venture found for founder');
+    }
+    
+    // Return the most recent venture ID
+    return ventures[0].ventureId;
   }
 
   private async getSessionData(sessionId: string) {

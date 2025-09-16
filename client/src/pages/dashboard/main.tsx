@@ -9,6 +9,7 @@ import Navbar from "@/components/layout/navbar";
 import { DashboardLayout } from "@/components/layout/layout";
 import { DashboardLoadingSkeleton } from "@/components/dashboard-loading";
 import confetti from 'canvas-confetti';
+import { queryClient } from "@/lib/queryClient";
 
 // Import all the extracted components
 import {
@@ -316,6 +317,20 @@ export default function DashboardV2Page() {
     setUploadQueue([]);
   };
 
+  // Wrapper function for file upload with cache invalidation
+  const handleFileUploadWithCacheInvalidation = async (files: File[], folderId: string, onSuccess?: () => void) => {
+    await handleMultipleFileUpload(files, folderId, false, () => {
+      // Invalidate queries to refresh file listing
+      queryClient.invalidateQueries({ queryKey: ['/api/v1/vault/files'] });
+      queryClient.invalidateQueries({ queryKey: ['/api/dashboard/full'] });
+      
+      // Call success callback to clear form
+      if (onSuccess) {
+        onSuccess();
+      }
+    });
+  };
+
   // Handle scroll to ProofVault and open upload tab
   const handleScrollToVault = () => {
     setVaultActiveTab("upload");
@@ -378,7 +393,7 @@ export default function DashboardV2Page() {
               isUploading={isUploading}
               isCreatingFolders={isCreatingFolders}
               folderCreationStatus={folderCreationStatus}
-              onFileUpload={handleMultipleFileUpload}
+              onFileUpload={handleFileUploadWithCacheInvalidation}
               onFolderUpload={handleFolderUpload}
               onRetryFailed={retryFailedUploads}
               onClearQueue={handleClearQueue}
