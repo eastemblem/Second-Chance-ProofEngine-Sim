@@ -30,8 +30,8 @@ export class BusinessLogicService {
     });
   }
 
-  // File upload business logic
-  async processFileUpload(file: any, category: string, founderId: string, sessionId: string, artifactType: string, description: string) {
+  // File upload business logic - Box upload only
+  async processFileUpload(file: any, category: string, founderId: string, sessionId: string) {
     // Business rule: Validate file type based on category
     const allowedTypes = this.getAllowedFileTypes(category);
     if (!allowedTypes.includes(file.mimetype)) {
@@ -52,7 +52,7 @@ export class BusinessLogicService {
       throw new Error('Storage quota exceeded');
     }
 
-    // Upload with retry logic and circuit breaker
+    // Upload with retry logic and circuit breaker - Box upload only
     const uploadResult = await retryWithBackoff(async () => {
       return await circuitBreakers.eastEmblem.execute(async () => {
         const sessionData = await this.getSessionData(sessionId);
@@ -62,36 +62,12 @@ export class BusinessLogicService {
       });
     });
 
-    // Business rule: Create database record after successful Box upload
+    // Return Box upload result with folder ID for database persistence in routes
     if (uploadResult && uploadResult.id) {
       const sessionData = await this.getSessionData(sessionId);
-      const ventureId = await this.getVentureIdFromFounder(founderId);
-      
-      const documentData = {
-        sessionId: sessionData.sessionId || sessionId,
-        ventureId,
-        fileName: file.originalname,
-        originalName: file.originalname,
-        filePath: file.path,
-        fileSize: file.size,
-        mimeType: file.mimetype,
-        uploadStatus: 'completed',
-        processingStatus: 'completed',
-        eastemblemFileId: uploadResult.id,
-        sharedUrl: uploadResult.url || uploadResult.shared_url,
-        folderId: this.getCategoryFolderId(category, sessionData),
-        description,
-        artifactType,
-        categoryId: category,
-        scoreAwarded: 0,
-      };
-
-      const databaseRecord = await storage.createDocumentUpload(documentData);
-      
       return {
         ...uploadResult,
-        databaseId: databaseRecord.uploadId,
-        folderId: documentData.folderId
+        folderId: this.getCategoryFolderId(category, sessionData)
       };
     }
 

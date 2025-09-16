@@ -124,46 +124,65 @@ router.post("/upload",
   console.log(`📤 VAULT UPLOAD: Processing file ${req.file.originalname} for category ${category}, artifact type: ${artifactType}`);
 
   try {
-    // Validate artifact type exists in configuration
-    const validator = new FileValidator();
-    const validationResult = validator.validateArtifactType(artifactType);
+    // Validate file against artifact type using FileValidator
+    const fileValidation = FileValidator.validateFile(req.file, category, artifactType);
     
-    if (!validationResult.isValid) {
-      return res.status(400).json({ 
-        error: "Invalid artifact type",
-        details: validationResult.errors 
-      });
-    }
-
-    // Validate file against selected artifact type
-    const fileValidation = validator.validateFileForArtifact(req.file, artifactType);
-    
-    if (!fileValidation.isValid) {
+    if (!fileValidation.valid) {
       return res.status(400).json({ 
         error: "File does not meet artifact requirements",
         details: fileValidation.errors 
       });
     }
-    // Use business logic service for file upload processing
+    // Use business logic service for Box upload only
     const uploadResult = await businessLogicService.processFileUpload(
       req.file,
       category,
       req.session?.founderId || 'unknown',
-      sessionId,
-      artifactType,
-      description
+      sessionId
     );
 
-    console.log(`✅ VAULT UPLOAD: File uploaded successfully`, uploadResult);
+    console.log(`✅ VAULT UPLOAD: Box upload successful`, uploadResult);
+
+    // Handle database persistence with new fields
+    if (uploadResult && uploadResult.id) {
+      const sessionData = await getSessionData(sessionId);
+      const ventureId = sessionData.founderData?.ventureId || 'unknown';
+      
+      const documentData = {
+        sessionId: sessionData.sessionId || sessionId,
+        ventureId,
+        fileName: req.file.originalname,
+        originalName: req.file.originalname,
+        filePath: req.file.path,
+        fileSize: req.file.size,
+        mimeType: req.file.mimetype,
+        uploadStatus: 'completed',
+        processingStatus: 'completed',
+        eastemblemFileId: uploadResult.id,
+        sharedUrl: uploadResult.url || uploadResult.shared_url,
+        folderId: uploadResult.folderId || 'unknown',
+        description,
+        artifactType,
+        categoryId: category,
+        scoreAwarded: 0,
+      };
+
+      const { storage } = await import("../../storage");
+      const databaseRecord = await storage.createDocumentUpload(documentData);
+      
+      console.log(`✅ VAULT UPLOAD: Database record created`, databaseRecord.uploadId);
+    }
 
     const sessionData = await getSessionData(sessionId);
-    const activityService = new ActivityService();
     
-    // Track activity
-    await activityService.trackActivity({
+    // Track activity using static method
+    await ActivityService.logActivity({
       founderId: req.session?.founderId || 'unknown',
       ventureId: sessionData.founderData?.ventureId || 'unknown',
       sessionId,
+      ipAddress: req.ip,
+      userAgent: req.headers['user-agent']
+    }, {
       activityType: 'document',
       action: 'upload',
       title: req.file.originalname,
@@ -176,9 +195,7 @@ router.post("/upload",
         category: category,
         artifactType: artifactType,
         description: description.substring(0, 100) // Truncate for activity log
-      },
-      ipAddress: req.ip,
-      userAgent: req.headers['user-agent']
+      }
     });
 
     // Cleanup local file
@@ -187,7 +204,7 @@ router.post("/upload",
     res.json(createSuccessResponse({
       uploadId: uploadResult.id,
       fileName: req.file.originalname,
-      sharedUrl: uploadResult.url || uploadResult.shared_url || '#',
+      sharedUrl: uploadResult.url || '#',
       folderId: uploadResult.folderId || 'unknown',
       category: category,
       artifactType: artifactType,
@@ -233,22 +250,11 @@ router.post("/upload-multiple",
   console.log(`📤 VAULT MULTIPLE UPLOAD: Processing ${req.files.length} files for category ${category}, artifact type: ${artifactType}`);
 
   try {
-    // Validate artifact type exists in configuration
-    const validator = new FileValidator();
-    const validationResult = validator.validateArtifactType(artifactType);
-    
-    if (!validationResult.isValid) {
-      return res.status(400).json({ 
-        error: "Invalid artifact type",
-        details: validationResult.errors 
-      });
-    }
-
-    // Validate each file against selected artifact type
+    // Validate each file against artifact type using FileValidator
     for (const file of req.files) {
-      const fileValidation = validator.validateFileForArtifact(file, artifactType);
+      const fileValidation = FileValidator.validateFile(file, category, artifactType);
       
-      if (!fileValidation.isValid) {
+      if (!fileValidation.valid) {
         return res.status(400).json({ 
           error: `File ${file.originalname} does not meet artifact requirements`,
           details: fileValidation.errors 
@@ -263,22 +269,52 @@ router.post("/upload-multiple",
     // Process files sequentially for stability
     for (const file of req.files) {
       try {
-        // Use business logic service for consistent file upload processing
+        // Use business logic service for Box upload only
         const uploadResult = await businessLogicService.processFileUpload(
           file,
           category,
           req.session?.founderId || 'unknown',
-          sessionId,
-          artifactType,
-          description
+          sessionId
         );
 
-        // Track activity for each file  
-        const activityService = new ActivityService();
-        await activityService.trackActivity({
+        // Handle database persistence with new fields
+        let databaseRecord = null;
+        if (uploadResult && uploadResult.id) {
+          const ventureId = sessionData.founderData?.ventureId || 'unknown';
+          
+          const documentData = {
+            sessionId: sessionData.sessionId || sessionId,
+            ventureId,
+            fileName: file.originalname,
+            originalName: file.originalname,
+            filePath: file.path,
+            fileSize: file.size,
+            mimeType: file.mimetype,
+            uploadStatus: 'completed',
+            processingStatus: 'completed',
+            eastemblemFileId: uploadResult.id,
+            sharedUrl: uploadResult.url,
+            folderId: uploadResult.folderId || 'unknown',
+            description,
+            artifactType,
+            categoryId: category,
+            scoreAwarded: 0,
+          };
+
+          const { storage } = await import("../../storage");
+          databaseRecord = await storage.createDocumentUpload(documentData);
+          
+          console.log(`✅ VAULT UPLOAD: Database record created for ${file.originalname}`, databaseRecord.uploadId);
+        }
+
+        // Track activity for each file using static method
+        await ActivityService.logActivity({
           founderId: req.session?.founderId || 'unknown',
           ventureId: sessionData.founderData?.ventureId || 'unknown', 
           sessionId,
+          ipAddress: req.ip,
+          userAgent: req.headers['user-agent']
+        }, {
           activityType: 'document',
           action: 'upload',
           title: file.originalname,
@@ -291,22 +327,20 @@ router.post("/upload-multiple",
             category: category,
             artifactType: artifactType,
             description: description.substring(0, 100) // Truncate for activity log
-          },
-          ipAddress: req.ip,
-          userAgent: req.headers['user-agent']
+          }
         });
 
         results.push({
           uploadId: uploadResult.id,
           fileName: file.originalname,
-          sharedUrl: uploadResult.url || uploadResult.shared_url || '#',
+          sharedUrl: uploadResult.url || '#',
           folderId: uploadResult.folderId || 'unknown',
           category: category,
           artifactType: artifactType,
           description: description,
           fileSize: file.size,
           mimeType: file.mimetype,
-          databaseId: uploadResult.databaseId,
+          databaseId: databaseRecord?.uploadId,
           status: 'success'
         });
 
