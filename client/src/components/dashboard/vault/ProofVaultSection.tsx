@@ -101,6 +101,8 @@ export function ProofVaultSection({
   priceDisplay = '$99 USD',
   growthStage
 }: ProofVaultSectionProps) {
+  // Debug logging for growthStage prop
+  console.log('🗄️ ProofVaultSection received growthStage:', growthStage);
   const [internalActiveTab, setInternalActiveTab] = useState("overview");
   
   // NEW: State management for ProofVault enhancement fields

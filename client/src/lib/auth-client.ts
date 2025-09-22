@@ -44,6 +44,7 @@ class AuthClient {
   private refreshTimer: NodeJS.Timeout | null = null;
   private readonly TOKEN_KEY = 'auth_token';
   private readonly USER_KEY = 'auth_user';
+  private readonly VENTURE_KEY = 'auth_venture';
 
   constructor() {
     this.loadFromStorage();
@@ -70,14 +71,19 @@ class AuthClient {
   /**
    * Save authentication data to localStorage
    */
-  private saveToStorage(token: string, user: AuthUser) {
+  private saveToStorage(token: string, user: AuthUser, venture?: AuthVenture | null) {
     if (typeof window === 'undefined') return;
 
     try {
       localStorage.setItem(this.TOKEN_KEY, token);
       localStorage.setItem(this.USER_KEY, JSON.stringify(user));
+      if (venture) {
+        localStorage.setItem(this.VENTURE_KEY, JSON.stringify(venture));
+        console.log('💾 Auth data saved to storage (including venture)');
+      } else {
+        console.log('💾 Auth data saved to storage (no venture)');
+      }
       this.token = token;
-      console.log('💾 Auth data saved to storage');
     } catch (error) {
       console.error('Failed to save auth to storage:', error);
     }
@@ -92,6 +98,7 @@ class AuthClient {
     try {
       localStorage.removeItem(this.TOKEN_KEY);
       localStorage.removeItem(this.USER_KEY);
+      localStorage.removeItem(this.VENTURE_KEY);
       this.token = null;
       this.clearRefreshTimer();
       console.log('🗑️ Auth data cleared');
@@ -170,7 +177,7 @@ class AuthClient {
     // Check for new token in response headers
     const newToken = response.headers.get('X-New-Auth-Token');
     if (newToken && this.getUser()) {
-      this.saveToStorage(newToken, this.getUser()!);
+      this.saveToStorage(newToken, this.getUser()!, this.getVenture());
     }
 
     return response;
@@ -194,7 +201,7 @@ class AuthClient {
       const data: AuthResponse = await response.json();
       
       if (data.success && data.token) {
-        this.saveToStorage(data.token, data.user);
+        this.saveToStorage(data.token, data.user, data.venture);
         console.log('✅ User registered and authenticated');
       }
 
@@ -223,7 +230,7 @@ class AuthClient {
       const data: AuthResponse = await response.json();
       
       if (data.success && data.token) {
-        this.saveToStorage(data.token, data.user);
+        this.saveToStorage(data.token, data.user, data.venture);
         console.log('✅ User logged in successfully');
       }
 
@@ -294,7 +301,7 @@ class AuthClient {
       if (response.ok) {
         const data: AuthResponse = await response.json();
         if (data.success && data.token) {
-          this.saveToStorage(data.token, data.user);
+          this.saveToStorage(data.token, data.user, data.venture);
           console.log('🔄 Token refreshed successfully');
           return true;
         }
@@ -333,6 +340,21 @@ class AuthClient {
   }
 
   /**
+   * Get current venture data
+   */
+  getVenture(): AuthVenture | null {
+    if (typeof window === 'undefined') return null;
+
+    try {
+      const ventureData = localStorage.getItem(this.VENTURE_KEY);
+      return ventureData ? JSON.parse(ventureData) : null;
+    } catch (error) {
+      console.error('Failed to get venture data:', error);
+      return null;
+    }
+  }
+
+  /**
    * Check if user is authenticated
    */
   isAuthenticated(): boolean {
@@ -364,7 +386,7 @@ class AuthClient {
     // Handle token refresh
     const newToken = response.headers.get('X-New-Auth-Token');
     if (newToken && this.getUser()) {
-      this.saveToStorage(newToken, this.getUser()!);
+      this.saveToStorage(newToken, this.getUser()!, this.getVenture());
     }
 
     // Handle 401 responses
