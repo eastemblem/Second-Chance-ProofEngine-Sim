@@ -124,6 +124,9 @@ export function TokenAuthProvider({ children }: { children: ReactNode }) {
         setVenture(data.venture);
         setToken(data.token);
         
+        // CRITICAL: Refresh auth client to pick up new localStorage data
+        authClient.refreshFromStorage();
+        
         // Invalidate all queries to refresh with authenticated data
         queryClient.invalidateQueries();
         
@@ -152,6 +155,9 @@ export function TokenAuthProvider({ children }: { children: ReactNode }) {
         setUser(data.user);
         setVenture(data.venture);
         setToken(data.token);
+        
+        // CRITICAL: Refresh auth client to pick up new localStorage data
+        authClient.refreshFromStorage();
         
         // Invalidate all queries to refresh with authenticated data
         queryClient.invalidateQueries();

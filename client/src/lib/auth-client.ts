@@ -59,13 +59,18 @@ class AuthClient {
 
     try {
       this.token = localStorage.getItem(this.TOKEN_KEY);
-      if (this.token) {
-        console.log('🔐 Auth token loaded from storage');
-      }
     } catch (error) {
       console.error('Failed to load auth from storage:', error);
       this.clearAuth();
     }
+  }
+
+  /**
+   * Refresh authentication state from localStorage
+   * Call this after login to update the client with new data
+   */
+  refreshFromStorage() {
+    this.loadFromStorage();
   }
 
   /**
