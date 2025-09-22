@@ -126,7 +126,14 @@ export function useFileUpload(user: User | null, onUploadComplete?: () => void) 
       formData.append('file', queueItem.file);
       formData.append('folder_id', queueItem.folderId);
       
-      // Add ProofVault enhancement fields
+      // Add ProofVault enhancement fields with debugging
+      console.log('📋 FormData fields being added:', {
+        artifactType: queueItem.artifactType,
+        description: queueItem.description,
+        artifactTypeType: typeof queueItem.artifactType,
+        descriptionType: typeof queueItem.description
+      });
+      
       if (queueItem.artifactType) {
         formData.append('artifactType', queueItem.artifactType);
       }
@@ -223,7 +230,9 @@ export function useFileUpload(user: User | null, onUploadComplete?: () => void) 
       artifactType,
       description,
       isRetry,
-      hasSuccessCallback: !!successCallback
+      hasSuccessCallback: !!successCallback,
+      isRetryOrOnSuccessType: typeof isRetryOrOnSuccess,
+      isRetryOrOnSuccessValue: isRetryOrOnSuccess ? String(isRetryOrOnSuccess).substring(0, 100) : null
     });
     const newQueue = Array.from(files).map(file => ({
       file,
