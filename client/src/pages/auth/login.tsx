@@ -92,6 +92,12 @@ export default function LoginPage() {
           console.log('🔐 Storing token:', data.token.substring(0, 20) + '...');
           localStorage.setItem('auth_token', data.token);
           localStorage.setItem('auth_user', JSON.stringify(data.founder));
+          
+          // CRITICAL FIX: Store venture data with growthStage
+          if (data.venture) {
+            console.log('🔐 Storing venture data:', { name: data.venture.name, growthStage: data.venture.growthStage });
+            localStorage.setItem('auth_venture', JSON.stringify(data.venture));
+          }
         } else {
           console.error('❌ No token received in login response');
         }

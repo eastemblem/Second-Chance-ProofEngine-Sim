@@ -74,9 +74,6 @@ export function VaultUploadArea({
   const getArtifactsForFolder = (folderId: string) => {
     console.log('🔍 getArtifactsForFolder called:', { folderId, growthStage });
     
-    // Test the filtering function with "Seed" to see if it works
-    const testFiltered = filterArtifactsByGrowthStage("Seed");
-    console.log('🧪 Test filtering with "Seed":', testFiltered);
     
     // If no growth stage provided, return all artifacts (fallback)
     if (!growthStage) {
