@@ -309,6 +309,27 @@ router.post('/upload-file', upload.single("file"), asyncHandler(async (req: Auth
         appLogger.api('V1 upload - failed to get venture ID', { founderId, error: ventureError instanceof Error ? ventureError.message : 'Unknown error' });
       }
 
+      // Calculate categoryId and scoreAwarded from artifactType
+      let categoryId = '';
+      let scoreAwarded = 0;
+      
+      if (artifactType) {
+        try {
+          const { PROOF_VAULT_ARTIFACTS } = await import("../../shared/config/artifacts");
+          // Find which category contains this artifactType
+          for (const [catId, categoryData] of Object.entries(PROOF_VAULT_ARTIFACTS)) {
+            if (categoryData.artifacts && categoryData.artifacts[artifactType]) {
+              categoryId = catId;
+              scoreAwarded = categoryData.artifacts[artifactType].score || 0;
+              break;
+            }
+          }
+          appLogger.database(`V1 UPLOAD: Mapped artifactType "${artifactType}" to category "${categoryId}" with score ${scoreAwarded}`);
+        } catch (artifactError) {
+          appLogger.api('V1 upload - failed to calculate artifact category/score', { artifactType, error: artifactError instanceof Error ? artifactError.message : 'Unknown error' });
+        }
+      }
+
       const uploadRecord = await storage.createDocumentUpload({
         sessionId: null, // V1 uploads don't require session reference
         ventureId: currentVentureId, // FIXED: Use resolved venture ID instead of null
@@ -324,7 +345,9 @@ router.post('/upload-file', upload.single("file"), asyncHandler(async (req: Auth
         folderId: actualFolderId,
         // ProofVault enhancement fields
         artifactType: artifactType || '',
-        description: description || ''
+        description: description || '',
+        categoryId: categoryId,
+        scoreAwarded: scoreAwarded
       });
       // Sanitize IDs for logging to prevent security scanner warnings
       const sanitizedUploadId = String(uploadRecord.uploadId).replace(/[^\w-]/g, '');
@@ -663,6 +686,27 @@ router.post('/upload-file-direct', upload.single("file"), asyncHandler(async (re
         appLogger.api('V1 direct upload - failed to get venture ID', { founderId, error: ventureError instanceof Error ? ventureError.message : 'Unknown error' });
       }
 
+      // Calculate categoryId and scoreAwarded from artifactType
+      let categoryId = '';
+      let scoreAwarded = 0;
+      
+      if (artifactType) {
+        try {
+          const { PROOF_VAULT_ARTIFACTS } = await import("../../shared/config/artifacts");
+          // Find which category contains this artifactType
+          for (const [catId, categoryData] of Object.entries(PROOF_VAULT_ARTIFACTS)) {
+            if (categoryData.artifacts && categoryData.artifacts[artifactType]) {
+              categoryId = catId;
+              scoreAwarded = categoryData.artifacts[artifactType].score || 0;
+              break;
+            }
+          }
+          appLogger.database(`V1 DIRECT UPLOAD: Mapped artifactType "${artifactType}" to category "${categoryId}" with score ${scoreAwarded}`);
+        } catch (artifactError) {
+          appLogger.api('V1 direct upload - failed to calculate artifact category/score', { artifactType, error: artifactError instanceof Error ? artifactError.message : 'Unknown error' });
+        }
+      }
+
       const uploadRecord = await storage.createDocumentUpload({
         sessionId: null, // V1 uploads don't require session reference
         ventureId: currentVentureId, // FIXED: Use resolved venture ID instead of null
@@ -678,7 +722,9 @@ router.post('/upload-file-direct', upload.single("file"), asyncHandler(async (re
         folderId: folder_id,
         // ProofVault enhancement fields
         artifactType: artifactType || '',
-        description: description || ''
+        description: description || '',
+        categoryId: categoryId,
+        scoreAwarded: scoreAwarded
       });
       // Sanitize IDs for logging to prevent security scanner warnings
       const sanitizedUploadId = String(uploadRecord.uploadId).replace(/[^\w-]/g, '');
