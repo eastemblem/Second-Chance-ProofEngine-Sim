@@ -211,6 +211,17 @@ export function useFileUpload(user: User | null, onUploadComplete?: () => void) 
     isRetryOrOnSuccess?: boolean | (() => void), 
     onSuccess?: () => void
   ) => {
+    // CRITICAL DEBUG: Log all received parameters
+    console.log('🚨 CRITICAL DEBUG - Raw parameters received:', {
+      'files.length': files?.length,
+      'folderId': folderId,
+      'artifactType': artifactType,
+      'description': typeof description === 'string' ? description : `TYPE: ${typeof description} VALUE: ${String(description).substring(0, 50)}`,
+      'isRetryOrOnSuccess': typeof isRetryOrOnSuccess === 'function' ? 'FUNCTION' : isRetryOrOnSuccess,
+      'onSuccess': typeof onSuccess === 'function' ? 'FUNCTION' : onSuccess,
+      'arguments.length': arguments.length
+    });
+
     // Runtime type guard to handle parameter mismatch
     let isRetry: boolean = false;
     let successCallback: (() => void) | undefined;
