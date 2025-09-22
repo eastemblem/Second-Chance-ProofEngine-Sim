@@ -60,6 +60,16 @@ export function TokenAuthProvider({ children }: { children: ReactNode }) {
       const storedUser = authClient.getUser();
       const storedVenture = authClient.getVenture();
       
+      // Debug: Check what's actually in localStorage
+      const rawVentureData = localStorage.getItem('auth_venture');
+      console.log('🔄 Debug localStorage check:', {
+        rawToken: localStorage.getItem('auth_token'),
+        rawUser: localStorage.getItem('auth_user'),
+        rawVenture: rawVentureData,
+        parsedVenture: rawVentureData ? JSON.parse(rawVentureData) : null,
+        clientVenture: storedVenture
+      });
+      
       console.log('🔄 Initializing auth from storage:', { 
         hasToken: !!storedToken, 
         hasUser: !!storedUser, 
