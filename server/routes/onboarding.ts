@@ -155,11 +155,17 @@ router.post("/upload", upload.single("pitchDeck"), asyncHandler(async (req, res)
   // Get sessionId from body (sent by frontend) or fallback to session middleware
   const sessionId = req.body.sessionId || getSessionId(req);
   
+  // Extract upload metadata from request body
+  const { artifactType, description, scoreAwarded } = req.body;
+  
   appLogger.business('Upload request received:', { 
     sessionId, 
     hasFile: !!req.file, 
     fileName: req.file?.originalname,
-    bodySessionId: req.body.sessionId 
+    bodySessionId: req.body.sessionId,
+    artifactType,
+    description: description?.substring(0, 50) + '...', // Log first 50 chars
+    scoreAwarded 
   });
 
   if (!sessionId) {
@@ -170,7 +176,22 @@ router.post("/upload", upload.single("pitchDeck"), asyncHandler(async (req, res)
     throw new Error("No file uploaded");
   }
 
-  const result = await onboardingService.handleDocumentUpload(sessionId, req.file);
+  // Validate required metadata fields
+  if (!artifactType) {
+    throw new Error("Artifact type is required");
+  }
+
+  if (!description) {
+    throw new Error("Description is required");
+  }
+
+  const uploadMetadata = {
+    artifactType,
+    description,
+    scoreAwarded: parseInt(scoreAwarded) || 5 // Default to 5 if not provided or invalid
+  };
+
+  const result = await onboardingService.handleDocumentUpload(sessionId, req.file, uploadMetadata);
 
   res.json(createSuccessResponse({
     upload: result.upload,

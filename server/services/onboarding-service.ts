@@ -587,7 +587,7 @@ export class OnboardingService {
   /**
    * Handle document upload
    */
-  async handleDocumentUpload(sessionId: string, file: any) {
+  async handleDocumentUpload(sessionId: string, file: any, uploadMetadata?: { artifactType: string; description: string; scoreAwarded: number }) {
     let session = await this.getSession(sessionId);
     if (!session) {
       // Try to find session by looking up venture with this sessionId as founderId
@@ -656,9 +656,9 @@ export class OnboardingService {
         uploadStatus: 'pending',
         processingStatus: 'pending',
         folderId: overviewFolderId, // Map to Overview folder
-        artifactType: 'pitch_deck', // Fixed value as requested
-        description: 'Main investor presentation covering problem, solution, market, team, and financials', // Fixed value as requested
-        scoreAwarded: 6 // Fixed value as requested
+        artifactType: uploadMetadata?.artifactType || 'pitch_deck', // Use dynamic value or fallback
+        description: uploadMetadata?.description || 'Main investor presentation covering problem, solution, market, team, and financials', // Use dynamic value or fallback  
+        scoreAwarded: uploadMetadata?.scoreAwarded || 5 // Use dynamic value or fallback
       })
       .returning();
 
