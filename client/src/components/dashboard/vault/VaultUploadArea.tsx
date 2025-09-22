@@ -4,7 +4,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Progress } from "@/components/ui/progress";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 import { Upload, FolderPlus, Plus, Folder, AlertCircle, RefreshCw, X, Info } from "lucide-react";
-import { PROOF_VAULT_ARTIFACTS } from "../../../../../shared/config/artifacts";
+import { PROOF_VAULT_ARTIFACTS, filterArtifactsByGrowthStage } from "../../../../../shared/config/artifacts";
 import { FileValidator } from "../../../../../shared/utils/fileValidation";
 import { useToast } from "@/hooks/use-toast";
 
@@ -35,6 +35,7 @@ interface VaultUploadAreaProps {
   onDescriptionChange: (description: string) => void;
   validationErrors: string[];
   onClearValidation: () => void;
+  growthStage?: string;
 }
 
 export function VaultUploadArea({
@@ -56,7 +57,8 @@ export function VaultUploadArea({
   description,
   onDescriptionChange,
   validationErrors,
-  onClearValidation
+  onClearValidation,
+  growthStage
 }: VaultUploadAreaProps) {
   const [dragOver, setDragOver] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
@@ -70,7 +72,28 @@ export function VaultUploadArea({
   };
 
   const getArtifactsForFolder = (folderId: string) => {
-    return FileValidator.getArtifactsForCategory(folderId);
+    // If no growth stage provided, return all artifacts (fallback)
+    if (!growthStage) {
+      return FileValidator.getArtifactsForCategory(folderId);
+    }
+    
+    // Get filtered artifacts based on growth stage
+    const filteredConfig = filterArtifactsByGrowthStage(growthStage);
+    const category = filteredConfig[folderId];
+    
+    if (!category) {
+      return [];
+    }
+    
+    // Convert to FileValidator format
+    return Object.entries(category.artifacts).map(([artifactKey, artifact]) => ({
+      id: artifactKey,
+      name: artifact.name,
+      description: artifact.description,
+      required: artifact.mandatory || false,
+      acceptedFormats: artifact.allowedFormats || ['.pdf', '.doc', '.docx'],
+      maxSizeMB: Math.round(artifact.maxSizeBytes / (1024 * 1024)) || 10
+    }));
   };
 
   const validateRequirements = () => {

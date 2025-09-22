@@ -202,7 +202,8 @@ router.post('/login', asyncHandler(async (req, res) => {
         ventureId: primaryVenture.ventureId,
         name: primaryVenture.name,
         industry: primaryVenture.industry,
-        geography: primaryVenture.geography
+        geography: primaryVenture.geography,
+        growthStage: primaryVenture.growthStage
       } : null
     });
 

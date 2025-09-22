@@ -28,6 +28,7 @@ import {
   useDocumentDownloads,
   useFileUpload
 } from "@/components/dashboard/hooks";
+import { useTokenAuth } from "@/hooks/use-token-auth";
 
 export default function DashboardV2Page() {
   const [, setLocation] = useLocation();
@@ -43,6 +44,7 @@ export default function DashboardV2Page() {
 
   // Use extracted hooks
   const { user, isLoading: authLoading, checkAuthStatus } = useAuthentication();
+  const { venture } = useTokenAuth(); // Get venture data with growthStage
   const {
     validationData,
     proofVaultData,
@@ -411,6 +413,7 @@ export default function DashboardV2Page() {
               onPaymentModalOpen={() => setIsPaymentModalOpen(true)}
               validationData={validationData}
               priceDisplay={pricing?.formatted?.current || '$99 USD'}
+              growthStage={venture?.growthStage}
             />
           </div>
 

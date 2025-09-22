@@ -16,6 +16,7 @@ interface AuthVenture {
   name: string;
   industry: string;
   geography: string;
+  growthStage?: string;
 }
 
 interface LoginCredentials {

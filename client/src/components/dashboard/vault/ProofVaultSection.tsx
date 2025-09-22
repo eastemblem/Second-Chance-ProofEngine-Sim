@@ -67,6 +67,9 @@ interface ProofVaultSectionProps {
   onPaymentModalOpen?: () => void;
   validationData?: { proofScore: number } | null;
   priceDisplay?: string;
+  
+  // Growth stage filtering
+  growthStage?: string;
 }
 
 export function ProofVaultSection({
@@ -95,7 +98,8 @@ export function ProofVaultSection({
   hasDealRoomAccess = false,
   onPaymentModalOpen,
   validationData,
-  priceDisplay = '$99 USD'
+  priceDisplay = '$99 USD',
+  growthStage
 }: ProofVaultSectionProps) {
   const [internalActiveTab, setInternalActiveTab] = useState("overview");
   
@@ -261,6 +265,7 @@ export function ProofVaultSection({
                   onDescriptionChange={handleDescriptionChange}
                   validationErrors={validationErrors}
                   onClearValidation={handleClearValidation}
+                  growthStage={growthStage}
                 />
               </TabsContent>
             </Tabs>
