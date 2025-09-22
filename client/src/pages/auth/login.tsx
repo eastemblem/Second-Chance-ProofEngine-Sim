@@ -85,9 +85,7 @@ export default function LoginPage() {
         // Track successful login event
         trackEvent('login', 'authentication', 'login_success');
         
-        // CRITICAL FIX: Clear any existing data first, then store new token
-        localStorage.clear();
-        
+        // CRITICAL FIX: Store new auth data (don't clear everything at once)
         if (data.token) {
           console.log('🔐 Storing token:', data.token.substring(0, 20) + '...');
           localStorage.setItem('auth_token', data.token);
@@ -98,6 +96,14 @@ export default function LoginPage() {
             console.log('🔐 Storing venture data:', { name: data.venture.name, growthStage: data.venture.growthStage });
             localStorage.setItem('auth_venture', JSON.stringify(data.venture));
           }
+          
+          // Clear only old/unnecessary data after storing new data
+          const keysToKeep = ['auth_token', 'auth_user', 'auth_venture'];
+          Object.keys(localStorage).forEach(key => {
+            if (!keysToKeep.includes(key)) {
+              localStorage.removeItem(key);
+            }
+          });
         } else {
           console.error('❌ No token received in login response');
         }

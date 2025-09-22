@@ -347,11 +347,6 @@ class AuthClient {
 
     try {
       const ventureData = localStorage.getItem(this.VENTURE_KEY);
-      console.log('🔍 getVenture() called:', { 
-        key: this.VENTURE_KEY, 
-        hasData: !!ventureData, 
-        data: ventureData ? JSON.parse(ventureData) : null 
-      });
       return ventureData ? JSON.parse(ventureData) : null;
     } catch (error) {
       console.error('Failed to get venture data:', error);

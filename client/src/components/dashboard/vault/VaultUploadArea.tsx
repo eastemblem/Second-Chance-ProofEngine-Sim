@@ -99,7 +99,8 @@ export function VaultUploadArea({
       description: artifact.description,
       required: artifact.mandatory || false,
       acceptedFormats: artifact.allowedFormats || ['.pdf', '.doc', '.docx'],
-      maxSizeMB: Math.round(artifact.maxSizeBytes / (1024 * 1024)) || 10
+      maxSizeMB: Math.round(artifact.maxSizeBytes / (1024 * 1024)) || 10,
+      score: artifact.score || 0  // ADD: Include score for display in dropdown
     }));
     
     console.log('✅ Filtered artifacts result:', result);
