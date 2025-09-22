@@ -10,8 +10,6 @@ import { eastEmblemAPI } from "../../eastemblem-api";
 import { getSessionId, getSessionData, updateSessionData } from "../../utils/session-manager";
 import { cleanupUploadedFile } from "../../utils/file-cleanup";
 import { ActivityService } from "../../services/activity-service";
-import { PROOF_VAULT_ARTIFACTS } from "../../../shared/config/artifacts";
-import { FileValidator } from "../../../shared/utils/fileValidation";
 
 const router = express.Router();
 
@@ -34,7 +32,7 @@ const vaultUpload = multer({
     const allowedTypes = [
       // PDF files
       "application/pdf",
-      
+
       // MS Office files: DOCX, DOC, XLSX, XLS, PPT, PPTX
       "application/msword", // DOC
       "application/vnd.openxmlformats-officedocument.wordprocessingml.document", // DOCX
@@ -42,7 +40,7 @@ const vaultUpload = multer({
       "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet", // XLSX
       "application/vnd.ms-powerpoint", // PPT
       "application/vnd.openxmlformats-officedocument.presentationml.presentation", // PPTX
-      
+
       // Image formats: BMP, PNG, JPG, JPEG, GIF, TIF, TIFF, SVG, WebP
       "image/bmp",
       "image/png",
@@ -53,7 +51,7 @@ const vaultUpload = multer({
       "image/tif",
       "image/svg+xml",
       "image/webp",
-      
+
       // Video formats
       "video/mp4",
       "video/mpeg",
@@ -63,7 +61,7 @@ const vaultUpload = multer({
       "video/3gpp",
       "video/x-flv",
       "video/x-ms-wmv",
-      
+
       // Audio formats
       "audio/mpeg", // MP3
       "audio/wav",
@@ -71,7 +69,7 @@ const vaultUpload = multer({
       "audio/aac",
       "audio/x-m4a",
       "audio/mp4",
-      
+
       // Other popular formats
       "text/plain", // TXT
       "application/vnd.oasis.opendocument.spreadsheet", // ODS
@@ -107,7 +105,8 @@ router.post("/upload",
   fileUploadRateLimit,
   vaultUpload.single("file"),
   validateRequestComprehensive({ 
-    body: validationSchemas.vault.fileUpload
+    body: validationSchemas.vault.fileUpload,
+    files: validationSchemas.file.document 
   }),
   asyncHandler(async (req, res) => {
   if (!eastEmblemAPI.isConfigured()) {
@@ -118,22 +117,13 @@ router.post("/upload",
     return res.status(400).json({ error: "No file uploaded" });
   }
 
-  const { category, artifactType, description } = req.body;
+  const { category } = req.body;
   const sessionId = getSessionId(req);
-  
-  console.log(`📤 VAULT UPLOAD: Processing file ${req.file.originalname} for category ${category}, artifact type: ${artifactType}`);
+
+  console.log(`📤 VAULT UPLOAD: Processing file ${req.file.originalname} for category ${category}`);
 
   try {
-    // Validate file against artifact type using FileValidator
-    const fileValidation = FileValidator.validateFile(req.file, category, artifactType);
-    
-    if (!fileValidation.valid) {
-      return res.status(400).json({ 
-        error: "File does not meet artifact requirements",
-        details: fileValidation.errors 
-      });
-    }
-    // Use business logic service for Box upload only
+    // Use business logic service for file upload processing
     const uploadResult = await businessLogicService.processFileUpload(
       req.file,
       category,
@@ -141,48 +131,13 @@ router.post("/upload",
       sessionId
     );
 
-    console.log(`✅ VAULT UPLOAD: Box upload successful`, uploadResult);
+    console.log(`✅ VAULT UPLOAD: File uploaded successfully`, uploadResult);
 
-    // Handle database persistence with new fields
-    if (uploadResult && uploadResult.id) {
-      const sessionData = await getSessionData(sessionId);
-      const ventureId = sessionData.founderData?.ventureId || 'unknown';
-      
-      const documentData = {
-        sessionId: sessionData.sessionId || sessionId,
-        ventureId,
-        fileName: req.file.originalname,
-        originalName: req.file.originalname,
-        filePath: req.file.path,
-        fileSize: req.file.size,
-        mimeType: req.file.mimetype,
-        uploadStatus: 'completed',
-        processingStatus: 'completed',
-        eastemblemFileId: uploadResult.id,
-        sharedUrl: uploadResult.url || uploadResult.shared_url,
-        folderId: uploadResult.folderId || 'unknown',
-        description,
-        artifactType,
-        categoryId: category,
-        scoreAwarded: 0,
-      };
-
-      const { storage } = await import("../../storage");
-      const databaseRecord = await storage.createDocumentUpload(documentData);
-      
-      console.log(`✅ VAULT UPLOAD: Database record created`, databaseRecord.uploadId);
-    }
-
-    const sessionData = await getSessionData(sessionId);
-    
-    // Track activity using static method
-    await ActivityService.logActivity({
+    // Track activity
+    await activityService.trackActivity({
       founderId: req.session?.founderId || 'unknown',
       ventureId: sessionData.founderData?.ventureId || 'unknown',
       sessionId,
-      ipAddress: req.ip,
-      userAgent: req.headers['user-agent']
-    }, {
       activityType: 'document',
       action: 'upload',
       title: req.file.originalname,
@@ -191,34 +146,32 @@ router.post("/upload",
         fileName: req.file.originalname,
         fileSize: req.file.size,
         fileType: req.file.mimetype,
-        folderId: uploadResult.folderId || 'unknown',
-        category: category,
-        artifactType: artifactType,
-        description: description.substring(0, 100) // Truncate for activity log
-      }
+        folderId: folderId,
+        category: category
+      },
+      ipAddress: req.ip,
+      userAgent: req.headers['user-agent']
     });
 
     // Cleanup local file
-    await cleanupUploadedFile(req.file.path, 'upload_success');
+    await cleanupUploadedFile(req.file.path);
 
     res.json(createSuccessResponse({
       uploadId: uploadResult.id,
       fileName: req.file.originalname,
-      sharedUrl: uploadResult.url || '#',
-      folderId: uploadResult.folderId || 'unknown',
+      sharedUrl: uploadResult.shared_url,
+      folderId: folderId,
       category: category,
-      artifactType: artifactType,
-      description: description,
       fileSize: req.file.size,
       mimeType: req.file.mimetype
     }, "File uploaded successfully"));
 
   } catch (error) {
     console.error("❌ VAULT UPLOAD: Upload failed:", error);
-    
+
     // Cleanup on error
     if (req.file?.path) {
-      await cleanupUploadedFile(req.file.path, 'upload_error');
+      await cleanupUploadedFile(req.file.path);
     }
 
     res.status(500).json({ 
@@ -229,13 +182,7 @@ router.post("/upload",
 }));
 
 // Multiple file upload endpoint - extracted from main routes.ts
-router.post("/upload-multiple", 
-  fileUploadRateLimit,
-  vaultUpload.array("files", 10), 
-  validateRequestComprehensive({ 
-    body: validationSchemas.vault.fileUpload
-  }),
-  asyncHandler(async (req, res) => {
+router.post("/upload-multiple", vaultUpload.array("files", 10), asyncHandler(async (req, res) => {
   if (!eastEmblemAPI.isConfigured()) {
     return res.status(500).json({ error: "EastEmblem API not configured" });
   }
@@ -244,77 +191,41 @@ router.post("/upload-multiple",
     return res.status(400).json({ error: "No files uploaded" });
   }
 
-  const { category, artifactType, description } = req.body;
+  const { category } = req.body;
   const sessionId = getSessionId(req);
-  
-  console.log(`📤 VAULT MULTIPLE UPLOAD: Processing ${req.files.length} files for category ${category}, artifact type: ${artifactType}`);
+
+  console.log(`📤 VAULT MULTIPLE UPLOAD: Processing ${req.files.length} files for category ${category}`);
 
   try {
-    // Validate each file against artifact type using FileValidator
-    for (const file of req.files) {
-      const fileValidation = FileValidator.validateFile(file, category, artifactType);
-      
-      if (!fileValidation.valid) {
-        return res.status(400).json({ 
-          error: `File ${file.originalname} does not meet artifact requirements`,
-          details: fileValidation.errors 
-        });
-      }
+    const sessionData = await getSessionData(sessionId);
+
+    if (!sessionData?.folderStructure) {
+      throw new Error("Folder structure not found in session");
     }
+
+    const folderId = getCategoryFolderId(category, sessionData);
+
+    if (!folderId) {
+      throw new Error(`Invalid category: ${category}`);
+    }
+
     const results = [];
     const errors = [];
-    
-    const sessionData = await getSessionData(sessionId);
 
     // Process files sequentially for stability
     for (const file of req.files) {
       try {
-        // Use business logic service for Box upload only
-        const uploadResult = await businessLogicService.processFileUpload(
-          file,
-          category,
-          req.session?.founderId || 'unknown',
-          sessionId
+        const uploadResult = await eastEmblemAPI.uploadFile(
+          file.path,
+          file.originalname,
+          folderId
         );
 
-        // Handle database persistence with new fields
-        let databaseRecord = null;
-        if (uploadResult && uploadResult.id) {
-          const ventureId = sessionData.founderData?.ventureId || 'unknown';
-          
-          const documentData = {
-            sessionId: sessionData.sessionId || sessionId,
-            ventureId,
-            fileName: file.originalname,
-            originalName: file.originalname,
-            filePath: file.path,
-            fileSize: file.size,
-            mimeType: file.mimetype,
-            uploadStatus: 'completed',
-            processingStatus: 'completed',
-            eastemblemFileId: uploadResult.id,
-            sharedUrl: uploadResult.url,
-            folderId: uploadResult.folderId || 'unknown',
-            description,
-            artifactType,
-            categoryId: category,
-            scoreAwarded: 0,
-          };
-
-          const { storage } = await import("../../storage");
-          databaseRecord = await storage.createDocumentUpload(documentData);
-          
-          console.log(`✅ VAULT UPLOAD: Database record created for ${file.originalname}`, databaseRecord.uploadId);
-        }
-
-        // Track activity for each file using static method
-        await ActivityService.logActivity({
+        // Track activity for each file
+        await activityService.trackActivity({
           founderId: req.session?.founderId || 'unknown',
           ventureId: sessionData.founderData?.ventureId || 'unknown', 
           sessionId,
-          ipAddress: req.ip,
-          userAgent: req.headers['user-agent']
-        }, {
           activityType: 'document',
           action: 'upload',
           title: file.originalname,
@@ -323,33 +234,30 @@ router.post("/upload-multiple",
             fileName: file.originalname,
             fileSize: file.size,
             fileType: file.mimetype,
-            folderId: uploadResult.folderId || 'unknown',
-            category: category,
-            artifactType: artifactType,
-            description: description.substring(0, 100) // Truncate for activity log
-          }
+            folderId: folderId,
+            category: category
+          },
+          ipAddress: req.ip,
+          userAgent: req.headers['user-agent']
         });
 
         results.push({
           uploadId: uploadResult.id,
           fileName: file.originalname,
-          sharedUrl: uploadResult.url || '#',
-          folderId: uploadResult.folderId || 'unknown',
+          sharedUrl: uploadResult.shared_url,
+          folderId: folderId,
           category: category,
-          artifactType: artifactType,
-          description: description,
           fileSize: file.size,
           mimeType: file.mimetype,
-          databaseId: databaseRecord?.uploadId,
           status: 'success'
         });
 
         // Cleanup successful upload
-        await cleanupUploadedFile(file.path, 'multiple_upload_success');
+        await cleanupUploadedFile(file.path);
 
       } catch (error) {
         console.error(`❌ VAULT UPLOAD: Failed to upload ${file.originalname}:`, error);
-        
+
         errors.push({
           fileName: file.originalname,
           error: error instanceof Error ? error.message : 'Unknown error',
@@ -357,7 +265,7 @@ router.post("/upload-multiple",
         });
 
         // Cleanup failed upload
-        await cleanupUploadedFile(file.path, 'multiple_upload_error');
+        await cleanupUploadedFile(file.path);
       }
     }
 
@@ -373,11 +281,11 @@ router.post("/upload-multiple",
 
   } catch (error) {
     console.error("❌ VAULT MULTIPLE UPLOAD: Batch upload failed:", error);
-    
+
     // Cleanup all files on batch error
     if (req.files && Array.isArray(req.files)) {
       for (const file of req.files) {
-        await cleanupUploadedFile(file.path, 'batch_upload_error');
+        await cleanupUploadedFile(file.path);
       }
     }
 
@@ -405,14 +313,14 @@ router.post("/create-folder", asyncHandler(async (req, res) => {
 
   try {
     const sessionData = await getSessionData(sessionId);
-    
+
     if (!sessionData?.folderStructure) {
       throw new Error("Folder structure not found in session");
     }
 
     // Get parent folder ID from category
     const parentFolderId = getCategoryFolderId(parentCategory, sessionData);
-    
+
     if (!parentFolderId) {
       throw new Error(`Invalid parent category: ${parentCategory}`);
     }
@@ -423,7 +331,6 @@ router.post("/create-folder", asyncHandler(async (req, res) => {
     console.log(`✅ VAULT FOLDER: Created successfully`, folderResult);
 
     // Track folder creation activity
-    const activityService = new ActivityService(); 
     await activityService.trackActivity({
       founderId: req.session?.founderId || 'unknown',
       ventureId: sessionData.founderData?.ventureId || 'unknown',
@@ -452,7 +359,7 @@ router.post("/create-folder", asyncHandler(async (req, res) => {
 
   } catch (error) {
     console.error("❌ VAULT FOLDER: Creation failed:", error);
-    
+
     res.status(500).json({ 
       error: "Folder creation failed",
       details: error instanceof Error ? error.message : 'Unknown error'
@@ -463,7 +370,7 @@ router.post("/create-folder", asyncHandler(async (req, res) => {
 // Helper function to map category to folder ID
 function getCategoryFolderId(category: string, sessionData: any): string | null {
   const folderStructure = sessionData.folderStructure;
-  
+
   if (!folderStructure?.subfolders) {
     return null;
   }
@@ -480,7 +387,7 @@ function getCategoryFolderId(category: string, sessionData: any): string | null 
   };
 
   const targetFolderName = categoryMapping[category];
-  
+
   if (!targetFolderName) {
     return null;
   }
