@@ -42,6 +42,7 @@ type AuthContextType = {
   registerMutation: any;
   logoutMutation: any;
   token: string | null;
+  setVentureFromLogin: (venture: AuthVenture | null) => void;
 };
 
 export const TokenAuthContext = createContext<AuthContextType | null>(null);
@@ -84,6 +85,11 @@ export function TokenAuthProvider({ children }: { children: ReactNode }) {
     setVenture(null);
     setToken(null);
     queryClient.clear();
+  };
+
+  // Function to set venture data directly from login response
+  const setVentureFromLogin = (ventureData: AuthVenture | null) => {
+    setVenture(ventureData);
   };
 
   // Token verification query (runs periodically)
@@ -207,6 +213,7 @@ export function TokenAuthProvider({ children }: { children: ReactNode }) {
         registerMutation,
         logoutMutation,
         token,
+        setVentureFromLogin,
       }}
     >
       {children}

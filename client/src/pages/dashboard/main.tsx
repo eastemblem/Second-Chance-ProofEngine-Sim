@@ -46,9 +46,6 @@ export default function DashboardV2Page() {
   const { user, isLoading: authLoading, checkAuthStatus } = useAuthentication();
   const { venture } = useTokenAuth(); // Get venture data with growthStage
   
-  // Debug logging for growthStage
-  console.log('🏢 Dashboard venture data:', venture);
-  console.log('📈 Growth stage being passed:', venture?.growthStage);
   const {
     validationData,
     proofVaultData,

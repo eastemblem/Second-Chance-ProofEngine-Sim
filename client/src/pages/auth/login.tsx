@@ -10,6 +10,7 @@ import Logo from "@/components/logo";
 import { AuthLayout } from "@/components/layout/layout";
 import { trackEvent } from "@/lib/analytics";
 import { apiRequest, handleResponse } from "@/lib/queryClient";
+import { useTokenAuth } from "@/hooks/use-token-auth";
 
 export default function LoginPage() {
   const [email, setEmail] = useState("");
@@ -19,6 +20,7 @@ export default function LoginPage() {
   const [isCheckingAuth, setIsCheckingAuth] = useState(true);
   const [, setLocation] = useLocation();
   const { toast } = useToast();
+  const { setVentureFromLogin } = useTokenAuth();
 
   // CRITICAL FIX: Check if user is already logged in with JWT token
   useEffect(() => {
@@ -91,6 +93,8 @@ export default function LoginPage() {
           // Store venture data with growthStage
           if (data.venture) {
             localStorage.setItem('auth_venture', JSON.stringify(data.venture));
+            // CRITICAL FIX: Pass venture data directly to avoid localStorage timing issues
+            setVentureFromLogin(data.venture);
           }
           
           // Clear only old/unnecessary data after storing new data
