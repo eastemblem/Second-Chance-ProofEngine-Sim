@@ -655,7 +655,10 @@ export class OnboardingService {
         mimeType: file.mimetype,
         uploadStatus: 'pending',
         processingStatus: 'pending',
-        folderId: overviewFolderId // Map to Overview folder
+        folderId: overviewFolderId, // Map to Overview folder
+        artifactType: 'pitch_deck', // Fixed value as requested
+        description: 'Main investor presentation covering problem, solution, market, team, and financials', // Fixed value as requested
+        scoreAwarded: 6 // Fixed value as requested
       })
       .returning();
 
