@@ -195,7 +195,36 @@ export function useFileUpload(user: User | null, onUploadComplete?: () => void) 
   }, [getFolderDisplayName, toast]);
 
   // Handle multiple file uploads with queue processing
-  const handleMultipleFileUpload = useCallback(async (files: File[], folderId: string, artifactType?: string, description?: string, isRetry: boolean = false, onSuccess?: () => void) => {
+  // Support both 5-parameter (onSuccess) and 6-parameter (isRetry, onSuccess) signatures
+  const handleMultipleFileUpload = useCallback(async (
+    files: File[], 
+    folderId: string, 
+    artifactType?: string, 
+    description?: string, 
+    isRetryOrOnSuccess?: boolean | (() => void), 
+    onSuccess?: () => void
+  ) => {
+    // Runtime type guard to handle parameter mismatch
+    let isRetry: boolean = false;
+    let successCallback: (() => void) | undefined;
+    
+    if (typeof isRetryOrOnSuccess === 'function') {
+      // 5-parameter call: (files, folderId, artifactType, description, onSuccess)
+      successCallback = isRetryOrOnSuccess;
+    } else if (typeof isRetryOrOnSuccess === 'boolean') {
+      // 6-parameter call: (files, folderId, artifactType, description, isRetry, onSuccess)
+      isRetry = isRetryOrOnSuccess;
+      successCallback = onSuccess;
+    }
+    
+    console.log('🔄 Upload initiated:', {
+      fileCount: files.length,
+      folderId,
+      artifactType,
+      description,
+      isRetry,
+      hasSuccessCallback: !!successCallback
+    });
     const newQueue = Array.from(files).map(file => ({
       file,
       folderId,
@@ -252,8 +281,8 @@ export function useFileUpload(user: User | null, onUploadComplete?: () => void) 
       });
       
       // Call success callback to clear form
-      if (onSuccess) {
-        onSuccess();
+      if (successCallback) {
+        successCallback();
       }
     }
     
