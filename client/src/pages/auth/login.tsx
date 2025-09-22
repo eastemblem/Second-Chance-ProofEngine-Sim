@@ -78,16 +78,6 @@ export default function LoginPage() {
       });
 
       const data = await handleResponse(response);
-      
-      // CRITICAL DEBUG: Log the actual response to see what we get
-      console.log('🔍 ACTUAL LOGIN RESPONSE:', {
-        success: data.success,
-        hasToken: !!data.token,
-        hasFounder: !!data.founder,
-        hasVenture: !!data.venture,
-        founderData: data.founder,
-        ventureData: data.venture
-      });
 
       if (data.success) {
         // Track successful login event

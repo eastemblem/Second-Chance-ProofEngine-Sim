@@ -56,26 +56,12 @@ export function TokenAuthProvider({ children }: { children: ReactNode }) {
   // Initialize authentication state from storage
   useEffect(() => {
     const initAuth = async () => {
+      // Small delay to ensure localStorage is ready after login redirect
+      await new Promise(resolve => setTimeout(resolve, 100));
+      
       const storedToken = authClient.getToken();
       const storedUser = authClient.getUser();
       const storedVenture = authClient.getVenture();
-      
-      // Debug: Check what's actually in localStorage
-      const rawVentureData = localStorage.getItem('auth_venture');
-      console.log('🔄 Debug localStorage check:', {
-        rawToken: localStorage.getItem('auth_token'),
-        rawUser: localStorage.getItem('auth_user'),
-        rawVenture: rawVentureData,
-        parsedVenture: rawVentureData ? JSON.parse(rawVentureData) : null,
-        clientVenture: storedVenture
-      });
-      
-      console.log('🔄 Initializing auth from storage:', { 
-        hasToken: !!storedToken, 
-        hasUser: !!storedUser, 
-        hasVenture: !!storedVenture,
-        venture: storedVenture 
-      });
       
       if (storedToken && storedUser) {
         setToken(storedToken);
