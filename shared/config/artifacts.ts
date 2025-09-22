@@ -1,335 +1,4 @@
-export const PROOF_VAULT_ARTIFACTS = {
-  '0_Overview': {
-    name: "Overview",
-    description: "Core business overview documents",
-    artifacts: {
-      pitch_deck: {
-        name: "Pitch Deck",
-        description: "Main investor presentation covering problem, solution, market, team, and financials",
-        allowedFormats: [".pdf", ".pptx", ".ppt"],
-        maxSizeBytes: 50 * 1024 * 1024, // 50MB
-        score: 5,
-        mandatory: true
-      },
-      teaser: {
-        name: "Teaser / One-pager",
-        description: "Single page business summary with key value propositions and competitive advantages",
-        allowedFormats: [".pdf", ".docx", ".png", ".jpg"],
-        maxSizeBytes: 10 * 1024 * 1024, // 10MB
-        score: 4,
-        mandatory: true
-      },
-      mission_vision: {
-        name: "Mission / Vision",
-        description: "Company mission statement and long-term vision for the future",
-        allowedFormats: [".pdf", ".docx"],
-        maxSizeBytes: 5 * 1024 * 1024, // 5MB
-        score: 3,
-        mandatory: false
-      },
-      founder_video: {
-        name: "Founder Video / Intro",
-        description: "Personal introduction video from founders explaining their background and motivation",
-        allowedFormats: [".mp4", ".mov", ".avi"],
-        maxSizeBytes: 100 * 1024 * 1024, // 100MB
-        score: 2,
-        mandatory: false
-      },
-      team_bios: {
-        name: "Team Bios",
-        description: "Detailed biographies and credentials of core team members",
-        allowedFormats: [".pdf", ".docx"],
-        maxSizeBytes: 15 * 1024 * 1024, // 15MB
-        score: 4,
-        mandatory: true
-      },
-      roadmap: {
-        name: "Roadmap",
-        description: "Product development roadmap with key milestones and timelines",
-        allowedFormats: [".pdf", ".pptx", ".xlsx"],
-        maxSizeBytes: 20 * 1024 * 1024, // 20MB
-        score: 4,
-        mandatory: true
-      },
-      milestones: {
-        name: "Milestones",
-        description: "Achievement milestones and key performance indicators reached",
-        allowedFormats: [".pdf", ".xlsx", ".docx"],
-        maxSizeBytes: 15 * 1024 * 1024, // 15MB
-        score: 4,
-        mandatory: true
-      }
-    }
-  },
-  '1_Problem_Proof': {
-    name: "Problem Proofs",
-    description: "Evidence of problem validation and market research",
-    artifacts: {
-      discovery_summary: {
-        name: "Discovery Summary",
-        description: "Customer discovery findings and problem validation insights from user interviews",
-        allowedFormats: [".pdf", ".docx"],
-        maxSizeBytes: 15 * 1024 * 1024, // 15MB
-        score: 3,
-        mandatory: false
-      },
-      market_analysis: {
-        name: "Market Sizing & Analysis", 
-        description: "Comprehensive market size analysis with TAM/SAM/SOM breakdown and competitive landscape",
-        allowedFormats: [".pdf", ".xlsx", ".docx"],
-        maxSizeBytes: 25 * 1024 * 1024, // 25MB
-        score: 5,
-        mandatory: true
-      },
-      mentor_reports: {
-        name: "Mentor Reports / Expert Validation",
-        description: "Validation reports and recommendations from industry mentors and domain experts",
-        allowedFormats: [".pdf", ".docx"],
-        maxSizeBytes: 10 * 1024 * 1024, // 10MB
-        score: 2,
-        mandatory: false
-      }
-    }
-  },
-  '2_Solution_Proof': {
-    name: "Solution Proofs",
-    description: "Evidence of solution validation and technical capabilities",
-    artifacts: {
-      product_demo: {
-        name: "Product Demo / Video",
-        description: "Product demonstration video or interactive demo showing key features and user workflow",
-        allowedFormats: [".mp4", ".mov", ".pdf", ".pptx"],
-        maxSizeBytes: 100 * 1024 * 1024, // 100MB
-        score: 5,
-        mandatory: true
-      },
-      tech_stack: {
-        name: "Tech Stack Docs",
-        description: "Technical architecture documentation detailing technology choices and system design",
-        allowedFormats: [".pdf", ".docx"],
-        maxSizeBytes: 20 * 1024 * 1024, // 20MB
-        score: 3,
-        mandatory: false
-      },
-      kpis_dashboard: {
-        name: "KPIs Dashboard",
-        description: "Key performance indicators dashboard showing product metrics and user analytics",
-        allowedFormats: [".pdf", ".xlsx", ".png", ".jpg"],
-        maxSizeBytes: 15 * 1024 * 1024, // 15MB
-        score: 4,
-        mandatory: true
-      },
-      funnels: {
-        name: "Funnels (activation, conversion)",
-        description: "User activation and conversion funnels showing customer journey and optimization metrics",
-        allowedFormats: [".pdf", ".xlsx", ".png"],
-        maxSizeBytes: 10 * 1024 * 1024, // 10MB
-        score: 3,
-        mandatory: false
-      },
-      gtm_plan: {
-        name: "GTM Plan",
-        description: "Go-to-market strategy including customer acquisition channels and marketing approach",
-        allowedFormats: [".pdf", ".pptx", ".docx"],
-        maxSizeBytes: 20 * 1024 * 1024, // 20MB
-        score: 4,
-        mandatory: true
-      },
-      sales_playbook: {
-        name: "Sales Playbook",
-        description: "Sales methodology, process documentation, and conversion strategies",
-        allowedFormats: [".pdf", ".docx"],
-        maxSizeBytes: 15 * 1024 * 1024, // 15MB
-        score: 3,
-        mandatory: false
-      }
-    }
-  },
-  '3_Demand_Proof': {
-    name: "Demand Proofs",
-    description: "Evidence of market demand and customer validation",
-    artifacts: {
-      lois: {
-        name: "LOIs (Letters of Intent)",
-        description: "Signed letters of intent from potential customers showing purchase commitment",
-        allowedFormats: [".pdf", ".docx"],
-        maxSizeBytes: 10 * 1024 * 1024, // 10MB
-        score: 5,
-        mandatory: true
-      },
-      partnerships: {
-        name: "Partnerships / MOUs",
-        description: "Partnership agreements and memorandums of understanding with strategic partners",
-        allowedFormats: [".pdf", ".docx"],
-        maxSizeBytes: 15 * 1024 * 1024, // 15MB
-        score: 4,
-        mandatory: false
-      },
-      testimonials: {
-        name: "Customer Testimonials",
-        description: "Customer testimonials, case studies, and success stories from early users",
-        allowedFormats: [".pdf", ".docx", ".mp4", ".mov"],
-        maxSizeBytes: 50 * 1024 * 1024, // 50MB
-        score: 2,
-        mandatory: false
-      },
-      traction_metrics: {
-        name: "Traction Metrics (Users, MRR growth)",
-        description: "Key traction metrics including user growth, monthly recurring revenue, and engagement data",
-        allowedFormats: [".pdf", ".xlsx", ".png"],
-        maxSizeBytes: 10 * 1024 * 1024, // 10MB
-        score: 5,
-        mandatory: true
-      }
-    }
-  },
-  '4_Credibility_Proof': {
-    name: "Credibility Proofs",
-    description: "Legal and compliance documentation establishing credibility",
-    artifacts: {
-      incorporation: {
-        name: "Incorporation Certificate",
-        description: "Official company incorporation certificate and business registration documents",
-        allowedFormats: [".pdf"],
-        maxSizeBytes: 5 * 1024 * 1024, // 5MB
-        score: 5,
-        mandatory: true
-      },
-      cap_table: {
-        name: "Cap Table",
-        description: "Current capitalization table showing ownership structure and equity distribution",
-        allowedFormats: [".pdf", ".xlsx"],
-        maxSizeBytes: 5 * 1024 * 1024, // 5MB
-        score: 5,
-        mandatory: true
-      },
-      ip_agreements: {
-        name: "IP Agreements",
-        description: "Intellectual property agreements, patents, trademarks, and IP assignment documents",
-        allowedFormats: [".pdf", ".docx"],
-        maxSizeBytes: 20 * 1024 * 1024, // 20MB
-        score: 4,
-        mandatory: true
-      },
-      legal_contracts: {
-        name: "Legal Contracts (NDAs, SHA, SSA)",
-        description: "Legal contracts including NDAs, shareholder agreements, and service agreements",
-        allowedFormats: [".pdf", ".docx"],
-        maxSizeBytes: 25 * 1024 * 1024, // 25MB
-        score: 5,
-        mandatory: true
-      },
-      compliance_certs: {
-        name: "Compliance Certificates (ISO, SOC2, GDPR)",
-        description: "Compliance certifications including ISO, SOC2, GDPR, and industry-specific certifications",
-        allowedFormats: [".pdf"],
-        maxSizeBytes: 10 * 1024 * 1024, // 10MB
-        score: 3,
-        mandatory: false
-      },
-      proofvault_index: {
-        name: "ProofVault Index",
-        description: "Comprehensive index document organizing all proofs and supporting materials",
-        allowedFormats: [".pdf", ".xlsx"],
-        maxSizeBytes: 5 * 1024 * 1024, // 5MB
-        score: 2,
-        mandatory: false
-      }
-    }
-  },
-  '5_Commercial_Proof': {
-    name: "Commercial Proofs",
-    description: "Financial performance and commercial viability documentation",
-    artifacts: {
-      mrr_data: {
-        name: "MRR Data (detailed)",
-        description: "Detailed monthly recurring revenue data with breakdown by customer segments and pricing tiers",
-        allowedFormats: [".pdf", ".xlsx"],
-        maxSizeBytes: 15 * 1024 * 1024, // 15MB
-        score: 5,
-        mandatory: true
-      },
-      historical_financials: {
-        name: "Historical Financials",
-        description: "Historical financial statements including P&L, balance sheet, and cash flow statements",
-        allowedFormats: [".pdf", ".xlsx"],
-        maxSizeBytes: 20 * 1024 * 1024, // 20MB
-        score: 5,
-        mandatory: true
-      },
-      projections: {
-        name: "Projections (3–5 yrs)",
-        description: "Financial projections for 3-5 years including revenue forecasts and growth assumptions",
-        allowedFormats: [".pdf", ".xlsx"],
-        maxSizeBytes: 15 * 1024 * 1024, // 15MB
-        score: 5,
-        mandatory: true
-      },
-      burn_rate: {
-        name: "Burn Rate & Runway",
-        description: "Monthly burn rate analysis and runway calculations with cash flow projections",
-        allowedFormats: [".pdf", ".xlsx"],
-        maxSizeBytes: 10 * 1024 * 1024, // 10MB
-        score: 5,
-        mandatory: true
-      },
-      hiring_plan: {
-        name: "Hiring Plan",
-        description: "Detailed hiring plan with role descriptions, compensation, and timeline for team expansion",
-        allowedFormats: [".pdf", ".xlsx", ".docx"],
-        maxSizeBytes: 10 * 1024 * 1024, // 10MB
-        score: 3,
-        mandatory: false
-      },
-      tax_filings: {
-        name: "Tax Filings / Returns",
-        description: "Corporate tax filings and returns demonstrating financial compliance and history",
-        allowedFormats: [".pdf"],
-        maxSizeBytes: 15 * 1024 * 1024, // 15MB
-        score: 4,
-        mandatory: true
-      },
-      debt_obligations: {
-        name: "Loan Agreements / Debt Obligations",
-        description: "Loan agreements, credit facilities, and outstanding debt obligations documentation",
-        allowedFormats: [".pdf", ".docx"],
-        maxSizeBytes: 20 * 1024 * 1024, // 20MB
-        score: 3,
-        mandatory: false
-      }
-    }
-  },
-  '6_Investor_Pack': {
-    name: "Investor Pack",
-    description: "Investor-ready documentation and funding materials",
-    artifacts: {
-      funding_terms: {
-        name: "Terms (Funding Round)",
-        description: "Current funding round terms including valuation, equity offering, and investor rights",
-        allowedFormats: [".pdf", ".docx"],
-        maxSizeBytes: 10 * 1024 * 1024, // 10MB
-        score: 5,
-        mandatory: true
-      },
-      investor_updates: {
-        name: "Investor Updates / Past Reports",
-        description: "Historical investor updates and reports demonstrating regular communication and transparency",
-        allowedFormats: [".pdf", ".docx"],
-        maxSizeBytes: 25 * 1024 * 1024, // 25MB
-        score: 3,
-        mandatory: false
-      },
-      master_summary: {
-        name: "Master Summary (Index)",
-        description: "Master summary document providing complete overview and index of all investor materials",
-        allowedFormats: [".pdf", ".docx"],
-        maxSizeBytes: 15 * 1024 * 1024, // 15MB
-        score: 4,
-        mandatory: true
-      }
-    }
-  }
-};
+export type GrowthStage = "Pre-Seed" | "Seed" | "Series A";
 
 export type ArtifactConfig = {
   name: string;
@@ -338,10 +7,765 @@ export type ArtifactConfig = {
   maxSizeBytes: number;
   score: number;
   mandatory: boolean;
+  fileFolder: "File" | "Folder";
+  stages: GrowthStage[];
+  uploadGuidelines: string;
 };
 
 export type CategoryConfig = {
   name: string;
   description: string;
   artifacts: Record<string, ArtifactConfig>;
+};
+
+export type ArtifactsConfig = Record<string, CategoryConfig>;
+
+export const PROOF_VAULT_ARTIFACTS: ArtifactsConfig = {
+  "0_Overview": {
+    name: "Overview",
+    description: "Core business overview documents",
+    artifacts: {
+      pitch_deck: {
+        name: "Pitch deck",
+        description: "Concise, <3 months old, 10–15 slides",
+        allowedFormats: [".pdf"],
+        maxSizeBytes: 25 * 1024 * 1024,
+        score: 6,
+        mandatory: true,
+        fileFolder: "File",
+        stages: ["Pre-Seed", "Seed", "Series A"],
+        uploadGuidelines: "Concise, <3 months old, 10–15 slides"
+      },
+      one_pager: {
+        name: "One-pager",
+        description: "Includes problem, solution, traction, raise",
+        allowedFormats: [".pdf", ".docx"],
+        maxSizeBytes: 10 * 1024 * 1024,
+        score: 5,
+        mandatory: true,
+        fileFolder: "File",
+        stages: ["Pre-Seed", "Seed", "Series A"],
+        uploadGuidelines: "Includes problem, solution, traction, raise"
+      },
+      proofscore_snapshot: {
+        name: "ProofScore snapshot",
+        description: "Auto-generated export",
+        allowedFormats: [".pdf"],
+        maxSizeBytes: 5 * 1024 * 1024,
+        score: 4,
+        mandatory: true,
+        fileFolder: "File",
+        stages: ["Pre-Seed", "Seed", "Series A"],
+        uploadGuidelines: "Auto-generated export"
+      },
+      incorporation_docs: {
+        name: "Incorporation docs",
+        description: "Certificate, articles, scanned originals",
+        allowedFormats: [".pdf"],
+        maxSizeBytes: 20 * 1024 * 1024,
+        score: 2,
+        mandatory: true,
+        fileFolder: "Folder",
+        stages: ["Pre-Seed", "Seed", "Series A"],
+        uploadGuidelines: "Certificate, articles, scanned originals"
+      },
+      cap_table: {
+        name: "Cap table",
+        description: "Simple layout with founders, option pool, early investors",
+        allowedFormats: [".xlsx", ".pdf"],
+        maxSizeBytes: 10 * 1024 * 1024,
+        score: 3,
+        mandatory: true,
+        fileFolder: "File",
+        stages: ["Pre-Seed", "Seed", "Series A"],
+        uploadGuidelines: "Simple layout with founders, option pool, early investors"
+      },
+      ip_ownership_statement: {
+        name: "IP ownership statement",
+        description: "One-pager confirming IP belongs to entity",
+        allowedFormats: [".pdf"],
+        maxSizeBytes: 5 * 1024 * 1024,
+        score: 3,
+        mandatory: true,
+        fileFolder: "File",
+        stages: ["Pre-Seed", "Seed", "Series A"],
+        uploadGuidelines: "One-pager confirming IP belongs to entity"
+      },
+      founder_agreement: {
+        name: "Founder agreement",
+        description: "Signed agreement outlining equity split and roles",
+        allowedFormats: [".pdf"],
+        maxSizeBytes: 10 * 1024 * 1024,
+        score: 3,
+        mandatory: true,
+        fileFolder: "File",
+        stages: ["Pre-Seed", "Seed", "Series A"],
+        uploadGuidelines: "Signed agreement outlining equity split and roles"
+      },
+      board_resolutions: {
+        name: "Board resolutions",
+        description: "Signed copies, recent board-level decisions",
+        allowedFormats: [".pdf"],
+        maxSizeBytes: 10 * 1024 * 1024,
+        score: 2,
+        mandatory: true,
+        fileFolder: "File",
+        stages: ["Seed", "Series A"],
+        uploadGuidelines: "Signed copies, recent board-level decisions"
+      },
+      option_pool_terms: {
+        name: "Option pool terms",
+        description: "Legal doc outlining size, vesting, approvals",
+        allowedFormats: [".pdf", ".docx"],
+        maxSizeBytes: 10 * 1024 * 1024,
+        score: 2,
+        mandatory: true,
+        fileFolder: "File",
+        stages: ["Seed", "Series A"],
+        uploadGuidelines: "Legal doc outlining size, vesting, approvals"
+      },
+      shareholder_agreements: {
+        name: "Shareholder agreements",
+        description: "Includes investor rights, drag/tag, voting rights",
+        allowedFormats: [".pdf"],
+        maxSizeBytes: 10 * 1024 * 1024,
+        score: 3,
+        mandatory: true,
+        fileFolder: "File",
+        stages: ["Series A"],
+        uploadGuidelines: "Includes investor rights, drag/tag, voting rights"
+      },
+      updated_cap_table: {
+        name: "Updated cap table (SAFEs converted)",
+        description: "Fully diluted cap table, post-SAFE conversion",
+        allowedFormats: [".xlsx", ".pdf"],
+        maxSizeBytes: 10 * 1024 * 1024,
+        score: 3,
+        mandatory: true,
+        fileFolder: "File",
+        stages: ["Series A"],
+        uploadGuidelines: "Fully diluted cap table, post-SAFE conversion"
+      },
+      audited_financials: {
+        name: "Audited financials (if revenue)",
+        description: "Year-end or interim, accountant-reviewed",
+        allowedFormats: [".pdf", ".xlsx"],
+        maxSizeBytes: 15 * 1024 * 1024,
+        score: 6,
+        mandatory: true,
+        fileFolder: "File",
+        stages: ["Series A"],
+        uploadGuidelines: "Year-end or interim, accountant-reviewed"
+      }
+    }
+  },
+  "1_Problem_Proof": {
+    name: "Problem Proof",
+    description: "Evidence of problem validation and market research",
+    artifacts: {
+      problem_validation_artefacts: {
+        name: "Problem validation artefacts",
+        description: "Surveys, interviews, insight summaries, labelled by type/date",
+        allowedFormats: [".pdf", ".txt", ".docx"],
+        maxSizeBytes: 50 * 1024 * 1024,
+        score: 6,
+        mandatory: true,
+        fileFolder: "Folder",
+        stages: ["Pre-Seed", "Seed", "Series A"],
+        uploadGuidelines: "Surveys, interviews, insight summaries, labelled by type/date"
+      },
+      customer_personas: {
+        name: "Customer personas",
+        description: "Synthesised from problem interviews or data",
+        allowedFormats: [".pdf", ".docx"],
+        maxSizeBytes: 10 * 1024 * 1024,
+        score: 3,
+        mandatory: true,
+        fileFolder: "File",
+        stages: ["Pre-Seed", "Seed", "Series A"],
+        uploadGuidelines: "Synthesised from problem interviews or data"
+      },
+      validation_timeline: {
+        name: "Validation timeline",
+        description: "Chronological summary of discovery, validation, traction",
+        allowedFormats: [".pdf"],
+        maxSizeBytes: 5 * 1024 * 1024,
+        score: 3,
+        mandatory: true,
+        fileFolder: "File",
+        stages: ["Pre-Seed", "Seed", "Series A"],
+        uploadGuidelines: "Chronological summary of discovery, validation, traction"
+      },
+      segment_prioritisation_notes: {
+        name: "Segment prioritisation notes",
+        description: "Rationale for segment focus, linked to persona + problem insights",
+        allowedFormats: [".pdf"],
+        maxSizeBytes: 10 * 1024 * 1024,
+        score: 3,
+        mandatory: true,
+        fileFolder: "File",
+        stages: ["Seed", "Series A"],
+        uploadGuidelines: "Rationale for segment focus, linked to persona + problem insights"
+      },
+      retention_curves_by_segment: {
+        name: "Retention curves by segment",
+        description: "Plot retention by customer type/segment",
+        allowedFormats: [".pdf", ".xlsx"],
+        maxSizeBytes: 10 * 1024 * 1024,
+        score: 5,
+        mandatory: true,
+        fileFolder: "File",
+        stages: ["Series A"],
+        uploadGuidelines: "Plot retention by customer type/segment"
+      },
+      feature_adoption_mapping: {
+        name: "Feature adoption mapping",
+        description: "Matrix: feature usage by persona/segment",
+        allowedFormats: [".pdf", ".docx"],
+        maxSizeBytes: 10 * 1024 * 1024,
+        score: 4,
+        mandatory: true,
+        fileFolder: "File",
+        stages: ["Series A"],
+        uploadGuidelines: "Matrix: feature usage by persona/segment"
+      }
+    }
+  },
+  "2_Solution_Proof": {
+    name: "Solution Proof",
+    description: "Evidence of solution validation and technical capabilities",
+    artifacts: {
+      mvp_test_results: {
+        name: "MVP test results",
+        description: "Include goal, method, results, insights",
+        allowedFormats: [".pdf", ".png", ".jpg", ".jpeg"],
+        maxSizeBytes: 50 * 1024 * 1024,
+        score: 6,
+        mandatory: true,
+        fileFolder: "Folder",
+        stages: ["Pre-Seed", "Seed", "Series A"],
+        uploadGuidelines: "Include goal, method, results, insights"
+      },
+      product_demo: {
+        name: "Product demo",
+        description: "Video or image-based walkthrough with captions",
+        allowedFormats: [".mp4", ".pdf"],
+        maxSizeBytes: 100 * 1024 * 1024,
+        score: 3,
+        mandatory: true,
+        fileFolder: "File",
+        stages: ["Pre-Seed", "Seed", "Series A"],
+        uploadGuidelines: "Video or image-based walkthrough with captions"
+      },
+      gtm_hypothesis: {
+        name: "GTM hypothesis",
+        description: "Channel strategy, assumptions, early experiments",
+        allowedFormats: [".pdf", ".docx"],
+        maxSizeBytes: 10 * 1024 * 1024,
+        score: 4,
+        mandatory: true,
+        fileFolder: "File",
+        stages: ["Pre-Seed", "Seed", "Series A"],
+        uploadGuidelines: "Channel strategy, assumptions, early experiments"
+      },
+      competitor_landscape: {
+        name: "Competitor landscape",
+        description: "Battlecard/table format. Highlight differentiators",
+        allowedFormats: [".pdf", ".xlsx"],
+        maxSizeBytes: 10 * 1024 * 1024,
+        score: 3,
+        mandatory: true,
+        fileFolder: "File",
+        stages: ["Pre-Seed", "Seed", "Series A"],
+        uploadGuidelines: "Battlecard/table format. Highlight differentiators"
+      },
+      market_size_summary: {
+        name: "Market size summary",
+        description: "TAM/SAM/SOM with credible sources cited",
+        allowedFormats: [".pdf"],
+        maxSizeBytes: 10 * 1024 * 1024,
+        score: 3,
+        mandatory: true,
+        fileFolder: "File",
+        stages: ["Pre-Seed", "Seed", "Series A"],
+        uploadGuidelines: "TAM/SAM/SOM with credible sources cited"
+      },
+      prooftag_badges: {
+        name: "ProofTag badges",
+        description: "Badge summary (auto-generated or from platform)",
+        allowedFormats: [".pdf"],
+        maxSizeBytes: 5 * 1024 * 1024,
+        score: 3,
+        mandatory: true,
+        fileFolder: "File",
+        stages: ["Pre-Seed", "Seed", "Series A"],
+        uploadGuidelines: "Badge summary (auto-generated or from platform)"
+      },
+      retention_engagement_metrics: {
+        name: "Retention/engagement metrics",
+        description: "DAU/MAU, churn, cohort behaviour summaries",
+        allowedFormats: [".pdf", ".xlsx"],
+        maxSizeBytes: 10 * 1024 * 1024,
+        score: 6,
+        mandatory: true,
+        fileFolder: "File",
+        stages: ["Seed", "Series A"],
+        uploadGuidelines: "DAU/MAU, churn, cohort behaviour summaries"
+      },
+      experiments_summary: {
+        name: "Experiments summary",
+        description: "Overview of MVP, GTM, or pricing tests and outcomes",
+        allowedFormats: [".pdf", ".pptx"],
+        maxSizeBytes: 20 * 1024 * 1024,
+        score: 5,
+        mandatory: true,
+        fileFolder: "Folder",
+        stages: ["Seed", "Series A"],
+        uploadGuidelines: "Overview of MVP, GTM, or pricing tests and outcomes"
+      },
+      updated_gtm_roadmap: {
+        name: "Updated GTM roadmap",
+        description: "Evolution of GTM strategy with planned experiments",
+        allowedFormats: [".pdf"],
+        maxSizeBytes: 10 * 1024 * 1024,
+        score: 5,
+        mandatory: true,
+        fileFolder: "File",
+        stages: ["Seed", "Series A"],
+        uploadGuidelines: "Evolution of GTM strategy with planned experiments"
+      },
+      competitive_moat_analysis: {
+        name: "Competitive moat analysis",
+        description: "Defensive positioning beyond basic battlecard",
+        allowedFormats: [".pdf"],
+        maxSizeBytes: 10 * 1024 * 1024,
+        score: 3,
+        mandatory: true,
+        fileFolder: "File",
+        stages: ["Seed", "Series A"],
+        uploadGuidelines: "Defensive positioning beyond basic battlecard"
+      },
+      unit_economics: {
+        name: "Unit economics",
+        description: "CAC, LTV, payback, margin breakdowns",
+        allowedFormats: [".pdf", ".xlsx"],
+        maxSizeBytes: 10 * 1024 * 1024,
+        score: 6,
+        mandatory: true,
+        fileFolder: "File",
+        stages: ["Series A"],
+        uploadGuidelines: "CAC, LTV, payback, margin breakdowns"
+      },
+      full_gtm_playbook: {
+        name: "Full GTM playbook",
+        description: "Documented funnel, channel tests, onboarding",
+        allowedFormats: [".pdf", ".pptx"],
+        maxSizeBytes: 15 * 1024 * 1024,
+        score: 6,
+        mandatory: true,
+        fileFolder: "File",
+        stages: ["Series A"],
+        uploadGuidelines: "Documented funnel, channel tests, onboarding"
+      },
+      customer_feedback_loop_summary: {
+        name: "Customer feedback loop summary",
+        description: "Methodology: how customer input drives iteration",
+        allowedFormats: [".pdf"],
+        maxSizeBytes: 10 * 1024 * 1024,
+        score: 4,
+        mandatory: true,
+        fileFolder: "File",
+        stages: ["Series A"],
+        uploadGuidelines: "Methodology: how customer input drives iteration"
+      }
+    }
+  },
+  "3_Demand_Proof": {
+    name: "Demand Proof",
+    description: "Evidence of market demand and customer validation",
+    artifacts: {
+      mvp_roadmap: {
+        name: "MVP roadmap",
+        description: "Timeline of builds, milestones, features",
+        allowedFormats: [".pdf"],
+        maxSizeBytes: 10 * 1024 * 1024,
+        score: 4,
+        mandatory: true,
+        fileFolder: "File",
+        stages: ["Pre-Seed", "Seed", "Series A"],
+        uploadGuidelines: "Timeline of builds, milestones, features"
+      },
+      tech_stack_overview: {
+        name: "Tech stack overview",
+        description: "Diagram or table of technologies and rationale",
+        allowedFormats: [".pdf"],
+        maxSizeBytes: 10 * 1024 * 1024,
+        score: 3,
+        mandatory: true,
+        fileFolder: "File",
+        stages: ["Pre-Seed", "Seed", "Series A"],
+        uploadGuidelines: "Diagram or table of technologies and rationale"
+      },
+      founder_bios: {
+        name: "Founder bios",
+        description: "1-page per founder, show problem-sector fit",
+        allowedFormats: [".pdf"],
+        maxSizeBytes: 5 * 1024 * 1024,
+        score: 2,
+        mandatory: true,
+        fileFolder: "File",
+        stages: ["Pre-Seed", "Seed", "Series A"],
+        uploadGuidelines: "1-page per founder, show problem-sector fit"
+      },
+      advisors_early_hires: {
+        name: "Advisors / early hires",
+        description: "Profiles and roles of early contributors",
+        allowedFormats: [".pdf"],
+        maxSizeBytes: 10 * 1024 * 1024,
+        score: 3,
+        mandatory: true,
+        fileFolder: "File",
+        stages: ["Pre-Seed", "Seed", "Series A"],
+        uploadGuidelines: "Profiles and roles of early contributors"
+      },
+      commercial_pipeline_tracker: {
+        name: "Commercial pipeline tracker",
+        description: "Active deals, stage, value, lead source",
+        allowedFormats: [".xlsx", ".pdf"],
+        maxSizeBytes: 10 * 1024 * 1024,
+        score: 5,
+        mandatory: true,
+        fileFolder: "File",
+        stages: ["Seed", "Series A"],
+        uploadGuidelines: "Active deals, stage, value, lead source"
+      },
+      advisory_letters_partnerships: {
+        name: "Advisory letters / partnerships",
+        description: "Signed or email-confirmed intent/strategic alignment",
+        allowedFormats: [".pdf"],
+        maxSizeBytes: 20 * 1024 * 1024,
+        score: 3,
+        mandatory: true,
+        fileFolder: "Folder",
+        stages: ["Seed", "Series A"],
+        uploadGuidelines: "Signed or email-confirmed intent/strategic alignment"
+      },
+      tech_architecture_evolution: {
+        name: "Tech architecture evolution",
+        description: "How system evolved from MVP to scalable infra",
+        allowedFormats: [".pdf", ".png", ".jpg"],
+        maxSizeBytes: 10 * 1024 * 1024,
+        score: 4,
+        mandatory: true,
+        fileFolder: "File",
+        stages: ["Series A"],
+        uploadGuidelines: "How system evolved from MVP to scalable infra"
+      },
+      signed_customer_contracts: {
+        name: "Signed customer contracts",
+        description: "Executed commercial agreements",
+        allowedFormats: [".pdf"],
+        maxSizeBytes: 20 * 1024 * 1024,
+        score: 6,
+        mandatory: true,
+        fileFolder: "Folder",
+        stages: ["Series A"],
+        uploadGuidelines: "Executed commercial agreements"
+      },
+      security_compliance_overview: {
+        name: "Security/compliance overview",
+        description: "GDPR, SOC2-lite, ISO controls (if applicable)",
+        allowedFormats: [".pdf"],
+        maxSizeBytes: 10 * 1024 * 1024,
+        score: 3,
+        mandatory: true,
+        fileFolder: "File",
+        stages: ["Series A"],
+        uploadGuidelines: "GDPR, SOC2-lite, ISO controls (if applicable)"
+      }
+    }
+  },
+  "4_Credibility_Proof": {
+    name: "Credibility Proof",
+    description: "Legal and compliance documentation establishing credibility",
+    artifacts: {
+      proofscaling_reflections: {
+        name: "ProofScaling reflections",
+        description: "Summary of ProofScaling journey and insights",
+        allowedFormats: [".pdf"],
+        maxSizeBytes: 10 * 1024 * 1024,
+        score: 5,
+        mandatory: true,
+        fileFolder: "File",
+        stages: ["Pre-Seed", "Seed", "Series A"],
+        uploadGuidelines: "Summary of ProofScaling journey and insights"
+      },
+      raise_use_of_funds: {
+        name: "Raise + use of funds",
+        description: "Chart or table linking raise to outcomes",
+        allowedFormats: [".pdf", ".xlsx"],
+        maxSizeBytes: 10 * 1024 * 1024,
+        score: 5,
+        mandatory: true,
+        fileFolder: "File",
+        stages: ["Pre-Seed", "Seed", "Series A"],
+        uploadGuidelines: "Chart or table linking raise to outcomes"
+      },
+      runway_plan: {
+        name: "Runway plan",
+        description: "Burn rate, assumptions, months runway",
+        allowedFormats: [".pdf", ".xlsx"],
+        maxSizeBytes: 10 * 1024 * 1024,
+        score: 3,
+        mandatory: true,
+        fileFolder: "File",
+        stages: ["Pre-Seed", "Seed", "Series A"],
+        uploadGuidelines: "Burn rate, assumptions, months runway"
+      },
+      assumption_tracker: {
+        name: "Assumption tracker",
+        description: "List of hypotheses, test status, outcomes",
+        allowedFormats: [".pdf", ".xlsx"],
+        maxSizeBytes: 10 * 1024 * 1024,
+        score: 3,
+        mandatory: true,
+        fileFolder: "File",
+        stages: ["Pre-Seed", "Seed", "Series A"],
+        uploadGuidelines: "List of hypotheses, test status, outcomes"
+      },
+      hiring_pipeline_team_expansion_plan: {
+        name: "Hiring pipeline / team expansion plan",
+        description: "Role descriptions, timing, rationale",
+        allowedFormats: [".pdf"],
+        maxSizeBytes: 10 * 1024 * 1024,
+        score: 4,
+        mandatory: true,
+        fileFolder: "File",
+        stages: ["Seed", "Series A"],
+        uploadGuidelines: "Role descriptions, timing, rationale"
+      },
+      capital_raised_to_date: {
+        name: "Capital raised to date",
+        description: "Grants, SAFE amounts, angel contributions",
+        allowedFormats: [".pdf", ".xlsx"],
+        maxSizeBytes: 10 * 1024 * 1024,
+        score: 3,
+        mandatory: true,
+        fileFolder: "File",
+        stages: ["Seed", "Series A"],
+        uploadGuidelines: "Grants, SAFE amounts, angel contributions"
+      },
+      org_chart_role_clarity: {
+        name: "Org chart + role clarity",
+        description: "Current team + planned hiring roadmap",
+        allowedFormats: [".pdf", ".png", ".jpg"],
+        maxSizeBytes: 10 * 1024 * 1024,
+        score: 3,
+        mandatory: true,
+        fileFolder: "File",
+        stages: ["Series A"],
+        uploadGuidelines: "Current team + planned hiring roadmap"
+      },
+      option_allocations_vesting_plan: {
+        name: "Option allocations + vesting plan",
+        description: "Detailed equity allocations, vesting schedules",
+        allowedFormats: [".pdf", ".xlsx"],
+        maxSizeBytes: 10 * 1024 * 1024,
+        score: 3,
+        mandatory: true,
+        fileFolder: "File",
+        stages: ["Series A"],
+        uploadGuidelines: "Detailed equity allocations, vesting schedules"
+      }
+    }
+  },
+  "5_Commercial_Proof": {
+    name: "Commercial Proof",
+    description: "Financial performance and commercial viability documentation",
+    artifacts: {
+      pricing_test_outcomes: {
+        name: "Pricing test outcomes",
+        description: "Learning from price sensitivity, A/Bs or surveys",
+        allowedFormats: [".pdf", ".pptx"],
+        maxSizeBytes: 10 * 1024 * 1024,
+        score: 3,
+        mandatory: true,
+        fileFolder: "File",
+        stages: ["Seed", "Series A"],
+        uploadGuidelines: "Learning from price sensitivity, A/Bs or surveys"
+      },
+      revenue_model_draft: {
+        name: "Revenue model draft",
+        description: "Pricing, margins, revenue drivers",
+        allowedFormats: [".pdf", ".xlsx"],
+        maxSizeBytes: 10 * 1024 * 1024,
+        score: 3,
+        mandatory: true,
+        fileFolder: "File",
+        stages: ["Seed", "Series A"],
+        uploadGuidelines: "Pricing, margins, revenue drivers"
+      },
+      cac_estimate: {
+        name: "CAC estimate",
+        description: "Formula, assumptions, source channels",
+        allowedFormats: [".pdf", ".xlsx"],
+        maxSizeBytes: 10 * 1024 * 1024,
+        score: 3,
+        mandatory: true,
+        fileFolder: "File",
+        stages: ["Seed", "Series A"],
+        uploadGuidelines: "Formula, assumptions, source channels"
+      },
+      revenue_performance: {
+        name: "Revenue performance",
+        description: "MRR/ARR, revenue by cohort or segment",
+        allowedFormats: [".pdf", ".xlsx"],
+        maxSizeBytes: 10 * 1024 * 1024,
+        score: 6,
+        mandatory: true,
+        fileFolder: "File",
+        stages: ["Series A"],
+        uploadGuidelines: "MRR/ARR, revenue by cohort or segment"
+      },
+      cohort_analysis: {
+        name: "Cohort analysis",
+        description: "Retention, LTV, expansion by cohort",
+        allowedFormats: [".pdf", ".xlsx"],
+        maxSizeBytes: 10 * 1024 * 1024,
+        score: 4,
+        mandatory: true,
+        fileFolder: "File",
+        stages: ["Series A"],
+        uploadGuidelines: "Retention, LTV, expansion by cohort"
+      },
+      financial_model: {
+        name: "Financial model (12–24 months)",
+        description: "Forecast incl. revenue, cost, hiring, runway",
+        allowedFormats: [".xlsx"],
+        maxSizeBytes: 15 * 1024 * 1024,
+        score: 6,
+        mandatory: true,
+        fileFolder: "File",
+        stages: ["Series A"],
+        uploadGuidelines: "Forecast incl. revenue, cost, hiring, runway"
+      }
+    }
+  },
+  "6_Investor_Pack": {
+    name: "Investor Pack",
+    description: "Investor-ready documentation and funding materials",
+    artifacts: {
+      investor_snapshot_summary: {
+        name: "Investor snapshot summary",
+        description: "1-page summary: ProofScore, traction, raise ask",
+        allowedFormats: [".pdf"],
+        maxSizeBytes: 5 * 1024 * 1024,
+        score: 3,
+        mandatory: true,
+        fileFolder: "File",
+        stages: ["Pre-Seed", "Seed", "Series A"],
+        uploadGuidelines: "1-page summary: ProofScore, traction, raise ask"
+      },
+      milestone_based_use_of_funds: {
+        name: "Milestone-based use of funds",
+        description: "Tied to traction goals or ProofTags",
+        allowedFormats: [".pdf", ".xlsx"],
+        maxSizeBytes: 10 * 1024 * 1024,
+        score: 4,
+        mandatory: true,
+        fileFolder: "File",
+        stages: ["Seed", "Series A"],
+        uploadGuidelines: "Tied to traction goals or ProofTags"
+      },
+      twelve_month_proof_traction_plan: {
+        name: "12-month proof/traction plan",
+        description: "Table/timeline: outcomes per quarter",
+        allowedFormats: [".pdf"],
+        maxSizeBytes: 10 * 1024 * 1024,
+        score: 4,
+        mandatory: true,
+        fileFolder: "File",
+        stages: ["Seed", "Series A"],
+        uploadGuidelines: "Table/timeline: outcomes per quarter"
+      },
+      pre_series_a_investment_memo: {
+        name: "Pre-Series A investment memo",
+        description: "Narrative for institutional raise: why now, why us, market, proof, ask",
+        allowedFormats: [".pdf"],
+        maxSizeBytes: 10 * 1024 * 1024,
+        score: 4,
+        mandatory: true,
+        fileFolder: "File",
+        stages: ["Series A"],
+        uploadGuidelines: "Narrative for institutional raise: why now, why us, market, proof, ask"
+      },
+      key_risks_mitigation_summary: {
+        name: "Key risks + mitigation summary",
+        description: "List of current risks + how they're being addressed",
+        allowedFormats: [".pdf"],
+        maxSizeBytes: 10 * 1024 * 1024,
+        score: 4,
+        mandatory: true,
+        fileFolder: "File",
+        stages: ["Series A"],
+        uploadGuidelines: "List of current risks + how they're being addressed"
+      }
+    }
+  }
+};
+
+// Growth stage filtering utility
+export const filterArtifactsByGrowthStage = (
+  growthStage: GrowthStage | null | undefined
+): ArtifactsConfig => {
+  if (!growthStage) {
+    return PROOF_VAULT_ARTIFACTS;
+  }
+
+  const filtered: ArtifactsConfig = {};
+  
+  Object.entries(PROOF_VAULT_ARTIFACTS).forEach(([categoryKey, category]) => {
+    const filteredArtifacts: Record<string, ArtifactConfig> = {};
+    
+    Object.entries(category.artifacts).forEach(([artifactKey, artifact]) => {
+      if (artifact.stages.includes(growthStage)) {
+        filteredArtifacts[artifactKey] = artifact;
+      }
+    });
+    
+    // Only include category if it has visible artifacts
+    if (Object.keys(filteredArtifacts).length > 0) {
+      filtered[categoryKey] = {
+        ...category,
+        artifacts: filteredArtifacts
+      };
+    }
+  });
+  
+  return filtered;
+};
+
+// Utility to get artifacts count by growth stage
+export const getArtifactCountByStage = (growthStage: GrowthStage): number => {
+  const filtered = filterArtifactsByGrowthStage(growthStage);
+  return Object.values(filtered).reduce((total, category) => {
+    return total + Object.keys(category.artifacts).length;
+  }, 0);
+};
+
+// Check if artifact is visible for a growth stage
+export const isArtifactVisibleForStage = (
+  categoryKey: string,
+  artifactKey: string,
+  growthStage: GrowthStage | null | undefined
+): boolean => {
+  if (!growthStage) return true;
+  
+  const category = (PROOF_VAULT_ARTIFACTS as ArtifactsConfig)[categoryKey];
+  if (!category) return false;
+  
+  const artifact = category.artifacts[artifactKey];
+  if (!artifact) return false;
+  
+  return artifact.stages.includes(growthStage);
 };
