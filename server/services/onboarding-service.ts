@@ -4,7 +4,7 @@ import { ActivityService } from "./activity-service";
 import { eastEmblemAPI, type EmailNotificationData } from "../eastemblem-api";
 import { getSessionId, getSessionData, updateSessionData } from "../utils/session-manager";
 import { db } from "../db";
-import { onboardingSession, documentUpload, founder } from "@shared/schema";
+import { onboardingSession as onboardingSessionTable, documentUpload as documentUploadTable, founder as founderTable, venture as ventureTable } from "@shared/schema";
 import { eq, and } from "drizzle-orm";
 
 // Utility function to extract MIME type from file extension
@@ -104,13 +104,13 @@ export class OnboardingService {
     // Check if session already exists in database
     const existingSession = await db
       .select()
-      .from(onboardingSession)
-      .where(eq(onboardingSession.sessionId, sessionId))
+      .from(onboardingSessionTable)
+      .where(eq(onboardingSessionTable.sessionId, sessionId))
       .limit(1);
 
     if (existingSession.length === 0) {
       // Create new session in database
-      await db.insert(onboardingSession).values({
+      await db.insert(onboardingSessionTable).values({
         sessionId,
         currentStep: "founder",
         stepData: {},
@@ -141,8 +141,8 @@ export class OnboardingService {
   async getSession(sessionId: string) {
     const sessions = await db
       .select()
-      .from(onboardingSession)
-      .where(eq(onboardingSession.sessionId, sessionId))
+      .from(onboardingSessionTable)
+      .where(eq(onboardingSessionTable.sessionId, sessionId))
       .limit(1);
 
     return sessions[0] || null;
@@ -154,7 +154,7 @@ export class OnboardingService {
   async ensureSession(sessionId: string) {
     const existingSession = await this.getSession(sessionId);
     if (!existingSession) {
-      await db.insert(onboardingSession).values({
+      await db.insert(onboardingSessionTable).values({
         sessionId,
         currentStep: "founder",
         stepData: {},
@@ -169,12 +169,12 @@ export class OnboardingService {
    */
   async updateSession(sessionId: string, updates: Partial<any>) {
     await db
-      .update(onboardingSession)
+      .update(onboardingSessionTable)
       .set({
         ...updates,
         updatedAt: new Date(),
       })
-      .where(eq(onboardingSession.sessionId, sessionId));
+      .where(eq(onboardingSessionTable.sessionId, sessionId));
   }
 
   /**
@@ -184,11 +184,11 @@ export class OnboardingService {
     try {
       const [session] = await db
         .select()
-        .from(onboardingSession)
+        .from(onboardingSessionTable)
         .where(
           and(
-            eq(onboardingSession.founderId, founderId),
-            eq(onboardingSession.isComplete, false)
+            eq(onboardingSessionTable.founderId, founderId),
+            eq(onboardingSessionTable.isComplete, false)
           )
         )
         .limit(1);
@@ -240,8 +240,9 @@ export class OnboardingService {
           }
           
           // Update the existing founder with new data
+          const founderId = founder.founderId;
           await db
-            .update(founder)
+            .update(founderTable)
             .set({
               fullName: founderData.fullName,
               email: founderData.email,
@@ -258,13 +259,13 @@ export class OnboardingService {
               country: founderData.country,
               updatedAt: new Date(),
             })
-            .where(eq(founder.founderId, founder.founderId));
+            .where(eq(founderTable.founderId, founderId));
           
           // Get updated founder data
           const [updatedFounder] = await db
             .select()
-            .from(founder)
-            .where(eq(founder.founderId, founder.founderId));
+            .from(founderTable)
+            .where(eq(founderTable.founderId, founderId));
           
           founder = updatedFounder;
           
@@ -643,7 +644,7 @@ export class OnboardingService {
 
     // Save upload to database
     const upload = await db
-      .insert(documentUpload)
+      .insert(documentUploadTable)
       .values({
         sessionId,
         ventureId: venture.ventureId, // Ensure venture ID is set
@@ -744,7 +745,7 @@ export class OnboardingService {
               const mimeType = getMimeTypeFromExtension(uploadResult.name || upload.fileName);
               
               await db
-                .update(documentUpload)
+                .update(documentUploadTable)
                 .set({
                   sharedUrl: uploadResult.url,           // Map url -> shared_url
                   folderId: uploadResult.folderId,       // Map folderId -> folder_id  
@@ -754,7 +755,7 @@ export class OnboardingService {
                   uploadStatus: 'completed',
                   processingStatus: 'processing'
                 })
-                .where(eq(documentUpload.uploadId, upload.uploadId));
+                .where(eq(documentUploadTable.uploadId, upload.uploadId));
               
               console.log("✓ Updated document record with EastEmblem upload data");
             }
@@ -764,13 +765,13 @@ export class OnboardingService {
             
             // Still update the upload status even if Box.com upload failed
             await db
-              .update(documentUpload)
+              .update(documentUploadTable)
               .set({
                 uploadStatus: 'completed',
                 processingStatus: 'processing',
                 // Keep the folderId that was set during initial creation
               })
-              .where(eq(documentUpload.uploadId, upload.uploadId));
+              .where(eq(documentUploadTable.uploadId, upload.uploadId));
             
             console.log("✓ Updated document record status (without Box.com data)");
           }
@@ -807,14 +808,14 @@ export class OnboardingService {
               
               // Update document record with validation error
               await db
-                .update(documentUpload)
+                .update(documentUploadTable)
                 .set({
                   processingStatus: 'failed',
                   errorMessage: validationResult.message,
                   retryCount: (upload.retryCount || 0) + 1,
                   canRetry: true
                 })
-                .where(eq(documentUpload.uploadId, upload.uploadId));
+                .where(eq(documentUploadTable.uploadId, upload.uploadId));
               
               // Create validation error result
               scoringResult = {
@@ -851,14 +852,14 @@ export class OnboardingService {
           
           // Update document record with error information
           await db
-            .update(documentUpload)
+            .update(documentUploadTable)
             .set({
               processingStatus: 'error',
               errorMessage: error.message,
               retryCount: (upload.retryCount || 0), // Keep current retry count
               canRetry: true // Allow user to retry with different file
             })
-            .where(eq(documentUpload.uploadId, upload.uploadId));
+            .where(eq(documentUploadTable.uploadId, upload.uploadId));
           
           // Create error result instead of throwing - this allows frontend to handle gracefully
           scoringResult = {
