@@ -318,8 +318,14 @@ export default function DashboardV2Page() {
   };
 
   // Wrapper function for file upload with cache invalidation
-  const handleFileUploadWithCacheInvalidation = async (files: File[], folderId: string, onSuccess?: () => void) => {
-    await handleMultipleFileUpload(files, folderId, false, () => {
+  const handleFileUploadWithCacheInvalidation = async (
+    files: File[], 
+    folderId: string, 
+    artifactType?: string, 
+    description?: string, 
+    onSuccess?: () => void
+  ) => {
+    await handleMultipleFileUpload(files, folderId, artifactType, description, () => {
       // Invalidate queries to refresh file listing
       queryClient.invalidateQueries({ queryKey: ['/api/v1/vault/files'] });
       queryClient.invalidateQueries({ queryKey: ['/api/dashboard/full'] });
