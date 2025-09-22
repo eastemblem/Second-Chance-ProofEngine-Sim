@@ -156,7 +156,7 @@ router.post("/upload", upload.single("pitchDeck"), asyncHandler(async (req, res)
   const sessionId = req.body.sessionId || getSessionId(req);
   
   // Extract upload metadata from request body
-  const { artifactType, description, scoreAwarded } = req.body;
+  const { artifactType, description, scoreAwarded, categoryId } = req.body;
   
   appLogger.business('Upload request received:', { 
     sessionId, 
@@ -165,7 +165,8 @@ router.post("/upload", upload.single("pitchDeck"), asyncHandler(async (req, res)
     bodySessionId: req.body.sessionId,
     artifactType,
     description: description?.substring(0, 50) + '...', // Log first 50 chars
-    scoreAwarded 
+    scoreAwarded,
+    categoryId
   });
 
   if (!sessionId) {
@@ -188,7 +189,8 @@ router.post("/upload", upload.single("pitchDeck"), asyncHandler(async (req, res)
   const uploadMetadata = {
     artifactType,
     description,
-    scoreAwarded: parseInt(scoreAwarded) || 5 // Default to 5 if not provided or invalid
+    scoreAwarded: parseInt(scoreAwarded) || 5, // Default to 5 if not provided or invalid
+    categoryId
   };
 
   const result = await onboardingService.handleDocumentUpload(sessionId, req.file, uploadMetadata);

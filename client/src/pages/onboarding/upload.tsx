@@ -31,6 +31,7 @@ export default function DocumentUpload({
   const ARTIFACT_TYPE = 'pitch_deck';
   const DESCRIPTION = 'Main investor presentation covering problem, solution, market, team, and financials';
   const SCORE = 6;
+  const CATEGORY_ID = 'overview';
 
   const uploadMutation = useMutation({
     mutationFn: async (file: File) => {
@@ -42,6 +43,7 @@ export default function DocumentUpload({
       formData.append("artifactType", ARTIFACT_TYPE);
       formData.append("description", DESCRIPTION);
       formData.append("scoreAwarded", SCORE.toString());
+      formData.append("categoryId", CATEGORY_ID);
 
       // Note: File uploads need to use multipart form data, which can't be JSON encrypted
       // The sessionId and metadata will be encrypted by server-side middleware

@@ -587,7 +587,7 @@ export class OnboardingService {
   /**
    * Handle document upload
    */
-  async handleDocumentUpload(sessionId: string, file: any, uploadMetadata?: { artifactType: string; description: string; scoreAwarded: number }) {
+  async handleDocumentUpload(sessionId: string, file: any, uploadMetadata?: { artifactType: string; description: string; scoreAwarded: number; categoryId: string }) {
     let session = await this.getSession(sessionId);
     if (!session) {
       // Try to find session by looking up venture with this sessionId as founderId
