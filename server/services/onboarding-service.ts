@@ -1029,39 +1029,19 @@ export class OnboardingService {
 
         // Store complete evaluation data in evaluation table
         try {
-          // Check if evaluation already exists for this venture
-          const existingEvaluations = await storage.getEvaluationsByVentureId(venture.ventureId);
-          
-          if (existingEvaluations && existingEvaluations.length > 0) {
-            // Update the most recent evaluation
-            const mostRecentEvaluation = existingEvaluations[0]; // getEvaluationsByVentureId returns ordered by date desc
-            await storage.updateEvaluation(mostRecentEvaluation.evaluationId, {
-              evaluationDate: new Date().toISOString().split('T')[0], // YYYY-MM-DD format
-              proofscore: totalScore,
-              prooftags: extractedTags,
-              fullApiResponse: scoringResult,
-              dimensionScores: dimensionScores,
-              folderId: folderStructure?.id || null,
-              folderUrl: folderStructure?.url || null,
-              isCurrent: true,
-            });
-            console.log(`✓ Updated evaluation record for ${venture.name} with score: ${totalScore}`);
-          } else {
-            // Create new evaluation if none exists
-            await storage.createEvaluation({
-              ventureId: venture.ventureId,
-              evaluationDate: new Date().toISOString().split('T')[0], // YYYY-MM-DD format
-              proofscore: totalScore,
-              prooftags: extractedTags,
-              // STORE COMPLETE API RESPONSE for rich insights and advanced ProofTag logic
-              fullApiResponse: scoringResult, // Complete scoring API response
-              dimensionScores: dimensionScores, // Mapped dimension scores for easy access
-              folderId: folderStructure?.id || null,
-              folderUrl: folderStructure?.url || null,
-              isCurrent: true,
-            });
-            console.log(`✓ Created evaluation record for ${venture.name} with score: ${totalScore}`);
-          }
+          await storage.createEvaluation({
+            ventureId: venture.ventureId,
+            evaluationDate: new Date().toISOString().split('T')[0], // YYYY-MM-DD format
+            proofscore: totalScore,
+            prooftags: extractedTags,
+            // STORE COMPLETE API RESPONSE for rich insights and advanced ProofTag logic
+            fullApiResponse: scoringResult, // Complete scoring API response
+            dimensionScores: dimensionScores, // Mapped dimension scores for easy access
+            folderId: folderStructure?.id || null,
+            folderUrl: folderStructure?.url || null,
+            isCurrent: true,
+          });
+          console.log(`✓ Created evaluation record for ${venture.name}`);
           
           // Extract and update growth stage from scoring results
           try {

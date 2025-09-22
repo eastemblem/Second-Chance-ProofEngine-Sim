@@ -110,7 +110,7 @@ export const evaluation = pgTable("evaluation", {
     traction?: number;
     readiness?: number;
   }>().default({}), // Mapped dimension scores for easy access
-  folderId: varchar("folder_id", { length: 255 }).unique(),
+  folderId: varchar("folder_id", { length: 255 }),
   folderUrl: varchar("folder_url", { length: 255 }),
   isCurrent: boolean("is_current").notNull().default(true),
   createdAt: timestamp("created_at").defaultNow().notNull(),
