@@ -51,7 +51,7 @@ interface ProofVaultSectionProps {
   isUploading: boolean;
   isCreatingFolders: boolean;
   folderCreationStatus: string;
-  onFileUpload: (files: File[], folderId: string) => Promise<void>;
+  onFileUpload: (files: File[], folderId: string, artifactType?: string, description?: string, onSuccess?: () => void) => Promise<void>;
   onFolderUpload: (event: React.ChangeEvent<HTMLInputElement>) => Promise<void>;
   onRetryFailed: () => Promise<void>;
   onClearQueue: () => void;

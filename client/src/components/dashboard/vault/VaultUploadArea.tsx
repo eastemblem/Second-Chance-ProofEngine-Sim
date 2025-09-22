@@ -24,7 +24,7 @@ interface VaultUploadAreaProps {
   isUploading: boolean;
   isCreatingFolders: boolean;
   folderCreationStatus: string;
-  onFileUpload: (files: File[], folderId: string, onSuccess?: () => void) => Promise<void>;
+  onFileUpload: (files: File[], folderId: string, artifactType?: string, description?: string, onSuccess?: () => void) => Promise<void>;
   onFolderUpload: (event: React.ChangeEvent<HTMLInputElement>) => Promise<void>;
   onRetryFailed: () => Promise<void>;
   onClearQueue: () => void;
@@ -110,7 +110,7 @@ export function VaultUploadArea({
       const files = Array.from(e.dataTransfer.files);
       if (files.length > 0) {
         // Pass success callback to clear form after successful upload
-        await onFileUpload(files, selectedFolder, () => {
+        await onFileUpload(files, selectedFolder, selectedArtifact, description, () => {
           // Clear form fields on successful upload
           onArtifactChange("");
           onDescriptionChange("");
@@ -135,7 +135,7 @@ export function VaultUploadArea({
       }
       
       // Pass success callback to clear form after successful upload
-      await onFileUpload(Array.from(files), selectedFolder, () => {
+      await onFileUpload(Array.from(files), selectedFolder, selectedArtifact, description, () => {
         // Clear form fields on successful upload
         onArtifactChange("");
         onDescriptionChange("");

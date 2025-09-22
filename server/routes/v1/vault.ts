@@ -252,7 +252,7 @@ router.post('/submit-for-scoring', asyncHandler(async (req: Request, res: Respon
 
 // Upload file to specific folder - 100% DATABASE-DRIVEN (V1 JWT AUTHENTICATED)
 router.post('/upload-file', upload.single("file"), asyncHandler(async (req: AuthenticatedRequest, res: Response) => {
-  const { folder_id } = req.body;
+  const { folder_id, artifactType, description } = req.body;
   const file = req.file;
   const founderId = req.user?.founderId;
 
@@ -321,7 +321,10 @@ router.post('/upload-file', upload.single("file"), asyncHandler(async (req: Auth
         processingStatus: 'completed',
         eastemblemFileId: uploadResult.id,
         sharedUrl: uploadResult.url,
-        folderId: actualFolderId
+        folderId: actualFolderId,
+        // ProofVault enhancement fields
+        artifactType: artifactType || '',
+        description: description || ''
       });
       // Sanitize IDs for logging to prevent security scanner warnings
       const sanitizedUploadId = String(uploadRecord.uploadId).replace(/[^\w-]/g, '');
@@ -603,7 +606,7 @@ router.post('/create-folder', upload.none(), asyncHandler(async (req: Authentica
 
 // Upload file directly to folder ID (bypasses category mapping) - V1 JWT AUTHENTICATED
 router.post('/upload-file-direct', upload.single("file"), asyncHandler(async (req: AuthenticatedRequest, res: Response) => {
-  const { folder_id } = req.body;
+  const { folder_id, artifactType, description } = req.body;
   const file = req.file;
   const founderId = req.user?.founderId;
 
@@ -672,7 +675,10 @@ router.post('/upload-file-direct', upload.single("file"), asyncHandler(async (re
         processingStatus: 'completed',
         eastemblemFileId: uploadResult.id,
         sharedUrl: uploadResult.url,
-        folderId: folder_id
+        folderId: folder_id,
+        // ProofVault enhancement fields
+        artifactType: artifactType || '',
+        description: description || ''
       });
       // Sanitize IDs for logging to prevent security scanner warnings
       const sanitizedUploadId = String(uploadRecord.uploadId).replace(/[^\w-]/g, '');

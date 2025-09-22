@@ -16,6 +16,8 @@ interface User {
 interface UploadQueueItem {
   file: File;
   folderId: string;
+  artifactType?: string;
+  description?: string;
   status: 'pending' | 'uploading' | 'completed' | 'failed';
   progress: number;
   error?: string;
@@ -123,6 +125,14 @@ export function useFileUpload(user: User | null, onUploadComplete?: () => void) 
       const formData = new FormData();
       formData.append('file', queueItem.file);
       formData.append('folder_id', queueItem.folderId);
+      
+      // Add ProofVault enhancement fields
+      if (queueItem.artifactType) {
+        formData.append('artifactType', queueItem.artifactType);
+      }
+      if (queueItem.description) {
+        formData.append('description', queueItem.description);
+      }
 
       // Simulate upload progress for current file
       const progressInterval = setInterval(() => {
@@ -185,10 +195,12 @@ export function useFileUpload(user: User | null, onUploadComplete?: () => void) 
   }, [getFolderDisplayName, toast]);
 
   // Handle multiple file uploads with queue processing
-  const handleMultipleFileUpload = useCallback(async (files: File[], folderId: string, isRetry: boolean = false, onSuccess?: () => void) => {
+  const handleMultipleFileUpload = useCallback(async (files: File[], folderId: string, artifactType?: string, description?: string, isRetry: boolean = false, onSuccess?: () => void) => {
     const newQueue = Array.from(files).map(file => ({
       file,
       folderId,
+      artifactType,
+      description,
       status: 'pending' as const,
       progress: 0,
       error: undefined
@@ -259,7 +271,13 @@ export function useFileUpload(user: User | null, onUploadComplete?: () => void) 
     const failedFiles = uploadQueue.filter(item => item.status === 'failed');
     if (failedFiles.length === 0) return;
     
-    await handleMultipleFileUpload(failedFiles.map(item => item.file), failedFiles[0].folderId, true);
+    await handleMultipleFileUpload(
+      failedFiles.map(item => item.file), 
+      failedFiles[0].folderId, 
+      failedFiles[0].artifactType,
+      failedFiles[0].description,
+      true
+    );
   }, [uploadQueue, handleMultipleFileUpload]);
 
   return {
