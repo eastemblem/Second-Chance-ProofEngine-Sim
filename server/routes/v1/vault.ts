@@ -315,12 +315,13 @@ router.post('/upload-file', upload.single("file"), asyncHandler(async (req: Auth
       
       if (artifactType) {
         try {
-          const { PROOF_VAULT_ARTIFACTS } = await import("../../shared/config/artifacts");
+          const { PROOF_VAULT_ARTIFACTS } = await import("@shared/config/artifacts");
           // Find which category contains this artifactType
           for (const [catId, categoryData] of Object.entries(PROOF_VAULT_ARTIFACTS)) {
-            if (categoryData.artifacts && categoryData.artifacts[artifactType]) {
+            const category = categoryData as any; // Type assertion for artifacts config
+            if (category.artifacts && category.artifacts[artifactType]) {
               categoryId = catId;
-              scoreAwarded = categoryData.artifacts[artifactType].score || 0;
+              scoreAwarded = category.artifacts[artifactType].score || 0;
               break;
             }
           }
@@ -692,12 +693,13 @@ router.post('/upload-file-direct', upload.single("file"), asyncHandler(async (re
       
       if (artifactType) {
         try {
-          const { PROOF_VAULT_ARTIFACTS } = await import("../../shared/config/artifacts");
+          const { PROOF_VAULT_ARTIFACTS } = await import("@shared/config/artifacts");
           // Find which category contains this artifactType
           for (const [catId, categoryData] of Object.entries(PROOF_VAULT_ARTIFACTS)) {
-            if (categoryData.artifacts && categoryData.artifacts[artifactType]) {
+            const category = categoryData as any; // Type assertion for artifacts config
+            if (category.artifacts && category.artifacts[artifactType]) {
               categoryId = catId;
-              scoreAwarded = categoryData.artifacts[artifactType].score || 0;
+              scoreAwarded = category.artifacts[artifactType].score || 0;
               break;
             }
           }
