@@ -7,7 +7,12 @@ import { trackEvent } from "@/lib/analytics";
 // Removed encryption dependency
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Textarea } from "@/components/ui/textarea";
+import { Label } from "@/components/ui/label";
+import { Slider } from "@/components/ui/slider";
 import { ChevronLeft, Upload, FileText, CheckCircle } from "lucide-react";
+import { PROOF_VAULT_ARTIFACTS } from "@shared/config/artifacts";
 
 interface DocumentUploadProps {
   sessionId: string;
@@ -27,6 +32,10 @@ export default function DocumentUpload({
   const [uploadProgress, setUploadProgress] = useState(0);
   const [isUploading, setIsUploading] = useState(false);
   const [isDragOver, setIsDragOver] = useState(false);
+  // Form fields for upload metadata
+  const [artifactType, setArtifactType] = useState<string>('pitch_deck');
+  const [description, setDescription] = useState<string>('Main investor presentation covering problem, solution, market, team, and financials');
+  const [scoreAwarded, setScoreAwarded] = useState<number>(5);
 
   const uploadMutation = useMutation({
     mutationFn: async (file: File) => {
@@ -35,6 +44,9 @@ export default function DocumentUpload({
       const formData = new FormData();
       formData.append("pitchDeck", file);
       formData.append("sessionId", sessionId);
+      formData.append("artifactType", artifactType);
+      formData.append("description", description);
+      formData.append("scoreAwarded", scoreAwarded.toString());
 
       // Note: File uploads need to use multipart form data, which can't be JSON encrypted
       // The sessionId and metadata will be encrypted by server-side middleware
@@ -264,10 +276,63 @@ export default function DocumentUpload({
                 </div>
               )}
 
+              {/* Upload metadata form */}
+              {!isUploading && uploadProgress === 0 && (
+                <div className="space-y-6 pt-6 border-t border-border">
+                  <h3 className="text-lg font-medium text-card-foreground">Document Details</h3>
+                  
+                  {/* Artifact Type Selection */}
+                  <div className="space-y-2">
+                    <Label htmlFor="artifact-type">Document Type</Label>
+                    <Select value={artifactType} onValueChange={setArtifactType}>
+                      <SelectTrigger>
+                        <SelectValue placeholder="Select document type" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {Object.entries(PROOF_VAULT_ARTIFACTS['0_Overview'].artifacts).map(([key, artifact]) => (
+                          <SelectItem key={key} value={key}>
+                            {artifact.name}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  </div>
+
+                  {/* Description */}
+                  <div className="space-y-2">
+                    <Label htmlFor="description">Description</Label>
+                    <Textarea
+                      id="description"
+                      value={description}
+                      onChange={(e) => setDescription(e.target.value)}
+                      placeholder="Describe the content and purpose of this document..."
+                      className="min-h-[80px]"
+                    />
+                  </div>
+
+                  {/* Score Awarded */}
+                  <div className="space-y-2">
+                    <Label htmlFor="score">Score Value: {scoreAwarded} points</Label>
+                    <Slider
+                      value={[scoreAwarded]}
+                      onValueChange={(value) => setScoreAwarded(value[0])}
+                      max={10}
+                      min={1}
+                      step={1}
+                      className="w-full"
+                    />
+                    <div className="flex justify-between text-xs text-muted-foreground">
+                      <span>1 point</span>
+                      <span>10 points</span>
+                    </div>
+                  </div>
+                </div>
+              )}
+
               {!isUploading && uploadProgress === 0 && (
                 <Button
                   onClick={handleUpload}
-                  className="w-full bg-primary hover:bg-primary/90"
+                  className="w-full bg-primary hover:bg-primary/90 mt-6"
                   size="lg"
                 >
                   Upload Pitch Deck
