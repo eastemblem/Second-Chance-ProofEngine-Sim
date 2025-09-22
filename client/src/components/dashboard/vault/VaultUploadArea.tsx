@@ -72,21 +72,27 @@ export function VaultUploadArea({
   };
 
   const getArtifactsForFolder = (folderId: string) => {
+    console.log('🔍 getArtifactsForFolder called:', { folderId, growthStage });
+    
     // If no growth stage provided, return all artifacts (fallback)
     if (!growthStage) {
+      console.log('⚠️ No growthStage provided, using all artifacts');
       return FileValidator.getArtifactsForCategory(folderId);
     }
     
     // Get filtered artifacts based on growth stage
     const filteredConfig = filterArtifactsByGrowthStage(growthStage);
+    console.log('📊 Filtered config:', filteredConfig);
     const category = filteredConfig[folderId];
+    console.log('📁 Category for folder:', { folderId, category });
     
     if (!category) {
+      console.log('❌ No category found for folder:', folderId);
       return [];
     }
     
     // Convert to FileValidator format
-    return Object.entries(category.artifacts).map(([artifactKey, artifact]) => ({
+    const result = Object.entries(category.artifacts).map(([artifactKey, artifact]) => ({
       id: artifactKey,
       name: artifact.name,
       description: artifact.description,
@@ -94,6 +100,9 @@ export function VaultUploadArea({
       acceptedFormats: artifact.allowedFormats || ['.pdf', '.doc', '.docx'],
       maxSizeMB: Math.round(artifact.maxSizeBytes / (1024 * 1024)) || 10
     }));
+    
+    console.log('✅ Filtered artifacts result:', result);
+    return result;
   };
 
   const validateRequirements = () => {
