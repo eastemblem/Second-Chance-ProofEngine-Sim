@@ -72,28 +72,24 @@ export default function LoginPage() {
     setIsLoading(true);
 
     try {
-      console.log('🔐 Attempting login with email:', email);
       const response = await apiRequest('POST', '/api/auth-token/login', {
         email,
         password,
       });
 
       const data = await handleResponse(response);
-      console.log('🔐 Login response:', { ok: response.ok, status: response.status, hasToken: !!data.token });
 
       if (data.success) {
         // Track successful login event
         trackEvent('login', 'authentication', 'login_success');
         
-        // CRITICAL FIX: Store new auth data (don't clear everything at once)
+        // Store new auth data (don't clear everything at once)
         if (data.token) {
-          console.log('🔐 Storing token:', data.token.substring(0, 20) + '...');
           localStorage.setItem('auth_token', data.token);
           localStorage.setItem('auth_user', JSON.stringify(data.founder));
           
-          // CRITICAL FIX: Store venture data with growthStage
+          // Store venture data with growthStage
           if (data.venture) {
-            console.log('🔐 Storing venture data:', { name: data.venture.name, growthStage: data.venture.growthStage });
             localStorage.setItem('auth_venture', JSON.stringify(data.venture));
           }
           
