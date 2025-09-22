@@ -126,14 +126,7 @@ export function useFileUpload(user: User | null, onUploadComplete?: () => void) 
       formData.append('file', queueItem.file);
       formData.append('folder_id', queueItem.folderId);
       
-      // Add ProofVault enhancement fields with debugging
-      console.log('📋 FormData fields being added:', {
-        artifactType: queueItem.artifactType,
-        description: queueItem.description,
-        artifactTypeType: typeof queueItem.artifactType,
-        descriptionType: typeof queueItem.description
-      });
-      
+      // Add ProofVault enhancement fields
       if (queueItem.artifactType) {
         formData.append('artifactType', queueItem.artifactType);
       }
@@ -202,49 +195,16 @@ export function useFileUpload(user: User | null, onUploadComplete?: () => void) 
   }, [getFolderDisplayName, toast]);
 
   // Handle multiple file uploads with queue processing
-  // Support both 5-parameter (onSuccess) and 6-parameter (isRetry, onSuccess) signatures
+  // Standard 5-parameter signature to match VaultUploadArea expectations
   const handleMultipleFileUpload = useCallback(async (
     files: File[], 
     folderId: string, 
     artifactType?: string, 
     description?: string, 
-    isRetryOrOnSuccess?: boolean | (() => void), 
     onSuccess?: () => void
   ) => {
-    // CRITICAL DEBUG: Log all received parameters
-    console.log('🚨 CRITICAL DEBUG - Raw parameters received:', {
-      'files.length': files?.length,
-      'folderId': folderId,
-      'artifactType': artifactType,
-      'description': typeof description === 'string' ? description : `TYPE: ${typeof description} VALUE: ${String(description).substring(0, 50)}`,
-      'isRetryOrOnSuccess': typeof isRetryOrOnSuccess === 'function' ? 'FUNCTION' : isRetryOrOnSuccess,
-      'onSuccess': typeof onSuccess === 'function' ? 'FUNCTION' : onSuccess,
-      'arguments.length': arguments.length
-    });
-
-    // Runtime type guard to handle parameter mismatch
-    let isRetry: boolean = false;
-    let successCallback: (() => void) | undefined;
-    
-    if (typeof isRetryOrOnSuccess === 'function') {
-      // 5-parameter call: (files, folderId, artifactType, description, onSuccess)
-      successCallback = isRetryOrOnSuccess;
-    } else if (typeof isRetryOrOnSuccess === 'boolean') {
-      // 6-parameter call: (files, folderId, artifactType, description, isRetry, onSuccess)
-      isRetry = isRetryOrOnSuccess;
-      successCallback = onSuccess;
-    }
-    
-    console.log('🔄 Upload initiated:', {
-      fileCount: files.length,
-      folderId,
-      artifactType,
-      description,
-      isRetry,
-      hasSuccessCallback: !!successCallback,
-      isRetryOrOnSuccessType: typeof isRetryOrOnSuccess,
-      isRetryOrOnSuccessValue: isRetryOrOnSuccess ? String(isRetryOrOnSuccess).substring(0, 100) : null
-    });
+    const isRetry = false; // For new uploads, always false
+    const successCallback = onSuccess;
     const newQueue = Array.from(files).map(file => ({
       file,
       folderId,
@@ -320,12 +280,12 @@ export function useFileUpload(user: User | null, onUploadComplete?: () => void) 
     const failedFiles = uploadQueue.filter(item => item.status === 'failed');
     if (failedFiles.length === 0) return;
     
+    // For retry, we don't need a success callback since it's internal
     await handleMultipleFileUpload(
       failedFiles.map(item => item.file), 
       failedFiles[0].folderId, 
       failedFiles[0].artifactType,
-      failedFiles[0].description,
-      true
+      failedFiles[0].description
     );
   }, [uploadQueue, handleMultipleFileUpload]);
 
