@@ -1040,9 +1040,9 @@ export class OnboardingService {
           
           // Extract and update growth stage from scoring results
           try {
-            const founderStage = scoringResult?.founder_info?.founder_stage || 
+            const founderStage = scoringResult?.founder_stage || 
                                 scoringResult?.output?.founder_stage || 
-                                scoringResult?.founder_stage;
+                                scoringResult?.founder_info?.founder_stage;
             
             if (founderStage) {
               await storage.updateVenture(venture.ventureId, {
