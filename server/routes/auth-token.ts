@@ -79,7 +79,8 @@ router.post('/register', asyncHandler(async (req, res) => {
         ventureId: venture.ventureId,
         name: venture.name,
         industry: venture.industry,
-        geography: venture.geography
+        geography: venture.geography,
+        growthStage: venture.growthStage
       } : null
     });
 
@@ -334,7 +335,8 @@ router.get('/verify', asyncHandler(async (req, res) => {
         ventureId: primaryVenture.ventureId,
         name: primaryVenture.name,
         industry: primaryVenture.industry,
-        geography: primaryVenture.geography
+        geography: primaryVenture.geography,
+        growthStage: primaryVenture.growthStage
       } : null,
       tokenValid: true,
       expiresAt: decoded.exp
@@ -371,11 +373,29 @@ router.post('/refresh', asyncHandler(async (req, res) => {
       return res.status(401).json(createErrorResponse(401, 'User not found'));
     }
 
-    // Generate new token
+    // Get associated venture for complete data
+    const ventures = await databaseService.getVenturesByFounderId(founder.founderId);
+    const primaryVenture = ventures[0] || null;
+
+    // Generate new token with complete user and venture data
     const authResponse = createAuthResponse({
       founderId: decoded.founderId,
       email: decoded.email,
-      startupName: decoded.startupName
+      startupName: primaryVenture?.name || decoded.startupName
+    }, {
+      founder: {
+        founderId: founder.founderId,
+        fullName: founder.fullName,
+        email: founder.email,
+        positionRole: founder.positionRole
+      },
+      venture: primaryVenture ? {
+        ventureId: primaryVenture.ventureId,
+        name: primaryVenture.name,
+        industry: primaryVenture.industry,
+        geography: primaryVenture.geography,
+        growthStage: primaryVenture.growthStage
+      } : null
     });
 
     // Set new cookie

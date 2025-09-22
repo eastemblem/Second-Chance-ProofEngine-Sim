@@ -58,10 +58,19 @@ export function TokenAuthProvider({ children }: { children: ReactNode }) {
     const initAuth = async () => {
       const storedToken = authClient.getToken();
       const storedUser = authClient.getUser();
+      const storedVenture = authClient.getVenture();
+      
+      console.log('🔄 Initializing auth from storage:', { 
+        hasToken: !!storedToken, 
+        hasUser: !!storedUser, 
+        hasVenture: !!storedVenture,
+        venture: storedVenture 
+      });
       
       if (storedToken && storedUser) {
         setToken(storedToken);
         setUser(storedUser);
+        setVenture(storedVenture); // Set venture data from storage
         
         // Verify token is still valid
         const isValid = await authClient.verifyToken();
