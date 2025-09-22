@@ -336,8 +336,9 @@ export class OnboardingService {
     }
 
     // Try to get founder data from session first
-    let founderData = session.stepData?.founder;
-    let founderId = session.stepData?.founderId || founderData?.founderId;
+    const sessionData = session.stepData as any;
+    let founderData = sessionData?.founder;
+    let founderId = sessionData?.founderId || founderData?.founderId;
     
     // If session data is empty/corrupted, provide clear guidance
     if (!founderData || !founderId) {
@@ -449,7 +450,7 @@ export class OnboardingService {
     await this.updateSession(sessionId, {
       currentStep: "team",
       stepData: {
-        ...session.stepData,
+        ...(session.stepData as any),
         venture,
         folderStructure,
       },
@@ -612,7 +613,7 @@ export class OnboardingService {
       }
     }
 
-    const stepData = session.stepData || {};
+    const stepData = session.stepData as any || {};
     const venture = stepData.venture;
     if (!venture) {
       throw new Error("Venture step not completed");
@@ -666,10 +667,10 @@ export class OnboardingService {
     await this.updateSession(sessionId, {
       currentStep: "processing",
       stepData: {
-        ...session.stepData,
+        ...(session.stepData as any),
         upload: upload[0],
       },
-      completedSteps: [...session.completedSteps, "upload"],
+      completedSteps: [...(session.completedSteps as any), "upload"],
     });
 
     // Send Slack notification for document upload (async, no wait)
@@ -699,7 +700,7 @@ export class OnboardingService {
     }
     console.log(`[SCORING] Session found, processing...`);
 
-    const stepData = session.stepData || {};
+    const stepData = session.stepData as any || {};
     const upload = stepData.upload;
     const venture = stepData.venture;
     const folderStructure = stepData.folderStructure;
@@ -973,7 +974,7 @@ export class OnboardingService {
     await this.updateSession(sessionId, {
       currentStep: "complete",
       stepData: {
-        ...session.stepData,
+        ...(session.stepData as any),
         scoringResult,
         processing: {
           scoringResult,
@@ -1308,7 +1309,7 @@ export class OnboardingService {
     const session = await this.getSession(sessionId);
     await this.updateSession(sessionId, {
       stepData: {
-        ...session.stepData,
+        ...(session.stepData as any),
         scoringResult,
         processing: {
           scoringResult
