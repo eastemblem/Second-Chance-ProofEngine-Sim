@@ -65,6 +65,7 @@ export const venture = pgTable("venture", {
   reportUrl: varchar("report_url", { length: 500 }),
   reportGeneratedAt: timestamp("report_generated_at"),
   folderStructure: jsonb("folder_structure"),
+  growthStage: varchar("growth_stage", { length: 100 }),
   status: ventureStatusEnum("status").notNull().default("pending"),
   createdAt: timestamp("created_at").defaultNow().notNull(),
   updatedAt: timestamp("updated_at").defaultNow().notNull(),
