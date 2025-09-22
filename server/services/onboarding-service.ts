@@ -1038,6 +1038,26 @@ export class OnboardingService {
           });
           console.log(`✓ Created evaluation record for ${venture.name}`);
           
+          // Extract and update growth stage from scoring results
+          try {
+            const founderStage = scoringResult?.founder_info?.founder_stage || 
+                                scoringResult?.output?.founder_stage || 
+                                scoringResult?.founder_stage;
+            
+            if (founderStage) {
+              await storage.updateVenture(venture.ventureId, {
+                growthStage: founderStage,
+                updatedAt: new Date()
+              });
+              console.log(`✓ Updated venture ${venture.name} with growth stage: ${founderStage}`);
+            } else {
+              console.log(`⚠ No founder_stage found in scoring results for ${venture.name}`);
+            }
+          } catch (growthStageError) {
+            console.error("Failed to update venture growth stage:", growthStageError);
+            // Don't fail the entire process if growth stage update fails
+          }
+          
           // Generate certificate and report in background after successful evaluation
           console.log("Starting async certificate and report generation for venture:", venture.ventureId);
           (async () => {
