@@ -1,4 +1,5 @@
 import { MetricCard } from "../shared";
+import VaultScoreDisplay from "./VaultScoreDisplay";
 
 interface ProofVaultData {
   overviewCount: number;
@@ -12,11 +13,17 @@ interface ProofVaultData {
 
 interface VaultOverviewProps {
   proofVaultData: ProofVaultData | null;
+  validationData?: { proofScore: number; vaultScore?: number } | null;
 }
 
-export function VaultOverview({ proofVaultData }: VaultOverviewProps) {
+export function VaultOverview({ proofVaultData, validationData }: VaultOverviewProps) {
   return (
     <>
+      {/* VaultScore Display - Right aligned above cards */}
+      <div className="flex justify-end mb-6">
+        <VaultScoreDisplay vaultScore={validationData?.vaultScore || 0} />
+      </div>
+
       <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-4">
         <MetricCard
           title="Overview"
