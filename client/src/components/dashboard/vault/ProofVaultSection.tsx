@@ -200,6 +200,11 @@ export function ProofVaultSection({
               Manage and organise your validation documents here
             </p>
 
+            {/* VaultScore Display */}
+            <div className="mb-6">
+              <VaultScoreDisplay vaultScore={validationData?.vaultScore || 0} />
+            </div>
+
 
           </div>
 
@@ -215,7 +220,6 @@ export function ProofVaultSection({
               <TabsContent value="overview" className="mt-6">
                 <VaultOverview 
                   proofVaultData={proofVaultData} 
-                  validationData={validationData}
                   hasDealRoomAccess={hasDealRoomAccess}
                   onPaymentModalOpen={onPaymentModalOpen}
                   priceDisplay={priceDisplay}

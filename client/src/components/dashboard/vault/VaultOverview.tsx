@@ -1,5 +1,4 @@
 import { MetricCard } from "../shared";
-import VaultScoreDisplay from "./VaultScoreDisplay";
 import { Button } from "@/components/ui/button";
 import { ExternalLink, Lock } from "lucide-react";
 
@@ -16,7 +15,6 @@ interface ProofVaultData {
 
 interface VaultOverviewProps {
   proofVaultData: ProofVaultData | null;
-  validationData?: { proofScore: number; vaultScore?: number } | null;
   hasDealRoomAccess?: boolean;
   onPaymentModalOpen?: () => void;
   priceDisplay?: string;
@@ -25,7 +23,6 @@ interface VaultOverviewProps {
 
 export function VaultOverview({ 
   proofVaultData, 
-  validationData, 
   hasDealRoomAccess = false,
   onPaymentModalOpen,
   priceDisplay = '$99 USD',
