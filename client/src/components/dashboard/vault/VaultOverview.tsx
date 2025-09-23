@@ -1,5 +1,7 @@
 import { MetricCard } from "../shared";
 import VaultScoreDisplay from "./VaultScoreDisplay";
+import { Button } from "@/components/ui/button";
+import { ExternalLink, Lock } from "lucide-react";
 
 interface ProofVaultData {
   overviewCount: number;
@@ -9,19 +11,46 @@ interface ProofVaultData {
   credibilityProofCount: number;
   commercialProofCount: number;
   investorPackCount: number;
+  folderUrls?: Record<string, string>;
 }
 
 interface VaultOverviewProps {
   proofVaultData: ProofVaultData | null;
   validationData?: { proofScore: number; vaultScore?: number } | null;
+  hasDealRoomAccess?: boolean;
+  onPaymentModalOpen?: () => void;
+  priceDisplay?: string;
+  onViewParentFolder?: () => void;
 }
 
-export function VaultOverview({ proofVaultData, validationData }: VaultOverviewProps) {
+export function VaultOverview({ 
+  proofVaultData, 
+  validationData, 
+  hasDealRoomAccess = false,
+  onPaymentModalOpen,
+  priceDisplay = '$99 USD',
+  onViewParentFolder
+}: VaultOverviewProps) {
   return (
     <>
-      {/* VaultScore Display - Right aligned above cards */}
+      {/* Access Box Folder Button - Right aligned above cards */}
       <div className="flex justify-end mb-6">
-        <VaultScoreDisplay vaultScore={validationData?.vaultScore || 0} />
+        <Button 
+          variant="ghost" 
+          size="sm"
+          onClick={onViewParentFolder}
+          className={`p-0 h-auto font-normal ${hasDealRoomAccess 
+            ? 'text-purple-400 hover:text-purple-300 hover:bg-gray-800' 
+            : 'text-gray-500 hover:text-purple-400 hover:bg-gray-800'}`}
+          disabled={!hasDealRoomAccess && !onPaymentModalOpen}
+          title={hasDealRoomAccess ? "View parent folder in Proof Vault" : "Payment required for Box folder access"}
+        >
+          {hasDealRoomAccess ? (
+            <><ExternalLink className="w-4 h-4 mr-2" />Access Box Folder</>
+          ) : (
+            <><Lock className="w-4 h-4 mr-2" />Unlock Box Access - {priceDisplay}</>
+          )}
+        </Button>
       </div>
 
       <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-4">

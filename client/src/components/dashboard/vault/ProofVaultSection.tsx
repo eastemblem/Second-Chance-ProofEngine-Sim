@@ -201,22 +201,6 @@ export function ProofVaultSection({
             </p>
 
 
-            <Button 
-              variant="ghost" 
-              size="sm"
-              onClick={handleViewParentFolder}
-              className={`p-0 h-auto font-normal ${hasDealRoomAccess 
-                ? 'text-purple-400 hover:text-purple-300 hover:bg-gray-800' 
-                : 'text-gray-500 hover:text-purple-400 hover:bg-gray-800'}`}
-              disabled={!hasDealRoomAccess && !onPaymentModalOpen}
-              title={hasDealRoomAccess ? "View parent folder in Proof Vault" : "Payment required for Box folder access"}
-            >
-              {hasDealRoomAccess ? (
-                <><ExternalLink className="w-4 h-4 mr-2" />Access Box Folder</>
-              ) : (
-                <><Lock className="w-4 h-4 mr-2" />Unlock Box Access - {priceDisplay}</>
-              )}
-            </Button>
           </div>
 
           {/* Center Column: Tabs and Content */}
@@ -229,7 +213,14 @@ export function ProofVaultSection({
               </TabsList>
 
               <TabsContent value="overview" className="mt-6">
-                <VaultOverview proofVaultData={proofVaultData} validationData={validationData} />
+                <VaultOverview 
+                  proofVaultData={proofVaultData} 
+                  validationData={validationData}
+                  hasDealRoomAccess={hasDealRoomAccess}
+                  onPaymentModalOpen={onPaymentModalOpen}
+                  priceDisplay={priceDisplay}
+                  onViewParentFolder={handleViewParentFolder}
+                />
               </TabsContent>
 
               <TabsContent value="files" className="mt-6">
