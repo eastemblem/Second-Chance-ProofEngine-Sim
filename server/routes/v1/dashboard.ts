@@ -94,6 +94,7 @@ router.get('/validation', asyncHandler(async (req: Request, res: Response) => {
       status: currentScore >= 90 ? 'Deal Room Ready' : currentScore >= 70 ? 'Investor Ready' : 'Building Validation',
       investorReady: currentScore >= 70,
       dealRoomAccess: currentScore >= 90,
+      vaultScore: latestEvaluation?.vaultscore || 0, // Add VaultScore here
       certificateUrl,
       reportUrl
     };
@@ -103,7 +104,7 @@ router.get('/validation', asyncHandler(async (req: Request, res: Response) => {
     const totalFiles = await storage.getDocumentUploadCountByVenture(dashboardData.venture.ventureId);
     validationData.filesUploaded = totalFiles;
 
-    appLogger.api(`FIXED: Returning validation data for ${founderData?.fullName}, score: ${currentScore}, files: ${totalFiles}`);
+    appLogger.api(`FIXED: Returning validation data for ${founderData?.fullName}, score: ${currentScore}, vaultScore: ${validationData.vaultScore}, files: ${totalFiles}`);
     res.json(validationData);
   } catch (error) {
     appLogger.api("FIXED: Dashboard validation error:", error);

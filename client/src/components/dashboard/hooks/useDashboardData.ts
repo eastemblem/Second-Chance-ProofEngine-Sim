@@ -118,27 +118,6 @@ export function useDashboardData() {
       if (validationResponse.ok) {
         const validation = await validationResponse.json();
         console.log('✅ Validation data loaded successfully:', validation);
-        
-        // Fetch VaultScore separately and merge with validation data
-        try {
-          const vaultScoreResponse = await fetch('/api/v1/dashboard/vault-score', {
-            credentials: 'include',
-            headers: { ...headers, ...authHeaders } as HeadersInit
-          });
-          
-          if (vaultScoreResponse.ok) {
-            const vaultScoreData = await vaultScoreResponse.json();
-            console.log('✅ VaultScore data loaded successfully:', vaultScoreData);
-            validation.vaultScore = vaultScoreData.data?.vaultScore || 0;
-          } else {
-            console.error('❌ VaultScore API failed:', vaultScoreResponse.status, vaultScoreResponse.statusText);
-            validation.vaultScore = 0; // Default to 0 if fetch fails
-          }
-        } catch (vaultScoreError) {
-          console.error('❌ VaultScore fetch error:', vaultScoreError);
-          validation.vaultScore = 0; // Default to 0 if fetch fails
-        }
-        
         setValidationData(validation);
         
         // Check for newly available documents and show toast notifications
