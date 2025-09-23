@@ -78,7 +78,7 @@ export function VaultUploadArea({
     }
     
     // Get filtered artifacts based on growth stage
-    const filteredConfig = filterArtifactsByGrowthStage(growthStage);
+    const filteredConfig = filterArtifactsByGrowthStage(growthStage as any);
     const category = filteredConfig[folderId];
     
     if (!category) {

@@ -181,7 +181,16 @@ export function useFileUpload(user: User | null, onUploadComplete?: () => void) 
         throw new Error(errorData.message || 'Upload failed');
       }
     } catch (error) {
-      console.error('File upload error:', error);
+      // Better error logging to capture serialization issues
+      console.error('File upload error:', {
+        message: error instanceof Error ? error.message : 'Unknown error',
+        name: error instanceof Error ? error.name : 'Unknown',
+        stack: error instanceof Error ? error.stack : undefined,
+        statusText: (error as any)?.statusText,
+        status: (error as any)?.status,
+        response: (error as any)?.response,
+        rawError: error
+      });
       const errorMessage = error instanceof Error ? error.message : 'Unknown error';
       
       setUploadQueue(prev => prev.map((item, i) => 
