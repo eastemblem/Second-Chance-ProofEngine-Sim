@@ -269,8 +269,10 @@ router.post('/upload-file', upload.single("file"), asyncHandler(async (req: Auth
 
   const sessionId = getSessionId(req);
   
-  // SCOPE FIX: Declare currentVentureId at function scope so it's accessible in catch block
+  // SCOPE FIX: Declare variables at function scope so they're accessible throughout
   let currentVentureId = null;
+  let categoryId = '';
+  let scoreAwarded = 0;
   
   try {
     // Step 1: Get actual Box.com folder ID from database - NO FALLBACKS
@@ -310,8 +312,6 @@ router.post('/upload-file', upload.single("file"), asyncHandler(async (req: Auth
       }
 
       // Calculate categoryId and scoreAwarded from artifactType
-      let categoryId = '';
-      let scoreAwarded = 0;
       
       if (artifactType) {
         try {
