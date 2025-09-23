@@ -95,7 +95,7 @@ export default function PaymentOnboarding({ sessionData, onNext, onSkip, onPrev,
             toast({
               title: "Payment Successful! 🎉",
               description: "Your package has been activated. Welcome to the next level!",
-              variant: "default",
+              variant: "success",
             });
             
             // Auto-advance after successful payment
@@ -181,7 +181,7 @@ export default function PaymentOnboarding({ sessionData, onNext, onSkip, onPrev,
             toast({
               title: "Payment Successful! 🎉",
               description: "Your package has been activated. Welcome to the next level!",
-              variant: "default",
+              variant: "success",
             });
             
             setTimeout(() => onNext(), 3000);
@@ -267,7 +267,7 @@ export default function PaymentOnboarding({ sessionData, onNext, onSkip, onPrev,
           toast({
             title: "Payment Successful! 🎉",
             description: "Your package has been activated.",
-            variant: "default",
+            variant: "success",
           });
           
           // Close mobile modal if open

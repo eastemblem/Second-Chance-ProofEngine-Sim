@@ -194,6 +194,7 @@ export default function NextSteps() {
         toast({
           title: "Payment Page Opened",
           description: "Complete your payment in the new tab. We'll update your status here.",
+          variant: "success",
         });
       } else {
         throw new Error(data.message || "Failed to create payment");
@@ -228,6 +229,7 @@ export default function NextSteps() {
               toast({
                 title: "Payment Successful!",
                 description: "You now have access to all premium features.",
+                variant: "success",
               });
               // Redirect to dashboard or premium content
               setTimeout(() => navigate('/dashboard'), 2000);

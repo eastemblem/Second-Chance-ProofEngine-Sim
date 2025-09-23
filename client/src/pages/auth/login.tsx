@@ -112,6 +112,7 @@ export default function LoginPage() {
           title: "Welcome Back!",
           description: `Hello ${data.founder.fullName}, you're now logged in.`,
           duration: 3000,
+          variant: "success",
         });
         
         // CRITICAL FIX: Redirect immediately to dashboard after successful login

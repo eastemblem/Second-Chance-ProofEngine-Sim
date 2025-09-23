@@ -176,6 +176,7 @@ export function ProofVaultSection({
       toast({
         title: "Opening Parent Folder",
         description: "Opening your main Proof Vault folder",
+        variant: "success",
       });
     } else {
       toast({

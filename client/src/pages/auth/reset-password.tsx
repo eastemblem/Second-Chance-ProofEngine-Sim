@@ -122,6 +122,7 @@ export default function ResetPasswordPage() {
           title: "Password Reset Successfully!",
           description: "You can now login with your new password.",
           duration: 5000,
+          variant: "success",
         });
         
         // Redirect to login page after 2 seconds

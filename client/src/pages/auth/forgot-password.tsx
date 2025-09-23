@@ -48,6 +48,7 @@ export default function ForgotPasswordPage() {
       toast({
         title: "Reset email sent",
         description: "Please check your inbox for password reset instructions.",
+        variant: "success",
       });
     } catch (error) {
       const errorMessage = error instanceof Error ? error.message : 'Failed to send reset email';

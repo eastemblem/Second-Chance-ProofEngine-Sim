@@ -181,6 +181,7 @@ export function PaymentModal({
                 toast({
                   title: "Payment Successful!",
                   description: "Deal Room access has been activated!",
+                  variant: "success",
                 });
                 onSuccess();
               } else {
@@ -250,6 +251,7 @@ export function PaymentModal({
           toast({
             title: "Payment Successful!",
             description: "Deal Room access has been activated!",
+            variant: "success",
           });
           onSuccess(); // Update dashboard state
         } else if (result.success && result.transaction?.status === 'failed') {
