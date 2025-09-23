@@ -6,7 +6,6 @@ import { ExternalLink, Lock, CreditCard } from "lucide-react";
 import { VaultOverview } from "./VaultOverview";
 import { VaultFileListing } from "./VaultFileListing";
 import { VaultUploadArea } from "./VaultUploadArea";
-import VaultScoreDisplay from "./VaultScoreDisplay";
 import { useToast } from "@/hooks/use-toast";
 import { trackEvent } from "@/lib/analytics";
 
@@ -199,11 +198,6 @@ export function ProofVaultSection({
             <p className="text-gray-400 text-base leading-relaxed mb-6">
               Manage and organise your validation documents here
             </p>
-
-            {/* VaultScore Display */}
-            <div className="mb-6">
-              <VaultScoreDisplay vaultScore={validationData?.vaultScore || 0} />
-            </div>
 
             <Button 
               variant="ghost" 
