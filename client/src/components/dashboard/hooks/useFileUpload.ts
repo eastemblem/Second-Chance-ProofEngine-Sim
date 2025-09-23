@@ -23,7 +23,7 @@ interface UploadQueueItem {
   error?: string;
 }
 
-export function useFileUpload(user: User | null, onUploadComplete?: () => void) {
+export function useFileUpload(user: User | null, onUploadComplete?: (updatedVaultScore?: number) => void) {
   const [uploadQueue, setUploadQueue] = useState<UploadQueueItem[]>([]);
   const [currentUploadIndex, setCurrentUploadIndex] = useState(0);
   const [isUploading, setIsUploading] = useState(false);
@@ -164,6 +164,8 @@ export function useFileUpload(user: User | null, onUploadComplete?: () => void) 
       ));
 
       if (response.ok) {
+        const responseData = await response.json();
+        
         setUploadQueue(prev => prev.map((item, i) => 
           i === index ? { ...item, status: 'completed', error: undefined } : item
         ));
@@ -173,9 +175,11 @@ export function useFileUpload(user: User | null, onUploadComplete?: () => void) 
         toast({
           title: "File Uploaded",
           description: `${queueItem.file.name} uploaded successfully to ${getFolderDisplayName(queueItem.folderId)}.`,
+          variant: "success",
         });
         
-        return true;
+        // Return response data including updated VaultScore
+        return { success: true, responseData };
       } else {
         const errorData = await response.json();
         throw new Error(errorData.message || 'Upload failed');
@@ -199,7 +203,7 @@ export function useFileUpload(user: User | null, onUploadComplete?: () => void) 
       
       trackEvent('upload_failed', 'proofvault', `file_upload_error_${queueItem.folderId}`);
       
-      return false;
+      return { success: false, error: errorMessage };
     }
   }, [getFolderDisplayName, toast]);
 
@@ -237,17 +241,24 @@ export function useFileUpload(user: User | null, onUploadComplete?: () => void) 
     setCurrentUploadIndex(0);
     setIsUploading(true);
     
-    const uploadResults: Array<{file: File, status: 'completed' | 'failed', error?: string}> = [];
+    const uploadResults: Array<{file: File, status: 'completed' | 'failed', error?: string, responseData?: any}> = [];
+    let latestVaultScore: number | undefined;
     
     // Process files sequentially
     for (let i = 0; i < newQueue.length; i++) {
       setCurrentUploadIndex(i);
       const result = await handleSingleFileUpload(newQueue[i], i);
       
+      // Extract VaultScore from successful uploads
+      if (result.success && result.responseData?.data?.vaultScore !== undefined) {
+        latestVaultScore = result.responseData.data.vaultScore;
+      }
+      
       uploadResults.push({
         file: newQueue[i].file,
-        status: result ? 'completed' : 'failed',
-        error: result ? undefined : 'Upload failed'
+        status: result.success ? 'completed' : 'failed',
+        error: result.success ? undefined : (result.error || 'Upload failed'),
+        responseData: result.success ? result.responseData : undefined
       });
     }
     
@@ -278,9 +289,9 @@ export function useFileUpload(user: User | null, onUploadComplete?: () => void) 
     setIsUploading(false);
     setCurrentUploadIndex(0);
     
-    // Call completion callback
+    // Call completion callback with updated VaultScore if available
     if (onUploadComplete) {
-      onUploadComplete();
+      onUploadComplete(latestVaultScore);
     }
   }, [handleSingleFileUpload, onUploadComplete, toast]);
 
