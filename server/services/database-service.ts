@@ -51,6 +51,7 @@ export class DatabaseService {
           evaluation: {
             evaluationId: evaluation.evaluationId,
             proofscore: evaluation.proofscore,
+            vaultscore: evaluation.vaultscore,
             prooftags: evaluation.prooftags,
             fullApiResponse: evaluation.fullApiResponse,
             dimensionScores: evaluation.dimensionScores,
@@ -142,6 +143,7 @@ export class DatabaseService {
           latestEvaluation: {
             evaluationId: evaluation.evaluationId,
             proofscore: evaluation.proofscore,
+            vaultscore: evaluation.vaultscore,
             prooftags: evaluation.prooftags,
             fullApiResponse: evaluation.fullApiResponse,
             dimensionScores: evaluation.dimensionScores,
@@ -197,6 +199,7 @@ export class DatabaseService {
         evaluation: {
           evaluationId: evaluation.evaluationId,
           proofscore: evaluation.proofscore,
+          vaultscore: evaluation.vaultscore,
           prooftags: evaluation.prooftags,
           fullApiResponse: evaluation.fullApiResponse,
           dimensionScores: evaluation.dimensionScores,
@@ -228,6 +231,7 @@ export class DatabaseService {
         evaluation: {
           evaluationId: evaluation.evaluationId,
           proofscore: evaluation.proofscore,
+          vaultscore: evaluation.vaultscore,
           prooftags: evaluation.prooftags,
           evaluationDate: evaluation.evaluationDate,
         }
