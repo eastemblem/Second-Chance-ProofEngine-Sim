@@ -528,4 +528,41 @@ function getActivityColor(activityType: string): string {
   return colorMap[activityType] || 'gray';
 }
 
+// VaultScore endpoint - JWT AUTHENTICATED
+router.get('/vault-score', asyncHandler(async (req: Request, res: Response) => {
+  const founderId = (req as any).user?.founderId;
+  
+  if (!founderId) {
+    appLogger.api('Authentication failed - no founderId');
+    return res.status(401).json({ error: "Authentication required" });
+  }
+  
+  try {
+    const dashboardData = await databaseService.getFounderWithLatestVenture(founderId);
+    if (!dashboardData) {
+      return res.status(404).json({ error: "Founder not found" });
+    }
+
+    const { venture: latestVenture, latestEvaluation } = dashboardData;
+    const currentVaultScore = latestEvaluation?.vaultscore || 0;
+
+    appLogger.api(`VaultScore retrieved for founder ${founderId}: ${currentVaultScore}`);
+
+    res.json({
+      success: true,
+      data: {
+        vaultScore: currentVaultScore,
+        ventureId: latestVenture?.ventureId || null,
+        evaluationId: latestEvaluation?.evaluationId || null
+      }
+    });
+  } catch (error) {
+    appLogger.api('VaultScore retrieval failed', { 
+      founderId, 
+      error: error instanceof Error ? error.message : 'Unknown error' 
+    });
+    res.status(500).json({ error: "Failed to retrieve VaultScore" });
+  }
+}));
+
 export default router;
