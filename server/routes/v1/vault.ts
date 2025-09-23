@@ -354,6 +354,39 @@ router.post('/upload-file', upload.single("file"), asyncHandler(async (req: Auth
       const sanitizedUploadId = String(uploadRecord.uploadId).replace(/[^\w-]/g, '');
       const sanitizedVentureId = String(currentVentureId).replace(/[^\w-]/g, '');
       appLogger.database(`V1 UPLOAD: Database record created with ID ${uploadRecord.uploadId} for venture ${currentVentureId}`);
+
+      // NEW: Calculate and update VaultScore
+      if (currentVentureId && scoreAwarded > 0) {
+        try {
+          const newVaultScore = await storage.calculateVaultScore(currentVentureId);
+          await storage.updateVaultScore(currentVentureId, newVaultScore);
+          appLogger.database(`V1 UPLOAD: VaultScore updated to ${newVaultScore} for venture ${currentVentureId}`);
+
+          // Log VaultScore update activity
+          const { ActivityService } = await import("../../services/activity-service");
+          const context = ActivityService.getContextFromRequest(req);
+          await ActivityService.logEvaluationActivity(
+            { ...context, founderId, ventureId: currentVentureId },
+            'vault_score_update',
+            'VaultScore Updated',
+            `Added ${artifactType} (+${scoreAwarded} points)`,
+            uploadRecord.uploadId,
+            { 
+              artifactType: artifactType || '',
+              scoreAdded: scoreAwarded,
+              newVaultScore,
+              categoryId: categoryId
+            }
+          );
+        } catch (vaultScoreError) {
+          appLogger.api('V1 upload - VaultScore update failed', { 
+            founderId, 
+            ventureId: currentVentureId,
+            error: vaultScoreError instanceof Error ? vaultScoreError.message : 'Unknown error' 
+          });
+          // Don't fail the upload if VaultScore update fails
+        }
+      }
     } catch (dbError) {
       appLogger.api('V1 upload - database storage failed', { founderId, error: dbError instanceof Error ? dbError.message : 'Unknown error' });
       // Continue without failing the upload since Box.com upload succeeded
@@ -402,6 +435,20 @@ router.post('/upload-file', upload.single("file"), asyncHandler(async (req: Auth
     const sanitizedUploadFolderId = String(actualFolderId).replace(/[^\w-]/g, '');
     appLogger.file(`V1 UPLOAD: File "${file.originalname}" uploaded successfully to folder ${actualFolderId}`);
 
+    // Get current VaultScore for response
+    let currentVaultScore = 0;
+    if (currentVentureId) {
+      try {
+        const latestEvaluation = await storage.getLatestEvaluationByVentureId(currentVentureId);
+        currentVaultScore = latestEvaluation?.vaultscore || 0;
+      } catch (scoreError) {
+        appLogger.api('V1 upload - failed to get current VaultScore for response', { 
+          ventureId: currentVentureId,
+          error: scoreError instanceof Error ? scoreError.message : 'Unknown error' 
+        });
+      }
+    }
+
     res.json(createSuccessResponse({
       file: {
         id: uploadResult.id,
@@ -410,7 +457,9 @@ router.post('/upload-file', upload.single("file"), asyncHandler(async (req: Auth
         size: file.size,
         category: folder_id,
         folderId: actualFolderId
-      }
+      },
+      vaultScore: currentVaultScore,
+      scoreAdded: scoreAwarded
     }));
 
   } catch (error) {
