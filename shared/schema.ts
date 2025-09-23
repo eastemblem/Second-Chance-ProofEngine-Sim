@@ -100,6 +100,7 @@ export const evaluation = pgTable("evaluation", {
   ventureId: uuid("venture_id").references(() => venture.ventureId).notNull(),
   evaluationDate: date("evaluation_date").notNull().defaultNow(),
   proofscore: integer("proofscore").notNull(),
+  vaultscore: integer("vaultscore").notNull().default(0), // NEW: ProofVault Score tracking
   prooftags: json("prooftags").$type<string[]>().notNull().default([]),
   // ADDITION: Store complete API response for rich insights and advanced ProofTag logic
   fullApiResponse: jsonb("full_api_response"), // Complete scoring API response
