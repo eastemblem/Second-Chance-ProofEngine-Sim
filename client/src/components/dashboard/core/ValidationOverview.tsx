@@ -1,6 +1,5 @@
 import { Button } from "@/components/ui/button";
 import { Upload } from "lucide-react";
-import VaultScoreDisplay from "../vault/VaultScoreDisplay";
 
 interface ValidationData {
   proofScore: number;
@@ -10,7 +9,6 @@ interface ValidationData {
   status: string;
   certificateUrl?: string;
   reportUrl?: string;
-  vaultScore?: number;
 }
 
 interface ProofVaultData {
@@ -86,15 +84,8 @@ export function ValidationOverview({ validationData, proofVaultData, onScrollToV
           </p>
         </div>
 
-        {/* Right Column: VaultScore and ProofScore */}
-        <div className="lg:col-span-3 flex flex-col items-end space-y-6">
-          {/* VaultScore Display - Right Aligned */}
-          <div className="flex justify-end w-full">
-            <VaultScoreDisplay vaultScore={validationData?.vaultScore || 0} />
-          </div>
-          
-          {/* ProofScore Circle - Center Aligned */}
-          <div className="flex flex-col items-center w-full">
+        {/* Right Column: ProofScore Circle */}
+        <div className="lg:col-span-3 flex flex-col items-center">
           {/* Circular Progress Indicator */}
           <div className="relative w-32 h-32 mb-4">
             {/* Background Circle */}
@@ -144,7 +135,6 @@ export function ValidationOverview({ validationData, proofVaultData, onScrollToV
             <p className="text-sm text-gray-400">
               {getStatusText()}
             </p>
-          </div>
           </div>
         </div>
       </div>
