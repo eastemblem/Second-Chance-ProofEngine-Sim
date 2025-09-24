@@ -403,38 +403,47 @@ router.post('/upload-file', upload.single("file"), asyncHandler(async (req: Auth
       const sanitizedVentureId = String(currentVentureId).replace(/[^\w-]/g, '');
       appLogger.database(`V1 UPLOAD: Database record created with ID ${uploadRecord.uploadId} for venture ${currentVentureId}`);
 
-      // NEW: Calculate and update VaultScore
-      if (currentVentureId && scoreAwarded > 0) {
+      // NEW: Calculate and update VaultScore (only for non-batch or last file in batch)
+      const isBatchUpload = req.body.isBatchUpload === 'true';
+      const isLastInBatch = req.body.isLastInBatch === 'true';
+      const shouldUpdateVaultScore = !isBatchUpload || isLastInBatch;
+      
+      if (currentVentureId && shouldUpdateVaultScore) {
         try {
           // Get current VaultScore before updating
           const currentVaultScore = await storage.getCurrentVaultScore(currentVentureId);
           const newVaultScore = await storage.calculateVaultScore(currentVentureId); // Recalculate complete score
           await storage.updateVaultScore(currentVentureId, newVaultScore);
-          appLogger.database(`V1 UPLOAD: VaultScore updated from ${currentVaultScore} to ${newVaultScore} for venture ${currentVentureId}`);
+          appLogger.database(`V1 UPLOAD: VaultScore updated from ${currentVaultScore} to ${newVaultScore} for venture ${currentVentureId} ${isBatchUpload ? '(batch upload - last file)' : '(single upload)'}`);
 
           // Log VaultScore update activity with previous and new scores
           const { ActivityService } = await import("../../services/activity-service");
           const context = ActivityService.getContextFromRequest(req);
           await ActivityService.logVaultScoreActivity(
             { ...context, founderId, ventureId: currentVentureId },
-            'Score Updated',
+            isBatchUpload ? 'Batch Upload - Score Updated' : 'Score Updated',
             currentVaultScore,
             newVaultScore,
             uploadRecord.uploadId,
             { 
               artifactType: artifactType || '',
               scoreAdded: scoreAwarded,
-              categoryId: categoryId
+              categoryId: categoryId,
+              isBatchUpload: isBatchUpload
             }
           );
         } catch (vaultScoreError) {
           appLogger.api('V1 upload - VaultScore update failed', { 
             founderId, 
             ventureId: currentVentureId,
-            error: vaultScoreError instanceof Error ? vaultScoreError.message : 'Unknown error' 
+            error: vaultScoreError instanceof Error ? vaultScoreError.message : 'Unknown error',
+            isBatchUpload: isBatchUpload,
+            isLastInBatch: isLastInBatch
           });
           // Don't fail the upload if VaultScore update fails
         }
+      } else if (currentVentureId && isBatchUpload && !isLastInBatch) {
+        appLogger.database(`V1 UPLOAD: Skipping VaultScore update for batch upload file (not last) - venture ${currentVentureId}`);
       }
 
       // Invalidate uploaded artifacts cache after successful upload
@@ -503,21 +512,24 @@ router.post('/upload-file', upload.single("file"), asyncHandler(async (req: Auth
     const sanitizedUploadFolderId = String(actualFolderId).replace(/[^\w-]/g, '');
     appLogger.file(`V1 UPLOAD: File "${file.originalname}" uploaded successfully to folder ${actualFolderId}`);
 
-    // Get current VaultScore for response
-    let currentVaultScore = 0;
-    if (currentVentureId) {
+    // Get current VaultScore for response (only if VaultScore was updated)
+    let currentVaultScore: number | undefined = undefined;
+    if (currentVentureId && shouldUpdateVaultScore) {
       try {
         const latestEvaluation = await storage.getLatestEvaluationByVentureId(currentVentureId);
         currentVaultScore = latestEvaluation?.vaultscore || 0;
+        appLogger.database(`V1 UPLOAD: Including VaultScore ${currentVaultScore} in response (score was updated)`);
       } catch (scoreError) {
         appLogger.api('V1 upload - failed to get current VaultScore for response', { 
           ventureId: currentVentureId,
           error: scoreError instanceof Error ? scoreError.message : 'Unknown error' 
         });
       }
+    } else if (currentVentureId && isBatchUpload && !isLastInBatch) {
+      appLogger.database(`V1 UPLOAD: Omitting VaultScore from response (batch upload, not last file)`);
     }
 
-    res.json(createSuccessResponse({
+    const responseData: any = {
       file: {
         id: uploadResult.id,
         name: uploadResult.name,
@@ -526,9 +538,15 @@ router.post('/upload-file', upload.single("file"), asyncHandler(async (req: Auth
         category: folder_id,
         folderId: actualFolderId
       },
-      vaultScore: currentVaultScore,
       scoreAdded: scoreAwarded
-    }));
+    };
+
+    // Only include VaultScore if it was updated
+    if (currentVaultScore !== undefined) {
+      responseData.vaultScore = currentVaultScore;
+    }
+
+    res.json(createSuccessResponse(responseData));
 
   } catch (error) {
     const errorMessage = error instanceof Error ? error.message : String(error);

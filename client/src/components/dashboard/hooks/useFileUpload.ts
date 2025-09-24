@@ -116,7 +116,12 @@ export function useFileUpload(user: User | null, onUploadComplete?: (updatedVaul
   }, [user, toast]);
 
   // Handle single file upload
-  const handleSingleFileUpload = useCallback(async (queueItem: UploadQueueItem, index: number): Promise<boolean> => {
+  const handleSingleFileUpload = useCallback(async (
+    queueItem: UploadQueueItem, 
+    index: number, 
+    isBatchUpload = false, 
+    isLastInBatch = false
+  ): Promise<boolean> => {
     try {
       setUploadQueue(prev => prev.map((item, i) => 
         i === index ? { ...item, status: 'uploading', error: undefined } : item
@@ -132,6 +137,12 @@ export function useFileUpload(user: User | null, onUploadComplete?: (updatedVaul
       }
       if (queueItem.description) {
         formData.append('description', queueItem.description);
+      }
+      
+      // Add batch upload flags
+      if (isBatchUpload) {
+        formData.append('isBatchUpload', 'true');
+        formData.append('isLastInBatch', isLastInBatch ? 'true' : 'false');
       }
 
       // Simulate upload progress for current file
@@ -244,12 +255,14 @@ export function useFileUpload(user: User | null, onUploadComplete?: (updatedVaul
     const uploadResults: Array<{file: File, status: 'completed' | 'failed', error?: string, responseData?: any}> = [];
     let latestVaultScore: number | undefined;
     
-    // Process files sequentially
+    // Process files sequentially with batch upload flags
+    const isBatchUpload = newQueue.length > 1;
     for (let i = 0; i < newQueue.length; i++) {
       setCurrentUploadIndex(i);
-      const result = await handleSingleFileUpload(newQueue[i], i);
+      const isLastInBatch = isBatchUpload && (i === newQueue.length - 1);
+      const result = await handleSingleFileUpload(newQueue[i], i, isBatchUpload, isLastInBatch);
       
-      // Extract VaultScore from successful uploads
+      // Extract VaultScore from successful uploads (only the last one should have it for batch uploads)
       if (result.success && result.responseData?.data?.vaultScore !== undefined) {
         latestVaultScore = result.responseData.data.vaultScore;
       }
