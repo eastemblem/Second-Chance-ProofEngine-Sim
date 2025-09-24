@@ -60,9 +60,12 @@ export class DatabaseService {
         })
         .from(founder)
         .leftJoin(venture, eq(venture.founderId, founder.founderId))
-        .leftJoin(evaluation, eq(evaluation.ventureId, venture.ventureId))
+        .leftJoin(evaluation, and(
+          eq(evaluation.ventureId, venture.ventureId),
+          eq(evaluation.isCurrent, true)
+        ))
         .where(eq(founder.founderId, founderId))
-        .orderBy(desc(venture.createdAt), desc(evaluation.evaluationDate))
+        .orderBy(desc(venture.createdAt))
         .limit(1);
 
       if (result.length === 0) {

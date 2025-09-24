@@ -416,11 +416,13 @@ router.post('/upload-file', upload.single("file"), asyncHandler(async (req: Auth
     // Step 6: Invalidate cache after successful upload
     if (founderId) {
       try {
+        // Invalidate dashboard cache to refresh VaultScore
+        await lruCacheService.invalidate('dashboard', founderId);
         await lruCacheService.invalidate('dashboard', `vault_${founderId}`);
         await lruCacheService.invalidate('dashboard', `activity_${founderId}`);
         // Sanitize founder ID for logging to prevent security scanner warnings
         const sanitizedFounderId = String(founderId).replace(/[^\w-]/g, '');
-        appLogger.cache(`V1 UPLOAD: Cache invalidated for founder ${founderId}`);
+        appLogger.cache(`V1 UPLOAD: Cache invalidated for founder ${founderId} (dashboard, vault, activity)`);
       } catch (cacheError) {
         appLogger.api('V1 upload - cache invalidation failed', { founderId, error: cacheError instanceof Error ? cacheError.message : 'Unknown error' });
         // Don't fail the upload if cache invalidation fails
