@@ -123,6 +123,32 @@ export function VaultUploadArea({
     return artifacts;
   };
 
+  // NEW: Helper function to check if folder is complete (all uploaded)
+  const isFolderComplete = (folderId: string) => {
+    if (isLoadingUploadedArtifacts) return false;
+    
+    let allArtifacts = [];
+    
+    // Get all artifacts for this folder based on growth stage
+    if (!growthStage) {
+      allArtifacts = FileValidator.getArtifactsForCategory(folderId);
+    } else {
+      const filteredConfig = filterArtifactsByGrowthStage(growthStage as any);
+      const category = filteredConfig[folderId];
+      if (!category) return false;
+      
+      allArtifacts = Object.entries(category.artifacts).map(([artifactKey, artifact]) => ({
+        id: artifactKey,
+        name: artifact.name,
+        required: artifact.mandatory || false,
+      }));
+    }
+    
+    // Check if all artifacts are uploaded (no available artifacts left = all uploaded)
+    const availableArtifacts = getArtifactsForFolder(folderId);
+    return allArtifacts.length > 0 && availableArtifacts.length === 0;
+  };
+
   const validateRequirements = () => {
     const errors: string[] = [];
     
@@ -273,51 +299,79 @@ export function VaultUploadArea({
           )}
         </div>
         
-        <Select value={selectedArtifact} onValueChange={onArtifactChange} required>
-          <SelectTrigger className={`bg-gray-800 border-gray-600 text-white ${
-            !selectedArtifact ? 'border-red-500' : ''
-          }`}>
-            <SelectValue placeholder="Select document type (required)" />
-          </SelectTrigger>
-          <SelectContent className="bg-gray-800 border-gray-600">
-            {getArtifactsForFolder(selectedFolder).map((artifact: any) => (
-              <SelectItem key={artifact.id} value={artifact.id} className="text-white hover:bg-gray-700">
-                <div className="flex justify-between w-full">
-                  <span>{artifact.name}</span>
-                  <span className="text-green-400">+{artifact.score}pts</span>
-                </div>
-              </SelectItem>
-            ))}
-          </SelectContent>
-        </Select>
-        {!selectedArtifact && (
-          <p className="text-red-400 text-xs">Please select a document type</p>
+        {/* NEW: Show "All uploaded" state when folder is complete */}
+        {isFolderComplete(selectedFolder) ? (
+          <div className="bg-green-500/10 border border-green-500/30 rounded-lg p-4">
+            <div className="flex items-center gap-3">
+              <div className="w-8 h-8 rounded-full bg-green-500 flex items-center justify-center">
+                <svg className="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+                </svg>
+              </div>
+              <div className="flex-1">
+                <h4 className="text-green-400 font-medium">All Documents Uploaded</h4>
+                <p className="text-green-300 text-sm">All required artifacts for this folder have been uploaded</p>
+              </div>
+            </div>
+          </div>
+        ) : (
+          <>
+            <Select value={selectedArtifact} onValueChange={onArtifactChange} required>
+              <SelectTrigger className={`bg-gray-800 border-gray-600 text-white ${
+                !selectedArtifact ? 'border-red-500' : ''
+              }`}>
+                <SelectValue placeholder={
+                  isLoadingUploadedArtifacts 
+                    ? "Loading artifacts..." 
+                    : getArtifactsForFolder(selectedFolder).length === 0 
+                      ? "No artifacts available" 
+                      : "Select document type (required)"
+                } />
+              </SelectTrigger>
+              <SelectContent className="bg-gray-800 border-gray-600">
+                {getArtifactsForFolder(selectedFolder).map((artifact: any) => (
+                  <SelectItem key={artifact.id} value={artifact.id} className="text-white hover:bg-gray-700">
+                    <div className="flex justify-between w-full">
+                      <span>{artifact.name}</span>
+                      <span className="text-green-400">+{artifact.score}pts</span>
+                    </div>
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+            {!selectedArtifact && getArtifactsForFolder(selectedFolder).length > 0 && (
+              <p className="text-red-400 text-xs">Please select a document type</p>
+            )}
+          </>
         )}
       </div>
 
       {/* NEW: REQUIRED Description Input */}
-      <div className="space-y-2">
-        <label className="text-sm font-medium text-gray-300">
-          Description <span className="text-red-400">*</span>
-        </label>
-        <textarea 
-          className={`w-full p-3 bg-gray-800 border rounded-lg text-white resize-none ${
-            !description || description.length < 1 ? 'border-red-500' : 'border-gray-600'
-          }`}
-          placeholder="Describe what this document contains (required)..."
-          value={description}
-          onChange={(e) => onDescriptionChange(e.target.value)}
-          maxLength={500}
-          rows={3}
-          required
-        />
-        <div className="flex justify-between text-xs">
-          <span className={!description ? 'text-red-400' : 'text-gray-400'}>
-            {!description ? 'Description is required' : ''}
-          </span>
-          <span className="text-gray-400">{description.length}/500</span>
+      {!isFolderComplete(selectedFolder) && (
+        <div className="space-y-2">
+          <label className="text-sm font-medium text-gray-300">
+            Description <span className="text-red-400">*</span>
+          </label>
+          <textarea 
+            className={`w-full p-3 bg-gray-800 border rounded-lg text-white resize-none ${
+              !description || description.length < 1 ? 'border-red-500' : 'border-gray-600'
+            }`}
+            placeholder="Describe what this document contains (required)..."
+            value={description}
+            onChange={(e) => onDescriptionChange(e.target.value)}
+            maxLength={500}
+            rows={3}
+            required
+            disabled={getArtifactsForFolder(selectedFolder).length === 0}
+          />
+          <div className="flex justify-between text-xs">
+            <span className={!description ? 'text-red-400' : 'text-gray-400'}>
+              {!description ? 'Description is required' : ''}
+            </span>
+            <span className="text-gray-400">{description.length}/500</span>
+          </div>
         </div>
-      </div>
+      )}
 
       {/* Upload Area with Validation */}
       <div
@@ -387,6 +441,26 @@ export function VaultUploadArea({
                   <span>Failed: {uploadQueue.filter(item => item.status === 'failed').length}</span>
                 </div>
               </div>
+            </div>
+          </div>
+        ) : isFolderComplete(selectedFolder) ? (
+          <div className="space-y-6">
+            <div className="w-16 h-16 mx-auto rounded-full bg-gradient-to-r from-green-400 to-emerald-500 flex items-center justify-center">
+              <svg className="w-8 h-8 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+              </svg>
+            </div>
+            
+            <div className="text-center space-y-3">
+              <h3 className="text-xl font-semibold text-green-400">
+                Folder Complete!
+              </h3>
+              <p className="text-gray-300 max-w-md mx-auto">
+                All required documents for <span className="text-purple-400">{getFolderDisplayName(selectedFolder)}</span> have been uploaded successfully.
+              </p>
+              <p className="text-sm text-gray-400">
+                Switch to another folder to continue uploading additional documents.
+              </p>
             </div>
           </div>
         ) : (
