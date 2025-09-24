@@ -130,15 +130,41 @@ export class DocumentRepository extends BaseRepository {
     return await this.executeQuery(async () => {
       const [document] = await this.db
         .select()
-        .from(documentUploads)
+        .from(documentUpload)
         .where(and(
-          eq(documentUploads.ventureId, ventureId),
-          eq(documentUploads.documentType, documentType)
+          eq(documentUpload.ventureId, ventureId),
+          eq(documentUpload.mimeType, documentType)
         ))
-        .orderBy(desc(documentUploads.uploadedAt))
+        .orderBy(desc(documentUpload.createdAt))
         .limit(1);
       return document;
     });
+  }
+
+  /**
+   * Get uploaded artifact types for a venture (for filtering dropdown)
+   */
+  async getUploadedArtifacts(ventureId: string): Promise<string[]> {
+    return await this.executeQuery(async () => {
+      const documents = await this.db
+        .select({ artifactType: documentUpload.artifactType })
+        .from(documentUpload)
+        .where(and(
+          eq(documentUpload.ventureId, ventureId),
+          // Only include successfully uploaded documents
+          eq(documentUpload.uploadStatus, 'completed')
+        ));
+
+      // Return unique artifact types
+      return Array.from(new Set(documents.map(doc => doc.artifactType).filter(Boolean)));
+    });
+  }
+
+  /**
+   * Invalidate uploaded artifacts cache when new document is uploaded
+   */
+  async invalidateUploadedArtifactsCache(ventureId: string): Promise<void> {
+    await this.invalidateCache('venture', ventureId);
   }
 
   /**
@@ -146,8 +172,8 @@ export class DocumentRepository extends BaseRepository {
    */
   async delete(id: string): Promise<boolean> {
     return await this.executeQuery(async () => {
-      const result = await this.db.delete(documentUploads).where(eq(documentUploads.id, id));
-      return result.rowCount > 0;
+      const result = await this.db.delete(documentUpload).where(eq(documentUpload.uploadId, id));
+      return (result.rowCount ?? 0) > 0;
     });
   }
 }

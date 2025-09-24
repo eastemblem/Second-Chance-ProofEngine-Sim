@@ -8,6 +8,7 @@ import { cleanupUploadedFile } from '../../utils/file-cleanup';
 import { ActivityService } from '../../services/activity-service';
 import { lruCacheService } from '../../services/lru-cache-service';
 import { appLogger } from '../../utils/logger';
+import { DocumentRepository } from '../../repositories/document-repository';
 import multer from 'multer';
 import path from 'path';
 import fs from 'fs';
@@ -149,6 +150,43 @@ router.get('/session', asyncHandler(async (req: Request, res: Response) => {
     sessionId: getSessionId(req),
     data: sessionData,
   }));
+}));
+
+// Get uploaded artifacts for filtering dropdown (JWT AUTH REQUIRED)
+router.get('/uploaded-artifacts', requireAuth, asyncHandler(async (req: AuthenticatedRequest, res: Response) => {
+  const founderId = req.user?.founderId;
+
+  if (!founderId) {
+    return res.status(401).json({ success: false, error: "JWT authentication required" });
+  }
+
+  try {
+    // Get venture for this founder
+    const { storage } = await import("../../storage");
+    const ventures = await storage.getVenturesByFounderId(founderId);
+    
+    if (!ventures || ventures.length === 0) {
+      return res.json(createSuccessResponse({ uploadedArtifacts: [] }, "No venture found"));
+    }
+
+    // Get the first (primary) venture
+    const venture = ventures[0];
+
+    // Get uploaded artifacts using DocumentRepository
+    const documentRepository = new DocumentRepository();
+    const uploadedArtifacts = await documentRepository.getUploadedArtifacts(venture.ventureId);
+
+    appLogger.api(`Retrieved ${uploadedArtifacts.length} uploaded artifacts for venture ${venture.ventureId}`);
+
+    res.json(createSuccessResponse({
+      uploadedArtifacts,
+      ventureId: venture.ventureId
+    }, "Uploaded artifacts retrieved successfully"));
+
+  } catch (error) {
+    appLogger.error('Failed to get uploaded artifacts:', error);
+    return res.status(500).json({ success: false, error: "Failed to retrieve uploaded artifacts" });
+  }
 }));
 
 // Upload file only (store for later processing) - EXACT SAME LOGIC as routes.ts
