@@ -426,6 +426,21 @@ router.post('/upload-file', upload.single("file"), asyncHandler(async (req: Auth
           // Don't fail the upload if VaultScore update fails
         }
       }
+
+      // Invalidate uploaded artifacts cache after successful upload
+      if (currentVentureId) {
+        try {
+          const documentRepository = new DocumentRepository();
+          await documentRepository.invalidateUploadedArtifactsCache(currentVentureId);
+          appLogger.api(`V1 UPLOAD: Invalidated uploaded artifacts cache for venture ${currentVentureId}`);
+        } catch (cacheError) {
+          appLogger.api('V1 upload - cache invalidation failed', { 
+            ventureId: currentVentureId,
+            error: cacheError instanceof Error ? cacheError.message : 'Unknown error' 
+          });
+          // Don't fail the upload if cache invalidation fails
+        }
+      }
     } catch (dbError) {
       appLogger.api('V1 upload - database storage failed', { founderId, error: dbError instanceof Error ? dbError.message : 'Unknown error' });
       // Continue without failing the upload since Box.com upload succeeded
@@ -824,6 +839,21 @@ router.post('/upload-file-direct', upload.single("file"), asyncHandler(async (re
       const sanitizedUploadId = String(uploadRecord.uploadId).replace(/[^\w-]/g, '');
       const sanitizedVentureId = String(currentVentureId).replace(/[^\w-]/g, '');
       appLogger.api('V1 direct upload - database record created', { uploadId: sanitizedUploadId, ventureId: sanitizedVentureId });
+
+      // Invalidate uploaded artifacts cache after successful upload
+      if (currentVentureId) {
+        try {
+          const documentRepository = new DocumentRepository();
+          await documentRepository.invalidateUploadedArtifactsCache(currentVentureId);
+          appLogger.api(`V1 DIRECT UPLOAD: Invalidated uploaded artifacts cache for venture ${currentVentureId}`);
+        } catch (cacheError) {
+          appLogger.api('V1 direct upload - cache invalidation failed', { 
+            ventureId: currentVentureId,
+            error: cacheError instanceof Error ? cacheError.message : 'Unknown error' 
+          });
+          // Don't fail the upload if cache invalidation fails
+        }
+      }
     } catch (dbError) {
       appLogger.api('V1 direct upload - database storage failed', { error: dbError instanceof Error ? dbError.message : 'Unknown error' });
       // Continue without failing the upload since Box.com upload succeeded
