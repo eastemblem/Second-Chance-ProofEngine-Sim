@@ -1,5 +1,6 @@
 import { Router, Request, Response } from 'express';
 import { requireAuth, AuthenticatedRequest } from '../middleware/auth';
+import { authenticateToken } from '../../middleware/token-auth';
 import { asyncHandler } from '../middleware/error';
 import { eastEmblemAPI } from '../../eastemblem-api';
 import { getSessionId, getSessionData, updateSessionData } from '../../utils/session-manager';
@@ -153,7 +154,7 @@ router.get('/session', asyncHandler(async (req: Request, res: Response) => {
 }));
 
 // Get uploaded artifacts for filtering dropdown (JWT AUTH REQUIRED)
-router.get('/uploaded-artifacts', requireAuth, asyncHandler(async (req: AuthenticatedRequest, res: Response) => {
+router.get('/uploaded-artifacts', authenticateToken, asyncHandler(async (req: AuthenticatedRequest, res: Response) => {
   const founderId = req.user?.founderId;
 
   if (!founderId) {
