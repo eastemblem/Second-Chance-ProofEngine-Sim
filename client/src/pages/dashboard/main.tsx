@@ -29,7 +29,7 @@ import {
   useFileUpload
 } from "@/components/dashboard/hooks";
 import { useTokenAuth } from "@/hooks/use-token-auth";
-import { PROOF_VAULT_ARTIFACTS } from "@/../shared/config/artifacts";
+import { PROOF_VAULT_ARTIFACTS } from "../../../../shared/config/artifacts";
 import { useToast } from "@/hooks/use-toast";
 
 // Helper function to get artifact configuration
