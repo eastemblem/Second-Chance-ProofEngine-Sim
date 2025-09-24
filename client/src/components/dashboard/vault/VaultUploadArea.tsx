@@ -473,46 +473,56 @@ export function VaultUploadArea({
               Files will be uploaded to: <span className="text-purple-400">{getFolderDisplayName(selectedFolder)}</span>
             </p>
             
-            {/* Upload Buttons */}
+            {/* Upload Buttons - Conditional based on artifact fileFolder parameter */}
             <div className="flex gap-3 justify-center">
-              <input
-                type="file"
-                ref={fileInputRef}
-                onChange={handleFileSelect}
-                className="hidden"
-                multiple
-                accept={getCurrentArtifact()?.allowedFormats.join(',') || '*'}
-                disabled={!canUpload}
-              />
+              {/* Show Choose Files button only for File or Both types */}
+              {(!getCurrentArtifact()?.fileFolder || getCurrentArtifact()?.fileFolder === "File") && (
+                <>
+                  <input
+                    type="file"
+                    ref={fileInputRef}
+                    onChange={handleFileSelect}
+                    className="hidden"
+                    multiple
+                    accept={getCurrentArtifact()?.allowedFormats.join(',') || '*'}
+                    disabled={!canUpload}
+                  />
+                  
+                  <Button 
+                    onClick={() => showConsentDialog('file')}
+                    disabled={!canUpload || isUploading}
+                    className="bg-gradient-to-r from-purple-500 to-yellow-500 text-white hover:from-purple-600 hover:to-yellow-600"
+                  >
+                    <Plus className="w-4 h-4 mr-2" />
+                    {canUpload ? "Choose Files" : "Complete Requirements First"}
+                  </Button>
+                </>
+              )}
               
-              <Button 
-                onClick={() => showConsentDialog('file')}
-                disabled={!canUpload || isUploading}
-                className="bg-gradient-to-r from-purple-500 to-yellow-500 text-white hover:from-purple-600 hover:to-yellow-600"
-              >
-                <Plus className="w-4 h-4 mr-2" />
-                {canUpload ? "Choose Files" : "Complete Requirements First"}
-              </Button>
-              
-              <input
-                type="file"
-                ref={folderInputRef}
-                onChange={onFolderUpload}
-                className="hidden"
-                multiple
-                {...({ webkitdirectory: "" } as any)}
-                disabled={!canUpload}
-              />
-              
-              <Button 
-                onClick={() => showConsentDialog('folder')}
-                disabled={!canUpload || isUploading}
-                variant="outline"
-                className="border-gray-600 text-white hover:bg-gray-700"
-              >
-                <FolderPlus className="w-4 h-4 mr-2" />
-                Upload Folder
-              </Button>
+              {/* Show Upload Folder button only for Folder or Both types */}
+              {(!getCurrentArtifact()?.fileFolder || getCurrentArtifact()?.fileFolder === "Folder") && (
+                <>
+                  <input
+                    type="file"
+                    ref={folderInputRef}
+                    onChange={onFolderUpload}
+                    className="hidden"
+                    multiple
+                    {...({ webkitdirectory: "" } as any)}
+                    disabled={!canUpload}
+                  />
+                  
+                  <Button 
+                    onClick={() => showConsentDialog('folder')}
+                    disabled={!canUpload || isUploading}
+                    variant="outline"
+                    className="border-gray-600 text-white hover:bg-gray-700"
+                  >
+                    <FolderPlus className="w-4 h-4 mr-2" />
+                    Upload Folder
+                  </Button>
+                </>
+              )}
             </div>
           </>
         )}
