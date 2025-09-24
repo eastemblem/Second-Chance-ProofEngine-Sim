@@ -45,6 +45,8 @@ export class DatabaseService {
             ventureId: venture.ventureId,
             name: venture.name,
             folderStructure: venture.folderStructure,
+            certificateUrl: venture.certificateUrl,
+            reportUrl: venture.reportUrl,
             createdAt: venture.createdAt,
           },
           // Latest evaluation data
