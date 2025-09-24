@@ -1,5 +1,7 @@
 import { Button } from "@/components/ui/button";
 import { Upload } from "lucide-react";
+import { useUploadConsent } from "@/hooks/useUploadConsent";
+import { UploadConsentModal } from "@/components/shared/UploadConsentModal";
 
 interface ValidationData {
   proofScore: number;
@@ -24,6 +26,21 @@ interface ValidationOverviewProps {
 export function ValidationOverview({ validationData, proofVaultData, onScrollToVault }: ValidationOverviewProps) {
   const proofScore = validationData?.proofScore || 0;
   const isInvestorReady = proofScore >= 70;
+  
+  const { 
+    showConsentModal, 
+    consentConfirmed, 
+    setConsentConfirmed, 
+    requestConsent, 
+    handleConsentConfirm, 
+    handleConsentCancel 
+  } = useUploadConsent();
+
+  const handleUploadClick = () => {
+    requestConsent(() => {
+      onScrollToVault?.();
+    });
+  };
 
   // Get status text based on score
   const getStatusText = () => {
@@ -66,7 +83,7 @@ export function ValidationOverview({ validationData, proofVaultData, onScrollToV
           
           <Button 
             className="bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white px-6 py-2 rounded-lg flex items-center gap-2 transition-all duration-200"
-            onClick={onScrollToVault}
+            onClick={handleUploadClick}
           >
             <Upload className="w-4 h-4" />
             Upload Files
@@ -138,6 +155,15 @@ export function ValidationOverview({ validationData, proofVaultData, onScrollToV
           </div>
         </div>
       </div>
+
+      {/* Consent Modal */}
+      <UploadConsentModal
+        isOpen={showConsentModal}
+        onConfirm={handleConsentConfirm}
+        onCancel={handleConsentCancel}
+        consentConfirmed={consentConfirmed}
+        setConsentConfirmed={setConsentConfirmed}
+      />
     </div>
   );
 }

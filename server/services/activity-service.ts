@@ -210,7 +210,7 @@ export class ActivityService {
       activityType: 'evaluation',
       action: 'score_update',
       title,
-      description: `${oldScore} → ${newScore}`,
+      description: `VaultScore: ${oldScore} → ${newScore}`,
       metadata: {
         oldScore,
         newScore,

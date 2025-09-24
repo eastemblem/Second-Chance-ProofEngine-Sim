@@ -369,7 +369,7 @@ router.post('/upload-file', upload.single("file"), asyncHandler(async (req: Auth
           const context = ActivityService.getContextFromRequest(req);
           await ActivityService.logVaultScoreActivity(
             { ...context, founderId, ventureId: currentVentureId },
-            'VaultScore Updated',
+            'Score Updated',
             currentVaultScore,
             newVaultScore,
             uploadRecord.uploadId,
