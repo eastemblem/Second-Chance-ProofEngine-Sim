@@ -38,6 +38,9 @@ interface VaultUploadAreaProps {
   validationErrors: string[];
   onClearValidation: () => void;
   growthStage?: string;
+  // NEW: For artifact filtering
+  uploadedArtifacts?: string[];
+  isLoadingUploadedArtifacts?: boolean;
 }
 
 export function VaultUploadArea({
@@ -60,7 +63,9 @@ export function VaultUploadArea({
   onDescriptionChange,
   validationErrors,
   onClearValidation,
-  growthStage
+  growthStage,
+  uploadedArtifacts = [],
+  isLoadingUploadedArtifacts = false
 }: VaultUploadAreaProps) {
   const [dragOver, setDragOver] = useState(false);
   const [pendingUploadType, setPendingUploadType] = useState<'file' | 'folder' | null>(null);
@@ -84,31 +89,38 @@ export function VaultUploadArea({
   };
 
   const getArtifactsForFolder = (folderId: string) => {
+    let artifacts = [];
+    
     // If no growth stage provided, return all artifacts (fallback)
     if (!growthStage) {
-      return FileValidator.getArtifactsForCategory(folderId);
+      artifacts = FileValidator.getArtifactsForCategory(folderId);
+    } else {
+      // Get filtered artifacts based on growth stage
+      const filteredConfig = filterArtifactsByGrowthStage(growthStage as any);
+      const category = filteredConfig[folderId];
+      
+      if (!category) {
+        return [];
+      }
+      
+      // Convert to FileValidator format
+      artifacts = Object.entries(category.artifacts).map(([artifactKey, artifact]) => ({
+        id: artifactKey,
+        name: artifact.name,
+        description: artifact.description,
+        required: artifact.mandatory || false,
+        acceptedFormats: artifact.allowedFormats || ['.pdf', '.doc', '.docx'],
+        maxSizeMB: Math.round(artifact.maxSizeBytes / (1024 * 1024)) || 10,
+        score: artifact.score || 0
+      }));
     }
     
-    // Get filtered artifacts based on growth stage
-    const filteredConfig = filterArtifactsByGrowthStage(growthStage as any);
-    const category = filteredConfig[folderId];
-    
-    if (!category) {
-      return [];
+    // NEW: Filter out uploaded artifacts (Option 1 - hide completely)
+    if (!isLoadingUploadedArtifacts && uploadedArtifacts.length > 0) {
+      artifacts = artifacts.filter(artifact => !uploadedArtifacts.includes(artifact.id));
     }
     
-    // Convert to FileValidator format
-    const result = Object.entries(category.artifacts).map(([artifactKey, artifact]) => ({
-      id: artifactKey,
-      name: artifact.name,
-      description: artifact.description,
-      required: artifact.mandatory || false,
-      acceptedFormats: artifact.allowedFormats || ['.pdf', '.doc', '.docx'],
-      maxSizeMB: Math.round(artifact.maxSizeBytes / (1024 * 1024)) || 10,
-      score: artifact.score || 0
-    }));
-    
-    return result;
+    return artifacts;
   };
 
   const validateRequirements = () => {

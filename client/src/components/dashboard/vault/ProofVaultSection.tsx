@@ -9,6 +9,7 @@ import { VaultUploadArea } from "./VaultUploadArea";
 import VaultScoreDisplay from "./VaultScoreDisplay";
 import { useToast } from "@/hooks/use-toast";
 import { trackEvent } from "@/lib/analytics";
+import { useUploadedArtifacts } from "@/hooks/use-uploaded-artifacts";
 
 interface ProofVaultData {
   overviewCount: number;
@@ -108,6 +109,9 @@ export function ProofVaultSection({
   const [selectedArtifact, setSelectedArtifact] = useState("");
   const [description, setDescription] = useState("");
   const [validationErrors, setValidationErrors] = useState<string[]>([]);
+
+  // NEW: Fetch uploaded artifacts for filtering
+  const { data: uploadedArtifactsData, isLoading: uploadedArtifactsLoading } = useUploadedArtifacts();
   
   // Clear artifact and description when folder changes
   const handleFolderChange = (folderId: string) => {
@@ -264,6 +268,8 @@ export function ProofVaultSection({
                   validationErrors={validationErrors}
                   onClearValidation={handleClearValidation}
                   growthStage={growthStage}
+                  uploadedArtifacts={uploadedArtifactsData?.data?.uploadedArtifacts || []}
+                  isLoadingUploadedArtifacts={uploadedArtifactsLoading}
                 />
               </TabsContent>
             </Tabs>
