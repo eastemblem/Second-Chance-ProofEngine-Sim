@@ -9,6 +9,7 @@ Second Chance is a comprehensive startup validation platform designed to empower
 - Focus on user journey and experience
 - Maintain professional tone without emojis
 - Remove technical language from user notifications (e.g., replaced "JWT token invalidated" with user-friendly logout messages)
+- Always share checkpoint message summary after completing work for manual update by user
 
 ## System Architecture
 
