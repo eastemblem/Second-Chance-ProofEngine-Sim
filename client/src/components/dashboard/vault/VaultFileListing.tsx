@@ -2,6 +2,7 @@ import { Button } from "@/components/ui/button";
 import { Download, ExternalLink, Lock } from "lucide-react";
 import { FileIcon, LoadingSpinner, EmptyState, PaginationLoading, EndIndicator } from "../shared";
 import { useToast } from "@/hooks/use-toast";
+import { PROOF_VAULT_ARTIFACTS } from "../../../../../shared/config/artifacts";
 
 interface FileItem {
   id: string;
@@ -12,6 +13,7 @@ interface FileItem {
   size: string;
   downloadUrl: string;
   type?: string;
+  artifactType?: string;
 }
 
 interface VaultFileListingProps {
@@ -48,6 +50,20 @@ function formatTimeAgo(timestamp: string) {
   if (diffInSeconds < 86400) return `${Math.floor(diffInSeconds / 3600)}h ago`;
   if (diffInSeconds < 604800) return `${Math.floor(diffInSeconds / 86400)}d ago`;
   return fileTime.toLocaleDateString();
+}
+
+// Get readable artifact name from artifact type
+function getArtifactDisplayName(artifactType: string): string | null {
+  if (!artifactType) return null;
+  
+  // Search through all categories to find the artifact type
+  for (const [categoryId, category] of Object.entries(PROOF_VAULT_ARTIFACTS)) {
+    if (category.artifacts && category.artifacts[artifactType]) {
+      return category.artifacts[artifactType].name;
+    }
+  }
+  
+  return null;
 }
 
 export function VaultFileListing({ 
@@ -126,6 +142,12 @@ export function VaultFileListing({
                         <span className={`inline-flex items-center px-2 py-1 rounded-full text-xs font-medium border ${colorClass}`}>
                           {file.categoryName || 'Overview'}
                         </span>
+                        {/* NEW: Artifact type tag */}
+                        {file.artifactType && getArtifactDisplayName(file.artifactType) && (
+                          <span className="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-purple-500/20 border border-purple-500/30 text-purple-300">
+                            {getArtifactDisplayName(file.artifactType)}
+                          </span>
+                        )}
                         <span className="text-gray-500 text-xs">{file.size}</span>
                       </div>
                       <p className="text-gray-500 text-xs mt-1">{timeAgo}</p>

@@ -1024,7 +1024,8 @@ router.get('/files', asyncHandler(async (req: AuthenticatedRequest, res: Respons
         categoryName: displayName,
         size: file.fileSize,
         downloadUrl: file.sharedUrl || '',
-        eastemblemFileId: file.eastemblemFileId
+        eastemblemFileId: file.eastemblemFileId,
+        artifactType: file.artifactType || ''
       };
     });
     

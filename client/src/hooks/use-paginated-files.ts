@@ -12,6 +12,7 @@ interface FileItem {
   size: number;
   downloadUrl: string;
   eastemblemFileId: string;
+  artifactType: string;
 }
 
 interface FilesResponse {

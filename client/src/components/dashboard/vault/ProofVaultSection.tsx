@@ -34,6 +34,7 @@ interface FileItem {
   size: string;
   downloadUrl: string;
   type?: string;
+  artifactType?: string;
 }
 
 interface ProofVaultSectionProps {
