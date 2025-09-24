@@ -214,6 +214,7 @@ router.get('/vault', asyncHandler(async (req: Request, res: Response) => {
       commercialProofCount: fileCounts.commercialProof,
       investorPackCount: fileCounts.investorPack,
       totalFiles: totalFiles,
+      vaultScore: dashboardData.evaluation?.vaultscore || 0, // Add VaultScore from evaluation
       ventureId: dashboardData.venture.ventureId,
       ventureName: dashboardData.venture.name,
       folders: [ // FIXED: Add folder structure to match frontend interface

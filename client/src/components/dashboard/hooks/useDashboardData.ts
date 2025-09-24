@@ -151,6 +151,12 @@ export function useDashboardData() {
           ...vault,
           files: [] // Clear files array since we use paginated files hook instead
         });
+        
+        // Update VaultScore in validation data if vault API provided it
+        if (vault.vaultScore !== undefined) {
+          setValidationData(prev => prev ? { ...prev, vaultScore: vault.vaultScore } : prev);
+          console.log('✅ VaultScore updated from vault API:', vault.vaultScore);
+        }
       } else {
         console.error('❌ Vault API failed:', vaultResponse.status, vaultResponse.statusText);
       }
