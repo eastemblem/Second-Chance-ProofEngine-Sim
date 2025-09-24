@@ -367,17 +367,15 @@ router.post('/upload-file', upload.single("file"), asyncHandler(async (req: Auth
           // Log VaultScore update activity with previous and new scores
           const { ActivityService } = await import("../../services/activity-service");
           const context = ActivityService.getContextFromRequest(req);
-          await ActivityService.logEvaluationActivity(
+          await ActivityService.logVaultScoreActivity(
             { ...context, founderId, ventureId: currentVentureId },
-            'score_update',
             'VaultScore Updated',
-            `${currentVaultScore} → ${newVaultScore}`,
+            currentVaultScore,
+            newVaultScore,
             uploadRecord.uploadId,
             { 
               artifactType: artifactType || '',
               scoreAdded: scoreAwarded,
-              previousVaultScore: currentVaultScore,
-              newVaultScore,
               categoryId: categoryId
             }
           );

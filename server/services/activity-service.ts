@@ -196,6 +196,32 @@ export class ActivityService {
   }
 
   /**
+   * Log VaultScore update activities with custom format
+   */
+  static async logVaultScoreActivity(
+    context: ActivityContext,
+    title: string,
+    oldScore: number,
+    newScore: number,
+    uploadId: string,
+    metadata?: any
+  ) {
+    return this.logActivity(context, {
+      activityType: 'evaluation',
+      action: 'score_update',
+      title,
+      description: `${oldScore} → ${newScore}`,
+      metadata: {
+        oldScore,
+        newScore,
+        ...metadata
+      },
+      entityId: uploadId,
+      entityType: 'vault'
+    });
+  }
+
+  /**
    * Log navigation activities (for analytics)
    */
   static async logNavigationActivity(
