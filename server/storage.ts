@@ -247,6 +247,11 @@ export class DatabaseStorage implements IStorage {
   }
 
   // VaultScore methods
+  async getCurrentVaultScore(ventureId: string): Promise<number> {
+    const currentEvaluation = await this.getLatestEvaluationByVentureId(ventureId);
+    return currentEvaluation?.vaultscore || 0;
+  }
+
   async calculateVaultScore(ventureId: string): Promise<number> {
     // Get all document uploads for this venture
     const documents = await this.getDocumentUploadsByVentureId(ventureId);

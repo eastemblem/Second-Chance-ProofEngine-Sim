@@ -358,22 +358,25 @@ router.post('/upload-file', upload.single("file"), asyncHandler(async (req: Auth
       // NEW: Calculate and update VaultScore
       if (currentVentureId && scoreAwarded > 0) {
         try {
-          const newVaultScore = await storage.calculateVaultScore(currentVentureId);
+          // Get current VaultScore before updating
+          const currentVaultScore = await storage.getCurrentVaultScore(currentVentureId);
+          const newVaultScore = await storage.calculateVaultScore(currentVentureId); // Recalculate complete score
           await storage.updateVaultScore(currentVentureId, newVaultScore);
-          appLogger.database(`V1 UPLOAD: VaultScore updated to ${newVaultScore} for venture ${currentVentureId}`);
+          appLogger.database(`V1 UPLOAD: VaultScore updated from ${currentVaultScore} to ${newVaultScore} for venture ${currentVentureId}`);
 
-          // Log VaultScore update activity
+          // Log VaultScore update activity with previous and new scores
           const { ActivityService } = await import("../../services/activity-service");
           const context = ActivityService.getContextFromRequest(req);
           await ActivityService.logEvaluationActivity(
             { ...context, founderId, ventureId: currentVentureId },
             'vault_score_update',
             'VaultScore Updated',
-            `Added ${artifactType} (+${scoreAwarded} points)`,
+            `${currentVaultScore} → ${newVaultScore}`,
             uploadRecord.uploadId,
             { 
               artifactType: artifactType || '',
               scoreAdded: scoreAwarded,
+              previousVaultScore: currentVaultScore,
               newVaultScore,
               categoryId: categoryId
             }
