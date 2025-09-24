@@ -24,72 +24,48 @@ export function UploadConsentModal({
         <DialogHeader>
           <DialogTitle className="flex items-center gap-2 text-xl">
             <Shield className="w-5 h-5 text-blue-400" />
-            File Upload Requirements & Consent
+            ProofVault Upload Process
           </DialogTitle>
           <DialogDescription className="text-gray-300">
-            Before uploading your documents, please confirm that your files meet the following requirements:
+            Here's how the ProofVault upload process works:
           </DialogDescription>
         </DialogHeader>
 
-        <div className="space-y-6 py-4">
-          {/* File Validity Checklist */}
+        <div className="space-y-4 py-4">
+          {/* How It Works */}
           <div className="space-y-3">
-            <h3 className="font-semibold text-green-400 flex items-center gap-2">
-              ✅ File Validity Checklist:
-            </h3>
-            <div className="space-y-2 text-sm">
-              <div className="flex items-start gap-2">
-                <span className="text-green-400 mt-0.5">✓</span>
-                <span><strong>Authentic Documents:</strong> All files contain genuine, up-to-date business information</span>
+            <h3 className="font-semibold text-blue-400 text-base">📋 How It Works:</h3>
+            <div className="space-y-3 text-sm">
+              <div>
+                <strong className="text-green-400">1. 📤 Upload Files to ProofVault</strong>
+                <div className="text-gray-300 ml-4">Upload to specific folder structure in ProofVault. Each folder shows accepted file types and size limits.</div>
               </div>
-              <div className="flex items-start gap-2">
-                <span className="text-green-400 mt-0.5">✓</span>
-                <span><strong>File Format:</strong> Documents are in the correct format (PDF, DOCX, XLSX, PPT, PNG, JPG, etc.)</span>
+              <div>
+                <strong className="text-green-400">2. 📊 Earn VaultScore Points</strong>
+                <div className="text-gray-300 ml-4">Each artifact has a specific point value that adds to your VaultScore and helps our team map investor introductions.</div>
               </div>
-              <div className="flex items-start gap-2">
-                <span className="text-green-400 mt-0.5">✓</span>
-                <span><strong>File Size:</strong> Each file is under the specified size limit (5MB - 25MB depending on document type)</span>
+              <div>
+                <strong className="text-green-400">3. 📈 Get Your Results</strong>
+                <div className="text-gray-300 ml-4">View your updated VaultScore in real-time and track progress across all categories.</div>
               </div>
-              <div className="flex items-start gap-2">
-                <span className="text-green-400 mt-0.5">✓</span>
-                <span><strong>Document Quality:</strong> Files are clear, legible, and professionally formatted</span>
+              <div>
+                <strong className="text-green-400">4. 🎯 Unlock Opportunities</strong>
+                <div className="text-gray-300 ml-4">Higher scores unlock investor matching services. Access Deal Room features at 70+ points.</div>
               </div>
-              <div className="flex items-start gap-2">
-                <span className="text-green-400 mt-0.5">✓</span>
-                <span><strong>Current Information:</strong> Documents reflect your startup's current status (pitch decks &lt;3 months old)</span>
-              </div>
-              <div className="flex items-start gap-2">
-                <span className="text-green-400 mt-0.5">✓</span>
-                <span><strong>Complete Content:</strong> Documents contain all required information as specified in the guidelines</span>
+              <div>
+                <strong className="text-yellow-400">5. ✅ What You Need to Do</strong>
+                <div className="text-gray-300 ml-4">Upload authentic business documents, follow folder-specific file type requirements, and stay within size limits.</div>
               </div>
             </div>
           </div>
 
-          {/* Data Processing Consent */}
-          <div className="space-y-3">
-            <h3 className="font-semibold text-blue-400 flex items-center gap-2">
-              🛡️ Data Processing Consent:
-            </h3>
-            <div className="space-y-2 text-sm">
-              <p>By uploading files, you confirm that:</p>
-              <div className="space-y-1 ml-4">
-                <div>• All documents are accurate and represent your business truthfully</div>
-                <div>• You have the right to upload and share these documents</div>
-                <div>• You understand files will be processed to calculate your <strong>ProofScore</strong></div>
-                <div>• Documents may be reviewed as part of investor matching services</div>
-              </div>
-            </div>
-          </div>
-
-          {/* Important Notes */}
-          <div className="space-y-3">
-            <h3 className="font-semibold text-yellow-400 flex items-center gap-2">
-              ⚠️ Important Notes:
-            </h3>
-            <div className="space-y-2 text-sm">
-              <div>• Invalid or incomplete files may affect your <strong>ProofScore</strong> calculation</div>
-              <div>• Uploading fraudulent information violates our terms of service</div>
-              <div>• Files are securely stored and processed according to our privacy policy</div>
+          {/* Links */}
+          <div className="space-y-2 text-sm bg-gray-800 p-3 rounded-lg">
+            <h4 className="font-semibold text-gray-300">❓ Need More Details?</h4>
+            <div className="space-y-1">
+              <div>• <a href="/faq/proof-vault-uploads" target="_blank" className="text-blue-400 hover:text-blue-300 underline">📚 Upload FAQ</a> - File formats, scoring, folder structure</div>
+              <div>• <a href="/legal/proof-vault-terms" target="_blank" className="text-blue-400 hover:text-blue-300 underline">⚖️ Terms & Conditions</a> - Usage terms and data processing</div>
+              <div>• <a href="/legal/privacy" target="_blank" className="text-blue-400 hover:text-blue-300 underline">🔒 Privacy Policy</a> - Data protection and privacy rights</div>
             </div>
           </div>
 
@@ -106,7 +82,7 @@ export function UploadConsentModal({
                 htmlFor="consent-checkbox" 
                 className="text-sm cursor-pointer leading-relaxed"
               >
-                I confirm that all files I'm uploading are valid, accurate, and meet the above requirements
+                I understand the ProofVault upload process and agree to the <a href="/legal/proof-vault-terms" target="_blank" className="text-blue-400 hover:text-blue-300 underline">Terms & Conditions</a> and <a href="/legal/privacy" target="_blank" className="text-blue-400 hover:text-blue-300 underline">Privacy Policy</a>.
               </label>
             </div>
           </div>
