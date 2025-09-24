@@ -6,7 +6,7 @@ interface FileItem {
   id: string;
   name: string;
   fileType: string;
-  createdAt: string;
+  uploadDate: string;
   category: string;
   categoryName: string;
   size: number;

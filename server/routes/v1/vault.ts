@@ -1019,7 +1019,7 @@ router.get('/files', asyncHandler(async (req: AuthenticatedRequest, res: Respons
         id: file.uploadId,
         name: file.fileName || file.originalName,
         fileType: file.mimeType,
-        createdAt: file.createdAt?.toISOString() || new Date().toISOString(),
+        uploadDate: file.createdAt?.toISOString() || new Date().toISOString(),
         category: hierarchicalCategory,
         categoryName: displayName,
         size: file.fileSize,
