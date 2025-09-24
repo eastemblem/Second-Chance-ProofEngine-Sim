@@ -29,6 +29,18 @@ import {
   useFileUpload
 } from "@/components/dashboard/hooks";
 import { useTokenAuth } from "@/hooks/use-token-auth";
+import { PROOF_VAULT_ARTIFACTS } from "@/../shared/config/artifacts";
+import { useToast } from "@/hooks/use-toast";
+
+// Helper function to get artifact configuration
+const getArtifactConfig = (artifactType: string) => {
+  for (const [categoryId, category] of Object.entries(PROOF_VAULT_ARTIFACTS)) {
+    if (category.artifacts && category.artifacts[artifactType]) {
+      return category.artifacts[artifactType];
+    }
+  }
+  return null;
+};
 
 export default function DashboardV2Page() {
   const [, setLocation] = useLocation();
@@ -41,6 +53,7 @@ export default function DashboardV2Page() {
   
   // Ref for scrolling to ProofVault section
   const proofVaultRef = useRef<HTMLDivElement>(null);
+  const { toast } = useToast();
 
   // Use extracted hooks
   const { user, isLoading: authLoading, checkAuthStatus } = useAuthentication();
@@ -194,11 +207,42 @@ export default function DashboardV2Page() {
   };
 
   // Handle folder uploads with precise workflow
-  const handleFolderUpload = async (event: React.ChangeEvent<HTMLInputElement>) => {
+  const handleFolderUpload = async (event: React.ChangeEvent<HTMLInputElement>, artifactType?: string, description?: string) => {
     const files = event.target.files;
     if (!files || files.length === 0) return;
 
-    const fileList = Array.from(files);
+    let fileList = Array.from(files);
+    
+    // Filter files by allowed formats if artifact type is provided
+    if (artifactType) {
+      const artifactConfig = getArtifactConfig(artifactType);
+      if (artifactConfig?.allowedFormats) {
+        const originalCount = fileList.length;
+        fileList = fileList.filter(file => {
+          const fileExtension = '.' + file.name.split('.').pop()?.toLowerCase();
+          return artifactConfig.allowedFormats.includes(fileExtension);
+        });
+        
+        const filteredCount = originalCount - fileList.length;
+        if (filteredCount > 0) {
+          toast({
+            title: "Some Files Filtered Out",
+            description: `${filteredCount} file(s) were excluded because they don't match the allowed formats: ${artifactConfig.allowedFormats.join(', ')}`,
+            variant: "destructive",
+          });
+        }
+        
+        if (fileList.length === 0) {
+          toast({
+            title: "No Valid Files",
+            description: `All files were filtered out. Only ${artifactConfig.allowedFormats.join(', ')} files are allowed for ${artifactConfig.name}.`,
+            variant: "destructive",
+          });
+          event.target.value = '';
+          return;
+        }
+      }
+    }
     
     // Start folder creation loading state
     setIsCreatingFolders(true);
@@ -260,7 +304,7 @@ export default function DashboardV2Page() {
           targetFolderId = selectedCategory;
         }
 
-        await handleMultipleFileUpload(files, targetFolderId);
+        await handleMultipleFileUpload(files, targetFolderId, artifactType, description);
       }
 
       // Force refresh after folder upload
