@@ -369,7 +369,7 @@ router.post('/upload-file', upload.single("file"), asyncHandler(async (req: Auth
           const context = ActivityService.getContextFromRequest(req);
           await ActivityService.logEvaluationActivity(
             { ...context, founderId, ventureId: currentVentureId },
-            'vault_score_update',
+            'score_update',
             'VaultScore Updated',
             `${currentVaultScore} → ${newVaultScore}`,
             uploadRecord.uploadId,
@@ -542,7 +542,7 @@ router.post('/create-folder', upload.none(), asyncHandler(async (req: Authentica
     }
 
     // Step 2: Create folder via EastEmblem API using service layer with proper error handling
-    const { vaultService } = await import("../../services/vault-service");
+    const { eastEmblemAPI } = await import("../../eastemblem-api");
     const { getSessionId } = await import("../../utils/session-manager");
     
     const sessionId = getSessionId(req);
@@ -550,7 +550,7 @@ router.post('/create-folder', upload.none(), asyncHandler(async (req: Authentica
     let usedFallback = false;
     
     try {
-      result = await vaultService.createFolder(folderName, actualParentFolderId, sessionId);
+      result = await eastEmblemAPI.createFolder(folderName, actualParentFolderId, sessionId);
       appLogger.api('V1 folder creation successful via EastEmblem API', {
         folderName,
         folderId: result.id
