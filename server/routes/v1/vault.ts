@@ -17,6 +17,15 @@ import FormData from 'form-data';
 
 const router = Router();
 
+// Format file size helper function (matching other dashboard routes)
+function formatFileSize(bytes: number): string {
+  if (bytes === 0) return '0 Bytes';
+  const k = 1024;
+  const sizes = ['Bytes', 'KB', 'MB', 'GB', 'TB'];
+  const i = Math.floor(Math.log(bytes) / Math.log(k));
+  return parseFloat((bytes / Math.pow(k, i)).toFixed(1)) + ' ' + sizes[i];
+}
+
 // Configure multer for file uploads - EXACT SAME as routes.ts
 const upload = multer({
   storage: multer.diskStorage({
@@ -1023,7 +1032,7 @@ router.get('/files', asyncHandler(async (req: AuthenticatedRequest, res: Respons
         uploadDate: file.createdAt?.toISOString() || new Date().toISOString(),
         category: hierarchicalCategory,
         categoryName: displayName,
-        size: file.fileSize,
+        size: formatFileSize(file.fileSize || 0),
         downloadUrl: file.sharedUrl || '',
         eastemblemFileId: file.eastemblemFileId,
         artifactType: file.artifactType || ''
