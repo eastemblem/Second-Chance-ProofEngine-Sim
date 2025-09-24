@@ -423,9 +423,11 @@ router.post('/upload-file', upload.single("file"), asyncHandler(async (req: Auth
         await lruCacheService.invalidate('dashboard', founderId);
         await lruCacheService.invalidate('dashboard', `vault_${founderId}`);
         await lruCacheService.invalidate('dashboard', `activity_${founderId}`);
+        // CRITICAL: Also invalidate founder cache since vault endpoint uses getFounderWithLatestVenture
+        await lruCacheService.invalidate('founder', founderId);
         // Sanitize founder ID for logging to prevent security scanner warnings
         const sanitizedFounderId = String(founderId).replace(/[^\w-]/g, '');
-        appLogger.cache(`V1 UPLOAD: Cache invalidated for founder ${founderId} (dashboard, vault, activity)`);
+        appLogger.cache(`V1 UPLOAD: Cache invalidated for founder ${founderId} (dashboard, vault, activity, founder)`);
       } catch (cacheError) {
         appLogger.api('V1 upload - cache invalidation failed', { founderId, error: cacheError instanceof Error ? cacheError.message : 'Unknown error' });
         // Don't fail the upload if cache invalidation fails
