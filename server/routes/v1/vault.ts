@@ -322,6 +322,11 @@ router.post('/upload-file', upload.single("file"), asyncHandler(async (req: Auth
   let categoryId = '';
   let scoreAwarded = 0;
   
+  // Extract batch upload flags early to make them available throughout the function scope
+  const isBatchUpload = req.body.isBatchUpload === 'true';
+  const isLastInBatch = req.body.isLastInBatch === 'true';
+  const shouldUpdateVaultScore = !isBatchUpload || isLastInBatch;
+
   try {
     // Step 1: Get actual Box.com folder ID from database - NO FALLBACKS
     const { getFolderIdFromCategory } = await import("../../utils/folder-mapping");
@@ -404,9 +409,6 @@ router.post('/upload-file', upload.single("file"), asyncHandler(async (req: Auth
       appLogger.database(`V1 UPLOAD: Database record created with ID ${uploadRecord.uploadId} for venture ${currentVentureId}`);
 
       // NEW: Calculate and update VaultScore (only for non-batch or last file in batch)
-      const isBatchUpload = req.body.isBatchUpload === 'true';
-      const isLastInBatch = req.body.isLastInBatch === 'true';
-      const shouldUpdateVaultScore = !isBatchUpload || isLastInBatch;
       
       if (currentVentureId && shouldUpdateVaultScore) {
         try {
