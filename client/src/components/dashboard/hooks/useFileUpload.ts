@@ -121,7 +121,7 @@ export function useFileUpload(user: User | null, onUploadComplete?: (updatedVaul
     index: number, 
     isBatchUpload = false, 
     isLastInBatch = false
-  ): Promise<boolean> => {
+  ): Promise<{ success: boolean; responseData?: any; error?: string }> => {
     try {
       setUploadQueue(prev => prev.map((item, i) => 
         i === index ? { ...item, status: 'uploading', error: undefined } : item
