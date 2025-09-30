@@ -98,10 +98,10 @@ export default function DocumentUpload({
       return false;
     }
 
-    if (file.size > 10 * 1024 * 1024) {
+    if (file.size > 50 * 1024 * 1024) {
       toast({
         title: "File Too Large",
-        description: "Please upload a file smaller than 10MB",
+        description: "Please upload a file smaller than 50MB",
         variant: "destructive",
       });
       return false;
@@ -211,7 +211,7 @@ export default function DocumentUpload({
                 {isDragOver ? "Drop your pitch deck here" : "Choose your pitch deck"}
               </h3>
               <p className="text-muted-foreground mb-4">
-                Drag and drop or click to select • PDF only (max 10MB)
+                Drag and drop or click to select • PDF only (max 50MB)
               </p>
               <input
                 type="file"
