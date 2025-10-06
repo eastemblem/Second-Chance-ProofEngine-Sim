@@ -1050,12 +1050,46 @@ export class OnboardingService {
                                 scoringResult?.founder_info?.founder_stage;
             
             if (founderStage) {
+              // Update venture with both growth stage and initial ProofScore
               await storage.updateVenture(venture.ventureId, {
                 growthStage: founderStage,
+                proofScore: totalScore,
                 updatedAt: new Date()
               });
-              console.log(`✓ Updated venture ${venture.name} with growth stage: ${founderStage}`);
+              console.log(`✓ Updated venture ${venture.name} with growth stage: ${founderStage} and initial ProofScore: ${totalScore}`);
+              
+              // Update the pitch deck document upload with stage-specific scores
+              try {
+                const { getArtifactConfig } = await import('../../shared/config/artifacts');
+                const pitchDeckConfig = getArtifactConfig(founderStage, '0_Overview', 'pitch_deck');
+                
+                if (pitchDeckConfig) {
+                  // Find the pitch deck upload for this venture
+                  const allUploads = await storage.getDocumentUploadsByVentureId(venture.ventureId);
+                  const pitchDeckUpload = allUploads.find(upload => 
+                    upload.artifactType === 'pitch_deck' || 
+                    upload.artifactType === 'Pitch Deck'
+                  );
+                  
+                  if (pitchDeckUpload) {
+                    await storage.updateDocumentUpload(pitchDeckUpload.uploadId, {
+                      scoreAwarded: pitchDeckConfig.score,
+                      proofScoreContribution: pitchDeckConfig.proofScoreContribution
+                    });
+                    console.log(`✓ Updated pitch deck scores: VaultScore +${pitchDeckConfig.score}, ProofScore +${pitchDeckConfig.proofScoreContribution}`);
+                  }
+                }
+              } catch (pitchUpdateError) {
+                console.error("Failed to update pitch deck scores:", pitchUpdateError);
+                // Don't fail the entire process
+              }
             } else {
+              // If no growth stage, still update ProofScore
+              await storage.updateVenture(venture.ventureId, {
+                proofScore: totalScore,
+                updatedAt: new Date()
+              });
+              console.log(`✓ Updated venture ${venture.name} with initial ProofScore: ${totalScore}`);
               console.log(`⚠ No founder_stage found in scoring results for ${venture.name}`);
             }
           } catch (growthStageError) {
