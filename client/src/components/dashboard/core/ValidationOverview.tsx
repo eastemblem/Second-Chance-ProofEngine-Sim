@@ -66,8 +66,9 @@ export function ValidationOverview({ validationData, proofVaultData, onScrollToV
     return "Founders with complete uploads are 3x more likely to secure their first investor meeting.";
   };
 
-  // Calculate progress percentage for circular indicator
-  const progressPercentage = Math.min(proofScore, 100);
+  // Calculate progress percentage for circular indicator (ProofScore max is 95)
+  const maxProofScore = 95;
+  const progressPercentage = Math.min((proofScore / maxProofScore) * 100, 100);
 
   return (
     <div className="rounded-xl border border-gray-700/50 p-6" style={{ backgroundColor: '#0E0E12' }}>
@@ -140,9 +141,12 @@ export function ValidationOverview({ validationData, proofVaultData, onScrollToV
             
             {/* Center Score */}
             <div className="absolute inset-0 flex items-center justify-center">
-              <span className="text-4xl font-bold text-white">
-                {proofScore}
-              </span>
+              <div className="text-center">
+                <span className="text-3xl font-bold text-white">
+                  {proofScore}
+                </span>
+                <span className="text-lg text-gray-400">/{maxProofScore}</span>
+              </div>
             </div>
           </div>
 
