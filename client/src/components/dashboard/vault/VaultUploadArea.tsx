@@ -4,7 +4,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Progress } from "@/components/ui/progress";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 import { Upload, FolderPlus, Plus, Folder, AlertCircle, RefreshCw, X, Info } from "lucide-react";
-import { PROOF_VAULT_ARTIFACTS, filterArtifactsByGrowthStage } from "../../../../../shared/config/artifacts";
+import { PROOF_VAULT_ARTIFACTS, getArtifactsForStage } from "../../../../../shared/config/artifacts";
 import { FileValidator } from "../../../../../shared/utils/fileValidation";
 import { useUploadConsent } from "@/hooks/useUploadConsent";
 import { UploadConsentModal } from "@/components/shared/UploadConsentModal";
@@ -96,7 +96,7 @@ export function VaultUploadArea({
       artifacts = FileValidator.getArtifactsForCategory(folderId);
     } else {
       // Get filtered artifacts based on growth stage
-      const filteredConfig = filterArtifactsByGrowthStage(growthStage as any);
+      const filteredConfig = getArtifactsForStage(growthStage as any);
       const category = filteredConfig[folderId];
       
       if (!category) {
