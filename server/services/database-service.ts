@@ -143,6 +143,8 @@ export class DatabaseService {
             folderStructure: venture.folderStructure,
             certificateUrl: venture.certificateUrl,
             reportUrl: venture.reportUrl,
+            vaultScore: venture.vaultScore,
+            proofScore: venture.proofScore,
             createdAt: venture.createdAt,
           },
           latestEvaluation: {
