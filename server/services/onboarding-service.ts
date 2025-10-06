@@ -1082,17 +1082,17 @@ export class OnboardingService {
                       growthStage: founderStage,
                       proofScore: totalScore,
                       vaultScore: initialVaultScore,
-                      status: 'completed',
+                      status: 'done',
                       updatedAt: new Date()
                     });
-                    console.log(`✓ Updated venture ${venture.name} with growth stage: ${founderStage}, ProofScore: ${totalScore}, VaultScore: ${initialVaultScore}, status: completed`);
+                    console.log(`✓ Updated venture ${venture.name} with growth stage: ${founderStage}, ProofScore: ${totalScore}, VaultScore: ${initialVaultScore}, status: done`);
                   } else {
                     // If pitch deck upload not found, still update venture
                     await storage.updateVenture(venture.ventureId, {
                       growthStage: founderStage,
                       proofScore: totalScore,
                       vaultScore: 0,
-                      status: 'completed',
+                      status: 'done',
                       updatedAt: new Date()
                     });
                     console.log(`✓ Updated venture ${venture.name} (pitch deck upload not found)`);
@@ -1103,7 +1103,7 @@ export class OnboardingService {
                     growthStage: founderStage,
                     proofScore: totalScore,
                     vaultScore: 0,
-                    status: 'completed',
+                    status: 'done',
                     updatedAt: new Date()
                   });
                   console.log(`✓ Updated venture ${venture.name} (no pitch deck config found)`);
@@ -1115,7 +1115,7 @@ export class OnboardingService {
                   growthStage: founderStage,
                   proofScore: totalScore,
                   vaultScore: 0,
-                  status: 'completed',
+                  status: 'done',
                   updatedAt: new Date()
                 });
               }
@@ -1124,7 +1124,7 @@ export class OnboardingService {
               await storage.updateVenture(venture.ventureId, {
                 proofScore: totalScore,
                 vaultScore: 0,
-                status: 'completed',
+                status: 'done',
                 updatedAt: new Date()
               });
               console.log(`✓ Updated venture ${venture.name} with initial ProofScore: ${totalScore}`);
