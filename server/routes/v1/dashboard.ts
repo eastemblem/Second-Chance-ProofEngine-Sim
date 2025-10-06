@@ -95,7 +95,8 @@ router.get('/validation', asyncHandler(async (req: Request, res: Response) => {
       investorReady: currentScore >= 70,
       dealRoomAccess: currentScore >= 90,
       certificateUrl,
-      reportUrl
+      reportUrl,
+      vaultScore: latestVenture?.vaultScore || 0 // Include VaultScore from venture table
     };
 
     // Get files count from storage service
@@ -213,7 +214,7 @@ router.get('/vault', asyncHandler(async (req: Request, res: Response) => {
       commercialProofCount: fileCounts.commercialProof,
       investorPackCount: fileCounts.investorPack,
       totalFiles: totalFiles,
-      vaultScore: dashboardData.latestEvaluation?.vaultscore || 0, // Add VaultScore from evaluation
+      vaultScore: dashboardData.venture.vaultScore || 0, // Fetch VaultScore from venture table
       ventureId: dashboardData.venture.ventureId,
       ventureName: dashboardData.venture.name,
       folders: [ // FIXED: Add folder structure to match frontend interface
