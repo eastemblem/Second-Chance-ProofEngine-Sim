@@ -45,7 +45,8 @@ router.get('/validation', asyncHandler(async (req: Request, res: Response) => {
     }
 
     const { founder: founderData, venture: latestVenture, latestEvaluation } = dashboardData;
-    const currentScore = latestEvaluation?.proofscore || 0;
+    // FIXED: Get proofScore from venture table (source of truth), not evaluation table
+    const currentScore = latestVenture?.proofScore || 0;
 
     // FIXED: Extract ProofTags from JSON field and count unlocked tags
     let proofTagsUnlocked = 0;
@@ -95,8 +96,8 @@ router.get('/validation', asyncHandler(async (req: Request, res: Response) => {
       investorReady: currentScore >= 70,
       dealRoomAccess: currentScore >= 90,
       certificateUrl,
-      reportUrl,
-      vaultScore: latestVenture?.vaultScore || 0 // Include VaultScore from venture table
+      reportUrl
+      // REMOVED: vaultScore - this is provided by the vault API instead
     };
 
     // Get files count from storage service
