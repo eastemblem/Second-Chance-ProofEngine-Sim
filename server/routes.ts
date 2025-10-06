@@ -188,7 +188,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
         investorReady: currentScore >= 70,
         dealRoomAccess: currentScore >= 90,
         certificateUrl: latestVenture?.certificateUrl,
-        reportUrl: latestVenture?.reportUrl
+        reportUrl: latestVenture?.reportUrl,
+        vaultScore: latestVenture?.vaultScore || 0 // Include VaultScore from venture table
       };
 
       // FIXED: Calculate actual files uploaded for this venture
