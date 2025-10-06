@@ -657,6 +657,7 @@ export class OnboardingService {
         uploadStatus: 'pending',
         processingStatus: 'pending',
         folderId: overviewFolderId, // Map to Overview folder
+        categoryId: '0_Overview', // Set category_id for pitch deck
         artifactType: uploadMetadata?.artifactType || 'pitch_deck', // Use dynamic value or fallback
         description: uploadMetadata?.description || 'Main investor presentation covering problem, solution, market, team, and financials', // Use dynamic value or fallback  
         scoreAwarded: uploadMetadata?.scoreAwarded || 5 // Use dynamic value or fallback
@@ -1050,14 +1051,6 @@ export class OnboardingService {
                                 scoringResult?.founder_info?.founder_stage;
             
             if (founderStage) {
-              // Update venture with both growth stage and initial ProofScore
-              await storage.updateVenture(venture.ventureId, {
-                growthStage: founderStage,
-                proofScore: totalScore,
-                updatedAt: new Date()
-              });
-              console.log(`✓ Updated venture ${venture.name} with growth stage: ${founderStage} and initial ProofScore: ${totalScore}`);
-              
               // Update the pitch deck document upload with stage-specific scores
               try {
                 const { getArtifactConfig } = await import('../../shared/config/artifacts');
@@ -1072,21 +1065,66 @@ export class OnboardingService {
                   );
                   
                   if (pitchDeckUpload) {
+                    // Update pitch deck with scores AND set processing_status to completed
                     await storage.updateDocumentUpload(pitchDeckUpload.uploadId, {
                       scoreAwarded: pitchDeckConfig.score,
-                      proofScoreContribution: pitchDeckConfig.proofScoreContribution
+                      proofScoreContribution: pitchDeckConfig.proofScoreContribution,
+                      processingStatus: 'completed' // Mark as completed after successful scoring
                     });
                     console.log(`✓ Updated pitch deck scores: VaultScore +${pitchDeckConfig.score}, ProofScore +${pitchDeckConfig.proofScoreContribution}`);
+                    console.log(`✓ Pitch deck processing_status set to completed`);
+                    
+                    // Calculate initial VaultScore from pitch deck
+                    const initialVaultScore = pitchDeckConfig.score;
+                    
+                    // Update venture with growth stage, ProofScore, VaultScore, and status
+                    await storage.updateVenture(venture.ventureId, {
+                      growthStage: founderStage,
+                      proofScore: totalScore,
+                      vaultScore: initialVaultScore,
+                      status: 'completed',
+                      updatedAt: new Date()
+                    });
+                    console.log(`✓ Updated venture ${venture.name} with growth stage: ${founderStage}, ProofScore: ${totalScore}, VaultScore: ${initialVaultScore}, status: completed`);
+                  } else {
+                    // If pitch deck upload not found, still update venture
+                    await storage.updateVenture(venture.ventureId, {
+                      growthStage: founderStage,
+                      proofScore: totalScore,
+                      vaultScore: 0,
+                      status: 'completed',
+                      updatedAt: new Date()
+                    });
+                    console.log(`✓ Updated venture ${venture.name} (pitch deck upload not found)`);
                   }
+                } else {
+                  // If no pitch deck config found, still update venture with basic info
+                  await storage.updateVenture(venture.ventureId, {
+                    growthStage: founderStage,
+                    proofScore: totalScore,
+                    vaultScore: 0,
+                    status: 'completed',
+                    updatedAt: new Date()
+                  });
+                  console.log(`✓ Updated venture ${venture.name} (no pitch deck config found)`);
                 }
               } catch (pitchUpdateError) {
                 console.error("Failed to update pitch deck scores:", pitchUpdateError);
-                // Don't fail the entire process
+                // Don't fail the entire process - still try to update venture
+                await storage.updateVenture(venture.ventureId, {
+                  growthStage: founderStage,
+                  proofScore: totalScore,
+                  vaultScore: 0,
+                  status: 'completed',
+                  updatedAt: new Date()
+                });
               }
             } else {
-              // If no growth stage, still update ProofScore
+              // If no growth stage, still update ProofScore and status
               await storage.updateVenture(venture.ventureId, {
                 proofScore: totalScore,
+                vaultScore: 0,
+                status: 'completed',
                 updatedAt: new Date()
               });
               console.log(`✓ Updated venture ${venture.name} with initial ProofScore: ${totalScore}`);
