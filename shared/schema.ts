@@ -66,6 +66,8 @@ export const venture = pgTable("venture", {
   reportGeneratedAt: timestamp("report_generated_at"),
   folderStructure: jsonb("folder_structure"),
   growthStage: varchar("growth_stage", { length: 100 }),
+  proofScore: integer("proof_score").default(0),
+  vaultScore: integer("vault_score").default(0),
   status: ventureStatusEnum("status").notNull().default("pending"),
   createdAt: timestamp("created_at").defaultNow().notNull(),
   updatedAt: timestamp("updated_at").defaultNow().notNull(),
@@ -168,7 +170,8 @@ export const documentUpload = pgTable("document_upload", {
   description: text("description").notNull(), // REQUIRED: User description of the document
   artifactType: varchar("artifact_type", { length: 100 }).notNull(), // REQUIRED: Selected artifact type
   categoryId: varchar("category_id", { length: 50 }), // Optional: Folder/category reference
-  scoreAwarded: integer("score_awarded").default(0), // Points earned from this upload
+  scoreAwarded: integer("score_awarded").default(0), // Points earned from this upload (VaultScore)
+  proofScoreContribution: integer("proof_score_contribution").default(0), // Points contributed to ProofScore
   createdAt: timestamp("created_at").defaultNow().notNull(),
 });
 
@@ -507,6 +510,7 @@ export const insertDocumentUploadSchema = createInsertSchema(documentUpload, {
   artifactType: z.string().min(1, "Document type is required"),
   categoryId: z.string().optional(),
   scoreAwarded: z.number().default(0),
+  proofScoreContribution: z.number().default(0),
 }).omit({
   uploadId: true,
   createdAt: true,
