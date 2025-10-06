@@ -372,6 +372,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         totalFiles: files.length,
         ventureId: dashboardData.venture.ventureId,
         ventureName: dashboardData.venture.name,
+        vaultScore: dashboardData.venture.vaultScore || 0, // Include VaultScore from venture table
         files: formattedFiles, // REAL FILES from database
         folders: [ // FIXED: Add folder structure to match frontend interface
           { name: "0_Overview", displayName: "Overview", count: fileCounts.overview },
