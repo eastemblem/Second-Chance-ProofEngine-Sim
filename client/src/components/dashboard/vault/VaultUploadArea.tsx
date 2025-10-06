@@ -103,7 +103,7 @@ export function VaultUploadArea({
         return [];
       }
       
-      // Convert to FileValidator format
+      // Convert to FileValidator format with priority for sorting
       artifacts = Object.entries(category.artifacts).map(([artifactKey, artifact]) => ({
         id: artifactKey,
         name: artifact.name,
@@ -111,7 +111,9 @@ export function VaultUploadArea({
         required: artifact.mandatory || false,
         acceptedFormats: artifact.allowedFormats || ['.pdf', '.doc', '.docx'],
         maxSizeMB: Math.round(artifact.maxSizeBytes / (1024 * 1024)) || 10,
-        score: artifact.score || 0
+        score: artifact.score || 0,
+        priority: artifact.priority || 'low',
+        mandatory: artifact.mandatory || false
       }));
     }
     
@@ -119,6 +121,20 @@ export function VaultUploadArea({
     if (!isLoadingUploadedArtifacts && uploadedArtifacts.length > 0) {
       artifacts = artifacts.filter(artifact => !uploadedArtifacts.includes(artifact.id));
     }
+    
+    // NEW: Sort by priority (critical → high → medium → low)
+    const priorityOrder: Record<string, number> = {
+      'critical': 1,
+      'high': 2,
+      'medium': 3,
+      'low': 4
+    };
+    
+    artifacts.sort((a, b) => {
+      const aPriority = priorityOrder[a.priority || 'low'] || 4;
+      const bPriority = priorityOrder[b.priority || 'low'] || 4;
+      return aPriority - bPriority;
+    });
     
     return artifacts;
   };
@@ -133,7 +149,7 @@ export function VaultUploadArea({
     if (!growthStage) {
       allArtifacts = FileValidator.getArtifactsForCategory(folderId);
     } else {
-      const filteredConfig = filterArtifactsByGrowthStage(growthStage as any);
+      const filteredConfig = getArtifactsForStage(growthStage as any);
       const category = filteredConfig[folderId];
       if (!category) return false;
       
@@ -334,14 +350,36 @@ export function VaultUploadArea({
                 } />
               </SelectTrigger>
               <SelectContent className="bg-gray-800 border-gray-600">
-                {getArtifactsForFolder(selectedFolder).map((artifact: any) => (
-                  <SelectItem key={artifact.id} value={artifact.id} className="text-white hover:bg-gray-700">
-                    <div className="flex justify-between w-full">
-                      <span>{artifact.name}</span>
-                      <span className="text-green-400">+{artifact.score}pts</span>
-                    </div>
-                  </SelectItem>
-                ))}
+                {getArtifactsForFolder(selectedFolder).map((artifact: any) => {
+                  // Priority badge colors
+                  const priorityColors: Record<string, { bg: string; text: string; label: string }> = {
+                    'critical': { bg: 'bg-red-500/20', text: 'text-red-400', label: 'CRITICAL' },
+                    'high': { bg: 'bg-orange-500/20', text: 'text-orange-400', label: 'HIGH' },
+                    'medium': { bg: 'bg-yellow-500/20', text: 'text-yellow-400', label: 'MED' },
+                    'low': { bg: 'bg-blue-500/20', text: 'text-blue-400', label: 'LOW' }
+                  };
+                  
+                  const priority = priorityColors[artifact.priority] || priorityColors['low'];
+                  
+                  return (
+                    <SelectItem key={artifact.id} value={artifact.id} className="text-white hover:bg-gray-700">
+                      <div className="flex items-center justify-between w-full gap-3">
+                        <div className="flex items-center gap-2 flex-1">
+                          {artifact.mandatory && (
+                            <span className="text-red-400 text-xs font-bold" title="Required">*</span>
+                          )}
+                          <span className="flex-1">{artifact.name}</span>
+                        </div>
+                        <div className="flex items-center gap-2">
+                          <span className={`px-2 py-0.5 rounded text-xs font-medium ${priority.bg} ${priority.text}`}>
+                            {priority.label}
+                          </span>
+                          <span className="text-green-400 text-sm">+{artifact.score}pts</span>
+                        </div>
+                      </div>
+                    </SelectItem>
+                  );
+                })}
               </SelectContent>
             </Select>
             {!selectedArtifact && getArtifactsForFolder(selectedFolder).length > 0 && (
