@@ -954,11 +954,14 @@ router.post('/upload-file-direct', upload.single("file"), asyncHandler(async (re
     // Invalidate cache after successful direct upload
     if (founderId) {
       try {
+        await lruCacheService.invalidate('dashboard', founderId);
         await lruCacheService.invalidate('dashboard', `vault_${founderId}`);
         await lruCacheService.invalidate('dashboard', `activity_${founderId}`);
+        // CRITICAL: Also invalidate founder cache since validation endpoint uses getFounderWithLatestVenture
+        await lruCacheService.invalidate('founder', founderId);
         // Sanitize founder ID for logging to prevent security scanner warnings
         const sanitizedFounderId = String(founderId).replace(/[^\w-]/g, '');
-        appLogger.api('V1 direct upload - cache invalidated', { founderId: sanitizedFounderId });
+        appLogger.cache(`V1 DIRECT UPLOAD: Cache invalidated for founder ${founderId} (dashboard, vault, activity, founder)`);
       } catch (cacheError) {
         appLogger.api('V1 direct upload - cache invalidation failed', { error: cacheError instanceof Error ? cacheError.message : 'Unknown error' });
         // Don't fail the upload if cache invalidation fails
