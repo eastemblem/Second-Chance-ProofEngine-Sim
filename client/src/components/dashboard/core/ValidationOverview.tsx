@@ -145,7 +145,6 @@ export function ValidationOverview({ validationData, proofVaultData, onScrollToV
                 <span className="text-3xl font-bold text-white">
                   {proofScore}
                 </span>
-                <span className="text-lg text-gray-400">/{maxProofScore}</span>
               </div>
             </div>
           </div>
