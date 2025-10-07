@@ -184,26 +184,33 @@ export function useFileUpload(user: User | null, onUploadComplete?: (updatedVaul
         
         trackEvent('upload', 'proofvault', `file_upload_${queueItem.folderId}`);
         
-        // Trigger confetti animation
-        confetti({
-          particleCount: 100,
-          spread: 70,
-          origin: { y: 0.6 }
-        });
+        // Trigger confetti only for:
+        // 1. Single file uploads (not batch)
+        // 2. Last file in a batch upload
+        if (!isBatchUpload || isLastInBatch) {
+          confetti({
+            particleCount: 100,
+            spread: 70,
+            origin: { y: 0.6 }
+          });
+        }
         
-        // Get artifact name from artifact type for user-friendly message
-        const artifactDisplayName = queueItem.artifactType 
-          ? queueItem.artifactType.split('_').map(word => 
-              word.charAt(0).toUpperCase() + word.slice(1)
-            ).join(' ')
-          : 'Document';
-        
-        // Show detailed success message with artifact type
-        toast({
-          title: "Upload Successful ✓",
-          description: `${artifactDisplayName} uploaded successfully`,
-          variant: "success",
-        });
+        // Show toast only for single file uploads
+        // Batch uploads will show a summary toast after all files complete
+        if (!isBatchUpload) {
+          // Get artifact name from artifact type for user-friendly message
+          const artifactDisplayName = queueItem.artifactType 
+            ? queueItem.artifactType.split('_').map(word => 
+                word.charAt(0).toUpperCase() + word.slice(1)
+              ).join(' ')
+            : 'Document';
+          
+          toast({
+            title: "Upload Successful ✓",
+            description: `${artifactDisplayName} uploaded successfully`,
+            variant: "success",
+          });
+        }
         
         // Return response data including updated VaultScore
         return { success: true, responseData };
