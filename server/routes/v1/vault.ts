@@ -10,6 +10,7 @@ import { ActivityService } from '../../services/activity-service';
 import { lruCacheService } from '../../services/lru-cache-service';
 import { appLogger } from '../../utils/logger';
 import { DocumentRepository } from '../../repositories/document-repository';
+import { eq } from 'drizzle-orm';
 import multer from 'multer';
 import path from 'path';
 import fs from 'fs';
@@ -839,9 +840,12 @@ router.post('/upload-file-direct', upload.single("file"), asyncHandler(async (re
     const { storage } = await import("../../storage");
     const { databaseService } = await import("../../services/database-service");
     
-    // Declare venture ID and growth stage at function scope
+    // Declare venture ID, growth stage, and score variables at function scope
     let currentVentureId: string | null = null;
     let growthStage: string | null = null;
+    let categoryId = '';
+    let scoreAwarded = 0;
+    let proofScoreContribution = 0;
     
     try {
       // CRITICAL FIX: Get current venture ID from founder ID
@@ -858,9 +862,6 @@ router.post('/upload-file-direct', upload.single("file"), asyncHandler(async (re
       }
 
       // Calculate categoryId, scoreAwarded, and proofScoreContribution from artifactType
-      let categoryId = '';
-      let scoreAwarded = 0;
-      let proofScoreContribution = 0;
       
       if (artifactType) {
         try {
@@ -992,12 +993,13 @@ router.post('/upload-file-direct', upload.single("file"), asyncHandler(async (re
     const sanitizedFolderId = String(folder_id).replace(/[^\w-]/g, '');
     appLogger.api('V1 direct upload - file uploaded successfully', { filename: sanitizedFilename, folderId: sanitizedFolderId });
 
-    // Calculate and update scores if this is the last file in a batch or a single file upload
+    // Update scores when last file in batch completes or for single file uploads
     let updatedVaultScore: number | undefined;
     let updatedProofScore: number | undefined;
     
     if (currentVentureId && (isLastInBatch === 'true' || !isBatchUpload)) {
       try {
+        // Recalculate scores (now includes pitch deck + artifacts)
         updatedVaultScore = await storage.calculateVaultScore(currentVentureId);
         updatedProofScore = await storage.calculateProofScore(currentVentureId);
         
@@ -1006,7 +1008,7 @@ router.post('/upload-file-direct', upload.single("file"), asyncHandler(async (re
         
         appLogger.api(`V1 direct upload - scores updated: VaultScore=${updatedVaultScore}, ProofScore=${updatedProofScore}`);
       } catch (scoreError) {
-        appLogger.error('V1 direct upload - score calculation/update failed', scoreError);
+        appLogger.error('V1 direct upload - score update failed', scoreError);
         // Don't fail the upload if score update fails
       }
     }

@@ -1,6 +1,7 @@
 import { founder, venture, teamMember, proofVault, leaderboard, evaluation, documentUpload, userActivity, paymentTransactions, userSubscriptions, paymentLogs, proofScalingWishlist, type Founder, type InsertFounder, type Venture, type InsertVenture, type TeamMember, type InsertTeamMember, type ProofVault, type InsertProofVault, type Leaderboard, type InsertLeaderboard, type Evaluation, type InsertEvaluation, type DocumentUpload, type InsertDocumentUpload, type UserActivity, type InsertUserActivity, type PaymentTransaction, type InsertPaymentTransaction, type UserSubscription, type InsertUserSubscription, type PaymentLog, type InsertPaymentLog, type ProofScalingWishlist, type InsertProofScalingWishlist } from "@shared/schema";
 import { db } from "./db";
 import { eq, desc, and } from "drizzle-orm";
+import { appLogger } from "./utils/logger";
 
 export interface IStorage {
   getFounder(id: string): Promise<Founder | undefined>;
@@ -273,6 +274,23 @@ export class DatabaseStorage implements IStorage {
   }
 
   async calculateProofScore(ventureId: string): Promise<number> {
+    // Get pitch deck ProofScore from evaluation (baseline score)
+    let pitchDeckScore = 0;
+    try {
+      const latestEvaluation = await db
+        .select()
+        .from(evaluation)
+        .where(eq(evaluation.ventureId, ventureId))
+        .orderBy(desc(evaluation.createdAt))
+        .limit(1);
+      
+      if (latestEvaluation.length > 0) {
+        pitchDeckScore = latestEvaluation[0].proofscore || 0;
+      }
+    } catch (error) {
+      appLogger.error('calculateProofScore - failed to get evaluation score', error);
+    }
+    
     // Get all document uploads for this venture
     const documents = await this.getDocumentUploadsByVentureId(ventureId);
     
@@ -287,7 +305,11 @@ export class DatabaseStorage implements IStorage {
       }
     });
     
-    return Array.from(uniqueArtifacts.values()).reduce((sum, score) => sum + score, 0);
+    const artifactScore = Array.from(uniqueArtifacts.values()).reduce((sum, score) => sum + score, 0);
+    
+    // Return combined score: pitch deck + artifacts
+    appLogger.api(`calculateProofScore: pitchDeck=${pitchDeckScore} + artifacts=${artifactScore} = ${pitchDeckScore + artifactScore}`);
+    return pitchDeckScore + artifactScore;
   }
 
   async updateVaultScore(ventureId: string, score: number): Promise<void> {
