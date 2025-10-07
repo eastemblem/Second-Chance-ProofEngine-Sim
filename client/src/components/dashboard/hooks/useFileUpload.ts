@@ -53,10 +53,10 @@ export function useFileUpload(user: User | null, onUploadComplete?: (updatedVaul
     
     // Map artifact type prefixes to category display names
     if (artifactType.includes('problem')) return 'Problem Proofs';
-    if (artifactType.includes('solution')) return 'Solution Proofs';
-    if (artifactType.includes('demand')) return 'Demand Proofs';
-    if (artifactType.includes('credibility')) return 'Credibility Proofs';
-    if (artifactType.includes('commercial') || artifactType.includes('financial')) return 'Commercial Proofs';
+    if (artifactType.includes('solution') || artifactType.includes('mvp') || artifactType.includes('prototype')) return 'Solution Proofs';
+    if (artifactType.includes('demand') || artifactType.includes('market') || artifactType.includes('customer')) return 'Demand Proofs';
+    if (artifactType.includes('credibility') || artifactType.includes('team') || artifactType.includes('advisor')) return 'Credibility Proofs';
+    if (artifactType.includes('commercial') || artifactType.includes('financial') || artifactType.includes('revenue')) return 'Commercial Proofs';
     if (artifactType.includes('investor')) return 'Investor Pack';
     
     // Default to Overview for pitch_deck, one_pager, etc.
@@ -348,14 +348,9 @@ export function useFileUpload(user: User | null, onUploadComplete?: (updatedVaul
       // Get category name - use artifactType to derive category for batch uploads
       const categoryName = getCategoryFromArtifact(newQueue[0].artifactType);
       
-      // Show detailed success message with artifact type (keeping old format)
-      const vaultScore = latestVaultScore !== undefined ? latestVaultScore : '';
-      const proofScore = successfulUploads[successfulUploads.length - 1]?.responseData?.data?.proofScore;
-      const scoreInfo = vaultScore !== '' ? ` (Vault: ${vaultScore}${proofScore !== undefined ? `, Proof: ${proofScore}` : ''})` : '';
-      
       toast({
         title: "Upload Successful ✓",
-        description: `${successfulUploads.length} ${artifactDisplayName} file(s) uploaded to ${categoryName}${scoreInfo}`,
+        description: `${successfulUploads.length} ${artifactDisplayName} file(s) uploaded to ${categoryName}`,
         variant: "success",
       });
       
