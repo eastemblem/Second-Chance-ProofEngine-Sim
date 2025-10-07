@@ -152,39 +152,23 @@ export function VaultUploadArea({
     return !category || !category.artifacts || Object.keys(category.artifacts).length === 0;
   };
 
-  // NEW: Helper function to check if folder is complete (all uploaded or no artifacts required)
-  const isFolderComplete = (folderId: string) => {
+  // Helper function to check if all artifacts are uploaded (not counting empty categories)
+  const areAllArtifactsUploaded = (folderId: string) => {
     if (isLoadingUploadedArtifacts) return false;
     
-    let allArtifacts = [];
-    
-    // Get all artifacts for this folder based on growth stage
-    if (!growthStage) {
-      allArtifacts = FileValidator.getArtifactsForCategory(folderId);
-    } else {
-      const filteredConfig = getArtifactsForStage(growthStage as any);
-      const category = filteredConfig[folderId];
-      
-      // If category doesn't exist or has no artifacts, it's complete (no documents required)
-      if (!category || !category.artifacts || Object.keys(category.artifacts).length === 0) {
-        return true;
-      }
-      
-      allArtifacts = Object.entries(category.artifacts).map(([artifactKey, artifact]) => ({
-        id: artifactKey,
-        name: artifact.name,
-        required: artifact.mandatory || false,
-      }));
-    }
-    
-    // If no artifacts required, folder is complete
-    if (allArtifacts.length === 0) {
-      return true;
+    // First check if there are any artifacts required
+    if (hasNoArtifactsRequired(folderId)) {
+      return false; // Don't show "All uploaded" for folders with no artifacts
     }
     
     // Check if all artifacts are uploaded (no available artifacts left = all uploaded)
     const availableArtifacts = getArtifactsForFolder(folderId);
     return availableArtifacts.length === 0;
+  };
+
+  // Helper function to check if folder is complete (all uploaded or no artifacts required)
+  const isFolderComplete = (folderId: string) => {
+    return hasNoArtifactsRequired(folderId) || areAllArtifactsUploaded(folderId);
   };
 
   const validateRequirements = () => {
@@ -347,8 +331,8 @@ export function VaultUploadArea({
           )}
         </div>
         
-        {/* NEW: Show "All uploaded" or "No documents required" state when folder is complete */}
-        {isFolderComplete(selectedFolder) ? (
+        {/* NEW: Show completion states based on actual upload status */}
+        {hasNoArtifactsRequired(selectedFolder) ? (
           <div className="bg-green-500/10 border border-green-500/30 rounded-lg p-4">
             <div className="flex items-center gap-3">
               <div className="w-8 h-8 rounded-full bg-green-500 flex items-center justify-center">
@@ -358,12 +342,28 @@ export function VaultUploadArea({
               </div>
               <div className="flex-1">
                 <h4 className="text-green-400 font-medium">
-                  {hasNoArtifactsRequired(selectedFolder) ? 'No Documents Required' : 'All Documents Uploaded'}
+                  No Documents Required
                 </h4>
                 <p className="text-green-300 text-sm">
-                  {hasNoArtifactsRequired(selectedFolder) 
-                    ? 'Folder complete - no artifacts required for your growth stage' 
-                    : 'All required artifacts for this folder have been uploaded'}
+                  Folder complete - no artifacts required for your growth stage
+                </p>
+              </div>
+            </div>
+          </div>
+        ) : areAllArtifactsUploaded(selectedFolder) ? (
+          <div className="bg-green-500/10 border border-green-500/30 rounded-lg p-4">
+            <div className="flex items-center gap-3">
+              <div className="w-8 h-8 rounded-full bg-green-500 flex items-center justify-center">
+                <svg className="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+                </svg>
+              </div>
+              <div className="flex-1">
+                <h4 className="text-green-400 font-medium">
+                  All Documents Uploaded
+                </h4>
+                <p className="text-green-300 text-sm">
+                  All required artifacts for this folder have been uploaded
                 </p>
               </div>
             </div>
