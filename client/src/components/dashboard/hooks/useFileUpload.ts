@@ -319,9 +319,22 @@ export function useFileUpload(user: User | null, onUploadComplete?: (updatedVaul
     
     // Show success message and trigger success callback if any files were uploaded successfully
     if (successfulUploads.length > 0) {
+      // Get artifact name from the first item in queue (all files in batch have same artifact type)
+      const artifactDisplayName = newQueue[0].artifactType 
+        ? newQueue[0].artifactType.split('_').map(word => 
+            word.charAt(0).toUpperCase() + word.slice(1)
+          ).join(' ')
+        : 'Document';
+      
+      // Show detailed success message with artifact type (keeping old format)
+      const vaultScore = latestVaultScore !== undefined ? latestVaultScore : '';
+      const proofScore = successfulUploads[successfulUploads.length - 1]?.responseData?.data?.proofScore;
+      const scoreInfo = vaultScore !== '' ? ` (Vault: ${vaultScore}${proofScore !== undefined ? `, Proof: ${proofScore}` : ''})` : '';
+      
       toast({
-        title: "Files Uploaded Successfully",
-        description: `${successfulUploads.length} file(s) uploaded successfully.`,
+        title: "Upload Successful ✓",
+        description: `${successfulUploads.length} ${artifactDisplayName} file(s) uploaded to ${getFolderDisplayName(newQueue[0].folderId)}${scoreInfo}`,
+        variant: "success",
       });
       
       // Call success callback to clear form

@@ -27,7 +27,7 @@ interface VaultUploadAreaProps {
   isCreatingFolders: boolean;
   folderCreationStatus: string;
   onFileUpload: (files: File[], folderId: string, artifactType?: string, description?: string, onSuccess?: () => void) => Promise<void>;
-  onFolderUpload: (event: React.ChangeEvent<HTMLInputElement>, artifactType?: string, description?: string) => Promise<void>;
+  onFolderUpload: (event: React.ChangeEvent<HTMLInputElement>, artifactType?: string, description?: string, onSuccess?: () => void) => Promise<void>;
   onRetryFailed: () => Promise<void>;
   onClearQueue: () => void;
   // NEW: Required fields for ProofVault enhancement
@@ -226,7 +226,12 @@ export function VaultUploadArea({
 
   // Handle folder upload with artifact metadata
   const handleFolderUploadWithMetadata = async (event: React.ChangeEvent<HTMLInputElement>) => {
-    await onFolderUpload(event, selectedArtifact, description);
+    await onFolderUpload(event, selectedArtifact, description, () => {
+      // Clear form fields on successful upload
+      onArtifactChange("");
+      onDescriptionChange("");
+      onClearValidation();
+    });
   };
 
   const handleFileSelect = async (e: React.ChangeEvent<HTMLInputElement>) => {

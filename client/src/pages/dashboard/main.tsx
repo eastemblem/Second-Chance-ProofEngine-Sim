@@ -207,7 +207,7 @@ export default function DashboardV2Page() {
   };
 
   // Handle folder uploads with precise workflow
-  const handleFolderUpload = async (event: React.ChangeEvent<HTMLInputElement>, artifactType?: string, description?: string) => {
+  const handleFolderUpload = async (event: React.ChangeEvent<HTMLInputElement>, artifactType?: string, description?: string, onSuccess?: () => void) => {
     const files = event.target.files;
     if (!files || files.length === 0) return;
 
@@ -297,14 +297,18 @@ export default function DashboardV2Page() {
       setFolderCreationStatus('');
       
       // Upload files to their respective folders
-      for (const [folderPath, files] of Object.entries(folderStructure.folders)) {
+      const folderEntries = Object.entries(folderStructure.folders);
+      for (let i = 0; i < folderEntries.length; i++) {
+        const [folderPath, files] = folderEntries[i];
         let targetFolderId = folderIdMap.get(folderPath) || mainFolderId;
 
         if (!folderIdMap.get(folderPath) && folderPath !== 'root') {
           targetFolderId = selectedCategory;
         }
 
-        await handleMultipleFileUpload(files, targetFolderId, artifactType, description);
+        // Only call success callback on the last folder upload
+        const isLastFolder = i === folderEntries.length - 1;
+        await handleMultipleFileUpload(files, targetFolderId, artifactType, description, isLastFolder ? onSuccess : undefined);
       }
 
       // Force refresh after folder upload
