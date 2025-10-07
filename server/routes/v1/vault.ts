@@ -839,27 +839,22 @@ router.post('/upload-file-direct', upload.single("file"), asyncHandler(async (re
     const { storage } = await import("../../storage");
     const { databaseService } = await import("../../services/database-service");
     
+    // Declare venture ID and growth stage at function scope
+    let currentVentureId: string | null = null;
+    let growthStage: string | null = null;
+    
     try {
       // CRITICAL FIX: Get current venture ID from founder ID
-      let currentVentureId = null;
       try {
         const dashboardData = await databaseService.getFounderWithLatestVenture(founderId);
         currentVentureId = dashboardData?.venture?.ventureId || null;
+        growthStage = dashboardData?.venture?.growthStage || null;
         // Sanitize IDs for logging to prevent security scanner warnings
         const sanitizedFounderId = String(founderId).replace(/[^\w-]/g, '');
         const sanitizedVentureId = String(currentVentureId).replace(/[^\w-]/g, '');
-        appLogger.api('V1 direct upload - resolved founder to venture', { founderId: sanitizedFounderId, ventureId: sanitizedVentureId });
+        appLogger.api('V1 direct upload - resolved founder to venture', { founderId: sanitizedFounderId, ventureId: sanitizedVentureId, growthStage });
       } catch (ventureError) {
         appLogger.api('V1 direct upload - failed to get venture ID', { founderId, error: ventureError instanceof Error ? ventureError.message : 'Unknown error' });
-      }
-
-      // Get growth stage for artifact filtering
-      let growthStage: string | null = null;
-      try {
-        const dashboardData = await databaseService.getFounderWithLatestVenture(founderId);
-        growthStage = dashboardData?.venture?.growthStage || null;
-      } catch (error) {
-        appLogger.api('V1 direct upload - failed to get growth stage', { error: error instanceof Error ? error.message : 'Unknown error' });
       }
 
       // Calculate categoryId, scoreAwarded, and proofScoreContribution from artifactType
