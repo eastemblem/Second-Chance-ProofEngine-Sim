@@ -796,7 +796,7 @@ router.post('/create-folder', upload.none(), asyncHandler(async (req: Authentica
 
 // Upload file directly to folder ID (bypasses category mapping) - V1 JWT AUTHENTICATED
 router.post('/upload-file-direct', upload.single("file"), asyncHandler(async (req: AuthenticatedRequest, res: Response) => {
-  const { folder_id, artifactType, description } = req.body;
+  const { folder_id, artifactType, description, isBatchUpload, isLastInBatch } = req.body;
   const file = req.file;
   const founderId = req.user?.founderId;
 
@@ -853,25 +853,38 @@ router.post('/upload-file-direct', upload.single("file"), asyncHandler(async (re
         appLogger.api('V1 direct upload - failed to get venture ID', { founderId, error: ventureError instanceof Error ? ventureError.message : 'Unknown error' });
       }
 
-      // Calculate categoryId and scoreAwarded from artifactType
+      // Get growth stage for artifact filtering
+      let growthStage: string | null = null;
+      try {
+        const dashboardData = await databaseService.getFounderWithLatestVenture(founderId);
+        growthStage = dashboardData?.venture?.growthStage || null;
+      } catch (error) {
+        appLogger.api('V1 direct upload - failed to get growth stage', { error: error instanceof Error ? error.message : 'Unknown error' });
+      }
+
+      // Calculate categoryId, scoreAwarded, and proofScoreContribution from artifactType
       let categoryId = '';
       let scoreAwarded = 0;
+      let proofScoreContribution = 0;
       
       if (artifactType) {
         try {
-          const { PROOF_VAULT_ARTIFACTS } = await import("@shared/config/artifacts");
+          const { getArtifactsForStage } = await import("@shared/config/artifacts");
+          const stageArtifacts = getArtifactsForStage(growthStage);
+          
           // Find which category contains this artifactType
-          for (const [catId, categoryData] of Object.entries(PROOF_VAULT_ARTIFACTS)) {
-            const category = categoryData as any; // Type assertion for artifacts config
+          for (const [catId, categoryData] of Object.entries(stageArtifacts)) {
+            const category = categoryData as any;
             if (category.artifacts && category.artifacts[artifactType]) {
               categoryId = catId;
               scoreAwarded = category.artifacts[artifactType].score || 0;
+              proofScoreContribution = category.artifacts[artifactType].proofScoreContribution || 0;
               break;
             }
           }
-          appLogger.database(`V1 DIRECT UPLOAD: Mapped artifactType "${artifactType}" to category "${categoryId}" with score ${scoreAwarded}`);
+          appLogger.database(`V1 DIRECT UPLOAD: Mapped artifactType "${artifactType}" to category "${categoryId}" with vaultScore ${scoreAwarded}, proofScore ${proofScoreContribution}`);
         } catch (artifactError) {
-          appLogger.api('V1 direct upload - failed to calculate artifact category/score', { artifactType, error: artifactError instanceof Error ? artifactError.message : 'Unknown error' });
+          appLogger.api('V1 direct upload - failed to calculate artifact scores', { artifactType, error: artifactError instanceof Error ? artifactError.message : 'Unknown error' });
         }
       }
 
@@ -892,7 +905,8 @@ router.post('/upload-file-direct', upload.single("file"), asyncHandler(async (re
         artifactType: artifactType || '',
         description: description || '',
         categoryId: categoryId,
-        scoreAwarded: scoreAwarded
+        scoreAwarded: scoreAwarded,
+        proofScoreContribution: proofScoreContribution
       });
       // Sanitize IDs for logging to prevent security scanner warnings
       const sanitizedUploadId = String(uploadRecord.uploadId).replace(/[^\w-]/g, '');
@@ -983,6 +997,25 @@ router.post('/upload-file-direct', upload.single("file"), asyncHandler(async (re
     const sanitizedFolderId = String(folder_id).replace(/[^\w-]/g, '');
     appLogger.api('V1 direct upload - file uploaded successfully', { filename: sanitizedFilename, folderId: sanitizedFolderId });
 
+    // Calculate and update scores if this is the last file in a batch or a single file upload
+    let updatedVaultScore: number | undefined;
+    let updatedProofScore: number | undefined;
+    
+    if (currentVentureId && (isLastInBatch === 'true' || !isBatchUpload)) {
+      try {
+        updatedVaultScore = await storage.calculateVaultScore(currentVentureId);
+        updatedProofScore = await storage.calculateProofScore(currentVentureId);
+        
+        await storage.updateVaultScore(currentVentureId, updatedVaultScore);
+        await storage.updateProofScore(currentVentureId, updatedProofScore);
+        
+        appLogger.api(`V1 direct upload - scores updated: VaultScore=${updatedVaultScore}, ProofScore=${updatedProofScore}`);
+      } catch (scoreError) {
+        appLogger.error('V1 direct upload - score calculation/update failed', scoreError);
+        // Don't fail the upload if score update fails
+      }
+    }
+
     res.json(createSuccessResponse({
       file: {
         id: uploadResult.id,
@@ -990,7 +1023,9 @@ router.post('/upload-file-direct', upload.single("file"), asyncHandler(async (re
         url: uploadResult.url,
         size: file.size,
         folderId: folder_id
-      }
+      },
+      vaultScore: updatedVaultScore,
+      proofScore: updatedProofScore
     }));
 
   } catch (error) {
