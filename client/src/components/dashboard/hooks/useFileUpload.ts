@@ -51,17 +51,27 @@ export function useFileUpload(user: User | null, onUploadComplete?: (updatedVaul
   const getCategoryFromArtifact = useCallback((artifactType?: string): string => {
     if (!artifactType) return 'Documents';
     
-    // Map artifact type prefixes to category display names
-    if (artifactType.includes('problem')) return 'Problem Proofs';
-    if (artifactType.includes('solution') || artifactType.includes('mvp') || artifactType.includes('prototype')) return 'Solution Proofs';
-    if (artifactType.includes('demand') || artifactType.includes('market') || artifactType.includes('customer')) return 'Demand Proofs';
-    if (artifactType.includes('credibility') || artifactType.includes('team') || artifactType.includes('advisor')) return 'Credibility Proofs';
-    if (artifactType.includes('commercial') || artifactType.includes('financial') || artifactType.includes('revenue')) return 'Commercial Proofs';
-    if (artifactType.includes('investor')) return 'Investor Pack';
+    // Extract category ID from artifact type (format: {categoryId}_{artifactName})
+    // e.g., "2_mvp_test_results" → "2"
+    const categoryIdMatch = artifactType.match(/^(\d+)_/);
+    if (!categoryIdMatch) return 'Documents';
     
-    // Default to Overview for pitch_deck, one_pager, etc.
-    return 'Overview';
-  }, []);
+    const categoryId = categoryIdMatch[1];
+    
+    // Map category ID to folder ID format
+    const categoryFolderMap: Record<string, string> = {
+      '0': '0_Overview',
+      '1': '1_Problem_Proof',
+      '2': '2_Solution_Proof',
+      '3': '3_Demand_Proof',
+      '4': '4_Credibility_Proof',
+      '5': '5_Commercial_Proof',
+      '6': '6_Investor_Pack'
+    };
+    
+    const folderId = categoryFolderMap[categoryId];
+    return folderId ? getFolderDisplayName(folderId) : 'Documents';
+  }, [getFolderDisplayName]);
 
   // Get available folders for dropdown
   const getAvailableFolders = useCallback((proofVaultData: any) => [
