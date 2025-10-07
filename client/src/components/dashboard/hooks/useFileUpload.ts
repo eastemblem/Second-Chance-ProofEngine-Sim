@@ -1,6 +1,7 @@
 import { useState, useCallback } from "react";
 import { useToast } from "@/hooks/use-toast";
 import { trackEvent } from "@/lib/analytics";
+import confetti from "canvas-confetti";
 
 interface User {
   founderId: string;
@@ -183,14 +184,24 @@ export function useFileUpload(user: User | null, onUploadComplete?: (updatedVaul
         
         trackEvent('upload', 'proofvault', `file_upload_${queueItem.folderId}`);
         
-        // Show detailed success message with score update if available
-        const vaultScore = responseData?.data?.vaultScore;
-        const proofScore = responseData?.data?.proofScore;
-        const scoreInfo = vaultScore !== undefined ? ` (Vault: ${vaultScore}, Proof: ${proofScore})` : '';
+        // Trigger confetti animation
+        confetti({
+          particleCount: 100,
+          spread: 70,
+          origin: { y: 0.6 }
+        });
         
+        // Get artifact name from artifact type for user-friendly message
+        const artifactDisplayName = queueItem.artifactType 
+          ? queueItem.artifactType.split('_').map(word => 
+              word.charAt(0).toUpperCase() + word.slice(1)
+            ).join(' ')
+          : 'Document';
+        
+        // Show detailed success message with artifact type
         toast({
           title: "Upload Successful ✓",
-          description: `${queueItem.file.name} uploaded to ${getFolderDisplayName(queueItem.folderId)}${scoreInfo}`,
+          description: `${artifactDisplayName} uploaded successfully`,
           variant: "success",
         });
         
