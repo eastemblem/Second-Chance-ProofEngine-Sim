@@ -230,10 +230,8 @@ export function useFileUpload(user: User | null, onUploadComplete?: (updatedVaul
             ).join(' ')
           : 'Document';
         
-        // Get folder display name from artifact type or folderId
-        const folderDisplayName = queueItem.artifactType 
-          ? getCategoryFromArtifact(queueItem.artifactType)
-          : getFolderDisplayName(queueItem.folderId);
+        // Get folder display name directly from folderId (artifact type doesn't have category prefix)
+        const folderDisplayName = getFolderDisplayName(queueItem.folderId);
         
         toast({
           title: "Upload Successful ✓",
@@ -362,12 +360,12 @@ export function useFileUpload(user: User | null, onUploadComplete?: (updatedVaul
             ).join(' ')
           : 'Document';
         
-        // Get category name - use artifactType to derive category for batch uploads
-        const categoryName = getCategoryFromArtifact(newQueue[0].artifactType);
+        // Get folder name directly from folderId (artifact type doesn't have category prefix)
+        const folderName = getFolderDisplayName(newQueue[0].folderId);
         
         toast({
           title: "Upload Successful ✓",
-          description: `${successfulUploads.length} ${artifactDisplayName} file(s) uploaded to ${categoryName}`,
+          description: `${successfulUploads.length} ${artifactDisplayName} file(s) uploaded to ${folderName}`,
           variant: "success",
         });
       }
