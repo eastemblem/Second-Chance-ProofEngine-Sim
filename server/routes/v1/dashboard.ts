@@ -547,7 +547,8 @@ router.get('/vault-score', asyncHandler(async (req: Request, res: Response) => {
     }
 
     const { venture: latestVenture, latestEvaluation } = dashboardData;
-    const currentVaultScore = latestEvaluation?.vaultscore || 0;
+    // FIXED: Get VaultScore from venture table (source of truth), not evaluation table
+    const currentVaultScore = latestVenture?.vaultScore || 0;
 
     appLogger.api(`VaultScore retrieved for founder ${founderId}: ${currentVaultScore}`);
 
