@@ -2,6 +2,7 @@ import { useState, useCallback } from "react";
 import { useToast } from "@/hooks/use-toast";
 import { trackEvent } from "@/lib/analytics";
 import confetti from "canvas-confetti";
+import { queryClient } from "@/lib/queryClient";
 
 interface User {
   founderId: string;
@@ -210,6 +211,9 @@ export function useFileUpload(user: User | null, onUploadComplete?: (updatedVaul
             description: `${artifactDisplayName} uploaded successfully`,
             variant: "success",
           });
+          
+          // Invalidate uploaded artifacts query to refresh dropdown
+          queryClient.invalidateQueries({ queryKey: ['/api/v1/vault/uploaded-artifacts'] });
         }
         
         // Return response data including updated VaultScore
@@ -336,6 +340,9 @@ export function useFileUpload(user: User | null, onUploadComplete?: (updatedVaul
         description: `${successfulUploads.length} ${artifactDisplayName} file(s) uploaded to ${getFolderDisplayName(newQueue[0].folderId)}${scoreInfo}`,
         variant: "success",
       });
+      
+      // Invalidate uploaded artifacts query to refresh dropdown
+      queryClient.invalidateQueries({ queryKey: ['/api/v1/vault/uploaded-artifacts'] });
       
       // Call success callback to clear form
       if (successCallback) {
