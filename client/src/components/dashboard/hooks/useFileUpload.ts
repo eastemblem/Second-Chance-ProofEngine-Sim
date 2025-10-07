@@ -47,6 +47,22 @@ export function useFileUpload(user: User | null, onUploadComplete?: (updatedVaul
     return folderMap[folderId] || folderId;
   }, []);
 
+  // Helper function to get category name from artifact type
+  const getCategoryFromArtifact = useCallback((artifactType?: string): string => {
+    if (!artifactType) return 'Documents';
+    
+    // Map artifact type prefixes to category display names
+    if (artifactType.includes('problem')) return 'Problem Proofs';
+    if (artifactType.includes('solution')) return 'Solution Proofs';
+    if (artifactType.includes('demand')) return 'Demand Proofs';
+    if (artifactType.includes('credibility')) return 'Credibility Proofs';
+    if (artifactType.includes('commercial') || artifactType.includes('financial')) return 'Commercial Proofs';
+    if (artifactType.includes('investor')) return 'Investor Pack';
+    
+    // Default to Overview for pitch_deck, one_pager, etc.
+    return 'Overview';
+  }, []);
+
   // Get available folders for dropdown
   const getAvailableFolders = useCallback((proofVaultData: any) => [
     { id: '0_Overview', name: 'Overview', count: proofVaultData?.overviewCount || 0 },
@@ -196,23 +212,22 @@ export function useFileUpload(user: User | null, onUploadComplete?: (updatedVaul
           });
         }
         
-        // Show toast only for single file uploads
-        // Batch uploads will show a summary toast after all files complete
-        if (!isBatchUpload) {
-          // Get artifact name from artifact type for user-friendly message
-          const artifactDisplayName = queueItem.artifactType 
-            ? queueItem.artifactType.split('_').map(word => 
-                word.charAt(0).toUpperCase() + word.slice(1)
-              ).join(' ')
-            : 'Document';
-          
-          toast({
-            title: "Upload Successful ✓",
-            description: `${artifactDisplayName} uploaded successfully`,
-            variant: "success",
-          });
-          
-          // Invalidate uploaded artifacts query to refresh dropdown
+        // Show individual success message for each file
+        // Get artifact name from artifact type for user-friendly message
+        const artifactDisplayName = queueItem.artifactType 
+          ? queueItem.artifactType.split('_').map(word => 
+              word.charAt(0).toUpperCase() + word.slice(1)
+            ).join(' ')
+          : 'Document';
+        
+        toast({
+          title: "Upload Successful ✓",
+          description: `${artifactDisplayName} uploaded successfully`,
+          variant: "success",
+        });
+        
+        // Invalidate uploaded artifacts query to refresh dropdown (only on last file to avoid multiple refreshes)
+        if (!isBatchUpload || isLastInBatch) {
           queryClient.invalidateQueries({ queryKey: ['/api/v1/vault/uploaded-artifacts'] });
         }
         
@@ -322,13 +337,16 @@ export function useFileUpload(user: User | null, onUploadComplete?: (updatedVaul
     }
     
     // Show success message and trigger success callback if any files were uploaded successfully
-    if (successfulUploads.length > 0) {
+    if (successfulUploads.length > 0 && isBatchUpload) {
       // Get artifact name from the first item in queue (all files in batch have same artifact type)
       const artifactDisplayName = newQueue[0].artifactType 
         ? newQueue[0].artifactType.split('_').map(word => 
             word.charAt(0).toUpperCase() + word.slice(1)
           ).join(' ')
         : 'Document';
+      
+      // Get category name - use artifactType to derive category for batch uploads
+      const categoryName = getCategoryFromArtifact(newQueue[0].artifactType);
       
       // Show detailed success message with artifact type (keeping old format)
       const vaultScore = latestVaultScore !== undefined ? latestVaultScore : '';
@@ -337,7 +355,7 @@ export function useFileUpload(user: User | null, onUploadComplete?: (updatedVaul
       
       toast({
         title: "Upload Successful ✓",
-        description: `${successfulUploads.length} ${artifactDisplayName} file(s) uploaded to ${getFolderDisplayName(newQueue[0].folderId)}${scoreInfo}`,
+        description: `${successfulUploads.length} ${artifactDisplayName} file(s) uploaded to ${categoryName}${scoreInfo}`,
         variant: "success",
       });
       
