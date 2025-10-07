@@ -26,6 +26,13 @@ function formatFileSize(bytes: number): string {
   return parseFloat((bytes / Math.pow(k, i)).toFixed(1)) + ' ' + sizes[i];
 }
 
+// Error type for file upload failures
+interface FileUploadError {
+  fileName: string;
+  reason: string;
+  errorType: 'validation' | 'size' | 'network' | 'server' | 'unknown';
+}
+
 // Configure multer for file uploads - EXACT SAME as routes.ts
 const upload = multer({
   storage: multer.diskStorage({
@@ -1003,6 +1010,235 @@ router.post('/upload-file-direct', upload.single("file"), asyncHandler(async (re
       error: errorMessage
     });
   }
+}));
+
+// Batch upload files to folder - V1 JWT AUTHENTICATED
+router.post('/upload-files-batch', upload.array("files", 50), asyncHandler(async (req: AuthenticatedRequest, res: Response) => {
+  const { folder_id, artifactType, description } = req.body;
+  const files = req.files as Express.Multer.File[];
+  const founderId = req.user?.founderId;
+
+  if (!founderId) {
+    return res.status(401).json({ success: false, error: "JWT authentication required for file upload" });
+  }
+
+  if (!files || files.length === 0) {
+    return res.status(400).json({ success: false, error: "At least one file is required for batch upload" });
+  }
+
+  if (!folder_id) {
+    return res.status(400).json({ success: false, error: "folder_id is required for batch upload" });
+  }
+
+  const totalFiles = files.length;
+  const successfulUploads: any[] = [];
+  const failedUploads: FileUploadError[] = [];
+  
+  appLogger.api(`Batch upload started: ${totalFiles} files to folder ${folder_id}`);
+
+  // Get venture ID and growth stage once for all files
+  const { storage } = await import("../../storage");
+  const { databaseService } = await import("../../services/database-service");
+  const { getArtifactsForStage } = await import("@shared/config/artifacts");
+  
+  let currentVentureId: string | null = null;
+  let growthStage: string | null = null;
+  
+  try {
+    const dashboardData = await databaseService.getFounderWithLatestVenture(founderId);
+    currentVentureId = dashboardData?.venture?.ventureId || null;
+    growthStage = dashboardData?.venture?.growthStage || null;
+    appLogger.api(`Batch upload - venture ID: ${currentVentureId}, growth stage: ${growthStage}`);
+  } catch (error) {
+    appLogger.error('Batch upload - failed to get venture info', error);
+    return res.status(500).json({ 
+      success: false, 
+      error: "Failed to retrieve venture information" 
+    });
+  }
+
+  if (!currentVentureId) {
+    return res.status(404).json({ 
+      success: false, 
+      error: "No venture found for this founder" 
+    });
+  }
+
+  const sessionId = getSessionId(req);
+  const stageArtifacts = getArtifactsForStage(growthStage);
+
+  // Process each file individually
+  for (const file of files) {
+    try {
+      // Validate file size
+      if (file.size > 10 * 1024 * 1024) {
+        failedUploads.push({
+          fileName: file.originalname,
+          reason: `File size (${formatFileSize(file.size)}) exceeds 10MB limit`,
+          errorType: 'size'
+        });
+        cleanupUploadedFile(file.path, file.originalname);
+        continue;
+      }
+
+      // Upload file to Box
+      const fileBuffer = fs.readFileSync(file.path);
+      const uploadResult = await eastEmblemAPI.uploadFile(
+        fileBuffer,
+        file.originalname,
+        folder_id,
+        sessionId,
+        true
+      );
+
+      // Calculate scores from artifact config
+      let categoryId = '';
+      let scoreAwarded = 0;
+      let proofScoreContribution = 0;
+      
+      if (artifactType && stageArtifacts) {
+        for (const [catId, categoryData] of Object.entries(stageArtifacts)) {
+          const category = categoryData as any;
+          if (category.artifacts && category.artifacts[artifactType]) {
+            categoryId = catId;
+            scoreAwarded = category.artifacts[artifactType].score || 0;
+            proofScoreContribution = category.artifacts[artifactType].proofScoreContribution || 0;
+            break;
+          }
+        }
+      }
+
+      // Create database record
+      const uploadRecord = await storage.createDocumentUpload({
+        sessionId: null,
+        ventureId: currentVentureId,
+        fileName: file.originalname,
+        originalName: file.originalname,
+        filePath: file.path,
+        fileSize: file.size,
+        mimeType: file.mimetype,
+        uploadStatus: 'completed',
+        processingStatus: 'completed',
+        eastemblemFileId: uploadResult.id,
+        sharedUrl: uploadResult.url,
+        folderId: folder_id,
+        artifactType: artifactType || '',
+        description: description || '',
+        categoryId: categoryId,
+        scoreAwarded: scoreAwarded,
+        proofScoreContribution: proofScoreContribution
+      });
+
+      successfulUploads.push({
+        fileName: file.originalname,
+        fileId: uploadResult.id,
+        url: uploadResult.url,
+        size: file.size
+      });
+
+      cleanupUploadedFile(file.path, file.originalname);
+      appLogger.api(`Batch upload - file uploaded successfully: ${file.originalname}`);
+
+    } catch (error) {
+      const errorMessage = error instanceof Error ? error.message : String(error);
+      let errorType: FileUploadError['errorType'] = 'unknown';
+      let reason = errorMessage;
+
+      // Categorize error types
+      if (errorMessage.includes('timeout') || errorMessage.includes('ETIMEDOUT')) {
+        errorType = 'network';
+        reason = 'Network timeout - please check your connection and try again';
+      } else if (errorMessage.includes('ECONNREFUSED') || errorMessage.includes('ENOTFOUND')) {
+        errorType = 'network';
+        reason = 'Unable to connect to upload service';
+      } else if (errorMessage.includes('413') || errorMessage.includes('too large')) {
+        errorType = 'size';
+        reason = 'File is too large';
+      } else if (errorMessage.includes('401') || errorMessage.includes('403')) {
+        errorType = 'server';
+        reason = 'Authentication error with storage service';
+      } else if (errorMessage.includes('500') || errorMessage.includes('502') || errorMessage.includes('503')) {
+        errorType = 'server';
+        reason = 'Storage service temporarily unavailable';
+      }
+
+      failedUploads.push({
+        fileName: file.originalname,
+        reason: reason,
+        errorType: errorType
+      });
+
+      if (file.path && fs.existsSync(file.path)) {
+        cleanupUploadedFile(file.path, file.originalname);
+      }
+      
+      appLogger.error(`Batch upload - file failed: ${file.originalname}`, { error: errorMessage, errorType });
+    }
+  }
+
+  const successCount = successfulUploads.length;
+  const failedCount = failedUploads.length;
+  const successRate = totalFiles > 0 ? successCount / totalFiles : 0;
+
+  // Calculate and update scores only if 30% or more files uploaded successfully
+  let scoreUpdated = false;
+  let newVaultScore = 0;
+  let newProofScore = 0;
+
+  if (successRate >= 0.30) {
+    try {
+      newVaultScore = await storage.calculateVaultScore(currentVentureId);
+      newProofScore = await storage.calculateProofScore(currentVentureId);
+      
+      await storage.updateVaultScore(currentVentureId, newVaultScore);
+      await storage.updateProofScore(currentVentureId, newProofScore);
+      
+      scoreUpdated = true;
+      appLogger.api(`Batch upload - scores updated: VaultScore=${newVaultScore}, ProofScore=${newProofScore}`);
+    } catch (scoreError) {
+      appLogger.error('Batch upload - score calculation/update failed', scoreError);
+    }
+  } else {
+    appLogger.api(`Batch upload - scores NOT updated (success rate ${(successRate * 100).toFixed(1)}% < 30% threshold)`);
+  }
+
+  // Invalidate caches
+  if (founderId) {
+    try {
+      await lruCacheService.invalidate('dashboard', founderId);
+      await lruCacheService.invalidate('dashboard', `vault_${founderId}`);
+      await lruCacheService.invalidate('dashboard', `activity_${founderId}`);
+      await lruCacheService.invalidate('founder', founderId);
+      
+      const documentRepository = new DocumentRepository();
+      await documentRepository.invalidateUploadedArtifactsCache(currentVentureId);
+    } catch (cacheError) {
+      appLogger.error('Batch upload - cache invalidation failed', cacheError);
+    }
+  }
+
+  // Return comprehensive response
+  const responseMessage = scoreUpdated 
+    ? `Uploaded ${successCount} of ${totalFiles} files successfully. Scores updated.`
+    : successRate < 0.30
+      ? `Uploaded ${successCount} of ${totalFiles} files. Scores not updated (less than 30% success rate).`
+      : `Uploaded ${successCount} of ${totalFiles} files successfully.`;
+
+  res.json({
+    success: true,
+    message: responseMessage,
+    data: {
+      totalFiles,
+      successfulUploads: successCount,
+      failedUploads: failedCount,
+      successRate: parseFloat((successRate * 100).toFixed(1)),
+      scoreUpdated,
+      vaultScore: scoreUpdated ? newVaultScore : undefined,
+      proofScore: scoreUpdated ? newProofScore : undefined,
+      uploadedFiles: successfulUploads,
+      errors: failedUploads
+    }
+  });
 }));
 
 // Get paginated files endpoint - JWT AUTHENTICATED
