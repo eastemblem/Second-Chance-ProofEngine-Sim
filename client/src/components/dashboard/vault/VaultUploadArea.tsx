@@ -283,8 +283,8 @@ export function VaultUploadArea({
       <div className="space-y-2">
         <label className="text-sm font-medium text-gray-300">Select Folder</label>
         <div className="flex gap-2">
-          <Select value={selectedFolder} onValueChange={onFolderChange}>
-            <SelectTrigger className="bg-gray-800 border-gray-600 text-white flex-1">
+          <Select value={selectedFolder} onValueChange={onFolderChange} disabled={isUploading}>
+            <SelectTrigger className="bg-gray-800 border-gray-600 text-white flex-1" disabled={isUploading}>
               <SelectValue placeholder="Choose a folder...">
                 <div className="flex items-center gap-2">
                   <Folder className="w-4 h-4" />
@@ -370,10 +370,10 @@ export function VaultUploadArea({
           </div>
         ) : (
           <>
-            <Select value={selectedArtifact} onValueChange={onArtifactChange} required>
+            <Select value={selectedArtifact} onValueChange={onArtifactChange} required disabled={isUploading}>
               <SelectTrigger className={`bg-gray-800 border-gray-600 text-white ${
                 !selectedArtifact ? 'border-red-500' : ''
-              }`}>
+              }`} disabled={isUploading}>
                 <SelectValue placeholder={
                   isLoadingUploadedArtifacts 
                     ? "Loading artifacts..." 
@@ -438,7 +438,7 @@ export function VaultUploadArea({
             maxLength={500}
             rows={3}
             required
-            disabled={getArtifactsForFolder(selectedFolder).length === 0}
+            disabled={isUploading || getArtifactsForFolder(selectedFolder).length === 0}
           />
           <div className="flex justify-between text-xs">
             <span className={!description ? 'text-red-400' : 'text-gray-400'}>
