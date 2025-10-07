@@ -183,9 +183,14 @@ export function useFileUpload(user: User | null, onUploadComplete?: (updatedVaul
         
         trackEvent('upload', 'proofvault', `file_upload_${queueItem.folderId}`);
         
+        // Show detailed success message with score update if available
+        const vaultScore = responseData?.data?.vaultScore;
+        const proofScore = responseData?.data?.proofScore;
+        const scoreInfo = vaultScore !== undefined ? ` (Vault: ${vaultScore}, Proof: ${proofScore})` : '';
+        
         toast({
-          title: "File Uploaded",
-          description: `${queueItem.file.name} uploaded successfully to ${getFolderDisplayName(queueItem.folderId)}.`,
+          title: "Upload Successful ✓",
+          description: `${queueItem.file.name} uploaded to ${getFolderDisplayName(queueItem.folderId)}${scoreInfo}`,
           variant: "success",
         });
         
@@ -193,7 +198,8 @@ export function useFileUpload(user: User | null, onUploadComplete?: (updatedVaul
         return { success: true, responseData };
       } else {
         const errorData = await response.json();
-        throw new Error(errorData.message || 'Upload failed');
+        const errorMessage = errorData.error || errorData.message || 'Upload failed';
+        throw new Error(errorMessage);
       }
     } catch (error) {
       // Better error logging to capture serialization issues
@@ -211,6 +217,13 @@ export function useFileUpload(user: User | null, onUploadComplete?: (updatedVaul
       setUploadQueue(prev => prev.map((item, i) => 
         i === index ? { ...item, status: 'failed', error: errorMessage } : item
       ));
+      
+      // Show user-friendly error notification with specific message
+      toast({
+        title: "Upload Failed",
+        description: errorMessage,
+        variant: "destructive",
+      });
       
       trackEvent('upload_failed', 'proofvault', `file_upload_error_${queueItem.folderId}`);
       
