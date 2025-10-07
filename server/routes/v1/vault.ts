@@ -34,7 +34,8 @@ interface FileUploadError {
   errorType: 'validation' | 'size' | 'network' | 'server' | 'unknown';
 }
 
-// Configure multer for file uploads - EXACT SAME as routes.ts
+// Configure multer for file uploads - Set to max artifact limit (100MB)
+// Individual artifact limits are validated after upload using artifact config
 const upload = multer({
   storage: multer.diskStorage({
     destination: (req, file, cb) => {
@@ -48,7 +49,7 @@ const upload = multer({
       cb(null, file.originalname);
     },
   }),
-  limits: { fileSize: 10 * 1024 * 1024 },
+  limits: { fileSize: 100 * 1024 * 1024 },
   fileFilter: (req, file, cb) => {
     const allowedTypes = [
       // PDF files
