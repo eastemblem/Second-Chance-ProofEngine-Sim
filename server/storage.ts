@@ -34,9 +34,11 @@ export interface IStorage {
   updateEvaluation(id: string, evaluation: Partial<InsertEvaluation>): Promise<Evaluation>;
   deleteEvaluation(id: string): Promise<void>;
   
-  // VaultScore methods
+  // VaultScore and ProofScore methods
   calculateVaultScore(ventureId: string): Promise<number>;
+  calculateProofScore(ventureId: string): Promise<number>;
   updateVaultScore(ventureId: string, score: number): Promise<void>;
+  updateProofScore(ventureId: string, score: number): Promise<void>;
   
   // Leaderboard methods
   getLeaderboard(limit?: number): Promise<Leaderboard[]>;
@@ -270,32 +272,36 @@ export class DatabaseStorage implements IStorage {
     return Array.from(uniqueArtifacts.values()).reduce((sum, score) => sum + score, 0);
   }
 
-  async updateVaultScore(ventureId: string, score: number): Promise<void> {
-    // Find current evaluation or create new one
-    let currentEval = await db.select()
-      .from(evaluation)
-      .where(and(
-        eq(evaluation.ventureId, ventureId),
-        eq(evaluation.isCurrent, true)
-      ))
-      .limit(1);
+  async calculateProofScore(ventureId: string): Promise<number> {
+    // Get all document uploads for this venture
+    const documents = await this.getDocumentUploadsByVentureId(ventureId);
+    
+    // Calculate unique artifact proof score contributions (avoid double counting same artifact)
+    const uniqueArtifacts = new Map<string, number>();
+    documents.forEach(doc => {
+      if (doc.artifactType && doc.proofScoreContribution) {
+        const key = `${doc.categoryId}_${doc.artifactType}`;
+        if (!uniqueArtifacts.has(key)) {
+          uniqueArtifacts.set(key, doc.proofScoreContribution);
+        }
+      }
+    });
+    
+    return Array.from(uniqueArtifacts.values()).reduce((sum, score) => sum + score, 0);
+  }
 
-    if (currentEval.length > 0) {
-      // Update existing evaluation
-      await db.update(evaluation)
-        .set({ 
-          vaultscore: score
-        })
-        .where(eq(evaluation.evaluationId, currentEval[0].evaluationId));
-    } else {
-      // Create new evaluation entry with default proofscore
-      await db.insert(evaluation).values({
-        ventureId,
-        proofscore: 0, // Default ProofScore
-        vaultscore: score,
-        isCurrent: true
-      });
-    }
+  async updateVaultScore(ventureId: string, score: number): Promise<void> {
+    // Update venture table directly
+    await db.update(venture)
+      .set({ vaultScore: score })
+      .where(eq(venture.ventureId, ventureId));
+  }
+
+  async updateProofScore(ventureId: string, score: number): Promise<void> {
+    // Update venture table directly
+    await db.update(venture)
+      .set({ proofScore: score })
+      .where(eq(venture.ventureId, ventureId));
   }
 
   // Document Upload methods
