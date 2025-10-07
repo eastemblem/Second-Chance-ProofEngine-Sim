@@ -821,6 +821,89 @@ router.post('/upload-file-direct', upload.single("file"), asyncHandler(async (re
 
   const sessionId = getSessionId(req);
   
+  // Get venture info early for validation
+  const { storage } = await import("../../storage");
+  const { databaseService } = await import("../../services/database-service");
+  let currentVentureId: string | null = null;
+  let growthStage: string | null = null;
+  
+  try {
+    const dashboardData = await databaseService.getFounderWithLatestVenture(founderId);
+    currentVentureId = dashboardData?.venture?.ventureId || null;
+    growthStage = dashboardData?.venture?.growthStage || null;
+  } catch (ventureError) {
+    appLogger.api('V1 direct upload - failed to get venture info', { error: ventureError instanceof Error ? ventureError.message : 'Unknown error' });
+  }
+  
+  // Validate file size against artifact-specific limits
+  if (artifactType) {
+    try {
+      const { getArtifactConfig } = await import("@shared/config/artifacts");
+      
+      // Extract categoryId from folder structure or use artifactType to find it
+      let categoryId = '';
+      const { getArtifactsForStage } = await import("@shared/config/artifacts");
+      const stageArtifacts = getArtifactsForStage(growthStage);
+      
+      for (const [catId, categoryData] of Object.entries(stageArtifacts)) {
+        const category = categoryData as any;
+        if (category.artifacts && category.artifacts[artifactType]) {
+          categoryId = catId;
+          break;
+        }
+      }
+      
+      if (categoryId) {
+        const artifactConfig = getArtifactConfig(growthStage, categoryId, artifactType);
+        if (artifactConfig && file.size > artifactConfig.maxSizeBytes) {
+          const maxSizeMB = (artifactConfig.maxSizeBytes / (1024 * 1024)).toFixed(0);
+          const fileSizeMB = (file.size / (1024 * 1024)).toFixed(1);
+          const errorMessage = `File too large: ${fileSizeMB}MB exceeds maximum ${maxSizeMB}MB for ${artifactConfig.name}`;
+          
+          // Log failed upload to database
+          if (currentVentureId) {
+            try {
+              await storage.createDocumentUpload({
+                sessionId: null,
+                ventureId: currentVentureId,
+                fileName: file.originalname,
+                originalName: file.originalname,
+                filePath: file.path,
+                fileSize: file.size,
+                mimeType: file.mimetype,
+                uploadStatus: 'failed',
+                processingStatus: 'failed',
+                errorMessage: errorMessage,
+                eastemblemFileId: null,
+                sharedUrl: null,
+                folderId: folder_id,
+                artifactType: artifactType || '',
+                description: description || '',
+                categoryId: categoryId,
+                scoreAwarded: 0,
+                proofScoreContribution: 0
+              });
+              appLogger.api('V1 direct upload - file size validation failed, logged to database', { fileName: file.originalname, error: errorMessage });
+            } catch (dbError) {
+              appLogger.error('V1 direct upload - failed to log size validation error to database', dbError);
+            }
+          }
+          
+          // Cleanup uploaded file
+          cleanupUploadedFile(file.path, file.originalname);
+          
+          throw new Error(errorMessage);
+        }
+      }
+    } catch (validationError) {
+      // Re-throw if it's our size error, otherwise log and continue
+      if (validationError instanceof Error && validationError.message.includes('File too large')) {
+        throw validationError;
+      }
+      appLogger.api('V1 direct upload - artifact validation error (non-fatal)', { error: validationError instanceof Error ? validationError.message : 'Unknown error' });
+    }
+  }
+  
   try {
     // Use folder_id directly (no category mapping) for newly created subfolders
     const fileBuffer = fs.readFileSync(file.path);
@@ -1032,6 +1115,36 @@ router.post('/upload-file-direct', upload.single("file"), asyncHandler(async (re
       error: error instanceof Error ? error.message : 'Unknown error',
       fileName: file?.originalname 
     });
+    
+    // Log failed upload to database (if not already logged by validation)
+    if (currentVentureId && !errorMessage.includes('File too large')) {
+      try {
+        const { storage } = await import("../../storage");
+        await storage.createDocumentUpload({
+          sessionId: null,
+          ventureId: currentVentureId,
+          fileName: file.originalname,
+          originalName: file.originalname,
+          filePath: file.path,
+          fileSize: file.size,
+          mimeType: file.mimetype,
+          uploadStatus: 'failed',
+          processingStatus: 'failed',
+          errorMessage: errorMessage,
+          eastemblemFileId: null,
+          sharedUrl: null,
+          folderId: folder_id,
+          artifactType: artifactType || '',
+          description: description || 'Upload failed',
+          categoryId: '',
+          scoreAwarded: 0,
+          proofScoreContribution: 0
+        });
+        appLogger.api('V1 direct upload - general failure logged to database', { fileName: file.originalname, error: errorMessage });
+      } catch (dbError) {
+        appLogger.error('V1 direct upload - failed to log general error to database', dbError);
+      }
+    }
     
     // Cleanup uploaded file on error
     if (file.path && fs.existsSync(file.path)) {
