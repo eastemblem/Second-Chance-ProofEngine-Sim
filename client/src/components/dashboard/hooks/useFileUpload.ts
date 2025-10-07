@@ -230,9 +230,14 @@ export function useFileUpload(user: User | null, onUploadComplete?: (updatedVaul
             ).join(' ')
           : 'Document';
         
+        // Get folder display name from artifact type or folderId
+        const folderDisplayName = queueItem.artifactType 
+          ? getCategoryFromArtifact(queueItem.artifactType)
+          : getFolderDisplayName(queueItem.folderId);
+        
         toast({
           title: "Upload Successful ✓",
-          description: `${artifactDisplayName} uploaded successfully`,
+          description: `${artifactDisplayName} uploaded to ${folderDisplayName} successfully`,
           variant: "success",
         });
         
@@ -347,27 +352,30 @@ export function useFileUpload(user: User | null, onUploadComplete?: (updatedVaul
     }
     
     // Show success message and trigger success callback if any files were uploaded successfully
-    if (successfulUploads.length > 0 && isBatchUpload) {
-      // Get artifact name from the first item in queue (all files in batch have same artifact type)
-      const artifactDisplayName = newQueue[0].artifactType 
-        ? newQueue[0].artifactType.split('_').map(word => 
-            word.charAt(0).toUpperCase() + word.slice(1)
-          ).join(' ')
-        : 'Document';
-      
-      // Get category name - use artifactType to derive category for batch uploads
-      const categoryName = getCategoryFromArtifact(newQueue[0].artifactType);
-      
-      toast({
-        title: "Upload Successful ✓",
-        description: `${successfulUploads.length} ${artifactDisplayName} file(s) uploaded to ${categoryName}`,
-        variant: "success",
-      });
+    if (successfulUploads.length > 0) {
+      // For batch uploads, show a summary toast
+      if (isBatchUpload) {
+        // Get artifact name from the first item in queue (all files in batch have same artifact type)
+        const artifactDisplayName = newQueue[0].artifactType 
+          ? newQueue[0].artifactType.split('_').map(word => 
+              word.charAt(0).toUpperCase() + word.slice(1)
+            ).join(' ')
+          : 'Document';
+        
+        // Get category name - use artifactType to derive category for batch uploads
+        const categoryName = getCategoryFromArtifact(newQueue[0].artifactType);
+        
+        toast({
+          title: "Upload Successful ✓",
+          description: `${successfulUploads.length} ${artifactDisplayName} file(s) uploaded to ${categoryName}`,
+          variant: "success",
+        });
+      }
       
       // Invalidate uploaded artifacts query to refresh dropdown
       queryClient.invalidateQueries({ queryKey: ['/api/v1/vault/uploaded-artifacts'] });
       
-      // Call success callback to clear form
+      // Call success callback to clear form (for both single and batch uploads)
       if (successCallback) {
         successCallback();
       }

@@ -139,7 +139,20 @@ export function VaultUploadArea({
     return artifacts;
   };
 
-  // NEW: Helper function to check if folder is complete (all uploaded)
+  // Helper function to check if folder has no artifacts required
+  const hasNoArtifactsRequired = (folderId: string) => {
+    if (!growthStage) {
+      const allArtifacts = FileValidator.getArtifactsForCategory(folderId);
+      return allArtifacts.length === 0;
+    }
+    
+    const filteredConfig = getArtifactsForStage(growthStage as any);
+    const category = filteredConfig[folderId];
+    
+    return !category || !category.artifacts || Object.keys(category.artifacts).length === 0;
+  };
+
+  // NEW: Helper function to check if folder is complete (all uploaded or no artifacts required)
   const isFolderComplete = (folderId: string) => {
     if (isLoadingUploadedArtifacts) return false;
     
@@ -151,7 +164,11 @@ export function VaultUploadArea({
     } else {
       const filteredConfig = getArtifactsForStage(growthStage as any);
       const category = filteredConfig[folderId];
-      if (!category) return false;
+      
+      // If category doesn't exist or has no artifacts, it's complete (no documents required)
+      if (!category || !category.artifacts || Object.keys(category.artifacts).length === 0) {
+        return true;
+      }
       
       allArtifacts = Object.entries(category.artifacts).map(([artifactKey, artifact]) => ({
         id: artifactKey,
@@ -160,9 +177,14 @@ export function VaultUploadArea({
       }));
     }
     
+    // If no artifacts required, folder is complete
+    if (allArtifacts.length === 0) {
+      return true;
+    }
+    
     // Check if all artifacts are uploaded (no available artifacts left = all uploaded)
     const availableArtifacts = getArtifactsForFolder(folderId);
-    return allArtifacts.length > 0 && availableArtifacts.length === 0;
+    return availableArtifacts.length === 0;
   };
 
   const validateRequirements = () => {
@@ -325,7 +347,7 @@ export function VaultUploadArea({
           )}
         </div>
         
-        {/* NEW: Show "All uploaded" state when folder is complete */}
+        {/* NEW: Show "All uploaded" or "No documents required" state when folder is complete */}
         {isFolderComplete(selectedFolder) ? (
           <div className="bg-green-500/10 border border-green-500/30 rounded-lg p-4">
             <div className="flex items-center gap-3">
@@ -335,8 +357,14 @@ export function VaultUploadArea({
                 </svg>
               </div>
               <div className="flex-1">
-                <h4 className="text-green-400 font-medium">All Documents Uploaded</h4>
-                <p className="text-green-300 text-sm">All required artifacts for this folder have been uploaded</p>
+                <h4 className="text-green-400 font-medium">
+                  {hasNoArtifactsRequired(selectedFolder) ? 'No Documents Required' : 'All Documents Uploaded'}
+                </h4>
+                <p className="text-green-300 text-sm">
+                  {hasNoArtifactsRequired(selectedFolder) 
+                    ? 'Folder complete - no artifacts required for your growth stage' 
+                    : 'All required artifacts for this folder have been uploaded'}
+                </p>
               </div>
             </div>
           </div>
@@ -501,10 +529,13 @@ export function VaultUploadArea({
             
             <div className="text-center space-y-3">
               <h3 className="text-xl font-semibold text-green-400">
-                Folder Complete!
+                {hasNoArtifactsRequired(selectedFolder) ? 'No Documents Required' : 'Folder Complete!'}
               </h3>
               <p className="text-gray-300 max-w-md mx-auto">
-                All required documents for <span className="text-purple-400">{getFolderDisplayName(selectedFolder)}</span> have been uploaded successfully.
+                {hasNoArtifactsRequired(selectedFolder) 
+                  ? <>Folder complete - <span className="text-purple-400">{getFolderDisplayName(selectedFolder)}</span> has no required artifacts for your growth stage.</>
+                  : <>All required documents for <span className="text-purple-400">{getFolderDisplayName(selectedFolder)}</span> have been uploaded successfully.</>
+                }
               </p>
               <p className="text-sm text-gray-400">
                 Switch to another folder to continue uploading additional documents.
