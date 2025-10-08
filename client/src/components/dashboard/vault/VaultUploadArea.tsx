@@ -69,6 +69,7 @@ export function VaultUploadArea({
 }: VaultUploadAreaProps) {
   const [dragOver, setDragOver] = useState(false);
   const [pendingUploadType, setPendingUploadType] = useState<'file' | 'folder' | null>(null);
+  const [hasAttemptedUpload, setHasAttemptedUpload] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
   const folderInputRef = useRef<HTMLInputElement>(null);
   const { toast } = useToast();
@@ -195,6 +196,7 @@ export function VaultUploadArea({
     e.preventDefault();
     setDragOver(false);
     if (!isCreatingFolders && !isUploading) {
+      setHasAttemptedUpload(true);
       const errors = validateRequirements();
       if (errors.length > 0) {
         toast({
@@ -213,6 +215,7 @@ export function VaultUploadArea({
           onArtifactChange("");
           onDescriptionChange("");
           onClearValidation();
+          setHasAttemptedUpload(false);
         });
       }
     }
@@ -232,17 +235,20 @@ export function VaultUploadArea({
 
   // Handle folder upload with artifact metadata
   const handleFolderUploadWithMetadata = async (event: React.ChangeEvent<HTMLInputElement>) => {
+    setHasAttemptedUpload(true);
     await onFolderUpload(event, selectedArtifact, description, () => {
       // Clear form fields on successful upload
       onArtifactChange("");
       onDescriptionChange("");
       onClearValidation();
+      setHasAttemptedUpload(false);
     });
   };
 
   const handleFileSelect = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const files = e.target.files;
     if (files && files.length > 0) {
+      setHasAttemptedUpload(true);
       const errors = validateRequirements();
       if (errors.length > 0) {
         toast({
@@ -260,6 +266,7 @@ export function VaultUploadArea({
         onArtifactChange("");
         onDescriptionChange("");
         onClearValidation();
+        setHasAttemptedUpload(false);
       });
       e.target.value = '';
     }
@@ -372,7 +379,7 @@ export function VaultUploadArea({
           <>
             <Select value={selectedArtifact} onValueChange={onArtifactChange} required disabled={isUploading}>
               <SelectTrigger className={`bg-gray-800 border-gray-600 text-white ${
-                !selectedArtifact ? 'border-red-500' : ''
+                hasAttemptedUpload && !selectedArtifact ? 'border-red-500' : ''
               }`} disabled={isUploading}>
                 <SelectValue placeholder={
                   isLoadingUploadedArtifacts 
@@ -415,7 +422,7 @@ export function VaultUploadArea({
                 })}
               </SelectContent>
             </Select>
-            {!selectedArtifact && getArtifactsForFolder(selectedFolder).length > 0 && (
+            {hasAttemptedUpload && !selectedArtifact && getArtifactsForFolder(selectedFolder).length > 0 && (
               <p className="text-red-400 text-xs">Please select a document type</p>
             )}
           </>
@@ -430,7 +437,7 @@ export function VaultUploadArea({
           </label>
           <textarea 
             className={`w-full p-3 bg-gray-800 border rounded-lg text-white resize-none ${
-              !description || description.length < 1 ? 'border-red-500' : 'border-gray-600'
+              hasAttemptedUpload && (!description || description.length < 1) ? 'border-red-500' : 'border-gray-600'
             }`}
             placeholder="Describe what this document contains (required)..."
             value={description}
@@ -441,8 +448,8 @@ export function VaultUploadArea({
             disabled={isUploading || getArtifactsForFolder(selectedFolder).length === 0}
           />
           <div className="flex justify-between text-xs">
-            <span className={!description ? 'text-red-400' : 'text-gray-400'}>
-              {!description ? 'Description is required' : ''}
+            <span className={hasAttemptedUpload && !description ? 'text-red-400' : 'text-gray-400'}>
+              {hasAttemptedUpload && !description ? 'Description is required' : ''}
             </span>
             <span className="text-gray-400">{description.length}/500</span>
           </div>
