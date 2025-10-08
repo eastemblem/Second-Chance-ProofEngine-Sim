@@ -1,7 +1,6 @@
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Button } from "@/components/ui/button";
-import { Shield } from "lucide-react";
 
 interface UploadConsentModalProps {
   isOpen: boolean;
@@ -22,8 +21,7 @@ export function UploadConsentModal({
     <Dialog open={isOpen} onOpenChange={(open) => !open && onCancel()}>
       <DialogContent className="bg-gray-900 border-gray-700 text-white max-w-2xl">
         <DialogHeader>
-          <DialogTitle className="flex items-center gap-2 text-xl">
-            <Shield className="w-5 h-5 text-blue-400" />
+          <DialogTitle className="text-xl">
             ProofVault Upload Process
           </DialogTitle>
           <DialogDescription className="text-gray-300">
@@ -34,26 +32,26 @@ export function UploadConsentModal({
         <div className="space-y-4 py-4">
           {/* How It Works */}
           <div className="space-y-3">
-            <h3 className="font-semibold text-blue-400 text-base">📋 How It Works:</h3>
+            <h3 className="font-semibold text-blue-400 text-base">How It Works:</h3>
             <div className="space-y-3 text-sm">
               <div>
-                <strong className="text-green-400">1. 📤 Upload Files to ProofVault</strong>
-                <div className="text-gray-300 ml-4">Upload to specific folder structure in ProofVault. Each folder shows accepted file types and size limits.</div>
+                <strong className="text-green-400">1. Upload Files to ProofVault</strong>
+                <div className="text-gray-300 ml-4">Upload to specific folder structure in ProofVault. Each folder represents a proof category with designated artifacts and file size limits.</div>
               </div>
               <div>
-                <strong className="text-green-400">2. 📊 Earn VaultScore Points</strong>
-                <div className="text-gray-300 ml-4">Each artifact has a specific point value that adds to your VaultScore and helps our team map investor introductions.</div>
+                <strong className="text-green-400">2. Earn ProofScore Points</strong>
+                <div className="text-gray-300 ml-4">Each artifact has a specific point value that adds to your ProofScore. Building a strong ProofScore helps validate your startup's readiness.</div>
               </div>
               <div>
-                <strong className="text-green-400">3. 📈 Get Your Results</strong>
-                <div className="text-gray-300 ml-4">View your updated VaultScore in real-time and track progress across all categories.</div>
+                <strong className="text-green-400">3. Get Your Results</strong>
+                <div className="text-gray-300 ml-4">View your updated ProofScore in real-time and track progress across all categories.</div>
               </div>
               <div>
-                <strong className="text-green-400">4. 🎯 Unlock Opportunities</strong>
-                <div className="text-gray-300 ml-4">Higher scores unlock investor matching services. Access Deal Room features at 70+ points.</div>
+                <strong className="text-green-400">4. Unlock Opportunities</strong>
+                <div className="text-gray-300 ml-4">Higher scores unlock investor matching services. Access Deal Room features at 70+ ProofScore points.</div>
               </div>
               <div>
-                <strong className="text-yellow-400">5. ✅ What You Need to Do</strong>
+                <strong className="text-yellow-400">5. What You Need to Do</strong>
                 <div className="text-gray-300 ml-4">Upload authentic business documents, follow folder-specific file type requirements, and stay within size limits.</div>
               </div>
             </div>
@@ -61,11 +59,11 @@ export function UploadConsentModal({
 
           {/* Links */}
           <div className="space-y-2 text-sm bg-gray-800 p-3 rounded-lg">
-            <h4 className="font-semibold text-gray-300">❓ Need More Details?</h4>
+            <h4 className="font-semibold text-gray-300">Need More Details?</h4>
             <div className="space-y-1">
-              <div>• <a href="/faq/proof-vault-uploads" target="_blank" className="text-blue-400 hover:text-blue-300 underline">📚 Upload FAQ</a> - File formats, scoring, folder structure</div>
-              <div>• <a href="/legal/proof-vault-terms" target="_blank" className="text-blue-400 hover:text-blue-300 underline">⚖️ Terms & Conditions</a> - Usage terms and data processing</div>
-              <div>• <a href="/legal/privacy" target="_blank" className="text-blue-400 hover:text-blue-300 underline">🔒 Privacy Policy</a> - Data protection and privacy rights</div>
+              <div>• <a href="/faq" target="_blank" className="text-blue-400 hover:text-blue-300 underline">Upload FAQ</a> - File formats, scoring, folder structure</div>
+              <div>• <a href="/terms" target="_blank" className="text-blue-400 hover:text-blue-300 underline">Terms & Conditions</a> - Usage terms and data processing</div>
+              <div>• <a href="/privacy" target="_blank" className="text-blue-400 hover:text-blue-300 underline">Privacy Policy</a> - Data protection and privacy rights</div>
             </div>
           </div>
 
@@ -82,7 +80,7 @@ export function UploadConsentModal({
                 htmlFor="consent-checkbox" 
                 className="text-sm cursor-pointer leading-relaxed"
               >
-                I understand the ProofVault upload process and agree to the <a href="/legal/proof-vault-terms" target="_blank" className="text-blue-400 hover:text-blue-300 underline">Terms & Conditions</a> and <a href="/legal/privacy" target="_blank" className="text-blue-400 hover:text-blue-300 underline">Privacy Policy</a>.
+                I understand the ProofVault upload process and agree to the <a href="/terms" target="_blank" className="text-blue-400 hover:text-blue-300 underline">Terms & Conditions</a> and <a href="/privacy" target="_blank" className="text-blue-400 hover:text-blue-300 underline">Privacy Policy</a>.
               </label>
             </div>
           </div>

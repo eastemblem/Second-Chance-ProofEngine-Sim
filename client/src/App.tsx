@@ -16,6 +16,7 @@ const DealRoomSalesPage = lazy(() => import("@/pages/sales/deal-room"));
 const ProofScalingSalesPage = lazy(() => import("@/pages/sales/proof-scaling"));
 const Privacy = lazy(() => import("@/pages/legal/Privacy"));
 const Terms = lazy(() => import("@/pages/legal/Terms"));
+const FAQ = lazy(() => import("@/pages/legal/FAQ"));
 const SetPasswordPage = lazy(() => import("@/pages/auth/set-password"));
 const ResetPasswordPage = lazy(() => import("@/pages/auth/reset-password"));
 const LoginPage = lazy(() => import("@/pages/auth/login"));
@@ -73,6 +74,11 @@ function Router() {
       <Route path="/terms" component={() => (
         <Suspense fallback={<SimpleLoader />}>
           <Terms />
+        </Suspense>
+      )} />
+      <Route path="/faq" component={() => (
+        <Suspense fallback={<SimpleLoader />}>
+          <FAQ />
         </Suspense>
       )} />
       <Route path="/set-password" component={() => (
