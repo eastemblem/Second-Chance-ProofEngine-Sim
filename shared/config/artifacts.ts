@@ -30,15 +30,17 @@ import { SERIES_A_ARTIFACTS } from './artifacts-series-a';
 
 // Helper function to get artifacts based on growth stage
 export function getArtifactsForStage(stage: GrowthStage | string | null | undefined): ArtifactsConfig {
-  // Normalize the stage string to match our type
-  const normalizedStage = stage?.trim();
+  // Normalize the stage string to lowercase for case-insensitive comparison
+  const normalizedStage = stage?.trim().toLowerCase();
   
   switch (normalizedStage) {
-    case 'Pre-Seed':
+    case 'pre-seed':
+    case 'pre seed':
       return PRE_SEED_ARTIFACTS;
-    case 'Seed':
+    case 'seed':
       return SEED_ARTIFACTS;
-    case 'Series A':
+    case 'series a':
+    case 'seriesa':
       return SERIES_A_ARTIFACTS;
     default:
       // Default to Pre-Seed if stage is not set or unknown
