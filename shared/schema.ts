@@ -167,8 +167,8 @@ export const documentUpload = pgTable("document_upload", {
   maxRetries: integer("max_retries").default(3), // Maximum allowed retries
   canRetry: boolean("can_retry").default(true), // Whether retry is allowed
   // ProofVault enhancement fields
-  description: text("description").notNull(), // REQUIRED: User description of the document
-  artifactType: varchar("artifact_type", { length: 100 }).notNull(), // REQUIRED: Selected artifact type
+  description: text("description").notNull().default("Document uploaded to ProofVault"), // REQUIRED: User description of the document
+  artifactType: varchar("artifact_type", { length: 100 }).notNull().default("document"), // REQUIRED: Selected artifact type
   categoryId: varchar("category_id", { length: 50 }), // Optional: Folder/category reference
   scoreAwarded: integer("score_awarded").default(0), // Points earned from this upload (VaultScore)
   proofScoreContribution: integer("proof_score_contribution").default(0), // Points contributed to ProofScore
