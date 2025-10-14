@@ -113,6 +113,7 @@ export function VaultUploadArea({
         acceptedFormats: artifact.allowedFormats || ['.pdf', '.doc', '.docx'],
         maxSizeMB: Math.round(artifact.maxSizeBytes / (1024 * 1024)) || 10,
         score: artifact.score || 0,
+        proofScoreContribution: artifact.proofScoreContribution || 0,
         priority: artifact.priority || 'low',
         mandatory: artifact.mandatory || false
       }));
@@ -414,7 +415,7 @@ export function VaultUploadArea({
                           <span className={`px-2 py-0.5 rounded text-xs font-medium ${priority.bg} ${priority.text}`}>
                             {priority.label}
                           </span>
-                          <span className="text-green-400 text-sm">+{artifact.score}pts</span>
+                          <span className="text-green-400 text-sm">+{artifact.proofScoreContribution}pts</span>
                         </div>
                       </div>
                     </SelectItem>
