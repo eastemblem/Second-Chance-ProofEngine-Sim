@@ -23,6 +23,7 @@ const LoginPage = lazy(() => import("@/pages/auth/login"));
 const ForgotPasswordPage = lazy(() => import("@/pages/auth/forgot-password"));
 const Dashboard = lazy(() => import("@/pages/dashboard/legacy"));
 const DashboardV2 = lazy(() => import("@/pages/dashboard/main"));
+const ValidationMap = lazy(() => import("@/pages/dashboard/validation-map"));
 const TokenExpiredPage = lazy(() => import("@/pages/auth/token-expired"));
 
 // Development-only test pages (conditionally loaded)
@@ -119,6 +120,11 @@ function Router() {
           </Suspense>
         )} />
       )}
+      <Route path="/validation-map" component={() => (
+        <Suspense fallback={<SimpleLoader />}>
+          <ValidationMap />
+        </Suspense>
+      )} />
       <Route path="/token-expired" component={() => (
         <Suspense fallback={<SimpleLoader />}>
           <TokenExpiredPage />

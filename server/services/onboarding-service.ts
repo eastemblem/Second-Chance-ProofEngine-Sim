@@ -1208,6 +1208,39 @@ export class OnboardingService {
         });
     }
 
+    // Assign validation map experiments after successful scoring (async, no wait)
+    if (scoringResult && !scoringResult.hasError && venture?.ventureId && eastEmblemAPI.isConfigured()) {
+      console.log(`🧪 Assigning validation map experiments for venture: ${venture.ventureId}`);
+      eastEmblemAPI
+        .getValidationMapAssignments(venture.ventureId, scoringResult)
+        .then(async (assignmentResponse) => {
+          console.log("Validation map assignment response:", assignmentResponse);
+          
+          // Save assigned experiments to database
+          if (assignmentResponse?.experiments && Array.isArray(assignmentResponse.experiments)) {
+            const { ventureExperiments } = await import('@shared/schema');
+            
+            for (const assignment of assignmentResponse.experiments) {
+              try {
+                await db.insert(ventureExperiments).values({
+                  ventureId: venture.ventureId,
+                  experimentId: assignment.experiment_id,
+                  slotNumber: assignment.slot_number,
+                  assignedFrom: assignment.assigned_from || 'ai_recommendation',
+                  status: 'not_started',
+                });
+                console.log(`✓ Assigned experiment ${assignment.experiment_id} to venture ${venture.ventureId}`);
+              } catch (insertError) {
+                console.error(`Failed to assign experiment ${assignment.experiment_id}:`, insertError);
+              }
+            }
+          }
+        })
+        .catch((error) => {
+          console.log("Failed to assign validation map experiments:", error);
+        });
+    }
+
     // Don't provide fallback scoring data if there's an error
     const result = {
       scoringResult,

@@ -894,6 +894,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Use existing vault routes with updated database-driven logic
   app.use("/api/vault", (await import("./routes/vault")).default);
 
+  // Validation Map routes
+  app.use("/api/validation-map", (await import("./routes/validation-map")).default);
+
   const httpServer = createServer(app);
   return httpServer;
 }

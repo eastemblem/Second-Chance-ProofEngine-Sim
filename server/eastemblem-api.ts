@@ -1006,6 +1006,69 @@ class EastEmblemAPI {
     throw new Error(`Email notification failed after ${maxRetries} attempts: ${lastError?.message || 'Unknown error'}`);
   }
 
+  async getValidationMapAssignments(ventureId: string, scoringData: any): Promise<any> {
+    try {
+      console.log(`Getting validation map assignments for venture: ${ventureId}`);
+      console.log(`API endpoint: ${this.getEndpoint("/webhook/validation-map")}`);
+
+      const controller = new AbortController();
+      const timeoutId = setTimeout(() => controller.abort(), 30000);
+
+      const response = await fetch(this.getEndpoint("/webhook/validation-map"), {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          venture_id: ventureId,
+          scoring_data: scoringData,
+        }),
+        signal: controller.signal,
+      });
+
+      clearTimeout(timeoutId);
+
+      if (!response.ok) {
+        const errorText = await response.text();
+        console.error(`Validation map failed with status ${response.status}:`, errorText);
+        
+        if (response.status >= 500) {
+          throw new Error(`Validation map service unavailable (${response.status}). Please try again later.`);
+        } else if (response.status === 401) {
+          throw new Error("EastEmblem API authentication failed. Please check API credentials.");
+        } else if (response.status === 403) {
+          throw new Error("EastEmblem API access forbidden. Please verify API permissions.");
+        } else {
+          throw new Error(`Validation map failed (${response.status}): ${errorText}`);
+        }
+      }
+
+      const responseText = await response.text();
+      console.log("Raw validation map response:", responseText);
+      
+      try {
+        const result = JSON.parse(responseText);
+        console.log("Validation map assignments retrieved successfully:", result);
+        return result;
+      } catch (parseError) {
+        console.error("Failed to parse validation map response JSON:", parseError);
+        console.log("Response was:", responseText);
+        throw new Error(`Validation map succeeded but response parsing failed: ${parseError instanceof Error ? parseError.message : 'Invalid JSON'}`);
+      }
+    } catch (error) {
+      console.error("Error getting validation map assignments:", error);
+      if (!this.isConfigured()) {
+        throw new Error("EastEmblem API is not configured. Please provide EASTEMBLEM_API_URL and EASTEMBLEM_API_KEY.");
+      }
+      
+      if (error instanceof Error && error.name === 'AbortError') {
+        throw new Error("Validation map request is taking longer than expected. Please try again.");
+      }
+      
+      throw new Error(`Validation map failed: ${error instanceof Error ? error.message : 'Unknown error'}`);
+    }
+  }
+
   getStatus(): { configured: boolean; baseUrl: string } {
     return {
       configured: this.isConfigured(),
