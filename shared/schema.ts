@@ -294,6 +294,27 @@ export const organizationStageEnum = pgEnum('organization_stage', [
   'Scaling'
 ]);
 
+// Validation Map / Experiments enums
+export const experimentStatusEnum = pgEnum('experiment_status', [
+  'not_started',
+  'in_progress',
+  'completed'
+]);
+
+export const experimentDecisionEnum = pgEnum('experiment_decision', [
+  'measure',
+  'build',
+  'pivot',
+  'stop'
+]);
+
+export const validationSphereEnum = pgEnum('validation_sphere', [
+  'Desirability',
+  'Viability',
+  'Feasibility',
+  'Scaling'
+]);
+
 // ProofScaling wishlist table for tracking interested cohort participants
 export const proofScalingWishlist = pgTable("proof_scaling_wishlist", {
   id: uuid("id").primaryKey().defaultRandom(),
@@ -303,6 +324,40 @@ export const proofScalingWishlist = pgTable("proof_scaling_wishlist", {
   companyName: varchar("company_name", { length: 200 }).notNull(),
   role: varchar("role", { length: 100 }).notNull(),
   organizationStage: organizationStageEnum("organization_stage").notNull(),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+  updatedAt: timestamp("updated_at").defaultNow().notNull(),
+});
+
+// Experiment Master table - Static reference data seeded from CSV (44 experiments)
+export const experimentMaster = pgTable("experiment_master", {
+  experimentId: varchar("experiment_id", { length: 20 }).primaryKey(), // DES-001, COM-007, etc.
+  validationSphere: validationSphereEnum("validation_sphere").notNull(),
+  name: varchar("name", { length: 200 }).notNull(),
+  definition: text("definition").notNull(),
+  hypothesisTested: text("hypothesis_tested").notNull(),
+  experimentFormat: text("experiment_format").notNull(),
+  signalTracked: varchar("signal_tracked", { length: 200 }).notNull(),
+  targetMetric: varchar("target_metric", { length: 200 }).notNull(),
+  toolsPlatforms: varchar("tools_platforms", { length: 300 }),
+  typicalDuration: varchar("typical_duration", { length: 50 }),
+  notes: text("notes"),
+  proofTag: varchar("proof_tag", { length: 100 }),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+});
+
+// Venture Experiments table - User's experiment instances with editable data
+export const ventureExperiments = pgTable("venture_experiments", {
+  id: uuid("id").primaryKey().defaultRandom(),
+  ventureId: uuid("venture_id").references(() => venture.ventureId).notNull(),
+  experimentId: varchar("experiment_id", { length: 20 }).references(() => experimentMaster.experimentId).notNull(),
+  slotNumber: integer("slot_number"), // Position in grid (1, 2, 3...)
+  assignedFrom: varchar("assigned_from", { length: 50 }), // traction, readiness, viability, feasibility, desirability
+  userHypothesis: text("user_hypothesis"), // User's actual hypothesis (editable)
+  results: text("results"), // User's findings/results (editable)
+  decision: experimentDecisionEnum("decision"), // measure, build, pivot, stop
+  status: experimentStatusEnum("status").notNull().default("not_started"),
+  customNotes: text("custom_notes"), // User's additional notes
+  completedAt: timestamp("completed_at"),
   createdAt: timestamp("created_at").defaultNow().notNull(),
   updatedAt: timestamp("updated_at").defaultNow().notNull(),
 });
@@ -322,6 +377,7 @@ export const ventureRelations = relations(venture, ({ one, many }) => ({
   evaluations: many(evaluation),
   documents: many(proofVault),
   teamMembers: many(teamMember),
+  experiments: many(ventureExperiments),
 }));
 
 export const teamMemberRelations = relations(teamMember, ({ one }) => ({
@@ -404,6 +460,21 @@ export const paymentLogRelations = relations(paymentLogs, ({ one }) => ({
   }),
 }));
 
+export const experimentMasterRelations = relations(experimentMaster, ({ many }) => ({
+  ventureExperiments: many(ventureExperiments),
+}));
+
+export const ventureExperimentsRelations = relations(ventureExperiments, ({ one }) => ({
+  venture: one(venture, {
+    fields: [ventureExperiments.ventureId],
+    references: [venture.ventureId],
+  }),
+  experiment: one(experimentMaster, {
+    fields: [ventureExperiments.experimentId],
+    references: [experimentMaster.experimentId],
+  }),
+}));
+
 // Export types
 export type Founder = typeof founder.$inferSelect;
 export type InsertFounder = typeof founder.$inferInsert;
@@ -437,6 +508,12 @@ export type InsertPaymentLog = typeof paymentLogs.$inferInsert;
 // ProofScaling Wishlist types
 export type ProofScalingWishlist = typeof proofScalingWishlist.$inferSelect;
 export type InsertProofScalingWishlist = typeof proofScalingWishlist.$inferInsert;
+
+// Experiment types
+export type ExperimentMaster = typeof experimentMaster.$inferSelect;
+export type InsertExperimentMaster = typeof experimentMaster.$inferInsert;
+export type VentureExperiment = typeof ventureExperiments.$inferSelect;
+export type InsertVentureExperiment = typeof ventureExperiments.$inferInsert;
 
 // Activity insert schema for validation
 export const insertUserActivitySchema = createInsertSchema(userActivity, {
@@ -502,6 +579,27 @@ export const insertProofScalingWishlistSchema = createInsertSchema(proofScalingW
   id: true,
   createdAt: true,
   updatedAt: true,
+});
+
+// Venture Experiments schema for validation
+export const insertVentureExperimentSchema = createInsertSchema(ventureExperiments, {
+  userHypothesis: z.string().optional(),
+  results: z.string().optional(),
+  decision: z.enum(['measure', 'build', 'pivot', 'stop']).optional(),
+  status: z.enum(['not_started', 'in_progress', 'completed']),
+  customNotes: z.string().optional(),
+}).omit({
+  id: true,
+  createdAt: true,
+  updatedAt: true,
+});
+
+export const updateVentureExperimentSchema = z.object({
+  userHypothesis: z.string().optional(),
+  results: z.string().optional(),
+  decision: z.enum(['measure', 'build', 'pivot', 'stop']).optional(),
+  status: z.enum(['not_started', 'in_progress', 'completed']).optional(),
+  customNotes: z.string().optional(),
 });
 
 // Document Upload insert schema with validation for ProofVault enhancements
