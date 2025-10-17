@@ -44,8 +44,8 @@ interface VentureExperiment {
 
 export default function ValidationMap() {
   const { toast } = useToast();
-  const { user } = useTokenAuth();
-  const ventureId = user?.venture?.ventureId || null;
+  const { venture } = useTokenAuth();
+  const ventureId = venture?.ventureId || null;
   const [editingCell, setEditingCell] = useState<{ id: string; field: string } | null>(null);
   const [debouncedValues, setDebouncedValues] = useState<Record<string, any>>({});
 
