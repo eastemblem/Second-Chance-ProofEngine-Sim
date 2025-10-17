@@ -18,7 +18,38 @@ router.get(
       });
     }
 
-    const experiments = await storage.getVentureExperiments(ventureId);
+    // Check if venture exists
+    const venture = await storage.getVenture(ventureId);
+    if (!venture) {
+      return res.status(404).json({
+        success: false,
+        error: "No venture found. Please complete onboarding first.",
+      });
+    }
+
+    let experiments = await storage.getVentureExperiments(ventureId);
+
+    // Auto-create experiments if visiting for the first time
+    if (!experiments || experiments.length === 0) {
+      const allExperimentMasters = await storage.getAllExperimentMasters();
+      
+      // Create venture experiments for all master experiments
+      const createdExperiments = await Promise.all(
+        allExperimentMasters.map(async (master) => {
+          return await storage.createVentureExperiment({
+            ventureId,
+            experimentId: master.experimentId,
+            status: "not_started",
+            userHypothesis: null,
+            results: null,
+            decision: null,
+            customNotes: null,
+          });
+        })
+      );
+
+      experiments = createdExperiments;
+    }
 
     res.json(
       createSuccessResponse(

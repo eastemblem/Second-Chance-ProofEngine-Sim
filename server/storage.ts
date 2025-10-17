@@ -88,8 +88,10 @@ export interface IStorage {
   checkProofScalingWishlistEmailExists(email: string): Promise<boolean>;
 
   // Validation Map methods
+  getAllExperimentMasters(): Promise<any[]>;
   getVentureExperiments(ventureId: string): Promise<any[]>;
   getVentureExperiment(id: string): Promise<any | undefined>;
+  createVentureExperiment(experiment: any): Promise<any>;
   updateVentureExperiment(id: string, experiment: any): Promise<any>;
   completeVentureExperiment(id: string): Promise<any>;
 }
@@ -549,6 +551,13 @@ export class DatabaseStorage implements IStorage {
   }
 
   // Validation Map methods
+  async getAllExperimentMasters(): Promise<any[]> {
+    return await db
+      .select()
+      .from(experimentMaster)
+      .orderBy(experimentMaster.validationSphere, experimentMaster.experimentId);
+  }
+
   async getVentureExperiments(ventureId: string): Promise<any[]> {
     const experiments = await db
       .select({
@@ -578,6 +587,31 @@ export class DatabaseStorage implements IStorage {
       .limit(1);
     
     if (!result) return undefined;
+    
+    return {
+      ...result.ventureExperiment,
+      masterData: result.experimentMaster,
+    };
+  }
+
+  async createVentureExperiment(experiment: InsertVentureExperiment): Promise<any> {
+    const [created] = await db
+      .insert(ventureExperiments)
+      .values(experiment)
+      .returning();
+    
+    // Fetch with master data for return
+    const [result] = await db
+      .select({
+        ventureExperiment: ventureExperiments,
+        experimentMaster: experimentMaster,
+      })
+      .from(ventureExperiments)
+      .innerJoin(experimentMaster, eq(ventureExperiments.experimentId, experimentMaster.experimentId))
+      .where(eq(ventureExperiments.id, created.id))
+      .limit(1);
+    
+    if (!result) return created;
     
     return {
       ...result.ventureExperiment,
