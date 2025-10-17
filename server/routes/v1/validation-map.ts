@@ -54,15 +54,17 @@ router.get(
 
         // Extract recommendations from fullApiResponse
         const apiResponse = evaluation.fullApiResponse as any;
+        const output = apiResponse.output || {};
+        
         const recommendations = {
-          traction: apiResponse.traction?.recommendation || "",
-          readiness: apiResponse.readiness?.recommendation || "",
-          viability: apiResponse.viability?.recommendation || "",
-          feasibility: apiResponse.feasibility?.recommendation || "",
-          desirability: apiResponse.desirability?.recommendation || "",
+          traction: output.traction?.recommendation || "",
+          readiness: output.readiness?.recommendation || "",
+          viability: output.viability?.recommendation || "",
+          feasibility: output.feasibility?.recommendation || "",
+          desirability: output.desirability?.recommendation || "",
         };
 
-        appLogger.info("Extracted recommendations:", recommendations);
+        appLogger.info("Extracted recommendations from fullApiResponse.output:", recommendations);
 
         // Call EastEmblem API for smart assignment
         const assignmentResponse = await eastEmblemAPI.getValidationMapAssignments(
@@ -74,8 +76,18 @@ router.get(
 
         appLogger.info("EastEmblem assignment response:", assignmentResponse);
 
-        // Parse recommended experiment IDs from response
-        const recommendedExperimentIds = assignmentResponse.recommended_experiments || [];
+        // Extract experiment IDs from the mapping structure
+        const mapping = assignmentResponse.output?.mapping || {};
+        const experimentIds = new Set<string>();
+        
+        // Collect all unique experiment IDs from all dimensions
+        Object.values(mapping).forEach((dimension: any) => {
+          if (dimension.experiments && Array.isArray(dimension.experiments)) {
+            dimension.experiments.forEach((id: string) => experimentIds.add(id));
+          }
+        });
+        
+        const recommendedExperimentIds = Array.from(experimentIds);
         
         if (!recommendedExperimentIds || recommendedExperimentIds.length === 0) {
           appLogger.warn("No experiments recommended by EastEmblem API");
