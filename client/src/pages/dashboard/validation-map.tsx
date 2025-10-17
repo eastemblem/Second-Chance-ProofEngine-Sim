@@ -55,7 +55,7 @@ export default function ValidationMap() {
     enabled: !!ventureId,
   });
 
-  const experiments = experimentsData?.experiments || [];
+  const experiments = experimentsData?.data?.experiments || [];
 
   // Update experiment mutation
   const updateMutation = useMutation({
