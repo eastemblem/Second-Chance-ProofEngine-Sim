@@ -2,6 +2,8 @@ import express from "express";
 import { storage } from "../storage";
 import { asyncHandler, createSuccessResponse } from "../utils/error-handler";
 import { z } from "zod";
+import { eastEmblemAPI } from "../eastemblem-api";
+import { appLogger } from "../utils/logger";
 
 const router = express.Router();
 
@@ -29,26 +31,95 @@ router.get(
 
     let experiments = await storage.getVentureExperiments(ventureId);
 
-    // Auto-create experiments if visiting for the first time
+    // Smart experiment assignment on first visit
     if (!experiments || experiments.length === 0) {
-      const allExperimentMasters = await storage.getAllExperimentMasters();
+      appLogger.info(`First visit to validation map for venture ${ventureId}, initiating smart assignment`);
       
-      // Create venture experiments for all master experiments
-      const createdExperiments = await Promise.all(
-        allExperimentMasters.map(async (master) => {
-          return await storage.createVentureExperiment({
-            ventureId,
-            experimentId: master.experimentId,
-            status: "not_started",
-            userHypothesis: null,
-            results: null,
-            decision: null,
-            customNotes: null,
+      try {
+        // Get latest evaluation with recommendations
+        const evaluation = await storage.getLatestEvaluationByVentureId(ventureId);
+        
+        if (!evaluation || !evaluation.fullApiResponse) {
+          appLogger.warn(`No evaluation found for venture ${ventureId}, cannot assign experiments`);
+          return res.status(400).json({
+            success: false,
+            error: "Please complete pitch deck scoring first to get personalized experiments.",
           });
-        })
-      );
+        }
 
-      experiments = createdExperiments;
+        // Extract recommendations from fullApiResponse
+        const apiResponse = evaluation.fullApiResponse as any;
+        const recommendations = {
+          traction: apiResponse.traction?.recommendation || "",
+          readiness: apiResponse.readiness?.recommendation || "",
+          viability: apiResponse.viability?.recommendation || "",
+          feasibility: apiResponse.feasibility?.recommendation || "",
+          desirability: apiResponse.desirability?.recommendation || "",
+        };
+
+        appLogger.info("Extracted recommendations:", recommendations);
+
+        // Call EastEmblem API for smart assignment
+        const assignmentResponse = await eastEmblemAPI.getValidationMapAssignments(
+          ventureId,
+          venture.name,
+          venture.proofScore || 0,
+          recommendations
+        );
+
+        appLogger.info("EastEmblem assignment response:", assignmentResponse);
+
+        // Parse recommended experiment IDs from response
+        const recommendedExperimentIds = assignmentResponse.recommended_experiments || [];
+        
+        if (!recommendedExperimentIds || recommendedExperimentIds.length === 0) {
+          appLogger.warn("No experiments recommended by EastEmblem API");
+          return res.status(400).json({
+            success: false,
+            error: "No experiments recommended. Please contact support.",
+          });
+        }
+
+        appLogger.info(`Creating ${recommendedExperimentIds.length} recommended experiments:`, recommendedExperimentIds);
+
+        // Get experiment masters for validation
+        const allMasters = await storage.getAllExperimentMasters();
+        const masterMap = new Map(allMasters.map(m => [m.experimentId, m]));
+
+        // Create venture experiments only for recommended IDs
+        const createdExperiments = await Promise.all(
+          recommendedExperimentIds.map(async (experimentId: string) => {
+            const master = masterMap.get(experimentId);
+            if (!master) {
+              appLogger.warn(`Experiment master not found for ID: ${experimentId}`);
+              return null;
+            }
+
+            return await storage.createVentureExperiment({
+              ventureId,
+              experimentId,
+              status: "not_started",
+              userHypothesis: null,
+              results: null,
+              decision: null,
+              customNotes: null,
+            });
+          })
+        );
+
+        // Filter out null values
+        experiments = createdExperiments.filter(exp => exp !== null);
+        
+        appLogger.info(`Successfully created ${experiments.length} personalized experiments for venture ${ventureId}`);
+      } catch (error) {
+        appLogger.error("Error during smart experiment assignment:", error);
+        
+        // Fallback: return empty array with helpful message
+        return res.status(500).json({
+          success: false,
+          error: error instanceof Error ? error.message : "Failed to assign experiments. Please try again.",
+        });
+      }
     }
 
     res.json(
