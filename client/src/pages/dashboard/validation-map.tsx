@@ -14,7 +14,7 @@ import { useTokenAuth } from "@/hooks/use-token-auth";
 import Navbar from "@/components/layout/navbar";
 import { DashboardHeader } from "@/components/dashboard/core";
 import { ValidationMapIntro } from "@/components/dashboard/validation/ValidationMapIntro";
-import { ValidationMapLoadingScreen } from "@/components/dashboard/validation/ValidationMapLoadingScreen";
+import { ValidationMapWalkthrough } from "@/components/dashboard/validation/ValidationMapWalkthrough";
 import { ExperimentEditModal } from "@/components/dashboard/validation/ExperimentEditModal";
 import Footer from "@/components/layout/footer";
 
@@ -55,6 +55,7 @@ export default function ValidationMap() {
   const [, setLocation] = useLocation();
   const ventureId = venture?.ventureId || null;
   const [debouncedValues, setDebouncedValues] = useState<Record<string, any>>({});
+  const [showWalkthrough, setShowWalkthrough] = useState(true);
   
   // Create user object with isAuthenticated for DashboardHeader
   const user = authUser ? { ...authUser, isAuthenticated } : null;
@@ -321,12 +322,16 @@ export default function ValidationMap() {
     );
   }
 
-  if (isLoading) {
+  // Show walkthrough during initial load
+  if (isLoading || showWalkthrough) {
     return (
       <div className="min-h-screen bg-gray-950">
         <Navbar showSignOut />
         <DashboardHeader user={user} validationData={validationData} />
-        <ValidationMapLoadingScreen />
+        <ValidationMapWalkthrough 
+          isLoading={isLoading} 
+          onLoadingComplete={() => setShowWalkthrough(false)}
+        />
         <Footer />
       </div>
     );
