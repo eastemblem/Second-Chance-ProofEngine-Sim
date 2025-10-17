@@ -14,6 +14,7 @@ import { useTokenAuth } from "@/hooks/use-token-auth";
 import Navbar from "@/components/layout/navbar";
 import { DashboardHeader } from "@/components/dashboard/core";
 import { ValidationMapIntro } from "@/components/dashboard/validation/ValidationMapIntro";
+import { ValidationMapLoadingScreen } from "@/components/dashboard/validation/ValidationMapLoadingScreen";
 import { ExperimentEditModal } from "@/components/dashboard/validation/ExperimentEditModal";
 import Footer from "@/components/layout/footer";
 
@@ -325,9 +326,7 @@ export default function ValidationMap() {
       <div className="min-h-screen bg-gray-950">
         <Navbar showSignOut />
         <DashboardHeader user={user} validationData={validationData} />
-        <div className="max-w-7xl mx-auto px-4 py-8 flex items-center justify-center">
-          <Loader2 className="h-8 w-8 animate-spin text-purple-500" data-testid="loader-validation-map" />
-        </div>
+        <ValidationMapLoadingScreen />
         <Footer />
       </div>
     );
