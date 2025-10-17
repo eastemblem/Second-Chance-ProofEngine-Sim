@@ -1,11 +1,11 @@
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { ChevronLeft, ChevronRight, Lightbulb, Target, TrendingUp, Award, CheckCircle, Loader2 } from "lucide-react";
+import { ChevronLeft, ChevronRight, Lightbulb, Target, TrendingUp, Award, CheckCircle, Loader2, ArrowRight } from "lucide-react";
 import { Button } from "@/components/ui/button";
 
 interface ValidationMapWalkthroughProps {
   isLoading: boolean;
-  onLoadingComplete?: () => void;
+  onComplete: () => void;
 }
 
 const walkthroughScreens = [
@@ -63,15 +63,8 @@ const walkthroughScreens = [
   },
 ];
 
-export function ValidationMapWalkthrough({ isLoading, onLoadingComplete }: ValidationMapWalkthroughProps) {
+export function ValidationMapWalkthrough({ isLoading, onComplete }: ValidationMapWalkthroughProps) {
   const [currentScreen, setCurrentScreen] = useState(0);
-
-  // Auto-advance when loading completes
-  useEffect(() => {
-    if (!isLoading && onLoadingComplete) {
-      onLoadingComplete();
-    }
-  }, [isLoading, onLoadingComplete]);
 
   const handleNext = () => {
     if (currentScreen < walkthroughScreens.length - 1) {
@@ -89,13 +82,35 @@ export function ValidationMapWalkthrough({ isLoading, onLoadingComplete }: Valid
     setCurrentScreen(index);
   };
 
+  const handleSkip = () => {
+    onComplete();
+  };
+
+  const handleGetStarted = () => {
+    onComplete();
+  };
+
   const screen = walkthroughScreens[currentScreen];
   const Icon = screen.icon;
+  const isLastScreen = currentScreen === walkthroughScreens.length - 1;
 
   return (
     <div className="max-w-7xl mx-auto px-4 py-12">
-      <div className="rounded-xl border border-gray-700/50 p-8" style={{ backgroundColor: '#0E0E12' }}>
+      <div className="rounded-xl border border-gray-700/50 p-8 relative" style={{ backgroundColor: '#0E0E12' }}>
         
+        {/* Skip Button */}
+        <div className="absolute top-6 right-6">
+          <Button
+            onClick={handleSkip}
+            variant="ghost"
+            className="text-gray-400 hover:text-white"
+            data-testid="button-skip-walkthrough"
+            disabled={isLoading}
+          >
+            Skip Tour
+          </Button>
+        </div>
+
         {/* Loading Status Bar */}
         {isLoading && (
           <div className="mb-8 flex items-center justify-center gap-3 p-4 bg-purple-500/10 border border-purple-500/20 rounded-lg">
@@ -184,17 +199,28 @@ export function ValidationMapWalkthrough({ isLoading, onLoadingComplete }: Valid
             ))}
           </div>
 
-          {/* Next Button */}
-          <Button
-            onClick={handleNext}
-            disabled={currentScreen === walkthroughScreens.length - 1}
-            variant="ghost"
-            className="text-gray-400 hover:text-white disabled:opacity-30"
-            data-testid="button-walkthrough-next"
-          >
-            Next
-            <ChevronRight className="ml-1 h-4 w-4" />
-          </Button>
+          {/* Next or Get Started Button */}
+          {isLastScreen ? (
+            <Button
+              onClick={handleGetStarted}
+              disabled={isLoading}
+              className="bg-purple-600 hover:bg-purple-700 text-white"
+              data-testid="button-get-started"
+            >
+              Get Started
+              <ArrowRight className="ml-1 h-4 w-4" />
+            </Button>
+          ) : (
+            <Button
+              onClick={handleNext}
+              variant="ghost"
+              className="text-gray-400 hover:text-white"
+              data-testid="button-walkthrough-next"
+            >
+              Next
+              <ChevronRight className="ml-1 h-4 w-4" />
+            </Button>
+          )}
         </div>
 
         {/* Progress Indicator */}
