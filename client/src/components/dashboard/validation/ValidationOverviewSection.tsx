@@ -60,7 +60,7 @@ export function ValidationOverviewSection({
                   stroke="currentColor"
                   strokeWidth="8"
                   fill="none"
-                  strokeDasharray={`${(completedCount / totalCount) * 351.858} 351.858`}
+                  strokeDasharray={`${totalCount > 0 ? (completedCount / totalCount) * 351.858 : 0} 351.858`}
                   className="text-purple-500"
                 />
               </svg>
