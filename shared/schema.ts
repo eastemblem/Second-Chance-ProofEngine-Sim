@@ -356,7 +356,8 @@ export const ventureExperiments = pgTable("venture_experiments", {
   results: text("results"), // User's findings/results (editable)
   decision: experimentDecisionEnum("decision"), // measure, build, pivot, stop
   status: experimentStatusEnum("status").notNull().default("not_started"),
-  customNotes: text("custom_notes"), // User's additional notes
+  customNotes: text("custom_notes"), // User's additional notes (Why field)
+  newInsights: text("new_insights"), // New insights from the experiment
   completedAt: timestamp("completed_at"),
   createdAt: timestamp("created_at").defaultNow().notNull(),
   updatedAt: timestamp("updated_at").defaultNow().notNull(),

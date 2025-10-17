@@ -1,8 +1,8 @@
 import { useState, useEffect, useCallback } from "react";
 import { useQuery, useMutation } from "@tanstack/react-query";
+import { useLocation } from "wouter";
 import { queryClient, apiRequest } from "@/lib/queryClient";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { Input } from "@/components/ui/input";
+import { Card, CardContent } from "@/components/ui/card";
 import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Button } from "@/components/ui/button";
@@ -11,6 +11,9 @@ import { CheckCircle, Circle, Loader2, Download, Trophy } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import confetti from "canvas-confetti";
 import { useTokenAuth } from "@/hooks/use-token-auth";
+import { ValidationMapHeader } from "@/components/dashboard/validation/ValidationMapHeader";
+import { ValidationOverviewSection } from "@/components/dashboard/validation/ValidationOverviewSection";
+import Footer from "@/components/layout/footer";
 
 interface ExperimentMaster {
   experimentId: string;
@@ -38,6 +41,7 @@ interface VentureExperiment {
   decision: string | null;
   status: string;
   customNotes: string | null;
+  newInsights: string | null;
   completedAt: Date | null;
   masterData: ExperimentMaster;
 }
@@ -45,8 +49,8 @@ interface VentureExperiment {
 export default function ValidationMap() {
   const { toast } = useToast();
   const { venture } = useTokenAuth();
+  const [, setLocation] = useLocation();
   const ventureId = venture?.ventureId || null;
-  const [editingCell, setEditingCell] = useState<{ id: string; field: string } | null>(null);
   const [debouncedValues, setDebouncedValues] = useState<Record<string, any>>({});
 
   // Fetch experiments
@@ -55,7 +59,9 @@ export default function ValidationMap() {
     enabled: !!ventureId,
   });
 
-  const experiments = experimentsData?.data?.experiments || [];
+  const experiments = (experimentsData as any)?.data?.experiments || [];
+  const proofScore = (experimentsData as any)?.data?.proofScore || 0;
+  const status = (experimentsData as any)?.data?.status || "Building Validation";
 
   // Update experiment mutation
   const updateMutation = useMutation({
@@ -90,7 +96,6 @@ export default function ValidationMap() {
     onSuccess: (data: any) => {
       queryClient.invalidateQueries({ queryKey: ["/api/validation-map"] });
       
-      // Trigger confetti celebration
       confetti({
         particleCount: 100,
         spread: 70,
@@ -98,7 +103,6 @@ export default function ValidationMap() {
         colors: ['#FFD700', '#FFA500', '#FF6347'],
       });
       
-      // Show ProofTag celebration if unlocked
       if (data?.data?.proofTag) {
         toast({
           title: "🏆 ProofTag Unlocked!",
@@ -134,7 +138,6 @@ export default function ValidationMap() {
           updates: { [field]: value },
         });
         
-        // Clear the debounced value after saving
         setDebouncedValues((prev) => {
           const { [key]: _, ...rest } = prev;
           return rest;
@@ -159,6 +162,10 @@ export default function ValidationMap() {
     completeMutation.mutate(id);
   };
 
+  const handleUploadFiles = () => {
+    setLocation("/dashboard#proof-vault");
+  };
+
   const handleExportCSV = () => {
     if (experiments.length === 0) {
       toast({
@@ -169,15 +176,19 @@ export default function ValidationMap() {
       return;
     }
 
-    // Create CSV content
     const headers = [
       "Experiment ID",
-      "Name",
+      "Experiment Name",
       "Validation Sphere",
-      "Status",
-      "Your Hypothesis",
-      "Results",
+      "Leap of Faith Assumption",
+      "Hypothesis",
+      "Behaviour",
+      "Target Metric",
+      "Actual Results",
+      "Why",
+      "New Insights",
       "Decision",
+      "Status",
       "ProofTag",
       "Completed At",
     ];
@@ -186,10 +197,15 @@ export default function ValidationMap() {
       exp.experimentId,
       exp.masterData.name,
       exp.masterData.validationSphere,
-      exp.status,
+      exp.masterData.hypothesisTested || "",
       exp.userHypothesis || "",
+      exp.masterData.signalTracked || "",
+      exp.masterData.targetMetric || "",
       exp.results || "",
+      exp.customNotes || "",
+      exp.newInsights || "",
       exp.decision || "",
+      exp.status,
       exp.status === "completed" ? exp.masterData.proofTag || "" : "",
       exp.completedAt ? new Date(exp.completedAt).toLocaleDateString() : "",
     ]);
@@ -203,7 +219,6 @@ export default function ValidationMap() {
       ),
     ].join("\n");
 
-    // Create and download file
     const blob = new Blob([csvContent], { type: "text/csv;charset=utf-8;" });
     const link = document.createElement("a");
     const url = URL.createObjectURL(blob);
@@ -224,198 +239,246 @@ export default function ValidationMap() {
 
   const completedCount = experiments.filter((e: VentureExperiment) => e.status === "completed").length;
   const totalCount = experiments.length;
-  const completionPercentage = totalCount > 0 ? Math.round((completedCount / totalCount) * 100) : 0;
 
   if (!ventureId) {
     return (
-      <div className="container mx-auto p-6">
-        <Card>
-          <CardContent className="p-6">
-            <p>No venture found. Please complete onboarding first.</p>
-          </CardContent>
-        </Card>
+      <div className="min-h-screen bg-gray-950">
+        <ValidationMapHeader />
+        <div className="max-w-7xl mx-auto px-4 py-8">
+          <Card className="bg-gray-900/60 border-gray-800">
+            <CardContent className="p-6">
+              <p className="text-gray-300">No venture found. Please complete onboarding first.</p>
+            </CardContent>
+          </Card>
+        </div>
+        <Footer />
       </div>
     );
   }
 
   if (isLoading) {
     return (
-      <div className="container mx-auto p-6 flex items-center justify-center">
-        <Loader2 className="h-8 w-8 animate-spin" data-testid="loader-validation-map" />
+      <div className="min-h-screen bg-gray-950">
+        <ValidationMapHeader />
+        <div className="max-w-7xl mx-auto px-4 py-8 flex items-center justify-center">
+          <Loader2 className="h-8 w-8 animate-spin text-purple-500" data-testid="loader-validation-map" />
+        </div>
+        <Footer />
       </div>
     );
   }
 
   return (
-    <div className="container mx-auto p-6 space-y-6">
-      <div className="flex justify-between items-center">
-        <div>
-          <h1 className="text-3xl font-bold" data-testid="text-validation-map-title">Validation Map</h1>
-          <p className="text-muted-foreground">
-            Systematically validate your business through structured experiments
-          </p>
+    <div className="min-h-screen bg-gray-950">
+      <ValidationMapHeader />
+      
+      <ValidationOverviewSection
+        proofScore={proofScore}
+        completedCount={completedCount}
+        totalCount={totalCount}
+        status={status}
+        onUploadClick={handleUploadFiles}
+      />
+
+      <div className="max-w-7xl mx-auto px-4 pb-8">
+        {/* Export Button */}
+        <div className="flex justify-end mb-4">
+          <Button 
+            onClick={handleExportCSV} 
+            variant="outline" 
+            className="bg-gray-900/60 border-gray-800 text-gray-300 hover:bg-gray-800"
+            data-testid="button-export-csv"
+          >
+            <Download className="mr-2 h-4 w-4" />
+            Export CSV
+          </Button>
         </div>
-        <Button onClick={handleExportCSV} variant="outline" data-testid="button-export-csv">
-          <Download className="mr-2 h-4 w-4" />
-          Export CSV
-        </Button>
+
+        {/* Experiments Table */}
+        <Card className="bg-gray-900/60 backdrop-blur-sm border-gray-800">
+          <CardContent className="p-6">
+            <h2 className="text-2xl font-bold text-white mb-6">Your Experiments</h2>
+            
+            <div className="overflow-x-auto">
+              <table className="w-full border-collapse">
+                <thead>
+                  <tr className="border-b border-gray-800">
+                    <th className="p-4 text-left font-semibold text-gray-300 text-sm">Status</th>
+                    <th className="p-4 text-left font-semibold text-gray-300 text-sm">Experiment</th>
+                    <th className="p-4 text-left font-semibold text-gray-300 text-sm">Sphere</th>
+                    <th className="p-4 text-left font-semibold text-gray-300 text-sm min-w-[200px]">Leap of Faith Assumption</th>
+                    <th className="p-4 text-left font-semibold text-gray-300 text-sm min-w-[200px]">Hypothesis</th>
+                    <th className="p-4 text-left font-semibold text-gray-300 text-sm min-w-[150px]">Behaviour</th>
+                    <th className="p-4 text-left font-semibold text-gray-300 text-sm min-w-[150px]">Target Metric</th>
+                    <th className="p-4 text-left font-semibold text-gray-300 text-sm min-w-[200px]">Actual Results</th>
+                    <th className="p-4 text-left font-semibold text-gray-300 text-sm min-w-[200px]">Why</th>
+                    <th className="p-4 text-left font-semibold text-gray-300 text-sm min-w-[200px]">New Insights</th>
+                    <th className="p-4 text-left font-semibold text-gray-300 text-sm">Decision</th>
+                    <th className="p-4 text-left font-semibold text-gray-300 text-sm">ProofTag</th>
+                    <th className="p-4 text-left font-semibold text-gray-300 text-sm">Action</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {experiments.map((exp: VentureExperiment) => (
+                    <tr
+                      key={exp.id}
+                      className="border-b border-gray-800 hover:bg-gray-800/50 transition-colors"
+                      data-testid={`row-experiment-${exp.id}`}
+                    >
+                      <td className="p-4">
+                        {exp.status === "completed" ? (
+                          <CheckCircle className="h-5 w-5 text-green-500" data-testid={`icon-completed-${exp.id}`} />
+                        ) : (
+                          <Circle className="h-5 w-5 text-gray-600" data-testid={`icon-not-completed-${exp.id}`} />
+                        )}
+                      </td>
+                      <td className="p-4">
+                        <div>
+                          <p className="font-medium text-white text-base" data-testid={`text-experiment-name-${exp.id}`}>
+                            {exp.masterData.name}
+                          </p>
+                          <p className="text-sm text-gray-400">
+                            {exp.masterData.experimentId}
+                          </p>
+                        </div>
+                      </td>
+                      <td className="p-4">
+                        <Badge 
+                          variant="outline" 
+                          className="border-purple-500/50 text-purple-400 bg-purple-500/10"
+                          data-testid={`badge-sphere-${exp.id}`}
+                        >
+                          {exp.masterData.validationSphere}
+                        </Badge>
+                      </td>
+                      <td className="p-4">
+                        <p className="text-sm text-gray-300">{exp.masterData.hypothesisTested || "—"}</p>
+                      </td>
+                      <td className="p-4">
+                        <Textarea
+                          value={exp.userHypothesis || ""}
+                          onChange={(e) =>
+                            handleCellChange(exp.id, "userHypothesis", e.target.value)
+                          }
+                          placeholder="Enter your hypothesis..."
+                          className="min-h-[60px] resize-none bg-gray-800/50 border-gray-700 text-gray-200 placeholder:text-gray-500"
+                          disabled={exp.status === "completed"}
+                          data-testid={`input-hypothesis-${exp.id}`}
+                        />
+                      </td>
+                      <td className="p-4">
+                        <p className="text-sm text-gray-300">{exp.masterData.signalTracked || "—"}</p>
+                      </td>
+                      <td className="p-4">
+                        <p className="text-sm text-gray-300">{exp.masterData.targetMetric || "—"}</p>
+                      </td>
+                      <td className="p-4">
+                        <Textarea
+                          value={exp.results || ""}
+                          onChange={(e) =>
+                            handleCellChange(exp.id, "results", e.target.value)
+                          }
+                          placeholder="Enter results..."
+                          className="min-h-[60px] resize-none bg-gray-800/50 border-gray-700 text-gray-200 placeholder:text-gray-500"
+                          disabled={exp.status === "completed"}
+                          data-testid={`input-results-${exp.id}`}
+                        />
+                      </td>
+                      <td className="p-4">
+                        <Textarea
+                          value={exp.customNotes || ""}
+                          onChange={(e) =>
+                            handleCellChange(exp.id, "customNotes", e.target.value)
+                          }
+                          placeholder="Why did you choose this..."
+                          className="min-h-[60px] resize-none bg-gray-800/50 border-gray-700 text-gray-200 placeholder:text-gray-500"
+                          disabled={exp.status === "completed"}
+                          data-testid={`input-why-${exp.id}`}
+                        />
+                      </td>
+                      <td className="p-4">
+                        <Textarea
+                          value={exp.newInsights || ""}
+                          onChange={(e) =>
+                            handleCellChange(exp.id, "newInsights", e.target.value)
+                          }
+                          placeholder="New insights discovered..."
+                          className="min-h-[60px] resize-none bg-gray-800/50 border-gray-700 text-gray-200 placeholder:text-gray-500"
+                          disabled={exp.status === "completed"}
+                          data-testid={`input-insights-${exp.id}`}
+                        />
+                      </td>
+                      <td className="p-4">
+                        <Select
+                          value={exp.decision || ""}
+                          onValueChange={(value) =>
+                            handleCellChange(exp.id, "decision", value)
+                          }
+                          disabled={exp.status === "completed"}
+                        >
+                          <SelectTrigger 
+                            className="w-[140px] bg-gray-800/50 border-gray-700 text-gray-200" 
+                            data-testid={`select-decision-${exp.id}`}
+                          >
+                            <SelectValue placeholder="Select..." />
+                          </SelectTrigger>
+                          <SelectContent className="bg-gray-900 border-gray-700">
+                            <SelectItem value="measure">Measure</SelectItem>
+                            <SelectItem value="build">Build</SelectItem>
+                            <SelectItem value="pivot">Pivot</SelectItem>
+                            <SelectItem value="stop">Stop</SelectItem>
+                          </SelectContent>
+                        </Select>
+                      </td>
+                      <td className="p-4">
+                        {exp.masterData.proofTag && exp.status === "completed" ? (
+                          <Badge 
+                            variant="secondary" 
+                            className="bg-yellow-500/20 text-yellow-400 border-yellow-500/50"
+                            data-testid={`badge-prooftag-${exp.id}`}
+                          >
+                            <Trophy className="mr-1 h-3 w-3" />
+                            {exp.masterData.proofTag}
+                          </Badge>
+                        ) : (
+                          <span className="text-sm text-gray-500">—</span>
+                        )}
+                      </td>
+                      <td className="p-4">
+                        {exp.status !== "completed" && (
+                          <Button
+                            onClick={() => handleComplete(exp.id)}
+                            size="sm"
+                            className="bg-purple-600 hover:bg-purple-700 text-white"
+                            disabled={completeMutation.isPending}
+                            data-testid={`button-complete-${exp.id}`}
+                          >
+                            {completeMutation.isPending ? (
+                              <Loader2 className="h-4 w-4 animate-spin" />
+                            ) : (
+                              "Complete"
+                            )}
+                          </Button>
+                        )}
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+
+            {experiments.length === 0 && (
+              <div className="text-center py-12">
+                <p className="text-gray-400">
+                  No experiments assigned yet. Complete your pitch scoring first.
+                </p>
+              </div>
+            )}
+          </CardContent>
+        </Card>
       </div>
 
-      {/* Progress Card */}
-      <Card>
-        <CardHeader>
-          <CardTitle>Progress Overview</CardTitle>
-          <CardDescription>
-            {completedCount} of {totalCount} experiments completed ({completionPercentage}%)
-          </CardDescription>
-        </CardHeader>
-        <CardContent>
-          <div className="w-full bg-gray-200 rounded-full h-3">
-            <div
-              className="bg-primary h-3 rounded-full transition-all duration-300"
-              style={{ width: `${completionPercentage}%` }}
-              data-testid="progress-bar"
-            />
-          </div>
-        </CardContent>
-      </Card>
-
-      {/* Experiments Table */}
-      <Card>
-        <CardHeader>
-          <CardTitle>Your Experiments</CardTitle>
-          <CardDescription>
-            Click to edit hypothesis, results, and decision inline
-          </CardDescription>
-        </CardHeader>
-        <CardContent>
-          <div className="overflow-x-auto">
-            <table className="w-full border-collapse">
-              <thead>
-                <tr className="border-b">
-                  <th className="p-3 text-left font-medium">Status</th>
-                  <th className="p-3 text-left font-medium">Experiment</th>
-                  <th className="p-3 text-left font-medium">Sphere</th>
-                  <th className="p-3 text-left font-medium">Your Hypothesis</th>
-                  <th className="p-3 text-left font-medium">Results</th>
-                  <th className="p-3 text-left font-medium">Decision</th>
-                  <th className="p-3 text-left font-medium">ProofTag</th>
-                  <th className="p-3 text-left font-medium">Action</th>
-                </tr>
-              </thead>
-              <tbody>
-                {experiments.map((exp: VentureExperiment) => (
-                  <tr
-                    key={exp.id}
-                    className="border-b hover:bg-muted/50 transition-colors"
-                    data-testid={`row-experiment-${exp.id}`}
-                  >
-                    <td className="p-3">
-                      {exp.status === "completed" ? (
-                        <CheckCircle className="h-5 w-5 text-green-600" data-testid={`icon-completed-${exp.id}`} />
-                      ) : (
-                        <Circle className="h-5 w-5 text-gray-400" data-testid={`icon-not-completed-${exp.id}`} />
-                      )}
-                    </td>
-                    <td className="p-3">
-                      <div>
-                        <p className="font-medium" data-testid={`text-experiment-name-${exp.id}`}>
-                          {exp.masterData.name}
-                        </p>
-                        <p className="text-sm text-muted-foreground">
-                          {exp.masterData.experimentId}
-                        </p>
-                      </div>
-                    </td>
-                    <td className="p-3">
-                      <Badge variant="outline" data-testid={`badge-sphere-${exp.id}`}>
-                        {exp.masterData.validationSphere}
-                      </Badge>
-                    </td>
-                    <td className="p-3 min-w-[200px]">
-                      <Textarea
-                        value={exp.userHypothesis || ""}
-                        onChange={(e) =>
-                          handleCellChange(exp.id, "userHypothesis", e.target.value)
-                        }
-                        placeholder="Your hypothesis..."
-                        className="min-h-[60px] resize-none"
-                        disabled={exp.status === "completed"}
-                        data-testid={`input-hypothesis-${exp.id}`}
-                      />
-                    </td>
-                    <td className="p-3 min-w-[200px]">
-                      <Textarea
-                        value={exp.results || ""}
-                        onChange={(e) =>
-                          handleCellChange(exp.id, "results", e.target.value)
-                        }
-                        placeholder="Results..."
-                        className="min-h-[60px] resize-none"
-                        disabled={exp.status === "completed"}
-                        data-testid={`input-results-${exp.id}`}
-                      />
-                    </td>
-                    <td className="p-3">
-                      <Select
-                        value={exp.decision || ""}
-                        onValueChange={(value) =>
-                          handleCellChange(exp.id, "decision", value)
-                        }
-                        disabled={exp.status === "completed"}
-                      >
-                        <SelectTrigger className="w-[140px]" data-testid={`select-decision-${exp.id}`}>
-                          <SelectValue placeholder="Select..." />
-                        </SelectTrigger>
-                        <SelectContent>
-                          <SelectItem value="measure">Measure</SelectItem>
-                          <SelectItem value="build">Build</SelectItem>
-                          <SelectItem value="pivot">Pivot</SelectItem>
-                          <SelectItem value="stop">Stop</SelectItem>
-                        </SelectContent>
-                      </Select>
-                    </td>
-                    <td className="p-3">
-                      {exp.masterData.proofTag && exp.status === "completed" ? (
-                        <Badge variant="secondary" data-testid={`badge-prooftag-${exp.id}`}>
-                          <Trophy className="mr-1 h-3 w-3" />
-                          {exp.masterData.proofTag}
-                        </Badge>
-                      ) : (
-                        <span className="text-sm text-muted-foreground">—</span>
-                      )}
-                    </td>
-                    <td className="p-3">
-                      {exp.status !== "completed" && (
-                        <Button
-                          onClick={() => handleComplete(exp.id)}
-                          size="sm"
-                          disabled={completeMutation.isPending}
-                          data-testid={`button-complete-${exp.id}`}
-                        >
-                          {completeMutation.isPending ? (
-                            <Loader2 className="h-4 w-4 animate-spin" />
-                          ) : (
-                            "Complete"
-                          )}
-                        </Button>
-                      )}
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
-
-          {experiments.length === 0 && (
-            <div className="text-center py-12">
-              <p className="text-muted-foreground">
-                No experiments assigned yet. Complete your pitch scoring first.
-              </p>
-            </div>
-          )}
-        </CardContent>
-      </Card>
+      <Footer />
     </div>
   );
 }

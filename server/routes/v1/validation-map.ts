@@ -120,6 +120,7 @@ router.get(
               results: null,
               decision: null,
               customNotes: null,
+              newInsights: null,
             });
           })
         );
@@ -144,6 +145,8 @@ router.get(
         {
           experiments,
           ventureId,
+          proofScore: venture.proofScore || 0,
+          status: venture.status || "Building Validation",
         },
         "Experiments retrieved successfully"
       )
@@ -181,6 +184,7 @@ router.patch(
       results: z.string().optional(),
       decision: z.enum(["measure", "build", "pivot", "stop"]).optional(),
       customNotes: z.string().optional(),
+      newInsights: z.string().optional(),
       status: z.enum(["not_started", "in_progress", "completed"]).optional(),
     });
 
