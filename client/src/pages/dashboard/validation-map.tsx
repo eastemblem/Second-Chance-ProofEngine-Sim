@@ -13,6 +13,7 @@ import confetti from "canvas-confetti";
 import { useTokenAuth } from "@/hooks/use-token-auth";
 import { ValidationMapHeader } from "@/components/dashboard/validation/ValidationMapHeader";
 import { ValidationMapIntro } from "@/components/dashboard/validation/ValidationMapIntro";
+import { ExperimentEditModal } from "@/components/dashboard/validation/ExperimentEditModal";
 import Footer from "@/components/layout/footer";
 
 interface ExperimentMaster {
@@ -52,6 +53,20 @@ export default function ValidationMap() {
   const [, setLocation] = useLocation();
   const ventureId = venture?.ventureId || null;
   const [debouncedValues, setDebouncedValues] = useState<Record<string, any>>({});
+  
+  // Modal state
+  const [isModalOpen, setIsModalOpen] = useState(false);
+  const [modalConfig, setModalConfig] = useState<{
+    experimentId: string;
+    experimentName: string;
+    experimentIdLabel: string;
+    isCompleted: boolean;
+    fieldName: string;
+    fieldLabel: string;
+    fieldValue: string;
+    fieldType: "text" | "select";
+    selectOptions?: { value: string; label: string }[];
+  } | null>(null);
 
   // Fetch experiments
   const { data: experimentsData, isLoading } = useQuery({
@@ -164,6 +179,43 @@ export default function ValidationMap() {
 
   const handleUploadFiles = () => {
     setLocation("/dashboard#proof-vault");
+  };
+
+  // Open modal for editing a field
+  const openEditModal = (
+    exp: VentureExperiment,
+    fieldName: string,
+    fieldLabel: string,
+    fieldType: "text" | "select" = "text",
+    selectOptions?: { value: string; label: string }[]
+  ) => {
+    if (exp.status === "completed") return; // Don't open modal for completed experiments
+    
+    setModalConfig({
+      experimentId: exp.id,
+      experimentName: exp.masterData.name,
+      experimentIdLabel: exp.masterData.experimentId,
+      isCompleted: exp.status === "completed",
+      fieldName,
+      fieldLabel,
+      fieldValue: (exp as any)[fieldName] || "",
+      fieldType,
+      selectOptions,
+    });
+    setIsModalOpen(true);
+  };
+
+  // Handle modal save
+  const handleModalSave = (value: string) => {
+    if (!modalConfig) return;
+    
+    updateMutation.mutate({
+      id: modalConfig.experimentId,
+      updates: { [modalConfig.fieldName]: value },
+    });
+    
+    setIsModalOpen(false);
+    setModalConfig(null);
   };
 
   const handleExportCSV = () => {
@@ -351,16 +403,19 @@ export default function ValidationMap() {
                         <p className="text-sm text-gray-300">{exp.masterData.hypothesisTested || "—"}</p>
                       </td>
                       <td className="p-4">
-                        <Textarea
-                          value={exp.userHypothesis || ""}
-                          onChange={(e) =>
-                            handleCellChange(exp.id, "userHypothesis", e.target.value)
-                          }
-                          placeholder="Enter your hypothesis..."
-                          className="min-h-[60px] resize-none bg-gray-800/50 border-gray-700 text-gray-200 placeholder:text-gray-500"
-                          disabled={exp.status === "completed"}
+                        <div
+                          onClick={() => openEditModal(exp, "userHypothesis", "Hypothesis")}
+                          className={`min-h-[60px] p-3 rounded border ${
+                            exp.status === "completed"
+                              ? "bg-gray-800/30 border-gray-700/50 cursor-not-allowed"
+                              : "bg-gray-800/50 border-gray-700 cursor-pointer hover:border-purple-500/50 hover:bg-gray-800/70"
+                          } text-gray-200 text-sm transition-colors`}
                           data-testid={`input-hypothesis-${exp.id}`}
-                        />
+                        >
+                          {exp.userHypothesis || (
+                            <span className="text-gray-500">Click to enter hypothesis...</span>
+                          )}
+                        </div>
                       </td>
                       <td className="p-4">
                         <p className="text-sm text-gray-300">{exp.masterData.signalTracked || "—"}</p>
@@ -369,62 +424,77 @@ export default function ValidationMap() {
                         <p className="text-sm text-gray-300">{exp.masterData.targetMetric || "—"}</p>
                       </td>
                       <td className="p-4">
-                        <Textarea
-                          value={exp.results || ""}
-                          onChange={(e) =>
-                            handleCellChange(exp.id, "results", e.target.value)
-                          }
-                          placeholder="Enter results..."
-                          className="min-h-[60px] resize-none bg-gray-800/50 border-gray-700 text-gray-200 placeholder:text-gray-500"
-                          disabled={exp.status === "completed"}
+                        <div
+                          onClick={() => openEditModal(exp, "results", "Actual Results")}
+                          className={`min-h-[60px] p-3 rounded border ${
+                            exp.status === "completed"
+                              ? "bg-gray-800/30 border-gray-700/50 cursor-not-allowed"
+                              : "bg-gray-800/50 border-gray-700 cursor-pointer hover:border-purple-500/50 hover:bg-gray-800/70"
+                          } text-gray-200 text-sm transition-colors`}
                           data-testid={`input-results-${exp.id}`}
-                        />
-                      </td>
-                      <td className="p-4">
-                        <Textarea
-                          value={exp.customNotes || ""}
-                          onChange={(e) =>
-                            handleCellChange(exp.id, "customNotes", e.target.value)
-                          }
-                          placeholder="Why did you choose this..."
-                          className="min-h-[60px] resize-none bg-gray-800/50 border-gray-700 text-gray-200 placeholder:text-gray-500"
-                          disabled={exp.status === "completed"}
-                          data-testid={`input-why-${exp.id}`}
-                        />
-                      </td>
-                      <td className="p-4">
-                        <Textarea
-                          value={exp.newInsights || ""}
-                          onChange={(e) =>
-                            handleCellChange(exp.id, "newInsights", e.target.value)
-                          }
-                          placeholder="New insights discovered..."
-                          className="min-h-[60px] resize-none bg-gray-800/50 border-gray-700 text-gray-200 placeholder:text-gray-500"
-                          disabled={exp.status === "completed"}
-                          data-testid={`input-insights-${exp.id}`}
-                        />
-                      </td>
-                      <td className="p-4">
-                        <Select
-                          value={exp.decision || ""}
-                          onValueChange={(value) =>
-                            handleCellChange(exp.id, "decision", value)
-                          }
-                          disabled={exp.status === "completed"}
                         >
-                          <SelectTrigger 
-                            className="w-[140px] bg-gray-800/50 border-gray-700 text-gray-200" 
-                            data-testid={`select-decision-${exp.id}`}
-                          >
-                            <SelectValue placeholder="Select..." />
-                          </SelectTrigger>
-                          <SelectContent className="bg-gray-900 border-gray-700">
-                            <SelectItem value="measure">Measure</SelectItem>
-                            <SelectItem value="build">Build</SelectItem>
-                            <SelectItem value="pivot">Pivot</SelectItem>
-                            <SelectItem value="stop">Stop</SelectItem>
-                          </SelectContent>
-                        </Select>
+                          {exp.results || (
+                            <span className="text-gray-500">Click to enter results...</span>
+                          )}
+                        </div>
+                      </td>
+                      <td className="p-4">
+                        <div
+                          onClick={() => openEditModal(exp, "customNotes", "Why")}
+                          className={`min-h-[60px] p-3 rounded border ${
+                            exp.status === "completed"
+                              ? "bg-gray-800/30 border-gray-700/50 cursor-not-allowed"
+                              : "bg-gray-800/50 border-gray-700 cursor-pointer hover:border-purple-500/50 hover:bg-gray-800/70"
+                          } text-gray-200 text-sm transition-colors`}
+                          data-testid={`input-why-${exp.id}`}
+                        >
+                          {exp.customNotes || (
+                            <span className="text-gray-500">Click to explain why...</span>
+                          )}
+                        </div>
+                      </td>
+                      <td className="p-4">
+                        <div
+                          onClick={() => openEditModal(exp, "newInsights", "New Insights")}
+                          className={`min-h-[60px] p-3 rounded border ${
+                            exp.status === "completed"
+                              ? "bg-gray-800/30 border-gray-700/50 cursor-not-allowed"
+                              : "bg-gray-800/50 border-gray-700 cursor-pointer hover:border-purple-500/50 hover:bg-gray-800/70"
+                          } text-gray-200 text-sm transition-colors`}
+                          data-testid={`input-insights-${exp.id}`}
+                        >
+                          {exp.newInsights || (
+                            <span className="text-gray-500">Click to add insights...</span>
+                          )}
+                        </div>
+                      </td>
+                      <td className="p-4">
+                        <div
+                          onClick={() => openEditModal(
+                            exp,
+                            "decision",
+                            "Decision",
+                            "select",
+                            [
+                              { value: "measure", label: "Measure" },
+                              { value: "build", label: "Build" },
+                              { value: "pivot", label: "Pivot" },
+                              { value: "stop", label: "Stop" },
+                            ]
+                          )}
+                          className={`min-h-[40px] p-3 rounded border ${
+                            exp.status === "completed"
+                              ? "bg-gray-800/30 border-gray-700/50 cursor-not-allowed"
+                              : "bg-gray-800/50 border-gray-700 cursor-pointer hover:border-purple-500/50 hover:bg-gray-800/70"
+                          } text-gray-200 text-sm transition-colors flex items-center`}
+                          data-testid={`select-decision-${exp.id}`}
+                        >
+                          {exp.decision ? (
+                            <span className="capitalize">{exp.decision}</span>
+                          ) : (
+                            <span className="text-gray-500">Click to select...</span>
+                          )}
+                        </div>
                       </td>
                       <td className="p-4">
                         {exp.masterData.proofTag && exp.status === "completed" ? (
@@ -473,6 +543,26 @@ export default function ValidationMap() {
           </CardContent>
         </Card>
       </div>
+
+      {/* Edit Modal */}
+      {modalConfig && (
+        <ExperimentEditModal
+          isOpen={isModalOpen}
+          onClose={() => {
+            setIsModalOpen(false);
+            setModalConfig(null);
+          }}
+          experimentName={modalConfig.experimentName}
+          experimentId={modalConfig.experimentIdLabel}
+          isCompleted={modalConfig.isCompleted}
+          fieldName={modalConfig.fieldName}
+          fieldLabel={modalConfig.fieldLabel}
+          fieldValue={modalConfig.fieldValue}
+          fieldType={modalConfig.fieldType}
+          selectOptions={modalConfig.selectOptions}
+          onSave={handleModalSave}
+        />
+      )}
 
       <Footer />
     </div>
