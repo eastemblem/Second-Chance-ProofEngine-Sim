@@ -322,15 +322,15 @@ export default function ValidationMap() {
     );
   }
 
-  // Show walkthrough during initial load
-  if (isLoading || showWalkthrough) {
+  // Show walkthrough until user completes or skips it
+  if (showWalkthrough) {
     return (
       <div className="min-h-screen bg-gray-950">
         <Navbar showSignOut />
         <DashboardHeader user={user} validationData={validationData} />
         <ValidationMapWalkthrough 
           isLoading={isLoading} 
-          onLoadingComplete={() => setShowWalkthrough(false)}
+          onComplete={() => setShowWalkthrough(false)}
         />
         <Footer />
       </div>
