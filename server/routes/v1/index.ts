@@ -6,6 +6,7 @@ import certificateRoutes from './certificates';
 import reportRoutes from './reports';
 import notificationRoutes from './notifications';
 import paymentsRoutes from './payments';
+import validationMapRoutes from './validation-map';
 
 import { getLeaderboard } from '../../routes/leaderboard';
 import { asyncHandler } from '../middleware/error';
@@ -30,6 +31,7 @@ router.use('/certificate', certificateRoutes);
 router.use('/report', reportRoutes);
 router.use('/notification', notificationRoutes);
 router.use('/payments', paymentsRoutes);
+router.use('/validation-map', validationMapRoutes);
 
 // Note: Test routes moved to tests/ directory
 
