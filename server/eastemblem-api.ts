@@ -1006,10 +1006,36 @@ class EastEmblemAPI {
     throw new Error(`Email notification failed after ${maxRetries} attempts: ${lastError?.message || 'Unknown error'}`);
   }
 
-  async getValidationMapAssignments(ventureId: string, scoringData: any): Promise<any> {
+  async getValidationMapAssignments(
+    ventureId: string, 
+    ventureName: string,
+    proofScore: number,
+    recommendations: {
+      traction?: string;
+      readiness?: string;
+      viability?: string;
+      feasibility?: string;
+      desirability?: string;
+    }
+  ): Promise<any> {
     try {
-      console.log(`Getting validation map assignments for venture: ${ventureId}`);
-      console.log(`API endpoint: ${this.getEndpoint("/webhook/validation-map")}`);
+      appLogger.info(`Getting validation map assignments for venture: ${ventureId}`);
+      appLogger.info(`API endpoint: ${this.getEndpoint("/webhook/validation-map")}`);
+
+      const payload = {
+        venture_id: ventureId,
+        venture_name: ventureName,
+        proofscore: proofScore,
+        recommendations: {
+          traction: recommendations.traction || "",
+          readiness: recommendations.readiness || "",
+          viability: recommendations.viability || "",
+          feasibility: recommendations.feasibility || "",
+          desirability: recommendations.desirability || "",
+        }
+      };
+
+      appLogger.info("Validation map payload:", payload);
 
       const controller = new AbortController();
       const timeoutId = setTimeout(() => controller.abort(), 30000);
@@ -1019,10 +1045,7 @@ class EastEmblemAPI {
         headers: {
           "Content-Type": "application/json",
         },
-        body: JSON.stringify({
-          venture_id: ventureId,
-          scoring_data: scoringData,
-        }),
+        body: JSON.stringify(payload),
         signal: controller.signal,
       });
 
@@ -1030,7 +1053,7 @@ class EastEmblemAPI {
 
       if (!response.ok) {
         const errorText = await response.text();
-        console.error(`Validation map failed with status ${response.status}:`, errorText);
+        appLogger.error(`Validation map failed with status ${response.status}:`, errorText);
         
         if (response.status >= 500) {
           throw new Error(`Validation map service unavailable (${response.status}). Please try again later.`);
@@ -1044,19 +1067,19 @@ class EastEmblemAPI {
       }
 
       const responseText = await response.text();
-      console.log("Raw validation map response:", responseText);
+      appLogger.info("Raw validation map response:", responseText);
       
       try {
         const result = JSON.parse(responseText);
-        console.log("Validation map assignments retrieved successfully:", result);
+        appLogger.info("Validation map assignments retrieved successfully:", result);
         return result;
       } catch (parseError) {
-        console.error("Failed to parse validation map response JSON:", parseError);
-        console.log("Response was:", responseText);
+        appLogger.error("Failed to parse validation map response JSON:", parseError);
+        appLogger.error("Response was:", responseText);
         throw new Error(`Validation map succeeded but response parsing failed: ${parseError instanceof Error ? parseError.message : 'Invalid JSON'}`);
       }
     } catch (error) {
-      console.error("Error getting validation map assignments:", error);
+      appLogger.error("Error getting validation map assignments:", error);
       if (!this.isConfigured()) {
         throw new Error("EastEmblem API is not configured. Please provide EASTEMBLEM_API_URL and EASTEMBLEM_API_KEY.");
       }
