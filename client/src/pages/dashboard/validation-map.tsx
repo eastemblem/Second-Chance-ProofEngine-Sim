@@ -73,10 +73,8 @@ export default function ValidationMap() {
       id: string;
       updates: Record<string, any>;
     }) => {
-      return await apiRequest(`/api/validation-map/${id}`, {
-        method: "PATCH",
-        body: JSON.stringify(updates),
-      });
+      const response = await apiRequest("PATCH", `/api/validation-map/${id}`, updates);
+      return response.json();
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["/api/validation-map", ventureId] });
@@ -93,11 +91,10 @@ export default function ValidationMap() {
   // Complete experiment mutation
   const completeMutation = useMutation({
     mutationFn: async (id: string) => {
-      return await apiRequest(`/api/validation-map/${id}/complete`, {
-        method: "POST",
-      });
+      const response = await apiRequest("POST", `/api/validation-map/${id}/complete`);
+      return response.json();
     },
-    onSuccess: (data) => {
+    onSuccess: (data: any) => {
       queryClient.invalidateQueries({ queryKey: ["/api/validation-map", ventureId] });
       
       // Trigger confetti celebration
@@ -109,17 +106,17 @@ export default function ValidationMap() {
       });
       
       // Show ProofTag celebration if unlocked
-      if (data.proofTag) {
+      if (data?.data?.proofTag) {
         toast({
           title: "🏆 ProofTag Unlocked!",
-          description: `You earned: ${data.proofTag}`,
+          description: `You earned: ${data.data.proofTag}`,
           duration: 5000,
         });
       }
       
       toast({
         title: "Experiment completed!",
-        description: `+${data.proofScoreIncrease} ProofScore`,
+        description: `+${data?.data?.proofScoreIncrease || 5} ProofScore`,
       });
     },
     onError: (error: Error) => {
