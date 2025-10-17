@@ -12,7 +12,7 @@ import { useToast } from "@/hooks/use-toast";
 import confetti from "canvas-confetti";
 import { useTokenAuth } from "@/hooks/use-token-auth";
 import { ValidationMapHeader } from "@/components/dashboard/validation/ValidationMapHeader";
-import { ValidationOverviewSection } from "@/components/dashboard/validation/ValidationOverviewSection";
+import { ValidationMapIntro } from "@/components/dashboard/validation/ValidationMapIntro";
 import Footer from "@/components/layout/footer";
 
 interface ExperimentMaster {
@@ -272,13 +272,9 @@ export default function ValidationMap() {
     <div className="min-h-screen bg-gray-950">
       <ValidationMapHeader />
       
-      <ValidationOverviewSection
-        proofScore={proofScore}
-        completedCount={completedCount}
-        totalCount={totalCount}
-        status={status}
-        onUploadClick={handleUploadFiles}
-      />
+      <div className="max-w-7xl mx-auto px-4 pt-8">
+        <ValidationMapIntro />
+      </div>
 
       <div className="max-w-7xl mx-auto px-4 pb-8">
         {/* Export Button */}
