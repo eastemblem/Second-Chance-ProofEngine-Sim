@@ -11,7 +11,8 @@ import { CheckCircle, Circle, Loader2, Download, Trophy } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import confetti from "canvas-confetti";
 import { useTokenAuth } from "@/hooks/use-token-auth";
-import { ValidationMapHeader } from "@/components/dashboard/validation/ValidationMapHeader";
+import Navbar from "@/components/layout/navbar";
+import { DashboardHeader } from "@/components/dashboard/core";
 import { ValidationMapIntro } from "@/components/dashboard/validation/ValidationMapIntro";
 import { ExperimentEditModal } from "@/components/dashboard/validation/ExperimentEditModal";
 import Footer from "@/components/layout/footer";
@@ -49,10 +50,13 @@ interface VentureExperiment {
 
 export default function ValidationMap() {
   const { toast } = useToast();
-  const { venture } = useTokenAuth();
+  const { user: authUser, venture, isAuthenticated } = useTokenAuth();
   const [, setLocation] = useLocation();
   const ventureId = venture?.ventureId || null;
   const [debouncedValues, setDebouncedValues] = useState<Record<string, any>>({});
+  
+  // Create user object with isAuthenticated for DashboardHeader
+  const user = authUser ? { ...authUser, isAuthenticated } : null;
   
   // Modal state
   const [isModalOpen, setIsModalOpen] = useState(false);
@@ -67,6 +71,12 @@ export default function ValidationMap() {
     fieldType: "text" | "select";
     selectOptions?: { value: string; label: string }[];
   } | null>(null);
+
+  // Fetch validation data for header
+  const { data: validationData } = useQuery<any>({
+    queryKey: ['/api/pitch/validation-status'],
+    enabled: !!venture,
+  });
 
   // Fetch experiments
   const { data: experimentsData, isLoading } = useQuery({
@@ -292,14 +302,16 @@ export default function ValidationMap() {
   const completedCount = experiments.filter((e: VentureExperiment) => e.status === "completed").length;
   const totalCount = experiments.length;
 
-  if (!ventureId) {
+  if (!user || !ventureId) {
     return (
       <div className="min-h-screen bg-gray-950">
-        <ValidationMapHeader />
+        <Navbar showSignOut />
         <div className="max-w-7xl mx-auto px-4 py-8">
           <Card className="bg-gray-900/60 border-gray-800">
             <CardContent className="p-6">
-              <p className="text-gray-300">No venture found. Please complete onboarding first.</p>
+              <p className="text-gray-300">
+                {!user ? "Loading user data..." : "No venture found. Please complete onboarding first."}
+              </p>
             </CardContent>
           </Card>
         </div>
@@ -311,7 +323,8 @@ export default function ValidationMap() {
   if (isLoading) {
     return (
       <div className="min-h-screen bg-gray-950">
-        <ValidationMapHeader />
+        <Navbar showSignOut />
+        <DashboardHeader user={user} validationData={validationData} />
         <div className="max-w-7xl mx-auto px-4 py-8 flex items-center justify-center">
           <Loader2 className="h-8 w-8 animate-spin text-purple-500" data-testid="loader-validation-map" />
         </div>
@@ -322,7 +335,8 @@ export default function ValidationMap() {
 
   return (
     <div className="min-h-screen bg-gray-950">
-      <ValidationMapHeader />
+      <Navbar showSignOut />
+      <DashboardHeader user={user} validationData={validationData} />
       
       <div className="max-w-7xl mx-auto px-4 pt-8">
         <ValidationMapIntro />
