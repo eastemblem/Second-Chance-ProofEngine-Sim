@@ -51,14 +51,7 @@ export default function ValidationMap() {
 
   // Fetch experiments
   const { data: experimentsData, isLoading } = useQuery({
-    queryKey: ["/api/validation-map", ventureId],
-    queryFn: async () => {
-      const response = await fetch(`/api/validation-map/${ventureId}`);
-      if (!response.ok) {
-        throw new Error("Failed to fetch experiments");
-      }
-      return response.json();
-    },
+    queryKey: ["/api/validation-map"],
     enabled: !!ventureId,
   });
 
@@ -77,7 +70,7 @@ export default function ValidationMap() {
       return response.json();
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["/api/validation-map", ventureId] });
+      queryClient.invalidateQueries({ queryKey: ["/api/validation-map"] });
     },
     onError: (error: Error) => {
       toast({
@@ -95,7 +88,7 @@ export default function ValidationMap() {
       return response.json();
     },
     onSuccess: (data: any) => {
-      queryClient.invalidateQueries({ queryKey: ["/api/validation-map", ventureId] });
+      queryClient.invalidateQueries({ queryKey: ["/api/validation-map"] });
       
       // Trigger confetti celebration
       confetti({
@@ -203,8 +196,8 @@ export default function ValidationMap() {
 
     const csvContent = [
       headers.join(","),
-      ...rows.map(row => 
-        row.map(cell => 
+      ...rows.map((row: string[]) => 
+        row.map((cell: string) => 
           `"${String(cell).replace(/"/g, '""')}"`
         ).join(",")
       ),

@@ -1,33 +1,39 @@
-import express from "express";
+import express, { Request, Response } from "express";
 import { storage } from "../storage";
 import { asyncHandler, createSuccessResponse } from "../utils/error-handler";
 import { z } from "zod";
 import { eastEmblemAPI } from "../eastemblem-api";
 import { appLogger } from "../utils/logger";
+import { authenticateToken, AuthenticatedRequest } from "../middleware/token-auth";
+import { databaseService } from "../services/database-service";
 
 const router = express.Router();
 
-// GET /api/validation-map/:ventureId - Get all experiments for a venture
+// GET /api/validation-map - Get all experiments for authenticated user's venture
 router.get(
-  "/:ventureId",
-  asyncHandler(async (req, res) => {
-    const { ventureId } = req.params;
+  "/",
+  authenticateToken,
+  asyncHandler(async (req: Request, res: Response) => {
+    const founderId = (req as AuthenticatedRequest).user?.founderId;
 
-    if (!ventureId) {
-      return res.status(400).json({
+    if (!founderId) {
+      return res.status(401).json({
         success: false,
-        error: "Venture ID is required",
+        error: "Authentication required",
       });
     }
 
-    // Check if venture exists
-    const venture = await storage.getVenture(ventureId);
-    if (!venture) {
+    // Get founder with latest venture
+    const dashboardData = await databaseService.getFounderWithLatestVenture(founderId);
+    if (!dashboardData || !dashboardData.venture) {
       return res.status(404).json({
         success: false,
         error: "No venture found. Please complete onboarding first.",
       });
     }
+
+    const venture = dashboardData.venture;
+    const ventureId = venture.ventureId;
 
     let experiments = await storage.getVentureExperiments(ventureId);
 
@@ -137,8 +143,28 @@ router.get(
 // PATCH /api/validation-map/:id - Update experiment fields
 router.patch(
   "/:id",
-  asyncHandler(async (req, res) => {
+  authenticateToken,
+  asyncHandler(async (req: Request, res: Response) => {
+    const founderId = (req as AuthenticatedRequest).user?.founderId;
     const { id } = req.params;
+
+    if (!founderId) {
+      return res.status(401).json({
+        success: false,
+        error: "Authentication required",
+      });
+    }
+
+    // Get founder's venture to verify ownership
+    const dashboardData = await databaseService.getFounderWithLatestVenture(founderId);
+    if (!dashboardData || !dashboardData.venture) {
+      return res.status(404).json({
+        success: false,
+        error: "No venture found",
+      });
+    }
+
+    const ventureId = dashboardData.venture.ventureId;
     
     const updateSchema = z.object({
       userHypothesis: z.string().optional(),
@@ -149,6 +175,15 @@ router.patch(
     });
 
     const validatedData = updateSchema.parse(req.body);
+
+    // Get experiment to verify it belongs to this venture
+    const experiment = await storage.getVentureExperiment(id);
+    if (!experiment || experiment.ventureId !== ventureId) {
+      return res.status(403).json({
+        success: false,
+        error: "Access denied",
+      });
+    }
 
     const updatedExperiment = await storage.updateVentureExperiment(
       id,
@@ -174,8 +209,37 @@ router.patch(
 // POST /api/validation-map/:id/complete - Mark experiment as complete
 router.post(
   "/:id/complete",
-  asyncHandler(async (req, res) => {
+  authenticateToken,
+  asyncHandler(async (req: Request, res: Response) => {
+    const founderId = (req as AuthenticatedRequest).user?.founderId;
     const { id } = req.params;
+
+    if (!founderId) {
+      return res.status(401).json({
+        success: false,
+        error: "Authentication required",
+      });
+    }
+
+    // Get founder's venture to verify ownership
+    const dashboardData = await databaseService.getFounderWithLatestVenture(founderId);
+    if (!dashboardData || !dashboardData.venture) {
+      return res.status(404).json({
+        success: false,
+        error: "No venture found",
+      });
+    }
+
+    const ventureId = dashboardData.venture.ventureId;
+
+    // Get experiment to verify it belongs to this venture
+    const experiment = await storage.getVentureExperiment(id);
+    if (!experiment || experiment.ventureId !== ventureId) {
+      return res.status(403).json({
+        success: false,
+        error: "Access denied",
+      });
+    }
 
     const completedExperiment = await storage.completeVentureExperiment(id);
 
@@ -190,7 +254,6 @@ router.post(
     const proofScoreIncrease = 5;
     
     // Get venture to update ProofScore
-    const ventureId = completedExperiment.ventureId;
     const venture = await storage.getVenture(ventureId);
     
     if (venture) {
