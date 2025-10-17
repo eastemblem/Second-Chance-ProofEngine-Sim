@@ -4,7 +4,7 @@ import { asyncHandler, createSuccessResponse } from "../../utils/error-handler";
 import { z } from "zod";
 import { eastEmblemAPI } from "../../eastemblem-api";
 import { appLogger } from "../../utils/logger";
-import { authenticateToken, AuthenticatedRequest } from "../../middleware/token-auth";
+import { AuthenticatedRequest } from "../../middleware/token-auth";
 import { databaseService } from "../../services/database-service";
 
 const router = express.Router();
@@ -12,7 +12,6 @@ const router = express.Router();
 // GET /api/validation-map - Get all experiments for authenticated user's venture
 router.get(
   "/",
-  authenticateToken,
   asyncHandler(async (req: Request, res: Response) => {
     const founderId = (req as AuthenticatedRequest).user?.founderId;
 
@@ -143,7 +142,6 @@ router.get(
 // PATCH /api/validation-map/:id - Update experiment fields
 router.patch(
   "/:id",
-  authenticateToken,
   asyncHandler(async (req: Request, res: Response) => {
     const founderId = (req as AuthenticatedRequest).user?.founderId;
     const { id } = req.params;
@@ -209,7 +207,6 @@ router.patch(
 // POST /api/validation-map/:id/complete - Mark experiment as complete
 router.post(
   "/:id/complete",
-  authenticateToken,
   asyncHandler(async (req: Request, res: Response) => {
     const founderId = (req as AuthenticatedRequest).user?.founderId;
     const { id } = req.params;
