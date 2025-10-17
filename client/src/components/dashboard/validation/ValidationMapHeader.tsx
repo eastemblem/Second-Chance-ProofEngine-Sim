@@ -22,7 +22,7 @@ export function ValidationMapHeader() {
     : user?.email?.charAt(0).toUpperCase();
 
   // Fetch validation data for ProofTags count
-  const { data: validationData } = useQuery({
+  const { data: validationData } = useQuery<any>({
     queryKey: ['/api/pitch/validation-status'],
     enabled: !!venture,
   });
