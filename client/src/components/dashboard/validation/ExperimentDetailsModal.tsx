@@ -89,10 +89,18 @@ export function ExperimentDetailsModal({
     setIsEditMode(false);
   };
 
+  // Prevent modal close during edit mode or delete dialog
+  const handleOpenChange = (newOpen: boolean) => {
+    if (!newOpen && (isEditMode || deleteDialogOpen)) {
+      return; // Don't close modal during edit or delete confirmation
+    }
+    onOpenChange(newOpen);
+  };
+
   return (
     <>
-      <Dialog open={open} onOpenChange={onOpenChange}>
-        <DialogContent className="max-w-3xl max-h-[85vh] overflow-y-auto bg-gradient-to-br from-slate-900 via-purple-900/20 to-slate-900 border-purple-500/30">
+      <Dialog open={open} onOpenChange={handleOpenChange}>
+        <DialogContent className="max-w-3xl max-h-[85vh] overflow-y-auto bg-gradient-to-br from-slate-900 via-purple-900/20 to-slate-900 border-purple-500/30 [&::-webkit-scrollbar]:hidden [-ms-overflow-style:none] [scrollbar-width:none]">
           <DialogHeader>
             <div className="flex items-start justify-between gap-4 mb-4">
               <div className="flex-1">
