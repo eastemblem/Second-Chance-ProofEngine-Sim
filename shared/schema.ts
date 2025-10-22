@@ -312,7 +312,8 @@ export const validationSphereEnum = pgEnum('validation_sphere', [
   'Desirability',
   'Viability',
   'Feasibility',
-  'Scaling'
+  'Scaling',
+  'Custom'
 ]);
 
 // ProofScaling wishlist table for tracking interested cohort participants

@@ -95,26 +95,39 @@ export function ExperimentDetailsModal({
                 <DialogTitle className="text-2xl font-bold text-white mb-3">
                   {masterData?.name || "Experiment Details"}
                 </DialogTitle>
-                <DialogDescription className="text-gray-300 mb-3">
-                  {masterData?.validationSphere || "N/A"}
-                </DialogDescription>
-                
                 {/* Tags in header */}
-                <div className="flex items-center gap-2 flex-wrap">
-                  <Badge className={`${getStatusColor(experiment.status)} border`}>
-                    {experiment.status.replace("_", " ").toUpperCase()}
+                <div className="flex items-center gap-3 flex-wrap mt-4">
+                  {/* Category Tag */}
+                  <Badge className="bg-purple-500/20 text-purple-300 border-purple-500/30 px-3 py-1">
+                    {masterData?.validationSphere || "N/A"}
                   </Badge>
                   
-                  {experiment.decision && (
-                    <Badge className="bg-gray-700/50 text-gray-300 border-gray-600 capitalize">
-                      Decision: {experiment.decision}
+                  {/* Status Label + Tag */}
+                  <div className="flex items-center gap-2">
+                    <span className="text-gray-400 text-sm">Status:</span>
+                    <Badge className={`${getStatusColor(experiment.status)} border px-3 py-1 capitalize`}>
+                      {experiment.status.replace("_", " ")}
                     </Badge>
+                  </div>
+                  
+                  {/* Decision Label + Tag */}
+                  {experiment.decision && (
+                    <div className="flex items-center gap-2">
+                      <span className="text-gray-400 text-sm">Decision:</span>
+                      <Badge className="bg-gray-700/50 text-gray-300 border-gray-600 px-3 py-1 capitalize">
+                        {experiment.decision}
+                      </Badge>
+                    </div>
                   )}
                   
+                  {/* ProofTag Label + Tag */}
                   {masterData?.proofTag && (
-                    <Badge className="bg-yellow-500/10 text-yellow-400 border-yellow-500/50">
-                      {masterData.proofTag}
-                    </Badge>
+                    <div className="flex items-center gap-2">
+                      <span className="text-gray-400 text-sm">ProofTag:</span>
+                      <Badge className="bg-yellow-500/20 text-yellow-400 border-yellow-500/50 px-3 py-1">
+                        {masterData.proofTag}
+                      </Badge>
+                    </div>
                   )}
                 </div>
               </div>
@@ -143,14 +156,6 @@ export function ExperimentDetailsModal({
                     >
                       <Trash2 className="w-4 h-4" />
                     </Button>
-                    <Button
-                      variant="outline"
-                      size="sm"
-                      onClick={() => onOpenChange(false)}
-                      data-testid="button-close-details"
-                    >
-                      <X className="w-4 h-4" />
-                    </Button>
                   </>
                 )}
               </div>
@@ -162,7 +167,9 @@ export function ExperimentDetailsModal({
           <div className="space-y-6 py-4">
             {/* Core Assumption (read-only) */}
             <div>
-              <h4 className="text-sm font-semibold text-purple-300 mb-2">Core Assumption</h4>
+              <div className="inline-block px-4 py-1.5 rounded-md font-medium text-sm bg-gradient-to-r from-violet-500 to-purple-600 text-white mb-3">
+                Core Assumption
+              </div>
               <p className="text-gray-200 bg-slate-800/50 p-3 rounded-lg border border-purple-500/20">
                 {masterData?.hypothesisTested || "No assumption defined"}
               </p>
@@ -170,7 +177,9 @@ export function ExperimentDetailsModal({
 
             {/* Decision (editable) */}
             <div>
-              <h4 className="text-sm font-semibold text-purple-300 mb-2">Decision</h4>
+              <div className="inline-block px-4 py-1.5 rounded-md font-medium text-sm bg-gradient-to-r from-pink-500 to-rose-600 text-white mb-3">
+                Decision
+              </div>
               {isEditMode ? (
                 <Select
                   value={editedValues.decision || ""}
@@ -206,7 +215,9 @@ export function ExperimentDetailsModal({
 
             {/* Hypothesis (editable) */}
             <div>
-              <h4 className="text-sm font-semibold text-purple-300 mb-2">Hypothesis</h4>
+              <div className="inline-block px-4 py-1.5 rounded-md font-medium text-sm bg-gradient-to-r from-purple-600 to-pink-600 text-white mb-3">
+                Hypothesis
+              </div>
               {isEditMode ? (
                 <RichTextEditor
                   content={editedValues.userHypothesis}
@@ -232,7 +243,9 @@ export function ExperimentDetailsModal({
 
             {/* Target Behaviour (read-only) */}
             <div>
-              <h4 className="text-sm font-semibold text-purple-300 mb-2">Target Behaviour</h4>
+              <div className="inline-block px-4 py-1.5 rounded-md font-medium text-sm bg-gradient-to-r from-cyan-500 to-blue-500 text-white mb-3">
+                Target Behaviour
+              </div>
               <p className="text-gray-200 bg-slate-800/50 p-3 rounded-lg border border-purple-500/20">
                 {masterData?.signalTracked || "No target behaviour"}
               </p>
@@ -240,7 +253,9 @@ export function ExperimentDetailsModal({
 
             {/* Target Metric (read-only) */}
             <div>
-              <h4 className="text-sm font-semibold text-purple-300 mb-2">Target Metric</h4>
+              <div className="inline-block px-4 py-1.5 rounded-md font-medium text-sm bg-gradient-to-r from-amber-500 to-orange-600 text-white mb-3">
+                Target Metric
+              </div>
               <p className="text-gray-200 bg-slate-800/50 p-3 rounded-lg border border-purple-500/20">
                 {masterData?.targetMetric || "No metric defined"}
               </p>
@@ -248,7 +263,9 @@ export function ExperimentDetailsModal({
 
             {/* Actual Results (editable) */}
             <div>
-              <h4 className="text-sm font-semibold text-purple-300 mb-2">Actual Results</h4>
+              <div className="inline-block px-4 py-1.5 rounded-md font-medium text-sm bg-gradient-to-r from-indigo-500 to-purple-600 text-white mb-3">
+                Actual Results
+              </div>
               {isEditMode ? (
                 <RichTextEditor
                   content={editedValues.results}
@@ -274,7 +291,9 @@ export function ExperimentDetailsModal({
 
             {/* Why? (editable) */}
             <div>
-              <h4 className="text-sm font-semibold text-purple-300 mb-2">Why?</h4>
+              <div className="inline-block px-4 py-1.5 rounded-md font-medium text-sm bg-gradient-to-r from-teal-500 to-cyan-600 text-white mb-3">
+                Why?
+              </div>
               {isEditMode ? (
                 <RichTextEditor
                   content={editedValues.customNotes}
@@ -300,7 +319,9 @@ export function ExperimentDetailsModal({
 
             {/* New Insights (editable) */}
             <div>
-              <h4 className="text-sm font-semibold text-purple-300 mb-2">New Insights</h4>
+              <div className="inline-block px-4 py-1.5 rounded-md font-medium text-sm bg-gradient-to-r from-rose-500 to-pink-600 text-white mb-3">
+                New Insights
+              </div>
               {isEditMode ? (
                 <RichTextEditor
                   content={editedValues.newInsights}
