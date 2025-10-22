@@ -21,6 +21,28 @@ import { AddExperimentModal } from "@/components/dashboard/validation/AddExperim
 import { ColumnBadge } from "@/components/dashboard/validation/ColumnBadge";
 import Footer from "@/components/layout/footer";
 
+// Helper function to strip HTML tags and truncate text
+const stripHtmlAndTruncate = (html: string | null, maxLines: number = 2): { text: string; isTruncated: boolean } => {
+  if (!html) return { text: '', isTruncated: false };
+  
+  // Strip HTML tags
+  const tmp = document.createElement('div');
+  tmp.innerHTML = html;
+  const text = tmp.textContent || tmp.innerText || '';
+  
+  // Split into words and approximate lines
+  const words = text.split(' ');
+  const approxWordsPerLine = 12; // Approximate words per line
+  const maxWords = maxLines * approxWordsPerLine;
+  
+  if (words.length <= maxWords) {
+    return { text, isTruncated: false };
+  }
+  
+  const truncatedText = words.slice(0, maxWords).join(' ');
+  return { text: truncatedText, isTruncated: true };
+};
+
 interface ExperimentMaster {
   experimentId: string;
   validationSphere: string;
@@ -570,16 +592,22 @@ export default function ValidationMap() {
                       </td>
                       <td className="p-4">
                         <div
-                          onClick={() => openEditModal(exp, "userHypothesis", "Hypothesis")}
-                          className={`min-h-[60px] p-3 rounded border ${
-                            exp.status === "completed"
-                              ? "bg-gray-800/30 border-gray-700/50 cursor-not-allowed"
-                              : "bg-gray-800/50 border-gray-700 cursor-pointer hover:border-purple-500/50 hover:bg-gray-800/70"
-                          } text-gray-200 text-sm transition-colors`}
+                          onClick={() => handleViewDetails(exp)}
+                          className="cursor-pointer hover:bg-gray-800/50 p-2 rounded transition-colors"
                           data-testid={`input-hypothesis-${exp.id}`}
                         >
-                          {exp.userHypothesis || (
-                            <span className="text-gray-500">Click to enter hypothesis...</span>
+                          {exp.userHypothesis ? (
+                            (() => {
+                              const { text, isTruncated } = stripHtmlAndTruncate(exp.userHypothesis, 2);
+                              return (
+                                <div>
+                                  <p className="text-sm text-gray-200 line-clamp-2">{text}</p>
+                                  {isTruncated && <span className="text-xs text-purple-400 mt-1 inline-block">Read more...</span>}
+                                </div>
+                              );
+                            })()
+                          ) : (
+                            <span className="text-gray-500 text-sm">Click to view...</span>
                           )}
                         </div>
                       </td>
@@ -591,46 +619,64 @@ export default function ValidationMap() {
                       </td>
                       <td className="p-4">
                         <div
-                          onClick={() => openEditModal(exp, "results", "Actual Results")}
-                          className={`min-h-[60px] p-3 rounded border ${
-                            exp.status === "completed"
-                              ? "bg-gray-800/30 border-gray-700/50 cursor-not-allowed"
-                              : "bg-gray-800/50 border-gray-700 cursor-pointer hover:border-purple-500/50 hover:bg-gray-800/70"
-                          } text-gray-200 text-sm transition-colors`}
+                          onClick={() => handleViewDetails(exp)}
+                          className="cursor-pointer hover:bg-gray-800/50 p-2 rounded transition-colors"
                           data-testid={`input-results-${exp.id}`}
                         >
-                          {exp.results || (
-                            <span className="text-gray-500">Click to enter results...</span>
+                          {exp.results ? (
+                            (() => {
+                              const { text, isTruncated } = stripHtmlAndTruncate(exp.results, 2);
+                              return (
+                                <div>
+                                  <p className="text-sm text-gray-200 line-clamp-2">{text}</p>
+                                  {isTruncated && <span className="text-xs text-purple-400 mt-1 inline-block">Read more...</span>}
+                                </div>
+                              );
+                            })()
+                          ) : (
+                            <span className="text-gray-500 text-sm">Click to view...</span>
                           )}
                         </div>
                       </td>
                       <td className="p-4">
                         <div
-                          onClick={() => openEditModal(exp, "customNotes", "Why ?")}
-                          className={`min-h-[60px] p-3 rounded border ${
-                            exp.status === "completed"
-                              ? "bg-gray-800/30 border-gray-700/50 cursor-not-allowed"
-                              : "bg-gray-800/50 border-gray-700 cursor-pointer hover:border-purple-500/50 hover:bg-gray-800/70"
-                          } text-gray-200 text-sm transition-colors`}
+                          onClick={() => handleViewDetails(exp)}
+                          className="cursor-pointer hover:bg-gray-800/50 p-2 rounded transition-colors"
                           data-testid={`input-why-${exp.id}`}
                         >
-                          {exp.customNotes || (
-                            <span className="text-gray-500">Click to explain why...</span>
+                          {exp.customNotes ? (
+                            (() => {
+                              const { text, isTruncated } = stripHtmlAndTruncate(exp.customNotes, 2);
+                              return (
+                                <div>
+                                  <p className="text-sm text-gray-200 line-clamp-2">{text}</p>
+                                  {isTruncated && <span className="text-xs text-purple-400 mt-1 inline-block">Read more...</span>}
+                                </div>
+                              );
+                            })()
+                          ) : (
+                            <span className="text-gray-500 text-sm">Click to view...</span>
                           )}
                         </div>
                       </td>
                       <td className="p-4">
                         <div
-                          onClick={() => openEditModal(exp, "newInsights", "New Insights")}
-                          className={`min-h-[60px] p-3 rounded border ${
-                            exp.status === "completed"
-                              ? "bg-gray-800/30 border-gray-700/50 cursor-not-allowed"
-                              : "bg-gray-800/50 border-gray-700 cursor-pointer hover:border-purple-500/50 hover:bg-gray-800/70"
-                          } text-gray-200 text-sm transition-colors`}
+                          onClick={() => handleViewDetails(exp)}
+                          className="cursor-pointer hover:bg-gray-800/50 p-2 rounded transition-colors"
                           data-testid={`input-insights-${exp.id}`}
                         >
-                          {exp.newInsights || (
-                            <span className="text-gray-500">Click to add insights...</span>
+                          {exp.newInsights ? (
+                            (() => {
+                              const { text, isTruncated } = stripHtmlAndTruncate(exp.newInsights, 2);
+                              return (
+                                <div>
+                                  <p className="text-sm text-gray-200 line-clamp-2">{text}</p>
+                                  {isTruncated && <span className="text-xs text-purple-400 mt-1 inline-block">Read more...</span>}
+                                </div>
+                              );
+                            })()
+                          ) : (
+                            <span className="text-gray-500 text-sm">Click to view...</span>
                           )}
                         </div>
                       </td>
