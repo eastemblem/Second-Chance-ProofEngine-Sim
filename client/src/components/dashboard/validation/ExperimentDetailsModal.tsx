@@ -126,7 +126,7 @@ export function ExperimentDetailsModal({
                   )}
                   
                   {/* ProofTag */}
-                  {masterData?.proofTag && (
+                  {masterData?.proofTag && experiment.status === "completed" && (
                     <div className="flex items-center gap-2">
                       <span className="text-gray-400 text-sm">ProofTag:</span>
                       <Badge className="bg-yellow-500/20 text-yellow-400 border-yellow-500/50 px-3 py-1">
