@@ -97,12 +97,9 @@ export function ExperimentDetailsModal({
                   <DialogTitle className="text-2xl font-bold text-white">
                     {masterData?.name || "Experiment Details"}
                   </DialogTitle>
-                  <div className="flex items-center gap-2">
-                    <span className="text-gray-400 text-sm">Status:</span>
-                    <Badge className={`${getStatusColor(experiment.status)} border px-3 py-1 capitalize`}>
-                      {experiment.status.replace("_", " ")}
-                    </Badge>
-                  </div>
+                  <Badge className={`${getStatusColor(experiment.status)} border px-3 py-1 capitalize`}>
+                    {experiment.status.replace("_", " ")}
+                  </Badge>
                 </div>
                 
                 {/* Category Tag (below title) */}
