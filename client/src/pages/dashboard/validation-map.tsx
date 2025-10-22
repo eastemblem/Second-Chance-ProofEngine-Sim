@@ -7,7 +7,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { CheckCircle, Circle, Loader2, Download, Trophy, Plus } from "lucide-react";
+import { CheckCircle, Circle, Loader2, Download, Trophy, Plus, Pencil, Trash2 } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import confetti from "canvas-confetti";
 import { useTokenAuth } from "@/hooks/use-token-auth";
@@ -473,6 +473,9 @@ export default function ValidationMap() {
                     <th className="p-4 text-left font-semibold text-gray-300 text-sm">
                       <ColumnBadge variant="fuchsia">Category</ColumnBadge>
                     </th>
+                    <th className="p-4 text-left font-semibold text-gray-300 text-sm min-w-[120px]">
+                      <ColumnBadge variant="pink">Decision</ColumnBadge>
+                    </th>
                     <th className="p-4 text-left font-semibold text-gray-300 text-sm min-w-[200px]">
                       <ColumnBadge variant="violet">Core Assumption</ColumnBadge>
                     </th>
@@ -516,26 +519,18 @@ export default function ValidationMap() {
                       <td className="p-4">
                         <div>
                           <p 
-                            className="font-medium text-purple-400 text-base mb-2 cursor-pointer hover:text-purple-300 hover:underline transition-colors" 
+                            className="font-medium text-purple-400 text-base cursor-pointer hover:text-purple-300 hover:underline transition-colors" 
                             data-testid={`text-experiment-name-${exp.id}`}
                             onClick={() => handleViewDetails(exp)}
                           >
                             {exp.masterData.name}
                           </p>
-                          <div className="flex gap-2 flex-wrap mt-2">
-                            {exp.decision && (
-                              <div className="inline-flex items-center gap-1 text-xs bg-gray-800 px-2 py-1 rounded">
-                                <span className="text-gray-400">Decision:</span>
-                                <span className="text-white capitalize font-medium">{exp.decision}</span>
-                              </div>
-                            )}
-                            {exp.masterData.proofTag && exp.status === "completed" && (
-                              <div className="inline-flex items-center gap-1 text-xs bg-yellow-500/10 border border-yellow-500/30 px-2 py-1 rounded">
-                                <span className="text-gray-400">ProofTag:</span>
-                                <span className="text-yellow-400 font-medium">{exp.masterData.proofTag}</span>
-                              </div>
-                            )}
-                          </div>
+                          {exp.masterData.proofTag && exp.status === "completed" && (
+                            <div className="inline-flex items-center gap-1 text-xs bg-yellow-500/10 border border-yellow-500/30 px-2 py-1 rounded mt-2">
+                              <span className="text-gray-400">ProofTag:</span>
+                              <span className="text-yellow-400 font-medium">{exp.masterData.proofTag}</span>
+                            </div>
+                          )}
                         </div>
                       </td>
                       <td className="p-4">
@@ -546,6 +541,29 @@ export default function ValidationMap() {
                         >
                           {exp.masterData.validationSphere}
                         </Badge>
+                      </td>
+                      <td className="p-4">
+                        <div
+                          onClick={() => openEditModal(exp, "decision", "Decision", "select", [
+                            { value: "pivot", label: "Pivot" },
+                            { value: "persevere", label: "Persevere" },
+                            { value: "measure", label: "Measure" }
+                          ])}
+                          className={`min-h-[40px] p-2 rounded border ${
+                            exp.status === "completed"
+                              ? "bg-gray-800/30 border-gray-700/50 cursor-not-allowed"
+                              : "bg-gray-800/50 border-gray-700 cursor-pointer hover:border-purple-500/50 hover:bg-gray-800/70"
+                          } text-gray-200 text-sm transition-colors`}
+                          data-testid={`input-decision-${exp.id}`}
+                        >
+                          {exp.decision ? (
+                            <Badge className="bg-gray-700/50 text-gray-300 border-gray-600 capitalize">
+                              {exp.decision}
+                            </Badge>
+                          ) : (
+                            <span className="text-gray-500">Click to set...</span>
+                          )}
+                        </div>
                       </td>
                       <td className="p-4">
                         <p className="text-sm text-gray-300">{exp.masterData.hypothesisTested || "—"}</p>
@@ -617,21 +635,51 @@ export default function ValidationMap() {
                         </div>
                       </td>
                       <td className="p-4">
-                        {exp.status !== "completed" && (
-                          <Button
-                            onClick={() => handleComplete(exp.id)}
-                            size="sm"
-                            className="bg-purple-600 hover:bg-purple-700 text-white"
-                            disabled={completeMutation.isPending}
-                            data-testid={`button-complete-${exp.id}`}
-                          >
-                            {completeMutation.isPending ? (
-                              <Loader2 className="h-4 w-4 animate-spin" />
-                            ) : (
-                              "Complete"
-                            )}
-                          </Button>
-                        )}
+                        <div className="flex items-center gap-2">
+                          {exp.status !== "completed" && (
+                            <>
+                              <Button
+                                onClick={() => handleViewDetails(exp)}
+                                size="sm"
+                                variant="ghost"
+                                className="h-8 w-8 p-0 text-blue-400 hover:text-blue-300 hover:bg-blue-500/10"
+                                data-testid={`button-edit-${exp.id}`}
+                              >
+                                <Pencil className="h-4 w-4" />
+                              </Button>
+                              <Button
+                                onClick={() => {
+                                  setSelectedExperiment(exp);
+                                  handleDelete(exp.id);
+                                }}
+                                size="sm"
+                                variant="ghost"
+                                className="h-8 w-8 p-0 text-red-400 hover:text-red-300 hover:bg-red-500/10"
+                                data-testid={`button-delete-${exp.id}`}
+                              >
+                                <Trash2 className="h-4 w-4" />
+                              </Button>
+                              <Button
+                                onClick={() => handleComplete(exp.id)}
+                                size="sm"
+                                className="bg-purple-600 hover:bg-purple-700 text-white"
+                                disabled={completeMutation.isPending}
+                                data-testid={`button-complete-${exp.id}`}
+                              >
+                                {completeMutation.isPending ? (
+                                  <Loader2 className="h-4 w-4 animate-spin" />
+                                ) : (
+                                  "Complete"
+                                )}
+                              </Button>
+                            </>
+                          )}
+                          {exp.status === "completed" && (
+                            <Badge className="bg-green-500/20 text-green-400 border-green-500/30">
+                              Completed
+                            </Badge>
+                          )}
+                        </div>
                       </td>
                     </tr>
                   ))}

@@ -2,7 +2,7 @@ import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, D
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Separator } from "@/components/ui/separator";
-import { Trash2, X } from "lucide-react";
+import { Trash2, X, Pencil } from "lucide-react";
 import { useState } from "react";
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from "@/components/ui/alert-dialog";
 
@@ -47,41 +47,61 @@ export function ExperimentDetailsModal({
       <Dialog open={open} onOpenChange={onOpenChange}>
         <DialogContent className="max-w-3xl max-h-[85vh] overflow-y-auto bg-gradient-to-br from-slate-900 via-purple-900/20 to-slate-900 border-purple-500/30">
           <DialogHeader>
-            <div className="flex items-start justify-between gap-4">
+            <div className="flex items-start justify-between gap-4 mb-4">
               <div className="flex-1">
-                <DialogTitle className="text-2xl font-bold text-white mb-2">
-                  {masterData?.experimentName || "Experiment Details"}
+                <DialogTitle className="text-2xl font-bold text-white mb-3">
+                  {masterData?.name || "Experiment Details"}
                 </DialogTitle>
-                <DialogDescription className="text-gray-300">
-                  {masterData?.category || "N/A"} • {masterData?.validationSphere || "N/A"}
+                <DialogDescription className="text-gray-300 mb-3">
+                  {masterData?.validationSphere || "N/A"}
                 </DialogDescription>
+                
+                {/* Tags in header */}
+                <div className="flex items-center gap-2 flex-wrap">
+                  <Badge className={`${getStatusColor(experiment.status)} border`}>
+                    {experiment.status.replace("_", " ").toUpperCase()}
+                  </Badge>
+                  
+                  {experiment.decision && (
+                    <Badge className="bg-gray-700/50 text-gray-300 border-gray-600 capitalize">
+                      Decision: {experiment.decision}
+                    </Badge>
+                  )}
+                  
+                  {masterData?.proofTag && (
+                    <Badge className="bg-yellow-500/10 text-yellow-400 border-yellow-500/50">
+                      {masterData.proofTag}
+                    </Badge>
+                  )}
+                </div>
               </div>
-              <Badge className={`${getStatusColor(experiment.status)} border`}>
-                {experiment.status.replace("_", " ").toUpperCase()}
-              </Badge>
+              
+              {/* Action buttons in header */}
+              <div className="flex items-center gap-2">
+                <Button
+                  variant="outline"
+                  size="sm"
+                  className="border-red-500/50 text-red-400 hover:bg-red-500/10 hover:text-red-300"
+                  onClick={() => setDeleteDialogOpen(true)}
+                  data-testid="button-delete-experiment"
+                >
+                  <Trash2 className="w-4 h-4" />
+                </Button>
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() => onOpenChange(false)}
+                  data-testid="button-close-details"
+                >
+                  <X className="w-4 h-4" />
+                </Button>
+              </div>
             </div>
           </DialogHeader>
 
           <Separator className="bg-purple-500/30" />
 
           <div className="space-y-6 py-4">
-            {/* Decision and ProofTag */}
-            <div className="grid grid-cols-2 gap-4">
-              <div>
-                <h4 className="text-sm font-semibold text-purple-300 mb-2">Decision</h4>
-                <Badge className="bg-gray-700/50 text-gray-300 border-gray-600">
-                  {experiment.decision || masterData?.decision || "Not set"}
-                </Badge>
-              </div>
-              <div>
-                <h4 className="text-sm font-semibold text-purple-300 mb-2">ProofTag</h4>
-                <Badge className="bg-yellow-500/10 text-yellow-400 border-yellow-500/50">
-                  {masterData?.proofTag || "Not assigned"}
-                </Badge>
-              </div>
-            </div>
-
-            <Separator className="bg-purple-500/20" />
 
             {/* Core Assumption */}
             <div>
@@ -139,26 +159,6 @@ export function ExperimentDetailsModal({
               </p>
             </div>
           </div>
-
-          <DialogFooter className="flex gap-2 sm:gap-2">
-            <Button
-              variant="outline"
-              className="border-red-500/50 text-red-400 hover:bg-red-500/10 hover:text-red-300"
-              onClick={() => setDeleteDialogOpen(true)}
-              data-testid="button-delete-experiment"
-            >
-              <Trash2 className="w-4 h-4 mr-2" />
-              Delete
-            </Button>
-            <Button
-              variant="outline"
-              onClick={() => onOpenChange(false)}
-              data-testid="button-close-details"
-            >
-              <X className="w-4 h-4 mr-2" />
-              Close
-            </Button>
-          </DialogFooter>
         </DialogContent>
       </Dialog>
 
@@ -168,7 +168,7 @@ export function ExperimentDetailsModal({
           <AlertDialogHeader>
             <AlertDialogTitle className="text-white">Delete Experiment?</AlertDialogTitle>
             <AlertDialogDescription className="text-gray-300">
-              Are you sure you want to delete "{masterData?.experimentName}"? This action cannot be undone.
+              Are you sure you want to delete "{masterData?.name}"? This action cannot be undone.
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
