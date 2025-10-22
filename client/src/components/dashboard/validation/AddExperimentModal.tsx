@@ -8,7 +8,7 @@ import { Plus, Search } from "lucide-react";
 
 interface ExperimentMaster {
   experimentId: string;
-  experimentName: string;
+  name: string;
   validationSphere: string;
   category: string;
   hypothesisTested: string;
@@ -33,7 +33,7 @@ export function AddExperimentModal({
   const [searchTerm, setSearchTerm] = useState("");
 
   const filteredExperiments = availableExperiments.filter((exp) =>
-    exp.experimentName.toLowerCase().includes(searchTerm.toLowerCase()) ||
+    exp.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
     exp.validationSphere.toLowerCase().includes(searchTerm.toLowerCase()) ||
     exp.category?.toLowerCase().includes(searchTerm.toLowerCase())
   );
@@ -99,7 +99,7 @@ export function AddExperimentModal({
                     <div className="flex-1 space-y-2">
                       <div className="flex items-start justify-between gap-2">
                         <h4 className="font-semibold text-white text-base">
-                          {exp.experimentName}
+                          {exp.name}
                         </h4>
                         <Button
                           size="sm"
