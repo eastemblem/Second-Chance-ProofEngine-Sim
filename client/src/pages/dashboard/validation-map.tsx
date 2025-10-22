@@ -413,21 +413,28 @@ export default function ValidationMap() {
   };
 
   const handleExportCSV = () => {
-    if (experiments.length === 0) {
+    if (completedCount < 3) {
+      toast({
+        title: "Export unavailable",
+        description: "Complete at least 3 experiments to export your validation map",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    if (filteredExperiments.length === 0) {
       toast({
         title: "No data to export",
-        description: "Complete some experiments first",
+        description: "No experiments match your current filters",
         variant: "destructive",
       });
       return;
     }
 
     const headers = [
-      "Status",
       "Experiment Name",
-      "Decision",
-      "ProofTag",
       "Category",
+      "Decision",
       "Core Assumption",
       "Hypothesis",
       "Target Behaviour",
@@ -435,15 +442,12 @@ export default function ValidationMap() {
       "Actual Results",
       "Why ?",
       "New Insights",
-      "Completed At",
     ];
 
-    const rows = experiments.map((exp: VentureExperiment) => [
-      exp.status,
+    const rows = filteredExperiments.map((exp: VentureExperiment) => [
       exp.masterData.name,
-      exp.decision || "",
-      exp.status === "completed" ? exp.masterData.proofTag || "" : "",
       exp.masterData.validationSphere,
+      exp.decision || "",
       exp.masterData.hypothesisTested || "",
       exp.userHypothesis || "",
       exp.masterData.signalTracked || "",
@@ -451,7 +455,6 @@ export default function ValidationMap() {
       exp.results || "",
       exp.customNotes || "",
       exp.newInsights || "",
-      exp.completedAt ? new Date(exp.completedAt).toLocaleDateString() : "",
     ]);
 
     const csvContent = [
@@ -468,7 +471,7 @@ export default function ValidationMap() {
     const url = URL.createObjectURL(blob);
     
     link.setAttribute("href", url);
-    link.setAttribute("download", `validation-map-${new Date().toISOString().split('T')[0]}.csv`);
+    link.setAttribute("download", `Validation-Map-${new Date().toISOString().split('T')[0]}.csv`);
     link.style.visibility = "hidden";
     
     document.body.appendChild(link);
@@ -477,7 +480,7 @@ export default function ValidationMap() {
 
     toast({
       title: "CSV Exported!",
-      description: "Your validation map has been exported successfully",
+      description: `Successfully exported ${filteredExperiments.length} experiments to CSV`,
     });
   };
 
@@ -550,8 +553,10 @@ export default function ValidationMap() {
                 <Button 
                   onClick={handleExportCSV} 
                   variant="outline" 
-                  className="bg-gray-900/60 border-gray-800 text-gray-300 hover:bg-gray-800"
+                  className="bg-gray-900/60 border-gray-800 text-gray-300 hover:bg-gray-800 disabled:opacity-50 disabled:cursor-not-allowed"
+                  disabled={completedCount < 3}
                   data-testid="button-export-csv"
+                  title={completedCount < 3 ? `Complete at least 3 experiments to export (${completedCount}/3)` : "Export your validation map to CSV"}
                 >
                   <Download className="mr-2 h-4 w-4" />
                   Export CSV
