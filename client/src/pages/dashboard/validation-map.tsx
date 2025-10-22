@@ -7,7 +7,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { CheckCircle, Circle, Loader2, Download, Trophy } from "lucide-react";
+import { CheckCircle, Circle, Loader2, Download, Trophy, Plus } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import confetti from "canvas-confetti";
 import { useTokenAuth } from "@/hooks/use-token-auth";
@@ -17,6 +17,7 @@ import { ValidationMapIntro } from "@/components/dashboard/validation/Validation
 import { ValidationMapWalkthrough } from "@/components/dashboard/validation/ValidationMapWalkthrough";
 import { ExperimentEditModal } from "@/components/dashboard/validation/ExperimentEditModal";
 import { ExperimentDetailsModal } from "@/components/dashboard/validation/ExperimentDetailsModal";
+import { AddExperimentModal } from "@/components/dashboard/validation/AddExperimentModal";
 import { ColumnBadge } from "@/components/dashboard/validation/ColumnBadge";
 import Footer from "@/components/layout/footer";
 
@@ -85,6 +86,9 @@ export default function ValidationMap() {
   const [detailsModalOpen, setDetailsModalOpen] = useState(false);
   const [selectedExperiment, setSelectedExperiment] = useState<VentureExperiment | null>(null);
 
+  // Add experiment modal state
+  const [addModalOpen, setAddModalOpen] = useState(false);
+
   // Fetch validation data for header
   const { data: validationData } = useQuery<any>({
     queryKey: ['/api/pitch/validation-status'],
@@ -97,9 +101,19 @@ export default function ValidationMap() {
     enabled: !!ventureId,
   });
 
+  // Fetch all experiment masters
+  const { data: mastersData } = useQuery({
+    queryKey: ["/api/validation-map/masters"],
+    enabled: !!ventureId,
+  });
+
   const experiments = (experimentsData as any)?.data?.experiments || [];
   const proofScore = (experimentsData as any)?.data?.proofScore || 0;
   const status = (experimentsData as any)?.data?.status || "Building Validation";
+
+  const allMasters = (mastersData as any)?.data || [];
+  const addedExperimentIds = new Set(experiments.map((exp: VentureExperiment) => exp.experimentId));
+  const availableExperiments = allMasters.filter((master: any) => !addedExperimentIds.has(master.experimentId));
 
   // Update experiment mutation
   const updateMutation = useMutation({
@@ -185,6 +199,29 @@ export default function ValidationMap() {
     },
   });
 
+  // Create experiment mutation
+  const createMutation = useMutation({
+    mutationFn: async (experimentId: string) => {
+      const response = await apiRequest("POST", "/api/validation-map", { experimentId });
+      return response.json();
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["/api/validation-map"] });
+      setAddModalOpen(false);
+      toast({
+        title: "Experiment added",
+        description: "The experiment has been added to your validation map",
+      });
+    },
+    onError: (error: Error) => {
+      toast({
+        title: "Failed to add experiment",
+        description: error.message,
+        variant: "destructive",
+      });
+    },
+  });
+
   // Auto-save with debounce
   useEffect(() => {
     const timers: Record<string, NodeJS.Timeout> = {};
@@ -229,6 +266,10 @@ export default function ValidationMap() {
   const handleViewDetails = (exp: VentureExperiment) => {
     setSelectedExperiment(exp);
     setDetailsModalOpen(true);
+  };
+
+  const handleAddExperiment = (experimentId: string) => {
+    createMutation.mutate(experimentId);
   };
 
   const handleUploadFiles = () => {
@@ -398,15 +439,25 @@ export default function ValidationMap() {
           <CardContent className="p-6">
             <div className="flex justify-between items-center mb-6">
               <h2 className="text-2xl font-bold text-white">Your Experiments</h2>
-              <Button 
-                onClick={handleExportCSV} 
-                variant="outline" 
-                className="bg-gray-900/60 border-gray-800 text-gray-300 hover:bg-gray-800"
-                data-testid="button-export-csv"
-              >
-                <Download className="mr-2 h-4 w-4" />
-                Export CSV
-              </Button>
+              <div className="flex gap-2">
+                <Button 
+                  onClick={() => setAddModalOpen(true)} 
+                  className="bg-purple-600 hover:bg-purple-700 text-white"
+                  data-testid="button-add-experiment"
+                >
+                  <Plus className="mr-2 h-4 w-4" />
+                  Add Experiment
+                </Button>
+                <Button 
+                  onClick={handleExportCSV} 
+                  variant="outline" 
+                  className="bg-gray-900/60 border-gray-800 text-gray-300 hover:bg-gray-800"
+                  data-testid="button-export-csv"
+                >
+                  <Download className="mr-2 h-4 w-4" />
+                  Export CSV
+                </Button>
+              </div>
             </div>
             
             <div className="overflow-x-auto">
@@ -625,6 +676,15 @@ export default function ValidationMap() {
         onOpenChange={setDetailsModalOpen}
         experiment={selectedExperiment}
         onDelete={handleDelete}
+      />
+
+      {/* Add Experiment Modal */}
+      <AddExperimentModal
+        open={addModalOpen}
+        onOpenChange={setAddModalOpen}
+        availableExperiments={availableExperiments}
+        onAdd={handleAddExperiment}
+        isAdding={createMutation.isPending}
       />
 
       <Footer />

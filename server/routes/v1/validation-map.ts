@@ -9,6 +9,30 @@ import { databaseService } from "../../services/database-service";
 
 const router = express.Router();
 
+// GET /api/validation-map/masters - Get all experiment masters
+router.get(
+  "/masters",
+  asyncHandler(async (req: Request, res: Response) => {
+    const founderId = (req as AuthenticatedRequest).user?.founderId;
+
+    if (!founderId) {
+      return res.status(401).json({
+        success: false,
+        error: "Authentication required",
+      });
+    }
+
+    const masters = await storage.getAllExperimentMasters();
+
+    res.json(
+      createSuccessResponse(
+        masters,
+        "Experiment masters retrieved successfully"
+      )
+    );
+  })
+);
+
 // GET /api/validation-map - Get all experiments for authenticated user's venture
 router.get(
   "/",
