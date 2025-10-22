@@ -143,7 +143,7 @@ export default function ValidationMap() {
 
   // Fetch validation data for header
   const { data: validationData } = useQuery<any>({
-    queryKey: ['/api/pitch/validation-status'],
+    queryKey: ['/api/v1/dashboard/validation'],
     enabled: !!venture,
   });
 

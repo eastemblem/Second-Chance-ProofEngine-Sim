@@ -23,7 +23,7 @@ export function ValidationMapHeader() {
 
   // Fetch validation data for ProofTags count
   const { data: validationData } = useQuery<any>({
-    queryKey: ['/api/pitch/validation-status'],
+    queryKey: ['/api/v1/dashboard/validation'],
     enabled: !!venture,
   });
 
