@@ -97,13 +97,17 @@ export function ExperimentDetailsModal({
                   <DialogTitle className="text-2xl font-bold text-white">
                     {masterData?.name || "Experiment Details"}
                   </DialogTitle>
-                  <Badge className={`${getStatusColor(experiment.status)} border px-3 py-1 capitalize`}>
-                    {experiment.status.replace("_", " ")}
-                  </Badge>
+                  <div className="flex items-center gap-2">
+                    <span className="text-gray-400 text-sm">Status:</span>
+                    <Badge className={`${getStatusColor(experiment.status)} border px-3 py-1 capitalize`}>
+                      {experiment.status.replace("_", " ")}
+                    </Badge>
+                  </div>
                 </div>
                 
                 {/* Category Tag (below title) */}
-                <div className="mb-2">
+                <div className="flex items-center gap-2 mb-2">
+                  <span className="text-gray-400 text-sm">Category:</span>
                   <Badge className="bg-purple-500/20 text-purple-300 border-purple-500/30 px-3 py-1">
                     {masterData?.validationSphere || "N/A"}
                   </Badge>
@@ -113,16 +117,22 @@ export function ExperimentDetailsModal({
                 <div className="flex items-center gap-3 flex-wrap">
                   {/* Decision */}
                   {experiment.decision && (
-                    <Badge className="bg-gray-700/50 text-gray-300 border-gray-600 px-3 py-1 capitalize">
-                      {experiment.decision}
-                    </Badge>
+                    <div className="flex items-center gap-2">
+                      <span className="text-gray-400 text-sm">Decision:</span>
+                      <Badge className="bg-gray-700/50 text-gray-300 border-gray-600 px-3 py-1 capitalize">
+                        {experiment.decision}
+                      </Badge>
+                    </div>
                   )}
                   
                   {/* ProofTag */}
                   {masterData?.proofTag && (
-                    <Badge className="bg-yellow-500/20 text-yellow-400 border-yellow-500/50 px-3 py-1">
-                      {masterData.proofTag}
-                    </Badge>
+                    <div className="flex items-center gap-2">
+                      <span className="text-gray-400 text-sm">ProofTag:</span>
+                      <Badge className="bg-yellow-500/20 text-yellow-400 border-yellow-500/50 px-3 py-1">
+                        {masterData.proofTag}
+                      </Badge>
+                    </div>
                   )}
                 </div>
               </div>
