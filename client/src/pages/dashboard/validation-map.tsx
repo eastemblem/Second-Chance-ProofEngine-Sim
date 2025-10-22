@@ -378,37 +378,37 @@ export default function ValidationMap() {
                 <thead>
                   <tr className="border-b border-gray-800">
                     <th className="p-4 text-left font-semibold text-gray-300 text-sm">
-                      <ColumnBadge variant="gray">Status</ColumnBadge>
+                      <ColumnBadge variant="slate">Status</ColumnBadge>
                     </th>
                     <th className="p-4 text-left font-semibold text-gray-300 text-sm min-w-[200px]">
                       <ColumnBadge variant="purple">Experiment</ColumnBadge>
                     </th>
                     <th className="p-4 text-left font-semibold text-gray-300 text-sm">
-                      <ColumnBadge variant="purple">Category</ColumnBadge>
+                      <ColumnBadge variant="fuchsia">Category</ColumnBadge>
                     </th>
                     <th className="p-4 text-left font-semibold text-gray-300 text-sm min-w-[200px]">
-                      <ColumnBadge variant="purple">Core Assumption</ColumnBadge>
+                      <ColumnBadge variant="violet">Core Assumption</ColumnBadge>
                     </th>
                     <th className="p-4 text-left font-semibold text-gray-300 text-sm min-w-[200px]">
-                      <ColumnBadge variant="purple">Hypothesis</ColumnBadge>
+                      <ColumnBadge variant="magenta">Hypothesis</ColumnBadge>
                     </th>
                     <th className="p-4 text-left font-semibold text-gray-300 text-sm min-w-[150px]">
-                      <ColumnBadge variant="blue">Target Behaviour</ColumnBadge>
+                      <ColumnBadge variant="cyan">Target Behaviour</ColumnBadge>
                     </th>
                     <th className="p-4 text-left font-semibold text-gray-300 text-sm min-w-[150px]">
-                      <ColumnBadge variant="orange">Target Metric</ColumnBadge>
+                      <ColumnBadge variant="amber">Target Metric</ColumnBadge>
                     </th>
                     <th className="p-4 text-left font-semibold text-gray-300 text-sm min-w-[200px]">
-                      <ColumnBadge variant="purple">Actual Results</ColumnBadge>
+                      <ColumnBadge variant="indigo">Actual Results</ColumnBadge>
                     </th>
                     <th className="p-4 text-left font-semibold text-gray-300 text-sm min-w-[200px]">
-                      <ColumnBadge variant="cyan">Why ?</ColumnBadge>
+                      <ColumnBadge variant="teal">Why ?</ColumnBadge>
                     </th>
                     <th className="p-4 text-left font-semibold text-gray-300 text-sm min-w-[200px]">
-                      <ColumnBadge variant="gradient">New Insights</ColumnBadge>
+                      <ColumnBadge variant="rose">New Insights</ColumnBadge>
                     </th>
                     <th className="p-4 text-left font-semibold text-gray-300 text-sm">
-                      <ColumnBadge variant="green">Action</ColumnBadge>
+                      <ColumnBadge variant="emerald">Action</ColumnBadge>
                     </th>
                   </tr>
                 </thead>
