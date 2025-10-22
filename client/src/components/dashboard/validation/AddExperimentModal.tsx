@@ -21,6 +21,7 @@ interface AddExperimentModalProps {
   availableExperiments: ExperimentMaster[];
   onAdd: (experimentId: string) => void;
   isAdding: boolean;
+  onOpenCustomExperiment?: () => void;
 }
 
 export function AddExperimentModal({
@@ -29,6 +30,7 @@ export function AddExperimentModal({
   availableExperiments,
   onAdd,
   isAdding,
+  onOpenCustomExperiment,
 }: AddExperimentModalProps) {
   const [searchTerm, setSearchTerm] = useState("");
 
@@ -148,11 +150,16 @@ export function AddExperimentModal({
 
         <DialogFooter>
           <Button
-            variant="outline"
-            onClick={() => onOpenChange(false)}
-            data-testid="button-close-add-modal"
+            variant="default"
+            onClick={() => {
+              onOpenChange(false);
+              onOpenCustomExperiment?.();
+            }}
+            className="bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700 text-white"
+            data-testid="button-custom-experiment"
           >
-            Close
+            <Plus className="h-4 w-4 mr-2" />
+            Custom Experiment
           </Button>
         </DialogFooter>
       </DialogContent>

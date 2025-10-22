@@ -19,6 +19,7 @@ import { ValidationMapWalkthrough } from "@/components/dashboard/validation/Vali
 import { ExperimentEditModal } from "@/components/dashboard/validation/ExperimentEditModal";
 import { ExperimentDetailsModal } from "@/components/dashboard/validation/ExperimentDetailsModal";
 import { AddExperimentModal } from "@/components/dashboard/validation/AddExperimentModal";
+import { CustomExperimentModal, type CustomExperimentData } from "@/components/dashboard/validation/CustomExperimentModal";
 import { ColumnBadge } from "@/components/dashboard/validation/ColumnBadge";
 import Footer from "@/components/layout/footer";
 
@@ -112,12 +113,16 @@ export default function ValidationMap() {
   // Add experiment modal state
   const [addModalOpen, setAddModalOpen] = useState(false);
 
+  // Custom experiment modal state
+  const [customExperimentModalOpen, setCustomExperimentModalOpen] = useState(false);
+
   // Track which experiments are being completed (supports concurrent completions)
   const [completingExperimentIds, setCompletingExperimentIds] = useState<Set<string>>(new Set());
 
   // Search and filter state
   const [searchQuery, setSearchQuery] = useState("");
   const [statusFilter, setStatusFilter] = useState<"all" | "active" | "completed">("all");
+  const [categoryFilter, setCategoryFilter] = useState<string>("all");
 
   // Fetch validation data for header
   const { data: validationData } = useQuery<any>({
@@ -145,11 +150,17 @@ export default function ValidationMap() {
   const addedExperimentIds = new Set(experiments.map((exp: VentureExperiment) => exp.experimentId));
   const availableExperiments = allMasters.filter((master: any) => !addedExperimentIds.has(master.experimentId));
 
-  // Filter experiments based on search and status filter
+  // Get unique categories from experiments for the filter
+  const uniqueCategories: string[] = Array.from(new Set(experiments.map((exp: VentureExperiment) => exp.masterData.validationSphere))).sort();
+
+  // Filter experiments based on search, status, and category filters
   const filteredExperiments = experiments.filter((exp: VentureExperiment) => {
     // Status filter
     if (statusFilter === "active" && exp.status === "completed") return false;
     if (statusFilter === "completed" && exp.status !== "completed") return false;
+
+    // Category filter
+    if (categoryFilter !== "all" && exp.masterData.validationSphere !== categoryFilter) return false;
 
     // Search filter
     if (searchQuery) {
@@ -282,6 +293,30 @@ export default function ValidationMap() {
     },
   });
 
+  // Create custom experiment mutation
+  const createCustomMutation = useMutation({
+    mutationFn: async (experimentData: CustomExperimentData) => {
+      const response = await apiRequest("POST", "/api/validation-map/custom", experimentData);
+      return response.json();
+    },
+    onSuccess: async () => {
+      await queryClient.invalidateQueries({ queryKey: ["/api/validation-map"] });
+      await queryClient.invalidateQueries({ queryKey: ["/api/validation-map/masters"] });
+      setCustomExperimentModalOpen(false);
+      toast({
+        title: "Custom experiment created",
+        description: "Your custom experiment has been added to your validation map",
+      });
+    },
+    onError: (error: Error) => {
+      toast({
+        title: "Failed to create custom experiment",
+        description: error.message,
+        variant: "destructive",
+      });
+    },
+  });
+
   // Auto-save with debounce
   useEffect(() => {
     const timers: Record<string, NodeJS.Timeout> = {};
@@ -330,6 +365,10 @@ export default function ValidationMap() {
 
   const handleAddExperiment = (experimentId: string) => {
     createMutation.mutate(experimentId);
+  };
+
+  const handleCreateCustomExperiment = (experimentData: CustomExperimentData) => {
+    createCustomMutation.mutate(experimentData);
   };
 
   const handleUploadFiles = () => {
@@ -545,6 +584,30 @@ export default function ValidationMap() {
                   )}
                 </div>
 
+                {/* Category Filter Dropdown */}
+                <Select value={categoryFilter} onValueChange={setCategoryFilter}>
+                  <SelectTrigger 
+                    className="w-[200px] bg-gray-800/50 border-gray-700 text-gray-200"
+                    data-testid="select-category-filter"
+                  >
+                    <SelectValue placeholder="All Categories" />
+                  </SelectTrigger>
+                  <SelectContent className="bg-gray-900 border-gray-700">
+                    <SelectItem value="all" className="text-gray-200 focus:bg-gray-800">
+                      All Categories
+                    </SelectItem>
+                    {uniqueCategories.map((category: string) => (
+                      <SelectItem 
+                        key={category} 
+                        value={category} 
+                        className="text-gray-200 focus:bg-gray-800"
+                      >
+                        {category}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+
                 {/* Status Filter Buttons */}
                 <div className="flex gap-2">
                   <Button
@@ -585,17 +648,18 @@ export default function ValidationMap() {
                 <p className="text-gray-400">
                   Showing <span className="text-white font-semibold">{filteredExperiments.length}</span> of{" "}
                   <span className="text-white font-semibold">{experiments.length}</span> experiments
-                  {(searchQuery || statusFilter !== "all") && (
+                  {(searchQuery || statusFilter !== "all" || categoryFilter !== "all") && (
                     <span className="ml-2 text-purple-400">
                       (filtered)
                     </span>
                   )}
                 </p>
-                {(searchQuery || statusFilter !== "all") && (
+                {(searchQuery || statusFilter !== "all" || categoryFilter !== "all") && (
                   <Button
                     onClick={() => {
                       setSearchQuery("");
                       setStatusFilter("all");
+                      setCategoryFilter("all");
                     }}
                     variant="ghost"
                     size="sm"
@@ -914,6 +978,17 @@ export default function ValidationMap() {
         availableExperiments={availableExperiments}
         onAdd={handleAddExperiment}
         isAdding={createMutation.isPending}
+        onOpenCustomExperiment={() => setCustomExperimentModalOpen(true)}
+      />
+
+      {/* Custom Experiment Modal */}
+      <CustomExperimentModal
+        open={customExperimentModalOpen}
+        onOpenChange={(open) => {
+          setCustomExperimentModalOpen(open);
+        }}
+        onSubmit={handleCreateCustomExperiment}
+        isSubmitting={createCustomMutation.isPending}
       />
 
       <Footer />

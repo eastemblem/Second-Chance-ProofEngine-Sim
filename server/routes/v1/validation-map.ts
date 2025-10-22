@@ -318,6 +318,93 @@ router.post(
   })
 );
 
+// POST /api/validation-map/custom - Create custom experiment
+router.post(
+  "/custom",
+  asyncHandler(async (req: Request, res: Response) => {
+    const founderId = (req as AuthenticatedRequest).user?.founderId;
+
+    if (!founderId) {
+      return res.status(401).json({
+        success: false,
+        error: "Authentication required",
+      });
+    }
+
+    // Get founder's venture
+    const dashboardData = await databaseService.getFounderWithLatestVenture(founderId);
+    if (!dashboardData || !dashboardData.venture) {
+      return res.status(404).json({
+        success: false,
+        error: "No venture found",
+      });
+    }
+
+    const ventureId = dashboardData.venture.ventureId;
+
+    const customExperimentSchema = z.object({
+      name: z.string().min(1, "Name is required"),
+      definition: z.string().min(1, "Definition is required"),
+      hypothesisTested: z.string().min(1, "Hypothesis tested is required"),
+      experimentFormat: z.string().min(1, "Experiment format is required"),
+      signalTracked: z.string().min(1, "Signal tracked is required"),
+      targetMetric: z.string().min(1, "Target metric is required"),
+      toolsPlatforms: z.string().optional(),
+      typicalDuration: z.string().optional(),
+      notes: z.string().optional(),
+    });
+
+    const validatedData = customExperimentSchema.parse(req.body);
+
+    // Generate a unique experiment ID for the custom experiment
+    const customExperimentId = `custom_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
+
+    // Create custom experiment master
+    const customMaster = await storage.createExperimentMaster({
+      experimentId: customExperimentId,
+      validationSphere: "Custom",
+      name: validatedData.name,
+      definition: validatedData.definition,
+      hypothesisTested: validatedData.hypothesisTested,
+      experimentFormat: validatedData.experimentFormat,
+      signalTracked: validatedData.signalTracked,
+      targetMetric: validatedData.targetMetric,
+      toolsPlatforms: validatedData.toolsPlatforms || null,
+      typicalDuration: validatedData.typicalDuration || null,
+      notes: validatedData.notes || null,
+      proofTag: null, // Custom experiments don't have ProofTags
+    });
+
+    if (!customMaster) {
+      return res.status(500).json({
+        success: false,
+        error: "Failed to create custom experiment master",
+      });
+    }
+
+    // Create venture experiment linked to the custom master
+    const newExperiment = await storage.createVentureExperiment({
+      ventureId,
+      experimentId: customExperimentId,
+      status: "not_started",
+      userHypothesis: null,
+      results: null,
+      decision: null,
+      customNotes: null,
+      newInsights: null,
+    });
+
+    appLogger.info(`Created custom experiment ${customExperimentId} for venture ${ventureId}`);
+
+    res.json(
+      createSuccessResponse(
+        newExperiment,
+        "Custom experiment created successfully"
+      )
+    );
+  })
+);
+
 // DELETE /api/validation-map/:id - Delete experiment
 router.delete(
   "/:id",

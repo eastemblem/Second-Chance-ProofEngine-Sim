@@ -90,6 +90,7 @@ export interface IStorage {
   // Validation Map methods
   getAllExperimentMasters(): Promise<any[]>;
   getExperimentMaster(experimentId: string): Promise<any | undefined>;
+  createExperimentMaster(master: any): Promise<any>;
   getVentureExperiments(ventureId: string): Promise<any[]>;
   getVentureExperiment(id: string): Promise<any | undefined>;
   createVentureExperiment(experiment: any): Promise<any>;
@@ -567,6 +568,14 @@ export class DatabaseStorage implements IStorage {
       .where(eq(experimentMaster.experimentId, experimentId))
       .limit(1);
     return master;
+  }
+
+  async createExperimentMaster(master: any): Promise<any> {
+    const [created] = await db
+      .insert(experimentMaster)
+      .values(master)
+      .returning();
+    return created;
   }
 
   async getVentureExperiments(ventureId: string): Promise<any[]> {
