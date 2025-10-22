@@ -1,16 +1,18 @@
-import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Separator } from "@/components/ui/separator";
-import { Trash2, X, Pencil } from "lucide-react";
-import { useState } from "react";
+import { Trash2, X, Pencil, Save } from "lucide-react";
+import { useState, useEffect } from "react";
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from "@/components/ui/alert-dialog";
+import { RichTextEditor } from "./RichTextEditor";
 
 interface ExperimentDetailsModalProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
   experiment: any;
   onDelete: (id: string) => void;
+  onSave: (id: string, updates: Record<string, any>) => void;
 }
 
 export function ExperimentDetailsModal({
@@ -18,8 +20,29 @@ export function ExperimentDetailsModal({
   onOpenChange,
   experiment,
   onDelete,
+  onSave,
 }: ExperimentDetailsModalProps) {
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
+  const [isEditMode, setIsEditMode] = useState(false);
+  const [editedValues, setEditedValues] = useState({
+    userHypothesis: '',
+    results: '',
+    customNotes: '',
+    newInsights: '',
+  });
+
+  // Reset edit mode and values when modal opens/closes or experiment changes
+  useEffect(() => {
+    if (experiment) {
+      setEditedValues({
+        userHypothesis: experiment.userHypothesis || '',
+        results: experiment.results || '',
+        customNotes: experiment.customNotes || '',
+        newInsights: experiment.newInsights || '',
+      });
+      setIsEditMode(false);
+    }
+  }, [experiment, open]);
 
   if (!experiment) return null;
 
@@ -40,6 +63,21 @@ export function ExperimentDetailsModal({
     onDelete(experiment.id);
     setDeleteDialogOpen(false);
     onOpenChange(false);
+  };
+
+  const handleSave = () => {
+    onSave(experiment.id, editedValues);
+    setIsEditMode(false);
+  };
+
+  const handleCancel = () => {
+    setEditedValues({
+      userHypothesis: experiment.userHypothesis || '',
+      results: experiment.results || '',
+      customNotes: experiment.customNotes || '',
+      newInsights: experiment.newInsights || '',
+    });
+    setIsEditMode(false);
   };
 
   return (
@@ -78,23 +116,60 @@ export function ExperimentDetailsModal({
               
               {/* Action buttons in header */}
               <div className="flex items-center gap-2">
-                <Button
-                  variant="outline"
-                  size="sm"
-                  className="border-red-500/50 text-red-400 hover:bg-red-500/10 hover:text-red-300"
-                  onClick={() => setDeleteDialogOpen(true)}
-                  data-testid="button-delete-experiment"
-                >
-                  <Trash2 className="w-4 h-4" />
-                </Button>
-                <Button
-                  variant="outline"
-                  size="sm"
-                  onClick={() => onOpenChange(false)}
-                  data-testid="button-close-details"
-                >
-                  <X className="w-4 h-4" />
-                </Button>
+                {isEditMode ? (
+                  <>
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      className="border-purple-500/50 text-purple-400 hover:bg-purple-500/10 hover:text-purple-300"
+                      onClick={handleSave}
+                      data-testid="button-save-experiment"
+                    >
+                      <Save className="w-4 h-4 mr-2" />
+                      Save
+                    </Button>
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={handleCancel}
+                      data-testid="button-cancel-edit"
+                    >
+                      <X className="w-4 h-4 mr-2" />
+                      Cancel
+                    </Button>
+                  </>
+                ) : (
+                  <>
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      className="border-blue-500/50 text-blue-400 hover:bg-blue-500/10 hover:text-blue-300"
+                      onClick={() => setIsEditMode(true)}
+                      disabled={experiment.status === "completed"}
+                      data-testid="button-edit-experiment"
+                    >
+                      <Pencil className="w-4 h-4 mr-2" />
+                      Edit
+                    </Button>
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      className="border-red-500/50 text-red-400 hover:bg-red-500/10 hover:text-red-300"
+                      onClick={() => setDeleteDialogOpen(true)}
+                      data-testid="button-delete-experiment"
+                    >
+                      <Trash2 className="w-4 h-4" />
+                    </Button>
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={() => onOpenChange(false)}
+                      data-testid="button-close-details"
+                    >
+                      <X className="w-4 h-4" />
+                    </Button>
+                  </>
+                )}
               </div>
             </div>
           </DialogHeader>
@@ -102,8 +177,7 @@ export function ExperimentDetailsModal({
           <Separator className="bg-purple-500/30" />
 
           <div className="space-y-6 py-4">
-
-            {/* Core Assumption */}
+            {/* Core Assumption (read-only) */}
             <div>
               <h4 className="text-sm font-semibold text-purple-300 mb-2">Core Assumption</h4>
               <p className="text-gray-200 bg-slate-800/50 p-3 rounded-lg border border-purple-500/20">
@@ -111,15 +185,33 @@ export function ExperimentDetailsModal({
               </p>
             </div>
 
-            {/* Hypothesis */}
+            {/* Hypothesis (editable) */}
             <div>
               <h4 className="text-sm font-semibold text-purple-300 mb-2">Hypothesis</h4>
-              <p className="text-gray-200 bg-slate-800/50 p-3 rounded-lg border border-purple-500/20">
-                {experiment.userHypothesis || "Not defined"}
-              </p>
+              {isEditMode ? (
+                <RichTextEditor
+                  content={editedValues.userHypothesis}
+                  onChange={(html) => setEditedValues({ ...editedValues, userHypothesis: html })}
+                  placeholder="Enter your hypothesis..."
+                />
+              ) : (
+                <div 
+                  className="text-gray-200 bg-slate-800/50 p-3 rounded-lg border border-purple-500/20 prose prose-invert max-w-none
+                    prose-headings:text-white prose-headings:font-bold prose-headings:mb-2
+                    prose-h2:text-xl prose-h3:text-lg
+                    prose-p:my-2 prose-p:leading-relaxed
+                    prose-ul:my-2 prose-ul:list-disc prose-ul:pl-6
+                    prose-ol:my-2 prose-ol:list-decimal prose-ol:pl-6
+                    prose-li:my-1
+                    prose-strong:text-white prose-strong:font-semibold
+                    prose-em:italic
+                    prose-a:text-purple-400 prose-a:underline"
+                  dangerouslySetInnerHTML={{ __html: experiment.userHypothesis || "Not defined" }}
+                />
+              )}
             </div>
 
-            {/* Target Behaviour */}
+            {/* Target Behaviour (read-only) */}
             <div>
               <h4 className="text-sm font-semibold text-purple-300 mb-2">Target Behaviour</h4>
               <p className="text-gray-200 bg-slate-800/50 p-3 rounded-lg border border-purple-500/20">
@@ -127,7 +219,7 @@ export function ExperimentDetailsModal({
               </p>
             </div>
 
-            {/* Target Metric */}
+            {/* Target Metric (read-only) */}
             <div>
               <h4 className="text-sm font-semibold text-purple-300 mb-2">Target Metric</h4>
               <p className="text-gray-200 bg-slate-800/50 p-3 rounded-lg border border-purple-500/20">
@@ -135,28 +227,82 @@ export function ExperimentDetailsModal({
               </p>
             </div>
 
-            {/* Actual Results */}
+            {/* Actual Results (editable) */}
             <div>
               <h4 className="text-sm font-semibold text-purple-300 mb-2">Actual Results</h4>
-              <p className="text-gray-200 bg-slate-800/50 p-3 rounded-lg border border-purple-500/20">
-                {experiment.results || "No results yet"}
-              </p>
+              {isEditMode ? (
+                <RichTextEditor
+                  content={editedValues.results}
+                  onChange={(html) => setEditedValues({ ...editedValues, results: html })}
+                  placeholder="Enter your results..."
+                />
+              ) : (
+                <div 
+                  className="text-gray-200 bg-slate-800/50 p-3 rounded-lg border border-purple-500/20 prose prose-invert max-w-none
+                    prose-headings:text-white prose-headings:font-bold prose-headings:mb-2
+                    prose-h2:text-xl prose-h3:text-lg
+                    prose-p:my-2 prose-p:leading-relaxed
+                    prose-ul:my-2 prose-ul:list-disc prose-ul:pl-6
+                    prose-ol:my-2 prose-ol:list-decimal prose-ol:pl-6
+                    prose-li:my-1
+                    prose-strong:text-white prose-strong:font-semibold
+                    prose-em:italic
+                    prose-a:text-purple-400 prose-a:underline"
+                  dangerouslySetInnerHTML={{ __html: experiment.results || "No results yet" }}
+                />
+              )}
             </div>
 
-            {/* Why? */}
+            {/* Why? (editable) */}
             <div>
               <h4 className="text-sm font-semibold text-purple-300 mb-2">Why?</h4>
-              <p className="text-gray-200 bg-slate-800/50 p-3 rounded-lg border border-purple-500/20">
-                {experiment.customNotes || "No notes"}
-              </p>
+              {isEditMode ? (
+                <RichTextEditor
+                  content={editedValues.customNotes}
+                  onChange={(html) => setEditedValues({ ...editedValues, customNotes: html })}
+                  placeholder="Explain why..."
+                />
+              ) : (
+                <div 
+                  className="text-gray-200 bg-slate-800/50 p-3 rounded-lg border border-purple-500/20 prose prose-invert max-w-none
+                    prose-headings:text-white prose-headings:font-bold prose-headings:mb-2
+                    prose-h2:text-xl prose-h3:text-lg
+                    prose-p:my-2 prose-p:leading-relaxed
+                    prose-ul:my-2 prose-ul:list-disc prose-ul:pl-6
+                    prose-ol:my-2 prose-ol:list-decimal prose-ol:pl-6
+                    prose-li:my-1
+                    prose-strong:text-white prose-strong:font-semibold
+                    prose-em:italic
+                    prose-a:text-purple-400 prose-a:underline"
+                  dangerouslySetInnerHTML={{ __html: experiment.customNotes || "No notes" }}
+                />
+              )}
             </div>
 
-            {/* New Insights */}
+            {/* New Insights (editable) */}
             <div>
               <h4 className="text-sm font-semibold text-purple-300 mb-2">New Insights</h4>
-              <p className="text-gray-200 bg-slate-800/50 p-3 rounded-lg border border-purple-500/20">
-                {experiment.newInsights || "No insights captured"}
-              </p>
+              {isEditMode ? (
+                <RichTextEditor
+                  content={editedValues.newInsights}
+                  onChange={(html) => setEditedValues({ ...editedValues, newInsights: html })}
+                  placeholder="Add new insights..."
+                />
+              ) : (
+                <div 
+                  className="text-gray-200 bg-slate-800/50 p-3 rounded-lg border border-purple-500/20 prose prose-invert max-w-none
+                    prose-headings:text-white prose-headings:font-bold prose-headings:mb-2
+                    prose-h2:text-xl prose-h3:text-lg
+                    prose-p:my-2 prose-p:leading-relaxed
+                    prose-ul:my-2 prose-ul:list-disc prose-ul:pl-6
+                    prose-ol:my-2 prose-ol:list-decimal prose-ol:pl-6
+                    prose-li:my-1
+                    prose-strong:text-white prose-strong:font-semibold
+                    prose-em:italic
+                    prose-a:text-purple-400 prose-a:underline"
+                  dangerouslySetInnerHTML={{ __html: experiment.newInsights || "No insights captured" }}
+                />
+              )}
             </div>
           </div>
         </DialogContent>

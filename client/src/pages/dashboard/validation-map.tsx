@@ -770,6 +770,9 @@ export default function ValidationMap() {
         onOpenChange={setDetailsModalOpen}
         experiment={selectedExperiment}
         onDelete={handleDelete}
+        onSave={(id, updates) => {
+          updateMutation.mutate({ id, updates });
+        }}
       />
 
       {/* Add Experiment Modal */}
