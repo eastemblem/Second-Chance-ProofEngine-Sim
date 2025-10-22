@@ -220,6 +220,127 @@ router.patch(
   })
 );
 
+// POST /api/validation-map - Create new experiment
+router.post(
+  "/",
+  asyncHandler(async (req: Request, res: Response) => {
+    const founderId = (req as AuthenticatedRequest).user?.founderId;
+
+    if (!founderId) {
+      return res.status(401).json({
+        success: false,
+        error: "Authentication required",
+      });
+    }
+
+    // Get founder's venture
+    const dashboardData = await databaseService.getFounderWithLatestVenture(founderId);
+    if (!dashboardData || !dashboardData.venture) {
+      return res.status(404).json({
+        success: false,
+        error: "No venture found",
+      });
+    }
+
+    const ventureId = dashboardData.venture.ventureId;
+
+    const createSchema = z.object({
+      experimentId: z.string().min(1, "Experiment ID is required"),
+    });
+
+    const validatedData = createSchema.parse(req.body);
+
+    // Verify experiment master exists
+    const master = await storage.getExperimentMaster(validatedData.experimentId);
+    if (!master) {
+      return res.status(404).json({
+        success: false,
+        error: "Experiment not found in master list",
+      });
+    }
+
+    // Check if experiment already exists for this venture
+    const existingExperiments = await storage.getVentureExperiments(ventureId);
+    const alreadyExists = existingExperiments?.some(
+      (exp) => exp.experimentId === validatedData.experimentId
+    );
+
+    if (alreadyExists) {
+      return res.status(400).json({
+        success: false,
+        error: "This experiment is already added to your validation map",
+      });
+    }
+
+    const newExperiment = await storage.createVentureExperiment({
+      ventureId,
+      experimentId: validatedData.experimentId,
+      status: "not_started",
+      userHypothesis: null,
+      results: null,
+      decision: null,
+      customNotes: null,
+      newInsights: null,
+    });
+
+    appLogger.info(`Created new experiment ${validatedData.experimentId} for venture ${ventureId}`);
+
+    res.json(
+      createSuccessResponse(
+        newExperiment,
+        "Experiment added successfully"
+      )
+    );
+  })
+);
+
+// DELETE /api/validation-map/:id - Delete experiment
+router.delete(
+  "/:id",
+  asyncHandler(async (req: Request, res: Response) => {
+    const founderId = (req as AuthenticatedRequest).user?.founderId;
+    const { id } = req.params;
+
+    if (!founderId) {
+      return res.status(401).json({
+        success: false,
+        error: "Authentication required",
+      });
+    }
+
+    // Get founder's venture to verify ownership
+    const dashboardData = await databaseService.getFounderWithLatestVenture(founderId);
+    if (!dashboardData || !dashboardData.venture) {
+      return res.status(404).json({
+        success: false,
+        error: "No venture found",
+      });
+    }
+
+    const ventureId = dashboardData.venture.ventureId;
+
+    // Get experiment to verify it belongs to this venture
+    const experiment = await storage.getVentureExperiment(id);
+    if (!experiment || experiment.ventureId !== ventureId) {
+      return res.status(403).json({
+        success: false,
+        error: "Access denied",
+      });
+    }
+
+    await storage.deleteVentureExperiment(id);
+
+    appLogger.info(`Deleted experiment ${id} for venture ${ventureId}`);
+
+    res.json(
+      createSuccessResponse(
+        { id },
+        "Experiment deleted successfully"
+      )
+    );
+  })
+);
+
 // POST /api/validation-map/:id/complete - Mark experiment as complete
 router.post(
   "/:id/complete",

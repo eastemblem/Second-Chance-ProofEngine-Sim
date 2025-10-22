@@ -89,10 +89,12 @@ export interface IStorage {
 
   // Validation Map methods
   getAllExperimentMasters(): Promise<any[]>;
+  getExperimentMaster(experimentId: string): Promise<any | undefined>;
   getVentureExperiments(ventureId: string): Promise<any[]>;
   getVentureExperiment(id: string): Promise<any | undefined>;
   createVentureExperiment(experiment: any): Promise<any>;
   updateVentureExperiment(id: string, experiment: any): Promise<any>;
+  deleteVentureExperiment(id: string): Promise<void>;
   completeVentureExperiment(id: string): Promise<any>;
 }
 
@@ -558,6 +560,15 @@ export class DatabaseStorage implements IStorage {
       .orderBy(experimentMaster.validationSphere, experimentMaster.experimentId);
   }
 
+  async getExperimentMaster(experimentId: string): Promise<any | undefined> {
+    const [master] = await db
+      .select()
+      .from(experimentMaster)
+      .where(eq(experimentMaster.experimentId, experimentId))
+      .limit(1);
+    return master;
+  }
+
   async getVentureExperiments(ventureId: string): Promise<any[]> {
     const experiments = await db
       .select({
@@ -630,6 +641,12 @@ export class DatabaseStorage implements IStorage {
       .returning();
     
     return updated;
+  }
+
+  async deleteVentureExperiment(id: string): Promise<void> {
+    await db
+      .delete(ventureExperiments)
+      .where(eq(ventureExperiments.id, id));
   }
 
   async completeVentureExperiment(id: string): Promise<any> {
