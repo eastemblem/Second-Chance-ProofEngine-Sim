@@ -2,6 +2,7 @@ import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } f
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Separator } from "@/components/ui/separator";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Trash2, X, Pencil, Save } from "lucide-react";
 import { useState, useEffect } from "react";
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from "@/components/ui/alert-dialog";
@@ -25,6 +26,7 @@ export function ExperimentDetailsModal({
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
   const [isEditMode, setIsEditMode] = useState(false);
   const [editedValues, setEditedValues] = useState({
+    decision: '',
     userHypothesis: '',
     results: '',
     customNotes: '',
@@ -35,6 +37,7 @@ export function ExperimentDetailsModal({
   useEffect(() => {
     if (experiment) {
       setEditedValues({
+        decision: experiment.decision || '',
         userHypothesis: experiment.userHypothesis || '',
         results: experiment.results || '',
         customNotes: experiment.customNotes || '',
@@ -73,6 +76,7 @@ export function ExperimentDetailsModal({
 
   const handleCancel = () => {
     setEditedValues({
+      decision: experiment.decision || '',
       userHypothesis: experiment.userHypothesis || '',
       results: experiment.results || '',
       customNotes: experiment.customNotes || '',
@@ -162,6 +166,42 @@ export function ExperimentDetailsModal({
               <p className="text-gray-200 bg-slate-800/50 p-3 rounded-lg border border-purple-500/20">
                 {masterData?.hypothesisTested || "No assumption defined"}
               </p>
+            </div>
+
+            {/* Decision (editable) */}
+            <div>
+              <h4 className="text-sm font-semibold text-purple-300 mb-2">Decision</h4>
+              {isEditMode ? (
+                <Select
+                  value={editedValues.decision || ""}
+                  onValueChange={(value) => setEditedValues({ ...editedValues, decision: value })}
+                >
+                  <SelectTrigger className="w-full bg-gray-800/50 border-gray-700 text-gray-200 hover:border-purple-500/50">
+                    <SelectValue placeholder="Select decision..." />
+                  </SelectTrigger>
+                  <SelectContent className="bg-gray-900 border-gray-700">
+                    <SelectItem value="measure" className="text-gray-200 focus:bg-gray-800">
+                      Measure
+                    </SelectItem>
+                    <SelectItem value="pivot" className="text-gray-200 focus:bg-gray-800">
+                      Pivot
+                    </SelectItem>
+                    <SelectItem value="persevere" className="text-gray-200 focus:bg-gray-800">
+                      Persevere
+                    </SelectItem>
+                  </SelectContent>
+                </Select>
+              ) : (
+                <div className="bg-slate-800/50 p-3 rounded-lg border border-purple-500/20">
+                  {experiment.decision ? (
+                    <Badge className="bg-pink-500/20 text-pink-400 border-pink-500/50 capitalize">
+                      {experiment.decision}
+                    </Badge>
+                  ) : (
+                    <span className="text-gray-400">No decision set</span>
+                  )}
+                </div>
+              )}
             </div>
 
             {/* Hypothesis (editable) */}
