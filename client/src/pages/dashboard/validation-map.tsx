@@ -16,6 +16,7 @@ import { DashboardHeader } from "@/components/dashboard/core";
 import { ValidationMapIntro } from "@/components/dashboard/validation/ValidationMapIntro";
 import { ValidationMapWalkthrough } from "@/components/dashboard/validation/ValidationMapWalkthrough";
 import { ExperimentEditModal } from "@/components/dashboard/validation/ExperimentEditModal";
+import { ColumnBadge } from "@/components/dashboard/validation/ColumnBadge";
 import Footer from "@/components/layout/footer";
 
 interface ExperimentMaster {
@@ -55,7 +56,12 @@ export default function ValidationMap() {
   const [, setLocation] = useLocation();
   const ventureId = venture?.ventureId || null;
   const [debouncedValues, setDebouncedValues] = useState<Record<string, any>>({});
-  const [showWalkthrough, setShowWalkthrough] = useState(true);
+  
+  // Check localStorage for walkthrough completion
+  const [showWalkthrough, setShowWalkthrough] = useState(() => {
+    const completed = localStorage.getItem('validation_map_walkthrough_completed');
+    return completed !== 'true';
+  });
   
   // Create user object with isAuthenticated for DashboardHeader
   const user = authUser ? { ...authUser, isAuthenticated } : null;
@@ -241,35 +247,35 @@ export default function ValidationMap() {
     }
 
     const headers = [
-      "Experiment ID",
+      "Status",
       "Experiment Name",
-      "Validation Sphere",
-      "Leap of Faith Assumption",
+      "Category",
+      "Core Assumption",
       "Hypothesis",
-      "Behaviour",
+      "Experiment",
+      "Target Behaviour",
       "Target Metric",
       "Actual Results",
-      "Why",
+      "Why ?",
       "New Insights",
       "Decision",
-      "Status",
       "ProofTag",
       "Completed At",
     ];
 
     const rows = experiments.map((exp: VentureExperiment) => [
-      exp.experimentId,
+      exp.status,
       exp.masterData.name,
       exp.masterData.validationSphere,
       exp.masterData.hypothesisTested || "",
       exp.userHypothesis || "",
+      exp.masterData.experimentId || "",
       exp.masterData.signalTracked || "",
       exp.masterData.targetMetric || "",
       exp.results || "",
       exp.customNotes || "",
       exp.newInsights || "",
       exp.decision || "",
-      exp.status,
       exp.status === "completed" ? exp.masterData.proofTag || "" : "",
       exp.completedAt ? new Date(exp.completedAt).toLocaleDateString() : "",
     ]);
@@ -322,6 +328,12 @@ export default function ValidationMap() {
     );
   }
 
+  // Handle walkthrough completion
+  const handleWalkthroughComplete = () => {
+    localStorage.setItem('validation_map_walkthrough_completed', 'true');
+    setShowWalkthrough(false);
+  };
+
   // Show walkthrough until user completes or skips it
   if (showWalkthrough) {
     return (
@@ -330,7 +342,7 @@ export default function ValidationMap() {
         <DashboardHeader user={user} validationData={validationData} />
         <ValidationMapWalkthrough 
           isLoading={isLoading} 
-          onComplete={() => setShowWalkthrough(false)}
+          onComplete={handleWalkthroughComplete}
         />
         <Footer />
       </div>
@@ -347,39 +359,56 @@ export default function ValidationMap() {
       </div>
 
       <div className="max-w-7xl mx-auto px-4 pb-8">
-        {/* Export Button */}
-        <div className="flex justify-end mb-4">
-          <Button 
-            onClick={handleExportCSV} 
-            variant="outline" 
-            className="bg-gray-900/60 border-gray-800 text-gray-300 hover:bg-gray-800"
-            data-testid="button-export-csv"
-          >
-            <Download className="mr-2 h-4 w-4" />
-            Export CSV
-          </Button>
-        </div>
-
         {/* Experiments Table */}
         <Card className="bg-gray-900/60 backdrop-blur-sm border-gray-800">
           <CardContent className="p-6">
-            <h2 className="text-2xl font-bold text-white mb-6">Your Experiments</h2>
+            <div className="flex justify-between items-center mb-6">
+              <h2 className="text-2xl font-bold text-white">Your Experiments</h2>
+              <Button 
+                onClick={handleExportCSV} 
+                variant="outline" 
+                className="bg-gray-900/60 border-gray-800 text-gray-300 hover:bg-gray-800"
+                data-testid="button-export-csv"
+              >
+                <Download className="mr-2 h-4 w-4" />
+                Export CSV
+              </Button>
+            </div>
             
             <div className="overflow-x-auto">
               <table className="w-full border-collapse">
                 <thead>
                   <tr className="border-b border-gray-800">
                     <th className="p-4 text-left font-semibold text-gray-300 text-sm">Status</th>
-                    <th className="p-4 text-left font-semibold text-gray-300 text-sm">Experiment</th>
-                    <th className="p-4 text-left font-semibold text-gray-300 text-sm">Sphere</th>
-                    <th className="p-4 text-left font-semibold text-gray-300 text-sm min-w-[200px]">Leap of Faith Assumption</th>
-                    <th className="p-4 text-left font-semibold text-gray-300 text-sm min-w-[200px]">Hypothesis</th>
-                    <th className="p-4 text-left font-semibold text-gray-300 text-sm min-w-[150px]">Behaviour</th>
-                    <th className="p-4 text-left font-semibold text-gray-300 text-sm min-w-[150px]">Target Metric</th>
-                    <th className="p-4 text-left font-semibold text-gray-300 text-sm min-w-[200px]">Actual Results</th>
-                    <th className="p-4 text-left font-semibold text-gray-300 text-sm min-w-[200px]">Why</th>
-                    <th className="p-4 text-left font-semibold text-gray-300 text-sm min-w-[200px]">New Insights</th>
-                    <th className="p-4 text-left font-semibold text-gray-300 text-sm">Decision</th>
+                    <th className="p-4 text-left font-semibold text-gray-300 text-sm min-w-[200px]">Experiment</th>
+                    <th className="p-4 text-left font-semibold text-gray-300 text-sm">Category</th>
+                    <th className="p-4 text-left font-semibold text-gray-300 text-sm min-w-[200px]">
+                      <ColumnBadge variant="purple">Core Assumption</ColumnBadge>
+                    </th>
+                    <th className="p-4 text-left font-semibold text-gray-300 text-sm min-w-[200px]">
+                      <ColumnBadge variant="purple">Hypothesis</ColumnBadge>
+                    </th>
+                    <th className="p-4 text-left font-semibold text-gray-300 text-sm min-w-[200px]">
+                      <ColumnBadge variant="yellow">Experiment</ColumnBadge>
+                    </th>
+                    <th className="p-4 text-left font-semibold text-gray-300 text-sm min-w-[150px]">
+                      <ColumnBadge variant="blue">Target Behaviour</ColumnBadge>
+                    </th>
+                    <th className="p-4 text-left font-semibold text-gray-300 text-sm min-w-[150px]">
+                      <ColumnBadge variant="orange">Target Metric</ColumnBadge>
+                    </th>
+                    <th className="p-4 text-left font-semibold text-gray-300 text-sm min-w-[200px]">
+                      <ColumnBadge variant="purple">Actual Results</ColumnBadge>
+                    </th>
+                    <th className="p-4 text-left font-semibold text-gray-300 text-sm min-w-[200px]">
+                      <ColumnBadge variant="cyan">Why ?</ColumnBadge>
+                    </th>
+                    <th className="p-4 text-left font-semibold text-gray-300 text-sm min-w-[200px]">
+                      <ColumnBadge variant="gradient">New Insights</ColumnBadge>
+                    </th>
+                    <th className="p-4 text-left font-semibold text-gray-300 text-sm">
+                      <ColumnBadge variant="blue">Decision</ColumnBadge>
+                    </th>
                     <th className="p-4 text-left font-semibold text-gray-300 text-sm">ProofTag</th>
                     <th className="p-4 text-left font-semibold text-gray-300 text-sm">Action</th>
                   </tr>
@@ -400,12 +429,21 @@ export default function ValidationMap() {
                       </td>
                       <td className="p-4">
                         <div>
-                          <p className="font-medium text-white text-base" data-testid={`text-experiment-name-${exp.id}`}>
+                          <p className="font-medium text-purple-400 text-base mb-2" data-testid={`text-experiment-name-${exp.id}`}>
                             {exp.masterData.name}
                           </p>
-                          <p className="text-sm text-gray-400">
-                            {exp.masterData.experimentId}
-                          </p>
+                          <div className="space-y-1">
+                            {exp.decision && (
+                              <p className="text-xs text-gray-400">
+                                <span className="text-gray-500">Decision:</span> <span className="capitalize text-white">{exp.decision}</span>
+                              </p>
+                            )}
+                            {exp.masterData.proofTag && exp.status === "completed" && (
+                              <p className="text-xs text-gray-400">
+                                <span className="text-gray-500">ProofTag:</span> <span className="text-yellow-400">{exp.masterData.proofTag}</span>
+                              </p>
+                            )}
+                          </div>
                         </div>
                       </td>
                       <td className="p-4">
@@ -436,6 +474,9 @@ export default function ValidationMap() {
                         </div>
                       </td>
                       <td className="p-4">
+                        <p className="text-sm text-gray-300">{exp.masterData.experimentId || "—"}</p>
+                      </td>
+                      <td className="p-4">
                         <p className="text-sm text-gray-300">{exp.masterData.signalTracked || "—"}</p>
                       </td>
                       <td className="p-4">
@@ -458,7 +499,7 @@ export default function ValidationMap() {
                       </td>
                       <td className="p-4">
                         <div
-                          onClick={() => openEditModal(exp, "customNotes", "Why")}
+                          onClick={() => openEditModal(exp, "customNotes", "Why ?")}
                           className={`min-h-[60px] p-3 rounded border ${
                             exp.status === "completed"
                               ? "bg-gray-800/30 border-gray-700/50 cursor-not-allowed"
