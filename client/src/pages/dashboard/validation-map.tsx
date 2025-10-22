@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback } from "react";
+import { useState, useEffect, useCallback, useMemo, lazy, Suspense } from "react";
 import { useQuery, useMutation } from "@tanstack/react-query";
 import { useLocation } from "wouter";
 import { queryClient, apiRequest } from "@/lib/queryClient";
@@ -17,11 +17,18 @@ import { DashboardHeader } from "@/components/dashboard/core";
 import { ValidationMapIntro } from "@/components/dashboard/validation/ValidationMapIntro";
 import { ValidationMapWalkthrough } from "@/components/dashboard/validation/ValidationMapWalkthrough";
 import { ExperimentEditModal } from "@/components/dashboard/validation/ExperimentEditModal";
-import { ExperimentDetailsModal } from "@/components/dashboard/validation/ExperimentDetailsModal";
 import { AddExperimentModal } from "@/components/dashboard/validation/AddExperimentModal";
-import { CustomExperimentModal, type CustomExperimentData } from "@/components/dashboard/validation/CustomExperimentModal";
 import { ColumnBadge } from "@/components/dashboard/validation/ColumnBadge";
 import Footer from "@/components/layout/footer";
+import type { CustomExperimentData } from "@/components/dashboard/validation/CustomExperimentModal";
+
+// Lazy load heavy modal components for better performance
+const ExperimentDetailsModal = lazy(() => 
+  import("@/components/dashboard/validation/ExperimentDetailsModal").then(module => ({ default: module.ExperimentDetailsModal }))
+);
+const CustomExperimentModal = lazy(() => 
+  import("@/components/dashboard/validation/CustomExperimentModal").then(module => ({ default: module.CustomExperimentModal }))
+);
 
 // Helper function to strip HTML tags and truncate text
 const stripHtmlAndTruncate = (html: string | null, maxLines: number = 2): { text: string; isTruncated: boolean } => {
@@ -121,8 +128,18 @@ export default function ValidationMap() {
 
   // Search and filter state
   const [searchQuery, setSearchQuery] = useState("");
+  const [debouncedSearchQuery, setDebouncedSearchQuery] = useState("");
   const [statusFilter, setStatusFilter] = useState<"all" | "active" | "completed">("all");
   const [categoryFilter, setCategoryFilter] = useState<string>("all");
+
+  // Debounce search query for performance
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      setDebouncedSearchQuery(searchQuery);
+    }, 300);
+
+    return () => clearTimeout(timer);
+  }, [searchQuery]);
 
   // Fetch validation data for header
   const { data: validationData } = useQuery<any>({
@@ -153,27 +170,29 @@ export default function ValidationMap() {
   // Get unique categories from experiments for the filter
   const uniqueCategories = Array.from(new Set(experiments.map((exp: VentureExperiment) => exp.masterData.validationSphere))).sort() as string[];
 
-  // Filter experiments based on search, status, and category filters
-  const filteredExperiments = experiments.filter((exp: VentureExperiment) => {
-    // Status filter
-    if (statusFilter === "active" && exp.status === "completed") return false;
-    if (statusFilter === "completed" && exp.status !== "completed") return false;
+  // Filter experiments based on search, status, and category filters (memoized for performance)
+  const filteredExperiments = useMemo(() => {
+    return experiments.filter((exp: VentureExperiment) => {
+      // Status filter
+      if (statusFilter === "active" && exp.status === "completed") return false;
+      if (statusFilter === "completed" && exp.status !== "completed") return false;
 
-    // Category filter
-    if (categoryFilter !== "all" && exp.masterData.validationSphere !== categoryFilter) return false;
+      // Category filter
+      if (categoryFilter !== "all" && exp.masterData.validationSphere !== categoryFilter) return false;
 
-    // Search filter
-    if (searchQuery) {
-      const query = searchQuery.toLowerCase();
-      const matchesName = exp.masterData.name.toLowerCase().includes(query);
-      const matchesCategory = exp.masterData.validationSphere.toLowerCase().includes(query);
-      const matchesDecision = exp.decision?.toLowerCase().includes(query);
-      
-      return matchesName || matchesCategory || matchesDecision;
-    }
+      // Search filter (using debounced query for performance)
+      if (debouncedSearchQuery) {
+        const query = debouncedSearchQuery.toLowerCase();
+        const matchesName = exp.masterData.name.toLowerCase().includes(query);
+        const matchesCategory = exp.masterData.validationSphere.toLowerCase().includes(query);
+        const matchesDecision = exp.decision?.toLowerCase().includes(query);
+        
+        return matchesName || matchesCategory || matchesDecision;
+      }
 
-    return true;
-  });
+      return true;
+    });
+  }, [experiments, statusFilter, categoryFilter, debouncedSearchQuery]);
 
   // Update experiment mutation
   const updateMutation = useMutation({
@@ -954,16 +973,18 @@ export default function ValidationMap() {
         />
       )}
 
-      {/* Details Modal */}
-      <ExperimentDetailsModal
-        open={detailsModalOpen}
-        onOpenChange={setDetailsModalOpen}
-        experiment={selectedExperiment}
-        onDelete={handleDelete}
-        onSave={(id, updates) => {
-          updateMutation.mutate({ id, updates });
-        }}
-      />
+      {/* Details Modal (Lazy loaded for better performance) */}
+      <Suspense fallback={null}>
+        <ExperimentDetailsModal
+          open={detailsModalOpen}
+          onOpenChange={setDetailsModalOpen}
+          experiment={selectedExperiment}
+          onDelete={handleDelete}
+          onSave={(id: string, updates: any) => {
+            updateMutation.mutate({ id, updates });
+          }}
+        />
+      </Suspense>
 
       {/* Add Experiment Modal */}
       <AddExperimentModal
@@ -975,15 +996,17 @@ export default function ValidationMap() {
         onOpenCustomExperiment={() => setCustomExperimentModalOpen(true)}
       />
 
-      {/* Custom Experiment Modal */}
-      <CustomExperimentModal
-        open={customExperimentModalOpen}
-        onOpenChange={(open) => {
-          setCustomExperimentModalOpen(open);
-        }}
-        onSubmit={handleCreateCustomExperiment}
-        isSubmitting={createCustomMutation.isPending}
-      />
+      {/* Custom Experiment Modal (Lazy loaded for better performance) */}
+      <Suspense fallback={null}>
+        <CustomExperimentModal
+          open={customExperimentModalOpen}
+          onOpenChange={(open: boolean) => {
+            setCustomExperimentModalOpen(open);
+          }}
+          onSubmit={handleCreateCustomExperiment}
+          isSubmitting={createCustomMutation.isPending}
+        />
+      </Suspense>
 
       <Footer />
     </div>

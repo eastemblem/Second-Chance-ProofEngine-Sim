@@ -4,9 +4,13 @@ import { Badge } from "@/components/ui/badge";
 import { Separator } from "@/components/ui/separator";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Trash2, X, Pencil, Save } from "lucide-react";
-import { useState, useEffect } from "react";
+import { useState, useEffect, lazy, Suspense } from "react";
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from "@/components/ui/alert-dialog";
-import { RichTextEditor } from "./RichTextEditor";
+
+// Lazy load RichTextEditor for better performance (only loaded when edit mode is activated)
+const RichTextEditor = lazy(() => 
+  import("./RichTextEditor").then(module => ({ default: module.RichTextEditor }))
+);
 
 interface ExperimentDetailsModalProps {
   open: boolean;
@@ -221,11 +225,13 @@ export function ExperimentDetailsModal({
                 Hypothesis
               </div>
               {isEditMode ? (
-                <RichTextEditor
-                  content={editedValues.userHypothesis}
-                  onChange={(html) => setEditedValues({ ...editedValues, userHypothesis: html })}
-                  placeholder="Enter your hypothesis..."
-                />
+                <Suspense fallback={<div className="text-gray-400 p-3">Loading editor...</div>}>
+                  <RichTextEditor
+                    content={editedValues.userHypothesis}
+                    onChange={(html) => setEditedValues({ ...editedValues, userHypothesis: html })}
+                    placeholder="Enter your hypothesis..."
+                  />
+                </Suspense>
               ) : (
                 <div 
                   className="text-gray-200 bg-gradient-to-br from-purple-900/20 via-slate-800/50 to-pink-900/20 p-3 rounded-lg border border-purple-500/20 prose prose-invert max-w-none
@@ -269,11 +275,13 @@ export function ExperimentDetailsModal({
                 Actual Results
               </div>
               {isEditMode ? (
-                <RichTextEditor
-                  content={editedValues.results}
-                  onChange={(html) => setEditedValues({ ...editedValues, results: html })}
-                  placeholder="Enter your results..."
-                />
+                <Suspense fallback={<div className="text-gray-400 p-3">Loading editor...</div>}>
+                  <RichTextEditor
+                    content={editedValues.results}
+                    onChange={(html) => setEditedValues({ ...editedValues, results: html })}
+                    placeholder="Enter your results..."
+                  />
+                </Suspense>
               ) : (
                 <div 
                   className="text-gray-200 bg-gradient-to-br from-indigo-900/20 via-slate-800/50 to-purple-900/20 p-3 rounded-lg border border-purple-500/20 prose prose-invert max-w-none
@@ -297,11 +305,13 @@ export function ExperimentDetailsModal({
                 Why?
               </div>
               {isEditMode ? (
-                <RichTextEditor
-                  content={editedValues.customNotes}
-                  onChange={(html) => setEditedValues({ ...editedValues, customNotes: html })}
-                  placeholder="Explain why..."
-                />
+                <Suspense fallback={<div className="text-gray-400 p-3">Loading editor...</div>}>
+                  <RichTextEditor
+                    content={editedValues.customNotes}
+                    onChange={(html) => setEditedValues({ ...editedValues, customNotes: html })}
+                    placeholder="Explain why..."
+                  />
+                </Suspense>
               ) : (
                 <div 
                   className="text-gray-200 bg-gradient-to-br from-teal-900/20 via-slate-800/50 to-cyan-900/20 p-3 rounded-lg border border-purple-500/20 prose prose-invert max-w-none
@@ -325,11 +335,13 @@ export function ExperimentDetailsModal({
                 New Insights
               </div>
               {isEditMode ? (
-                <RichTextEditor
-                  content={editedValues.newInsights}
-                  onChange={(html) => setEditedValues({ ...editedValues, newInsights: html })}
-                  placeholder="Add new insights..."
-                />
+                <Suspense fallback={<div className="text-gray-400 p-3">Loading editor...</div>}>
+                  <RichTextEditor
+                    content={editedValues.newInsights}
+                    onChange={(html) => setEditedValues({ ...editedValues, newInsights: html })}
+                    placeholder="Add new insights..."
+                  />
+                </Suspense>
               ) : (
                 <div 
                   className="text-gray-200 bg-gradient-to-br from-rose-900/20 via-slate-800/50 to-pink-900/20 p-3 rounded-lg border border-purple-500/20 prose prose-invert max-w-none
