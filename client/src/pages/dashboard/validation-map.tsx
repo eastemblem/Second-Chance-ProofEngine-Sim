@@ -500,6 +500,9 @@ export default function ValidationMap() {
               <table className="w-full border-collapse">
                 <thead>
                   <tr className="border-b border-gray-800">
+                    <th className="p-4 text-left font-semibold text-gray-300 text-sm min-w-[220px]">
+                      <ColumnBadge variant="slate">Actions</ColumnBadge>
+                    </th>
                     <th className="p-4 text-left font-semibold text-gray-300 text-sm min-w-[200px]">
                       <ColumnBadge variant="purple">Experiment</ColumnBadge>
                     </th>
@@ -530,9 +533,6 @@ export default function ValidationMap() {
                     <th className="p-4 text-left font-semibold text-gray-300 text-sm min-w-[200px]">
                       <ColumnBadge variant="rose">New Insights</ColumnBadge>
                     </th>
-                    <th className="p-4 text-left font-semibold text-gray-300 text-sm min-w-[220px]">
-                      <ColumnBadge variant="slate">Status</ColumnBadge>
-                    </th>
                   </tr>
                 </thead>
                 <tbody>
@@ -542,6 +542,56 @@ export default function ValidationMap() {
                       className="border-b border-gray-800 hover:bg-gray-800/50 transition-colors"
                       data-testid={`row-experiment-${exp.id}`}
                     >
+                      <td className="p-4">
+                        <div className="flex items-center gap-2">
+                          {exp.status !== "completed" && (
+                            <>
+                              <Button
+                                onClick={() => handleViewDetails(exp)}
+                                size="sm"
+                                variant="ghost"
+                                className="h-8 w-8 p-0 text-blue-400 hover:text-blue-300 hover:bg-blue-500/10"
+                                data-testid={`button-edit-${exp.id}`}
+                              >
+                                <Pencil className="h-4 w-4" />
+                              </Button>
+                              <Button
+                                onClick={() => {
+                                  setSelectedExperiment(exp);
+                                  handleDelete(exp.id);
+                                }}
+                                size="sm"
+                                variant="ghost"
+                                className="h-8 w-8 p-0 text-red-400 hover:text-red-300 hover:bg-red-500/10"
+                                data-testid={`button-delete-${exp.id}`}
+                              >
+                                <Trash2 className="h-4 w-4" />
+                              </Button>
+                              <Button
+                                onClick={() => handleComplete(exp.id)}
+                                size="sm"
+                                className="bg-purple-600 hover:bg-purple-700 text-white"
+                                disabled={completingExperimentIds.has(exp.id)}
+                                data-testid={`button-complete-${exp.id}`}
+                              >
+                                {completingExperimentIds.has(exp.id) ? (
+                                  <Loader2 className="h-4 w-4 animate-spin" />
+                                ) : (
+                                  "Complete"
+                                )}
+                              </Button>
+                            </>
+                          )}
+                          {exp.status === "completed" && (
+                            <>
+                              <CheckCircle className="h-5 w-5 text-green-500" data-testid={`icon-completed-${exp.id}`} />
+                              <Badge className="bg-green-500/20 text-green-400 border-green-500/30">
+                                Completed
+                              </Badge>
+                            </>
+                          )}
+                        </div>
+                      </td>
                       <td className="p-4">
                         <div>
                           <p 
@@ -694,56 +744,6 @@ export default function ValidationMap() {
                             })()
                           ) : (
                             <span className="text-gray-500 text-sm">Click to view...</span>
-                          )}
-                        </div>
-                      </td>
-                      <td className="p-4">
-                        <div className="flex items-center gap-2">
-                          {exp.status !== "completed" && (
-                            <>
-                              <Button
-                                onClick={() => handleViewDetails(exp)}
-                                size="sm"
-                                variant="ghost"
-                                className="h-8 w-8 p-0 text-blue-400 hover:text-blue-300 hover:bg-blue-500/10"
-                                data-testid={`button-edit-${exp.id}`}
-                              >
-                                <Pencil className="h-4 w-4" />
-                              </Button>
-                              <Button
-                                onClick={() => {
-                                  setSelectedExperiment(exp);
-                                  handleDelete(exp.id);
-                                }}
-                                size="sm"
-                                variant="ghost"
-                                className="h-8 w-8 p-0 text-red-400 hover:text-red-300 hover:bg-red-500/10"
-                                data-testid={`button-delete-${exp.id}`}
-                              >
-                                <Trash2 className="h-4 w-4" />
-                              </Button>
-                              <Button
-                                onClick={() => handleComplete(exp.id)}
-                                size="sm"
-                                className="bg-purple-600 hover:bg-purple-700 text-white"
-                                disabled={completingExperimentIds.has(exp.id)}
-                                data-testid={`button-complete-${exp.id}`}
-                              >
-                                {completingExperimentIds.has(exp.id) ? (
-                                  <Loader2 className="h-4 w-4 animate-spin" />
-                                ) : (
-                                  "Complete"
-                                )}
-                              </Button>
-                            </>
-                          )}
-                          {exp.status === "completed" && (
-                            <>
-                              <CheckCircle className="h-5 w-5 text-green-500" data-testid={`icon-completed-${exp.id}`} />
-                              <Badge className="bg-green-500/20 text-green-400 border-green-500/30">
-                                Completed
-                              </Badge>
-                            </>
                           )}
                         </div>
                       </td>
