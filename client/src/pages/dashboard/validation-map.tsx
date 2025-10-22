@@ -16,6 +16,7 @@ import { DashboardHeader } from "@/components/dashboard/core";
 import { ValidationMapIntro } from "@/components/dashboard/validation/ValidationMapIntro";
 import { ValidationMapWalkthrough } from "@/components/dashboard/validation/ValidationMapWalkthrough";
 import { ExperimentEditModal } from "@/components/dashboard/validation/ExperimentEditModal";
+import { ExperimentDetailsModal } from "@/components/dashboard/validation/ExperimentDetailsModal";
 import { ColumnBadge } from "@/components/dashboard/validation/ColumnBadge";
 import Footer from "@/components/layout/footer";
 
@@ -79,6 +80,10 @@ export default function ValidationMap() {
     fieldType: "text" | "select";
     selectOptions?: { value: string; label: string }[];
   } | null>(null);
+
+  // Details modal state
+  const [detailsModalOpen, setDetailsModalOpen] = useState(false);
+  const [selectedExperiment, setSelectedExperiment] = useState<VentureExperiment | null>(null);
 
   // Fetch validation data for header
   const { data: validationData } = useQuery<any>({
@@ -158,6 +163,28 @@ export default function ValidationMap() {
     },
   });
 
+  // Delete experiment mutation
+  const deleteMutation = useMutation({
+    mutationFn: async (id: string) => {
+      const response = await apiRequest("DELETE", `/api/validation-map/${id}`);
+      return response.json();
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["/api/validation-map"] });
+      toast({
+        title: "Experiment deleted",
+        description: "The experiment has been removed from your validation map",
+      });
+    },
+    onError: (error: Error) => {
+      toast({
+        title: "Delete failed",
+        description: error.message,
+        variant: "destructive",
+      });
+    },
+  });
+
   // Auto-save with debounce
   useEffect(() => {
     const timers: Record<string, NodeJS.Timeout> = {};
@@ -193,6 +220,15 @@ export default function ValidationMap() {
 
   const handleComplete = (id: string) => {
     completeMutation.mutate(id);
+  };
+
+  const handleDelete = (id: string) => {
+    deleteMutation.mutate(id);
+  };
+
+  const handleViewDetails = (exp: VentureExperiment) => {
+    setSelectedExperiment(exp);
+    setDetailsModalOpen(true);
   };
 
   const handleUploadFiles = () => {
@@ -428,7 +464,11 @@ export default function ValidationMap() {
                       </td>
                       <td className="p-4">
                         <div>
-                          <p className="font-medium text-purple-400 text-base mb-2" data-testid={`text-experiment-name-${exp.id}`}>
+                          <p 
+                            className="font-medium text-purple-400 text-base mb-2 cursor-pointer hover:text-purple-300 hover:underline transition-colors" 
+                            data-testid={`text-experiment-name-${exp.id}`}
+                            onClick={() => handleViewDetails(exp)}
+                          >
                             {exp.masterData.name}
                           </p>
                           <div className="flex gap-2 flex-wrap mt-2">
@@ -578,6 +618,14 @@ export default function ValidationMap() {
           onSave={handleModalSave}
         />
       )}
+
+      {/* Details Modal */}
+      <ExperimentDetailsModal
+        open={detailsModalOpen}
+        onOpenChange={setDetailsModalOpen}
+        experiment={selectedExperiment}
+        onDelete={handleDelete}
+      />
 
       <Footer />
     </div>
