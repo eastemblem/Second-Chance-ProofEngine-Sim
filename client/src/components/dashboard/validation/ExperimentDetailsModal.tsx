@@ -68,6 +68,7 @@ export function ExperimentDetailsModal({
   const handleSave = () => {
     onSave(experiment.id, editedValues);
     setIsEditMode(false);
+    onOpenChange(false);
   };
 
   const handleCancel = () => {
@@ -116,29 +117,7 @@ export function ExperimentDetailsModal({
               
               {/* Action buttons in header */}
               <div className="flex items-center gap-2">
-                {isEditMode ? (
-                  <>
-                    <Button
-                      variant="outline"
-                      size="sm"
-                      className="border-purple-500/50 text-purple-400 hover:bg-purple-500/10 hover:text-purple-300"
-                      onClick={handleSave}
-                      data-testid="button-save-experiment"
-                    >
-                      <Save className="w-4 h-4 mr-2" />
-                      Save
-                    </Button>
-                    <Button
-                      variant="outline"
-                      size="sm"
-                      onClick={handleCancel}
-                      data-testid="button-cancel-edit"
-                    >
-                      <X className="w-4 h-4 mr-2" />
-                      Cancel
-                    </Button>
-                  </>
-                ) : (
+                {!isEditMode && (
                   <>
                     <Button
                       variant="outline"
@@ -305,6 +284,31 @@ export function ExperimentDetailsModal({
               )}
             </div>
           </div>
+
+          {/* Footer buttons in edit mode */}
+          {isEditMode && (
+            <>
+              <Separator className="bg-purple-500/30 mt-6" />
+              <div className="flex items-center justify-end gap-3 pt-4">
+                <Button
+                  variant="outline"
+                  onClick={handleCancel}
+                  data-testid="button-cancel-edit-footer"
+                  className="border-gray-600 text-gray-300 hover:bg-gray-800"
+                >
+                  Cancel
+                </Button>
+                <Button
+                  onClick={handleSave}
+                  data-testid="button-save-experiment-footer"
+                  className="bg-purple-600 hover:bg-purple-700 text-white"
+                >
+                  <Save className="w-4 h-4 mr-2" />
+                  Save Changes
+                </Button>
+              </div>
+            </>
+          )}
         </DialogContent>
       </Dialog>
 
