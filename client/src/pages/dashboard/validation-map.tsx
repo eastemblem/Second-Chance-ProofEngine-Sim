@@ -111,6 +111,9 @@ export default function ValidationMap() {
   // Add experiment modal state
   const [addModalOpen, setAddModalOpen] = useState(false);
 
+  // Track which experiments are being completed (supports concurrent completions)
+  const [completingExperimentIds, setCompletingExperimentIds] = useState<Set<string>>(new Set());
+
   // Fetch validation data for header
   const { data: validationData } = useQuery<any>({
     queryKey: ['/api/pitch/validation-status'],
@@ -164,11 +167,17 @@ export default function ValidationMap() {
   // Complete experiment mutation
   const completeMutation = useMutation({
     mutationFn: async (id: string) => {
+      setCompletingExperimentIds(prev => new Set(prev).add(id));
       const response = await apiRequest("POST", `/api/validation-map/${id}/complete`);
       return response.json();
     },
-    onSuccess: (data: any) => {
+    onSuccess: (data: any, id: string) => {
       queryClient.invalidateQueries({ queryKey: ["/api/validation-map"] });
+      setCompletingExperimentIds(prev => {
+        const next = new Set(prev);
+        next.delete(id);
+        return next;
+      });
       
       confetti({
         particleCount: 100,
@@ -190,7 +199,12 @@ export default function ValidationMap() {
         description: `+${data?.data?.proofScoreIncrease || 5} ProofScore`,
       });
     },
-    onError: (error: Error) => {
+    onError: (error: Error, id: string) => {
+      setCompletingExperimentIds(prev => {
+        const next = new Set(prev);
+        next.delete(id);
+        return next;
+      });
       toast({
         title: "Failed to complete experiment",
         description: error.message,
@@ -486,9 +500,6 @@ export default function ValidationMap() {
               <table className="w-full border-collapse">
                 <thead>
                   <tr className="border-b border-gray-800">
-                    <th className="p-4 text-left font-semibold text-gray-300 text-sm">
-                      <ColumnBadge variant="slate">Status</ColumnBadge>
-                    </th>
                     <th className="p-4 text-left font-semibold text-gray-300 text-sm min-w-[200px]">
                       <ColumnBadge variant="purple">Experiment</ColumnBadge>
                     </th>
@@ -519,8 +530,8 @@ export default function ValidationMap() {
                     <th className="p-4 text-left font-semibold text-gray-300 text-sm min-w-[200px]">
                       <ColumnBadge variant="rose">New Insights</ColumnBadge>
                     </th>
-                    <th className="p-4 text-left font-semibold text-gray-300 text-sm">
-                      <ColumnBadge variant="emerald">Action</ColumnBadge>
+                    <th className="p-4 text-left font-semibold text-gray-300 text-sm min-w-[220px]">
+                      <ColumnBadge variant="slate">Status</ColumnBadge>
                     </th>
                   </tr>
                 </thead>
@@ -531,13 +542,6 @@ export default function ValidationMap() {
                       className="border-b border-gray-800 hover:bg-gray-800/50 transition-colors"
                       data-testid={`row-experiment-${exp.id}`}
                     >
-                      <td className="p-4">
-                        {exp.status === "completed" ? (
-                          <CheckCircle className="h-5 w-5 text-green-500" data-testid={`icon-completed-${exp.id}`} />
-                        ) : (
-                          <Circle className="h-5 w-5 text-gray-600" data-testid={`icon-not-completed-${exp.id}`} />
-                        )}
-                      </td>
                       <td className="p-4">
                         <div>
                           <p 
@@ -722,10 +726,10 @@ export default function ValidationMap() {
                                 onClick={() => handleComplete(exp.id)}
                                 size="sm"
                                 className="bg-purple-600 hover:bg-purple-700 text-white"
-                                disabled={completeMutation.isPending}
+                                disabled={completingExperimentIds.has(exp.id)}
                                 data-testid={`button-complete-${exp.id}`}
                               >
-                                {completeMutation.isPending ? (
+                                {completingExperimentIds.has(exp.id) ? (
                                   <Loader2 className="h-4 w-4 animate-spin" />
                                 ) : (
                                   "Complete"
@@ -734,9 +738,12 @@ export default function ValidationMap() {
                             </>
                           )}
                           {exp.status === "completed" && (
-                            <Badge className="bg-green-500/20 text-green-400 border-green-500/30">
-                              Completed
-                            </Badge>
+                            <>
+                              <CheckCircle className="h-5 w-5 text-green-500" data-testid={`icon-completed-${exp.id}`} />
+                              <Badge className="bg-green-500/20 text-green-400 border-green-500/30">
+                                Completed
+                              </Badge>
+                            </>
                           )}
                         </div>
                       </td>
