@@ -1,7 +1,7 @@
 import { useState, useEffect } from "react";
 import { useLocation } from "wouter";
 import { Button } from "@/components/ui/button";
-import { LogOut, User, MapPin } from "lucide-react";
+import { LogOut, User, MapPin, LayoutDashboard, Map } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import Logo from "@/components/logo";
 import { trackEvent } from "@/lib/analytics";
@@ -14,11 +14,17 @@ interface NavbarProps {
 }
 
 export default function Navbar({ showSignOut = false, showSignIn = false, logoOnly = false }: NavbarProps) {
-  const [, setLocation] = useLocation();
+  const [location, setLocation] = useLocation();
   const [isLoggingOut, setIsLoggingOut] = useState(false);
   const [userCountry, setUserCountry] = useState<string | null>(null);
   const [isLoadingLocation, setIsLoadingLocation] = useState(true);
   const { toast } = useToast();
+  
+  // Determine which page we're on
+  const isOnDashboard = location === '/dashboard';
+  const isOnValidationMap = location === '/validation-map';
+  const showDashboardLink = isOnValidationMap || (showSignOut && !isOnDashboard);
+  const showValidationMapLink = isOnDashboard;
 
   // Detect user's geo location
   useEffect(() => {
@@ -132,6 +138,32 @@ export default function Navbar({ showSignOut = false, showSignIn = false, logoOn
                     {isLoadingLocation ? 'Detecting...' : userCountry}
                   </span>
                 </div>
+              )}
+              
+              {/* Dashboard Link - shown when NOT on dashboard */}
+              {showDashboardLink && (
+                <Button
+                  variant="ghost"
+                  onClick={() => setLocation('/dashboard')}
+                  className="flex items-center gap-2 text-gray-300 hover:text-white transition-colors"
+                  data-testid="link-dashboard"
+                >
+                  <LayoutDashboard className="w-4 h-4" />
+                  <span className="hidden sm:inline">Dashboard</span>
+                </Button>
+              )}
+
+              {/* Validation Map Link - shown when on dashboard */}
+              {showValidationMapLink && (
+                <Button
+                  variant="ghost"
+                  onClick={() => setLocation('/validation-map')}
+                  className="flex items-center gap-2 text-gray-300 hover:text-white transition-colors"
+                  data-testid="link-validation-map"
+                >
+                  <Map className="w-4 h-4" />
+                  <span className="hidden sm:inline">Validation Map</span>
+                </Button>
               )}
               
               {showSignIn && (
