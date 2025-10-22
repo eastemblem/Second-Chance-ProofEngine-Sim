@@ -161,6 +161,7 @@ export default function ValidationMap() {
 
   const experiments = (experimentsData as any)?.data?.experiments || [];
   const proofScore = (experimentsData as any)?.data?.proofScore || 0;
+  const prooftags = (experimentsData as any)?.data?.prooftags || [];
   const status = (experimentsData as any)?.data?.status || "Building Validation";
 
   const allMasters = (mastersData as any)?.data || [];
@@ -658,15 +659,23 @@ export default function ValidationMap() {
 
               {/* Row Count Display */}
               <div className="flex items-center justify-between text-sm">
-                <p className="text-gray-400">
-                  Showing <span className="text-white font-semibold">{filteredExperiments.length}</span> of{" "}
-                  <span className="text-white font-semibold">{experiments.length}</span> experiments
-                  {(searchQuery || statusFilter !== "all" || categoryFilter !== "all") && (
-                    <span className="ml-2 text-purple-400">
-                      (filtered)
+                <div className="flex items-center gap-4">
+                  <p className="text-gray-400">
+                    Showing <span className="text-white font-semibold">{filteredExperiments.length}</span> of{" "}
+                    <span className="text-white font-semibold">{experiments.length}</span> experiments
+                    {(searchQuery || statusFilter !== "all" || categoryFilter !== "all") && (
+                      <span className="ml-2 text-purple-400">
+                        (filtered)
+                      </span>
+                    )}
+                  </p>
+                  <div className="flex items-center gap-1.5 px-3 py-1 bg-purple-500/10 border border-purple-500/30 rounded-full">
+                    <Trophy className="h-3.5 w-3.5 text-purple-400" />
+                    <span className="text-purple-400 font-semibold text-xs">
+                      {prooftags.length} ProofTag{prooftags.length !== 1 ? 's' : ''}
                     </span>
-                  )}
-                </p>
+                  </div>
+                </div>
                 {(searchQuery || statusFilter !== "all" || categoryFilter !== "all") && (
                   <Button
                     onClick={() => {

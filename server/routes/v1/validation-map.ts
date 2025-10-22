@@ -170,6 +170,7 @@ router.get(
           experiments,
           ventureId,
           proofScore: venture.proofScore || 0,
+          prooftags: venture.prooftags || [],
           status: venture.status || "Building Validation",
         },
         "Experiments retrieved successfully"
@@ -233,6 +234,30 @@ router.patch(
         success: false,
         error: "Experiment not found",
       });
+    }
+
+    // If experiment is being marked as completed, add its ProofTag to venture
+    if (validatedData.status === "completed" && experiment.status !== "completed") {
+      try {
+        const experimentMaster = await storage.getExperimentMaster(experiment.experimentId);
+        if (experimentMaster?.proofTag) {
+          const venture = await storage.getVentureById(ventureId);
+          const currentProofTags = venture.prooftags || [];
+          
+          // Add ProofTag if not already present (deduplication)
+          if (!currentProofTags.includes(experimentMaster.proofTag)) {
+            const updatedProofTags = [...currentProofTags, experimentMaster.proofTag];
+            await storage.updateVenture(ventureId, {
+              prooftags: updatedProofTags,
+              updatedAt: new Date()
+            });
+            appLogger.info(`Added ProofTag "${experimentMaster.proofTag}" to venture ${ventureId}`);
+          }
+        }
+      } catch (error) {
+        appLogger.error("Failed to add ProofTag to venture:", error);
+        // Don't fail the experiment update if ProofTag update fails
+      }
     }
 
     res.json(

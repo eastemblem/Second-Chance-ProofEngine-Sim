@@ -1077,25 +1077,27 @@ export class OnboardingService {
                     // Calculate initial VaultScore from pitch deck
                     const initialVaultScore = pitchDeckConfig.score;
                     
-                    // Update venture with growth stage, ProofScore, VaultScore, and status
+                    // Update venture with growth stage, ProofScore, VaultScore, ProofTags, and status
                     await storage.updateVenture(venture.ventureId, {
                       growthStage: founderStage,
                       proofScore: totalScore,
                       vaultScore: initialVaultScore,
+                      prooftags: extractedTags,
                       status: 'done',
                       updatedAt: new Date()
                     });
-                    console.log(`✓ Updated venture ${venture.name} with growth stage: ${founderStage}, ProofScore: ${totalScore}, VaultScore: ${initialVaultScore}, status: done`);
+                    console.log(`✓ Updated venture ${venture.name} with growth stage: ${founderStage}, ProofScore: ${totalScore}, VaultScore: ${initialVaultScore}, ProofTags: ${extractedTags.length}, status: done`);
                   } else {
                     // If pitch deck upload not found, still update venture
                     await storage.updateVenture(venture.ventureId, {
                       growthStage: founderStage,
                       proofScore: totalScore,
                       vaultScore: 0,
+                      prooftags: extractedTags,
                       status: 'done',
                       updatedAt: new Date()
                     });
-                    console.log(`✓ Updated venture ${venture.name} (pitch deck upload not found)`);
+                    console.log(`✓ Updated venture ${venture.name} with ProofTags: ${extractedTags.length} (pitch deck upload not found)`);
                   }
                 } else {
                   // If no pitch deck config found, still update venture with basic info
@@ -1103,10 +1105,11 @@ export class OnboardingService {
                     growthStage: founderStage,
                     proofScore: totalScore,
                     vaultScore: 0,
+                    prooftags: extractedTags,
                     status: 'done',
                     updatedAt: new Date()
                   });
-                  console.log(`✓ Updated venture ${venture.name} (no pitch deck config found)`);
+                  console.log(`✓ Updated venture ${venture.name} with ProofTags: ${extractedTags.length} (no pitch deck config found)`);
                 }
               } catch (pitchUpdateError) {
                 console.error("Failed to update pitch deck scores:", pitchUpdateError);
@@ -1115,15 +1118,17 @@ export class OnboardingService {
                   growthStage: founderStage,
                   proofScore: totalScore,
                   vaultScore: 0,
+                  prooftags: extractedTags,
                   status: 'done',
                   updatedAt: new Date()
                 });
               }
             } else {
-              // If no growth stage, still update ProofScore and status
+              // If no growth stage, still update ProofScore, ProofTags, and status
               await storage.updateVenture(venture.ventureId, {
                 proofScore: totalScore,
                 vaultScore: 0,
+                prooftags: extractedTags,
                 status: 'done',
                 updatedAt: new Date()
               });

@@ -68,6 +68,7 @@ export const venture = pgTable("venture", {
   growthStage: varchar("growth_stage", { length: 100 }),
   proofScore: integer("proof_score").default(0),
   vaultScore: integer("vault_score").default(0),
+  prooftags: json("prooftags").$type<string[]>().notNull().default([]),
   status: ventureStatusEnum("status").notNull().default("pending"),
   createdAt: timestamp("created_at").defaultNow().notNull(),
   updatedAt: timestamp("updated_at").defaultNow().notNull(),
