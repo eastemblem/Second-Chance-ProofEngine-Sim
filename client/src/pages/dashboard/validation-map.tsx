@@ -379,17 +379,20 @@ export default function ValidationMap() {
               <table className="w-full border-collapse">
                 <thead>
                   <tr className="border-b border-gray-800">
-                    <th className="p-4 text-left font-semibold text-gray-300 text-sm">Status</th>
-                    <th className="p-4 text-left font-semibold text-gray-300 text-sm min-w-[200px]">Experiment</th>
-                    <th className="p-4 text-left font-semibold text-gray-300 text-sm">Category</th>
+                    <th className="p-4 text-left font-semibold text-gray-300 text-sm">
+                      <ColumnBadge variant="gray">Status</ColumnBadge>
+                    </th>
+                    <th className="p-4 text-left font-semibold text-gray-300 text-sm min-w-[200px]">
+                      <ColumnBadge variant="purple">Experiment</ColumnBadge>
+                    </th>
+                    <th className="p-4 text-left font-semibold text-gray-300 text-sm">
+                      <ColumnBadge variant="purple">Category</ColumnBadge>
+                    </th>
                     <th className="p-4 text-left font-semibold text-gray-300 text-sm min-w-[200px]">
                       <ColumnBadge variant="purple">Core Assumption</ColumnBadge>
                     </th>
                     <th className="p-4 text-left font-semibold text-gray-300 text-sm min-w-[200px]">
                       <ColumnBadge variant="purple">Hypothesis</ColumnBadge>
-                    </th>
-                    <th className="p-4 text-left font-semibold text-gray-300 text-sm min-w-[200px]">
-                      <ColumnBadge variant="yellow">Experiment</ColumnBadge>
                     </th>
                     <th className="p-4 text-left font-semibold text-gray-300 text-sm min-w-[150px]">
                       <ColumnBadge variant="blue">Target Behaviour</ColumnBadge>
@@ -407,10 +410,8 @@ export default function ValidationMap() {
                       <ColumnBadge variant="gradient">New Insights</ColumnBadge>
                     </th>
                     <th className="p-4 text-left font-semibold text-gray-300 text-sm">
-                      <ColumnBadge variant="blue">Decision</ColumnBadge>
+                      <ColumnBadge variant="green">Action</ColumnBadge>
                     </th>
-                    <th className="p-4 text-left font-semibold text-gray-300 text-sm">ProofTag</th>
-                    <th className="p-4 text-left font-semibold text-gray-300 text-sm">Action</th>
                   </tr>
                 </thead>
                 <tbody>
@@ -476,9 +477,6 @@ export default function ValidationMap() {
                         </div>
                       </td>
                       <td className="p-4">
-                        <p className="text-sm text-gray-300">{exp.masterData.experimentId || "—"}</p>
-                      </td>
-                      <td className="p-4">
                         <p className="text-sm text-gray-300">{exp.masterData.signalTracked || "—"}</p>
                       </td>
                       <td className="p-4">
@@ -528,48 +526,6 @@ export default function ValidationMap() {
                             <span className="text-gray-500">Click to add insights...</span>
                           )}
                         </div>
-                      </td>
-                      <td className="p-4">
-                        <div
-                          onClick={() => openEditModal(
-                            exp,
-                            "decision",
-                            "Decision",
-                            "select",
-                            [
-                              { value: "measure", label: "Measure" },
-                              { value: "build", label: "Build" },
-                              { value: "pivot", label: "Pivot" },
-                              { value: "stop", label: "Stop" },
-                            ]
-                          )}
-                          className={`min-h-[40px] p-3 rounded border ${
-                            exp.status === "completed"
-                              ? "bg-gray-800/30 border-gray-700/50 cursor-not-allowed"
-                              : "bg-gray-800/50 border-gray-700 cursor-pointer hover:border-purple-500/50 hover:bg-gray-800/70"
-                          } text-gray-200 text-sm transition-colors flex items-center`}
-                          data-testid={`select-decision-${exp.id}`}
-                        >
-                          {exp.decision ? (
-                            <span className="capitalize">{exp.decision}</span>
-                          ) : (
-                            <span className="text-gray-500">Click to select...</span>
-                          )}
-                        </div>
-                      </td>
-                      <td className="p-4">
-                        {exp.masterData.proofTag && exp.status === "completed" ? (
-                          <Badge 
-                            variant="secondary" 
-                            className="bg-yellow-500/20 text-yellow-400 border-yellow-500/50"
-                            data-testid={`badge-prooftag-${exp.id}`}
-                          >
-                            <Trophy className="mr-1 h-3 w-3" />
-                            {exp.masterData.proofTag}
-                          </Badge>
-                        ) : (
-                          <span className="text-sm text-gray-500">—</span>
-                        )}
                       </td>
                       <td className="p-4">
                         {exp.status !== "completed" && (

@@ -1,6 +1,6 @@
 interface ColumnBadgeProps {
   children: React.ReactNode;
-  variant?: "purple" | "yellow" | "blue" | "orange" | "cyan" | "gradient";
+  variant?: "purple" | "yellow" | "blue" | "orange" | "cyan" | "gradient" | "gray" | "green";
 }
 
 export function ColumnBadge({ children, variant = "purple" }: ColumnBadgeProps) {
@@ -11,6 +11,8 @@ export function ColumnBadge({ children, variant = "purple" }: ColumnBadgeProps) 
     orange: "bg-gradient-to-r from-orange-500 to-orange-600 text-white",
     cyan: "bg-gradient-to-r from-cyan-500 to-teal-500 text-white",
     gradient: "bg-gradient-to-r from-purple-500 to-orange-500 text-white",
+    gray: "bg-gradient-to-r from-gray-500 to-gray-600 text-white",
+    green: "bg-gradient-to-r from-green-500 to-green-600 text-white",
   };
 
   return (
