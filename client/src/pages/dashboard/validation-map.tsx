@@ -151,7 +151,7 @@ export default function ValidationMap() {
   const availableExperiments = allMasters.filter((master: any) => !addedExperimentIds.has(master.experimentId));
 
   // Get unique categories from experiments for the filter
-  const uniqueCategories: string[] = Array.from(new Set(experiments.map((exp: VentureExperiment) => exp.masterData.validationSphere))).sort();
+  const uniqueCategories = Array.from(new Set(experiments.map((exp: VentureExperiment) => exp.masterData.validationSphere))).sort() as string[];
 
   // Filter experiments based on search, status, and category filters
   const filteredExperiments = experiments.filter((exp: VentureExperiment) => {
@@ -608,39 +608,26 @@ export default function ValidationMap() {
                   </SelectContent>
                 </Select>
 
-                {/* Status Filter Buttons */}
-                <div className="flex gap-2">
-                  <Button
-                    onClick={() => setStatusFilter("all")}
-                    variant={statusFilter === "all" ? "default" : "outline"}
-                    className={statusFilter === "all" 
-                      ? "bg-purple-600 hover:bg-purple-700 text-white" 
-                      : "bg-gray-800/50 border-gray-700 text-gray-300 hover:bg-gray-800"}
-                    data-testid="button-filter-all"
+                {/* Status Filter Dropdown */}
+                <Select value={statusFilter} onValueChange={(value) => setStatusFilter(value as "all" | "active" | "completed")}>
+                  <SelectTrigger 
+                    className="w-[180px] bg-gray-800/50 border-gray-700 text-gray-200"
+                    data-testid="select-status-filter"
                   >
-                    All
-                  </Button>
-                  <Button
-                    onClick={() => setStatusFilter("active")}
-                    variant={statusFilter === "active" ? "default" : "outline"}
-                    className={statusFilter === "active" 
-                      ? "bg-purple-600 hover:bg-purple-700 text-white" 
-                      : "bg-gray-800/50 border-gray-700 text-gray-300 hover:bg-gray-800"}
-                    data-testid="button-filter-active"
-                  >
-                    Active
-                  </Button>
-                  <Button
-                    onClick={() => setStatusFilter("completed")}
-                    variant={statusFilter === "completed" ? "default" : "outline"}
-                    className={statusFilter === "completed" 
-                      ? "bg-purple-600 hover:bg-purple-700 text-white" 
-                      : "bg-gray-800/50 border-gray-700 text-gray-300 hover:bg-gray-800"}
-                    data-testid="button-filter-completed"
-                  >
-                    Completed
-                  </Button>
-                </div>
+                    <SelectValue placeholder="All Status" />
+                  </SelectTrigger>
+                  <SelectContent className="bg-gray-900 border-gray-700">
+                    <SelectItem value="all" className="text-gray-200 focus:bg-gray-800">
+                      All
+                    </SelectItem>
+                    <SelectItem value="active" className="text-gray-200 focus:bg-gray-800">
+                      Active
+                    </SelectItem>
+                    <SelectItem value="completed" className="text-gray-200 focus:bg-gray-800">
+                      Completed
+                    </SelectItem>
+                  </SelectContent>
+                </Select>
               </div>
 
               {/* Row Count Display */}
