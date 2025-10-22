@@ -565,34 +565,40 @@ export default function ValidationMap() {
                         </Badge>
                       </td>
                       <td className="p-4">
-                        <Select
-                          value={exp.decision || ""}
-                          onValueChange={(value) => {
-                            updateMutation.mutate({ 
-                              id: exp.id, 
-                              updates: { decision: value } 
-                            });
-                          }}
-                          disabled={exp.status === "completed"}
-                        >
-                          <SelectTrigger 
-                            className="w-full bg-gray-800/50 border-gray-700 text-gray-200 hover:border-purple-500/50"
-                            data-testid={`select-decision-${exp.id}`}
+                        {exp.decision ? (
+                          <Badge className="bg-pink-500/20 text-pink-400 border-pink-500/50 capitalize">
+                            {exp.decision}
+                          </Badge>
+                        ) : (
+                          <Select
+                            value={exp.decision || ""}
+                            onValueChange={(value) => {
+                              updateMutation.mutate({ 
+                                id: exp.id, 
+                                updates: { decision: value } 
+                              });
+                            }}
+                            disabled={exp.status === "completed"}
                           >
-                            <SelectValue placeholder="Select decision..." />
-                          </SelectTrigger>
-                          <SelectContent className="bg-gray-900 border-gray-700">
-                            <SelectItem value="measure" className="text-gray-200 focus:bg-gray-800">
-                              Measure
-                            </SelectItem>
-                            <SelectItem value="pivot" className="text-gray-200 focus:bg-gray-800">
-                              Pivot
-                            </SelectItem>
-                            <SelectItem value="persevere" className="text-gray-200 focus:bg-gray-800">
-                              Persevere
-                            </SelectItem>
-                          </SelectContent>
-                        </Select>
+                            <SelectTrigger 
+                              className="w-full bg-gray-800/50 border-gray-700 text-gray-200 hover:border-purple-500/50"
+                              data-testid={`select-decision-${exp.id}`}
+                            >
+                              <SelectValue placeholder="Select decision..." />
+                            </SelectTrigger>
+                            <SelectContent className="bg-gray-900 border-gray-700">
+                              <SelectItem value="measure" className="text-gray-200 focus:bg-gray-800">
+                                Measure
+                              </SelectItem>
+                              <SelectItem value="pivot" className="text-gray-200 focus:bg-gray-800">
+                                Pivot
+                              </SelectItem>
+                              <SelectItem value="persevere" className="text-gray-200 focus:bg-gray-800">
+                                Persevere
+                              </SelectItem>
+                            </SelectContent>
+                          </Select>
+                        )}
                       </td>
                       <td className="p-4">
                         <p className="text-sm text-gray-300">{exp.masterData.hypothesisTested || "—"}</p>
