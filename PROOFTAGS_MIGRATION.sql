@@ -25,5 +25,5 @@ WHERE v.venture_id = e.venture_id
 SELECT 
   COUNT(*) as total_ventures,
   COUNT(*) FILTER (WHERE prooftags IS NOT NULL) as ventures_with_prooftags_column,
-  COUNT(*) FILTER (WHERE prooftags != '[]'::json) as ventures_with_prooftags_data
+  COUNT(*) FILTER (WHERE prooftags::text != '[]') as ventures_with_prooftags_data
 FROM venture;
