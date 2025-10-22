@@ -206,7 +206,7 @@ router.patch(
     const updateSchema = z.object({
       userHypothesis: z.string().optional(),
       results: z.string().optional(),
-      decision: z.enum(["measure", "build", "pivot", "stop"]).optional(),
+      decision: z.enum(["measure", "pivot", "persevere"]).optional(),
       customNotes: z.string().optional(),
       newInsights: z.string().optional(),
       status: z.enum(["not_started", "in_progress", "completed"]).optional(),

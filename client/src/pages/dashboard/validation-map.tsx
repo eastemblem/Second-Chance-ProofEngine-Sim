@@ -759,7 +759,7 @@ export default function ValidationMap() {
                               <Button
                                 onClick={() => handleComplete(exp.id)}
                                 size="sm"
-                                className="bg-purple-600 hover:bg-purple-700 text-white"
+                                className="bg-green-600 hover:bg-green-700 text-white"
                                 disabled={completingExperimentIds.has(exp.id)}
                                 data-testid={`button-complete-${exp.id}`}
                               >
@@ -784,7 +784,7 @@ export default function ValidationMap() {
                       <td className="sticky left-[220px] z-10 p-4 bg-gray-900/95 backdrop-blur-sm">
                         <div>
                           <p 
-                            className="font-medium text-purple-400 text-base cursor-pointer hover:text-purple-300 hover:underline transition-colors break-words" 
+                            className="font-medium text-blue-400 text-base cursor-pointer hover:text-blue-300 hover:underline transition-colors break-words" 
                             data-testid={`text-experiment-name-${exp.id}`}
                             onClick={() => handleViewDetails(exp)}
                           >
@@ -801,7 +801,7 @@ export default function ValidationMap() {
                       <td className="p-4">
                         <Badge 
                           variant="outline" 
-                          className="border-purple-500/50 text-purple-400 bg-purple-500/10"
+                          className="border-cyan-500/50 text-cyan-400 bg-cyan-500/10"
                           data-testid={`badge-sphere-${exp.id}`}
                         >
                           {exp.masterData.validationSphere}
