@@ -4,10 +4,11 @@ import { useLocation } from "wouter";
 import { queryClient, apiRequest } from "@/lib/queryClient";
 import { Card, CardContent } from "@/components/ui/card";
 import { Textarea } from "@/components/ui/textarea";
+import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { CheckCircle, Circle, Loader2, Download, Trophy, Plus, Pencil, Trash2 } from "lucide-react";
+import { CheckCircle, Circle, Loader2, Download, Trophy, Plus, Pencil, Trash2, Search, X } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import confetti from "canvas-confetti";
 import { useTokenAuth } from "@/hooks/use-token-auth";
@@ -114,6 +115,10 @@ export default function ValidationMap() {
   // Track which experiments are being completed (supports concurrent completions)
   const [completingExperimentIds, setCompletingExperimentIds] = useState<Set<string>>(new Set());
 
+  // Search and filter state
+  const [searchQuery, setSearchQuery] = useState("");
+  const [statusFilter, setStatusFilter] = useState<"all" | "active" | "completed">("all");
+
   // Fetch validation data for header
   const { data: validationData } = useQuery<any>({
     queryKey: ['/api/pitch/validation-status'],
@@ -139,6 +144,25 @@ export default function ValidationMap() {
   const allMasters = (mastersData as any)?.data || [];
   const addedExperimentIds = new Set(experiments.map((exp: VentureExperiment) => exp.experimentId));
   const availableExperiments = allMasters.filter((master: any) => !addedExperimentIds.has(master.experimentId));
+
+  // Filter experiments based on search and status filter
+  const filteredExperiments = experiments.filter((exp: VentureExperiment) => {
+    // Status filter
+    if (statusFilter === "active" && exp.status === "completed") return false;
+    if (statusFilter === "completed" && exp.status !== "completed") return false;
+
+    // Search filter
+    if (searchQuery) {
+      const query = searchQuery.toLowerCase();
+      const matchesName = exp.masterData.name.toLowerCase().includes(query);
+      const matchesCategory = exp.masterData.validationSphere.toLowerCase().includes(query);
+      const matchesDecision = exp.decision?.toLowerCase().includes(query);
+      
+      return matchesName || matchesCategory || matchesDecision;
+    }
+
+    return true;
+  });
 
   // Update experiment mutation
   const updateMutation = useMutation({
@@ -495,15 +519,103 @@ export default function ValidationMap() {
                 </Button>
               </div>
             </div>
+
+            {/* Search and Filter Section */}
+            <div className="mb-6 space-y-4">
+              <div className="flex flex-col sm:flex-row gap-4">
+                {/* Search Input */}
+                <div className="relative flex-1">
+                  <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400" />
+                  <Input
+                    type="text"
+                    placeholder="Search by experiment name, category, or decision..."
+                    value={searchQuery}
+                    onChange={(e) => setSearchQuery(e.target.value)}
+                    className="pl-10 bg-gray-800/50 border-gray-700 text-gray-200 placeholder:text-gray-500 focus:border-purple-500"
+                    data-testid="input-search-experiments"
+                  />
+                  {searchQuery && (
+                    <button
+                      onClick={() => setSearchQuery("")}
+                      className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-gray-300"
+                      data-testid="button-clear-search"
+                    >
+                      <X className="h-4 w-4" />
+                    </button>
+                  )}
+                </div>
+
+                {/* Status Filter Buttons */}
+                <div className="flex gap-2">
+                  <Button
+                    onClick={() => setStatusFilter("all")}
+                    variant={statusFilter === "all" ? "default" : "outline"}
+                    className={statusFilter === "all" 
+                      ? "bg-purple-600 hover:bg-purple-700 text-white" 
+                      : "bg-gray-800/50 border-gray-700 text-gray-300 hover:bg-gray-800"}
+                    data-testid="button-filter-all"
+                  >
+                    All
+                  </Button>
+                  <Button
+                    onClick={() => setStatusFilter("active")}
+                    variant={statusFilter === "active" ? "default" : "outline"}
+                    className={statusFilter === "active" 
+                      ? "bg-purple-600 hover:bg-purple-700 text-white" 
+                      : "bg-gray-800/50 border-gray-700 text-gray-300 hover:bg-gray-800"}
+                    data-testid="button-filter-active"
+                  >
+                    Active
+                  </Button>
+                  <Button
+                    onClick={() => setStatusFilter("completed")}
+                    variant={statusFilter === "completed" ? "default" : "outline"}
+                    className={statusFilter === "completed" 
+                      ? "bg-purple-600 hover:bg-purple-700 text-white" 
+                      : "bg-gray-800/50 border-gray-700 text-gray-300 hover:bg-gray-800"}
+                    data-testid="button-filter-completed"
+                  >
+                    Completed
+                  </Button>
+                </div>
+              </div>
+
+              {/* Row Count Display */}
+              <div className="flex items-center justify-between text-sm">
+                <p className="text-gray-400">
+                  Showing <span className="text-white font-semibold">{filteredExperiments.length}</span> of{" "}
+                  <span className="text-white font-semibold">{experiments.length}</span> experiments
+                  {(searchQuery || statusFilter !== "all") && (
+                    <span className="ml-2 text-purple-400">
+                      (filtered)
+                    </span>
+                  )}
+                </p>
+                {(searchQuery || statusFilter !== "all") && (
+                  <Button
+                    onClick={() => {
+                      setSearchQuery("");
+                      setStatusFilter("all");
+                    }}
+                    variant="ghost"
+                    size="sm"
+                    className="text-gray-400 hover:text-gray-300"
+                    data-testid="button-clear-filters"
+                  >
+                    Clear filters
+                  </Button>
+                )}
+              </div>
+            </div>
             
             <div className="overflow-x-auto">
               <table className="w-full border-collapse">
                 <thead>
                   <tr className="border-b border-gray-800">
-                    <th className="p-4 text-left font-semibold text-gray-300 text-sm min-w-[220px]">
+                    <th className="sticky left-0 z-20 p-4 text-left font-semibold text-gray-300 text-sm min-w-[220px] bg-gray-900/95 backdrop-blur-sm">
                       <ColumnBadge variant="slate">Actions</ColumnBadge>
                     </th>
-                    <th className="p-4 text-left font-semibold text-gray-300 text-sm min-w-[200px]">
+                    <th className="sticky left-[220px] z-20 p-4 text-left font-semibold text-gray-300 text-sm min-w-[200px] bg-gray-900/95 backdrop-blur-sm">
                       <ColumnBadge variant="purple">Experiment</ColumnBadge>
                     </th>
                     <th className="p-4 text-left font-semibold text-gray-300 text-sm">
@@ -536,13 +648,13 @@ export default function ValidationMap() {
                   </tr>
                 </thead>
                 <tbody>
-                  {experiments.map((exp: VentureExperiment) => (
+                  {filteredExperiments.map((exp: VentureExperiment) => (
                     <tr
                       key={exp.id}
                       className="border-b border-gray-800 hover:bg-gray-800/50 transition-colors"
                       data-testid={`row-experiment-${exp.id}`}
                     >
-                      <td className="p-4">
+                      <td className="sticky left-0 z-10 p-4 bg-gray-900/95 backdrop-blur-sm">
                         <div className="flex items-center gap-2">
                           {exp.status !== "completed" && (
                             <>
@@ -592,10 +704,10 @@ export default function ValidationMap() {
                           )}
                         </div>
                       </td>
-                      <td className="p-4">
+                      <td className="sticky left-[220px] z-10 p-4 bg-gray-900/95 backdrop-blur-sm">
                         <div>
                           <p 
-                            className="font-medium text-purple-400 text-base cursor-pointer hover:text-purple-300 hover:underline transition-colors" 
+                            className="font-medium text-purple-400 text-base cursor-pointer hover:text-purple-300 hover:underline transition-colors break-words" 
                             data-testid={`text-experiment-name-${exp.id}`}
                             onClick={() => handleViewDetails(exp)}
                           >
@@ -655,12 +767,12 @@ export default function ValidationMap() {
                         )}
                       </td>
                       <td className="p-4">
-                        <p className="text-sm text-gray-300">{exp.masterData.hypothesisTested || "—"}</p>
+                        <p className="text-sm text-gray-300 break-words max-w-[200px]">{exp.masterData.hypothesisTested || "—"}</p>
                       </td>
                       <td className="p-4">
                         <div
                           onClick={() => handleViewDetails(exp)}
-                          className="cursor-pointer hover:bg-gray-800/50 p-2 rounded transition-colors"
+                          className="cursor-pointer hover:bg-gray-800/50 p-2 rounded transition-colors max-w-[200px]"
                           data-testid={`input-hypothesis-${exp.id}`}
                         >
                           {exp.userHypothesis ? (
@@ -668,7 +780,7 @@ export default function ValidationMap() {
                               const { text, isTruncated } = stripHtmlAndTruncate(exp.userHypothesis, 2);
                               return (
                                 <div>
-                                  <p className="text-sm text-gray-200 line-clamp-2">{text}</p>
+                                  <p className="text-sm text-gray-200 line-clamp-2 break-words">{text}</p>
                                   {isTruncated && <span className="text-xs text-purple-400 mt-1 inline-block">Read more...</span>}
                                 </div>
                               );
@@ -679,15 +791,15 @@ export default function ValidationMap() {
                         </div>
                       </td>
                       <td className="p-4">
-                        <p className="text-sm text-gray-300">{exp.masterData.signalTracked || "—"}</p>
+                        <p className="text-sm text-gray-300 break-words max-w-[150px]">{exp.masterData.signalTracked || "—"}</p>
                       </td>
                       <td className="p-4">
-                        <p className="text-sm text-gray-300">{exp.masterData.targetMetric || "—"}</p>
+                        <p className="text-sm text-gray-300 break-words max-w-[150px]">{exp.masterData.targetMetric || "—"}</p>
                       </td>
                       <td className="p-4">
                         <div
                           onClick={() => handleViewDetails(exp)}
-                          className="cursor-pointer hover:bg-gray-800/50 p-2 rounded transition-colors"
+                          className="cursor-pointer hover:bg-gray-800/50 p-2 rounded transition-colors max-w-[200px]"
                           data-testid={`input-results-${exp.id}`}
                         >
                           {exp.results ? (
@@ -695,7 +807,7 @@ export default function ValidationMap() {
                               const { text, isTruncated } = stripHtmlAndTruncate(exp.results, 2);
                               return (
                                 <div>
-                                  <p className="text-sm text-gray-200 line-clamp-2">{text}</p>
+                                  <p className="text-sm text-gray-200 line-clamp-2 break-words">{text}</p>
                                   {isTruncated && <span className="text-xs text-purple-400 mt-1 inline-block">Read more...</span>}
                                 </div>
                               );
@@ -708,7 +820,7 @@ export default function ValidationMap() {
                       <td className="p-4">
                         <div
                           onClick={() => handleViewDetails(exp)}
-                          className="cursor-pointer hover:bg-gray-800/50 p-2 rounded transition-colors"
+                          className="cursor-pointer hover:bg-gray-800/50 p-2 rounded transition-colors max-w-[200px]"
                           data-testid={`input-why-${exp.id}`}
                         >
                           {exp.customNotes ? (
@@ -716,7 +828,7 @@ export default function ValidationMap() {
                               const { text, isTruncated } = stripHtmlAndTruncate(exp.customNotes, 2);
                               return (
                                 <div>
-                                  <p className="text-sm text-gray-200 line-clamp-2">{text}</p>
+                                  <p className="text-sm text-gray-200 line-clamp-2 break-words">{text}</p>
                                   {isTruncated && <span className="text-xs text-purple-400 mt-1 inline-block">Read more...</span>}
                                 </div>
                               );
@@ -729,7 +841,7 @@ export default function ValidationMap() {
                       <td className="p-4">
                         <div
                           onClick={() => handleViewDetails(exp)}
-                          className="cursor-pointer hover:bg-gray-800/50 p-2 rounded transition-colors"
+                          className="cursor-pointer hover:bg-gray-800/50 p-2 rounded transition-colors max-w-[200px]"
                           data-testid={`input-insights-${exp.id}`}
                         >
                           {exp.newInsights ? (
@@ -737,7 +849,7 @@ export default function ValidationMap() {
                               const { text, isTruncated } = stripHtmlAndTruncate(exp.newInsights, 2);
                               return (
                                 <div>
-                                  <p className="text-sm text-gray-200 line-clamp-2">{text}</p>
+                                  <p className="text-sm text-gray-200 line-clamp-2 break-words">{text}</p>
                                   {isTruncated && <span className="text-xs text-purple-400 mt-1 inline-block">Read more...</span>}
                                 </div>
                               );
