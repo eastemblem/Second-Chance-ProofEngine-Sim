@@ -19,7 +19,7 @@ FROM (
   ORDER BY venture_id, created_at DESC
 ) e
 WHERE v.venture_id = e.venture_id
-  AND v.prooftags = '[]'::json;
+  AND v.prooftags::text = '[]';
 
 -- Verify the migration
 SELECT 
