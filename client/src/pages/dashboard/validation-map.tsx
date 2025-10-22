@@ -432,16 +432,18 @@ export default function ValidationMap() {
                           <p className="font-medium text-purple-400 text-base mb-2" data-testid={`text-experiment-name-${exp.id}`}>
                             {exp.masterData.name}
                           </p>
-                          <div className="space-y-1">
+                          <div className="flex gap-2 flex-wrap mt-2">
                             {exp.decision && (
-                              <p className="text-xs text-gray-400">
-                                <span className="text-gray-500">Decision:</span> <span className="capitalize text-white">{exp.decision}</span>
-                              </p>
+                              <div className="inline-flex items-center gap-1 text-xs bg-gray-800 px-2 py-1 rounded">
+                                <span className="text-gray-400">Decision:</span>
+                                <span className="text-white capitalize font-medium">{exp.decision}</span>
+                              </div>
                             )}
                             {exp.masterData.proofTag && exp.status === "completed" && (
-                              <p className="text-xs text-gray-400">
-                                <span className="text-gray-500">ProofTag:</span> <span className="text-yellow-400">{exp.masterData.proofTag}</span>
-                              </p>
+                              <div className="inline-flex items-center gap-1 text-xs bg-yellow-500/10 border border-yellow-500/30 px-2 py-1 rounded">
+                                <span className="text-gray-400">ProofTag:</span>
+                                <span className="text-yellow-400 font-medium">{exp.masterData.proofTag}</span>
+                              </div>
                             )}
                           </div>
                         </div>
