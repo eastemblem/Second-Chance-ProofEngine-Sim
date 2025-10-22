@@ -241,7 +241,10 @@ router.patch(
       try {
         const experimentMaster = await storage.getExperimentMaster(experiment.experimentId);
         if (experimentMaster?.proofTag) {
-          const venture = await storage.getVentureById(ventureId);
+          const venture = await storage.getVenture(ventureId);
+          if (!venture) {
+            throw new Error("Venture not found");
+          }
           const currentProofTags = venture.prooftags || [];
           
           // Add ProofTag if not already present (deduplication)
