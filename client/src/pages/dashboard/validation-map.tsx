@@ -432,6 +432,7 @@ export default function ValidationMap() {
     }
 
     const headers = [
+      "Experiment ID",
       "Experiment Name",
       "Category",
       "Decision",
@@ -445,6 +446,7 @@ export default function ValidationMap() {
     ];
 
     const rows = filteredExperiments.map((exp: VentureExperiment) => [
+      exp.experimentId,
       exp.masterData.name,
       exp.masterData.validationSphere,
       exp.decision || "",

@@ -92,42 +92,37 @@ export function ExperimentDetailsModal({
           <DialogHeader>
             <div className="flex items-start justify-between gap-4 mb-4">
               <div className="flex-1">
-                <DialogTitle className="text-2xl font-bold text-white mb-3">
-                  {masterData?.name || "Experiment Details"}
-                </DialogTitle>
-                {/* Tags in header */}
-                <div className="flex items-center gap-3 flex-wrap mt-4">
-                  {/* Category Tag */}
+                {/* Experiment Title with Status Badge */}
+                <div className="flex items-center gap-3 mb-3">
+                  <DialogTitle className="text-2xl font-bold text-white">
+                    {masterData?.name || "Experiment Details"}
+                  </DialogTitle>
+                  <Badge className={`${getStatusColor(experiment.status)} border px-3 py-1 capitalize`}>
+                    {experiment.status.replace("_", " ")}
+                  </Badge>
+                </div>
+                
+                {/* Category Tag (below title) */}
+                <div className="mb-2">
                   <Badge className="bg-purple-500/20 text-purple-300 border-purple-500/30 px-3 py-1">
                     {masterData?.validationSphere || "N/A"}
                   </Badge>
-                  
-                  {/* Status Label + Tag */}
-                  <div className="flex items-center gap-2">
-                    <span className="text-gray-400 text-sm">Status:</span>
-                    <Badge className={`${getStatusColor(experiment.status)} border px-3 py-1 capitalize`}>
-                      {experiment.status.replace("_", " ")}
-                    </Badge>
-                  </div>
-                  
-                  {/* Decision Label + Tag */}
+                </div>
+                
+                {/* Decision and ProofTag on new row */}
+                <div className="flex items-center gap-3 flex-wrap">
+                  {/* Decision */}
                   {experiment.decision && (
-                    <div className="flex items-center gap-2">
-                      <span className="text-gray-400 text-sm">Decision:</span>
-                      <Badge className="bg-gray-700/50 text-gray-300 border-gray-600 px-3 py-1 capitalize">
-                        {experiment.decision}
-                      </Badge>
-                    </div>
+                    <Badge className="bg-gray-700/50 text-gray-300 border-gray-600 px-3 py-1 capitalize">
+                      {experiment.decision}
+                    </Badge>
                   )}
                   
-                  {/* ProofTag Label + Tag */}
+                  {/* ProofTag */}
                   {masterData?.proofTag && (
-                    <div className="flex items-center gap-2">
-                      <span className="text-gray-400 text-sm">ProofTag:</span>
-                      <Badge className="bg-yellow-500/20 text-yellow-400 border-yellow-500/50 px-3 py-1">
-                        {masterData.proofTag}
-                      </Badge>
-                    </div>
+                    <Badge className="bg-yellow-500/20 text-yellow-400 border-yellow-500/50 px-3 py-1">
+                      {masterData.proofTag}
+                    </Badge>
                   )}
                 </div>
               </div>
@@ -170,7 +165,7 @@ export function ExperimentDetailsModal({
               <div className="inline-block px-4 py-1.5 rounded-md font-medium text-sm bg-gradient-to-r from-violet-500 to-purple-600 text-white mb-3">
                 Core Assumption
               </div>
-              <p className="text-gray-200 bg-slate-800/50 p-3 rounded-lg border border-purple-500/20">
+              <p className="text-gray-200 bg-gradient-to-br from-violet-900/20 via-slate-800/50 to-purple-900/20 p-3 rounded-lg border border-purple-500/20">
                 {masterData?.hypothesisTested || "No assumption defined"}
               </p>
             </div>
@@ -201,7 +196,7 @@ export function ExperimentDetailsModal({
                   </SelectContent>
                 </Select>
               ) : (
-                <div className="bg-slate-800/50 p-3 rounded-lg border border-purple-500/20">
+                <div className="bg-gradient-to-br from-pink-900/20 via-slate-800/50 to-rose-900/20 p-3 rounded-lg border border-purple-500/20">
                   {experiment.decision ? (
                     <Badge className="bg-pink-500/20 text-pink-400 border-pink-500/50 capitalize">
                       {experiment.decision}
@@ -226,7 +221,7 @@ export function ExperimentDetailsModal({
                 />
               ) : (
                 <div 
-                  className="text-gray-200 bg-slate-800/50 p-3 rounded-lg border border-purple-500/20 prose prose-invert max-w-none
+                  className="text-gray-200 bg-gradient-to-br from-purple-900/20 via-slate-800/50 to-pink-900/20 p-3 rounded-lg border border-purple-500/20 prose prose-invert max-w-none
                     prose-headings:text-white prose-headings:font-bold prose-headings:mb-2
                     prose-h2:text-xl prose-h3:text-lg
                     prose-p:my-2 prose-p:leading-relaxed
@@ -246,7 +241,7 @@ export function ExperimentDetailsModal({
               <div className="inline-block px-4 py-1.5 rounded-md font-medium text-sm bg-gradient-to-r from-cyan-500 to-blue-500 text-white mb-3">
                 Target Behaviour
               </div>
-              <p className="text-gray-200 bg-slate-800/50 p-3 rounded-lg border border-purple-500/20">
+              <p className="text-gray-200 bg-gradient-to-br from-cyan-900/20 via-slate-800/50 to-blue-900/20 p-3 rounded-lg border border-purple-500/20">
                 {masterData?.signalTracked || "No target behaviour"}
               </p>
             </div>
@@ -256,7 +251,7 @@ export function ExperimentDetailsModal({
               <div className="inline-block px-4 py-1.5 rounded-md font-medium text-sm bg-gradient-to-r from-amber-500 to-orange-600 text-white mb-3">
                 Target Metric
               </div>
-              <p className="text-gray-200 bg-slate-800/50 p-3 rounded-lg border border-purple-500/20">
+              <p className="text-gray-200 bg-gradient-to-br from-amber-900/20 via-slate-800/50 to-orange-900/20 p-3 rounded-lg border border-purple-500/20">
                 {masterData?.targetMetric || "No metric defined"}
               </p>
             </div>
@@ -274,7 +269,7 @@ export function ExperimentDetailsModal({
                 />
               ) : (
                 <div 
-                  className="text-gray-200 bg-slate-800/50 p-3 rounded-lg border border-purple-500/20 prose prose-invert max-w-none
+                  className="text-gray-200 bg-gradient-to-br from-indigo-900/20 via-slate-800/50 to-purple-900/20 p-3 rounded-lg border border-purple-500/20 prose prose-invert max-w-none
                     prose-headings:text-white prose-headings:font-bold prose-headings:mb-2
                     prose-h2:text-xl prose-h3:text-lg
                     prose-p:my-2 prose-p:leading-relaxed
@@ -302,7 +297,7 @@ export function ExperimentDetailsModal({
                 />
               ) : (
                 <div 
-                  className="text-gray-200 bg-slate-800/50 p-3 rounded-lg border border-purple-500/20 prose prose-invert max-w-none
+                  className="text-gray-200 bg-gradient-to-br from-teal-900/20 via-slate-800/50 to-cyan-900/20 p-3 rounded-lg border border-purple-500/20 prose prose-invert max-w-none
                     prose-headings:text-white prose-headings:font-bold prose-headings:mb-2
                     prose-h2:text-xl prose-h3:text-lg
                     prose-p:my-2 prose-p:leading-relaxed
@@ -330,7 +325,7 @@ export function ExperimentDetailsModal({
                 />
               ) : (
                 <div 
-                  className="text-gray-200 bg-slate-800/50 p-3 rounded-lg border border-purple-500/20 prose prose-invert max-w-none
+                  className="text-gray-200 bg-gradient-to-br from-rose-900/20 via-slate-800/50 to-pink-900/20 p-3 rounded-lg border border-purple-500/20 prose prose-invert max-w-none
                     prose-headings:text-white prose-headings:font-bold prose-headings:mb-2
                     prose-h2:text-xl prose-h3:text-lg
                     prose-p:my-2 prose-p:leading-relaxed
