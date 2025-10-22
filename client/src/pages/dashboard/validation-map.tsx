@@ -249,34 +249,32 @@ export default function ValidationMap() {
     const headers = [
       "Status",
       "Experiment Name",
+      "Decision",
+      "ProofTag",
       "Category",
       "Core Assumption",
       "Hypothesis",
-      "Experiment",
       "Target Behaviour",
       "Target Metric",
       "Actual Results",
       "Why ?",
       "New Insights",
-      "Decision",
-      "ProofTag",
       "Completed At",
     ];
 
     const rows = experiments.map((exp: VentureExperiment) => [
       exp.status,
       exp.masterData.name,
+      exp.decision || "",
+      exp.status === "completed" ? exp.masterData.proofTag || "" : "",
       exp.masterData.validationSphere,
       exp.masterData.hypothesisTested || "",
       exp.userHypothesis || "",
-      exp.masterData.experimentId || "",
       exp.masterData.signalTracked || "",
       exp.masterData.targetMetric || "",
       exp.results || "",
       exp.customNotes || "",
       exp.newInsights || "",
-      exp.decision || "",
-      exp.status === "completed" ? exp.masterData.proofTag || "" : "",
       exp.completedAt ? new Date(exp.completedAt).toLocaleDateString() : "",
     ]);
 
