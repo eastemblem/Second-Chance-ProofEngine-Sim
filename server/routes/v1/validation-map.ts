@@ -534,24 +534,32 @@ router.post(
         }
         const currentProofTags = venture.prooftags || [];
         
+        appLogger.info(`🔍 COMPLETE FLOW: Before update - Venture ${ventureId} has ${currentProofTags.length} ProofTags`);
+        
         // Add ProofTag if not already present (deduplication)
         if (!currentProofTags.includes(experimentMaster.proofTag)) {
           const updatedProofTags = [...currentProofTags, experimentMaster.proofTag];
+          
+          appLogger.info(`➕ COMPLETE FLOW: Adding ProofTag "${experimentMaster.proofTag}" (total will be ${updatedProofTags.length})`);
+          
           await storage.updateVenture(ventureId, {
             prooftags: updatedProofTags,
             updatedAt: new Date()
           });
-          proofTagAdded = experimentMaster.proofTag;
-          appLogger.info(`Added ProofTag "${experimentMaster.proofTag}" to venture ${ventureId} via complete endpoint`);
           
-          // CRITICAL: Clear LRU cache so dashboard reads fresh ProofTag data
+          proofTagAdded = experimentMaster.proofTag;
+          appLogger.info(`✅ COMPLETE FLOW: ProofTag "${experimentMaster.proofTag}" added to venture ${ventureId} (NEW TOTAL: ${updatedProofTags.length})`);
+          
+          // Double-check cache invalidation (repository should have done it, but ensure it)
           const { lruCacheService } = await import("../../services/lru-cache-service");
           await lruCacheService.invalidate('dashboard', founderId);
-          appLogger.info(`Cleared dashboard cache for founder ${founderId} after ProofTag update`);
+          appLogger.info(`🗑️ COMPLETE FLOW: Dashboard cache invalidated for founder ${founderId}`);
+        } else {
+          appLogger.info(`⏭️ COMPLETE FLOW: ProofTag "${experimentMaster.proofTag}" already exists, skipping`);
         }
       }
     } catch (error) {
-      appLogger.error("Failed to add ProofTag to venture:", error);
+      appLogger.error("❌ COMPLETE FLOW: Failed to add ProofTag to venture:", error);
     }
 
     res.json(

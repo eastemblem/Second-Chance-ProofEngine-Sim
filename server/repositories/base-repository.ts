@@ -47,7 +47,8 @@ export abstract class BaseRepository {
     type: 'founder' | 'dashboard' | 'venture' | 'leaderboard',
     key: string
   ): Promise<void> {
-    // Note: Will be implemented when cache service supports it
-    appLogger.cache(`Cache invalidation requested: ${type}:${key}`);
+    const { lruCacheService } = await import("../services/lru-cache-service");
+    await lruCacheService.invalidate(type, key);
+    appLogger.cache(`✅ Cache invalidated via base repository: ${type}:${key}`);
   }
 }

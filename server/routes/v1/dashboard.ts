@@ -39,12 +39,17 @@ router.get('/validation', asyncHandler(async (req: Request, res: Response) => {
   }
   
   try {
+    appLogger.api(`📡 VALIDATION API: Fetching data for founder ${founderId}`);
+    
     const dashboardData = await databaseService.getFounderWithLatestVenture(founderId);
     if (!dashboardData) {
       return res.status(404).json({ error: "Founder not found" });
     }
 
     const { founder: founderData, venture: latestVenture, latestEvaluation } = dashboardData;
+    
+    appLogger.api(`📊 VALIDATION API: Venture ${latestVenture?.ventureId} retrieved from database`);
+    
     // FIXED: Get proofScore from venture table (source of truth), not evaluation table
     const currentScore = latestVenture?.proofScore || 0;
 
@@ -126,7 +131,7 @@ router.get('/validation', asyncHandler(async (req: Request, res: Response) => {
     const totalFiles = await storage.getDocumentUploadCountByVenture(dashboardData.venture.ventureId);
     validationData.filesUploaded = totalFiles;
 
-    appLogger.api(`FIXED: Returning validation data for ${founderData?.fullName}, score: ${currentScore}, files: ${totalFiles}`);
+    appLogger.api(`✅ VALIDATION API: Returning data - ProofScore: ${currentScore}, ProofTags: ${proofTagsUnlocked}, Files: ${totalFiles}`);
     res.json(validationData);
   } catch (error) {
     appLogger.api("FIXED: Dashboard validation error:", error);
