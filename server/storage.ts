@@ -685,7 +685,23 @@ export class DatabaseStorage implements IStorage {
       .where(eq(ventureExperiments.id, id))
       .returning();
     
-    return updated;
+    // Fetch with master data for return
+    const [result] = await db
+      .select({
+        ventureExperiment: ventureExperiments,
+        experimentMaster: experimentMaster,
+      })
+      .from(ventureExperiments)
+      .innerJoin(experimentMaster, eq(ventureExperiments.experimentId, experimentMaster.experimentId))
+      .where(eq(ventureExperiments.id, updated.id))
+      .limit(1);
+    
+    if (!result) return updated;
+    
+    return {
+      ...result.ventureExperiment,
+      masterData: result.experimentMaster,
+    };
   }
 }
 

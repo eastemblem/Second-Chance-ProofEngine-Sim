@@ -223,17 +223,13 @@ export default function ValidationMap() {
   const completeMutation = useMutation({
     mutationFn: async (id: string) => {
       setCompletingExperimentIds(prev => new Set(prev).add(id));
-      console.log('🎯 Calling complete endpoint for experiment:', id);
       const response = await apiRequest("POST", `/api/validation-map/${id}/complete`);
       const data = await response.json();
-      console.log('✅ Complete endpoint response:', data);
       return data;
     },
     onSuccess: (data: any, id: string) => {
-      console.log('🔄 Invalidating caches after completion');
       queryClient.invalidateQueries({ queryKey: ["/api/validation-map"] });
       queryClient.invalidateQueries({ queryKey: ["/api/v1/dashboard/validation"] });
-      console.log('✓ Cache invalidation triggered');
       setCompletingExperimentIds(prev => {
         const next = new Set(prev);
         next.delete(id);
@@ -261,7 +257,6 @@ export default function ValidationMap() {
         next.delete(id);
         return next;
       });
-      console.log('❌ COMPLETE ERROR:', error);
       toast({
         title: "Failed to complete experiment",
         description: error.message || "An error occurred while completing the experiment",
@@ -278,7 +273,6 @@ export default function ValidationMap() {
       return response.json();
     },
     onSuccess: () => {
-      console.log('🗑️ DELETE SUCCESS: Invalidating validation-map and validation API caches');
       queryClient.invalidateQueries({ queryKey: ["/api/validation-map"] });
       queryClient.invalidateQueries({ queryKey: ["/api/v1/dashboard/validation"] });
       toast({
@@ -436,7 +430,6 @@ export default function ValidationMap() {
     // Validate all required fields are filled
     const missingFields = validateExperimentForCompletion(experiment);
     if (missingFields.length > 0) {
-      console.log('❌ VALIDATION: Missing fields:', missingFields);
       toast({
         title: "Cannot complete experiment",
         description: `Please fill in all required fields: ${missingFields.join(", ")}`,
@@ -446,7 +439,6 @@ export default function ValidationMap() {
       return;
     }
 
-    console.log('✅ VALIDATION: All fields present, completing experiment');
     completeMutation.mutate(id);
   };
 
