@@ -276,7 +276,9 @@ export default function ValidationMap() {
       return response.json();
     },
     onSuccess: () => {
+      console.log('🗑️ DELETE SUCCESS: Invalidating validation-map and validation API caches');
       queryClient.invalidateQueries({ queryKey: ["/api/validation-map"] });
+      queryClient.invalidateQueries({ queryKey: ["/api/v1/dashboard/validation"] });
       toast({
         title: "Experiment deleted",
         description: "The experiment has been removed from your validation map",
