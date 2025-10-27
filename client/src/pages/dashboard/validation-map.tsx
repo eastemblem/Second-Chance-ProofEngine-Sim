@@ -59,7 +59,7 @@ interface ExperimentMaster {
   definition: string;
   hypothesisTested: string;
   experimentFormat: string;
-  signalTracked: string;
+  targetBehaviour: string;
   targetMetric: string;
   toolsPlatforms: string | null;
   typicalDuration: string | null;
@@ -548,7 +548,7 @@ export default function ValidationMap() {
       exp.decision || "",
       exp.masterData.hypothesisTested || "",
       exp.userHypothesis || "",
-      exp.masterData.signalTracked || "",
+      exp.masterData.targetBehaviour || "",
       exp.masterData.targetMetric || "",
       exp.results || "",
       exp.customNotes || "",
@@ -953,7 +953,7 @@ export default function ValidationMap() {
                         </div>
                       </td>
                       <td className="p-4">
-                        <p className="text-sm text-gray-300 break-words max-w-[150px]">{exp.masterData.signalTracked || "—"}</p>
+                        <p className="text-sm text-gray-300 break-words max-w-[150px]">{exp.masterData.targetBehaviour || "—"}</p>
                       </td>
                       <td className="p-4">
                         <p className="text-sm text-gray-300 break-words max-w-[150px]">{exp.masterData.targetMetric || "—"}</p>

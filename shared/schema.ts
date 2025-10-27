@@ -337,7 +337,7 @@ export const experimentMaster = pgTable("experiment_master", {
   definition: text("definition").notNull(),
   hypothesisTested: text("hypothesis_tested").notNull(),
   experimentFormat: text("experiment_format").notNull(),
-  signalTracked: varchar("signal_tracked", { length: 200 }).notNull(),
+  targetBehaviour: varchar("target_behaviour", { length: 200 }).notNull(),
   targetMetric: varchar("target_metric", { length: 200 }).notNull(),
   toolsPlatforms: varchar("tools_platforms", { length: 300 }),
   typicalDuration: varchar("typical_duration", { length: 50 }),

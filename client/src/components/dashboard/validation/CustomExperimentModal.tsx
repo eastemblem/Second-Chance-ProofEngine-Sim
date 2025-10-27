@@ -17,10 +17,10 @@ interface CustomExperimentModalProps {
 export interface CustomExperimentData {
   name: string;
   definition: string;
-  hypothesisTested: string;
   experimentFormat: string;
-  signalTracked: string;
+  targetBehaviour: string;
   targetMetric: string;
+  hypothesisTested?: string;
   toolsPlatforms?: string;
   typicalDuration?: string;
   notes?: string;
@@ -35,10 +35,10 @@ export function CustomExperimentModal({
   const [formData, setFormData] = useState<CustomExperimentData>({
     name: "",
     definition: "",
-    hypothesisTested: "",
     experimentFormat: "",
-    signalTracked: "",
+    targetBehaviour: "",
     targetMetric: "",
+    hypothesisTested: "",
     toolsPlatforms: "",
     typicalDuration: "",
     notes: "",
@@ -63,14 +63,11 @@ export function CustomExperimentModal({
     if (!formData.definition.trim()) {
       newErrors.definition = "Definition is required";
     }
-    if (!formData.hypothesisTested.trim()) {
-      newErrors.hypothesisTested = "Hypothesis tested is required";
-    }
     if (!formData.experimentFormat.trim()) {
       newErrors.experimentFormat = "Experiment format is required";
     }
-    if (!formData.signalTracked.trim()) {
-      newErrors.signalTracked = "Signal tracked is required";
+    if (!formData.targetBehaviour.trim()) {
+      newErrors.targetBehaviour = "Target Behaviour is required";
     }
     if (!formData.targetMetric.trim()) {
       newErrors.targetMetric = "Target metric is required";
@@ -90,10 +87,10 @@ export function CustomExperimentModal({
     setFormData({
       name: "",
       definition: "",
-      hypothesisTested: "",
       experimentFormat: "",
-      signalTracked: "",
+      targetBehaviour: "",
       targetMetric: "",
+      hypothesisTested: "",
       toolsPlatforms: "",
       typicalDuration: "",
       notes: "",
@@ -159,10 +156,10 @@ export function CustomExperimentModal({
               {errors.definition && <p className="text-sm text-red-400">{errors.definition}</p>}
             </div>
 
-            {/* Hypothesis Tested */}
+            {/* Hypothesis Tested (Optional) */}
             <div className="space-y-2">
               <Label htmlFor="hypothesisTested" className="text-white">
-                Hypothesis Tested <span className="text-red-400">*</span>
+                Hypothesis Tested <span className="text-gray-500 text-sm">(Optional)</span>
               </Label>
               <Textarea
                 id="hypothesisTested"
@@ -191,20 +188,20 @@ export function CustomExperimentModal({
               {errors.experimentFormat && <p className="text-sm text-red-400">{errors.experimentFormat}</p>}
             </div>
 
-            {/* Signal Tracked */}
+            {/* Target Behaviour */}
             <div className="space-y-2">
-              <Label htmlFor="signalTracked" className="text-white">
-                Signal Tracked (Target Behaviour) <span className="text-red-400">*</span>
+              <Label htmlFor="targetBehaviour" className="text-white">
+                Target Behaviour <span className="text-red-400">*</span>
               </Label>
               <Input
-                id="signalTracked"
-                value={formData.signalTracked}
-                onChange={(e) => handleChange("signalTracked", e.target.value)}
+                id="targetBehaviour"
+                value={formData.targetBehaviour}
+                onChange={(e) => handleChange("targetBehaviour", e.target.value)}
                 placeholder="What behaviour are you tracking?"
                 className="bg-slate-800 border-slate-700 text-white placeholder:text-gray-500"
-                data-testid="input-custom-signal"
+                data-testid="input-custom-behaviour"
               />
-              {errors.signalTracked && <p className="text-sm text-red-400">{errors.signalTracked}</p>}
+              {errors.targetBehaviour && <p className="text-sm text-red-400">{errors.targetBehaviour}</p>}
             </div>
 
             {/* Target Metric */}

@@ -263,7 +263,7 @@ export function ExperimentDetailsModal({
                 Target Behaviour
               </div>
               <p className="text-gray-200 bg-gradient-to-br from-cyan-900/20 via-slate-800/50 to-blue-900/20 p-3 rounded-lg border border-purple-500/20">
-                {masterData?.signalTracked || "No target behaviour"}
+                {masterData?.targetBehaviour || "No target behaviour"}
               </p>
             </div>
 
