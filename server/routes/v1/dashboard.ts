@@ -48,9 +48,25 @@ router.get('/validation', asyncHandler(async (req: Request, res: Response) => {
     // FIXED: Get proofScore from venture table (source of truth), not evaluation table
     const currentScore = latestVenture?.proofScore || 0;
 
-    // FIXED: Extract ProofTags from venture table (cumulative source including experiment completions)
+    // CRITICAL: Extract ProofTags from venture table ONLY (single source of truth)
     let proofTagsUnlocked = 0;
-    const proofTagsSource = latestVenture?.prooftags || latestEvaluation?.prooftags;
+    let proofTagsSource = null;
+    let sourceType = 'none';
+    
+    // ALWAYS prefer venture.prooftags (includes pitch deck tags + experiment completion tags)
+    if (latestVenture?.prooftags) {
+      proofTagsSource = latestVenture.prooftags;
+      sourceType = 'venture';
+      appLogger.api(`✅ ProofTag source: VENTURE table (ventureId: ${latestVenture.ventureId})`);
+    } else {
+      // WARNING: venture.prooftags is missing, falling back to evaluation (may be stale!)
+      appLogger.api(`⚠️ WARNING: venture.prooftags is NULL/empty for ventureId ${latestVenture?.ventureId}, falling back to evaluation table (STALE DATA)`);
+      if (latestEvaluation?.prooftags) {
+        proofTagsSource = latestEvaluation.prooftags;
+        sourceType = 'evaluation';
+        appLogger.api(`⚠️ ProofTag source: EVALUATION table (evaluationId: ${latestEvaluation.evaluationId}) - THIS MAY BE STALE!`);
+      }
+    }
     
     if (proofTagsSource) {
       try {
@@ -64,7 +80,7 @@ router.get('/validation', asyncHandler(async (req: Request, res: Response) => {
         // The database shows it's an array of tag names, so count the array length
         if (Array.isArray(proofTagsData)) {
           proofTagsUnlocked = proofTagsData.length;
-          appLogger.api(`ProofTags found: ${proofTagsUnlocked} tags - ${JSON.stringify(proofTagsData.slice(0, 3))}...`);
+          appLogger.api(`📊 ProofTags count: ${proofTagsUnlocked} tags from ${sourceType.toUpperCase()} - First 3: ${JSON.stringify(proofTagsData.slice(0, 3))}`);
         } else if (proofTagsData && typeof proofTagsData === 'object') {
           // Handle different ProofTags JSON structures
           if (proofTagsData.unlockedTags && Array.isArray(proofTagsData.unlockedTags)) {
@@ -75,11 +91,14 @@ router.get('/validation', asyncHandler(async (req: Request, res: Response) => {
             // Count non-null/true values in the tags object
             proofTagsUnlocked = Object.values(proofTagsData).filter(tag => tag && tag !== false && tag !== null).length;
           }
+          appLogger.api(`📊 ProofTags count: ${proofTagsUnlocked} tags from ${sourceType.toUpperCase()} (object structure)`);
         }
       } catch (error) {
-        appLogger.api('Error parsing prooftags JSON:', error);
+        appLogger.api(`❌ Error parsing prooftags JSON from ${sourceType}:`, error);
         proofTagsUnlocked = 0;
       }
+    } else {
+      appLogger.api(`⚠️ No ProofTags found in venture OR evaluation tables for founderId ${founderId}`);
     }
 
     // FIXED: Return the actual certificate and report URLs from database (these are the real URLs)
