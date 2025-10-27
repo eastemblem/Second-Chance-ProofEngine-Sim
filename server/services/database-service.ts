@@ -145,6 +145,7 @@ export class DatabaseService {
             reportUrl: venture.reportUrl,
             vaultScore: venture.vaultScore,
             proofScore: venture.proofScore,
+            prooftags: venture.prooftags,
             createdAt: venture.createdAt,
           },
           latestEvaluation: {
