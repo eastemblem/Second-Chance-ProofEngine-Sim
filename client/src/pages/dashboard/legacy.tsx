@@ -278,7 +278,6 @@ export default function DashboardPage() {
       // CRITICAL FIX: Clear any stale data first
       const token = localStorage.getItem('auth_token');
       if (!token || token === 'null' || token === 'undefined') {
-        console.log('No valid token found, redirecting to login');
         localStorage.clear(); // Clear all localStorage data
         setLocation('/login');
         return;
@@ -306,14 +305,11 @@ export default function DashboardPage() {
             }
           };
           setUser(userData);
-          console.log('Auth successful for user:', result.data.user.email);
         } else {
-          console.log('Auth failed - no success or data');
           localStorage.clear();
           setLocation('/login');
         }
       } else {
-        console.log('Auth failed - response not ok:', response.status);
         localStorage.clear();
         setLocation('/login');
       }
@@ -327,9 +323,7 @@ export default function DashboardPage() {
   };
 
   const loadDashboardData = async (forceRefresh = false) => {
-    console.log('🔄 Starting dashboard data load...', { forceRefresh });
-    
-    try {
+    try{
       // Prepare headers - skip cache when forcing refresh
       const headers = forceRefresh ? {
         'Cache-Control': 'no-cache, no-store, must-revalidate',
@@ -341,7 +335,6 @@ export default function DashboardPage() {
 
       // Load critical data first (validation) for faster LCP - USE V1 API with JWT
       const token = localStorage.getItem('auth_token');
-      console.log('🔐 Using auth token:', token ? `${token.substring(0, 20)}...` : 'NO TOKEN');
       const authHeaders: Record<string, string> = token ? { 'Authorization': `Bearer ${token}` } : {};
       
       const validationResponse = await fetch('/api/v1/dashboard/validation', {
@@ -350,7 +343,6 @@ export default function DashboardPage() {
       });
       if (validationResponse.ok) {
         const validation = await validationResponse.json();
-        console.log('✅ Validation data loaded successfully:', validation);
         setValidationData(validation);
         
         // Check for newly available documents and show toast notifications
@@ -380,7 +372,6 @@ export default function DashboardPage() {
 
       if (vaultResponse.ok) {
         const vault = await vaultResponse.json();
-        console.log('✅ Vault counts loaded successfully');
         // Only store the counts, not the files array - files are now handled by usePaginatedFiles hook
         setProofVaultData({
           ...vault,
@@ -393,7 +384,6 @@ export default function DashboardPage() {
 
       if (leaderboardResponse.ok) {
         const leaderboard = await leaderboardResponse.json();
-        console.log('✅ Leaderboard data loaded successfully:', leaderboard);
         if (leaderboard.success && leaderboard.data) {
           setLeaderboardData(leaderboard.data);
         }
@@ -418,7 +408,6 @@ export default function DashboardPage() {
         setHasDealRoomAccess(false);
       }
       
-      console.log('✅ Dashboard data loading completed successfully');
       setIsLoading(false); // Ensure loading state is cleared
     } catch (error: unknown) {
       console.error('❌ Dashboard data load error:', error);
@@ -438,7 +427,6 @@ export default function DashboardPage() {
       
       // If authentication fails, redirect to login instead of showing dummy data
       if (errorMessage.includes('401') || errorMessage.includes('Unauthorized') || errorMessage.includes('Not authenticated')) {
-        console.log('🔐 Authentication failed, clearing token and redirecting to login');
         localStorage.removeItem('auth_token');
         toast({
           title: "Session Expired",

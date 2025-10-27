@@ -120,12 +120,10 @@ export default function DashboardV2Page() {
     const detectCurrency = async () => {
       try {
         const detectedCurrency = await detectUserCurrency();
-        console.log('Dashboard currency detection result:', detectedCurrency);
         setCurrency(detectedCurrency);
         
         // Fetch pricing with live exchange rates
         const newPricing = await getDealRoomPricing(detectedCurrency);
-        console.log('Dashboard pricing calculated with live rates:', newPricing);
         setPricing(newPricing);
       } catch (error) {
         console.error('Currency detection failed:', error);
