@@ -35,15 +35,11 @@ const upload = multer({
       let counter = 0;
       let filename = file.originalname;
       
-      console.log(`[UPLOAD] Checking file: ${filename} in ${uploadDir}`);
-      
       while (fs.existsSync(path.join(uploadDir, filename))) {
         counter++;
         filename = `${baseName}-${counter}${ext}`;
-        console.log(`[UPLOAD] File exists, trying: ${filename}`);
       }
       
-      console.log(`[UPLOAD] Final filename: ${filename}`);
       cb(null, filename);
     },
   }),
