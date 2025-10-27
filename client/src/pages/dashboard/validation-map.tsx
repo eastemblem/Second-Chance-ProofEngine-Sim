@@ -255,16 +255,18 @@ export default function ValidationMap() {
         duration: 5000,
       });
     },
-    onError: (error: Error, id: string) => {
+    onError: (error: any, id: string) => {
       setCompletingExperimentIds(prev => {
         const next = new Set(prev);
         next.delete(id);
         return next;
       });
+      console.log('❌ COMPLETE ERROR:', error);
       toast({
         title: "Failed to complete experiment",
-        description: error.message,
+        description: error.message || "An error occurred while completing the experiment",
         variant: "destructive",
+        duration: 6000,
       });
     },
   });
@@ -373,7 +375,61 @@ export default function ValidationMap() {
     }));
   }, []);
 
+  // Helper to check if HTML content is empty
+  const isHtmlEmpty = (html: string | null): boolean => {
+    if (!html) return true;
+    const stripped = html.replace(/<[^>]*>/g, '').trim();
+    return stripped.length === 0;
+  };
+
+  // Validate experiment has all required fields before completing
+  const validateExperimentForCompletion = (exp: VentureExperiment): string[] => {
+    const missingFields: string[] = [];
+    
+    if (!exp.decision) {
+      missingFields.push("Decision");
+    }
+    if (isHtmlEmpty(exp.userHypothesis)) {
+      missingFields.push("Hypothesis");
+    }
+    if (isHtmlEmpty(exp.results)) {
+      missingFields.push("Actual Results");
+    }
+    if (isHtmlEmpty(exp.customNotes)) {
+      missingFields.push("Why?");
+    }
+    if (isHtmlEmpty(exp.newInsights)) {
+      missingFields.push("New Insights");
+    }
+    
+    return missingFields;
+  };
+
   const handleComplete = (id: string) => {
+    const experiment = experiments?.find((exp: VentureExperiment) => exp.id === id);
+    if (!experiment) {
+      toast({
+        title: "Error",
+        description: "Experiment not found",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    // Validate all required fields are filled
+    const missingFields = validateExperimentForCompletion(experiment);
+    if (missingFields.length > 0) {
+      console.log('❌ VALIDATION: Missing fields:', missingFields);
+      toast({
+        title: "Cannot complete experiment",
+        description: `Please fill in all required fields: ${missingFields.join(", ")}`,
+        variant: "destructive",
+        duration: 6000,
+      });
+      return;
+    }
+
+    console.log('✅ VALIDATION: All fields present, completing experiment');
     completeMutation.mutate(id);
   };
 
