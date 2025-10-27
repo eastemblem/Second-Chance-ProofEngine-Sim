@@ -467,13 +467,62 @@ router.delete(
       });
     }
 
+    appLogger.info(`🗑️ DELETE FLOW: Starting deletion of experiment ${id} for venture ${ventureId}`);
+
+    // Remove ProofTag from venture when experiment is deleted
+    let proofTagRemoved = null;
+    try {
+      const experimentMaster = await storage.getExperimentMaster(experiment.experimentId);
+      if (experimentMaster?.proofTag && experiment.status === "completed") {
+        const venture = await storage.getVenture(ventureId);
+        if (!venture) {
+          throw new Error("Venture not found");
+        }
+        const currentProofTags = venture.prooftags || [];
+        
+        appLogger.info(`🔍 DELETE FLOW: Before deletion - Venture ${ventureId} has ${currentProofTags.length} ProofTags`);
+        
+        // Remove ProofTag if present
+        if (currentProofTags.includes(experimentMaster.proofTag)) {
+          const updatedProofTags = currentProofTags.filter(tag => tag !== experimentMaster.proofTag);
+          
+          appLogger.info(`➖ DELETE FLOW: Removing ProofTag "${experimentMaster.proofTag}" (total will be ${updatedProofTags.length})`);
+          
+          await storage.updateVenture(ventureId, {
+            prooftags: updatedProofTags,
+            updatedAt: new Date()
+          });
+          
+          proofTagRemoved = experimentMaster.proofTag;
+          appLogger.info(`✅ DELETE FLOW: ProofTag "${experimentMaster.proofTag}" removed from venture ${ventureId} (NEW TOTAL: ${updatedProofTags.length})`);
+          
+          // CRITICAL: Invalidate BOTH 'founder' and 'dashboard' caches
+          // The validation API uses 'founder' cache, so we MUST clear it!
+          const { lruCacheService } = await import("../../services/lru-cache-service");
+          await lruCacheService.invalidate('founder', founderId);
+          await lruCacheService.invalidate('dashboard', founderId);
+          appLogger.info(`🗑️ DELETE FLOW: Both 'founder' and 'dashboard' caches invalidated for founder ${founderId}`);
+        } else {
+          appLogger.info(`⏭️ DELETE FLOW: ProofTag "${experimentMaster.proofTag}" not in venture.prooftags, skipping removal`);
+        }
+      } else {
+        if (!experimentMaster?.proofTag) {
+          appLogger.info(`⏭️ DELETE FLOW: Experiment has no associated ProofTag, skipping ProofTag removal`);
+        } else if (experiment.status !== "completed") {
+          appLogger.info(`⏭️ DELETE FLOW: Experiment not completed (status: ${experiment.status}), skipping ProofTag removal`);
+        }
+      }
+    } catch (error) {
+      appLogger.error("❌ DELETE FLOW: Failed to remove ProofTag from venture:", error);
+    }
+
     await storage.deleteVentureExperiment(id);
 
-    appLogger.info(`Deleted experiment ${id} for venture ${ventureId}`);
+    appLogger.info(`✅ DELETE FLOW: Deleted experiment ${id} for venture ${ventureId}`);
 
     res.json(
       createSuccessResponse(
-        { id },
+        { id, proofTagRemoved },
         "Experiment deleted successfully"
       )
     );
