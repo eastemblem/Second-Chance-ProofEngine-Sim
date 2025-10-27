@@ -123,7 +123,6 @@ export default function PaymentOnboarding({ sessionData, onNext, onSkip, onPrev,
           }
         } else {
           // Payment not found (e.g., after server restart)
-          console.log('Payment not found, stopping polling');
           clearInterval(pollInterval);
           setIsPolling(false);
           setPaymentStatus({
@@ -141,7 +140,6 @@ export default function PaymentOnboarding({ sessionData, onNext, onSkip, onPrev,
             message: 'Still waiting for payment completion. The page will update automatically once payment is processed.',
             paymentId
           });
-          console.log('Payment polling stopped after max attempts');
         }
         
       } catch (error) {
@@ -166,7 +164,6 @@ export default function PaymentOnboarding({ sessionData, onNext, onSkip, onPrev,
   useEffect(() => {
     const handleFocus = async () => {
       if (paymentStatus.status === 'processing' && paymentStatus.paymentId) {
-        console.log('Tab regained focus, checking payment status immediately');
         try {
           const statusResponse = await apiRequest('GET', `/api/payment/status/${paymentStatus.paymentId}`);
           const statusData = await statusResponse.json();
