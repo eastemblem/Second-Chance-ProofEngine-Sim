@@ -228,6 +228,7 @@ export default function ValidationMap() {
     },
     onSuccess: (data: any, id: string) => {
       queryClient.invalidateQueries({ queryKey: ["/api/validation-map"] });
+      queryClient.invalidateQueries({ queryKey: ["/api/v1/dashboard/validation"] });
       setCompletingExperimentIds(prev => {
         const next = new Set(prev);
         next.delete(id);
@@ -241,17 +242,12 @@ export default function ValidationMap() {
         colors: ['#FFD700', '#FFA500', '#FF6347'],
       });
       
-      if (data?.data?.proofTag) {
-        toast({
-          title: "🏆 ProofTag Unlocked!",
-          description: `You earned: ${data.data.proofTag}`,
-          duration: 5000,
-        });
-      }
-      
       toast({
         title: "Experiment completed!",
-        description: `+${data?.data?.proofScoreIncrease || 5} ProofScore`,
+        description: data?.data?.proofTag 
+          ? `🏆 ProofTag Unlocked: ${data.data.proofTag}` 
+          : "Great work on completing this experiment!",
+        duration: 5000,
       });
     },
     onError: (error: Error, id: string) => {
