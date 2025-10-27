@@ -543,6 +543,11 @@ router.post(
           });
           proofTagAdded = experimentMaster.proofTag;
           appLogger.info(`Added ProofTag "${experimentMaster.proofTag}" to venture ${ventureId} via complete endpoint`);
+          
+          // CRITICAL: Clear LRU cache so dashboard reads fresh ProofTag data
+          const { lruCacheService } = await import("../../services/lru-cache-service");
+          await lruCacheService.invalidate('dashboard', founderId);
+          appLogger.info(`Cleared dashboard cache for founder ${founderId} after ProofTag update`);
         }
       }
     } catch (error) {
