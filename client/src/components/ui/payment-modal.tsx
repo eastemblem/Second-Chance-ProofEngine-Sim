@@ -77,10 +77,8 @@ export function PaymentModal({
       }
 
       const result = await response.json();
-      console.log('🔥 Payment creation response:', result);
       
       if (result.success && result.paymentUrl) {
-        console.log('🔥 Payment URL received:', result.paymentUrl);
         setPaymentData({
           orderReference: result.orderReference,
           paymentUrl: result.paymentUrl
@@ -115,24 +113,18 @@ export function PaymentModal({
     const handleMessage = async (event: MessageEvent) => {
       if (!paymentData?.orderReference) return;
 
-      console.log('🔥 Received iframe message:', event.data, 'from origin:', event.origin);
-
       // Handle Telr payment completion messages
       if (event.data && typeof event.data === 'string') {
         if (event.data.includes('payment_successful') || event.data.includes('authorised') || event.data.includes('completed')) {
-          console.log('🔥 Payment success detected, switching to processing...');
           setStep('processing');
           
           // Wait a moment then check payment status
           setTimeout(async () => {
             try {
-              console.log('🔥 Checking payment status for:', paymentData.orderReference);
               const response = await apiRequest("GET", `/api/v1/payments/status/${paymentData.orderReference}`);
               const result = await response.json();
-              console.log('🔥 Payment status result:', result);
               
               if (result.success && result.transaction?.status === 'completed') {
-                console.log('🔥 Payment verified as completed!');
                 setStep('success');
                 toast({
                   title: "Payment Successful!",
@@ -142,7 +134,6 @@ export function PaymentModal({
                 // Call onSuccess callback to update dashboard state
                 onSuccess();
               } else {
-                console.log('🔥 Payment verification failed:', result);
                 setStep('failed');
                 setError(result.transaction?.error || result.transaction?.failureReason || result.error || 'Payment could not be verified. Please try again or contact support.');
               }
@@ -153,11 +144,9 @@ export function PaymentModal({
             }
           }, 2000);
         } else if (event.data.includes('payment_failed') || event.data.includes('declined')) {
-          console.log('🔥 Payment failed detected');
           setStep('failed');
           setError('Payment was declined by your bank or card issuer');
         } else if (event.data.includes('payment_cancelled') || event.data.includes('cancelled')) {
-          console.log('🔥 Payment cancelled detected');
           setStep('cancelled');
         }
       }
@@ -165,18 +154,14 @@ export function PaymentModal({
       // Handle PayTabs postMessage events
       if (event.data && typeof event.data === 'object') {
         if (event.data.type === 'PAYMENT_SUCCESS') {
-          console.log('🔥 PayTabs payment success message received:', event.data);
           setStep('processing');
           
           setTimeout(async () => {
             try {
-              console.log('🔥 Verifying PayTabs payment status for:', event.data.orderReference);
               const response = await apiRequest("GET", `/api/v1/payments/status/${event.data.orderReference}`);
               const result = await response.json();
-              console.log('🔥 PayTabs payment verification result:', result);
               
               if (result.success && result.transaction?.status === 'completed') {
-                console.log('🔥 PayTabs payment verified as completed!');
                 setStep('success');
                 toast({
                   title: "Payment Successful!",
@@ -195,7 +180,6 @@ export function PaymentModal({
             }
           }, 2000);
         } else if (event.data.type === 'PAYMENT_ERROR') {
-          console.log('🔥 PayTabs payment error message received:', event.data);
           setStep('failed');
           setError(event.data.error || 'Payment failed');
           
@@ -205,7 +189,6 @@ export function PaymentModal({
             variant: "destructive",
           });
         } else if (event.data.type === 'PAYMENT_CANCELLED') {
-          console.log('🔥 PayTabs payment cancelled message received:', event.data);
           setStep('cancelled');
           
           toast({
@@ -214,7 +197,6 @@ export function PaymentModal({
             variant: "default",
           });
         } else if (event.data.type === 'telr_payment_result') {
-          console.log('🔥 Telr payment result received:', event.data);
           if (event.data.status === 'success') {
             setStep('processing');
             setTimeout(async () => {
@@ -241,12 +223,10 @@ export function PaymentModal({
 
     const pollPaymentStatus = async () => {
       try {
-        console.log('🔥 Polling payment status...');
         const response = await apiRequest("GET", `/api/v1/payments/status/${paymentData.orderReference}`);
         const result = await response.json();
         
         if (result.success && result.transaction?.status === 'completed') {
-          console.log('🔥 Payment completed detected via polling!');
           setStep('success');
           toast({
             title: "Payment Successful!",
@@ -255,7 +235,6 @@ export function PaymentModal({
           });
           onSuccess(); // Update dashboard state
         } else if (result.success && result.transaction?.status === 'failed') {
-          console.log('🔥 Payment failed detected via polling:', result);
           setStep('failed');
           setError(result.transaction?.error || result.transaction?.failureReason || result.error || 'Payment was declined. Please check your payment details and try again.');
         }
@@ -276,9 +255,7 @@ export function PaymentModal({
     if (paymentData?.orderReference) {
       try {
         await apiRequest("POST", `/api/v1/payments/cancel/${paymentData.orderReference}`, {});
-        console.log('🔥 Payment marked as cancelled:', paymentData.orderReference);
       } catch (error) {
-        console.error('🔥 Failed to mark payment as cancelled:', error);
         // Continue with cancellation even if API call fails
       }
     }
@@ -379,8 +356,6 @@ export function PaymentModal({
                   className="w-full h-full block"
                   title="Payment Gateway"
                   sandbox="allow-forms allow-modals allow-popups-to-escape-sandbox allow-popups allow-scripts allow-top-navigation allow-same-origin"
-                  onLoad={() => console.log('🔥 Payment iframe loaded successfully:', paymentData.paymentUrl)}
-                  onError={(e) => console.error('🔥 Payment iframe error:', e)}
                 />
               ) : (
                 <div className="h-full flex items-center justify-center bg-muted/50">
