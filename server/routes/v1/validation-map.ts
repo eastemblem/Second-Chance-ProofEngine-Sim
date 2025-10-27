@@ -523,28 +523,37 @@ router.post(
       });
     }
 
-    // Calculate ProofScore increase (+5 per completion)
-    const proofScoreIncrease = 5;
-    
-    // Get venture to update ProofScore
-    const venture = await storage.getVenture(ventureId);
-    
-    if (venture) {
-      const currentProofScore = venture.proofScore || 0;
-      const newProofScore = Math.min(currentProofScore + proofScoreIncrease, 100);
-      
-      await storage.updateVenture(ventureId, {
-        proofScore: newProofScore,
-        updatedAt: new Date(),
-      });
+    // Add ProofTag to venture when experiment is completed
+    let proofTagAdded = null;
+    try {
+      const experimentMaster = await storage.getExperimentMaster(experiment.experimentId);
+      if (experimentMaster?.proofTag) {
+        const venture = await storage.getVenture(ventureId);
+        if (!venture) {
+          throw new Error("Venture not found");
+        }
+        const currentProofTags = venture.prooftags || [];
+        
+        // Add ProofTag if not already present (deduplication)
+        if (!currentProofTags.includes(experimentMaster.proofTag)) {
+          const updatedProofTags = [...currentProofTags, experimentMaster.proofTag];
+          await storage.updateVenture(ventureId, {
+            prooftags: updatedProofTags,
+            updatedAt: new Date()
+          });
+          proofTagAdded = experimentMaster.proofTag;
+          appLogger.info(`Added ProofTag "${experimentMaster.proofTag}" to venture ${ventureId} via complete endpoint`);
+        }
+      }
+    } catch (error) {
+      appLogger.error("Failed to add ProofTag to venture:", error);
     }
 
     res.json(
       createSuccessResponse(
         {
           experiment: completedExperiment,
-          proofScoreIncrease,
-          proofTag: completedExperiment.masterData?.proofTag,
+          proofTag: proofTagAdded,
         },
         "Experiment completed successfully"
       )
