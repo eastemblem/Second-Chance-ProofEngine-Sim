@@ -378,8 +378,25 @@ export default function ValidationMap() {
   // Helper to check if HTML content is empty
   const isHtmlEmpty = (html: string | null): boolean => {
     if (!html) return true;
-    const stripped = html.replace(/<[^>]*>/g, '').trim();
-    return stripped.length === 0;
+    
+    // Strip HTML tags
+    let text = html.replace(/<[^>]*>/g, '');
+    
+    // Decode common HTML entities
+    text = text
+      .replace(/&nbsp;/g, ' ')
+      .replace(/&#160;/g, ' ')
+      .replace(/&amp;/g, '&')
+      .replace(/&lt;/g, '<')
+      .replace(/&gt;/g, '>')
+      .replace(/&quot;/g, '"')
+      .replace(/&#39;/g, "'")
+      .replace(/&shy;/g, '')
+      .replace(/&zwj;/g, '')
+      .replace(/&zwnj;/g, '');
+    
+    // Trim and check if empty
+    return text.trim().length === 0;
   };
 
   // Validate experiment has all required fields before completing
