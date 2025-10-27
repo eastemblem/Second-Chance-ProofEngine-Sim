@@ -48,11 +48,13 @@ router.get('/validation', asyncHandler(async (req: Request, res: Response) => {
     // FIXED: Get proofScore from venture table (source of truth), not evaluation table
     const currentScore = latestVenture?.proofScore || 0;
 
-    // FIXED: Extract ProofTags from JSON field and count unlocked tags
+    // FIXED: Extract ProofTags from venture table (cumulative source including experiment completions)
     let proofTagsUnlocked = 0;
-    if (latestEvaluation?.prooftags) {
+    const proofTagsSource = latestVenture?.prooftags || latestEvaluation?.prooftags;
+    
+    if (proofTagsSource) {
       try {
-        let proofTagsData = latestEvaluation.prooftags;
+        let proofTagsData = proofTagsSource;
         
         // Handle string JSON that needs parsing
         if (typeof proofTagsData === 'string') {
