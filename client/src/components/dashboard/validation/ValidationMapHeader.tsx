@@ -22,13 +22,23 @@ export function ValidationMapHeader() {
     : user?.email?.charAt(0).toUpperCase();
 
   // Fetch validation data for ProofTags count
-  const { data: validationData } = useQuery<any>({
+  const { data: validationData, dataUpdatedAt } = useQuery<any>({
     queryKey: ['/api/v1/dashboard/validation'],
     enabled: !!venture,
   });
 
   const proofTagsUnlocked = validationData?.proofTagsUnlocked || 0;
   const totalProofTags = validationData?.totalProofTags || 21;
+
+  // Debug logging to trace ProofTag updates
+  useEffect(() => {
+    console.log('🏷️ ValidationMapHeader - ProofTags updated:', {
+      count: proofTagsUnlocked,
+      total: totalProofTags,
+      dataUpdatedAt: new Date(dataUpdatedAt).toLocaleTimeString(),
+      rawData: validationData
+    });
+  }, [proofTagsUnlocked, dataUpdatedAt]);
 
   // Detect user's geo location
   useEffect(() => {

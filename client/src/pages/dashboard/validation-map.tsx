@@ -223,12 +223,17 @@ export default function ValidationMap() {
   const completeMutation = useMutation({
     mutationFn: async (id: string) => {
       setCompletingExperimentIds(prev => new Set(prev).add(id));
+      console.log('🎯 Calling complete endpoint for experiment:', id);
       const response = await apiRequest("POST", `/api/validation-map/${id}/complete`);
-      return response.json();
+      const data = await response.json();
+      console.log('✅ Complete endpoint response:', data);
+      return data;
     },
     onSuccess: (data: any, id: string) => {
+      console.log('🔄 Invalidating caches after completion');
       queryClient.invalidateQueries({ queryKey: ["/api/validation-map"] });
       queryClient.invalidateQueries({ queryKey: ["/api/v1/dashboard/validation"] });
+      console.log('✓ Cache invalidation triggered');
       setCompletingExperimentIds(prev => {
         const next = new Set(prev);
         next.delete(id);
