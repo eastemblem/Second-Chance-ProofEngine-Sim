@@ -529,6 +529,13 @@ router.delete(
   })
 );
 
+// Helper function to check if HTML content is empty
+function isHtmlEmpty(html: string | null): boolean {
+  if (!html) return true;
+  const stripped = html.replace(/<[^>]*>/g, '').trim();
+  return stripped.length === 0;
+}
+
 // POST /api/validation-map/:id/complete - Mark experiment as complete
 router.post(
   "/:id/complete",
@@ -562,6 +569,36 @@ router.post(
         error: "Access denied",
       });
     }
+
+    // Validate all required fields are filled before completing
+    const missingFields: string[] = [];
+    
+    if (!experiment.decision) {
+      missingFields.push("Decision");
+    }
+    if (isHtmlEmpty(experiment.userHypothesis)) {
+      missingFields.push("Hypothesis");
+    }
+    if (isHtmlEmpty(experiment.results)) {
+      missingFields.push("Actual Results");
+    }
+    if (isHtmlEmpty(experiment.customNotes)) {
+      missingFields.push("Why?");
+    }
+    if (isHtmlEmpty(experiment.newInsights)) {
+      missingFields.push("New Insights");
+    }
+
+    if (missingFields.length > 0) {
+      appLogger.warn(`❌ COMPLETE VALIDATION: Cannot complete experiment ${id} - missing fields: ${missingFields.join(", ")}`);
+      return res.status(400).json({
+        success: false,
+        error: `Please fill in all required fields before completing: ${missingFields.join(", ")}`,
+        missingFields,
+      });
+    }
+
+    appLogger.info(`✅ COMPLETE VALIDATION: All required fields present for experiment ${id}`);
 
     const completedExperiment = await storage.completeVentureExperiment(id);
 
