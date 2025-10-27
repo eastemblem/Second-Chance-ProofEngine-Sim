@@ -550,10 +550,12 @@ router.post(
           proofTagAdded = experimentMaster.proofTag;
           appLogger.info(`✅ COMPLETE FLOW: ProofTag "${experimentMaster.proofTag}" added to venture ${ventureId} (NEW TOTAL: ${updatedProofTags.length})`);
           
-          // Double-check cache invalidation (repository should have done it, but ensure it)
+          // CRITICAL: Invalidate BOTH 'founder' and 'dashboard' caches
+          // The validation API uses 'founder' cache, so we MUST clear it!
           const { lruCacheService } = await import("../../services/lru-cache-service");
+          await lruCacheService.invalidate('founder', founderId);
           await lruCacheService.invalidate('dashboard', founderId);
-          appLogger.info(`🗑️ COMPLETE FLOW: Dashboard cache invalidated for founder ${founderId}`);
+          appLogger.info(`🗑️ COMPLETE FLOW: Both 'founder' and 'dashboard' caches invalidated for founder ${founderId}`);
         } else {
           appLogger.info(`⏭️ COMPLETE FLOW: ProofTag "${experimentMaster.proofTag}" already exists, skipping`);
         }

@@ -74,6 +74,9 @@ export class VentureRepository extends BaseRepository {
     if (result) {
       await this.invalidateCache('venture', id);
       if (result.founderId) {
+        // CRITICAL: Invalidate BOTH founder and dashboard caches
+        // The validation API uses 'founder' cache, so both must be cleared
+        await this.invalidateCache('founder', result.founderId);
         await this.invalidateCache('dashboard', result.founderId);
       }
     }
