@@ -268,8 +268,14 @@ router.patch(
       });
     }
 
-    // Get experiment master for activity logging
-    const experimentMaster = await storage.getExperimentMaster(experiment.experimentId);
+    // Get experiment master for activity logging (with error handling)
+    let experimentMaster = null;
+    try {
+      experimentMaster = await storage.getExperimentMaster(experiment.experimentId);
+    } catch (error) {
+      appLogger.warn(`Failed to get experiment master for ${experiment.experimentId}:`, error);
+      // Continue without experiment master - we'll use fallback values
+    }
 
     // If experiment is being marked as completed, add its ProofTag to venture
     if (validatedData.status === "completed" && experiment.status !== "completed") {
