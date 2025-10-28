@@ -6,6 +6,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Trash2, X, Pencil, Save } from "lucide-react";
 import { useState, useEffect, lazy, Suspense } from "react";
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from "@/components/ui/alert-dialog";
+import { useToast } from "@/hooks/use-toast";
 
 // Lazy load RichTextEditor for better performance (only loaded when edit mode is activated)
 const RichTextEditor = lazy(() => 
@@ -27,6 +28,7 @@ export function ExperimentDetailsModal({
   onDelete,
   onSave,
 }: ExperimentDetailsModalProps) {
+  const { toast } = useToast();
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
   const [isEditMode, setIsEditMode] = useState(false);
   const [editedValues, setEditedValues] = useState({
@@ -73,6 +75,16 @@ export function ExperimentDetailsModal({
   };
 
   const handleSave = () => {
+    // Validate that Decision is filled - it's a core required field
+    if (!editedValues.decision || editedValues.decision.trim() === '') {
+      toast({
+        title: "Decision Required",
+        description: "Please select a decision (Measure, Pivot, or Persevere) before saving. This is a core part of the experiment.",
+        variant: "destructive",
+      });
+      return;
+    }
+
     onSave(experiment.id, editedValues);
     setIsEditMode(false);
     onOpenChange(false);

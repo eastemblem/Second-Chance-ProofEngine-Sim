@@ -247,6 +247,15 @@ router.patch(
 
     const validatedData = updateSchema.parse(req.body);
 
+    // Validate Decision is not empty if it's being updated (it's a core required field)
+    // Allow updates that don't include decision field, but prevent setting it to null
+    if ('decision' in validatedData && validatedData.decision === null) {
+      return res.status(400).json({
+        success: false,
+        error: "Decision is a required field and cannot be empty. Please select Measure, Pivot, or Persevere.",
+      });
+    }
+
     // Clean up null values - convert to undefined for storage
     const cleanedData: any = {};
     for (const [key, value] of Object.entries(validatedData)) {
