@@ -723,8 +723,10 @@ router.post(
 
     // Add ProofTag to venture when experiment is completed
     let proofTagAdded = null;
+    let experimentMaster = null;
+    
     try {
-      const experimentMaster = await storage.getExperimentMaster(experiment.experimentId);
+      experimentMaster = await storage.getExperimentMaster(experiment.experimentId);
       if (experimentMaster?.proofTag) {
         const venture = await storage.getVenture(ventureId);
         if (!venture) {
@@ -761,6 +763,20 @@ router.post(
     } catch (error) {
       appLogger.error("❌ COMPLETE FLOW: Failed to add ProofTag to venture:", error);
     }
+
+    // Log the activity with ProofTag information
+    await logExperimentActivity(
+      founderId,
+      ventureId,
+      "experiment_completed",
+      "Completed Experiment",
+      experimentMaster?.name || "Unknown Experiment",
+      id,
+      {
+        decision: experiment.decision,
+        proofTagUnlocked: proofTagAdded,
+      }
+    );
 
     res.json(
       createSuccessResponse(
