@@ -268,10 +268,12 @@ router.patch(
       });
     }
 
+    // Get experiment master for activity logging
+    const experimentMaster = await storage.getExperimentMaster(experiment.experimentId);
+
     // If experiment is being marked as completed, add its ProofTag to venture
     if (validatedData.status === "completed" && experiment.status !== "completed") {
       try {
-        const experimentMaster = await storage.getExperimentMaster(experiment.experimentId);
         if (experimentMaster?.proofTag) {
           const venture = await storage.getVenture(ventureId);
           if (!venture) {
@@ -294,6 +296,22 @@ router.patch(
         // Don't fail the experiment update if ProofTag update fails
       }
     }
+
+    // Log the activity
+    const updatedFields = Object.keys(validatedData);
+    await logExperimentActivity(
+      founderId,
+      ventureId,
+      "experiment_updated",
+      "Edited Experiment",
+      experimentMaster?.name || "Unknown Experiment",
+      id,
+      {
+        updatedFields,
+        status: validatedData.status,
+        decision: validatedData.decision,
+      }
+    );
 
     res.json(
       createSuccessResponse(
