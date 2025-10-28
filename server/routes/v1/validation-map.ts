@@ -9,6 +9,38 @@ import { databaseService } from "../../services/database-service";
 
 const router = express.Router();
 
+// Helper function to log experiment activities
+async function logExperimentActivity(
+  founderId: string,
+  ventureId: string,
+  action: string,
+  title: string,
+  experimentName: string,
+  experimentId?: string,
+  metadata?: Record<string, any>
+) {
+  try {
+    await storage.createUserActivity({
+      founderId,
+      ventureId,
+      activityType: "validation",
+      action,
+      title,
+      description: `Experiment: ${experimentName}`,
+      metadata: {
+        experimentName,
+        experimentId,
+        ...metadata,
+      },
+      entityId: experimentId || null,
+      entityType: "experiment",
+    });
+  } catch (error) {
+    appLogger.error("Failed to log experiment activity:", error);
+    // Don't fail the request if activity logging fails
+  }
+}
+
 // GET /api/validation-map/masters - Get all experiment masters
 router.get(
   "/masters",
