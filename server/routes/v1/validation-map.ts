@@ -548,10 +548,12 @@ router.delete(
 
     appLogger.info(`🗑️ DELETE FLOW: Starting deletion of experiment ${id} for venture ${ventureId}`);
 
+    // Get experiment master for activity logging and ProofTag removal
+    const experimentMaster = await storage.getExperimentMaster(experiment.experimentId);
+
     // Remove ProofTag from venture when experiment is deleted
     let proofTagRemoved = null;
     try {
-      const experimentMaster = await storage.getExperimentMaster(experiment.experimentId);
       if (experimentMaster?.proofTag && experiment.status === "completed") {
         const venture = await storage.getVenture(ventureId);
         if (!venture) {
@@ -594,6 +596,20 @@ router.delete(
     } catch (error) {
       appLogger.error("❌ DELETE FLOW: Failed to remove ProofTag from venture:", error);
     }
+
+    // Log the activity before deletion
+    await logExperimentActivity(
+      founderId,
+      ventureId,
+      "experiment_deleted",
+      "Deleted Experiment",
+      experimentMaster?.name || "Unknown Experiment",
+      id,
+      {
+        status: experiment.status,
+        proofTagRemoved,
+      }
+    );
 
     await storage.deleteVentureExperiment(id);
 
