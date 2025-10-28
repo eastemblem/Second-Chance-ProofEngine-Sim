@@ -470,6 +470,21 @@ router.post(
 
     appLogger.info(`Created custom experiment ${customExperimentId} for venture ${ventureId}`);
 
+    // Log the activity
+    await logExperimentActivity(
+      founderId,
+      ventureId,
+      "custom_experiment_created",
+      "Created Custom Experiment",
+      validatedData.name,
+      newExperiment.id,
+      {
+        validationSphere: "Custom",
+        experimentFormat: validatedData.experimentFormat,
+        targetMetric: validatedData.targetMetric,
+      }
+    );
+
     res.json(
       createSuccessResponse(
         newExperiment,
