@@ -237,15 +237,23 @@ router.patch(
     const ventureId = dashboardData.venture.ventureId;
     
     const updateSchema = z.object({
-      userHypothesis: z.string().optional(),
-      results: z.string().optional(),
-      decision: z.enum(["measure", "pivot", "persevere"]).optional(),
-      customNotes: z.string().optional(),
-      newInsights: z.string().optional(),
-      status: z.enum(["not_started", "in_progress", "completed"]).optional(),
+      userHypothesis: z.string().nullable().optional(),
+      results: z.string().nullable().optional(),
+      decision: z.enum(["measure", "pivot", "persevere"]).nullable().optional(),
+      customNotes: z.string().nullable().optional(),
+      newInsights: z.string().nullable().optional(),
+      status: z.enum(["not_started", "in_progress", "completed"]).nullable().optional(),
     });
 
     const validatedData = updateSchema.parse(req.body);
+
+    // Clean up null values - convert to undefined for storage
+    const cleanedData: any = {};
+    for (const [key, value] of Object.entries(validatedData)) {
+      if (value !== null) {
+        cleanedData[key] = value;
+      }
+    }
 
     // Get experiment to verify it belongs to this venture
     const experiment = await storage.getVentureExperiment(id);
@@ -258,7 +266,7 @@ router.patch(
 
     const updatedExperiment = await storage.updateVentureExperiment(
       id,
-      validatedData
+      cleanedData
     );
 
     if (!updatedExperiment) {
