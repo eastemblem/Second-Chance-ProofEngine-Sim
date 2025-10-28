@@ -369,6 +369,20 @@ router.post(
 
     appLogger.info(`Created new experiment ${validatedData.experimentId} for venture ${ventureId}`);
 
+    // Log the activity
+    await logExperimentActivity(
+      founderId,
+      ventureId,
+      "experiment_added",
+      "Added New Experiment",
+      master.name,
+      newExperiment.id,
+      {
+        validationSphere: master.validationSphere,
+        proofTag: master.proofTag,
+      }
+    );
+
     res.json(
       createSuccessResponse(
         newExperiment,
