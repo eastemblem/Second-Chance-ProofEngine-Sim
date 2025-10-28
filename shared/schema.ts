@@ -191,6 +191,7 @@ export const activityTypeEnum = pgEnum('activity_type', [
   'authentication', // Login, logout, password changes
   'navigation',     // Page visits, feature usage
   'payment',        // Payment activities
+  'validation',     // Validation map / experiment activities
   'system'         // System events, notifications
 ]);
 
