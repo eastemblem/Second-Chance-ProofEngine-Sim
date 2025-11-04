@@ -1083,15 +1083,19 @@ export default function ValidationMap() {
 
       {/* Inline Field Editor (Lazy loaded for better performance) */}
       <Suspense fallback={null}>
-        {inlineEditorConfig && (
-          <InlineFieldEditor
-            open={inlineEditorOpen}
-            onOpenChange={setInlineEditorOpen}
-            experiment={inlineEditorConfig.experiment}
-            fieldName={inlineEditorConfig.fieldName}
-            onSave={handleInlineEditorSave}
-          />
-        )}
+        {inlineEditorConfig && (() => {
+          // Find the current experiment from the experiments list to ensure we have the latest data
+          const currentExperiment = experiments.find(exp => exp.id === inlineEditorConfig.experiment.id) || inlineEditorConfig.experiment;
+          return (
+            <InlineFieldEditor
+              open={inlineEditorOpen}
+              onOpenChange={setInlineEditorOpen}
+              experiment={currentExperiment}
+              fieldName={inlineEditorConfig.fieldName}
+              onSave={handleInlineEditorSave}
+            />
+          );
+        })()}
       </Suspense>
 
       {/* Details Modal (Lazy loaded for better performance) */}

@@ -48,7 +48,9 @@ export function InlineFieldEditor({
   useEffect(() => {
     if (experiment && open) {
       // Always reset to the current database value when opening the editor
-      setFieldValue(experiment[fieldName] || "");
+      const currentValue = experiment[fieldName] || "";
+      console.log(`Loading ${fieldName} for experiment ${experiment.id}:`, currentValue);
+      setFieldValue(currentValue);
     }
   }, [experiment?.id, fieldName, open]);
 
