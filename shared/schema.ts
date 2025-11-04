@@ -304,9 +304,10 @@ export const experimentStatusEnum = pgEnum('experiment_status', [
 ]);
 
 export const experimentDecisionEnum = pgEnum('experiment_decision', [
-  'measure',
+  'go',
+  'start',
   'pivot',
-  'persevere'
+  'learn'
 ]);
 
 export const validationSphereEnum = pgEnum('validation_sphere', [
@@ -588,7 +589,7 @@ export const insertProofScalingWishlistSchema = createInsertSchema(proofScalingW
 export const insertVentureExperimentSchema = createInsertSchema(ventureExperiments, {
   userHypothesis: z.string().optional(),
   results: z.string().optional(),
-  decision: z.enum(['measure', 'pivot', 'persevere']).optional(),
+  decision: z.enum(['go', 'start', 'pivot', 'learn']).optional(),
   status: z.enum(['not_started', 'in_progress', 'completed']),
   customNotes: z.string().optional(),
 }).omit({
@@ -600,7 +601,7 @@ export const insertVentureExperimentSchema = createInsertSchema(ventureExperimen
 export const updateVentureExperimentSchema = z.object({
   userHypothesis: z.string().optional(),
   results: z.string().optional(),
-  decision: z.enum(['measure', 'pivot', 'persevere']).optional(),
+  decision: z.enum(['go', 'start', 'pivot', 'learn']).optional(),
   status: z.enum(['not_started', 'in_progress', 'completed']).optional(),
   customNotes: z.string().optional(),
 });

@@ -239,7 +239,7 @@ router.patch(
     const updateSchema = z.object({
       userHypothesis: z.string().nullable().optional(),
       results: z.string().nullable().optional(),
-      decision: z.enum(["measure", "pivot", "persevere"]).nullable().optional(),
+      decision: z.enum(["go", "start", "pivot", "learn"]).nullable().optional(),
       customNotes: z.string().nullable().optional(),
       newInsights: z.string().nullable().optional(),
       status: z.enum(["not_started", "in_progress", "completed"]).nullable().optional(),
@@ -252,7 +252,7 @@ router.patch(
     if ('decision' in validatedData && validatedData.decision === null) {
       return res.status(400).json({
         success: false,
-        error: "Decision is a required field and cannot be empty. Please select Measure, Pivot, or Persevere.",
+        error: "Decision is a required field and cannot be empty. Please select Go, Start, Pivot, or Learn / Measure.",
       });
     }
 
