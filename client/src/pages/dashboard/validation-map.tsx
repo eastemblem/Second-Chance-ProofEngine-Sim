@@ -29,6 +29,9 @@ const ExperimentDetailsModal = lazy(() =>
 const CustomExperimentModal = lazy(() => 
   import("@/components/dashboard/validation/CustomExperimentModal").then(module => ({ default: module.CustomExperimentModal }))
 );
+const InlineFieldEditor = lazy(() =>
+  import("@/components/dashboard/validation/InlineFieldEditor").then(module => ({ default: module.InlineFieldEditor }))
+);
 
 // Helper function to strip HTML tags and truncate text
 const stripHtmlAndTruncate = (html: string | null, maxLines: number = 2): { text: string; isTruncated: boolean } => {
@@ -122,6 +125,13 @@ export default function ValidationMap() {
 
   // Custom experiment modal state
   const [customExperimentModalOpen, setCustomExperimentModalOpen] = useState(false);
+
+  // Inline field editor state
+  const [inlineEditorOpen, setInlineEditorOpen] = useState(false);
+  const [inlineEditorConfig, setInlineEditorConfig] = useState<{
+    experiment: VentureExperiment;
+    fieldName: "userHypothesis" | "results" | "customNotes" | "newInsights" | "decision";
+  } | null>(null);
 
   // Track which experiments are being completed (supports concurrent completions)
   const [completingExperimentIds, setCompletingExperimentIds] = useState<Set<string>>(new Set());
@@ -449,6 +459,21 @@ export default function ValidationMap() {
   const handleViewDetails = (exp: VentureExperiment) => {
     setSelectedExperiment(exp);
     setDetailsModalOpen(true);
+  };
+
+  // Open inline field editor for a specific field
+  const handleOpenInlineEditor = (experiment: VentureExperiment, fieldName: "userHypothesis" | "results" | "customNotes" | "newInsights" | "decision") => {
+    // Don't allow editing completed experiments
+    if (experiment.status === "completed") {
+      return;
+    }
+    setInlineEditorConfig({ experiment, fieldName });
+    setInlineEditorOpen(true);
+  };
+
+  // Handle inline editor save
+  const handleInlineEditorSave = (id: string, updates: Record<string, any>) => {
+    return updateMutation.mutateAsync({ id, updates });
   };
 
   const handleAddExperiment = (experimentId: string) => {
@@ -925,7 +950,7 @@ export default function ValidationMap() {
                       </td>
                       <td className="p-4">
                         <div
-                          onClick={() => handleViewDetails(exp)}
+                          onClick={() => handleOpenInlineEditor(exp, "userHypothesis")}
                           className="cursor-pointer hover:bg-gray-800/50 p-2 rounded transition-colors max-w-[200px]"
                           data-testid={`input-hypothesis-${exp.id}`}
                         >
@@ -935,12 +960,12 @@ export default function ValidationMap() {
                               return (
                                 <div>
                                   <p className="text-sm text-gray-200 line-clamp-2 break-words">{text}</p>
-                                  {isTruncated && <span className="text-xs text-purple-400 mt-1 inline-block">Read more...</span>}
+                                  {isTruncated && <span className="text-xs text-purple-400 mt-1 inline-block">Click to edit...</span>}
                                 </div>
                               );
                             })()
                           ) : (
-                            <span className="text-gray-500 text-sm">Click to view...</span>
+                            <span className="text-gray-500 text-sm">Click to edit...</span>
                           )}
                         </div>
                       </td>
@@ -952,7 +977,7 @@ export default function ValidationMap() {
                       </td>
                       <td className="p-4">
                         <div
-                          onClick={() => handleViewDetails(exp)}
+                          onClick={() => handleOpenInlineEditor(exp, "results")}
                           className="cursor-pointer hover:bg-gray-800/50 p-2 rounded transition-colors max-w-[200px]"
                           data-testid={`input-results-${exp.id}`}
                         >
@@ -962,18 +987,18 @@ export default function ValidationMap() {
                               return (
                                 <div>
                                   <p className="text-sm text-gray-200 line-clamp-2 break-words">{text}</p>
-                                  {isTruncated && <span className="text-xs text-purple-400 mt-1 inline-block">Read more...</span>}
+                                  {isTruncated && <span className="text-xs text-purple-400 mt-1 inline-block">Click to edit...</span>}
                                 </div>
                               );
                             })()
                           ) : (
-                            <span className="text-gray-500 text-sm">Click to view...</span>
+                            <span className="text-gray-500 text-sm">Click to edit...</span>
                           )}
                         </div>
                       </td>
                       <td className="p-4">
                         <div
-                          onClick={() => handleViewDetails(exp)}
+                          onClick={() => handleOpenInlineEditor(exp, "customNotes")}
                           className="cursor-pointer hover:bg-gray-800/50 p-2 rounded transition-colors max-w-[200px]"
                           data-testid={`input-why-${exp.id}`}
                         >
@@ -983,18 +1008,18 @@ export default function ValidationMap() {
                               return (
                                 <div>
                                   <p className="text-sm text-gray-200 line-clamp-2 break-words">{text}</p>
-                                  {isTruncated && <span className="text-xs text-purple-400 mt-1 inline-block">Read more...</span>}
+                                  {isTruncated && <span className="text-xs text-purple-400 mt-1 inline-block">Click to edit...</span>}
                                 </div>
                               );
                             })()
                           ) : (
-                            <span className="text-gray-500 text-sm">Click to view...</span>
+                            <span className="text-gray-500 text-sm">Click to edit...</span>
                           )}
                         </div>
                       </td>
                       <td className="p-4">
                         <div
-                          onClick={() => handleViewDetails(exp)}
+                          onClick={() => handleOpenInlineEditor(exp, "newInsights")}
                           className="cursor-pointer hover:bg-gray-800/50 p-2 rounded transition-colors max-w-[200px]"
                           data-testid={`input-insights-${exp.id}`}
                         >
@@ -1004,12 +1029,12 @@ export default function ValidationMap() {
                               return (
                                 <div>
                                   <p className="text-sm text-gray-200 line-clamp-2 break-words">{text}</p>
-                                  {isTruncated && <span className="text-xs text-purple-400 mt-1 inline-block">Read more...</span>}
+                                  {isTruncated && <span className="text-xs text-purple-400 mt-1 inline-block">Click to edit...</span>}
                                 </div>
                               );
                             })()
                           ) : (
-                            <span className="text-gray-500 text-sm">Click to view...</span>
+                            <span className="text-gray-500 text-sm">Click to edit...</span>
                           )}
                         </div>
                       </td>
@@ -1049,6 +1074,19 @@ export default function ValidationMap() {
           onSave={handleModalSave}
         />
       )}
+
+      {/* Inline Field Editor (Lazy loaded for better performance) */}
+      <Suspense fallback={null}>
+        {inlineEditorConfig && (
+          <InlineFieldEditor
+            open={inlineEditorOpen}
+            onOpenChange={setInlineEditorOpen}
+            experiment={inlineEditorConfig.experiment}
+            fieldName={inlineEditorConfig.fieldName}
+            onSave={handleInlineEditorSave}
+          />
+        )}
+      </Suspense>
 
       {/* Details Modal (Lazy loaded for better performance) */}
       <Suspense fallback={null}>
