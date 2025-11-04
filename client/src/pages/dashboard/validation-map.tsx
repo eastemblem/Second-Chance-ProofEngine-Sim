@@ -554,7 +554,6 @@ export default function ValidationMap() {
       "Experiment ID",
       "Experiment Name",
       "Category",
-      "Decision",
       "Core Assumption",
       "Hypothesis",
       "Target Behaviour",
@@ -562,13 +561,13 @@ export default function ValidationMap() {
       "Actual Results",
       "Why ?",
       "New Insights",
+      "Decision",
     ];
 
     const rows = filteredExperiments.map((exp: VentureExperiment) => [
       exp.experimentId,
       exp.masterData.name,
       exp.masterData.validationSphere,
-      exp.decision || "",
       exp.masterData.hypothesisTested || "",
       exp.userHypothesis || "",
       exp.masterData.targetBehaviour || "",
@@ -576,6 +575,7 @@ export default function ValidationMap() {
       exp.results || "",
       exp.customNotes || "",
       exp.newInsights || "",
+      exp.decision || "",
     ]);
 
     const csvContent = [
@@ -806,9 +806,6 @@ export default function ValidationMap() {
                     <th className="p-4 text-left font-semibold text-gray-300 text-sm">
                       <ColumnBadge variant="fuchsia">Category</ColumnBadge>
                     </th>
-                    <th className="p-4 text-left font-semibold text-gray-300 text-sm min-w-[120px]">
-                      <ColumnBadge variant="pink">Decision</ColumnBadge>
-                    </th>
                     <th className="p-4 text-left font-semibold text-gray-300 text-sm min-w-[200px]">
                       <ColumnBadge variant="violet">Core Assumption</ColumnBadge>
                     </th>
@@ -829,6 +826,9 @@ export default function ValidationMap() {
                     </th>
                     <th className="p-4 text-left font-semibold text-gray-300 text-sm min-w-[200px]">
                       <ColumnBadge variant="rose">New Insights</ColumnBadge>
+                    </th>
+                    <th className="p-4 text-left font-semibold text-gray-300 text-sm min-w-[120px]">
+                      <ColumnBadge variant="pink">Decision</ColumnBadge>
                     </th>
                   </tr>
                 </thead>
@@ -914,42 +914,6 @@ export default function ValidationMap() {
                         >
                           {exp.masterData.validationSphere}
                         </Badge>
-                      </td>
-                      <td className="p-4">
-                        {exp.decision ? (
-                          <Badge className="bg-pink-500/20 text-pink-400 border-pink-500/50 capitalize">
-                            {exp.decision}
-                          </Badge>
-                        ) : (
-                          <Select
-                            value={exp.decision || ""}
-                            onValueChange={(value) => {
-                              updateMutation.mutate({ 
-                                id: exp.id, 
-                                updates: { decision: value } 
-                              });
-                            }}
-                            disabled={exp.status === "completed"}
-                          >
-                            <SelectTrigger 
-                              className="w-full bg-gray-800/50 border-gray-700 text-gray-200 hover:border-purple-500/50"
-                              data-testid={`select-decision-${exp.id}`}
-                            >
-                              <SelectValue placeholder="Select decision..." />
-                            </SelectTrigger>
-                            <SelectContent className="bg-gray-900 border-gray-700">
-                              <SelectItem value="measure" className="text-gray-200 focus:bg-gray-800">
-                                Measure
-                              </SelectItem>
-                              <SelectItem value="pivot" className="text-gray-200 focus:bg-gray-800">
-                                Pivot
-                              </SelectItem>
-                              <SelectItem value="persevere" className="text-gray-200 focus:bg-gray-800">
-                                Persevere
-                              </SelectItem>
-                            </SelectContent>
-                          </Select>
-                        )}
                       </td>
                       <td className="p-4">
                         <p className="text-sm text-gray-300 break-words max-w-[200px]">{exp.masterData.hypothesisTested || "—"}</p>
@@ -1043,6 +1007,45 @@ export default function ValidationMap() {
                             <span className="text-gray-500 text-sm">Click to edit...</span>
                           )}
                         </div>
+                      </td>
+                      <td className="p-4">
+                        {exp.decision ? (
+                          <Badge className="bg-pink-500/20 text-pink-400 border-pink-500/50 capitalize">
+                            {exp.decision}
+                          </Badge>
+                        ) : (
+                          <Select
+                            value={exp.decision || ""}
+                            onValueChange={(value) => {
+                              updateMutation.mutate({ 
+                                id: exp.id, 
+                                updates: { decision: value } 
+                              });
+                            }}
+                            disabled={exp.status === "completed"}
+                          >
+                            <SelectTrigger 
+                              className="w-full bg-gray-800/50 border-gray-700 text-gray-200 hover:border-purple-500/50"
+                              data-testid={`select-decision-${exp.id}`}
+                            >
+                              <SelectValue placeholder="Select decision..." />
+                            </SelectTrigger>
+                            <SelectContent className="bg-gray-900 border-gray-700">
+                              <SelectItem value="go" className="text-gray-200 focus:bg-gray-800">
+                                Go
+                              </SelectItem>
+                              <SelectItem value="start" className="text-gray-200 focus:bg-gray-800">
+                                Start
+                              </SelectItem>
+                              <SelectItem value="pivot" className="text-gray-200 focus:bg-gray-800">
+                                Pivot
+                              </SelectItem>
+                              <SelectItem value="learn" className="text-gray-200 focus:bg-gray-800">
+                                Learn / Measure
+                              </SelectItem>
+                            </SelectContent>
+                          </Select>
+                        )}
                       </td>
                     </tr>
                   ))}
