@@ -465,8 +465,14 @@ export default function ValidationMap() {
   const handleOpenInlineEditor = (experiment: VentureExperiment, fieldName: "userHypothesis" | "results" | "customNotes" | "newInsights" | "decision") => {
     // Don't allow editing completed experiments
     if (experiment.status === "completed") {
+      toast({
+        title: "Cannot Edit",
+        description: "Completed experiments cannot be edited. This preserves your validated results.",
+        variant: "default",
+      });
       return;
     }
+    console.log("Opening inline editor for:", experiment.masterData.name, "field:", fieldName);
     setInlineEditorConfig({ experiment, fieldName });
     setInlineEditorOpen(true);
   };
