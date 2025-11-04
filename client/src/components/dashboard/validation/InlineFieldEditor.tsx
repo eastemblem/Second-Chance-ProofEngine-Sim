@@ -109,18 +109,6 @@ export function InlineFieldEditor({
         </DialogHeader>
 
         <div className="space-y-6 mt-6">
-          {/* Core Assumption Section - Always Visible */}
-          <div className="space-y-3">
-            <div className={`inline-block px-3 py-1 rounded-md text-sm font-semibold ${fieldColors.userHypothesis}`}>
-              Core Assumption
-            </div>
-            <div className="p-4 rounded-lg bg-slate-800/50 border border-slate-700/50">
-              <p className="text-gray-300 text-sm leading-relaxed">
-                {masterData?.hypothesisTested || "No core assumption defined"}
-              </p>
-            </div>
-          </div>
-
           {/* Editable Field Section */}
           <div className="space-y-3">
             <div className={`inline-block px-3 py-1 rounded-md text-sm font-semibold ${fieldColor}`}>
