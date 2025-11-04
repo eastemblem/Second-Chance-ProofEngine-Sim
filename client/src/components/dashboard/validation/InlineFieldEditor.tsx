@@ -72,7 +72,7 @@ export function InlineFieldEditor({
     if (fieldName === "decision" && (!fieldValue || fieldValue.trim() === "")) {
       toast({
         title: "Decision Required",
-        description: "Please select a decision (Measure, Pivot, or Persevere) before saving.",
+        description: "Please select a decision (Go, Start, Pivot, or Learn / Measure) before saving.",
         variant: "destructive",
       });
       return;
@@ -134,9 +134,10 @@ export function InlineFieldEditor({
                   <SelectValue placeholder="Select decision..." />
                 </SelectTrigger>
                 <SelectContent className="bg-slate-800 border-slate-700">
-                  <SelectItem value="measure" data-testid="option-measure">Measure</SelectItem>
+                  <SelectItem value="go" data-testid="option-go">Go</SelectItem>
+                  <SelectItem value="start" data-testid="option-start">Start</SelectItem>
                   <SelectItem value="pivot" data-testid="option-pivot">Pivot</SelectItem>
-                  <SelectItem value="persevere" data-testid="option-persevere">Persevere</SelectItem>
+                  <SelectItem value="learn" data-testid="option-learn">Learn / Measure</SelectItem>
                 </SelectContent>
               </Select>
             ) : (
