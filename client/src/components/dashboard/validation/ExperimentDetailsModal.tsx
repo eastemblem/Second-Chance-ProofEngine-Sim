@@ -79,7 +79,7 @@ export function ExperimentDetailsModal({
     if (!editedValues.decision || editedValues.decision.trim() === '') {
       toast({
         title: "Decision Required",
-        description: "Please select a decision (Measure, Pivot, or Persevere) before saving. This is a core part of the experiment.",
+        description: "Please select a decision (Go, Start, Pivot, or Learn / Measure) before saving. This is a core part of the experiment.",
         variant: "destructive",
       });
       return;
@@ -215,14 +215,17 @@ export function ExperimentDetailsModal({
                     <SelectValue placeholder="Select decision..." />
                   </SelectTrigger>
                   <SelectContent className="bg-gray-900 border-gray-700">
-                    <SelectItem value="measure" className="text-gray-200 focus:bg-gray-800">
-                      Measure
+                    <SelectItem value="go" className="text-gray-200 focus:bg-gray-800">
+                      Go
+                    </SelectItem>
+                    <SelectItem value="start" className="text-gray-200 focus:bg-gray-800">
+                      Start
                     </SelectItem>
                     <SelectItem value="pivot" className="text-gray-200 focus:bg-gray-800">
                       Pivot
                     </SelectItem>
-                    <SelectItem value="persevere" className="text-gray-200 focus:bg-gray-800">
-                      Persevere
+                    <SelectItem value="learn" className="text-gray-200 focus:bg-gray-800">
+                      Learn / Measure
                     </SelectItem>
                   </SelectContent>
                 </Select>
