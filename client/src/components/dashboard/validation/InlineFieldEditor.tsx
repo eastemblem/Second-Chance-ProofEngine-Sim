@@ -52,7 +52,7 @@ export function InlineFieldEditor({
       console.log(`Loading ${fieldName} for experiment ${experiment.id}:`, currentValue);
       setFieldValue(currentValue);
     }
-  }, [experiment?.id, fieldName, open]);
+  }, [experiment, fieldName, open]);
 
   // Reset field value when modal closes
   useEffect(() => {
