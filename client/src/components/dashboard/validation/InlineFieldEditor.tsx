@@ -20,8 +20,8 @@ interface InlineFieldEditorProps {
 
 const fieldLabels = {
   userHypothesis: "Hypothesis",
-  results: "Results",
-  customNotes: "Custom Notes",
+  results: "Actual Results",
+  customNotes: "Why?",
   newInsights: "New Insights",
   decision: "Decision",
 };
@@ -47,9 +47,17 @@ export function InlineFieldEditor({
 
   useEffect(() => {
     if (experiment && open) {
+      // Always reset to the current database value when opening the editor
       setFieldValue(experiment[fieldName] || "");
     }
-  }, [experiment, fieldName, open]);
+  }, [experiment?.id, fieldName, open]);
+
+  // Reset field value when modal closes
+  useEffect(() => {
+    if (!open) {
+      setFieldValue("");
+    }
+  }, [open]);
 
   if (!experiment) return null;
 
