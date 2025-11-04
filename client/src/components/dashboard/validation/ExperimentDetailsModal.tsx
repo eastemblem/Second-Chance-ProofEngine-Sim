@@ -201,47 +201,6 @@ export function ExperimentDetailsModal({
               </p>
             </div>
 
-            {/* Decision (editable) */}
-            <div>
-              <div className="inline-block px-4 py-1.5 rounded-md font-medium text-sm bg-gradient-to-r from-pink-500 to-rose-600 text-white mb-3">
-                Decision
-              </div>
-              {isEditMode ? (
-                <Select
-                  value={editedValues.decision || ""}
-                  onValueChange={(value) => setEditedValues({ ...editedValues, decision: value })}
-                >
-                  <SelectTrigger className="w-full bg-gray-800/50 border-gray-700 text-gray-200 hover:border-purple-500/50">
-                    <SelectValue placeholder="Select decision..." />
-                  </SelectTrigger>
-                  <SelectContent className="bg-gray-900 border-gray-700">
-                    <SelectItem value="go" className="text-gray-200 focus:bg-gray-800">
-                      Go
-                    </SelectItem>
-                    <SelectItem value="start" className="text-gray-200 focus:bg-gray-800">
-                      Start
-                    </SelectItem>
-                    <SelectItem value="pivot" className="text-gray-200 focus:bg-gray-800">
-                      Pivot
-                    </SelectItem>
-                    <SelectItem value="learn" className="text-gray-200 focus:bg-gray-800">
-                      Learn / Measure
-                    </SelectItem>
-                  </SelectContent>
-                </Select>
-              ) : (
-                <div className="bg-gradient-to-br from-pink-900/20 via-slate-800/50 to-rose-900/20 p-3 rounded-lg border border-purple-500/20">
-                  {experiment.decision ? (
-                    <Badge className="bg-pink-500/20 text-pink-400 border-pink-500/50 capitalize">
-                      {experiment.decision}
-                    </Badge>
-                  ) : (
-                    <span className="text-gray-400">No decision set</span>
-                  )}
-                </div>
-              )}
-            </div>
-
             {/* Hypothesis (editable) */}
             <div>
               <div className="inline-block px-4 py-1.5 rounded-md font-medium text-sm bg-gradient-to-r from-purple-600 to-pink-600 text-white mb-3">
@@ -379,6 +338,47 @@ export function ExperimentDetailsModal({
                     prose-a:text-purple-400 prose-a:underline"
                   dangerouslySetInnerHTML={{ __html: experiment.newInsights || "No insights captured" }}
                 />
+              )}
+            </div>
+
+            {/* Decision (editable) */}
+            <div>
+              <div className="inline-block px-4 py-1.5 rounded-md font-medium text-sm bg-gradient-to-r from-pink-500 to-rose-600 text-white mb-3">
+                Decision
+              </div>
+              {isEditMode ? (
+                <Select
+                  value={editedValues.decision || ""}
+                  onValueChange={(value) => setEditedValues({ ...editedValues, decision: value })}
+                >
+                  <SelectTrigger className="w-full bg-gray-800/50 border-gray-700 text-gray-200 hover:border-purple-500/50">
+                    <SelectValue placeholder="Select decision..." />
+                  </SelectTrigger>
+                  <SelectContent className="bg-gray-900 border-gray-700">
+                    <SelectItem value="go" className="text-gray-200 focus:bg-gray-800">
+                      Go
+                    </SelectItem>
+                    <SelectItem value="start" className="text-gray-200 focus:bg-gray-800">
+                      Start
+                    </SelectItem>
+                    <SelectItem value="pivot" className="text-gray-200 focus:bg-gray-800">
+                      Pivot
+                    </SelectItem>
+                    <SelectItem value="learn" className="text-gray-200 focus:bg-gray-800">
+                      Learn / Measure
+                    </SelectItem>
+                  </SelectContent>
+                </Select>
+              ) : (
+                <div className="bg-gradient-to-br from-pink-900/20 via-slate-800/50 to-rose-900/20 p-3 rounded-lg border border-purple-500/20">
+                  {experiment.decision ? (
+                    <Badge className="bg-pink-500/20 text-pink-400 border-pink-500/50 capitalize">
+                      {experiment.decision}
+                    </Badge>
+                  ) : (
+                    <span className="text-gray-400">No decision set</span>
+                  )}
+                </div>
               )}
             </div>
           </div>
