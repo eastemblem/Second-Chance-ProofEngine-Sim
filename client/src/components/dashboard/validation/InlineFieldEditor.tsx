@@ -145,6 +145,7 @@ export function InlineFieldEditor({
                   <div className="p-4 text-gray-400 text-sm">Loading editor...</div>
                 }>
                   <RichTextEditor
+                    key={`${experiment.id}-${fieldName}`}
                     content={fieldValue}
                     onChange={setFieldValue}
                     placeholder={`Enter your ${fieldLabel.toLowerCase()}...`}
