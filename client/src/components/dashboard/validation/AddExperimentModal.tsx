@@ -112,6 +112,7 @@ export function AddExperimentModal({
                                 <button 
                                   className="text-gray-400 hover:text-purple-400 transition-colors"
                                   data-testid={`button-info-${exp.experimentId}`}
+                                  aria-label="View experiment definition"
                                 >
                                   <Info className="h-4 w-4" />
                                 </button>

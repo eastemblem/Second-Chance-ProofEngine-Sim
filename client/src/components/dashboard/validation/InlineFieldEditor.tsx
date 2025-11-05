@@ -119,6 +119,7 @@ export function InlineFieldEditor({
                       <button 
                         className="text-gray-400 hover:text-purple-400 transition-colors"
                         data-testid="button-info-experiment"
+                        aria-label="View experiment definition"
                       >
                         <Info className="h-5 w-5" />
                       </button>

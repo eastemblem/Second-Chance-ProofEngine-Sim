@@ -906,6 +906,7 @@ export default function ValidationMap() {
                                   <button 
                                     className="text-gray-400 hover:text-purple-400 transition-colors"
                                     data-testid={`button-info-${exp.id}`}
+                                    aria-label="View experiment definition"
                                   >
                                     <Info className="h-4 w-4" />
                                   </button>
@@ -1114,7 +1115,7 @@ export default function ValidationMap() {
       <Suspense fallback={null}>
         {inlineEditorConfig && (() => {
           // Find the current experiment from the experiments list to ensure we have the latest data
-          const currentExperiment = experiments.find(exp => exp.id === inlineEditorConfig.experiment.id) || inlineEditorConfig.experiment;
+          const currentExperiment = experiments.find((exp: VentureExperiment) => exp.id === inlineEditorConfig.experiment.id) || inlineEditorConfig.experiment;
           return (
             <InlineFieldEditor
               open={inlineEditorOpen}
