@@ -182,6 +182,22 @@ export default function ValidationMap() {
   // Get unique categories from experiments for the filter
   const uniqueCategories = Array.from(new Set(experiments.map((exp: VentureExperiment) => exp.masterData.validationSphere))).sort() as string[];
 
+  // Validation sphere color mapping (consistent with AddExperimentModal)
+  const getSphereColor = (sphere: string) => {
+    switch (sphere.toLowerCase()) {
+      case "desirability":
+        return "bg-purple-500/20 text-purple-300 border-purple-500/40";
+      case "viability":
+        return "bg-green-500/20 text-green-300 border-green-500/40";
+      case "feasibility":
+        return "bg-blue-500/20 text-blue-300 border-blue-500/40";
+      case "scaling":
+        return "bg-orange-500/20 text-orange-300 border-orange-500/40";
+      default:
+        return "bg-gray-500/20 text-gray-300 border-gray-500/40";
+    }
+  };
+
   // Filter experiments based on search, status, and category filters (memoized for performance)
   const filteredExperiments = useMemo(() => {
     return experiments.filter((exp: VentureExperiment) => {
@@ -936,7 +952,7 @@ export default function ValidationMap() {
                       <td className="p-4">
                         <Badge 
                           variant="outline" 
-                          className="border-cyan-500/50 text-cyan-400 bg-cyan-500/10"
+                          className={`${getSphereColor(exp.masterData.validationSphere)} border`}
                           data-testid={`badge-sphere-${exp.id}`}
                         >
                           {exp.masterData.validationSphere}
