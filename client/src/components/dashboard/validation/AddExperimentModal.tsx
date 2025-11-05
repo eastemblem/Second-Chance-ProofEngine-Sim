@@ -4,7 +4,8 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
 import { ScrollArea } from "@/components/ui/scroll-area";
-import { Plus, Search } from "lucide-react";
+import { Plus, Search, Info } from "lucide-react";
+import { HoverCard, HoverCardContent, HoverCardTrigger } from "@/components/ui/hover-card";
 
 interface ExperimentMaster {
   experimentId: string;
@@ -12,6 +13,7 @@ interface ExperimentMaster {
   validationSphere: string;
   category: string;
   hypothesisTested: string;
+  definition?: string;
   proofTag: string | null;
 }
 
@@ -100,9 +102,34 @@ export function AddExperimentModal({
                   >
                     <div className="flex-1 space-y-2">
                       <div className="flex items-start justify-between gap-2">
-                        <h4 className="font-semibold text-white text-base">
-                          {exp.name}
-                        </h4>
+                        <div className="flex items-center gap-2 flex-1">
+                          <h4 className="font-semibold text-white text-base">
+                            {exp.name}
+                          </h4>
+                          {exp.definition && (
+                            <HoverCard>
+                              <HoverCardTrigger asChild>
+                                <button 
+                                  className="text-gray-400 hover:text-purple-400 transition-colors"
+                                  data-testid={`button-info-${exp.experimentId}`}
+                                >
+                                  <Info className="h-4 w-4" />
+                                </button>
+                              </HoverCardTrigger>
+                              <HoverCardContent 
+                                className="w-80 bg-gray-900 border-purple-500/30 text-gray-200 p-4"
+                                side="top"
+                              >
+                                <div className="space-y-2">
+                                  <h4 className="text-sm font-semibold text-purple-300">Experiment Definition</h4>
+                                  <p className="text-sm text-gray-300 leading-relaxed">
+                                    {exp.definition}
+                                  </p>
+                                </div>
+                              </HoverCardContent>
+                            </HoverCard>
+                          )}
+                        </div>
                         <Button
                           size="sm"
                           onClick={() => handleAdd(exp.experimentId)}
