@@ -1,6 +1,6 @@
 import { founder, venture, teamMember, proofVault, leaderboard, evaluation, documentUpload, userActivity, paymentTransactions, userSubscriptions, paymentLogs, proofScalingWishlist, experimentMaster, ventureExperiments, type Founder, type InsertFounder, type Venture, type InsertVenture, type TeamMember, type InsertTeamMember, type ProofVault, type InsertProofVault, type Leaderboard, type InsertLeaderboard, type Evaluation, type InsertEvaluation, type DocumentUpload, type InsertDocumentUpload, type UserActivity, type InsertUserActivity, type PaymentTransaction, type InsertPaymentTransaction, type UserSubscription, type InsertUserSubscription, type PaymentLog, type InsertPaymentLog, type ProofScalingWishlist, type InsertProofScalingWishlist, type VentureExperiment, type InsertVentureExperiment } from "@shared/schema";
 import { db } from "./db";
-import { eq, desc, and } from "drizzle-orm";
+import { eq, desc, and, asc } from "drizzle-orm";
 import { appLogger } from "./utils/logger";
 
 export interface IStorage {
@@ -587,7 +587,7 @@ export class DatabaseStorage implements IStorage {
       .from(ventureExperiments)
       .innerJoin(experimentMaster, eq(ventureExperiments.experimentId, experimentMaster.experimentId))
       .where(eq(ventureExperiments.ventureId, ventureId))
-      .orderBy(ventureExperiments.slotNumber);
+      .orderBy(asc(ventureExperiments.createdAt));
     
     return experiments.map(({ ventureExperiment, experimentMaster }) => ({
       ...ventureExperiment,
