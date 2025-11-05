@@ -8,7 +8,7 @@ import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { CheckCircle, Circle, Loader2, Download, Trophy, Plus, Pencil, Trash2, Search, X } from "lucide-react";
+import { CheckCircle, Circle, Loader2, Download, Trophy, Plus, Pencil, Trash2, Search, X, Info } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import confetti from "canvas-confetti";
 import { useTokenAuth } from "@/hooks/use-token-auth";
@@ -21,6 +21,7 @@ import { AddExperimentModal } from "@/components/dashboard/validation/AddExperim
 import { ColumnBadge } from "@/components/dashboard/validation/ColumnBadge";
 import Footer from "@/components/layout/footer";
 import type { CustomExperimentData } from "@/components/dashboard/validation/CustomExperimentModal";
+import { HoverCard, HoverCardContent, HoverCardTrigger } from "@/components/ui/hover-card";
 
 // Lazy load heavy modal components for better performance
 const ExperimentDetailsModal = lazy(() => 
@@ -891,13 +892,38 @@ export default function ValidationMap() {
                       </td>
                       <td className="sticky left-[220px] z-10 p-4 bg-gray-900/95 backdrop-blur-sm">
                         <div>
-                          <p 
-                            className="font-medium text-blue-400 text-base cursor-pointer hover:text-blue-300 hover:underline transition-colors break-words" 
-                            data-testid={`text-experiment-name-${exp.id}`}
-                            onClick={() => handleViewDetails(exp)}
-                          >
-                            {exp.masterData.name}
-                          </p>
+                          <div className="flex items-center gap-2">
+                            <p 
+                              className="font-medium text-blue-400 text-base cursor-pointer hover:text-blue-300 hover:underline transition-colors break-words" 
+                              data-testid={`text-experiment-name-${exp.id}`}
+                              onClick={() => handleViewDetails(exp)}
+                            >
+                              {exp.masterData.name}
+                            </p>
+                            {exp.masterData.definition && (
+                              <HoverCard>
+                                <HoverCardTrigger asChild>
+                                  <button 
+                                    className="text-gray-400 hover:text-purple-400 transition-colors"
+                                    data-testid={`button-info-${exp.id}`}
+                                  >
+                                    <Info className="h-4 w-4" />
+                                  </button>
+                                </HoverCardTrigger>
+                                <HoverCardContent 
+                                  className="w-80 bg-gray-900 border-purple-500/30 text-gray-200 p-4"
+                                  side="right"
+                                >
+                                  <div className="space-y-2">
+                                    <h4 className="text-sm font-semibold text-purple-300">Experiment Definition</h4>
+                                    <p className="text-sm text-gray-300 leading-relaxed">
+                                      {exp.masterData.definition}
+                                    </p>
+                                  </div>
+                                </HoverCardContent>
+                              </HoverCard>
+                            )}
+                          </div>
                           {exp.masterData.proofTag && exp.status === "completed" && (
                             <div className="inline-flex items-center gap-1 text-xs bg-yellow-500/10 border border-yellow-500/30 px-2 py-1 rounded mt-2">
                               <span className="text-gray-400">ProofTag:</span>
