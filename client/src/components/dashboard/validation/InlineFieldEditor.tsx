@@ -2,9 +2,10 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/u
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Save, X } from "lucide-react";
+import { Save, X, Info } from "lucide-react";
 import { useState, useEffect, lazy, Suspense } from "react";
 import { useToast } from "@/hooks/use-toast";
+import { HoverCard, HoverCardContent, HoverCardTrigger } from "@/components/ui/hover-card";
 
 const RichTextEditor = lazy(() => 
   import("./RichTextEditor").then(module => ({ default: module.RichTextEditor }))
@@ -108,9 +109,34 @@ export function InlineFieldEditor({
         <DialogHeader>
           <div className="flex items-start justify-between gap-4 mb-4">
             <div className="flex-1">
-              <DialogTitle className="text-2xl font-bold text-white mb-2">
-                {masterData?.name || "Experiment"}
-              </DialogTitle>
+              <div className="flex items-center gap-2 mb-2">
+                <DialogTitle className="text-2xl font-bold text-white">
+                  {masterData?.name || "Experiment"}
+                </DialogTitle>
+                {masterData?.definition && (
+                  <HoverCard>
+                    <HoverCardTrigger asChild>
+                      <button 
+                        className="text-gray-400 hover:text-purple-400 transition-colors"
+                        data-testid="button-info-experiment"
+                      >
+                        <Info className="h-5 w-5" />
+                      </button>
+                    </HoverCardTrigger>
+                    <HoverCardContent 
+                      className="w-80 bg-gray-900 border-purple-500/30 text-gray-200 p-4"
+                      side="bottom"
+                    >
+                      <div className="space-y-2">
+                        <h4 className="text-sm font-semibold text-purple-300">Experiment Definition</h4>
+                        <p className="text-sm text-gray-300 leading-relaxed">
+                          {masterData.definition}
+                        </p>
+                      </div>
+                    </HoverCardContent>
+                  </HoverCard>
+                )}
+              </div>
               <Badge className="bg-purple-500/20 text-purple-300 border-purple-500/30 border px-3 py-1">
                 {masterData?.validationSphere || "Desirability"}
               </Badge>
