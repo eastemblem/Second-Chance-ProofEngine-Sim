@@ -193,7 +193,7 @@ export function ProofVaultSection({
   };
 
   return (
-    <Card className="border-gray-800" style={{ backgroundColor: '#0E0E12' }}>
+    <Card className="border-gray-800" style={{ backgroundColor: '#0E0E12' }} data-testid="proof-vault-section">
       <CardContent className="p-8">
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
           {/* Left Column: Title and Description */}
