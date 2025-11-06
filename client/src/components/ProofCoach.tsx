@@ -97,14 +97,19 @@ export default function ProofCoach({
           behavior: 'smooth',
           block: 'center',
         });
+        
+        // Cleanup: capture element in closure to avoid stale reference
+        return () => {
+          element.classList.remove('tutorial-highlight');
+        };
       }
-      
-      return () => {
-        if (highlightedElement) {
-          highlightedElement.classList.remove('tutorial-highlight');
-        }
-      };
     }
+    
+    // If not in tutorial or no element found, cleanup any previous highlight
+    return () => {
+      const allHighlighted = document.querySelectorAll('.tutorial-highlight');
+      allHighlighted.forEach(el => el.classList.remove('tutorial-highlight'));
+    };
   }, [isInTutorial, tutorialStep, pageTutorials]);
 
   // Tutorial navigation

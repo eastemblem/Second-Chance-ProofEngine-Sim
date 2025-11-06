@@ -49,7 +49,22 @@ interface ProofCoachProviderProps {
 export function ProofCoachProvider({ children }: ProofCoachProviderProps) {
   const { user } = useTokenAuth();
   const [location] = useLocation();
-  const [localState, setLocalState] = useState<Partial<CoachState>>({});
+  
+  // Immediately hydrate from localStorage for fast initial render
+  const [localState, setLocalState] = useState<Partial<CoachState>>(() => {
+    if (typeof window === 'undefined') return {};
+    
+    const cached = localStorage.getItem("coach_state");
+    if (cached) {
+      try {
+        return JSON.parse(cached);
+      } catch (error) {
+        console.error("Failed to parse cached coach state", error);
+        return {};
+      }
+    }
+    return {};
+  });
 
   // Fetch coach state from server
   const { data: serverState, isLoading } = useQuery<{ success: boolean; data: CoachState }>({
@@ -58,28 +73,14 @@ export function ProofCoachProvider({ children }: ProofCoachProviderProps) {
     staleTime: 5 * 60 * 1000, // 5 minutes
   });
 
-  // Sync server state to local state
+  // Sync server state to local state when it arrives (overrides cache)
   useEffect(() => {
     if (serverState?.data) {
       setLocalState(serverState.data);
-      // Also cache to localStorage for offline access
+      // Update localStorage cache
       localStorage.setItem("coach_state", JSON.stringify(serverState.data));
     }
   }, [serverState]);
-
-  // Load from localStorage on mount if server data not available yet
-  useEffect(() => {
-    if (!serverState && !isLoading) {
-      const cached = localStorage.getItem("coach_state");
-      if (cached) {
-        try {
-          setLocalState(JSON.parse(cached));
-        } catch (error) {
-          console.error("Failed to parse cached coach state", error);
-        }
-      }
-    }
-  }, [serverState, isLoading]);
 
   // Update mutation
   const updateMutation = useMutation({
