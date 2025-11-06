@@ -366,11 +366,30 @@ export const ventureExperiments = pgTable("venture_experiments", {
   updatedAt: timestamp("updated_at").defaultNow().notNull(),
 });
 
+// ProofCoach state tracking table - Persistent user guidance state
+export const coachState = pgTable("coach_state", {
+  id: uuid("id").primaryKey().defaultRandom(),
+  founderId: uuid("founder_id").references(() => founder.founderId).notNull().unique(),
+  currentJourneyStep: integer("current_journey_step").notNull().default(0),
+  completedJourneySteps: json("completed_journey_steps").$type<number[]>().notNull().default([]),
+  isMinimized: boolean("is_minimized").notNull().default(false),
+  isDismissed: boolean("is_dismissed").notNull().default(false),
+  tutorialCompletedPages: json("tutorial_completed_pages").$type<string[]>().notNull().default([]),
+  lastInteractionAt: timestamp("last_interaction_at"),
+  metadata: jsonb("metadata"), // Additional state data
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+  updatedAt: timestamp("updated_at").defaultNow().notNull(),
+});
+
 // Relations
-export const founderRelations = relations(founder, ({ many }) => ({
+export const founderRelations = relations(founder, ({ many, one }) => ({
   ventures: many(venture),
   paymentTransactions: many(paymentTransactions),
   subscriptions: many(userSubscriptions),
+  coachState: one(coachState, {
+    fields: [founder.founderId],
+    references: [coachState.founderId],
+  }),
 }));
 
 export const ventureRelations = relations(venture, ({ one, many }) => ({
@@ -479,6 +498,13 @@ export const ventureExperimentsRelations = relations(ventureExperiments, ({ one 
   }),
 }));
 
+export const coachStateRelations = relations(coachState, ({ one }) => ({
+  founder: one(founder, {
+    fields: [coachState.founderId],
+    references: [founder.founderId],
+  }),
+}));
+
 // Export types
 export type Founder = typeof founder.$inferSelect;
 export type InsertFounder = typeof founder.$inferInsert;
@@ -518,6 +544,10 @@ export type ExperimentMaster = typeof experimentMaster.$inferSelect;
 export type InsertExperimentMaster = typeof experimentMaster.$inferInsert;
 export type VentureExperiment = typeof ventureExperiments.$inferSelect;
 export type InsertVentureExperiment = typeof ventureExperiments.$inferInsert;
+
+// ProofCoach types
+export type CoachState = typeof coachState.$inferSelect;
+export type InsertCoachState = typeof coachState.$inferInsert;
 
 // Activity insert schema for validation
 export const insertUserActivitySchema = createInsertSchema(userActivity, {
@@ -604,6 +634,29 @@ export const updateVentureExperimentSchema = z.object({
   decision: z.enum(['go', 'start', 'pivot', 'learn']).optional(),
   status: z.enum(['not_started', 'in_progress', 'completed']).optional(),
   customNotes: z.string().optional(),
+});
+
+// ProofCoach state schema for validation
+export const insertCoachStateSchema = createInsertSchema(coachState, {
+  currentJourneyStep: z.number().default(0),
+  completedJourneySteps: z.array(z.number()).default([]),
+  isMinimized: z.boolean().default(false),
+  isDismissed: z.boolean().default(false),
+  tutorialCompletedPages: z.array(z.string()).default([]),
+  metadata: z.any().optional(),
+}).omit({
+  id: true,
+  createdAt: true,
+  updatedAt: true,
+});
+
+export const updateCoachStateSchema = z.object({
+  currentJourneyStep: z.number().optional(),
+  completedJourneySteps: z.array(z.number()).optional(),
+  isMinimized: z.boolean().optional(),
+  isDismissed: z.boolean().optional(),
+  tutorialCompletedPages: z.array(z.string()).optional(),
+  metadata: z.any().optional(),
 });
 
 // Document Upload insert schema with validation for ProofVault enhancements

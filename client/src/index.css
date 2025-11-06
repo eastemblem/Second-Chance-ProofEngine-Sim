@@ -125,6 +125,28 @@
   color: hsl(var(--primary-gold));
 }
 
+/* ProofCoach Tutorial Highlighting */
+.tutorial-highlight {
+  position: relative;
+  z-index: 40;
+  animation: pulse-highlight 2s infinite;
+  box-shadow: 0 0 0 4px rgba(139, 92, 246, 0.4);
+  border-radius: 8px;
+}
+
+@keyframes pulse-highlight {
+  0%, 100% { box-shadow: 0 0 0 4px rgba(139, 92, 246, 0.4); }
+  50% { box-shadow: 0 0 0 8px rgba(139, 92, 246, 0.2); }
+}
+
+.tutorial-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.5);
+  z-index: 30;
+  backdrop-filter: blur(2px);
+}
+
 .bg-primary-gold {
   background-color: hsl(var(--primary-gold));
 }

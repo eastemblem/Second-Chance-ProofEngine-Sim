@@ -31,6 +31,7 @@ import {
 import { useTokenAuth } from "@/hooks/use-token-auth";
 import { PROOF_VAULT_ARTIFACTS } from "../../../../shared/config/artifacts";
 import { useToast } from "@/hooks/use-toast";
+import ProofCoachWrapper from "@/components/ProofCoachWrapper";
 
 // Helper function to get artifact configuration
 const getArtifactConfig = (artifactType: string) => {
@@ -514,6 +515,9 @@ export default function DashboardV2Page() {
           ventureId: user?.venture?.ventureId || ''
         }}
       />
+      
+      {/* ProofCoach - Intelligent guidance system */}
+      <ProofCoachWrapper enableTutorial={true} />
     </DashboardLayout>
   );
 }

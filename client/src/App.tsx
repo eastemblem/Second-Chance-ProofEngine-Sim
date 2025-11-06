@@ -42,6 +42,7 @@ const preloadComponents = () => {
 import NotFound from "@/pages/not-found";
 import { initSentry, SentryErrorBoundary } from "./lib/sentry";
 import { TokenAuthProvider } from "@/hooks/use-token-auth";
+import { ProofCoachProvider } from "@/contexts/ProofCoachContext";
 
 // Initialize preloading after component definition
 preloadComponents();
@@ -188,6 +189,7 @@ function App() {
   return (
     <QueryClientProvider client={queryClient}>
       <TokenAuthProvider>
+        <ProofCoachProvider>
         <SentryErrorBoundary fallback={({ error, resetError }) => {
         // Check if this is an authentication-related error
         const isAuthError = (error as any)?.message?.includes('vault/session') || 
@@ -259,6 +261,7 @@ function App() {
           <Router />
         </TooltipProvider>
       </SentryErrorBoundary>
+      </ProofCoachProvider>
       </TokenAuthProvider>
     </QueryClientProvider>
   );
