@@ -22,6 +22,7 @@ import { ColumnBadge } from "@/components/dashboard/validation/ColumnBadge";
 import Footer from "@/components/layout/footer";
 import type { CustomExperimentData } from "@/components/dashboard/validation/CustomExperimentModal";
 import { HoverCard, HoverCardContent, HoverCardTrigger } from "@/components/ui/hover-card";
+import ProofCoachWrapper from "@/components/ProofCoachWrapper";
 
 // Lazy load heavy modal components for better performance
 const ExperimentDetailsModal = lazy(() => 
@@ -1179,6 +1180,7 @@ export default function ValidationMap() {
         />
       </Suspense>
 
+      <ProofCoachWrapper enableTutorial={true} />
       <Footer />
     </div>
   );

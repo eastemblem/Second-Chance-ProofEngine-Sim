@@ -139,6 +139,8 @@ export default function ProofCoach({
     setIsInTutorial(false);
     setTutorialStep(0);
     onTutorialComplete?.(currentPage);
+    // Auto-minimize after tutorial completion to avoid showing journey steps
+    onMinimize();
   };
 
   // Journey navigation
