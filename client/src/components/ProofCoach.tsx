@@ -1,6 +1,6 @@
 import { useState, useEffect, useCallback, useRef } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { X, Minimize2, Maximize2, Sparkles, ChevronLeft, ChevronRight, ArrowRight } from "lucide-react";
+import { X, Minimize2, Maximize2, Sparkles, ChevronLeft, ChevronRight, ArrowRight, BookOpen } from "lucide-react";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -343,16 +343,8 @@ export default function ProofCoach({
                 size="icon"
                 onClick={onMinimize}
                 className="h-8 w-8"
-                data-testid="button-minimize-coach"
-              >
-                <Minimize2 className="h-4 w-4" />
-              </Button>
-              <Button
-                variant="ghost"
-                size="icon"
-                onClick={onClose}
-                className="h-8 w-8"
                 data-testid="button-close-coach"
+                title="Minimize coach"
               >
                 <X className="h-4 w-4" />
               </Button>
@@ -426,6 +418,25 @@ export default function ProofCoach({
               </Button>
             )}
           </div>
+
+          {/* Replay Tutorial Button */}
+          {tutorialCompletedPages.includes(currentPage) && pageTutorials.length > 0 && (
+            <div className="mt-3">
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => {
+                  setIsInTutorial(true);
+                  setTutorialStep(0);
+                }}
+                className="w-full"
+                data-testid="button-replay-tutorial"
+              >
+                <BookOpen className="h-4 w-4 mr-2" />
+                Replay {currentPage.charAt(0).toUpperCase() + currentPage.slice(1)} Tutorial
+              </Button>
+            </div>
+          )}
 
           {/* Step indicator */}
           <div className="mt-4 pt-4 border-t border-border">

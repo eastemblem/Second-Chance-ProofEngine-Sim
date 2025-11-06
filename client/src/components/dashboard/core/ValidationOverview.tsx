@@ -71,7 +71,7 @@ export function ValidationOverview({ validationData, proofVaultData, onScrollToV
   const progressPercentage = Math.min((proofScore / maxProofScore) * 100, 100);
 
   return (
-    <div className="rounded-xl border border-gray-700/50 p-6" style={{ backgroundColor: '#0E0E12' }}>
+    <div className="rounded-xl border border-gray-700/50 p-6" style={{ backgroundColor: '#0E0E12' }} data-testid="proofscore-display">
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 items-center">
         
         {/* Left Column: Title and Upload Button */}
