@@ -2,7 +2,7 @@ import { CheckCircle } from "lucide-react";
 
 export function ValidationMapIntro() {
   return (
-    <div className="rounded-xl border border-gray-700/50 p-8 mb-6" style={{ backgroundColor: '#0E0E12' }}>
+    <div className="rounded-xl border border-gray-700/50 p-8 mb-6" style={{ backgroundColor: '#0E0E12' }} data-testid="validation-map-intro">
       <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
         {/* Left Column - Title and Bullets */}
         <div>

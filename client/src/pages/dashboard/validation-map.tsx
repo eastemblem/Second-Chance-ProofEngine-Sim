@@ -675,7 +675,7 @@ export default function ValidationMap() {
 
       <div className="max-w-7xl mx-auto px-4 pb-8">
         {/* Experiments Table */}
-        <Card className="bg-gray-900/60 backdrop-blur-sm border-gray-800">
+        <Card className="bg-gray-900/60 backdrop-blur-sm border-gray-800" data-testid="validation-map-grid">
           <CardContent className="p-6">
             <div className="flex justify-between items-center mb-6">
               <h2 className="text-2xl font-bold text-white">Your Experiments</h2>
@@ -703,7 +703,7 @@ export default function ValidationMap() {
             </div>
 
             {/* Search and Filter Section */}
-            <div className="mb-6 space-y-4">
+            <div className="mb-6 space-y-4" data-testid="experiment-filters">
               <div className="flex flex-col sm:flex-row gap-4">
                 {/* Search Input */}
                 <div className="relative flex-1">
