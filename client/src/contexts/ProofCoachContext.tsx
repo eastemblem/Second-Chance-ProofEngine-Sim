@@ -5,6 +5,7 @@ import { useTokenAuth } from "@/hooks/use-token-auth";
 import type { CoachState } from "../../../shared/schema";
 import { useLocation } from "wouter";
 import { trackEvent } from "@/lib/analytics";
+import { COACH_JOURNEY_STEPS, type JourneyStep } from "../../../shared/config/coach-journey";
 
 interface ProofCoachContextValue {
   // State
@@ -206,12 +207,31 @@ export function ProofCoachProvider({ children }: ProofCoachProviderProps) {
     return location.replace(/^\//, "").split("/")[0] || "landing";
   }, [location]);
 
+  // Get the next uncompleted step for the current page
+  const getCurrentPageStep = useCallback((): number => {
+    const currentPage = getCurrentPage();
+    const completedSteps = localState.completedJourneySteps || [];
+    
+    // Find all steps for the current page
+    const pageSteps = COACH_JOURNEY_STEPS.filter((step: JourneyStep) => step.page === currentPage);
+    
+    if (pageSteps.length === 0) {
+      // If no steps defined for this page, use global journey step
+      return localState.currentJourneyStep ?? 0;
+    }
+    
+    // Find the first incomplete step for this page
+    const nextStep = pageSteps.find((step: JourneyStep) => !completedSteps.includes(step.id));
+    
+    return nextStep?.id ?? pageSteps[pageSteps.length - 1].id; // Return last step if all complete
+  }, [getCurrentPage, localState.completedJourneySteps, localState.currentJourneyStep]);
+
   const value: ProofCoachContextValue = {
     coachState: (serverState?.data || localState) as CoachState | null,
     isLoading,
     isMinimized: localState.isMinimized ?? false,
     isDismissed: localState.isDismissed ?? false,
-    currentJourneyStep: localState.currentJourneyStep ?? 0,
+    currentJourneyStep: getCurrentPageStep(), // Now returns page-specific step
     completedJourneySteps: localState.completedJourneySteps || [],
     tutorialCompletedPages: localState.tutorialCompletedPages || [],
     updateState,
