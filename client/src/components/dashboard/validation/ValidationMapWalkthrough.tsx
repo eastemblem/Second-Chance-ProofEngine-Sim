@@ -105,7 +105,6 @@ export function ValidationMapWalkthrough({ isLoading, onComplete }: ValidationMa
             variant="ghost"
             className="text-gray-400 hover:text-white"
             data-testid="button-skip-walkthrough"
-            disabled={isLoading}
           >
             Skip Tour
           </Button>
