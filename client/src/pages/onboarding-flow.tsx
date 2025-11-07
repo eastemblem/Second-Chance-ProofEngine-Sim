@@ -428,7 +428,7 @@ export default function OnboardingFlow({ onComplete }: OnboardingFlowProps) {
 
   return (
     <Layout>
-      <ProofCoachWrapper currentPage={`onboarding-${currentStep.key}`} autoStart={currentStepIndex === 0}>
+      <ProofCoachWrapper currentPage={`onboarding-${currentStep.key}`} autoStart={true}>
         <div className="sticky top-0 z-50 bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
           <Navbar logoOnly={true} />
         </div>

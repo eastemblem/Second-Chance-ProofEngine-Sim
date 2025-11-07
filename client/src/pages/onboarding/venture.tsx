@@ -148,7 +148,7 @@ export default function VentureOnboarding({
           <div>
             <Label htmlFor="industry">Industry *</Label>
             <Select onValueChange={(value) => form.setValue("industry", value)}>
-              <SelectTrigger className="mt-1">
+              <SelectTrigger className="mt-1" data-testid="select-industry">
                 <SelectValue placeholder="Select industry" />
               </SelectTrigger>
               <SelectContent>
@@ -204,7 +204,7 @@ export default function VentureOnboarding({
         <div>
           <Label htmlFor="businessModel">Business Model *</Label>
           <Select onValueChange={(value) => form.setValue("businessModel", value)}>
-            <SelectTrigger className="mt-1">
+            <SelectTrigger className="mt-1" data-testid="select-business-model">
               <SelectValue placeholder="Select business model" />
             </SelectTrigger>
             <SelectContent>
@@ -232,7 +232,7 @@ export default function VentureOnboarding({
           <div>
             <Label htmlFor="revenueStage">Revenue Stage *</Label>
             <Select onValueChange={(value) => form.setValue("revenueStage", value as "None" | "Pre-Revenue" | "Early Revenue" | "Scaling")}>
-              <SelectTrigger>
+              <SelectTrigger data-testid="select-revenue-stage">
                 <SelectValue placeholder="Select revenue stage" />
               </SelectTrigger>
               <SelectContent>
@@ -247,7 +247,7 @@ export default function VentureOnboarding({
           <div>
             <Label htmlFor="productStatus">Product Status *</Label>
             <Select onValueChange={(value) => form.setValue("productStatus", value as "Mockup" | "Prototype" | "Launched")}>
-              <SelectTrigger className="mt-1">
+              <SelectTrigger className="mt-1" data-testid="select-product-status">
                 <SelectValue placeholder="Select product status" />
               </SelectTrigger>
               <SelectContent>
@@ -266,6 +266,7 @@ export default function VentureOnboarding({
             {...form.register("website")}
             className="mt-1"
             placeholder="https://yourcompany.com"
+            data-testid="input-website"
           />
         </div>
 
@@ -299,6 +300,7 @@ export default function VentureOnboarding({
                 {...form.register("linkedinUrl")}
                 placeholder="LinkedIn URL"
                 className="pl-10"
+                data-testid="input-linkedin-url"
               />
             </div>
             <div className="relative">
@@ -309,6 +311,7 @@ export default function VentureOnboarding({
                 {...form.register("twitterUrl")}
                 placeholder="Twitter URL"
                 className="pl-10"
+                data-testid="input-twitter-url"
               />
             </div>
             <div className="relative">
@@ -319,6 +322,7 @@ export default function VentureOnboarding({
                 {...form.register("instagramUrl")}
                 placeholder="Instagram URL"
                 className="pl-10"
+                data-testid="input-instagram-url"
               />
             </div>
           </div>
