@@ -674,11 +674,11 @@ export default function ValidationMap() {
         <ValidationMapIntro />
       </div>
 
-      <div className="max-w-7xl mx-auto px-4 pb-8">
-        {/* Experiments Table */}
-        <Card className="bg-gray-900/60 backdrop-blur-sm border-gray-800" data-testid="validation-map-grid">
+      <div className="max-w-7xl mx-auto px-4 pb-8 space-y-4">
+        {/* Header Card - Title and Action Buttons */}
+        <Card className="bg-gray-900/60 backdrop-blur-sm border-gray-800" data-testid="experiment-header-card">
           <CardContent className="p-6">
-            <div className="flex justify-between items-center mb-6">
+            <div className="flex justify-between items-center">
               <h2 className="text-2xl font-bold text-white">Your Experiments</h2>
               <div className="flex gap-2" data-testid="experiment-actions-header">
                 <Button 
@@ -702,9 +702,13 @@ export default function ValidationMap() {
                 </Button>
               </div>
             </div>
+          </CardContent>
+        </Card>
 
-            {/* Search and Filter Section */}
-            <div className="mb-6 space-y-4" data-testid="experiment-filters">
+        {/* Filters Card - Search and Filters */}
+        <Card className="bg-gray-900/60 backdrop-blur-sm border-gray-800" data-testid="experiment-filters-card">
+          <CardContent className="p-6">
+            <div className="space-y-4" data-testid="experiment-filters">
               <div className="flex flex-col sm:flex-row gap-4">
                 {/* Search Input */}
                 <div className="relative flex-1">
@@ -810,7 +814,12 @@ export default function ValidationMap() {
                 )}
               </div>
             </div>
-            
+          </CardContent>
+        </Card>
+
+        {/* Table Card - Experiments Table */}
+        <Card className="bg-gray-900/60 backdrop-blur-sm border-gray-800" data-testid="experiment-table-card">
+          <CardContent className="p-6">
             <div className="overflow-x-auto">
               <table className="w-full border-collapse">
                 <thead>
