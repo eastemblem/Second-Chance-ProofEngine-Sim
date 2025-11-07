@@ -127,7 +127,7 @@ export default function VentureOnboarding({
         </p>
       </div>
 
-      <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
+      <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6" data-testid="onboarding-venture-form">
         <div>
           <Label htmlFor="name">Startup Name *</Label>
           <Input
@@ -135,6 +135,7 @@ export default function VentureOnboarding({
             {...form.register("name")}
             className="mt-1"
             placeholder="TechCorp Inc."
+            data-testid="input-company-name"
           />
           {form.formState.errors.name && (
             <p className="text-red-500 text-sm mt-1">
@@ -174,7 +175,7 @@ export default function VentureOnboarding({
           <div>
             <Label htmlFor="geography">Geography *</Label>
             <Select onValueChange={(value) => form.setValue("geography", value)}>
-              <SelectTrigger className="mt-1">
+              <SelectTrigger className="mt-1" data-testid="input-target-market">
                 <SelectValue placeholder="Select geography" />
               </SelectTrigger>
               <SelectContent>
@@ -278,6 +279,7 @@ export default function VentureOnboarding({
             className="mt-1"
             placeholder="Describe what your startup does, the problem you solve, and your unique value proposition..."
             rows={4}
+            data-testid="textarea-problem-statement"
           />
           {form.formState.errors.description && (
             <p className="text-red-500 text-sm mt-1">
@@ -336,6 +338,7 @@ export default function VentureOnboarding({
             type="submit"
             disabled={isSubmitting}
             className="px-6 py-2"
+            data-testid="button-continue-team"
           >
             {isSubmitting ? "Saving..." : "Next: Team Members"}
           </Button>

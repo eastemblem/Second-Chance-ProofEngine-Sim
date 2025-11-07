@@ -425,7 +425,7 @@ export default function ProcessingScreen({
         </p>
       </div>
 
-      <div className="space-y-6">
+      <div className="space-y-6" data-testid="processing-status">
         {processingSteps.map((step, index) => {
           const Icon = step.icon;
           const isActive = index <= currentStep;

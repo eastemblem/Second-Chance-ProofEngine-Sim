@@ -549,7 +549,7 @@ export default function TeamOnboarding({
               </CardTitle>
             </CardHeader>
             <CardContent>
-              <form onSubmit={form.handleSubmit(onSubmitMember)} className="space-y-6">
+              <form onSubmit={form.handleSubmit(onSubmitMember)} className="space-y-6" data-testid="onboarding-team-form">
                 {/* Basic Information */}
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   <div>
@@ -559,6 +559,7 @@ export default function TeamOnboarding({
                       {...form.register("fullName")}
                       className="mt-1"
                       placeholder="Jane Smith"
+                      data-testid="team-member-input"
                     />
                     {form.formState.errors.fullName && (
                       <p className="text-red-500 text-sm mt-1">
@@ -756,6 +757,7 @@ export default function TeamOnboarding({
           onClick={handleNext}
           disabled={isSubmitting}
           className="bg-purple-600 hover:bg-purple-700 px-6 py-2"
+          data-testid="button-continue-upload"
         >
           {isSubmitting ? "Saving..." : "Next: Upload Pitch Deck"}
         </Button>

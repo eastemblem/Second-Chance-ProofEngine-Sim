@@ -198,6 +198,7 @@ export default function DocumentUpload({
         onDragLeave={handleDragLeave}
         onDrop={handleDrop}
         onClick={() => !selectedFile && document.getElementById("pitchDeck")?.click()}
+        data-testid="upload-zone"
       >
         <CardContent className="p-8">
           {!selectedFile ? (
@@ -278,6 +279,7 @@ export default function DocumentUpload({
                   onClick={handleUpload}
                   className="w-full bg-primary hover:bg-primary/90"
                   size="lg"
+                  data-testid="button-upload-analyze"
                 >
                   Upload Pitch Deck
                 </Button>

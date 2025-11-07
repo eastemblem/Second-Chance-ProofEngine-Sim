@@ -1129,7 +1129,7 @@ export default function Analysis({
                 )}
 
                 {/* Score Display on Right */}
-                <div className="text-center ml-2 sm:ml-4">
+                <div className="text-center ml-2 sm:ml-4" data-testid="analysis-proofscore">
                   <motion.div
                     className="text-3xl sm:text-4xl font-black gradient-text mb-1 sm:mb-2"
                     initial={{ scale: 0 }}
@@ -1429,7 +1429,7 @@ export default function Analysis({
                       Each dimension is scored against industry benchmarks and investor criteria
                     </span>
                   </p>
-                  <div className="space-y-3">
+                  <div className="space-y-3" data-testid="dimension-breakdown">
                     {Object.entries(proofScore.dimensions).map(
                       ([dimension, score]) => {
                         const maxScores = {
@@ -1588,6 +1588,7 @@ export default function Analysis({
               animate={{ opacity: 1, y: 0 }}
               transition={{ delay: 1.8, duration: 0.6 }}
               className="text-center mb-8"
+              data-testid="analysis-cta-buttons"
             >
               <Button
                 onClick={() => {
@@ -1599,8 +1600,9 @@ export default function Analysis({
                     window.location.href = '/proof-scaling';
                   }
                 }}
-                className="gradient-button px-6 sm:px-8 py-4 sm:py-6 text-base sm:text-lg w-full sm:w-auto min-h-[48px] mb-4"
+                className="gradient-button px-6 sm:px-8 py-4 sm:px-6 text-base sm:text-lg w-full sm:w-auto min-h-[48px] mb-4"
                 size="lg"
+                data-testid="button-go-dashboard"
               >
                 See My Pathway
                 <ArrowRight className="ml-2 w-4 h-4 sm:w-5 sm:h-5" />
