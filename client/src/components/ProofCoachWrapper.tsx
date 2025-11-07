@@ -1,6 +1,7 @@
 import { useProofCoach } from "@/contexts/ProofCoachContext";
 import { useTokenAuth } from "@/hooks/use-token-auth";
 import ProofCoach from "./ProofCoach";
+import { useEffect } from "react";
 
 interface ProofCoachWrapperProps {
   children?: React.ReactNode;
@@ -43,6 +44,14 @@ export default function ProofCoachWrapper({
 
   // Determine which page to use for tutorials
   const pageName = currentPage || forcePage || getCurrentPage();
+
+  // Auto-expand ProofCoach when landing on a new uncompleted onboarding page
+  useEffect(() => {
+    if (enableTutorial && autoStart && isMinimized && !tutorialCompletedPages.includes(pageName)) {
+      // Automatically expand the coach for new onboarding pages
+      expand();
+    }
+  }, [pageName, autoStart, enableTutorial, isMinimized, tutorialCompletedPages, expand]);
 
   // Show coach if: not loading, not dismissed
   // For onboarding tutorials (enableTutorial=true), allow without authentication
