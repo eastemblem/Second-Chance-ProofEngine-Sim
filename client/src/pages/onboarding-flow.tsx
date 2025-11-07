@@ -16,6 +16,7 @@ import ProgressBar from "@/components/progress-bar";
 import Navbar from "@/components/layout/navbar";
 import Layout from "@/components/layout/layout";
 import { Button } from "@/components/ui/button";
+import ProofCoachWrapper from "@/components/ProofCoachWrapper";
 
 interface OnboardingFlowProps {
   onComplete: () => void;
@@ -427,11 +428,12 @@ export default function OnboardingFlow({ onComplete }: OnboardingFlowProps) {
 
   return (
     <Layout>
-      <div className="sticky top-0 z-50 bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
-        <Navbar logoOnly={true} />
-      </div>
-      
-      <div className="container mx-auto px-4 py-8 max-w-5xl">
+      <ProofCoachWrapper currentPage={`onboarding-${currentStep.key}`} autoStart={currentStepIndex === 0}>
+        <div className="sticky top-0 z-50 bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
+          <Navbar logoOnly={true} />
+        </div>
+        
+        <div className="container mx-auto px-4 py-8 max-w-5xl">
         {/* Progress Bar */}
         <div className="mb-8 mx-4 sm:mx-8">
           <ProgressBar 
@@ -571,6 +573,7 @@ export default function OnboardingFlow({ onComplete }: OnboardingFlowProps) {
           </motion.div>
         </AnimatePresence>
       </div>
+      </ProofCoachWrapper>
     </Layout>
   );
 }
