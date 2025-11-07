@@ -214,15 +214,15 @@ export default function ProofCoach({
 
     return (
       <>
-        {/* Dark overlay */}
-        <div className="tutorial-overlay fixed inset-0 bg-black/50 backdrop-blur-sm z-40" />
+        {/* Dark overlay - higher z-index to appear above modals */}
+        <div className="tutorial-overlay fixed inset-0 bg-black/50 backdrop-blur-sm z-[60]" />
         
-        {/* Tutorial coach card */}
+        {/* Tutorial coach card - highest z-index */}
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           exit={{ opacity: 0, y: 20 }}
-          className="fixed bottom-6 right-6 z-50 w-[420px]"
+          className="fixed bottom-6 right-6 z-[70] w-[420px]"
         >
           <Card className="bg-gradient-to-br from-purple-900/95 to-blue-900/95 border-purple-500/50 shadow-2xl backdrop-blur-md">
             <CardContent className="p-6">
