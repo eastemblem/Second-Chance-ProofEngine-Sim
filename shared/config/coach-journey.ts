@@ -253,13 +253,22 @@ export interface TutorialMechanic {
 export const TUTORIAL_MECHANICS: Record<string, TutorialMechanic[]> = {
   dashboard: [
     {
-      id: "dashboard-header",
+      id: "dashboard-welcome",
       page: "dashboard",
-      title: "Dashboard Overview",
-      description: "Your central hub for tracking validation progress, ProofScore, and accessing key features.",
+      title: "Welcome to Your Dashboard!",
+      description: "Congratulations on completing your onboarding! You've successfully set up your founder profile, defined your venture, introduced your team, and received your ProofScore. This is your central hub for tracking validation progress and accessing all platform features.",
       selector: "[data-testid='dashboard-header']",
       location: "Top of page",
       order: 1,
+    },
+    {
+      id: "dashboard-header",
+      page: "dashboard",
+      title: "Dashboard Overview",
+      description: "Your dashboard is organized into sections: ProofScore display, Deal Room access, ProofVault management, document downloads, community access, leaderboard, and activity feed.",
+      selector: "[data-testid='dashboard-header']",
+      location: "Top of page",
+      order: 2,
     },
     {
       id: "validation-overview",
@@ -269,7 +278,7 @@ export const TUTORIAL_MECHANICS: Record<string, TutorialMechanic[]> = {
       selector: "[data-testid='proofscore-display']",
       tips: "ProofScores of 70+ unlock Deal Room access.",
       location: "Upper section",
-      order: 2,
+      order: 3,
     },
     {
       id: "deal-room",
@@ -279,7 +288,7 @@ export const TUTORIAL_MECHANICS: Record<string, TutorialMechanic[]> = {
       selector: "[data-testid='deal-room-section']",
       tips: "Deal Room members are 3x more likely to secure investor meetings.",
       location: "Upper right section",
-      order: 3,
+      order: 4,
     },
     {
       id: "proof-vault",
@@ -289,7 +298,7 @@ export const TUTORIAL_MECHANICS: Record<string, TutorialMechanic[]> = {
       selector: "[data-testid='proof-vault-section']",
       tips: "Upload diverse artifacts: testimonials, metrics, videos, financial models.",
       location: "Main section",
-      order: 4,
+      order: 5,
     },
     {
       id: "document-downloads",
@@ -299,7 +308,7 @@ export const TUTORIAL_MECHANICS: Record<string, TutorialMechanic[]> = {
       selector: "[data-testid='document-downloads-section']",
       tips: "These documents are perfect for investor decks and pitch materials.",
       location: "Lower left section",
-      order: 5,
+      order: 6,
     },
     {
       id: "community-access",
@@ -309,7 +318,7 @@ export const TUTORIAL_MECHANICS: Record<string, TutorialMechanic[]> = {
       selector: "[data-testid='community-access-section']",
       tips: "Book 1-on-1 sessions via Calendly if you have Deal Room access.",
       location: "Lower right section",
-      order: 6,
+      order: 7,
     },
     {
       id: "leaderboard",
@@ -318,7 +327,7 @@ export const TUTORIAL_MECHANICS: Record<string, TutorialMechanic[]> = {
       description: "See how you rank against other founders based on ProofScore and ProofTags unlocked.",
       selector: "[data-testid='leaderboard-section']",
       location: "Bottom left section",
-      order: 7,
+      order: 8,
     },
     {
       id: "activity-feed",
@@ -327,7 +336,7 @@ export const TUTORIAL_MECHANICS: Record<string, TutorialMechanic[]> = {
       description: "Track your latest platform interactions, uploads, and achievements in real-time.",
       selector: "[data-testid='activity-feed-section']",
       location: "Bottom right section",
-      order: 8,
+      order: 9,
     },
   ],
   "validation-map": [
@@ -571,7 +580,7 @@ export const TUTORIAL_MECHANICS: Record<string, TutorialMechanic[]> = {
       id: "venture-intro",
       page: "onboarding-venture",
       title: "Tell Us About Your Startup",
-      description: "Now let's capture details about your venture. This information is critical for your ProofScore calculation and helps us assign relevant validation experiments tailored to your business.",
+      description: "Congratulations on completing your founder profile! Now let's capture details about your venture. This information is critical for your ProofScore calculation and helps us assign relevant validation experiments tailored to your business.",
       selector: "[data-testid='onboarding-venture-form']",
       tips: "Be specific and honest—our AI analyzes your pitch deck against these details to generate accurate insights.",
       location: "Full form",
@@ -663,7 +672,7 @@ export const TUTORIAL_MECHANICS: Record<string, TutorialMechanic[]> = {
       id: "team-intro",
       page: "onboarding-team",
       title: "Build Your Team Profile",
-      description: "Add up to 4 team members. Investors love seeing complementary skills and diverse expertise. If you're solo for now, you can skip this step.",
+      description: "Great work on your venture details! Now let's introduce your team. Add up to 4 team members—investors love seeing complementary skills and diverse expertise. If you're solo for now, you can skip this step.",
       selector: "[data-testid='onboarding-team-form']",
       tips: "Teams with balanced skills (tech + business, for example) tend to score higher.",
       location: "Full form",
@@ -705,7 +714,7 @@ export const TUTORIAL_MECHANICS: Record<string, TutorialMechanic[]> = {
       id: "upload-intro",
       page: "onboarding-upload",
       title: "Upload Your Pitch Deck",
-      description: "This is the most important step! Our AI will analyze your pitch deck to generate your ProofScore and assign personalized validation experiments.",
+      description: "Excellent! Your profile is taking shape. Now for the most important step—upload your pitch deck! Our AI will analyze it to generate your ProofScore and assign personalized validation experiments.",
       selector: "[data-testid='upload-zone']",
       tips: "Accepted formats: PDF, PPTX, PPT. Max size: 10MB. Make sure your deck has slides about problem, solution, market, traction, and team.",
       location: "Upload area",
