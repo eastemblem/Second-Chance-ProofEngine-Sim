@@ -4,10 +4,11 @@ import ProofCoach from "./ProofCoach";
 
 interface ProofCoachWrapperProps {
   enableTutorial?: boolean;
+  forceStart?: boolean; // Bypass completion check for manual tutorial restart
   forcePage?: string; // Override getCurrentPage() for modals/specific contexts
 }
 
-export default function ProofCoachWrapper({ enableTutorial = true, forcePage }: ProofCoachWrapperProps) {
+export default function ProofCoachWrapper({ enableTutorial = true, forceStart = false, forcePage }: ProofCoachWrapperProps) {
   const {
     currentJourneyStep,
     completedJourneySteps,
@@ -47,6 +48,7 @@ export default function ProofCoachWrapper({ enableTutorial = true, forcePage }: 
       onStepAction={handleStepAction}
       onStepComplete={completeStep}
       enableTutorial={enableTutorial}
+      forceStart={forceStart}
       currentPage={forcePage || getCurrentPage()}
       tutorialCompletedPages={tutorialCompletedPages}
       onTutorialComplete={completeTutorial}
