@@ -18,6 +18,7 @@ export interface ProofCoachProps {
   
   // Tutorial system
   enableTutorial?: boolean;
+  forceStart?: boolean; // Bypass completion check for manual tutorial restart
   currentPage: string;
   tutorialCompletedPages?: string[];
   onTutorialComplete?: (page: string) => void;
@@ -40,6 +41,7 @@ export default function ProofCoach({
   onStepAction,
   onStepComplete,
   enableTutorial = false,
+  forceStart = false,
   currentPage,
   tutorialCompletedPages = [],
   onTutorialComplete,
@@ -64,7 +66,7 @@ export default function ProofCoach({
   const pageTutorials = getTutorialsForPage(currentPage);
   const shouldShowTutorial = enableTutorial && 
                             pageTutorials.length > 0 && 
-                            !tutorialCompletedPages.includes(currentPage);
+                            (forceStart || !tutorialCompletedPages.includes(currentPage));
 
   // Mark as hydrated after initial render to ensure state has loaded
   useEffect(() => {
