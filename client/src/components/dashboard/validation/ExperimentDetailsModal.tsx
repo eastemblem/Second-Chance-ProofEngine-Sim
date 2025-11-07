@@ -448,7 +448,8 @@ export function ExperimentDetailsModal({
       {/* Tutorial System */}
       {open && showTutorial && (
         <ProofCoachWrapper 
-          enableTutorial={true} 
+          enableTutorial={true}
+          forceStart={true}
           forcePage="experiment-details"
           key="experiment-details-tutorial"
         />
