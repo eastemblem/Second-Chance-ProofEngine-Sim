@@ -1143,7 +1143,7 @@ export default function Analysis({
               </div>
 
               {/* ProofTags Achievement Section - Full width, no box */}
-              <div className="mb-3 sm:mb-4">
+              <div className="mb-3 sm:mb-4" data-testid="prooftags-display">
                 <motion.div
                   initial={{ opacity: 0, y: 10 }}
                   animate={{ opacity: 1, y: 0 }}
