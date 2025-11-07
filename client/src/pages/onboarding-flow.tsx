@@ -17,6 +17,7 @@ import Navbar from "@/components/layout/navbar";
 import Layout from "@/components/layout/layout";
 import { Button } from "@/components/ui/button";
 import ProofCoachWrapper from "@/components/ProofCoachWrapper";
+import { useProofCoach } from "@/contexts/ProofCoachContext";
 
 interface OnboardingFlowProps {
   onComplete: () => void;
@@ -102,6 +103,7 @@ export default function OnboardingFlow({ onComplete }: OnboardingFlowProps) {
   const [currentStepIndex, setCurrentStepIndex] = useState(0);
   const { toast } = useToast();
   const queryClient = useQueryClient();
+  const { tutorialCompletedPages } = useProofCoach();
 
   // Initialize session on component mount
   const initSessionMutation = useMutation({
@@ -425,10 +427,12 @@ export default function OnboardingFlow({ onComplete }: OnboardingFlowProps) {
   }
 
   const currentStep = steps[currentStepIndex];
+  const currentPageKey = `onboarding-${currentStep.key}`;
+  const shouldAutoStart = !tutorialCompletedPages.includes(currentPageKey);
 
   return (
     <Layout>
-      <ProofCoachWrapper currentPage={`onboarding-${currentStep.key}`} autoStart={true}>
+      <ProofCoachWrapper currentPage={currentPageKey} autoStart={shouldAutoStart}>
         <div className="sticky top-0 z-50 bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
           <Navbar logoOnly={true} />
         </div>
