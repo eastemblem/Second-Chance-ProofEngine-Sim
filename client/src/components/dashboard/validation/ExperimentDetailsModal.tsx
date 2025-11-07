@@ -114,7 +114,7 @@ export function ExperimentDetailsModal({
       <Dialog open={open} onOpenChange={handleOpenChange}>
         <DialogContent className="max-w-3xl max-h-[85vh] overflow-y-auto bg-gradient-to-br from-slate-900 via-purple-900/20 to-slate-900 border-purple-500/30 [&::-webkit-scrollbar]:hidden [-ms-overflow-style:none] [scrollbar-width:none]">
           <DialogHeader>
-            <div className="flex items-start justify-between gap-4 mb-4">
+            <div className="flex items-start justify-between gap-4 mb-4" data-testid="experiment-modal-header">
               <div className="flex-1">
                 {/* Experiment Title with Status Badge */}
                 <div className="flex items-center gap-3 mb-3">
@@ -211,7 +211,7 @@ export function ExperimentDetailsModal({
 
           <div className="space-y-6 py-4">
             {/* Core Assumption (read-only) */}
-            <div>
+            <div data-testid="experiment-core-assumption">
               <div className="inline-block px-4 py-1.5 rounded-md font-medium text-sm bg-gradient-to-r from-violet-500 to-purple-600 text-white mb-3">
                 Core Assumption
               </div>
@@ -221,7 +221,7 @@ export function ExperimentDetailsModal({
             </div>
 
             {/* Hypothesis (editable) */}
-            <div>
+            <div data-testid="experiment-hypothesis">
               <div className="inline-block px-4 py-1.5 rounded-md font-medium text-sm bg-gradient-to-r from-purple-600 to-pink-600 text-white mb-3">
                 Hypothesis
               </div>
@@ -251,7 +251,7 @@ export function ExperimentDetailsModal({
             </div>
 
             {/* Target Behaviour (read-only) */}
-            <div>
+            <div data-testid="experiment-target-behaviour">
               <div className="inline-block px-4 py-1.5 rounded-md font-medium text-sm bg-gradient-to-r from-cyan-500 to-blue-500 text-white mb-3">
                 Target Behaviour
               </div>
@@ -261,7 +261,7 @@ export function ExperimentDetailsModal({
             </div>
 
             {/* Target Metric (read-only) */}
-            <div>
+            <div data-testid="experiment-target-metric">
               <div className="inline-block px-4 py-1.5 rounded-md font-medium text-sm bg-gradient-to-r from-amber-500 to-orange-600 text-white mb-3">
                 Target Metric
               </div>
@@ -271,7 +271,7 @@ export function ExperimentDetailsModal({
             </div>
 
             {/* Actual Results (editable) */}
-            <div>
+            <div data-testid="experiment-results">
               <div className="inline-block px-4 py-1.5 rounded-md font-medium text-sm bg-gradient-to-r from-indigo-500 to-purple-600 text-white mb-3">
                 Actual Results
               </div>
@@ -301,7 +301,7 @@ export function ExperimentDetailsModal({
             </div>
 
             {/* Why? (editable) */}
-            <div>
+            <div data-testid="experiment-why">
               <div className="inline-block px-4 py-1.5 rounded-md font-medium text-sm bg-gradient-to-r from-teal-500 to-cyan-600 text-white mb-3">
                 Why?
               </div>
@@ -331,7 +331,7 @@ export function ExperimentDetailsModal({
             </div>
 
             {/* New Insights (editable) */}
-            <div>
+            <div data-testid="experiment-insights">
               <div className="inline-block px-4 py-1.5 rounded-md font-medium text-sm bg-gradient-to-r from-rose-500 to-pink-600 text-white mb-3">
                 New Insights
               </div>
@@ -361,7 +361,7 @@ export function ExperimentDetailsModal({
             </div>
 
             {/* Decision (editable) */}
-            <div>
+            <div data-testid="experiment-decision">
               <div className="inline-block px-4 py-1.5 rounded-md font-medium text-sm bg-gradient-to-r from-pink-500 to-rose-600 text-white mb-3">
                 Decision
               </div>
