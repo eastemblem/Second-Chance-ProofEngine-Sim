@@ -336,13 +336,14 @@ export default function FounderOnboarding({
               {...form.register("age", { valueAsNumber: true })}
               className="mt-1"
               placeholder="30"
+              data-testid="input-age"
             />
           </div>
 
           <div>
             <Label htmlFor="gender">Gender (Optional)</Label>
             <Select onValueChange={(value) => form.setValue("gender", value)}>
-              <SelectTrigger className="mt-1">
+              <SelectTrigger className="mt-1" data-testid="select-gender">
                 <SelectValue placeholder="Select gender" />
               </SelectTrigger>
               <SelectContent>
@@ -362,6 +363,7 @@ export default function FounderOnboarding({
             {...form.register("residence")}
             className="mt-1"
             placeholder="City, Country"
+            data-testid="input-residence"
           />
         </div>
 
