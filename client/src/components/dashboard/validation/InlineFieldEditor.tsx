@@ -123,7 +123,10 @@ export function InlineFieldEditor({
         <div className="space-y-6 mt-6">
           {/* Experiment Definition - Fixed Display */}
           {masterData?.definition && (
-            <div className="p-3 rounded-lg bg-gradient-to-br from-purple-900/20 via-slate-800/50 to-indigo-900/20 border border-purple-500/20">
+            <div 
+              className="p-3 rounded-lg bg-gradient-to-br from-purple-900/20 via-slate-800/50 to-indigo-900/20 border border-purple-500/20"
+              data-testid="container-experiment-definition"
+            >
               <div className="flex items-start gap-2">
                 <div className="text-purple-400 mt-0.5">
                   <svg className="h-4 w-4" fill="currentColor" viewBox="0 0 20 20">
@@ -132,7 +135,10 @@ export function InlineFieldEditor({
                 </div>
                 <div className="flex-1">
                   <p className="text-xs font-semibold text-purple-300 mb-1">Experiment Definition</p>
-                  <p className="text-sm text-gray-300 leading-relaxed">
+                  <p 
+                    className="text-sm text-gray-300 leading-relaxed"
+                    data-testid="text-experiment-definition"
+                  >
                     {masterData.definition}
                   </p>
                 </div>
