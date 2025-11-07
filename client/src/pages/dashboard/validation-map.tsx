@@ -680,7 +680,7 @@ export default function ValidationMap() {
           <CardContent className="p-6">
             <div className="flex justify-between items-center mb-6">
               <h2 className="text-2xl font-bold text-white">Your Experiments</h2>
-              <div className="flex gap-2">
+              <div className="flex gap-2" data-testid="experiment-actions-header">
                 <Button 
                   onClick={() => setAddModalOpen(true)} 
                   className="bg-purple-600 hover:bg-purple-700 text-white"
@@ -850,7 +850,7 @@ export default function ValidationMap() {
                     </th>
                   </tr>
                 </thead>
-                <tbody>
+                <tbody data-testid="experiment-table-body">
                   {filteredExperiments.map((exp: VentureExperiment) => (
                     <tr
                       key={exp.id}
