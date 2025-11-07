@@ -4,9 +4,10 @@ import ProofCoach from "./ProofCoach";
 
 interface ProofCoachWrapperProps {
   enableTutorial?: boolean;
+  forcePage?: string; // Override getCurrentPage() for modals/specific contexts
 }
 
-export default function ProofCoachWrapper({ enableTutorial = true }: ProofCoachWrapperProps) {
+export default function ProofCoachWrapper({ enableTutorial = true, forcePage }: ProofCoachWrapperProps) {
   const {
     currentJourneyStep,
     completedJourneySteps,
@@ -46,7 +47,7 @@ export default function ProofCoachWrapper({ enableTutorial = true }: ProofCoachW
       onStepAction={handleStepAction}
       onStepComplete={completeStep}
       enableTutorial={enableTutorial}
-      currentPage={getCurrentPage()}
+      currentPage={forcePage || getCurrentPage()}
       tutorialCompletedPages={tutorialCompletedPages}
       onTutorialComplete={completeTutorial}
       isMinimized={isMinimized}

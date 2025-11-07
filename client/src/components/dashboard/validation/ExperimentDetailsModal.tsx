@@ -3,10 +3,11 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Separator } from "@/components/ui/separator";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Trash2, X, Pencil, Save } from "lucide-react";
+import { Trash2, X, Pencil, Save, BookOpen } from "lucide-react";
 import { useState, useEffect, lazy, Suspense } from "react";
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from "@/components/ui/alert-dialog";
 import { useToast } from "@/hooks/use-toast";
+import ProofCoachWrapper from "@/components/ProofCoachWrapper";
 
 // Lazy load RichTextEditor for better performance (only loaded when edit mode is activated)
 const RichTextEditor = lazy(() => 
@@ -31,6 +32,7 @@ export function ExperimentDetailsModal({
   const { toast } = useToast();
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
   const [isEditMode, setIsEditMode] = useState(false);
+  const [showTutorial, setShowTutorial] = useState(false);
   const [editedValues, setEditedValues] = useState({
     decision: '',
     userHypothesis: '',
@@ -50,6 +52,10 @@ export function ExperimentDetailsModal({
         newInsights: experiment.newInsights || '',
       });
       setIsEditMode(false);
+    }
+    // Reset tutorial state when modal closes
+    if (!open) {
+      setShowTutorial(false);
     }
   }, [experiment, open]);
 
@@ -181,6 +187,16 @@ export function ExperimentDetailsModal({
               <div className="flex items-center gap-2">
                 {!isEditMode && (
                   <>
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      className="border-purple-500/50 text-purple-400 hover:bg-purple-500/10 hover:text-purple-300"
+                      onClick={() => setShowTutorial(true)}
+                      data-testid="button-tutorial-experiment"
+                      title="View tutorial"
+                    >
+                      <BookOpen className="w-4 h-4" />
+                    </Button>
                     <Button
                       variant="outline"
                       size="sm"
@@ -428,6 +444,15 @@ export function ExperimentDetailsModal({
           )}
         </DialogContent>
       </Dialog>
+
+      {/* Tutorial System */}
+      {open && showTutorial && (
+        <ProofCoachWrapper 
+          enableTutorial={true} 
+          forcePage="experiment-details"
+          key="experiment-details-tutorial"
+        />
+      )}
 
       {/* Delete Confirmation */}
       <AlertDialog open={deleteDialogOpen} onOpenChange={setDeleteDialogOpen}>
