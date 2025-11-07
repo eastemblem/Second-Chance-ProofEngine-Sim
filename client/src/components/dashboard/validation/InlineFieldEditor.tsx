@@ -106,7 +106,7 @@ export function InlineFieldEditor({
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="max-w-3xl max-h-[85vh] bg-gradient-to-br from-slate-900 via-purple-900/20 to-slate-900 border-purple-500/30">
         <DialogHeader>
-          <div className="flex items-start justify-between gap-4 mb-4">
+          <div className="flex items-start justify-between gap-4">
             <div className="flex-1">
               <div className="flex items-center gap-2 mb-2">
                 <DialogTitle className="text-2xl font-bold text-white">
@@ -120,7 +120,7 @@ export function InlineFieldEditor({
           </div>
         </DialogHeader>
 
-        <div className="space-y-6 mt-6">
+        <div className="space-y-6">
           {/* Experiment Definition - Fixed Display */}
           {masterData?.definition && (
             <div 
