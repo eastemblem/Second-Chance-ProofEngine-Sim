@@ -267,7 +267,7 @@ export default function FounderOnboarding({
         </p>
       </div>
 
-      <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
+      <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6" data-testid="onboarding-founder-form">
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
           <div>
             <Label htmlFor="fullName">Full Name *</Label>
@@ -276,6 +276,7 @@ export default function FounderOnboarding({
               {...form.register("fullName")}
               className="mt-1"
               placeholder="John Doe"
+              data-testid="input-full-name"
             />
             {form.formState.errors.fullName && (
               <p className="text-red-500 text-sm mt-1">
@@ -292,6 +293,7 @@ export default function FounderOnboarding({
               {...form.register("email")}
               className={`mt-1 ${form.formState.errors.email || emailError ? 'border-red-500' : ''}`}
               placeholder="john@example.com"
+              data-testid="input-email"
               onChange={(e) => {
                 form.register("email").onChange(e);
                 // Clear email error when user starts typing
@@ -316,6 +318,7 @@ export default function FounderOnboarding({
             {...form.register("positionRole")}
             className="mt-1"
             placeholder="CEO, CTO, Founder"
+            data-testid="input-position-role"
           />
           {form.formState.errors.positionRole && (
             <p className="text-red-500 text-sm mt-1">
@@ -369,6 +372,7 @@ export default function FounderOnboarding({
             {...form.register("linkedinProfile")}
             className="mt-1"
             placeholder="https://linkedin.com/in/johndoe"
+            data-testid="input-linkedin"
           />
         </div>
 
@@ -377,6 +381,7 @@ export default function FounderOnboarding({
             id="isTechnical"
             checked={form.watch("isTechnical")}
             onCheckedChange={(checked) => form.setValue("isTechnical", checked)}
+            data-testid="switch-is-technical"
           />
           <Label htmlFor="isTechnical">I have a technical background</Label>
         </div>
@@ -386,6 +391,7 @@ export default function FounderOnboarding({
             type="submit"
             disabled={isSubmitting}
             className="px-8 py-2"
+            data-testid="button-continue-venture"
           >
             {isSubmitting ? "Saving..." : "Next: Venture Info"}
           </Button>
