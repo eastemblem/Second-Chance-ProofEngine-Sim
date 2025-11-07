@@ -3,12 +3,22 @@ import { useTokenAuth } from "@/hooks/use-token-auth";
 import ProofCoach from "./ProofCoach";
 
 interface ProofCoachWrapperProps {
+  children?: React.ReactNode;
   enableTutorial?: boolean;
   forceStart?: boolean; // Bypass completion check for manual tutorial restart
   forcePage?: string; // Override getCurrentPage() for modals/specific contexts
+  currentPage?: string; // Direct page specification
+  autoStart?: boolean; // Auto-start tutorial on first render
 }
 
-export default function ProofCoachWrapper({ enableTutorial = true, forceStart = false, forcePage }: ProofCoachWrapperProps) {
+export default function ProofCoachWrapper({ 
+  children,
+  enableTutorial = true, 
+  forceStart = false, 
+  forcePage,
+  currentPage,
+  autoStart = false
+}: ProofCoachWrapperProps) {
   const {
     currentJourneyStep,
     completedJourneySteps,
@@ -26,39 +36,40 @@ export default function ProofCoachWrapper({ enableTutorial = true, forceStart = 
 
   const { user, venture } = useTokenAuth();
 
-  // Wait for state to load before rendering to avoid premature tutorial launches
-  if (isLoading) {
-    return null;
-  }
-
-  // Don't show coach if dismissed or not logged in
-  if (isDismissed || !user) {
-    return null;
-  }
-
   const handleStepAction = (stepId: number) => {
     // Navigation is handled inside ProofCoach component
     // This is just a callback for tracking
   };
 
+  // Determine which page to use for tutorials
+  const pageName = currentPage || forcePage || getCurrentPage();
+
+  // Show coach only if: not loading, not dismissed, and user is logged in
+  const shouldShowCoach = !isLoading && !isDismissed && user;
+
   return (
-    <ProofCoach
-      currentStep={currentJourneyStep}
-      completedSteps={completedJourneySteps}
-      onStepAction={handleStepAction}
-      onStepComplete={completeStep}
-      enableTutorial={enableTutorial}
-      forceStart={forceStart}
-      currentPage={forcePage || getCurrentPage()}
-      tutorialCompletedPages={tutorialCompletedPages}
-      onTutorialComplete={completeTutorial}
-      isMinimized={isMinimized}
-      onMinimize={minimize}
-      onExpand={expand}
-      onClose={dismiss}
-      proofScore={(venture as any)?.proofScore || 0}
-      vaultScore={(venture as any)?.vaultScore || 0}
-      growthStage={venture?.growthStage || undefined}
-    />
+    <>
+      {children}
+      {shouldShowCoach && (
+        <ProofCoach
+          currentStep={currentJourneyStep}
+          completedSteps={completedJourneySteps}
+          onStepAction={handleStepAction}
+          onStepComplete={completeStep}
+          enableTutorial={enableTutorial}
+          forceStart={forceStart || autoStart}
+          currentPage={pageName}
+          tutorialCompletedPages={tutorialCompletedPages}
+          onTutorialComplete={completeTutorial}
+          isMinimized={isMinimized}
+          onMinimize={minimize}
+          onExpand={expand}
+          onClose={dismiss}
+          proofScore={(venture as any)?.proofScore || 0}
+          vaultScore={(venture as any)?.vaultScore || 0}
+          growthStage={venture?.growthStage || undefined}
+        />
+      )}
+    </>
   );
 }
