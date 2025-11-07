@@ -44,8 +44,10 @@ export default function ProofCoachWrapper({
   // Determine which page to use for tutorials
   const pageName = currentPage || forcePage || getCurrentPage();
 
-  // Show coach only if: not loading, not dismissed, and user is logged in
-  const shouldShowCoach = !isLoading && !isDismissed && user;
+  // Show coach if: not loading, not dismissed
+  // For onboarding tutorials (enableTutorial=true), allow without authentication
+  // For journey coaching, require authenticated user
+  const shouldShowCoach = !isLoading && !isDismissed && (enableTutorial || user);
 
   return (
     <>

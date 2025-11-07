@@ -224,7 +224,7 @@ export default function ProofCoach({
           exit={{ opacity: 0, y: 20 }}
           className="fixed bottom-6 right-6 z-[70] w-[420px]"
         >
-          <Card className="bg-gradient-to-br from-purple-900/95 to-blue-900/95 border-purple-500/50 shadow-2xl backdrop-blur-md">
+          <Card className="bg-gradient-to-br from-purple-700/95 via-fuchsia-600/90 to-indigo-700/95 border-purple-500/50 shadow-2xl backdrop-blur-md">
             <CardContent className="p-6">
               {/* Header */}
               <div className="flex items-start justify-between mb-4">
@@ -299,7 +299,7 @@ export default function ProofCoach({
                 <Button
                   size="sm"
                   onClick={nextTutorialStep}
-                  className="bg-purple-600 hover:bg-purple-700"
+                  className="bg-gradient-to-r from-violet-500 via-fuchsia-500 to-indigo-500 hover:from-violet-600 hover:via-fuchsia-600 hover:to-indigo-600 text-white shadow-[0_0_20px_rgba(168,85,247,0.35)] hover:shadow-[0_0_25px_rgba(168,85,247,0.5)] transition-all"
                   data-testid="button-tutorial-next"
                 >
                   {tutorialStep === pageTutorials.length - 1 ? 'Got it!' : 'Next'}
