@@ -233,7 +233,12 @@ export default function ProofCoach({
                     <Icon className="h-4 w-4 text-purple-400" />
                   </div>
                   <div>
-                    <h3 className="text-white font-semibold text-sm">Tutorial Mode</h3>
+                    <div className="flex items-center gap-2">
+                      <h3 className="text-white font-semibold text-sm">Proof Coach</h3>
+                      <Badge className="bg-gradient-to-r from-purple-500 to-fuchsia-500 text-white text-xs px-2 py-0.5 border-0">
+                        Tutorial
+                      </Badge>
+                    </div>
                     <p className="text-purple-300 text-xs">
                       Step {tutorialStep + 1} of {pageTutorials.length}
                     </p>
