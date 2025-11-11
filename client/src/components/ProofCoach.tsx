@@ -92,18 +92,44 @@ export default function ProofCoach({
       const element = document.querySelector(selector) as HTMLElement;
       
       if (element) {
-        element.classList.add('tutorial-highlight');
-        setHighlightedElement(element);
+        // Smart parent detection for form controls
+        // If element is a form input/control, find parent container that includes the label
+        let targetElement = element;
+        
+        const isFormControl = ['INPUT', 'SELECT', 'TEXTAREA', 'BUTTON'].includes(element.tagName) ||
+                             element.hasAttribute('role') && ['combobox', 'switch'].includes(element.getAttribute('role') || '');
+        
+        if (isFormControl) {
+          // Look for parent div that contains a label
+          let parent = element.parentElement;
+          let searchDepth = 0;
+          
+          while (parent && searchDepth < 3) {
+            // Check if this parent contains a label element
+            const hasLabel = parent.querySelector('label') !== null;
+            
+            if (hasLabel) {
+              targetElement = parent;
+              break;
+            }
+            
+            parent = parent.parentElement;
+            searchDepth++;
+          }
+        }
+        
+        targetElement.classList.add('tutorial-highlight');
+        setHighlightedElement(targetElement);
         
         // Scroll into view smoothly
-        element.scrollIntoView({
+        targetElement.scrollIntoView({
           behavior: 'smooth',
           block: 'center',
         });
         
         // Cleanup: capture element in closure to avoid stale reference
         return () => {
-          element.classList.remove('tutorial-highlight');
+          targetElement.classList.remove('tutorial-highlight');
         };
       }
     }
