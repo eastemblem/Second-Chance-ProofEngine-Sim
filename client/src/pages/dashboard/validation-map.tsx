@@ -23,6 +23,7 @@ import Footer from "@/components/layout/footer";
 import type { CustomExperimentData } from "@/components/dashboard/validation/CustomExperimentModal";
 import { HoverCard, HoverCardContent, HoverCardTrigger } from "@/components/ui/hover-card";
 import ProofCoachWrapper from "@/components/ProofCoachWrapper";
+import { useProofCoach } from "@/contexts/ProofCoachContext";
 
 // Lazy load heavy modal components for better performance
 const ExperimentDetailsModal = lazy(() => 
@@ -93,6 +94,9 @@ export default function ValidationMap() {
   const { user: authUser, venture, isAuthenticated } = useTokenAuth();
   const [, setLocation] = useLocation();
   const ventureId = venture?.ventureId || null;
+  
+  // ProofCoach tutorial completion check
+  const { tutorialCompletedPages } = useProofCoach();
   const [debouncedValues, setDebouncedValues] = useState<Record<string, any>>({});
   
   // Check localStorage for walkthrough completion
@@ -1189,7 +1193,8 @@ export default function ValidationMap() {
         />
       </Suspense>
 
-      <ProofCoachWrapper enableTutorial={true} />
+      {/* ProofCoach - Tutorial on first visit, then Coach mode */}
+      <ProofCoachWrapper enableTutorial={!tutorialCompletedPages.includes('validation-map')} />
       <Footer />
     </div>
   );
