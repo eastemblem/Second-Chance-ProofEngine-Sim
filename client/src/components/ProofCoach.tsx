@@ -6,6 +6,7 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Progress } from "@/components/ui/progress";
 import { useLocation } from "wouter";
+import confetti from "canvas-confetti";
 import type { JourneyStep, TutorialMechanic } from "../../../shared/config/coach-journey";
 import { COACH_JOURNEY_STEPS, getTutorialsForPage } from "../../../shared/config/coach-journey";
 
@@ -82,8 +83,28 @@ export default function ProofCoach({
     if (isHydrated && shouldShowTutorial && !isInTutorial && !isMinimized) {
       setIsInTutorial(true);
       setTutorialStep(0);
+      
+      // Trigger confetti on congratulations steps
+      // Check if first step is a congratulations step (contains emoji in title)
+      if (pageTutorials.length > 0) {
+        const firstStep = pageTutorials[0];
+        const isCongratulationsStep = firstStep.title.includes('🎉') || 
+                                      firstStep.id.includes('congratulations');
+        
+        if (isCongratulationsStep) {
+          // Delay confetti slightly to ensure modal is visible
+          setTimeout(() => {
+            confetti({
+              particleCount: 100,
+              spread: 70,
+              origin: { y: 0.6 },
+              colors: ['#9333ea', '#c026d3', '#8b5cf6', '#fbbf24', '#f59e0b']
+            });
+          }, 300);
+        }
+      }
     }
-  }, [isHydrated, shouldShowTutorial, currentPage, isMinimized]);
+  }, [isHydrated, shouldShowTutorial, currentPage, isMinimized, pageTutorials]);
 
   // Highlight current tutorial element
   useEffect(() => {
