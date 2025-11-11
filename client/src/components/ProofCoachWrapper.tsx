@@ -5,7 +5,7 @@ import { useEffect } from "react";
 
 interface ProofCoachWrapperProps {
   children?: React.ReactNode;
-  enableTutorial?: boolean;
+  enableTutorial?: boolean; // If undefined, auto-detects based on authentication (Tutorial for anonymous, Coach for authenticated)
   forceStart?: boolean; // Bypass completion check for manual tutorial restart
   forcePage?: string; // Override getCurrentPage() for modals/specific contexts
   currentPage?: string; // Direct page specification
@@ -14,7 +14,7 @@ interface ProofCoachWrapperProps {
 
 export default function ProofCoachWrapper({ 
   children,
-  enableTutorial = true, 
+  enableTutorial, // Auto-detects if undefined
   forceStart = false, 
   forcePage,
   currentPage,
@@ -36,6 +36,11 @@ export default function ProofCoachWrapper({
   } = useProofCoach();
 
   const { user, venture } = useTokenAuth();
+  
+  // Auto-detect mode based on authentication state
+  // Tutorial Mode (enableTutorial=true): For anonymous users during onboarding
+  // Coach Mode (enableTutorial=false): For authenticated users with journey tracking
+  const isTutorialMode = enableTutorial !== undefined ? enableTutorial : !user;
 
   const handleStepAction = (stepId: number) => {
     // Navigation is handled inside ProofCoach component
@@ -45,18 +50,18 @@ export default function ProofCoachWrapper({
   // Determine which page to use for tutorials
   const pageName = currentPage || forcePage || getCurrentPage();
 
-  // Auto-expand ProofCoach when landing on a new uncompleted onboarding page
+  // Auto-expand ProofCoach when landing on a new uncompleted onboarding page (Tutorial Mode only)
   useEffect(() => {
-    if (enableTutorial && autoStart && isMinimized && !tutorialCompletedPages.includes(pageName)) {
+    if (isTutorialMode && autoStart && isMinimized && !tutorialCompletedPages.includes(pageName)) {
       // Automatically expand the coach for new onboarding pages
       expand();
     }
-  }, [pageName, autoStart, enableTutorial, isMinimized, tutorialCompletedPages, expand]);
+  }, [pageName, autoStart, isTutorialMode, isMinimized, tutorialCompletedPages, expand]);
 
   // Show coach if: not loading, not dismissed
-  // For onboarding tutorials (enableTutorial=true), allow without authentication
-  // For journey coaching, require authenticated user
-  const shouldShowCoach = !isLoading && !isDismissed && (enableTutorial || user);
+  // Tutorial Mode (isTutorialMode=true): Allow without authentication
+  // Coach Mode (isTutorialMode=false): Require authenticated user
+  const shouldShowCoach = !isLoading && !isDismissed && (isTutorialMode || user);
 
   return (
     <>
@@ -67,7 +72,7 @@ export default function ProofCoachWrapper({
           completedSteps={completedJourneySteps}
           onStepAction={handleStepAction}
           onStepComplete={completeStep}
-          enableTutorial={enableTutorial}
+          enableTutorial={isTutorialMode}
           forceStart={forceStart || autoStart}
           currentPage={pageName}
           tutorialCompletedPages={tutorialCompletedPages}
