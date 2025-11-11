@@ -60,6 +60,7 @@ export default function ProofCoach({
   const [highlightedElement, setHighlightedElement] = useState<HTMLElement | null>(null);
   const [isHydrated, setIsHydrated] = useState(false);
   const [isCompletingTutorial, setIsCompletingTutorial] = useState(false);
+  const lastConfettiStep = useRef<string | null>(null);
   
   // Get current journey step data
   const journeyStep = COACH_JOURNEY_STEPS[currentStep] || COACH_JOURNEY_STEPS[0];
@@ -83,28 +84,32 @@ export default function ProofCoach({
     if (isHydrated && shouldShowTutorial && !isInTutorial && !isMinimized) {
       setIsInTutorial(true);
       setTutorialStep(0);
+    }
+  }, [isHydrated, shouldShowTutorial, currentPage, isMinimized]);
+
+  // Trigger confetti animation when displaying congratulations steps
+  useEffect(() => {
+    if (isInTutorial && pageTutorials[tutorialStep]) {
+      const currentTutorial = pageTutorials[tutorialStep];
+      const isCongratulationsStep = currentTutorial.title.includes('🎉') || 
+                                    currentTutorial.id.includes('congratulations');
       
-      // Trigger confetti on congratulations steps
-      // Check if first step is a congratulations step (contains emoji in title)
-      if (pageTutorials.length > 0) {
-        const firstStep = pageTutorials[0];
-        const isCongratulationsStep = firstStep.title.includes('🎉') || 
-                                      firstStep.id.includes('congratulations');
+      // Only trigger once per unique congratulations step
+      if (isCongratulationsStep && lastConfettiStep.current !== currentTutorial.id) {
+        lastConfettiStep.current = currentTutorial.id;
         
-        if (isCongratulationsStep) {
-          // Delay confetti slightly to ensure modal is visible
-          setTimeout(() => {
-            confetti({
-              particleCount: 100,
-              spread: 70,
-              origin: { y: 0.6 },
-              colors: ['#9333ea', '#c026d3', '#8b5cf6', '#fbbf24', '#f59e0b']
-            });
-          }, 300);
-        }
+        // Delay confetti slightly to ensure modal is visible
+        setTimeout(() => {
+          confetti({
+            particleCount: 100,
+            spread: 70,
+            origin: { y: 0.6 },
+            colors: ['#9333ea', '#c026d3', '#8b5cf6', '#fbbf24', '#f59e0b']
+          });
+        }, 300);
       }
     }
-  }, [isHydrated, shouldShowTutorial, currentPage, isMinimized, pageTutorials]);
+  }, [isInTutorial, tutorialStep, pageTutorials]);
 
   // Highlight current tutorial element
   useEffect(() => {
