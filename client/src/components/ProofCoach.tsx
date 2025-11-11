@@ -58,6 +58,7 @@ export default function ProofCoach({
   const [tutorialStep, setTutorialStep] = useState(0);
   const [highlightedElement, setHighlightedElement] = useState<HTMLElement | null>(null);
   const [isHydrated, setIsHydrated] = useState(false);
+  const [isCompletingTutorial, setIsCompletingTutorial] = useState(false);
   
   // Get current journey step data
   const journeyStep = COACH_JOURNEY_STEPS[currentStep] || COACH_JOURNEY_STEPS[0];
@@ -135,14 +136,22 @@ export default function ProofCoach({
   };
 
   const completeTutorial = () => {
+    // Set transient flag to force minimized state during transition
+    setIsCompletingTutorial(true);
+    
+    // Minimize FIRST to prevent showing journey UI during transition
+    onMinimize();
+    
+    // Clean up tutorial state
     if (highlightedElement) {
       highlightedElement.classList.remove('tutorial-highlight');
     }
     setIsInTutorial(false);
     setTutorialStep(0);
     onTutorialComplete?.(currentPage);
-    // Auto-minimize after tutorial completion to avoid showing journey steps
-    onMinimize();
+    
+    // Clear transient flag after brief delay (by then isMinimized should have updated)
+    setTimeout(() => setIsCompletingTutorial(false), 200);
   };
 
   // Journey navigation
@@ -175,7 +184,10 @@ export default function ProofCoach({
   };
 
   // Render minimized state
-  if (isMinimized) {
+  // Also minimize if tutorial is completing (transient flag prevents journey UI flash)
+  const shouldBeMinimized = isMinimized || isCompletingTutorial;
+  
+  if (shouldBeMinimized) {
     return (
       <motion.div
         initial={{ scale: 0 }}
