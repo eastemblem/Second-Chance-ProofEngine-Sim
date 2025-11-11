@@ -117,6 +117,7 @@ export default function VentureOnboarding({
       initial={{ opacity: 0, y: 20 }}
       animate={{ opacity: 1, y: 0 }}
       className="max-w-2xl mx-auto"
+      data-testid="onboarding-venture-container"
     >
       <div className="text-center mb-8">
         <h2 className="text-3xl font-bold text-foreground mb-2">

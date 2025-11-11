@@ -318,6 +318,7 @@ export default function TeamOnboarding({
       initial={{ opacity: 0, y: 20 }}
       animate={{ opacity: 1, y: 0 }}
       className="max-w-4xl mx-auto"
+      data-testid="onboarding-team-container"
     >
       <div className="text-center mb-8">
         <h2 className="text-3xl font-bold text-foreground mb-2">
