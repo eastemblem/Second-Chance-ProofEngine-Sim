@@ -577,14 +577,23 @@ export const TUTORIAL_MECHANICS: Record<string, TutorialMechanic[]> = {
   ],
   "onboarding-venture": [
     {
+      id: "venture-congratulations",
+      page: "onboarding-venture",
+      title: "🎉 Congratulations!",
+      description: "Congratulations on completing your founder profile! You've successfully shared your background, expertise, and vision. Now let's move on to your venture details.",
+      selector: "[data-testid='onboarding-venture-form']",
+      location: "Full page",
+      order: 1,
+    },
+    {
       id: "venture-intro",
       page: "onboarding-venture",
       title: "Tell Us About Your Startup",
-      description: "Congratulations on completing your founder profile! Now let's capture details about your venture. This information is critical for your ProofScore calculation and helps us assign relevant validation experiments tailored to your business.",
+      description: "Let's capture details about your venture. This information is critical for your ProofScore calculation and helps us assign relevant validation experiments tailored to your business.",
       selector: "[data-testid='onboarding-venture-form']",
       tips: "Be specific and honest—our AI analyzes your pitch deck against these details to generate accurate insights.",
       location: "Full form",
-      order: 1,
+      order: 2,
     },
     {
       id: "venture-name",
@@ -594,7 +603,7 @@ export const TUTORIAL_MECHANICS: Record<string, TutorialMechanic[]> = {
       selector: "[data-testid='input-company-name']",
       tips: "Use your registered business name or the name you plan to register. This appears on all official documents.",
       location: "First field",
-      order: 2,
+      order: 3,
     },
     {
       id: "venture-industry-geography",
@@ -604,7 +613,7 @@ export const TUTORIAL_MECHANICS: Record<string, TutorialMechanic[]> = {
       selector: "[data-testid='select-industry']",
       tips: "Choose the industry that best describes your core business. Geography should reflect where you'll operate or seek customers.",
       location: "Industry and Geography fields",
-      order: 3,
+      order: 4,
     },
     {
       id: "venture-business-model",
@@ -614,7 +623,7 @@ export const TUTORIAL_MECHANICS: Record<string, TutorialMechanic[]> = {
       selector: "[data-testid='select-business-model']",
       tips: "Choose the model that best describes your revenue generation approach. This affects your ProofScore calculation.",
       location: "Business Model field",
-      order: 4,
+      order: 5,
     },
     {
       id: "venture-revenue-product",
@@ -624,7 +633,7 @@ export const TUTORIAL_MECHANICS: Record<string, TutorialMechanic[]> = {
       selector: "[data-testid='select-revenue-stage']",
       tips: "Be honest about your stage—early-stage startups get different experiments than launched products. Both paths can succeed!",
       location: "Revenue and Product fields",
-      order: 5,
+      order: 6,
     },
     {
       id: "venture-website",
@@ -634,7 +643,7 @@ export const TUTORIAL_MECHANICS: Record<string, TutorialMechanic[]> = {
       selector: "[data-testid='input-website']",
       tips: "No website yet? No problem! Many successful startups begin without one. You can add it later as you grow.",
       location: "Website field",
-      order: 6,
+      order: 7,
     },
     {
       id: "venture-description",
@@ -644,7 +653,7 @@ export const TUTORIAL_MECHANICS: Record<string, TutorialMechanic[]> = {
       selector: "[data-testid='textarea-problem-statement']",
       tips: "Great descriptions answer: What problem exists? Who has it? How do you solve it differently? Keep it concise and specific.",
       location: "Description field",
-      order: 7,
+      order: 8,
     },
     {
       id: "venture-social",
@@ -654,7 +663,7 @@ export const TUTORIAL_MECHANICS: Record<string, TutorialMechanic[]> = {
       selector: "[data-testid='input-linkedin-url']",
       tips: "Active social channels demonstrate community building and marketing efforts. Optional but recommended for visibility.",
       location: "Social media fields",
-      order: 8,
+      order: 9,
     },
     {
       id: "venture-submit",
@@ -664,19 +673,28 @@ export const TUTORIAL_MECHANICS: Record<string, TutorialMechanic[]> = {
       selector: "[data-testid='button-continue-team']",
       tips: "Strong teams increase ProofScore significantly—investors bet on people as much as ideas!",
       location: "Bottom button",
-      order: 9,
+      order: 10,
     },
   ],
   "onboarding-team": [
     {
+      id: "team-congratulations",
+      page: "onboarding-team",
+      title: "🎉 Great Work!",
+      description: "Great work on your venture details! You've successfully defined your startup, market, and business model. Now let's introduce your team.",
+      selector: "[data-testid='onboarding-team-form']",
+      location: "Full page",
+      order: 1,
+    },
+    {
       id: "team-intro",
       page: "onboarding-team",
       title: "Build Your Team Profile",
-      description: "Great work on your venture details! Now let's introduce your team. Add up to 4 team members—investors love seeing complementary skills and diverse expertise. If you're solo for now, you can skip this step.",
+      description: "Let's introduce your team. Add up to 4 team members—investors love seeing complementary skills and diverse expertise. If you're solo for now, you can skip this step.",
       selector: "[data-testid='onboarding-team-form']",
       tips: "Teams with balanced skills (tech + business, for example) tend to score higher.",
       location: "Full form",
-      order: 1,
+      order: 2,
     },
     {
       id: "team-members",
@@ -686,7 +704,7 @@ export const TUTORIAL_MECHANICS: Record<string, TutorialMechanic[]> = {
       selector: "[data-testid='team-member-input']",
       tips: "Include advisors or key early hires if they're actively contributing.",
       location: "Team member fields",
-      order: 2,
+      order: 3,
     },
     {
       id: "team-skip",
@@ -696,7 +714,7 @@ export const TUTORIAL_MECHANICS: Record<string, TutorialMechanic[]> = {
       selector: "[data-testid='button-skip-team']",
       tips: "Solo founders can succeed—focus on showing traction and learning velocity.",
       location: "Skip button",
-      order: 3,
+      order: 4,
     },
     {
       id: "team-submit",
@@ -706,19 +724,28 @@ export const TUTORIAL_MECHANICS: Record<string, TutorialMechanic[]> = {
       selector: "[data-testid='button-continue-upload']",
       tips: "The next step is critical—your pitch deck drives your initial ProofScore.",
       location: "Bottom button",
-      order: 4,
+      order: 5,
     },
   ],
   "onboarding-upload": [
     {
+      id: "upload-congratulations",
+      page: "onboarding-upload",
+      title: "🎉 Excellent!",
+      description: "Excellent! Your profile is taking shape. You've completed your founder profile, venture details, and team introduction. Now for the most important step—let's get your pitch deck!",
+      selector: "[data-testid='upload-zone']",
+      location: "Full page",
+      order: 1,
+    },
+    {
       id: "upload-intro",
       page: "onboarding-upload",
       title: "Upload Your Pitch Deck",
-      description: "Excellent! Your profile is taking shape. Now for the most important step—upload your pitch deck! Our AI will analyze it to generate your ProofScore and assign personalized validation experiments.",
+      description: "Upload your pitch deck and our AI will analyze it to generate your ProofScore and assign personalized validation experiments.",
       selector: "[data-testid='upload-zone']",
       tips: "Accepted formats: PDF, PPTX, PPT. Max size: 10MB. Make sure your deck has slides about problem, solution, market, traction, and team.",
       location: "Upload area",
-      order: 1,
+      order: 2,
     },
     {
       id: "upload-requirements",
@@ -728,7 +755,7 @@ export const TUTORIAL_MECHANICS: Record<string, TutorialMechanic[]> = {
       selector: "[data-testid='upload-zone']",
       tips: "Quality matters more than design—focus on clear content and real data.",
       location: "Upload instructions",
-      order: 2,
+      order: 3,
     },
     {
       id: "upload-drag-drop",
@@ -738,7 +765,7 @@ export const TUTORIAL_MECHANICS: Record<string, TutorialMechanic[]> = {
       selector: "[data-testid='upload-zone']",
       tips: "Make sure you have the latest version of your deck before uploading.",
       location: "Upload interaction",
-      order: 3,
+      order: 4,
     },
     {
       id: "upload-submit",
@@ -748,7 +775,7 @@ export const TUTORIAL_MECHANICS: Record<string, TutorialMechanic[]> = {
       selector: "[data-testid='button-upload-analyze']",
       tips: "Processing typically takes 30-90 seconds. Our AI reads your deck, extracts key metrics, and calculates your ProofScore.",
       location: "Submit button",
-      order: 4,
+      order: 5,
     },
   ],
   "onboarding-processing": [
