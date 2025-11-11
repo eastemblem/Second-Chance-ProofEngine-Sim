@@ -186,7 +186,8 @@ export default function ProofCoach({
   // Render minimized state
   // Also minimize if tutorial is completing (transient flag prevents journey UI flash)
   // During onboarding (enableTutorial mode), keep minimized when tutorial is not active
-  const shouldBeMinimized = isMinimized || isCompletingTutorial || (enableTutorial && !isInTutorial);
+  // UNLESS there's a tutorial to auto-start (shouldShowTutorial)
+  const shouldBeMinimized = isMinimized || isCompletingTutorial || (enableTutorial && !isInTutorial && !shouldShowTutorial);
   
   if (shouldBeMinimized) {
     // During onboarding, clicking minimized button restarts tutorial instead of showing journey UI
