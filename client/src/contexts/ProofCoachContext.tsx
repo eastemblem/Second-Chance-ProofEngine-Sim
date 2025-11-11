@@ -1,7 +1,4 @@
-import { createContext, useContext, useState, useEffect, useCallback, ReactNode } from "react";
-import { useQuery, useMutation } from "@tanstack/react-query";
-import { apiRequest, queryClient } from "@/lib/queryClient";
-import { useTokenAuth } from "@/hooks/use-token-auth";
+import { createContext, useContext, useState, useCallback, ReactNode } from "react";
 import type { CoachState } from "../../../shared/schema";
 import { useLocation } from "wouter";
 import { trackEvent } from "@/lib/analytics";
@@ -18,14 +15,14 @@ interface ProofCoachContextValue {
   tutorialCompletedPages: string[];
   
   // Actions
-  updateState: (updates: Partial<CoachState>) => Promise<void>;
-  completeStep: (stepId: number) => Promise<void>;
-  completeTutorial: (page: string) => Promise<void>;
-  minimize: () => Promise<void>;
-  expand: () => Promise<void>;
-  dismiss: () => Promise<void>;
-  reopen: () => Promise<void>;
-  resetCoach: () => Promise<void>;
+  updateState: (updates: Partial<CoachState>) => void;
+  completeStep: (stepId: number) => void;
+  completeTutorial: (page: string) => void;
+  minimize: () => void;
+  expand: () => void;
+  dismiss: () => void;
+  reopen: () => void;
+  resetCoach: () => void;
   
   // Helpers
   isStepCompleted: (stepId: number) => boolean;
@@ -47,15 +44,16 @@ interface ProofCoachProviderProps {
   children: ReactNode;
 }
 
+const COACH_STATE_KEY = "coach_state";
+
 export function ProofCoachProvider({ children }: ProofCoachProviderProps) {
-  const { user } = useTokenAuth();
   const [location] = useLocation();
   
-  // Immediately hydrate from localStorage for fast initial render
+  // Load state from localStorage on initial render
   const [localState, setLocalState] = useState<Partial<CoachState>>(() => {
     if (typeof window === 'undefined') return {};
     
-    const cached = localStorage.getItem("coach_state");
+    const cached = localStorage.getItem(COACH_STATE_KEY);
     if (cached) {
       try {
         return JSON.parse(cached);
@@ -67,123 +65,73 @@ export function ProofCoachProvider({ children }: ProofCoachProviderProps) {
     return {};
   });
 
-  // Fetch coach state from server
-  const { data: serverState, isLoading } = useQuery<{ success: boolean; data: CoachState }>({
-    queryKey: ["/api/v1/coach"],
-    enabled: !!user?.founderId,
-    staleTime: 5 * 60 * 1000, // 5 minutes
-  });
-
-  // Sync server state to local state when it arrives (overrides cache)
-  useEffect(() => {
-    if (serverState?.data) {
-      setLocalState(serverState.data);
-      // Update localStorage cache
-      localStorage.setItem("coach_state", JSON.stringify(serverState.data));
+  // Helper function to persist state to localStorage
+  const persistState = useCallback((newState: Partial<CoachState>) => {
+    if (typeof window !== 'undefined') {
+      localStorage.setItem(COACH_STATE_KEY, JSON.stringify(newState));
     }
-  }, [serverState]);
+  }, []);
 
-  // Update mutation
-  const updateMutation = useMutation({
-    mutationFn: async (updates: Partial<CoachState>) => {
-      const response = await apiRequest("PATCH", "/api/v1/coach", updates);
-      return await response.json();
-    },
-    onSuccess: (data) => {
-      queryClient.invalidateQueries({ queryKey: ["/api/v1/coach"] });
-      // Update localStorage
-      if (data.data) {
-        localStorage.setItem("coach_state", JSON.stringify(data.data));
-      }
-    },
-  });
+  // Action functions - all client-side only
+  const updateState = useCallback((updates: Partial<CoachState>) => {
+    const newState = { ...localState, ...updates };
+    setLocalState(newState);
+    persistState(newState);
+  }, [localState, persistState]);
 
-  // Complete step mutation
-  const completeStepMutation = useMutation({
-    mutationFn: async (stepId: number) => {
-      const response = await apiRequest("POST", "/api/v1/coach/complete-step", { stepId });
-      return await response.json();
-    },
-    onSuccess: (data, stepId) => {
-      queryClient.invalidateQueries({ queryKey: ["/api/v1/coach"] });
+  const completeStep = useCallback((stepId: number) => {
+    const completedSteps = localState.completedJourneySteps || [];
+    if (!completedSteps.includes(stepId)) {
+      const newState = {
+        ...localState,
+        completedJourneySteps: [...completedSteps, stepId],
+      };
+      setLocalState(newState);
+      persistState(newState);
       trackEvent("coach_step_completed", "user_journey", `step_${stepId}`);
-      // Update localStorage
-      if (data.data) {
-        localStorage.setItem("coach_state", JSON.stringify(data.data));
-      }
-    },
-  });
+    }
+  }, [localState, persistState]);
 
-  // Complete tutorial mutation
-  const completeTutorialMutation = useMutation({
-    mutationFn: async (page: string) => {
-      const response = await apiRequest("POST", "/api/v1/coach/complete-tutorial", { page });
-      return await response.json();
-    },
-    onSuccess: (data, page) => {
-      queryClient.invalidateQueries({ queryKey: ["/api/v1/coach"] });
+  const completeTutorial = useCallback((page: string) => {
+    const completedPages = localState.tutorialCompletedPages || [];
+    if (!completedPages.includes(page)) {
+      const newState = {
+        ...localState,
+        tutorialCompletedPages: [...completedPages, page],
+      };
+      setLocalState(newState);
+      persistState(newState);
       trackEvent("coach_tutorial_completed", "user_journey", `page_${page}`);
-      // Update localStorage
-      if (data.data) {
-        localStorage.setItem("coach_state", JSON.stringify(data.data));
-      }
-    },
-  });
+    }
+  }, [localState, persistState]);
 
-  // Reset mutation
-  const resetMutation = useMutation({
-    mutationFn: async () => {
-      const response = await apiRequest("POST", "/api/v1/coach/reset", {});
-      return await response.json();
-    },
-    onSuccess: (data) => {
-      queryClient.invalidateQueries({ queryKey: ["/api/v1/coach"] });
-      trackEvent("coach_reset", "user_journey", "reset");
-      // Clear localStorage
-      localStorage.removeItem("coach_state");
-    },
-  });
-
-  // Action functions
-  const updateState = useCallback(async (updates: Partial<CoachState>) => {
-    // Optimistically update local state
-    setLocalState((prev) => ({ ...prev, ...updates }));
-    
-    // Update server
-    await updateMutation.mutateAsync(updates);
-  }, [updateMutation]);
-
-  const completeStep = useCallback(async (stepId: number) => {
-    await completeStepMutation.mutateAsync(stepId);
-  }, [completeStepMutation]);
-
-  const completeTutorial = useCallback(async (page: string) => {
-    await completeTutorialMutation.mutateAsync(page);
-  }, [completeTutorialMutation]);
-
-  const minimize = useCallback(async () => {
-    await updateState({ isMinimized: true });
+  const minimize = useCallback(() => {
+    updateState({ isMinimized: true });
     trackEvent("coach_minimized", "user_journey", "minimize");
   }, [updateState]);
 
-  const expand = useCallback(async () => {
-    await updateState({ isMinimized: false });
+  const expand = useCallback(() => {
+    updateState({ isMinimized: false });
     trackEvent("coach_expanded", "user_journey", "expand");
   }, [updateState]);
 
-  const dismiss = useCallback(async () => {
-    await updateState({ isDismissed: true });
+  const dismiss = useCallback(() => {
+    updateState({ isDismissed: true });
     trackEvent("coach_dismissed", "user_journey", "dismiss");
   }, [updateState]);
 
-  const reopen = useCallback(async () => {
-    await updateState({ isDismissed: false });
+  const reopen = useCallback(() => {
+    updateState({ isDismissed: false });
     trackEvent("coach_reopened", "user_journey", "reopen");
   }, [updateState]);
 
-  const resetCoach = useCallback(async () => {
-    await resetMutation.mutateAsync();
-  }, [resetMutation]);
+  const resetCoach = useCallback(() => {
+    if (typeof window !== 'undefined') {
+      localStorage.removeItem(COACH_STATE_KEY);
+    }
+    setLocalState({});
+    trackEvent("coach_reset", "user_journey", "reset");
+  }, []);
 
   // Helper functions
   const isStepCompleted = useCallback((stepId: number): boolean => {
@@ -227,8 +175,8 @@ export function ProofCoachProvider({ children }: ProofCoachProviderProps) {
   }, [getCurrentPage, localState.completedJourneySteps, localState.currentJourneyStep]);
 
   const value: ProofCoachContextValue = {
-    coachState: (serverState?.data || localState) as CoachState | null,
-    isLoading,
+    coachState: localState as CoachState | null,
+    isLoading: false, // No loading state needed for client-side only
     isMinimized: localState.isMinimized ?? false,
     isDismissed: localState.isDismissed ?? false,
     currentJourneyStep: getCurrentPageStep(), // Now returns page-specific step
