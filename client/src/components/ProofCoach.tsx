@@ -185,9 +185,22 @@ export default function ProofCoach({
 
   // Render minimized state
   // Also minimize if tutorial is completing (transient flag prevents journey UI flash)
-  const shouldBeMinimized = isMinimized || isCompletingTutorial;
+  // During onboarding (enableTutorial mode), keep minimized when tutorial is not active
+  const shouldBeMinimized = isMinimized || isCompletingTutorial || (enableTutorial && !isInTutorial);
   
   if (shouldBeMinimized) {
+    // During onboarding, clicking minimized button restarts tutorial instead of showing journey UI
+    const handleMinimizedClick = () => {
+      if (enableTutorial && pageTutorials.length > 0) {
+        // Clear minimized state first so tutorial overlay can appear
+        onExpand();
+        setIsInTutorial(true);
+        setTutorialStep(0);
+      } else {
+        onExpand();
+      }
+    };
+
     return (
       <motion.div
         initial={{ scale: 0 }}
@@ -196,7 +209,7 @@ export default function ProofCoach({
         className="fixed bottom-6 right-6 z-50"
       >
         <Button
-          onClick={onExpand}
+          onClick={handleMinimizedClick}
           size="lg"
           className="rounded-full w-16 h-16 shadow-lg bg-gradient-to-r from-purple-600 to-blue-600 hover:from-purple-700 hover:to-blue-700"
           data-testid="button-expand-coach"
@@ -330,7 +343,7 @@ export default function ProofCoach({
     );
   }
 
-  // Journey coaching mode UI
+  // Journey coaching mode UI (only shown post-onboarding, not during onboarding tutorials)
   const StepIcon = journeyStep.icon;
 
   return (
