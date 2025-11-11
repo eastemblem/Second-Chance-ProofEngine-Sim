@@ -32,6 +32,7 @@ import { useTokenAuth } from "@/hooks/use-token-auth";
 import { PROOF_VAULT_ARTIFACTS } from "../../../../shared/config/artifacts";
 import { useToast } from "@/hooks/use-toast";
 import ProofCoachWrapper from "@/components/ProofCoachWrapper";
+import { useProofCoach } from "@/contexts/ProofCoachContext";
 
 // Helper function to get artifact configuration
 const getArtifactConfig = (artifactType: string) => {
@@ -55,6 +56,9 @@ export default function DashboardV2Page() {
   // Ref for scrolling to ProofVault section
   const proofVaultRef = useRef<HTMLDivElement>(null);
   const { toast } = useToast();
+  
+  // ProofCoach tutorial completion check
+  const { tutorialCompletedPages } = useProofCoach();
 
   // Use extracted hooks
   const { user, isLoading: authLoading, checkAuthStatus } = useAuthentication();
@@ -516,8 +520,8 @@ export default function DashboardV2Page() {
         }}
       />
       
-      {/* ProofCoach - Intelligent guidance system */}
-      <ProofCoachWrapper enableTutorial={true} />
+      {/* ProofCoach - Tutorial on first visit, then Coach mode */}
+      <ProofCoachWrapper enableTutorial={!tutorialCompletedPages.includes('dashboard')} />
     </DashboardLayout>
   );
 }
