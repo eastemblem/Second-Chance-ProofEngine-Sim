@@ -4,6 +4,31 @@ import { useLocation } from "wouter";
 import { trackEvent } from "@/lib/analytics";
 import { COACH_JOURNEY_STEPS, type JourneyStep } from "../../../shared/config/coach-journey";
 import { useTokenAuth } from "@/hooks/use-token-auth";
+import { useCoachProgress, type CoachProgressData } from "@/hooks/use-coach-progress";
+import { queryClient } from "@/lib/queryClient";
+
+// Venture progress data from backend APIs (cached for performance)
+// IMPORTANT: This interface must include ALL checkField values used in COACH_JOURNEY_STEPS
+interface VentureProgressData {
+  // Backend-provided metrics
+  completedExperimentsCount: number;
+  vaultUploadCount: number;
+  vaultScore: number;
+  proofScore: number;
+  hasDealRoomAccess: boolean;
+  
+  // Client-side flags
+  validationMapExported: boolean;
+  validationMapUploadedToVault: boolean;
+  hasAccessedCommunityOrDownloads: boolean;
+  
+  // Derived/computed flags
+  onboardingComplete: boolean;
+  hasCompletedExperiment: boolean;
+  
+  // Metadata
+  lastRefreshed: number;
+}
 
 interface ProofCoachContextValue {
   // State
@@ -14,6 +39,7 @@ interface ProofCoachContextValue {
   currentJourneyStep: number;
   completedJourneySteps: number[];
   tutorialCompletedPages: string[];
+  ventureProgress: VentureProgressData | null;
   
   // Actions
   updateState: (updates: Partial<CoachState>) => void;
@@ -24,10 +50,14 @@ interface ProofCoachContextValue {
   dismiss: () => void;
   reopen: () => void;
   resetCoach: () => void;
+  refreshVentureProgress: () => Promise<void>;
+  markCsvExported: () => void;
+  markCommunityAccessed: () => void;
   
   // Helpers
   isStepCompleted: (stepId: number) => boolean;
   isTutorialCompleted: (page: string) => boolean;
+  isStepCriteriaMetByBackend: (stepId: number) => boolean;
   getCurrentPage: () => string;
 }
 
@@ -48,9 +78,16 @@ interface ProofCoachProviderProps {
 const COACH_STATE_KEY_ANON = "coach_state"; // Anonymous users (onboarding)
 const COACH_STATE_KEY_PREFIX = "coach_state_"; // Authenticated users (per founder)
 
+// Client-side flags storage keys (founder-namespaced)
+const CLIENT_FLAG_CSV_EXPORTED = "coach_csv_exported_";
+const CLIENT_FLAG_COMMUNITY_ACCESSED = "coach_community_accessed_";
+
 export function ProofCoachProvider({ children }: ProofCoachProviderProps) {
   const [location] = useLocation();
   const { user } = useTokenAuth();
+  
+  // Fetch server-side progress via React Query hook
+  const { data: serverProgress, refetch: refetchServerProgress, isLoading: isLoadingServerProgress } = useCoachProgress();
   
   // Determine storage key based on authentication status
   const getStorageKey = useCallback(() => {
@@ -59,6 +96,41 @@ export function ProofCoachProvider({ children }: ProofCoachProviderProps) {
     }
     return COACH_STATE_KEY_ANON;
   }, [user]);
+
+  // Helper: Get client-side flag from localStorage (founder-namespaced)
+  const getClientFlag = useCallback((flagKey: string): boolean => {
+    if (typeof window === 'undefined' || !user?.founderId) return false;
+    const value = localStorage.getItem(`${flagKey}${user.founderId}`);
+    return value === 'true';
+  }, [user?.founderId]);
+
+  // Helper: Set client-side flag in localStorage (founder-namespaced)
+  const setClientFlag = useCallback((flagKey: string, value: boolean) => {
+    if (typeof window === 'undefined' || !user?.founderId) return;
+    localStorage.setItem(`${flagKey}${user.founderId}`, String(value));
+  }, [user?.founderId]);
+
+  // Merge server-side progress with client-side flags
+  const ventureProgress: VentureProgressData | null = serverProgress ? {
+    // Backend-provided metrics
+    completedExperimentsCount: serverProgress.completedExperimentsCount,
+    vaultUploadCount: serverProgress.vaultUploadCount,
+    vaultScore: serverProgress.vaultScore,
+    proofScore: serverProgress.proofScore,
+    hasDealRoomAccess: serverProgress.hasDealRoomAccess,
+    
+    // Client-side flags
+    validationMapExported: getClientFlag(CLIENT_FLAG_CSV_EXPORTED),
+    validationMapUploadedToVault: serverProgress.vaultUploadCount > 0, // Use actual vault uploads, not CSV export
+    hasAccessedCommunityOrDownloads: getClientFlag(CLIENT_FLAG_COMMUNITY_ACCESSED),
+    
+    // Derived/computed flags
+    onboardingComplete: !!user?.founderId && !!serverProgress.ventureId, // User is authenticated with a venture
+    hasCompletedExperiment: serverProgress.completedExperimentsCount > 0,
+    
+    // Metadata
+    lastRefreshed: Date.now(),
+  } : null;
 
   // Load state from localStorage on initial render
   const [localState, setLocalState] = useState<Partial<CoachState>>(() => {
@@ -196,11 +268,44 @@ export function ProofCoachProvider({ children }: ProofCoachProviderProps) {
     trackEvent("coach_reset", "user_journey", "reset");
   }, [getStorageKey]);
 
+  // Refresh venture progress (invalidate cache and refetch)
+  const refreshVentureProgress = useCallback(async () => {
+    await queryClient.invalidateQueries({ queryKey: ['/api/v1/coach/progress'] });
+    await refetchServerProgress();
+  }, [refetchServerProgress]);
+
+  // Mark CSV as exported (client-side flag)
+  const markCsvExported = useCallback(() => {
+    setClientFlag(CLIENT_FLAG_CSV_EXPORTED, true);
+  }, [setClientFlag]);
+
+  // Mark community/downloads as accessed (client-side flag)
+  const markCommunityAccessed = useCallback(() => {
+    setClientFlag(CLIENT_FLAG_COMMUNITY_ACCESSED, true);
+  }, [setClientFlag]);
+
   // Helper functions
   const isStepCompleted = useCallback((stepId: number): boolean => {
     const completedSteps = localState.completedJourneySteps || [];
     return completedSteps.includes(stepId);
   }, [localState.completedJourneySteps]);
+
+  // Check if step criteria is met based on backend progress data
+  const isStepCriteriaMetByBackend = useCallback((stepId: number): boolean => {
+    const step = COACH_JOURNEY_STEPS.find(s => s.id === stepId);
+    if (!step?.completionCriteria || !ventureProgress) return false;
+    
+    const { checkField, minValue } = step.completionCriteria;
+    const value = ventureProgress[checkField as keyof VentureProgressData];
+    
+    // Handle numeric thresholds (e.g., completedExperimentsCount >= 3)
+    if (typeof value === 'number' && minValue !== undefined) {
+      return value >= minValue;
+    }
+    
+    // Handle boolean flags (e.g., hasDealRoomAccess === true)
+    return !!value;
+  }, [ventureProgress]);
 
   const isTutorialCompleted = useCallback((page: string): boolean => {
     const completedPages = localState.tutorialCompletedPages || [];
@@ -239,12 +344,13 @@ export function ProofCoachProvider({ children }: ProofCoachProviderProps) {
 
   const value: ProofCoachContextValue = {
     coachState: localState as CoachState | null,
-    isLoading: false, // No loading state needed for client-side only
+    isLoading: isLoadingServerProgress,
     isMinimized: localState.isMinimized ?? false,
     isDismissed: localState.isDismissed ?? false,
     currentJourneyStep: getCurrentPageStep(), // Now returns page-specific step
     completedJourneySteps: localState.completedJourneySteps || [],
     tutorialCompletedPages: localState.tutorialCompletedPages || [],
+    ventureProgress,
     updateState,
     completeStep,
     completeTutorial,
@@ -253,8 +359,12 @@ export function ProofCoachProvider({ children }: ProofCoachProviderProps) {
     dismiss,
     reopen,
     resetCoach,
+    refreshVentureProgress,
+    markCsvExported,
+    markCommunityAccessed,
     isStepCompleted,
     isTutorialCompleted,
+    isStepCriteriaMetByBackend,
     getCurrentPage,
   };
 

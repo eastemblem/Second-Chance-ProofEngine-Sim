@@ -1,7 +1,7 @@
 import { db, pool } from "../db";
 import { 
   founder, venture, teamMember, evaluation, documentUpload, proofVault, 
-  leaderboard, userActivity, onboardingSession,
+  leaderboard, userActivity, onboardingSession, ventureExperiments, userSubscriptions,
   type Founder, type Venture, type Evaluation, type DocumentUpload, type ProofVault,
   type InsertFounder, type InsertVenture
 } from "@shared/schema";
@@ -398,6 +398,92 @@ export class DatabaseService {
     for (let i = 0; i < records.length; i += batchSize) {
       const batch = records.slice(i, i + batchSize);
       await db.insert(table).values(batch);
+    }
+  }
+
+  /**
+   * Coach Mode: Get venture progress metrics for journey tracking
+   * Aggregates: completed experiments count, vault uploads, ProofScore, Deal Room access
+   */
+  async getCoachProgress(ventureId: string, founderId: string) {
+    try {
+      appLogger.database(`[CoachProgress] Fetching progress for venture ${ventureId}`);
+      
+      // Short-circuit if venture doesn't exist
+      const dashboardData = await this.getFounderWithLatestVenture(founderId);
+      if (!dashboardData || !dashboardData.venture || dashboardData.venture.ventureId !== ventureId) {
+        appLogger.database(`[CoachProgress] Venture ${ventureId} not found for founder ${founderId}`);
+        return null;
+      }
+
+      const venture = dashboardData.venture;
+
+      // Execute all queries in parallel for performance
+      const [experimentsCountResult, vaultCountResult, dealRoomAccess] = await Promise.all([
+        // Count completed experiments
+        db
+          .select({ count: sql<number>`count(*)` })
+          .from(ventureExperiments)
+          .where(
+            and(
+              eq(ventureExperiments.ventureId, ventureId),
+              eq(ventureExperiments.status, 'completed')
+            )
+          ),
+        
+        // Count vault uploads
+        db
+          .select({ count: sql<number>`count(*)` })
+          .from(proofVault)
+          .where(eq(proofVault.ventureId, ventureId)),
+        
+        // Check deal room access via payment service
+        this.checkDealRoomAccess(founderId)
+      ]);
+
+      const progressData = {
+        completedExperimentsCount: experimentsCountResult[0]?.count || 0,
+        vaultUploadCount: vaultCountResult[0]?.count || 0,
+        proofScore: venture.proofScore || 0,
+        hasDealRoomAccess: dealRoomAccess,
+        ventureId: venture.ventureId,
+        vaultScore: venture.vaultScore || 0,
+      };
+
+      appLogger.database(`[CoachProgress] Progress fetched:`, progressData);
+      return progressData;
+      
+    } catch (error) {
+      appLogger.database(`[CoachProgress] Error fetching progress:`, error);
+      throw error;
+    }
+  }
+
+  /**
+   * Helper: Check if founder has Deal Room access via subscription
+   * Returns true if there's an active subscription with deal room access
+   */
+  private async checkDealRoomAccess(founderId: string): Promise<boolean> {
+    try {
+      const subscriptions = await db
+        .select()
+        .from(userSubscriptions)
+        .where(
+          and(
+            eq(userSubscriptions.founderId, founderId),
+            eq(userSubscriptions.status, 'active')
+          )
+        );
+
+      // Check if any active subscription grants deal room access
+      return subscriptions.some(sub => 
+        sub.planType === 'one-time' || 
+        sub.planType === 'premium' || 
+        sub.planType === 'enterprise'
+      );
+    } catch (error) {
+      appLogger.database(`[CoachProgress] Error checking deal room access:`, error);
+      return false;
     }
   }
 

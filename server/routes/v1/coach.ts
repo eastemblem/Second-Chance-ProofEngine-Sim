@@ -6,6 +6,7 @@ import { authenticateToken, type AuthenticatedRequest } from "../../middleware/t
 import { asyncHandler } from "../../utils/error-handler";
 import { eq } from "drizzle-orm";
 import { appLogger } from "../../utils/logger";
+import { databaseService } from "../../services/database-service";
 
 const router = Router();
 
@@ -314,6 +315,50 @@ router.post(
       success: true,
       data: resetState,
       message: "Coach state reset successfully",
+    });
+  })
+);
+
+// Get venture progress metrics for Coach Mode journey tracking
+router.get(
+  "/progress",
+  authenticateToken,
+  asyncHandler(async (req: AuthenticatedRequest, res) => {
+    const founderId = req.user?.founderId;
+
+    if (!founderId) {
+      return res.status(401).json({
+        success: false,
+        error: "Authentication required",
+      });
+    }
+
+    appLogger.info(`[ProofCoach] Fetching progress for founder: ${founderId}`);
+
+    // Get founder's latest venture
+    const dashboardData = await databaseService.getFounderWithLatestVenture(founderId);
+    if (!dashboardData || !dashboardData.venture) {
+      return res.status(404).json({
+        success: false,
+        error: "No venture found. Please complete onboarding first.",
+      });
+    }
+
+    const ventureId = dashboardData.venture.ventureId;
+
+    // Fetch aggregated progress metrics
+    const progressData = await databaseService.getCoachProgress(ventureId, founderId);
+
+    if (!progressData) {
+      return res.status(404).json({
+        success: false,
+        error: "Unable to fetch progress data",
+      });
+    }
+
+    return res.json({
+      success: true,
+      data: progressData,
     });
   })
 );
