@@ -535,6 +535,7 @@ export default function TeamOnboarding({
           }}
           className="w-full mb-6"
           variant="outline"
+          data-testid="button-add-team-member"
         >
           <Plus className="w-4 h-4 mr-2" />
           Add Team Member
@@ -559,7 +560,7 @@ export default function TeamOnboarding({
                       {...form.register("fullName")}
                       className="mt-1"
                       placeholder="Jane Smith"
-                      data-testid="team-member-input"
+                      data-testid="input-team-fullname"
                     />
                     {form.formState.errors.fullName && (
                       <p className="text-red-500 text-sm mt-1">
@@ -575,6 +576,7 @@ export default function TeamOnboarding({
                       {...form.register("role")}
                       className="mt-1"
                       placeholder="Chief Technology Officer"
+                      data-testid="input-team-role"
                     />
                     {form.formState.errors.role && (
                       <p className="text-red-500 text-sm mt-1">
@@ -593,6 +595,7 @@ export default function TeamOnboarding({
                       {...form.register("email")}
                       className="mt-1"
                       placeholder="jane@example.com"
+                      data-testid="input-team-email"
                     />
                     {form.formState.errors.email && (
                       <p className="text-red-500 text-sm mt-1">
@@ -608,6 +611,7 @@ export default function TeamOnboarding({
                       {...form.register("linkedinProfile")}
                       className="mt-1"
                       placeholder="https://linkedin.com/in/jane-smith"
+                      data-testid="input-team-linkedin"
                     />
                   </div>
                 </div>
@@ -619,6 +623,7 @@ export default function TeamOnboarding({
                     {...form.register("experience")}
                     className="mt-1"
                     placeholder="10+ years in software engineering, former Google engineer"
+                    data-testid="input-team-experience"
                   />
                   {form.formState.errors.experience && (
                     <p className="text-red-500 text-sm mt-1">
@@ -718,6 +723,7 @@ export default function TeamOnboarding({
                     type="submit"
                     disabled={addMemberMutation.isPending || updateMemberMutation.isPending}
                     className="flex-1"
+                    data-testid="button-submit-team-member"
                   >
                     {editingMember 
                       ? (updateMemberMutation.isPending ? "Updating..." : "Update Member")
@@ -732,6 +738,7 @@ export default function TeamOnboarding({
                       setEditingMember(null);
                       form.reset();
                     }}
+                    data-testid="button-cancel-team-member"
                   >
                     Cancel
                   </Button>
