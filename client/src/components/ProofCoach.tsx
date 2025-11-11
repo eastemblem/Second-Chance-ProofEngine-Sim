@@ -79,6 +79,24 @@ export default function ProofCoach({
     return () => clearTimeout(timer);
   }, []);
 
+  // ESC key handler to minimize/close ProofCoach
+  useEffect(() => {
+    const handleEscKey = (event: KeyboardEvent) => {
+      if (event.key === 'Escape') {
+        if (isInTutorial) {
+          // If in tutorial, complete it and minimize
+          completeTutorial();
+        } else if (!isMinimized) {
+          // If expanded, minimize
+          onMinimize();
+        }
+      }
+    };
+
+    window.addEventListener('keydown', handleEscKey);
+    return () => window.removeEventListener('keydown', handleEscKey);
+  }, [isInTutorial, isMinimized]);
+
   // Auto-start tutorial when landing on new page - ONLY after hydration and respecting minimize/dismiss state
   useEffect(() => {
     if (isHydrated && shouldShowTutorial && !isInTutorial && !isMinimized) {
