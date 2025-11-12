@@ -432,7 +432,7 @@ export default function OnboardingFlow({ onComplete }: OnboardingFlowProps) {
 
   return (
     <Layout>
-      <ProofCoachWrapper currentPage={currentPageKey} autoStart={shouldAutoStart}>
+      <ProofCoachWrapper currentPage={currentPageKey} autoStart={shouldAutoStart} enableTutorial={true}>
         <div className="sticky top-0 z-50 bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
           <Navbar logoOnly={true} />
         </div>
