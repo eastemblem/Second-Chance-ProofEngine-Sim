@@ -53,6 +53,8 @@ interface ProofCoachContextValue {
   refreshVentureProgress: () => Promise<void>;
   markCsvExported: () => void;
   markCommunityAccessed: () => void;
+  markCoachModeSeen: () => void;
+  hasSeenCoachMode: () => boolean;
   
   // Helpers
   isStepCompleted: (stepId: number) => boolean;
@@ -81,6 +83,7 @@ const COACH_STATE_KEY_PREFIX = "coach_state_"; // Authenticated users (per found
 // Client-side flags storage keys (founder-namespaced)
 const CLIENT_FLAG_CSV_EXPORTED = "coach_csv_exported_";
 const CLIENT_FLAG_COMMUNITY_ACCESSED = "coach_community_accessed_";
+const CLIENT_FLAG_COACH_MODE_SEEN = "coach_mode_first_seen_";
 
 export function ProofCoachProvider({ children }: ProofCoachProviderProps) {
   const [location] = useLocation();
@@ -284,6 +287,16 @@ export function ProofCoachProvider({ children }: ProofCoachProviderProps) {
     setClientFlag(CLIENT_FLAG_COMMUNITY_ACCESSED, true);
   }, [setClientFlag]);
 
+  // Mark Coach Mode as seen (client-side flag)
+  const markCoachModeSeen = useCallback(() => {
+    setClientFlag(CLIENT_FLAG_COACH_MODE_SEEN, true);
+  }, [setClientFlag]);
+
+  // Check if Coach Mode has been seen (client-side flag)
+  const hasSeenCoachMode = useCallback((): boolean => {
+    return getClientFlag(CLIENT_FLAG_COACH_MODE_SEEN);
+  }, [getClientFlag]);
+
   // Helper functions
   const isStepCompleted = useCallback((stepId: number): boolean => {
     const completedSteps = localState.completedJourneySteps || [];
@@ -362,6 +375,8 @@ export function ProofCoachProvider({ children }: ProofCoachProviderProps) {
     refreshVentureProgress,
     markCsvExported,
     markCommunityAccessed,
+    markCoachModeSeen,
+    hasSeenCoachMode,
     isStepCompleted,
     isTutorialCompleted,
     isStepCriteriaMetByBackend,
