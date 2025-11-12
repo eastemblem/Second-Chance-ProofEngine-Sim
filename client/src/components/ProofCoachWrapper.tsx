@@ -33,6 +33,8 @@ export default function ProofCoachWrapper({
     expand,
     dismiss,
     getCurrentPage,
+    markCoachModeSeen,
+    hasSeenCoachMode,
   } = useProofCoach();
 
   const { user, venture } = useTokenAuth();
@@ -57,6 +59,23 @@ export default function ProofCoachWrapper({
       expand();
     }
   }, [pageName, autoStart, isTutorialMode, isMinimized, tutorialCompletedPages, expand]);
+
+  // Auto-expand Coach Mode when transitioning from completed Tutorial Mode
+  useEffect(() => {
+    // Only in Coach Mode (not Tutorial Mode)
+    if (!isTutorialMode && user) {
+      // Check if tutorial for this page has been completed
+      const tutorialCompleted = tutorialCompletedPages.includes(pageName);
+      // Check if Coach Mode hasn't been seen yet
+      const coachNotSeen = !hasSeenCoachMode();
+      
+      // Auto-expand if tutorial is complete but Coach hasn't been seen
+      if (tutorialCompleted && coachNotSeen && isMinimized) {
+        expand();
+        markCoachModeSeen();
+      }
+    }
+  }, [isTutorialMode, user, pageName, tutorialCompletedPages, hasSeenCoachMode, isMinimized, expand, markCoachModeSeen]);
 
   // Show coach if: not loading, not dismissed
   // Tutorial Mode (isTutorialMode=true): Allow without authentication
