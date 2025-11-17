@@ -44,6 +44,12 @@ Key technical decisions include:
 - **Validation Map System**: Interactive experiment tracking interface for business idea validation across 4 spheres (Desirability, Viability, Feasibility, Scaling) with inline editing, auto-save, and score calculation.
 - **ProofTags System**: Centralized achievement tracking automatically populated from EastEmblem API and updated upon experiment completion.
 - **ProofCoach Intelligent Guidance System**: Dual-mode AI coaching with Tutorial Mode (anonymous, client-side tracking) and Coach Mode (authenticated, 21-step milestone journey from dashboard onboarding to investment readiness). Coach Mode features dynamic messaging based on ProofScore, a checkbox-based todo list UI, confetti animations for major achievements, click-to-highlight navigation (smooth scroll + 2-second pulse animation to highlight corresponding dashboard sections), and dark theme styling (bg-gray-900/95 with purple accents) for consistency with platform aesthetic.
+  - **Tutorial Mode Enhancement (Nov 2025)**: Comprehensive field-level guidance across all onboarding pages with 30+ tutorial steps, including:
+    - Venture page: Separate tutorial steps for Geography (order 5), Product Status (order 8), and Revenue Stage (order 7) fields for precise field-level targeting
+    - Team page: Added 5 new tutorial steps covering social media profiles (order 8), demographics (order 9), background information (order 10), and co-founder status (order 11)
+    - Analysis page: New tutorial steps for Key Insights section (order 4), Leaderboard rankings (order 5), and "See My Pathway" CTA (order 6)
+    - Next-steps page: Complete 3-step tutorial flow covering pathway orientation, payment CTA, and email follow-up guidance
+  - **Tutorial Mechanics**: All tutorial steps use data-testid attributes for precise element targeting with 300ms navigation delay and visual pulse effects; confetti animation remains contextual without forced tutorial step to preserve delight moment
 
 ### System Design Choices
 The system prioritizes a modular, component-driven frontend and a serverless backend for scalability. Drizzle ORM ensures type-safe database interactions. The email service is designed for flexibility.
