@@ -79,7 +79,7 @@ router.get(
         await ActivityService.logActivity(
           { founderId },
           {
-            activityType: 'validation',
+            activityType: 'evaluation',
             action: COACH_EVENTS.VALIDATION_MAP_VIEWED,
             title: 'Validation Map Viewed',
             description: 'Accessed validation map interface',

@@ -188,12 +188,13 @@ router.post("/upload",
       const allUploads = await storage.getDocumentUploadsByVentureId(ventureId);
       const uploadCount = allUploads?.length || 0;
 
-      // Helper to check if milestone already logged
+      // Helper to check if milestone already logged (scoped by founderId AND ventureId)
       const hasMilestone = async (action: string) => {
         const activities = await db.select()
           .from(userActivity)
           .where(and(
             eq(userActivity.founderId, founderId),
+            eq(userActivity.ventureId, ventureId),
             eq(userActivity.action, action)
           ))
           .limit(1);

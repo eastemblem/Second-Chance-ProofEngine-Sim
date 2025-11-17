@@ -1171,7 +1171,7 @@ export class OnboardingService {
               console.log(`✓ Logged PROOFSCORE_RECEIVED event for founder ${founderId}`);
               
               // Emit ProofScore milestone events based on thresholds with duplicate prevention
-              // Helper to check if milestone already logged
+              // Helper to check if milestone already logged (scoped by founderId AND ventureId)
               const hasMilestone = async (action: string) => {
                 const activities = await db
                   .select()
@@ -1179,6 +1179,7 @@ export class OnboardingService {
                   .where(
                     and(
                       eq(userActivity.founderId, founderId),
+                      eq(userActivity.ventureId, venture.ventureId),
                       eq(userActivity.action, action)
                     )
                   )
