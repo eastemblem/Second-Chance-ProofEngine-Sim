@@ -530,7 +530,7 @@ export default function ProofCoach({
           </div>
 
           {/* Todo List Container */}
-          <div className="space-y-2 max-h-[50vh] overflow-y-auto pr-2" style={{ scrollbarWidth: 'thin', scrollbarColor: 'rgba(139,92,246,0.3) transparent' }}>
+          <div className="space-y-2 max-h-[270px] overflow-y-auto pr-2" style={{ scrollbarWidth: 'thin', scrollbarColor: 'rgba(139,92,246,0.3) transparent' }}>
             {/* Completed Tasks - Collapsed */}
             {completedTodos.length > 0 && (
               <div className="mb-3">
