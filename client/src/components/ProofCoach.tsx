@@ -311,7 +311,7 @@ export default function ProofCoach({
   
   // Categorize todos by completion status
   const completedTodos = coachModeSteps.filter(step => isStepCriteriaMetByBackend(step.id));
-  const upcomingTodos = coachModeSteps.filter(step => !isStepCriteriaMetByBackend(step.id)).slice(0, 3);
+  const upcomingTodos = coachModeSteps.filter(step => !isStepCriteriaMetByBackend(step.id));
   
   // Find current active step (first incomplete todo)
   const activeStep = coachModeSteps.find(step => !isStepCriteriaMetByBackend(step.id));
