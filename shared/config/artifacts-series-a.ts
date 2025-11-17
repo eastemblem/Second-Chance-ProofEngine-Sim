@@ -206,7 +206,7 @@ export const SERIES_A_ARTIFACTS: ArtifactsConfig = {
       validation_timeline: {
         name: "Validation timeline",
         description: "Chronological summary of discovery, validation, traction",
-        allowedFormats: [".pdf"],
+        allowedFormats: [".pdf", ".csv", ".xlsx", ".xls"],
         maxSizeBytes: 5242880,
         score: 1,
         mandatory: false,
