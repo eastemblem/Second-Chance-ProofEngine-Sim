@@ -1,7 +1,9 @@
 import { useProofCoach } from "@/contexts/ProofCoachContext";
 import { useTokenAuth } from "@/hooks/use-token-auth";
-import ProofCoach from "./ProofCoach";
-import { useEffect } from "react";
+import { useEffect, lazy, Suspense } from "react";
+
+// Lazy load ProofCoach to break circular dependency
+const ProofCoach = lazy(() => import("./ProofCoach"));
 
 interface ProofCoachWrapperProps {
   children?: React.ReactNode;
@@ -86,24 +88,26 @@ export default function ProofCoachWrapper({
     <>
       {children}
       {shouldShowCoach && (
-        <ProofCoach
-          currentStep={currentJourneyStep}
-          completedSteps={completedJourneySteps}
-          onStepAction={handleStepAction}
-          onStepComplete={completeStep}
-          enableTutorial={isTutorialMode}
-          forceStart={forceStart || autoStart}
-          currentPage={pageName}
-          tutorialCompletedPages={tutorialCompletedPages}
-          onTutorialComplete={completeTutorial}
-          isMinimized={isMinimized}
-          onMinimize={minimize}
-          onExpand={expand}
-          onClose={dismiss}
-          proofScore={(venture as any)?.proofScore || 0}
-          vaultScore={(venture as any)?.vaultScore || 0}
-          growthStage={venture?.growthStage || undefined}
-        />
+        <Suspense fallback={null}>
+          <ProofCoach
+            currentStep={currentJourneyStep}
+            completedSteps={completedJourneySteps}
+            onStepAction={handleStepAction}
+            onStepComplete={completeStep}
+            enableTutorial={isTutorialMode}
+            forceStart={forceStart || autoStart}
+            currentPage={pageName}
+            tutorialCompletedPages={tutorialCompletedPages}
+            onTutorialComplete={completeTutorial}
+            isMinimized={isMinimized}
+            onMinimize={minimize}
+            onExpand={expand}
+            onClose={dismiss}
+            proofScore={(venture as any)?.proofScore || 0}
+            vaultScore={(venture as any)?.vaultScore || 0}
+            growthStage={venture?.growthStage || undefined}
+          />
+        </Suspense>
       )}
     </>
   );
