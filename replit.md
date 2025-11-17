@@ -43,7 +43,7 @@ Key technical decisions include:
 - **Growth Stage Tracking**: Automatic extraction and storage of founder growth stage from pitch deck scoring.
 - **Validation Map System**: Interactive experiment tracking interface for business idea validation across 4 spheres (Desirability, Viability, Feasibility, Scaling) with inline editing, auto-save, and score calculation.
 - **ProofTags System**: Centralized achievement tracking automatically populated from EastEmblem API and updated upon experiment completion.
-- **ProofCoach Intelligent Guidance System**: Dual-mode AI coaching with Tutorial Mode (anonymous, client-side tracking) and Coach Mode (authenticated, 21-step milestone journey from dashboard onboarding to investment readiness). Coach Mode features dynamic messaging based on ProofScore, a checkbox-based todo list UI, and confetti animations for major achievements.
+- **ProofCoach Intelligent Guidance System**: Dual-mode AI coaching with Tutorial Mode (anonymous, client-side tracking) and Coach Mode (authenticated, 21-step milestone journey from dashboard onboarding to investment readiness). Coach Mode features dynamic messaging based on ProofScore, a checkbox-based todo list UI, confetti animations for major achievements, click-to-highlight navigation (smooth scroll + 2-second pulse animation to highlight corresponding dashboard sections), and dark theme styling (bg-gray-900/95 with purple accents) for consistency with platform aesthetic.
 
 ### System Design Choices
 The system prioritizes a modular, component-driven frontend and a serverless backend for scalability. Drizzle ORM ensures type-safe database interactions. The email service is designed for flexibility.
