@@ -206,10 +206,10 @@ export function ProofVaultSection({
               Manage and organise your validation documents here
             </p>
 
-            {/* VaultScore Display */}
-            <div className="mb-6">
+            {/* VaultScore Display - Hidden per user request */}
+            {/* <div className="mb-6">
               <VaultScoreDisplay vaultScore={validationData?.vaultScore || 0} />
-            </div>
+            </div> */}
 
 
           </div>
