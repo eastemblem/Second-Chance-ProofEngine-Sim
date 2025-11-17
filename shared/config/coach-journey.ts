@@ -288,31 +288,6 @@ export const COACH_JOURNEY_STEPS: JourneyStep[] = [
     },
   },
   
-  // Step 12: Celebrate Score Update
-  {
-    id: 12,
-    title: "View Your Score Update",
-    description: "See how uploads boost your ProofScore and VaultScore",
-    page: "dashboard",
-    duration: "2 min",
-    icon: TrendingUp,
-    color: "bg-green-600",
-    action: "View Scores",
-    route: "/dashboard",
-    selector: "[data-testid='proofscore-display']",
-    coachGuidance: {
-      intro: "Congratulations on your first upload! Your scores have been updated.",
-      instruction: "Look at your ProofScore and VaultScore displays. Notice how your VaultScore increased? Each quality upload makes you more investment-ready!",
-      tip: "ProofScore combines your pitch analysis, experiments completed, and proof uploaded. VaultScore specifically tracks your evidence library.",
-      nextStep: "Keep uploading! Your next goal is to reach 10 files to build a solid foundation.",
-    },
-    completionCriteria: {
-      checkField: "vaultUploadCount",
-      minValue: 1,
-      required: false,
-    },
-  },
-  
   // Step 13: Upload 10 Files
   {
     id: 13,
