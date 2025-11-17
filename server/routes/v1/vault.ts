@@ -422,7 +422,8 @@ router.post('/upload-file', upload.single("file"), asyncHandler(async (req: Auth
         description: description || '',
         categoryId: categoryId,
         scoreAwarded: scoreAwarded,
-        proofScoreContribution: proofScoreContribution
+        proofScoreContribution: proofScoreContribution,
+        uploadSource: 'proof-vault' // Mark as proof-vault upload for ProofCoach task tracking
       });
       // Sanitize IDs for logging to prevent security scanner warnings
       const sanitizedUploadId = String(uploadRecord.uploadId).replace(/[^\w-]/g, '');

@@ -660,7 +660,8 @@ export class OnboardingService {
         categoryId: '0_Overview', // Set category_id for pitch deck
         artifactType: uploadMetadata?.artifactType || 'pitch_deck', // Use dynamic value or fallback
         description: uploadMetadata?.description || 'Main investor presentation covering problem, solution, market, team, and financials', // Use dynamic value or fallback  
-        scoreAwarded: uploadMetadata?.scoreAwarded || 5 // Use dynamic value or fallback
+        scoreAwarded: uploadMetadata?.scoreAwarded || 5, // Use dynamic value or fallback
+        uploadSource: 'onboarding' // Mark as onboarding upload for ProofCoach task tracking
       })
       .returning();
 

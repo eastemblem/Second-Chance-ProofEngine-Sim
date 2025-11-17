@@ -2,12 +2,27 @@ import { useQuery, type UseQueryResult } from "@tanstack/react-query";
 import { useTokenAuth } from "./use-token-auth";
 
 export interface CoachProgressData {
+  // Experiment tracking
   completedExperimentsCount: number;
+  hasCompletedExperiment: boolean;
+  
+  // Upload tracking (ProofVault only, excludes onboarding uploads)
   vaultUploadCount: number;
+  totalUploads: number;
+  distinctArtifactTypesCount: number;
+  
+  // Scores
   proofScore: number;
-  hasDealRoomAccess: boolean;
-  ventureId: string;
   vaultScore: number;
+  
+  // Access & completion flags
+  hasDealRoomAccess: boolean;
+  dashboardTutorialCompleted: boolean;
+  onboardingComplete: boolean;
+  validationMapExported: boolean;
+  
+  // Identifiers
+  ventureId: string;
 }
 
 interface CoachProgressResponse {

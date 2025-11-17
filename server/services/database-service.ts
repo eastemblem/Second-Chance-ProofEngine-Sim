@@ -404,6 +404,7 @@ export class DatabaseService {
   /**
    * Coach Mode: Get venture progress metrics for journey tracking
    * Aggregates: completed experiments count, vault uploads, ProofScore, Deal Room access
+   * UPDATED: Filters onboarding uploads and counts distinct artifact types
    */
   async getCoachProgress(ventureId: string, founderId: string) {
     try {
@@ -419,7 +420,14 @@ export class DatabaseService {
       const venture = dashboardData.venture;
 
       // Execute all queries in parallel for performance
-      const [experimentsCountResult, vaultCountResult, dealRoomAccess] = await Promise.all([
+      const [
+        experimentsCountResult, 
+        vaultUploadsResult,
+        allUploadsResult,
+        artifactTypesResult,
+        dealRoomAccess,
+        coachStateResult
+      ] = await Promise.all([
         // Count completed experiments
         db
           .select({ count: sql<number>`count(*)` })
@@ -431,23 +439,69 @@ export class DatabaseService {
             )
           ),
         
-        // Count vault uploads
+        // Count ProofVault uploads only (excluding onboarding uploads)
         db
           .select({ count: sql<number>`count(*)` })
-          .from(proofVault)
-          .where(eq(proofVault.ventureId, ventureId)),
+          .from(documentUpload)
+          .where(
+            and(
+              eq(documentUpload.ventureId, ventureId),
+              eq(documentUpload.uploadSource, 'proof-vault')
+            )
+          ),
+        
+        // Count ALL uploads (both onboarding and proof-vault)
+        db
+          .select({ count: sql<number>`count(*)` })
+          .from(documentUpload)
+          .where(eq(documentUpload.ventureId, ventureId)),
+        
+        // Count distinct artifact types uploaded from ProofVault (for task tracking)
+        db
+          .select({ artifactType: documentUpload.artifactType })
+          .from(documentUpload)
+          .where(
+            and(
+              eq(documentUpload.ventureId, ventureId),
+              eq(documentUpload.uploadSource, 'proof-vault'),
+              sql`${documentUpload.artifactType} IS NOT NULL AND ${documentUpload.artifactType} != ''`
+            )
+          )
+          .groupBy(documentUpload.artifactType),
         
         // Check deal room access via payment service
-        this.checkDealRoomAccess(founderId)
+        this.checkDealRoomAccess(founderId),
+        
+        // Get coach state for dashboard tutorial completion
+        db
+          .select()
+          .from(require("@shared/schema").coachState)
+          .where(eq(require("@shared/schema").coachState.founderId, founderId))
+          .limit(1)
       ]);
 
       const progressData = {
+        // Experiment tracking
         completedExperimentsCount: experimentsCountResult[0]?.count || 0,
-        vaultUploadCount: vaultCountResult[0]?.count || 0,
+        hasCompletedExperiment: (experimentsCountResult[0]?.count || 0) > 0,
+        
+        // Upload tracking
+        vaultUploadCount: vaultUploadsResult[0]?.count || 0, // ProofVault uploads only (excludes onboarding)
+        totalUploads: allUploadsResult[0]?.count || 0, // ALL uploads (onboarding + proof-vault)
+        distinctArtifactTypesCount: artifactTypesResult.length || 0, // Unique artifact types from ProofVault
+        
+        // Scores
         proofScore: venture.proofScore || 0,
-        hasDealRoomAccess: dealRoomAccess,
-        ventureId: venture.ventureId,
         vaultScore: venture.vaultScore || 0,
+        
+        // Access & completion flags
+        hasDealRoomAccess: dealRoomAccess,
+        dashboardTutorialCompleted: false, // TODO: Add tracking field to coach_state
+        onboardingComplete: true, // If venture exists, onboarding is complete
+        validationMapExported: false, // TODO: Add tracking when CSV export happens
+        
+        // Identifiers
+        ventureId: venture.ventureId,
       };
 
       appLogger.database(`[CoachProgress] Progress fetched:`, progressData);

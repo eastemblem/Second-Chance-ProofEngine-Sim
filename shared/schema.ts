@@ -173,6 +173,7 @@ export const documentUpload = pgTable("document_upload", {
   categoryId: varchar("category_id", { length: 50 }), // Optional: Folder/category reference
   scoreAwarded: integer("score_awarded").default(0), // Points earned from this upload (VaultScore)
   proofScoreContribution: integer("proof_score_contribution").default(0), // Points contributed to ProofScore
+  uploadSource: varchar("upload_source", { length: 50 }).notNull().default("proof-vault"), // Source: 'onboarding' or 'proof-vault'
   createdAt: timestamp("created_at").defaultNow().notNull(),
 });
 
