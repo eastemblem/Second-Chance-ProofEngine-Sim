@@ -62,6 +62,8 @@ export class CoachProgressService {
         // Validation Map
         validationMapExported: false,
         validationMapExportedAt: null as Date | null,
+        validationMapUploadedToVault: false,
+        validationMapUploadedAt: null as Date | null,
         
         // Deal Room
         hasDealRoomAccess: false,
@@ -155,6 +157,11 @@ export class CoachProgressService {
         if (action === COACH_EVENTS.VALIDATION_MAP_EXPORTED) {
           progress.validationMapExported = true;
           progress.validationMapExportedAt = activity.createdAt;
+        }
+        
+        if (action === COACH_EVENTS.VALIDATION_CSV_UPLOADED) {
+          progress.validationMapUploadedToVault = true;
+          progress.validationMapUploadedAt = activity.createdAt;
         }
         
         // Deal Room
