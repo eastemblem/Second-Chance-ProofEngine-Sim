@@ -579,6 +579,8 @@ export default function ValidationMap() {
         method: "POST",
         headers: { "Content-Type": "application/json" },
       });
+      // Invalidate coach progress to reflect export completion
+      queryClient.invalidateQueries({ queryKey: ["/api/v1/coach/progress"] });
     } catch (error) {
       console.warn("Failed to track export event:", error);
       // Continue with export even if tracking fails
