@@ -6,6 +6,8 @@ import { eastEmblemAPI } from "../../eastemblem-api";
 import { appLogger } from "../../utils/logger";
 import { AuthenticatedRequest } from "../../middleware/token-auth";
 import { databaseService } from "../../services/database-service";
+import { ActivityService } from "../../services/activity-service";
+import { COACH_EVENTS } from "../../../shared/config/coach-events";
 
 const router = express.Router();
 
@@ -800,6 +802,53 @@ router.post(
         proofTagUnlocked: proofTagAdded,
       }
     );
+
+    // Track coach event: experiment completed
+    const context = {
+      founderId,
+      ventureId,
+      sessionId: 'api-session',
+      ipAddress: (req as any).ip || null,
+      userAgent: (req as any).get?.('User-Agent') || null,
+    };
+
+    await ActivityService.logActivity(context, {
+      activityType: 'evaluation',
+      action: COACH_EVENTS.EXPERIMENT_COMPLETED,
+      title: `Completed: ${experimentMaster?.name || 'Experiment'}`,
+      description: `Completed validation experiment with decision: ${experiment.decision}`,
+      metadata: {
+        experimentId: id,
+        experimentName: experimentMaster?.name,
+        decision: experiment.decision,
+        proofTagUnlocked: proofTagAdded,
+        validationSphere: experimentMaster?.validationSphere,
+      },
+      entityId: id,
+      entityType: 'experiment',
+    });
+
+    // Check experiment completion milestones
+    const allExperiments = await storage.getVentureExperiments(ventureId);
+    const completedCount = allExperiments.filter(exp => exp.status === 'completed').length;
+
+    if (completedCount === 1) {
+      await ActivityService.logActivity(context, {
+        activityType: 'evaluation',
+        action: COACH_EVENTS.FIRST_EXPERIMENT_COMPLETED,
+        title: 'First Experiment Completed',
+        description: 'Completed your first validation experiment',
+        metadata: { completedCount: 1 },
+      });
+    } else if (completedCount === 3) {
+      await ActivityService.logActivity(context, {
+        activityType: 'evaluation',
+        action: COACH_EVENTS.THREE_EXPERIMENTS_COMPLETED,
+        title: '3 Experiments Completed',
+        description: 'Completed 3 validation experiments',
+        metadata: { completedCount: 3 },
+      });
+    }
 
     res.json(
       createSuccessResponse(
