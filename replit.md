@@ -55,6 +55,12 @@ Key technical decisions include:
     - **Progress API**: `/api/v1/coach/progress` endpoint calculates real-time metrics from database queries (completed experiments, ProofVault uploads, distinct artifact types, Deal Room access)
     - **Accurate Task Tracking**: Tasks auto-complete based on actual database state rather than mock localStorage data, preventing false completion across user sessions
     - **Separation of Concerns**: `vaultUploadCount` tracks ProofVault uploads only (excludes onboarding), `totalUploads` counts all uploads, `distinctArtifactTypesCount` counts unique artifact types for milestone tracking
+  - **Event-Driven Progress Tracking (Nov 2025)**: Event-sourced architecture where `user_activity` is the immutable source of truth, with events aggregated into `coach_state` via CoachProgressService for deterministic progress tracking:
+    - **Complete Journey Mapping**: All 31 ProofCoach journey steps (0-30) mapped to completion events in JOURNEY_STEP_COMPLETION_EVENTS
+    - **Milestone Emissions**: Automated event logging for vault uploads (1, 10, 20, 30, 50 files), ProofScore thresholds (65+, 70+, 80+), experiment completions (1, 3, 5), and feature unlocks (Deal Room, downloads, community)
+    - **Venture-Scoped Deduplication**: Milestone duplicate prevention checks scoped by both founderId AND ventureId to prevent cross-venture event duplication
+    - **Comprehensive Event Coverage**: Events tracked for dashboard visits, validation map views, certificate/report downloads, Deal Room purchases, and all user journey milestones
+    - **Activity Service Integration**: All events logged through ActivityService with proper context (activityType, action, metadata, entityId, entityType) for deterministic state calculation
 
 ### System Design Choices
 The system prioritizes a modular, component-driven frontend and a serverless backend for scalability. Drizzle ORM ensures type-safe database interactions. The email service is designed for flexibility.
