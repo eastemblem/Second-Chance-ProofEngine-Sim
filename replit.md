@@ -50,6 +50,11 @@ Key technical decisions include:
     - Analysis page: New tutorial steps for Key Insights section (order 4), Leaderboard rankings (order 5), and "See My Pathway" CTA (order 6)
     - Next-steps page: Complete 3-step tutorial flow covering pathway orientation, payment CTA, and email follow-up guidance
   - **Tutorial Mechanics**: All tutorial steps use data-testid attributes for precise element targeting with 300ms navigation delay and visual pulse effects; confetti animation remains contextual without forced tutorial step to preserve delight moment
+  - **Backend-Driven Task Completion (Nov 2025)**: Coach Mode task completion logic migrated from client-side localStorage defaults to server-driven progress calculation:
+    - **Upload Source Tracking**: Added `uploadSource` field to `document_upload` table to distinguish 'onboarding' pitch deck uploads from 'proof-vault' uploads
+    - **Progress API**: `/api/v1/coach/progress` endpoint calculates real-time metrics from database queries (completed experiments, ProofVault uploads, distinct artifact types, Deal Room access)
+    - **Accurate Task Tracking**: Tasks auto-complete based on actual database state rather than mock localStorage data, preventing false completion across user sessions
+    - **Separation of Concerns**: `vaultUploadCount` tracks ProofVault uploads only (excludes onboarding), `totalUploads` counts all uploads, `distinctArtifactTypesCount` counts unique artifact types for milestone tracking
 
 ### System Design Choices
 The system prioritizes a modular, component-driven frontend and a serverless backend for scalability. Drizzle ORM ensures type-safe database interactions. The email service is designed for flexibility.
