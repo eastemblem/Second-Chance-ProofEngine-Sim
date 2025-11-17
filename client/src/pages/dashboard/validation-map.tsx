@@ -262,6 +262,7 @@ export default function ValidationMap() {
     onSuccess: (data: any, id: string) => {
       queryClient.invalidateQueries({ queryKey: ["/api/validation-map"] });
       queryClient.invalidateQueries({ queryKey: ["/api/v1/dashboard/validation"] });
+      queryClient.invalidateQueries({ queryKey: ["/api/v1/coach/progress"] });
       setCompletingExperimentIds(prev => {
         const next = new Set(prev);
         next.delete(id);
