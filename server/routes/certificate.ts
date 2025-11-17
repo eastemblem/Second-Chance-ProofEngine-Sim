@@ -2,6 +2,8 @@ import { Request, Response } from 'express';
 import { storage } from '../storage';
 import { randomUUID } from 'crypto';
 import { appLogger } from '../utils/logger';
+import { ActivityService } from '../services/activity-service';
+import { COACH_EVENTS } from '../../shared/config/coach-events';
 
 // Standalone function for certificate generation (no HTTP context needed)
 export async function createCertificateForSession(sessionId: string) {
@@ -159,6 +161,30 @@ export async function createCertificateForSession(sessionId: string) {
           })
           .where(eq(venture.ventureId, ventureId));
         appLogger.business("✓ Venture table updated with certificate URL");
+        
+        // Emit CERTIFICATE_DOWNLOADED event
+        if (session.founderId) {
+          try {
+            await ActivityService.logActivity(
+              { founderId: session.founderId, ventureId },
+              {
+                activityType: 'document',
+                action: COACH_EVENTS.CERTIFICATE_DOWNLOADED,
+                title: 'Certificate Downloaded',
+                description: 'Downloaded ProofScore validation certificate',
+                metadata: {
+                  certificateUrl: certificateResult.url,
+                  fileName: certificateResult.name || 'validation_certificate.pdf'
+                },
+                entityId: ventureId,
+                entityType: 'venture'
+              }
+            );
+            appLogger.business("✓ CERTIFICATE_DOWNLOADED event logged", { founderId: session.founderId });
+          } catch (eventError) {
+            appLogger.business("Failed to log CERTIFICATE_DOWNLOADED event:", eventError);
+          }
+        }
       }
     } catch (error) {
       appLogger.business("Failed to create certificate document record:", error);

@@ -2,6 +2,8 @@ import { Request, Response } from 'express';
 import { storage } from '../storage';
 import { randomUUID } from 'crypto';
 import { appLogger } from '../utils/logger';
+import { ActivityService } from '../services/activity-service';
+import { COACH_EVENTS } from '../../shared/config/coach-events';
 
 // Function to map scoring response to report format
 function mapScoringToReportData(scoringResult: any, sessionId: string, folderStructure: any): any {
@@ -268,6 +270,30 @@ export async function createReportForSession(sessionId: string) {
           })
           .where(eq(venture.ventureId, ventureId));
         appLogger.business("✓ Venture table updated with report URL");
+        
+        // Emit REPORT_DOWNLOADED event
+        if (session.founderId) {
+          try {
+            await ActivityService.logActivity(
+              { founderId: session.founderId, ventureId },
+              {
+                activityType: 'document',
+                action: COACH_EVENTS.REPORT_DOWNLOADED,
+                title: 'Report Downloaded',
+                description: 'Downloaded comprehensive analysis report',
+                metadata: {
+                  reportUrl: reportResult.url,
+                  fileName: reportResult.name || 'analysis_report.pdf'
+                },
+                entityId: ventureId,
+                entityType: 'venture'
+              }
+            );
+            appLogger.business("✓ REPORT_DOWNLOADED event logged", { founderId: session.founderId });
+          } catch (eventError) {
+            appLogger.business("Failed to log REPORT_DOWNLOADED event:", eventError);
+          }
+        }
       }
     } catch (error) {
       appLogger.business("Failed to create report document record:", error);

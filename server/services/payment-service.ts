@@ -8,6 +8,7 @@ import { onboardingNotificationService } from './onboardingNotificationService';
 import { eastEmblemAPI } from '../eastemblem-api.js';
 import { EmailService } from './emailService.js';
 import { CurrencyService } from './currency-service.js';
+import { COACH_EVENTS } from '../../shared/config/coach-events.js';
 
 // Legacy currency conversion methods - now using CurrencyService for live rates
 class CurrencyConverter {
@@ -1097,6 +1098,28 @@ ${statusEmoji} **${statusText}**
       { founderId: transaction.founderId },
       activityData
     );
+
+    // Emit DEAL_ROOM_PURCHASED event for successful Deal Room purchases
+    if (newStatus === 'completed' && purpose && 
+        (purpose.toLowerCase().includes('deal room') || purpose.toLowerCase().includes('deal_room'))) {
+      await ActivityService.logActivity(
+        { founderId: transaction.founderId },
+        {
+          activityType: 'venture' as const,
+          action: COACH_EVENTS.DEAL_ROOM_PURCHASED,
+          title: 'Deal Room Access Purchased',
+          description: 'Successfully purchased Deal Room access - ready for investor matching',
+          metadata: {
+            ...baseMetadata,
+            milestone: 'deal_room_unlocked'
+          }
+        }
+      );
+      appLogger.business('DEAL_ROOM_PURCHASED event logged', {
+        founderId: transaction.founderId,
+        orderReference: transaction.orderReference
+      });
+    }
 
     appLogger.business(`Payment activity logged: ${activityData.action}`, {
       founderId: transaction.founderId,

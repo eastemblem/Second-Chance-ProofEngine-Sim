@@ -4,6 +4,8 @@ import { databaseService } from '../../services/database-service';
 import { lruCacheService } from '../../services/lru-cache-service';
 import { appLogger } from '../../utils/logger';
 import { authenticateToken } from '../../middleware/token-auth';
+import { ActivityService } from '../../services/activity-service';
+import { COACH_EVENTS } from '../../../shared/config/coach-events';
 
 const router = Router();
 
@@ -40,6 +42,23 @@ router.get('/validation', asyncHandler(async (req: Request, res: Response) => {
   
   try {
     appLogger.api(`📡 VALIDATION API: Fetching data for founder ${founderId}`);
+    
+    // Emit DASHBOARD_VISITED event for ProofCoach tracking
+    try {
+      await ActivityService.logActivity(
+        { founderId },
+        {
+          activityType: 'venture',
+          action: COACH_EVENTS.DASHBOARD_VISITED,
+          title: 'Dashboard Visited',
+          description: 'Accessed ProofCoach dashboard',
+          metadata: { timestamp: new Date().toISOString() }
+        }
+      );
+    } catch (eventError) {
+      appLogger.api('Failed to log DASHBOARD_VISITED event:', eventError);
+      // Don't fail the request if event logging fails
+    }
     
     const dashboardData = await databaseService.getFounderWithLatestVenture(founderId);
     if (!dashboardData) {

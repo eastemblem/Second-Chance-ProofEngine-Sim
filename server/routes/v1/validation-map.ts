@@ -72,6 +72,25 @@ router.get(
   "/",
   asyncHandler(async (req: Request, res: Response) => {
     const founderId = (req as AuthenticatedRequest).user?.founderId;
+    
+    // Emit VALIDATION_MAP_VIEWED event for ProofCoach tracking
+    if (founderId) {
+      try {
+        await ActivityService.logActivity(
+          { founderId },
+          {
+            activityType: 'validation',
+            action: COACH_EVENTS.VALIDATION_MAP_VIEWED,
+            title: 'Validation Map Viewed',
+            description: 'Accessed validation map interface',
+            metadata: { timestamp: new Date().toISOString() }
+          }
+        );
+      } catch (eventError) {
+        appLogger.error('Failed to log VALIDATION_MAP_VIEWED event:', eventError);
+        // Don't fail the request if event logging fails
+      }
+    }
 
     if (!founderId) {
       return res.status(401).json({
