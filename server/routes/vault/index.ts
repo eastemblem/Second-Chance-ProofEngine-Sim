@@ -119,11 +119,11 @@ router.post("/upload",
     return res.status(400).json({ error: "No file uploaded" });
   }
 
-  const { category } = req.body;
+  const { category, folder_id } = req.body;
   const sessionId = getSessionId(req);
   const founderId = req.session?.founderId || 'unknown';
 
-  console.log(`📤 VAULT UPLOAD: Processing file ${req.file.originalname} for category ${category}`);
+  console.log(`📤 VAULT UPLOAD: Processing file ${req.file.originalname} for category ${category}, folder_id: ${folder_id || 'not provided'}`);
 
   try {
     // Get session data for folder and context
@@ -131,11 +131,13 @@ router.post("/upload",
     const ventureId = sessionData?.founderData?.ventureId || 'unknown';
 
     // Use business logic service for file upload processing
+    // Pass folder_id if provided, otherwise service will use category lookup
     const uploadResult = await businessLogicService.processFileUpload(
       req.file,
       category,
       founderId,
-      sessionId
+      sessionId,
+      folder_id
     );
 
     console.log(`✅ VAULT UPLOAD: File uploaded successfully`, uploadResult);
@@ -239,24 +241,31 @@ router.post("/upload-multiple", vaultUpload.array("files", 10), asyncHandler(asy
     return res.status(400).json({ error: "No files uploaded" });
   }
 
-  const { category } = req.body;
+  const { category, folder_id } = req.body;
   const sessionId = getSessionId(req);
   const founderId = req.session?.founderId || 'unknown';
 
-  console.log(`📤 VAULT MULTIPLE UPLOAD: Processing ${req.files.length} files for category ${category}`);
+  console.log(`📤 VAULT MULTIPLE UPLOAD: Processing ${req.files.length} files for category ${category}, folder_id: ${folder_id || 'not provided'}`);
 
   try {
     const sessionData = await getSessionData(sessionId);
     const ventureId = sessionData?.founderData?.ventureId || 'unknown';
 
-    if (!sessionData?.folderStructure) {
-      throw new Error("Folder structure not found in session");
-    }
-
-    const folderId = getCategoryFolderId(category, sessionData);
-
-    if (!folderId) {
-      throw new Error(`Invalid category: ${category}`);
+    // Use provided folder_id if available, otherwise fall back to category lookup
+    let folderId: string;
+    if (folder_id) {
+      folderId = folder_id;
+      console.log(`📁 Using provided folder_id: ${folderId} for batch upload`);
+    } else {
+      if (!sessionData?.folderStructure) {
+        throw new Error("Folder structure not found in session");
+      }
+      folderId = getCategoryFolderId(category, sessionData);
+      console.log(`📁 Using category-based folder_id: ${folderId} for category: ${category}`);
+      
+      if (!folderId) {
+        throw new Error(`Invalid category: ${category}`);
+      }
     }
 
     const results = [];

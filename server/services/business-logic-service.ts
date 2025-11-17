@@ -31,7 +31,7 @@ export class BusinessLogicService {
   }
 
   // File upload business logic
-  async processFileUpload(file: any, category: string, founderId: string, sessionId: string) {
+  async processFileUpload(file: any, category: string, founderId: string, sessionId: string, providedFolderId?: string) {
     // Business rule: Validate file type based on category
     const allowedTypes = this.getAllowedFileTypes(category);
     if (!allowedTypes.includes(file.mimetype)) {
@@ -55,8 +55,17 @@ export class BusinessLogicService {
     // Upload with retry logic and circuit breaker
     return await retryWithBackoff(async () => {
       return await circuitBreakers.eastEmblem.execute(async () => {
-        const sessionData = await this.getSessionData(sessionId);
-        const folderId = this.getCategoryFolderId(category, sessionData);
+        let folderId: string;
+        
+        // Use provided folder_id if available, otherwise fall back to category lookup
+        if (providedFolderId) {
+          folderId = providedFolderId;
+          console.log(`📁 Using provided folder_id: ${folderId} for file: ${file.originalname}`);
+        } else {
+          const sessionData = await this.getSessionData(sessionId);
+          folderId = this.getCategoryFolderId(category, sessionData);
+          console.log(`📁 Using category-based folder_id: ${folderId} for category: ${category}, file: ${file.originalname}`);
+        }
 
         return await eastEmblemAPI.uploadFile(file.path, file.originalname, folderId);
       });
