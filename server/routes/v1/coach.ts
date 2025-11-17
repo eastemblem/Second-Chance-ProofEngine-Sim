@@ -7,6 +7,7 @@ import { asyncHandler } from "../../utils/error-handler";
 import { eq } from "drizzle-orm";
 import { appLogger } from "../../utils/logger";
 import { databaseService } from "../../services/database-service";
+import { CoachProgressService } from "../../services/coach-progress-service";
 
 const router = Router();
 
@@ -346,8 +347,8 @@ router.get(
 
     const ventureId = dashboardData.venture.ventureId;
 
-    // Fetch aggregated progress metrics
-    const progressData = await databaseService.getCoachProgress(ventureId, founderId);
+    // Calculate progress from user_activity events
+    const progressData = await CoachProgressService.calculateProgress(founderId, ventureId);
 
     if (!progressData) {
       return res.status(404).json({
@@ -356,9 +357,51 @@ router.get(
       });
     }
 
+    appLogger.info(`[ProofCoach] Progress calculated from user activities for founder: ${founderId}`);
+
     return res.json({
       success: true,
       data: progressData,
+    });
+  })
+);
+
+// Recalculate and persist coach progress (for testing/debugging)
+router.post(
+  "/recalculate-progress",
+  authenticateToken,
+  asyncHandler(async (req: AuthenticatedRequest, res) => {
+    const founderId = req.user?.founderId;
+
+    if (!founderId) {
+      return res.status(401).json({
+        success: false,
+        error: "Authentication required",
+      });
+    }
+
+    appLogger.info(`[ProofCoach] Recalculating progress for founder: ${founderId}`);
+
+    // Get founder's latest venture
+    const dashboardData = await databaseService.getFounderWithLatestVenture(founderId);
+    if (!dashboardData || !dashboardData.venture) {
+      return res.status(404).json({
+        success: false,
+        error: "No venture found. Please complete onboarding first.",
+      });
+    }
+
+    const ventureId = dashboardData.venture.ventureId;
+
+    // Recalculate and save progress
+    const progressData = await CoachProgressService.recalculateAndSave(founderId, ventureId);
+
+    appLogger.info(`[ProofCoach] Progress recalculated and saved for founder: ${founderId}`);
+
+    return res.json({
+      success: true,
+      data: progressData,
+      message: "Progress recalculated and saved successfully",
     });
   })
 );
