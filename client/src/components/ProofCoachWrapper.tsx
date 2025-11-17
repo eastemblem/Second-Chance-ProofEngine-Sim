@@ -102,7 +102,7 @@ export default function ProofCoachWrapper({
             isMinimized={isMinimized}
             onMinimize={minimize}
             onExpand={expand}
-            onClose={dismiss}
+            onClose={minimize}
             proofScore={(venture as any)?.proofScore || 0}
             vaultScore={(venture as any)?.vaultScore || 0}
             growthStage={venture?.growthStage || undefined}
