@@ -176,7 +176,7 @@ export default function VentureOnboarding({
           <div>
             <Label htmlFor="geography">Geography *</Label>
             <Select onValueChange={(value) => form.setValue("geography", value)}>
-              <SelectTrigger className="mt-1" data-testid="input-target-market">
+              <SelectTrigger className="mt-1" data-testid="select-geography">
                 <SelectValue placeholder="Select geography" />
               </SelectTrigger>
               <SelectContent>

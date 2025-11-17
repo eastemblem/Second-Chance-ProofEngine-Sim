@@ -541,6 +541,7 @@ export default function NextSteps() {
                         onClick={handlePayment}
                         className="bg-primary hover:bg-primary/90 text-primary-foreground px-8 py-6 text-lg font-semibold rounded-lg transition-all duration-300 transform hover:scale-105 shadow-lg"
                         size="lg"
+                        data-testid="button-get-started-payment"
                       >
                         <CreditCard className="w-5 h-5 mr-2" />
                         {isLoadingCurrency ? (
@@ -607,7 +608,7 @@ export default function NextSteps() {
                       <p className="text-purple-200 font-medium mb-1">What if I'm not satisfied?</p>
                       <p className="text-purple-300">30-day money-back guarantee</p>
                     </div>
-                    <div className="text-center">
+                    <div className="text-center" data-testid="email-confirmation-message">
                       <p className="text-purple-200 font-medium mb-1">How do I access content?</p>
                       <p className="text-purple-300">Instant email with access links</p>
                     </div>

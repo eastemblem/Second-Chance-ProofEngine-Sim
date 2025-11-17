@@ -645,6 +645,7 @@ export default function TeamOnboarding({
                         {...form.register("twitterUrl")}
                         placeholder="Twitter URL"
                         className="pl-10"
+                        data-testid="input-team-twitter"
                       />
                     </div>
                     <div className="relative">
@@ -655,6 +656,7 @@ export default function TeamOnboarding({
                         {...form.register("instagramUrl")}
                         placeholder="Instagram URL"
                         className="pl-10"
+                        data-testid="input-team-instagram"
                       />
                     </div>
                     <div className="relative">
@@ -665,6 +667,7 @@ export default function TeamOnboarding({
                         {...form.register("githubUrl")}
                         placeholder="GitHub URL"
                         className="pl-10"
+                        data-testid="input-team-github"
                       />
                     </div>
                   </div>
@@ -681,12 +684,13 @@ export default function TeamOnboarding({
                       placeholder="30"
                       min="18"
                       max="100"
+                      data-testid="input-team-age"
                     />
                   </div>
                   <div>
                     <Label htmlFor="gender">Gender</Label>
                     <Select onValueChange={(value) => form.setValue("gender", value)}>
-                      <SelectTrigger className="mt-1">
+                      <SelectTrigger className="mt-1" data-testid="select-team-gender">
                         <SelectValue placeholder="Select gender" />
                       </SelectTrigger>
                       <SelectContent>
@@ -706,6 +710,7 @@ export default function TeamOnboarding({
                     {...form.register("background")}
                     className="mt-1"
                     placeholder="Additional background information"
+                    data-testid="input-team-background"
                   />
                 </div>
 
@@ -715,6 +720,7 @@ export default function TeamOnboarding({
                     id="isCofounder"
                     {...form.register("isCofounder")}
                     className="rounded"
+                    data-testid="checkbox-team-is-cofounder"
                   />
                   <Label htmlFor="isCofounder">This person is a co-founder</Label>
                 </div>

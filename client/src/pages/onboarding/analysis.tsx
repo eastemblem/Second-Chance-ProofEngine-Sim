@@ -1489,6 +1489,7 @@ export default function Analysis({
                   animate={{ opacity: 1, x: 0 }}
                   transition={{ delay: 1.2, duration: 0.6 }}
                   className="space-y-3"
+                  data-testid="key-insights-section"
                 >
                   <h3 className="text-lg font-semibold mb-4 bg-gradient-to-r from-violet-400 to-amber-400 bg-clip-text text-transparent flex items-center gap-2">
                     <div className="p-1.5 rounded-lg bg-gradient-to-r from-violet-500 to-amber-500 shadow-lg">
@@ -1576,6 +1577,7 @@ export default function Analysis({
                   initial={{ opacity: 0, x: 20 }}
                   animate={{ opacity: 1, x: 0 }}
                   transition={{ delay: 1.0, duration: 0.6 }}
+                  data-testid="leaderboard-section"
                 >
                   <Leaderboard currentVentureName={ventureName} />
                 </motion.div>
@@ -1602,7 +1604,7 @@ export default function Analysis({
                 }}
                 className="gradient-button px-6 sm:px-8 py-4 sm:px-6 text-base sm:text-lg w-full sm:w-auto min-h-[48px] mb-4"
                 size="lg"
-                data-testid="button-go-dashboard"
+                data-testid="button-see-my-pathway"
               >
                 See My Pathway
                 <ArrowRight className="ml-2 w-4 h-4 sm:w-5 sm:h-5" />
