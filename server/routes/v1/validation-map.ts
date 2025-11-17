@@ -848,6 +848,14 @@ router.post(
         description: 'Completed 3 validation experiments',
         metadata: { completedCount: 3 },
       });
+    } else if (completedCount === 5) {
+      await ActivityService.logActivity(context, {
+        activityType: 'evaluation',
+        action: COACH_EVENTS.FIVE_EXPERIMENTS_COMPLETED,
+        title: '5 Experiments Completed',
+        description: 'Completed 5 validation experiments',
+        metadata: { completedCount: 5 },
+      });
     }
 
     res.json(

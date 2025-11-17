@@ -31,6 +31,7 @@ export const COACH_EVENTS = {
   EXPERIMENT_COMPLETED: 'experiment_completed',
   FIRST_EXPERIMENT_COMPLETED: 'first_experiment_completed',
   THREE_EXPERIMENTS_COMPLETED: 'three_experiments_completed',
+  FIVE_EXPERIMENTS_COMPLETED: 'five_experiments_completed',
   
   // Score & Analysis
   PROOFSCORE_RECEIVED: 'proofscore_received',
@@ -66,6 +67,9 @@ export const JOURNEY_STEP_COMPLETION_EVENTS: Record<number, string[]> = {
   10: [COACH_EVENTS.VALIDATION_CSV_UPLOADED], // Upload CSV to vault
   11: [COACH_EVENTS.VAULT_20_FILES_UPLOADED], // Upload 20 files
   12: [COACH_EVENTS.VAULT_30_FILES_UPLOADED], // Upload 30 files
+  14: [COACH_EVENTS.FIRST_EXPERIMENT_COMPLETED], // Step 14: Complete first validation experiment
+  15: [COACH_EVENTS.THREE_EXPERIMENTS_COMPLETED], // Step 15: Complete 3 validation experiments
+  27: [COACH_EVENTS.FIVE_EXPERIMENTS_COMPLETED], // Step 27: Complete 5 validation experiments
   // Additional steps mapped as needed
 };
 

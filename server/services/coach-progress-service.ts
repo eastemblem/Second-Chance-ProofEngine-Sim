@@ -43,6 +43,7 @@ export class CoachProgressService {
         completedExperimentsCount: 0,
         hasCompletedExperiment: false,
         hasCompleted3Experiments: false,
+        hasCompleted5Experiments: false,
         firstExperimentCompletedAt: null as Date | null,
         
         // ProofVault uploads
@@ -115,6 +116,10 @@ export class CoachProgressService {
         
         if (action === COACH_EVENTS.THREE_EXPERIMENTS_COMPLETED) {
           progress.hasCompleted3Experiments = true;
+        }
+        
+        if (action === COACH_EVENTS.FIVE_EXPERIMENTS_COMPLETED) {
+          progress.hasCompleted5Experiments = true;
         }
         
         // ProofVault uploads
