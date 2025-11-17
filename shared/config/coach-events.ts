@@ -19,6 +19,7 @@ export const COACH_EVENTS = {
   VAULT_10_FILES_UPLOADED: 'vault_10_files_uploaded',
   VAULT_20_FILES_UPLOADED: 'vault_20_files_uploaded',
   VAULT_30_FILES_UPLOADED: 'vault_30_files_uploaded',
+  VAULT_50_FILES_UPLOADED: 'vault_50_files_uploaded',
   VAULT_SCORE_UPDATED: 'vault_score_updated',
   
   // Validation Map & Experiments
@@ -37,6 +38,9 @@ export const COACH_EVENTS = {
   PROOFSCORE_RECEIVED: 'proofscore_received',
   PROOFSCORE_VIEWED: 'proofscore_viewed',
   SCORE_IMPROVED: 'score_improved',
+  PROOFSCORE_65_REACHED: 'proofscore_65_reached',
+  PROOFSCORE_70_REACHED: 'proofscore_70_reached',
+  PROOFSCORE_80_REACHED: 'proofscore_80_reached',
   
   // Deal Room & Payment
   DEAL_ROOM_VIEWED: 'deal_room_viewed',
@@ -46,6 +50,7 @@ export const COACH_EVENTS = {
   // Community & Downloads
   COMMUNITY_ACCESSED: 'community_accessed',
   REPORT_DOWNLOADED: 'report_downloaded',
+  CERTIFICATE_DOWNLOADED: 'certificate_downloaded',
   FILE_DOWNLOADED: 'file_downloaded',
 } as const;
 
@@ -67,10 +72,24 @@ export const JOURNEY_STEP_COMPLETION_EVENTS: Record<number, string[]> = {
   10: [COACH_EVENTS.VALIDATION_CSV_UPLOADED], // Upload CSV to vault
   11: [COACH_EVENTS.VAULT_20_FILES_UPLOADED], // Upload 20 files
   12: [COACH_EVENTS.VAULT_30_FILES_UPLOADED], // Upload 30 files
+  13: [COACH_EVENTS.VAULT_10_FILES_UPLOADED], // Step 13: Upload 10 files
   14: [COACH_EVENTS.FIRST_EXPERIMENT_COMPLETED], // Step 14: Complete first validation experiment
   15: [COACH_EVENTS.THREE_EXPERIMENTS_COMPLETED], // Step 15: Complete 3 validation experiments
+  16: [COACH_EVENTS.VALIDATION_MAP_EXPORTED], // Step 16: Export Validation Map CSV
+  17: [COACH_EVENTS.VALIDATION_CSV_UPLOADED], // Step 17: Upload CSV to ProofVault
+  18: [COACH_EVENTS.VAULT_20_FILES_UPLOADED], // Step 18: Upload 20 total files
+  19: [COACH_EVENTS.PROOFSCORE_65_REACHED], // Step 19: Reach ProofScore 65+
+  20: [COACH_EVENTS.VAULT_30_FILES_UPLOADED], // Step 20: Upload 30 total files
+  21: [COACH_EVENTS.PROOFSCORE_70_REACHED], // Step 21: Reach ProofScore 70+
+  22: [COACH_EVENTS.PROOFSCORE_70_REACHED], // Step 22: Explore Deal Room (unlocks at 70+)
+  23: [COACH_EVENTS.DEAL_ROOM_PURCHASED], // Step 23: Complete Payment
+  24: [COACH_EVENTS.CERTIFICATE_DOWNLOADED], // Step 24: Download Certificate
+  25: [COACH_EVENTS.REPORT_DOWNLOADED], // Step 25: Download Report
+  26: [COACH_EVENTS.COMMUNITY_ACCESSED], // Step 26: Access Community
   27: [COACH_EVENTS.FIVE_EXPERIMENTS_COMPLETED], // Step 27: Complete 5 validation experiments
-  // Additional steps mapped as needed
+  28: [COACH_EVENTS.PROOFSCORE_80_REACHED], // Step 28: Reach ProofScore 80+
+  29: [COACH_EVENTS.VAULT_50_FILES_UPLOADED], // Step 29: Upload 50 total files
+  30: [COACH_EVENTS.PROOFSCORE_80_REACHED], // Step 30: Investment Ready (80+ score)
 };
 
 /**

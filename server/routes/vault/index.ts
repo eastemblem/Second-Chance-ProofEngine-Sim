@@ -12,6 +12,9 @@ import { cleanupUploadedFile } from "../../utils/file-cleanup";
 import { ActivityService } from "../../services/activity-service";
 import { COACH_EVENTS } from "../../../shared/config/coach-events";
 import { storage } from "../../storage";
+import { db } from "../../db";
+import { userActivity } from "../../../shared/schema";
+import { and, eq } from "drizzle-orm";
 
 const router = express.Router();
 
@@ -181,42 +184,62 @@ router.post("/upload",
     }
 
     // Check upload milestones if we have a valid venture ID
-    if (ventureId !== 'unknown') {
+    if (ventureId !== 'unknown' && founderId) {
       const allUploads = await storage.getDocumentUploadsByVentureId(ventureId);
       const uploadCount = allUploads?.length || 0;
 
-      // Emit milestone events
-      if (uploadCount === 1) {
+      // Helper to check if milestone already logged
+      const hasMilestone = async (action: string) => {
+        const activities = await db.select()
+          .from(userActivity)
+          .where(and(
+            eq(userActivity.founderId, founderId),
+            eq(userActivity.action, action)
+          ))
+          .limit(1);
+        return activities.length > 0;
+      };
+
+      // Emit milestone events with duplicate prevention
+      if (uploadCount >= 50 && !(await hasMilestone(COACH_EVENTS.VAULT_50_FILES_UPLOADED))) {
         await ActivityService.logActivity(context, {
           activityType: 'document',
-          action: COACH_EVENTS.VAULT_FIRST_UPLOAD,
-          title: 'First ProofVault Upload',
-          description: 'Completed your first upload to ProofVault',
-          metadata: { uploadCount: 1 },
+          action: COACH_EVENTS.VAULT_50_FILES_UPLOADED,
+          title: '50 Files Uploaded',
+          description: 'Reached 50 files in ProofVault - Comprehensive proof vault milestone!',
+          metadata: { uploadCount },
         });
-      } else if (uploadCount === 10) {
-        await ActivityService.logActivity(context, {
-          activityType: 'document',
-          action: COACH_EVENTS.VAULT_10_FILES_UPLOADED,
-          title: '10 Files Uploaded',
-          description: 'Reached 10 files in ProofVault',
-          metadata: { uploadCount: 10 },
-        });
-      } else if (uploadCount === 20) {
-        await ActivityService.logActivity(context, {
-          activityType: 'document',
-          action: COACH_EVENTS.VAULT_20_FILES_UPLOADED,
-          title: '20 Files Uploaded',
-          description: 'Reached 20 files in ProofVault',
-          metadata: { uploadCount: 20 },
-        });
-      } else if (uploadCount === 30) {
+      } else if (uploadCount >= 30 && !(await hasMilestone(COACH_EVENTS.VAULT_30_FILES_UPLOADED))) {
         await ActivityService.logActivity(context, {
           activityType: 'document',
           action: COACH_EVENTS.VAULT_30_FILES_UPLOADED,
           title: '30 Files Uploaded',
           description: 'Reached 30 files in ProofVault',
-          metadata: { uploadCount: 30 },
+          metadata: { uploadCount },
+        });
+      } else if (uploadCount >= 20 && !(await hasMilestone(COACH_EVENTS.VAULT_20_FILES_UPLOADED))) {
+        await ActivityService.logActivity(context, {
+          activityType: 'document',
+          action: COACH_EVENTS.VAULT_20_FILES_UPLOADED,
+          title: '20 Files Uploaded',
+          description: 'Reached 20 files in ProofVault',
+          metadata: { uploadCount },
+        });
+      } else if (uploadCount >= 10 && !(await hasMilestone(COACH_EVENTS.VAULT_10_FILES_UPLOADED))) {
+        await ActivityService.logActivity(context, {
+          activityType: 'document',
+          action: COACH_EVENTS.VAULT_10_FILES_UPLOADED,
+          title: '10 Files Uploaded',
+          description: 'Reached 10 files in ProofVault',
+          metadata: { uploadCount },
+        });
+      } else if (uploadCount >= 1 && !(await hasMilestone(COACH_EVENTS.VAULT_FIRST_UPLOAD))) {
+        await ActivityService.logActivity(context, {
+          activityType: 'document',
+          action: COACH_EVENTS.VAULT_FIRST_UPLOAD,
+          title: 'First ProofVault Upload',
+          description: 'Completed your first upload to ProofVault',
+          metadata: { uploadCount },
         });
       }
     }

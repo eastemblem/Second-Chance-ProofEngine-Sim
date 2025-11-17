@@ -55,11 +55,15 @@ export class CoachProgressService {
         has10Uploads: false,
         has20Uploads: false,
         has30Uploads: false,
+        has50Uploads: false,
         
         // Scores
         proofScore: 0,
         vaultScore: 0,
         latestProofScoreAt: null as Date | null,
+        hasReached65Score: false,
+        hasReached70Score: false,
+        hasReached80Score: false,
         
         // Validation Map
         validationMapExported: false,
@@ -73,6 +77,8 @@ export class CoachProgressService {
         
         // Community
         hasAccessedCommunityOrDownloads: false,
+        hasCertificateDownloaded: false,
+        hasReportDownloaded: false,
         
         // Journey steps completion
         completedSteps: [] as number[],
@@ -156,10 +162,26 @@ export class CoachProgressService {
           progress.has30Uploads = true;
         }
         
+        if (action === COACH_EVENTS.VAULT_50_FILES_UPLOADED) {
+          progress.has50Uploads = true;
+        }
+        
         // Scores
         if (action === COACH_EVENTS.PROOFSCORE_RECEIVED && metadata?.proofScore) {
           progress.proofScore = metadata.proofScore;
           progress.latestProofScoreAt = activity.createdAt;
+        }
+        
+        if (action === COACH_EVENTS.PROOFSCORE_65_REACHED) {
+          progress.hasReached65Score = true;
+        }
+        
+        if (action === COACH_EVENTS.PROOFSCORE_70_REACHED) {
+          progress.hasReached70Score = true;
+        }
+        
+        if (action === COACH_EVENTS.PROOFSCORE_80_REACHED) {
+          progress.hasReached80Score = true;
         }
         
         if (action === COACH_EVENTS.VAULT_SCORE_UPDATED && metadata?.vaultScore) {
@@ -183,11 +205,19 @@ export class CoachProgressService {
           progress.dealRoomPurchasedAt = activity.createdAt;
         }
         
-        // Community
+        // Community & Downloads
         if (action === COACH_EVENTS.COMMUNITY_ACCESSED || 
             action === COACH_EVENTS.REPORT_DOWNLOADED || 
             action === COACH_EVENTS.FILE_DOWNLOADED) {
           progress.hasAccessedCommunityOrDownloads = true;
+        }
+        
+        if (action === COACH_EVENTS.CERTIFICATE_DOWNLOADED) {
+          progress.hasCertificateDownloaded = true;
+        }
+        
+        if (action === COACH_EVENTS.REPORT_DOWNLOADED) {
+          progress.hasReportDownloaded = true;
         }
       }
       

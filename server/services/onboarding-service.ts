@@ -1169,6 +1169,70 @@ export class OnboardingService {
                 }
               );
               console.log(`✓ Logged PROOFSCORE_RECEIVED event for founder ${founderId}`);
+              
+              // Emit ProofScore milestone events based on thresholds with duplicate prevention
+              // Helper to check if milestone already logged
+              const hasMilestone = async (action: string) => {
+                const activities = await db
+                  .select()
+                  .from(userActivity)
+                  .where(
+                    and(
+                      eq(userActivity.founderId, founderId),
+                      eq(userActivity.action, action)
+                    )
+                  )
+                  .limit(1);
+                return activities.length > 0;
+              };
+
+              if (totalScore >= 80 && !(await hasMilestone(COACH_EVENTS.PROOFSCORE_80_REACHED))) {
+                await ActivityService.logActivity(
+                  { founderId, ventureId: venture.ventureId },
+                  {
+                    activityType: 'venture',
+                    action: COACH_EVENTS.PROOFSCORE_80_REACHED,
+                    title: 'ProofScore Milestone: 80+ Reached',
+                    description: `Achieved ProofScore of ${totalScore}, reaching investment-ready threshold`,
+                    metadata: { proofScore: totalScore },
+                    entityId: venture.ventureId,
+                    entityType: 'venture',
+                  }
+                );
+                console.log(`✓ Logged PROOFSCORE_80_REACHED milestone for founder ${founderId}`);
+              }
+              
+              if (totalScore >= 70 && !(await hasMilestone(COACH_EVENTS.PROOFSCORE_70_REACHED))) {
+                await ActivityService.logActivity(
+                  { founderId, ventureId: venture.ventureId },
+                  {
+                    activityType: 'venture',
+                    action: COACH_EVENTS.PROOFSCORE_70_REACHED,
+                    title: 'ProofScore Milestone: 70+ Reached',
+                    description: `Achieved ProofScore of ${totalScore}, unlocking Deal Room access`,
+                    metadata: { proofScore: totalScore },
+                    entityId: venture.ventureId,
+                    entityType: 'venture',
+                  }
+                );
+                console.log(`✓ Logged PROOFSCORE_70_REACHED milestone for founder ${founderId}`);
+              }
+              
+              if (totalScore >= 65 && !(await hasMilestone(COACH_EVENTS.PROOFSCORE_65_REACHED))) {
+                await ActivityService.logActivity(
+                  { founderId, ventureId: venture.ventureId },
+                  {
+                    activityType: 'venture',
+                    action: COACH_EVENTS.PROOFSCORE_65_REACHED,
+                    title: 'ProofScore Milestone: 65+ Reached',
+                    description: `Achieved ProofScore of ${totalScore}, 80% match with investors`,
+                    metadata: { proofScore: totalScore },
+                    entityId: venture.ventureId,
+                    entityType: 'venture',
+                  }
+                );
+                console.log(`✓ Logged PROOFSCORE_65_REACHED milestone for founder ${founderId}`);
+              }
             } catch (eventError) {
               console.error("Failed to log PROOFSCORE_RECEIVED event:", eventError);
               // Don't fail the entire process if event logging fails
