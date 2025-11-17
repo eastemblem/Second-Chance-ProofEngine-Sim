@@ -476,8 +476,8 @@ export class DatabaseService {
         // Get coach state for dashboard tutorial completion
         db
           .select()
-          .from(require("@shared/schema").coachState)
-          .where(eq(require("@shared/schema").coachState.founderId, founderId))
+          .from(coachState)
+          .where(eq(coachState.founderId, founderId))
           .limit(1)
       ]);
 
