@@ -114,6 +114,23 @@ export function ProofCoachProvider({ children }: ProofCoachProviderProps) {
     localStorage.setItem(`${flagKey}${user.founderId}`, String(value));
   }, [user?.founderId]);
 
+  // Load state from localStorage on initial render
+  const [localState, setLocalState] = useState<Partial<CoachState>>(() => {
+    if (typeof window === 'undefined') return {};
+    
+    const storageKey = user?.founderId ? `${COACH_STATE_KEY_PREFIX}${user.founderId}` : COACH_STATE_KEY_ANON;
+    const cached = localStorage.getItem(storageKey);
+    if (cached) {
+      try {
+        return JSON.parse(cached);
+      } catch (error) {
+        console.error("Failed to parse cached coach state", error);
+        return {};
+      }
+    }
+    return {};
+  });
+
   // Merge server-side progress with client-side flags
   const ventureProgress: VentureProgressData | null = serverProgress ? {
     // Backend-provided metrics
@@ -136,23 +153,6 @@ export function ProofCoachProvider({ children }: ProofCoachProviderProps) {
     // Metadata
     lastRefreshed: Date.now(),
   } : null;
-
-  // Load state from localStorage on initial render
-  const [localState, setLocalState] = useState<Partial<CoachState>>(() => {
-    if (typeof window === 'undefined') return {};
-    
-    const storageKey = user?.founderId ? `${COACH_STATE_KEY_PREFIX}${user.founderId}` : COACH_STATE_KEY_ANON;
-    const cached = localStorage.getItem(storageKey);
-    if (cached) {
-      try {
-        return JSON.parse(cached);
-      } catch (error) {
-        console.error("Failed to parse cached coach state", error);
-        return {};
-      }
-    }
-    return {};
-  });
 
   // Helper function to persist state to localStorage
   const persistState = useCallback((newState: Partial<CoachState>) => {
