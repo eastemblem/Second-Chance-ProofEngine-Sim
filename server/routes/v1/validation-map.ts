@@ -862,4 +862,54 @@ router.post(
   })
 );
 
+// POST /api/validation-map/export - Track CSV export event
+router.post(
+  "/export",
+  asyncHandler(async (req: Request, res: Response) => {
+    const founderId = (req as AuthenticatedRequest).user?.founderId;
+
+    if (!founderId) {
+      return res.status(401).json({
+        success: false,
+        error: "Authentication required",
+      });
+    }
+
+    // Get founder's venture
+    const dashboardData = await databaseService.getFounderWithLatestVenture(founderId);
+    if (!dashboardData || !dashboardData.venture) {
+      return res.status(404).json({
+        success: false,
+        error: "No venture found",
+      });
+    }
+
+    const ventureId = dashboardData.venture.ventureId;
+
+    // Track coach event: validation map exported
+    const context = {
+      founderId,
+      ventureId,
+      sessionId: 'api-session',
+      ipAddress: (req as any).ip || null,
+      userAgent: (req as any).get?.('User-Agent') || null,
+    };
+
+    await ActivityService.logActivity(context, {
+      activityType: 'navigation',
+      action: COACH_EVENTS.VALIDATION_MAP_EXPORTED,
+      title: 'Exported Validation Map',
+      description: 'Exported validation experiments to CSV',
+      metadata: {
+        format: 'csv',
+        exportedAt: new Date().toISOString(),
+      },
+    });
+
+    appLogger.info(`✅ CSV EXPORT: Tracked export event for venture ${ventureId}`);
+
+    res.json(createSuccessResponse({}, "Export tracked successfully"));
+  })
+);
+
 export default router;

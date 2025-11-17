@@ -553,7 +553,7 @@ export default function ValidationMap() {
     setModalConfig(null);
   };
 
-  const handleExportCSV = () => {
+  const handleExportCSV = async () => {
     if (completedCount < 3) {
       toast({
         title: "Export unavailable",
@@ -570,6 +570,17 @@ export default function ValidationMap() {
         variant: "destructive",
       });
       return;
+    }
+
+    // Track the export event for coach progress
+    try {
+      await fetch("/api/v1/validation-map/export", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+      });
+    } catch (error) {
+      console.warn("Failed to track export event:", error);
+      // Continue with export even if tracking fails
     }
 
     const headers = [
