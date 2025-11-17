@@ -1,14 +1,15 @@
 import { useState, useEffect, useCallback, useRef } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { X, Minimize2, Maximize2, Sparkles, ChevronLeft, ChevronRight, ArrowRight, BookOpen } from "lucide-react";
+import { X, Minimize2, Maximize2, Sparkles, ChevronLeft, ChevronRight, ArrowRight, BookOpen, CheckCircle2, Circle } from "lucide-react";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { Progress } from "@/components/ui/progress";
 import { useLocation } from "wouter";
 import confetti from "canvas-confetti";
 import type { JourneyStep, TutorialMechanic } from "../../../shared/config/coach-journey";
 import { COACH_JOURNEY_STEPS, getTutorialsForPage } from "../../../shared/config/coach-journey";
+import { useProofCoach } from "@/contexts/ProofCoachContext";
+import { Checkbox } from "@/components/ui/checkbox";
 
 export interface ProofCoachProps {
   // Journey system
@@ -60,7 +61,11 @@ export default function ProofCoach({
   const [highlightedElement, setHighlightedElement] = useState<HTMLElement | null>(null);
   const [isHydrated, setIsHydrated] = useState(false);
   const [isCompletingTutorial, setIsCompletingTutorial] = useState(false);
+  const [showAllCompleted, setShowAllCompleted] = useState(false);
   const lastConfettiStep = useRef<string | null>(null);
+  
+  // Get context functions
+  const { isStepCriteriaMetByBackend } = useProofCoach();
   
   // Get current journey step data
   const journeyStep = COACH_JOURNEY_STEPS[currentStep] || COACH_JOURNEY_STEPS[0];
@@ -224,34 +229,36 @@ export default function ProofCoach({
     setTimeout(() => setIsCompletingTutorial(false), 200);
   };
 
-  // Journey navigation
-  const handleAction = () => {
-    if (journeyStep.route) {
-      setLocation(journeyStep.route);
+  // Journey navigation - navigate to todo route
+  const handleTodoClick = (step: JourneyStep) => {
+    if (step.route) {
+      setLocation(step.route);
     }
-    onStepAction(journeyStep.id);
+    onStepAction(step.id);
   };
 
-  const handleCompleteStep = () => {
-    onStepComplete(journeyStep.id);
-  };
-
-  // Calculate progress
-  const progress = (completedSteps.length / COACH_JOURNEY_STEPS.length) * 100;
-
-  // Get personalized message based on score
-  const getPersonalizedMessage = (): string => {
-    if (journeyStep.scoreThreshold) {
-      if (proofScore < (journeyStep.scoreThreshold.low?.max || 0)) {
-        return journeyStep.scoreThreshold.low?.message || journeyStep.coachGuidance.intro;
-      } else if (proofScore >= (journeyStep.scoreThreshold.high?.min || 100)) {
-        return journeyStep.scoreThreshold.high?.message || journeyStep.coachGuidance.intro;
-      } else if (journeyStep.scoreThreshold.medium) {
-        return journeyStep.scoreThreshold.medium.message;
-      }
+  // Get dynamic message based on ProofScore
+  const getDynamicMessage = (): string => {
+    if (proofScore < 65) {
+      return "Founders with a complete ProofVault are 50% more likely to match with investors.";
+    } else if (proofScore >= 65 && proofScore < 70) {
+      return "You're 80% match with investors in our Deal Room. Upload into your ProofVault to get access and connect.";
+    } else if (proofScore >= 70 && proofScore <= 80) {
+      return "You've got a high enough ProofScore to access the Deal Room. Investors typically look for a ProofScore of 85+ for an introduction.";
+    } else {
+      return "You're ready for investor introductions — unlock the Deal Room and get connected to investors.";
     }
-    return journeyStep.coachGuidance.intro;
   };
+
+  // Filter Coach Mode steps (IDs 10-30)
+  const coachModeSteps = COACH_JOURNEY_STEPS.filter(step => step.id >= 10 && step.id <= 30);
+  
+  // Categorize todos by completion status
+  const completedTodos = coachModeSteps.filter(step => isStepCriteriaMetByBackend(step.id));
+  const upcomingTodos = coachModeSteps.filter(step => !isStepCriteriaMetByBackend(step.id)).slice(0, 3);
+  
+  // Find current active step (first incomplete todo)
+  const activeStep = coachModeSteps.find(step => !isStepCriteriaMetByBackend(step.id));
 
   // Render minimized state
   // Also minimize if tutorial is completing (transient flag prevents journey UI flash)
@@ -292,9 +299,9 @@ export default function ProofCoach({
                 {tutorialStep + 1}
               </Badge>
             )}
-            {!isInTutorial && completedSteps.length < COACH_JOURNEY_STEPS.length && (
+            {!isInTutorial && upcomingTodos.length > 0 && (
               <Badge className="absolute -top-2 -right-2 h-5 w-5 rounded-full p-0 flex items-center justify-center bg-blue-500 text-white text-xs">
-                {currentStep + 1}
+                {upcomingTodos.length}
               </Badge>
             )}
           </div>
@@ -414,31 +421,26 @@ export default function ProofCoach({
     );
   }
 
-  // Journey coaching mode UI (only shown post-onboarding, not during onboarding tutorials)
-  const StepIcon = journeyStep.icon;
-
+  // Coach Mode - Milestone-based Todo List UI
   return (
     <motion.div
       initial={{ opacity: 0, y: 20 }}
       animate={{ opacity: 1, y: 0 }}
       exit={{ opacity: 0, y: 20 }}
-      className="fixed bottom-6 right-6 z-50 w-[420px]"
+      className="fixed bottom-6 right-6 z-50 w-[420px] max-h-[80vh] overflow-hidden"
     >
-      <Card className="bg-gradient-to-br from-card/95 to-card/90 border-border shadow-2xl backdrop-blur-md">
+      <Card className="bg-gradient-to-br from-purple-700/95 via-fuchsia-600/90 to-indigo-700/95 border-purple-500/50 shadow-2xl backdrop-blur-md">
         <CardContent className="p-6">
           {/* Header */}
           <div className="flex items-start justify-between mb-4">
-            <div className="flex items-center gap-3">
-              <div className={`w-10 h-10 rounded-full ${journeyStep.color}/20 flex items-center justify-center`}>
-                <StepIcon className={`h-5 w-5 text-${journeyStep.color.replace('bg-', '')}`} />
+            <div className="flex items-center gap-2">
+              <div className="w-8 h-8 rounded-full bg-purple-500/20 flex items-center justify-center">
+                <Sparkles className="h-4 w-4 text-purple-400" />
               </div>
               <div>
-                <div className="flex items-center gap-2">
-                  <Sparkles className="h-4 w-4 text-purple-500" />
-                  <h3 className="text-foreground font-semibold">ProofCoach</h3>
-                </div>
-                <p className="text-muted-foreground text-xs">
-                  Your validation guide
+                <h3 className="text-white font-semibold text-sm">Proof Coach</h3>
+                <p className="text-purple-300 text-xs">
+                  Your validation milestones
                 </p>
               </div>
             </div>
@@ -447,86 +449,147 @@ export default function ProofCoach({
                 variant="ghost"
                 size="icon"
                 onClick={onMinimize}
-                className="h-8 w-8"
+                className="h-8 w-8 text-white/70 hover:text-white hover:bg-white/10"
+                data-testid="button-minimize-coach"
+              >
+                <Minimize2 className="h-4 w-4" />
+              </Button>
+              <Button
+                variant="ghost"
+                size="icon"
+                onClick={onClose}
+                className="h-8 w-8 text-white/70 hover:text-white hover:bg-white/10"
                 data-testid="button-close-coach"
-                title="Minimize coach"
               >
                 <X className="h-4 w-4" />
               </Button>
             </div>
           </div>
 
-          {/* Progress */}
-          <div className="mb-4">
-            <div className="flex justify-between text-xs text-muted-foreground mb-1">
-              <span>Journey Progress</span>
-              <span>{completedSteps.length}/{COACH_JOURNEY_STEPS.length} steps</span>
-            </div>
-            <Progress value={progress} className="h-2" />
+          {/* Dynamic Message based on ProofScore */}
+          <div className="bg-white/10 border border-white/20 rounded-lg p-3 mb-4">
+            <p className="text-white text-sm leading-relaxed">
+              {getDynamicMessage()}
+            </p>
           </div>
 
-          {/* Current step info */}
-          <div className="space-y-3 mb-4">
-            <div>
-              <div className="flex items-center justify-between mb-1">
-                <h4 className="text-foreground font-semibold">{journeyStep.title}</h4>
-                <Badge variant="outline" className="text-xs">
-                  {journeyStep.duration}
-                </Badge>
+          {/* Todo List Container */}
+          <div className="space-y-2 max-h-[50vh] overflow-y-auto pr-2" style={{ scrollbarWidth: 'thin', scrollbarColor: 'rgba(255,255,255,0.3) transparent' }}>
+            {/* Completed Tasks - Collapsed */}
+            {completedTodos.length > 0 && (
+              <div className="mb-3">
+                <button
+                  onClick={() => setShowAllCompleted(!showAllCompleted)}
+                  className="flex items-center gap-2 text-xs text-purple-300 hover:text-white transition-colors mb-2 w-full"
+                  data-testid="button-toggle-completed"
+                >
+                  <ChevronRight className={`h-3 w-3 transition-transform ${showAllCompleted ? 'rotate-90' : ''}`} />
+                  <span>{completedTodos.length} completed task{completedTodos.length !== 1 ? 's' : ''}</span>
+                </button>
+                
+                <AnimatePresence>
+                  {showAllCompleted && (
+                    <motion.div
+                      initial={{ height: 0, opacity: 0 }}
+                      animate={{ height: 'auto', opacity: 1 }}
+                      exit={{ height: 0, opacity: 0 }}
+                      className="space-y-2 overflow-hidden"
+                    >
+                      {completedTodos.map((step) => {
+                        const StepIcon = step.icon;
+                        return (
+                          <div
+                            key={step.id}
+                            className="flex items-start gap-3 p-3 rounded-lg bg-white/5 opacity-60"
+                            data-testid={`todo-item-completed-${step.id}`}
+                          >
+                            <div className="mt-0.5">
+                              <CheckCircle2 className="h-5 w-5 text-green-400" />
+                            </div>
+                            <div className="flex-1 min-w-0">
+                              <div className="flex items-center gap-2 mb-1">
+                                <StepIcon className="h-4 w-4 text-purple-300" />
+                                <h4 className="text-white/70 text-sm font-medium line-through">
+                                  {step.title}
+                                </h4>
+                              </div>
+                              <p className="text-purple-200/50 text-xs line-clamp-1">
+                                {step.description}
+                              </p>
+                            </div>
+                          </div>
+                        );
+                      })}
+                    </motion.div>
+                  )}
+                </AnimatePresence>
               </div>
-              <p className="text-muted-foreground text-sm">{journeyStep.description}</p>
+            )}
+
+            {/* Upcoming Tasks (Next 3) */}
+            <div className="space-y-2">
+              {upcomingTodos.map((step, index) => {
+                const StepIcon = step.icon;
+                const isActive = activeStep?.id === step.id;
+                
+                return (
+                  <motion.div
+                    key={step.id}
+                    initial={{ opacity: 0, x: -20 }}
+                    animate={{ opacity: 1, x: 0 }}
+                    transition={{ delay: index * 0.1 }}
+                    className={`flex items-start gap-3 p-3 rounded-lg cursor-pointer transition-all ${
+                      isActive 
+                        ? 'bg-gradient-to-r from-purple-600/40 via-fuchsia-500/30 to-indigo-600/40 border border-purple-400/50 shadow-lg' 
+                        : 'bg-white/10 hover:bg-white/15 border border-transparent'
+                    }`}
+                    onClick={() => handleTodoClick(step)}
+                    data-testid={`todo-item-${step.id}`}
+                  >
+                    <div className="mt-0.5">
+                      <Circle className={`h-5 w-5 ${isActive ? 'text-purple-300' : 'text-purple-400/50'}`} />
+                    </div>
+                    <div className="flex-1 min-w-0">
+                      <div className="flex items-center gap-2 mb-1">
+                        <StepIcon className={`h-4 w-4 ${isActive ? 'text-purple-200' : 'text-purple-300'}`} />
+                        <h4 className={`text-sm font-medium ${isActive ? 'text-white' : 'text-white/90'}`}>
+                          {step.title}
+                        </h4>
+                      </div>
+                      <p className={`text-xs line-clamp-2 mb-2 ${isActive ? 'text-purple-100' : 'text-purple-200/70'}`}>
+                        {step.description}
+                      </p>
+                      <div className="flex items-center justify-between">
+                        <Badge variant="outline" className="text-xs border-white/30 text-white/80">
+                          {step.duration}
+                        </Badge>
+                        {isActive && (
+                          <ArrowRight className="h-3 w-3 text-purple-300" />
+                        )}
+                      </div>
+                    </div>
+                  </motion.div>
+                );
+              })}
             </div>
 
-            {/* Personalized intro message */}
-            <div className="bg-muted/50 rounded-lg p-3">
-              <p className="text-sm text-foreground">
-                {getPersonalizedMessage()}
-              </p>
-            </div>
-
-            {/* Instruction */}
-            <div>
-              <p className="text-sm text-muted-foreground">
-                <span className="font-semibold text-foreground">Next:</span>{' '}
-                {journeyStep.coachGuidance.instruction}
-              </p>
-            </div>
-
-            {/* Tip if available */}
-            {journeyStep.coachGuidance.tip && (
-              <div className="bg-blue-500/10 border border-blue-500/30 rounded-lg p-3">
-                <p className="text-blue-600 dark:text-blue-400 text-xs">
-                  <span className="font-semibold">Tip:</span> {journeyStep.coachGuidance.tip}
+            {/* All Completed Message */}
+            {upcomingTodos.length === 0 && completedTodos.length > 0 && (
+              <div className="text-center py-6">
+                <div className="w-12 h-12 rounded-full bg-green-500/20 flex items-center justify-center mx-auto mb-3">
+                  <CheckCircle2 className="h-6 w-6 text-green-400" />
+                </div>
+                <h4 className="text-white font-semibold mb-1">All Milestones Complete!</h4>
+                <p className="text-purple-200 text-sm">
+                  You've completed all validation milestones. Keep building proof!
                 </p>
               </div>
             )}
           </div>
 
-          {/* Action button */}
-          <div className="flex gap-2">
-            <Button
-              onClick={handleAction}
-              className="flex-1 bg-gradient-to-r from-purple-600 to-blue-600 hover:from-purple-700 hover:to-blue-700"
-              data-testid="button-coach-action"
-            >
-              {journeyStep.action}
-              <ArrowRight className="h-4 w-4 ml-2" />
-            </Button>
-            {!completedSteps.includes(journeyStep.id) && (
-              <Button
-                variant="outline"
-                onClick={handleCompleteStep}
-                className="px-4"
-                data-testid="button-complete-step"
-              >
-                Mark Done
-              </Button>
-            )}
-          </div>
-
           {/* Replay Tutorial Button */}
           {tutorialCompletedPages.includes(currentPage) && pageTutorials.length > 0 && (
-            <div className="mt-3">
+            <div className="mt-4 pt-4 border-t border-white/10">
               <Button
                 variant="outline"
                 size="sm"
@@ -534,7 +597,7 @@ export default function ProofCoach({
                   setIsInTutorial(true);
                   setTutorialStep(0);
                 }}
-                className="w-full"
+                className="w-full border-white/30 text-white hover:bg-white/10"
                 data-testid="button-replay-tutorial"
               >
                 <BookOpen className="h-4 w-4 mr-2" />
@@ -542,13 +605,6 @@ export default function ProofCoach({
               </Button>
             </div>
           )}
-
-          {/* Step indicator */}
-          <div className="mt-4 pt-4 border-t border-border">
-            <p className="text-xs text-center text-muted-foreground">
-              Step {currentStep + 1} of {COACH_JOURNEY_STEPS.length}
-            </p>
-          </div>
         </CardContent>
       </Card>
     </motion.div>
