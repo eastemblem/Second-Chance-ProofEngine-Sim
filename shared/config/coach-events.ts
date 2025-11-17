@@ -24,6 +24,7 @@ export const COACH_EVENTS = {
   // Validation Map & Experiments
   VALIDATION_MAP_VIEWED: 'validation_map_viewed',
   VALIDATION_MAP_EXPORTED: 'validation_map_exported', // CSV export
+  VALIDATION_CSV_UPLOADED: 'validation_csv_uploaded', // CSV file uploaded to ProofVault
   EXPERIMENT_CREATED: 'experiment_created',
   EXPERIMENT_STARTED: 'experiment_started',
   EXPERIMENT_UPDATED: 'experiment_updated',
@@ -61,9 +62,10 @@ export const JOURNEY_STEP_COMPLETION_EVENTS: Record<number, string[]> = {
   6: [COACH_EVENTS.VAULT_FIRST_UPLOAD], // Make first upload
   7: [COACH_EVENTS.PROOFSCORE_VIEWED], // View score update (after upload)
   8: [COACH_EVENTS.VAULT_10_FILES_UPLOADED], // Upload 10 files
-  9: [COACH_EVENTS.VALIDATION_MAP_EXPORTED], // Upload CSV to vault
-  10: [COACH_EVENTS.VAULT_20_FILES_UPLOADED], // Upload 20 files
-  11: [COACH_EVENTS.VAULT_30_FILES_UPLOADED], // Upload 30 files
+  9: [COACH_EVENTS.VALIDATION_MAP_EXPORTED], // Export validation map CSV
+  10: [COACH_EVENTS.VALIDATION_CSV_UPLOADED], // Upload CSV to vault
+  11: [COACH_EVENTS.VAULT_20_FILES_UPLOADED], // Upload 20 files
+  12: [COACH_EVENTS.VAULT_30_FILES_UPLOADED], // Upload 30 files
   // Additional steps mapped as needed
 };
 

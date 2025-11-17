@@ -163,6 +163,23 @@ router.post("/upload",
       entityType: 'document',
     });
 
+    // Track CSV upload event for validation map milestone
+    if (req.file.mimetype === 'text/csv' || req.file.originalname.toLowerCase().endsWith('.csv')) {
+      await ActivityService.logActivity(context, {
+        activityType: 'document',
+        action: COACH_EVENTS.VALIDATION_CSV_UPLOADED,
+        title: 'Validation CSV Uploaded',
+        description: 'Uploaded validation map CSV to ProofVault',
+        metadata: {
+          fileName: req.file.originalname,
+          category: category,
+          uploadId: uploadResult.id,
+        },
+        entityId: uploadResult.id,
+        entityType: 'document',
+      });
+    }
+
     // Check upload milestones if we have a valid venture ID
     if (ventureId !== 'unknown') {
       const allUploads = await storage.getDocumentUploadsByVentureId(ventureId);
