@@ -147,6 +147,12 @@
   backdrop-filter: blur(2px);
 }
 
+/* Boost navbar z-index when it contains a highlighted element */
+nav:has(.tutorial-highlight) {
+  position: relative !important;
+  z-index: 65 !important;
+}
+
 .bg-primary-gold {
   background-color: hsl(var(--primary-gold));
 }
