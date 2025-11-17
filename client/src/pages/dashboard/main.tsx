@@ -424,6 +424,15 @@ export default function DashboardV2Page() {
             onScrollToVault={handleScrollToVault}
           />
 
+          {/* Deal Room Section */}
+          <DealRoomSection 
+            validationData={validationData}
+            hasDealRoomAccess={hasDealRoomAccess}
+            onPaymentModalOpen={handlePaymentModalOpen}
+            ventureStatus={ventureStatus}
+            priceDisplay={pricing?.formatted?.current || '$99 USD'}
+          />
+
           {/* Your Proof Vault */}
           <div ref={proofVaultRef}>
             <ProofVaultSection
@@ -459,15 +468,6 @@ export default function DashboardV2Page() {
               growthStage={venture?.growthStage}
             />
           </div>
-
-          {/* Deal Room Section */}
-          <DealRoomSection 
-            validationData={validationData}
-            hasDealRoomAccess={hasDealRoomAccess}
-            onPaymentModalOpen={handlePaymentModalOpen}
-            ventureStatus={ventureStatus}
-            priceDisplay={pricing?.formatted?.current || '$99 USD'}
-          />
 
           {/* Downloads and Community Access - Side by Side */}
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
