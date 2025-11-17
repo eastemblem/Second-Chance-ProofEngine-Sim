@@ -50,6 +50,7 @@ export class CoachProgressService {
         totalUploads: 0,
         distinctArtifactTypesCount: 0,
         firstVaultUploadAt: null as Date | null,
+        hasFirstUpload: false,
         has10Uploads: false,
         has20Uploads: false,
         has30Uploads: false,
@@ -126,6 +127,13 @@ export class CoachProgressService {
             artifactTypes.add(metadata.artifactType);
           }
           
+          if (!progress.firstVaultUploadAt) {
+            progress.firstVaultUploadAt = activity.createdAt;
+          }
+        }
+        
+        if (action === COACH_EVENTS.VAULT_FIRST_UPLOAD) {
+          progress.hasFirstUpload = true;
           if (!progress.firstVaultUploadAt) {
             progress.firstVaultUploadAt = activity.createdAt;
           }
