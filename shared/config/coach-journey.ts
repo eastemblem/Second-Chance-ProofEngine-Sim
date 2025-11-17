@@ -504,6 +504,16 @@ export const TUTORIAL_MECHANICS: Record<string, TutorialMechanic[]> = {
       location: "Bottom right section",
       order: 9,
     },
+    {
+      id: "navigate-to-validation-map",
+      page: "dashboard",
+      title: "Explore Your Validation Map",
+      description: "Now that you've explored your dashboard, it's time to start validating your startup! Click 'Validation Map' in the top navigation bar to access your personalized experiments.",
+      selector: "[data-testid='link-validation-map']",
+      tips: "The Validation Map contains AI-curated experiments tailored to your startup. Completing experiments unlocks ProofTags and boosts your ProofScore from its current level to 70+ for Deal Room access.",
+      location: "Top navigation bar",
+      order: 10,
+    },
   ],
   "validation-map": [
     {
