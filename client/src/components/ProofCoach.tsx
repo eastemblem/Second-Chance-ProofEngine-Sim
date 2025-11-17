@@ -229,10 +229,66 @@ export default function ProofCoach({
     setTimeout(() => setIsCompletingTutorial(false), 200);
   };
 
-  // Journey navigation - navigate to todo route
+  // Map milestone steps to dashboard section IDs
+  const stepToSectionMap: Record<number, string> = {
+    10: 'dashboard-header',        // Dashboard tutorial
+    11: 'proof-vault-section',     // First upload
+    12: 'validation-map-intro',    // First experiment
+    13: 'validation-map-intro',    // 3 experiments
+    14: 'validation-map-intro',    // 5 experiments
+    15: 'experiment-header-card',  // Export CSV (has export button)
+    16: 'proof-vault-section',     // Upload CSV
+    17: 'proof-vault-section',     // 10 uploads
+    18: 'proof-vault-section',     // 20 uploads
+    19: 'proof-vault-section',     // 30 uploads
+    20: 'proof-vault-section',     // 50 uploads
+    21: 'proofscore-display',      // ProofScore 65+
+    22: 'proofscore-display',      // ProofScore 70+
+    23: 'proofscore-display',      // ProofScore 80+
+    24: 'deal-room-section',       // Deal Room payment
+    25: 'document-downloads-section', // Download certificate
+    26: 'document-downloads-section', // Download report
+    27: 'community-access-section',   // Community access
+    28: 'leaderboard-section',        // Leaderboard
+    29: 'activity-feed-section',      // Activity feed
+    30: 'deal-room-section',          // Unlock all features
+  };
+
+  // Highlight section when clicking todo
+  const highlightSection = (sectionId: string) => {
+    const section = document.querySelector(`[data-testid="${sectionId}"]`) as HTMLElement;
+    if (section) {
+      // Scroll to section smoothly
+      section.scrollIntoView({ behavior: 'smooth', block: 'center' });
+      
+      // Add highlight animation class
+      section.classList.add('milestone-highlight');
+      
+      // Remove highlight after animation completes
+      setTimeout(() => {
+        section.classList.remove('milestone-highlight');
+      }, 2000);
+    }
+  };
+
+  // Journey navigation - navigate to todo route and highlight section
   const handleTodoClick = (step: JourneyStep) => {
     if (step.route) {
       setLocation(step.route);
+      
+      // Wait for navigation to complete before highlighting
+      setTimeout(() => {
+        const sectionId = stepToSectionMap[step.id];
+        if (sectionId) {
+          highlightSection(sectionId);
+        }
+      }, 300);
+    } else {
+      // If no route, highlight immediately
+      const sectionId = stepToSectionMap[step.id];
+      if (sectionId) {
+        highlightSection(sectionId);
+      }
     }
     onStepAction(step.id);
   };
@@ -289,18 +345,18 @@ export default function ProofCoach({
         <Button
           onClick={handleMinimizedClick}
           size="lg"
-          className="rounded-full w-16 h-16 shadow-lg bg-gradient-to-r from-purple-600 to-blue-600 hover:from-purple-700 hover:to-blue-700"
+          className="rounded-full w-16 h-16 shadow-lg bg-gray-800 hover:bg-gray-700 border border-gray-700"
           data-testid="button-expand-coach"
         >
           <div className="relative">
-            <Sparkles className="h-6 w-6" />
+            <Sparkles className="h-6 w-6 text-purple-400" />
             {isInTutorial && (
-              <Badge className="absolute -top-2 -right-2 h-5 w-5 rounded-full p-0 flex items-center justify-center bg-red-500 text-white text-xs">
+              <Badge className="absolute -top-2 -right-2 h-5 w-5 rounded-full p-0 flex items-center justify-center bg-purple-500 text-white text-xs">
                 {tutorialStep + 1}
               </Badge>
             )}
             {!isInTutorial && upcomingTodos.length > 0 && (
-              <Badge className="absolute -top-2 -right-2 h-5 w-5 rounded-full p-0 flex items-center justify-center bg-blue-500 text-white text-xs">
+              <Badge className="absolute -top-2 -right-2 h-5 w-5 rounded-full p-0 flex items-center justify-center bg-purple-500 text-white text-xs">
                 {upcomingTodos.length}
               </Badge>
             )}
@@ -327,7 +383,7 @@ export default function ProofCoach({
           exit={{ opacity: 0, y: 20 }}
           className="fixed bottom-6 right-6 z-[70] w-[420px]"
         >
-          <Card className="bg-gradient-to-br from-purple-700/95 via-fuchsia-600/90 to-indigo-700/95 border-purple-500/50 shadow-2xl backdrop-blur-md">
+          <Card className="bg-gray-900/95 border-gray-700 shadow-2xl backdrop-blur-md">
             <CardContent className="p-6">
               {/* Header */}
               <div className="flex items-start justify-between mb-4">
@@ -338,11 +394,11 @@ export default function ProofCoach({
                   <div>
                     <div className="flex items-center gap-2">
                       <h3 className="text-white font-semibold text-sm">Proof Coach</h3>
-                      <Badge className="bg-gradient-to-r from-purple-500 to-fuchsia-500 text-white text-xs px-2 py-0.5 border-0">
+                      <Badge className="bg-purple-500 text-white text-xs px-2 py-0.5 border-0">
                         Tutorial
                       </Badge>
                     </div>
-                    <p className="text-purple-300 text-xs">
+                    <p className="text-gray-400 text-xs">
                       Step {tutorialStep + 1} of {pageTutorials.length}
                     </p>
                   </div>
@@ -377,27 +433,27 @@ export default function ProofCoach({
                 </div>
 
                 {tutorial.tips && (
-                  <div className="bg-blue-500/10 border border-blue-500/30 rounded-lg p-3">
-                    <p className="text-blue-200 text-xs">
+                  <div className="bg-purple-500/10 border border-purple-500/30 rounded-lg p-3">
+                    <p className="text-purple-200 text-xs">
                       <span className="font-semibold">Tip:</span> {tutorial.tips}
                     </p>
                   </div>
                 )}
 
-                <div className="flex items-center gap-2 text-xs text-purple-300">
+                <div className="flex items-center gap-2 text-xs text-gray-400">
                   <span className="font-semibold">Location:</span>
                   <span>{tutorial.location}</span>
                 </div>
               </div>
 
               {/* Navigation */}
-              <div className="flex items-center justify-between mt-6 pt-4 border-t border-white/10">
+              <div className="flex items-center justify-between mt-6 pt-4 border-t border-gray-700">
                 <Button
                   variant="ghost"
                   size="sm"
                   onClick={prevTutorialStep}
                   disabled={tutorialStep === 0}
-                  className="text-white/70 hover:text-white hover:bg-white/10"
+                  className="text-gray-400 hover:text-white hover:bg-gray-800"
                   data-testid="button-tutorial-prev"
                 >
                   <ChevronLeft className="h-4 w-4 mr-1" />
@@ -407,7 +463,7 @@ export default function ProofCoach({
                 <Button
                   size="sm"
                   onClick={nextTutorialStep}
-                  className="bg-gradient-to-r from-violet-500 via-fuchsia-500 to-indigo-500 hover:from-violet-600 hover:via-fuchsia-600 hover:to-indigo-600 text-white shadow-[0_0_20px_rgba(168,85,247,0.35)] hover:shadow-[0_0_25px_rgba(168,85,247,0.5)] transition-all"
+                  className="bg-purple-600 hover:bg-purple-700 text-white"
                   data-testid="button-tutorial-next"
                 >
                   {tutorialStep === pageTutorials.length - 1 ? 'Got it!' : 'Next'}
@@ -429,7 +485,7 @@ export default function ProofCoach({
       exit={{ opacity: 0, y: 20 }}
       className="fixed bottom-6 right-6 z-50 w-[420px] max-h-[80vh] overflow-hidden"
     >
-      <Card className="bg-gradient-to-br from-purple-700/95 via-fuchsia-600/90 to-indigo-700/95 border-purple-500/50 shadow-2xl backdrop-blur-md">
+      <Card className="bg-gray-900/95 border-gray-700 shadow-2xl backdrop-blur-md">
         <CardContent className="p-6">
           {/* Header */}
           <div className="flex items-start justify-between mb-4">
@@ -439,7 +495,7 @@ export default function ProofCoach({
               </div>
               <div>
                 <h3 className="text-white font-semibold text-sm">Proof Coach</h3>
-                <p className="text-purple-300 text-xs">
+                <p className="text-gray-400 text-xs">
                   Your validation milestones
                 </p>
               </div>
@@ -467,20 +523,20 @@ export default function ProofCoach({
           </div>
 
           {/* Dynamic Message based on ProofScore */}
-          <div className="bg-white/10 border border-white/20 rounded-lg p-3 mb-4">
-            <p className="text-white text-sm leading-relaxed">
+          <div className="bg-gray-800/50 border border-gray-700 rounded-lg p-3 mb-4">
+            <p className="text-gray-300 text-sm leading-relaxed">
               {getDynamicMessage()}
             </p>
           </div>
 
           {/* Todo List Container */}
-          <div className="space-y-2 max-h-[50vh] overflow-y-auto pr-2" style={{ scrollbarWidth: 'thin', scrollbarColor: 'rgba(255,255,255,0.3) transparent' }}>
+          <div className="space-y-2 max-h-[50vh] overflow-y-auto pr-2" style={{ scrollbarWidth: 'thin', scrollbarColor: 'rgba(139,92,246,0.3) transparent' }}>
             {/* Completed Tasks - Collapsed */}
             {completedTodos.length > 0 && (
               <div className="mb-3">
                 <button
                   onClick={() => setShowAllCompleted(!showAllCompleted)}
-                  className="flex items-center gap-2 text-xs text-purple-300 hover:text-white transition-colors mb-2 w-full"
+                  className="flex items-center gap-2 text-xs text-gray-400 hover:text-white transition-colors mb-2 w-full"
                   data-testid="button-toggle-completed"
                 >
                   <ChevronRight className={`h-3 w-3 transition-transform ${showAllCompleted ? 'rotate-90' : ''}`} />
@@ -500,7 +556,7 @@ export default function ProofCoach({
                         return (
                           <div
                             key={step.id}
-                            className="flex items-start gap-3 p-3 rounded-lg bg-white/5 opacity-60"
+                            className="flex items-start gap-3 p-3 rounded-lg bg-gray-800/30 opacity-60 border border-gray-700/50"
                             data-testid={`todo-item-completed-${step.id}`}
                           >
                             <div className="mt-0.5">
@@ -508,12 +564,12 @@ export default function ProofCoach({
                             </div>
                             <div className="flex-1 min-w-0">
                               <div className="flex items-center gap-2 mb-1">
-                                <StepIcon className="h-4 w-4 text-purple-300" />
-                                <h4 className="text-white/70 text-sm font-medium line-through">
+                                <StepIcon className="h-4 w-4 text-gray-400" />
+                                <h4 className="text-gray-400 text-sm font-medium line-through">
                                   {step.title}
                                 </h4>
                               </div>
-                              <p className="text-purple-200/50 text-xs line-clamp-1">
+                              <p className="text-gray-500 text-xs line-clamp-1">
                                 {step.description}
                               </p>
                             </div>
@@ -540,31 +596,31 @@ export default function ProofCoach({
                     transition={{ delay: index * 0.1 }}
                     className={`flex items-start gap-3 p-3 rounded-lg cursor-pointer transition-all ${
                       isActive 
-                        ? 'bg-gradient-to-r from-purple-600/40 via-fuchsia-500/30 to-indigo-600/40 border border-purple-400/50 shadow-lg' 
-                        : 'bg-white/10 hover:bg-white/15 border border-transparent'
+                        ? 'bg-purple-500/20 border border-purple-500/50 shadow-lg' 
+                        : 'bg-gray-800/50 hover:bg-gray-800/70 border border-gray-700'
                     }`}
                     onClick={() => handleTodoClick(step)}
                     data-testid={`todo-item-${step.id}`}
                   >
                     <div className="mt-0.5">
-                      <Circle className={`h-5 w-5 ${isActive ? 'text-purple-300' : 'text-purple-400/50'}`} />
+                      <Circle className={`h-5 w-5 ${isActive ? 'text-purple-400' : 'text-gray-500'}`} />
                     </div>
                     <div className="flex-1 min-w-0">
                       <div className="flex items-center gap-2 mb-1">
-                        <StepIcon className={`h-4 w-4 ${isActive ? 'text-purple-200' : 'text-purple-300'}`} />
-                        <h4 className={`text-sm font-medium ${isActive ? 'text-white' : 'text-white/90'}`}>
+                        <StepIcon className={`h-4 w-4 ${isActive ? 'text-purple-400' : 'text-gray-400'}`} />
+                        <h4 className={`text-sm font-medium ${isActive ? 'text-white' : 'text-gray-300'}`}>
                           {step.title}
                         </h4>
                       </div>
-                      <p className={`text-xs line-clamp-2 mb-2 ${isActive ? 'text-purple-100' : 'text-purple-200/70'}`}>
+                      <p className={`text-xs line-clamp-2 mb-2 ${isActive ? 'text-gray-300' : 'text-gray-400'}`}>
                         {step.description}
                       </p>
                       <div className="flex items-center justify-between">
-                        <Badge variant="outline" className="text-xs border-white/30 text-white/80">
+                        <Badge variant="outline" className="text-xs border-gray-600 text-gray-400">
                           {step.duration}
                         </Badge>
                         {isActive && (
-                          <ArrowRight className="h-3 w-3 text-purple-300" />
+                          <ArrowRight className="h-3 w-3 text-purple-400" />
                         )}
                       </div>
                     </div>

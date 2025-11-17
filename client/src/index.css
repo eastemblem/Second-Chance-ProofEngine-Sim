@@ -153,6 +153,31 @@ nav:has(.tutorial-highlight) {
   z-index: 65 !important;
 }
 
+/* ProofCoach Milestone Section Highlighting */
+.milestone-highlight {
+  position: relative !important;
+  animation: milestone-pulse 2s ease-in-out;
+  box-shadow: 0 0 0 4px rgba(139, 92, 246, 0.6), 0 0 30px rgba(139, 92, 246, 0.3) !important;
+  border-radius: 12px !important;
+  transform: scale(1.02);
+  transition: all 0.3s ease-out;
+}
+
+@keyframes milestone-pulse {
+  0% { 
+    box-shadow: 0 0 0 0px rgba(139, 92, 246, 0.6), 0 0 0px rgba(139, 92, 246, 0.3);
+    transform: scale(1);
+  }
+  50% { 
+    box-shadow: 0 0 0 8px rgba(139, 92, 246, 0.4), 0 0 40px rgba(139, 92, 246, 0.4);
+    transform: scale(1.02);
+  }
+  100% { 
+    box-shadow: 0 0 0 4px rgba(139, 92, 246, 0.6), 0 0 30px rgba(139, 92, 246, 0.3);
+    transform: scale(1.02);
+  }
+}
+
 .bg-primary-gold {
   background-color: hsl(var(--primary-gold));
 }
