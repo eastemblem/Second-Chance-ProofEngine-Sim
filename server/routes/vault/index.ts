@@ -10,6 +10,8 @@ import { eastEmblemAPI } from "../../eastemblem-api";
 import { getSessionId, getSessionData, updateSessionData } from "../../utils/session-manager";
 import { cleanupUploadedFile } from "../../utils/file-cleanup";
 import { ActivityService } from "../../services/activity-service";
+import { COACH_EVENTS } from "../../../shared/config/coach-events";
+import { storage } from "../../storage";
 
 const router = express.Router();
 
@@ -119,48 +121,94 @@ router.post("/upload",
 
   const { category } = req.body;
   const sessionId = getSessionId(req);
+  const founderId = req.session?.founderId || 'unknown';
 
   console.log(`📤 VAULT UPLOAD: Processing file ${req.file.originalname} for category ${category}`);
 
   try {
+    // Get session data for folder and context
+    const sessionData = await getSessionData(sessionId);
+    const ventureId = sessionData?.founderData?.ventureId || 'unknown';
+
     // Use business logic service for file upload processing
     const uploadResult = await businessLogicService.processFileUpload(
       req.file,
       category,
-      req.session?.founderId || 'unknown',
+      founderId,
       sessionId
     );
 
     console.log(`✅ VAULT UPLOAD: File uploaded successfully`, uploadResult);
 
-    // Track activity
-    await activityService.trackActivity({
-      founderId: req.session?.founderId || 'unknown',
-      ventureId: sessionData.founderData?.ventureId || 'unknown',
-      sessionId,
+    // Get activity context
+    const context = ActivityService.getContextFromRequest(req);
+
+    // Track coach event: vault file uploaded
+    await ActivityService.logActivity(context, {
       activityType: 'document',
-      action: 'upload',
-      title: req.file.originalname,
-      description: `Uploaded to ${category}`,
+      action: COACH_EVENTS.VAULT_FILE_UPLOADED,
+      title: `Uploaded ${req.file.originalname}`,
+      description: `Uploaded to ProofVault category: ${category}`,
       metadata: {
         fileName: req.file.originalname,
         fileSize: req.file.size,
         fileType: req.file.mimetype,
-        folderId: folderId,
-        category: category
+        category: category,
+        uploadId: uploadResult.id,
+        artifactType: category,
       },
-      ipAddress: req.ip,
-      userAgent: req.headers['user-agent']
+      entityId: uploadResult.id,
+      entityType: 'document',
     });
 
+    // Check upload milestones if we have a valid venture ID
+    if (ventureId !== 'unknown') {
+      const allUploads = await storage.getDocumentUploadsByVentureId(ventureId);
+      const uploadCount = allUploads?.length || 0;
+
+      // Emit milestone events
+      if (uploadCount === 1) {
+        await ActivityService.logActivity(context, {
+          activityType: 'document',
+          action: COACH_EVENTS.VAULT_FIRST_UPLOAD,
+          title: 'First ProofVault Upload',
+          description: 'Completed your first upload to ProofVault',
+          metadata: { uploadCount: 1 },
+        });
+      } else if (uploadCount === 10) {
+        await ActivityService.logActivity(context, {
+          activityType: 'document',
+          action: COACH_EVENTS.VAULT_10_FILES_UPLOADED,
+          title: '10 Files Uploaded',
+          description: 'Reached 10 files in ProofVault',
+          metadata: { uploadCount: 10 },
+        });
+      } else if (uploadCount === 20) {
+        await ActivityService.logActivity(context, {
+          activityType: 'document',
+          action: COACH_EVENTS.VAULT_20_FILES_UPLOADED,
+          title: '20 Files Uploaded',
+          description: 'Reached 20 files in ProofVault',
+          metadata: { uploadCount: 20 },
+        });
+      } else if (uploadCount === 30) {
+        await ActivityService.logActivity(context, {
+          activityType: 'document',
+          action: COACH_EVENTS.VAULT_30_FILES_UPLOADED,
+          title: '30 Files Uploaded',
+          description: 'Reached 30 files in ProofVault',
+          metadata: { uploadCount: 30 },
+        });
+      }
+    }
+
     // Cleanup local file
-    await cleanupUploadedFile(req.file.path);
+    cleanupUploadedFile(req.file.path, req.file.originalname, "upload complete");
 
     res.json(createSuccessResponse({
       uploadId: uploadResult.id,
       fileName: req.file.originalname,
-      sharedUrl: uploadResult.shared_url,
-      folderId: folderId,
+      sharedUrl: uploadResult.url || uploadResult.download_url,
       category: category,
       fileSize: req.file.size,
       mimeType: req.file.mimetype
@@ -171,7 +219,7 @@ router.post("/upload",
 
     // Cleanup on error
     if (req.file?.path) {
-      await cleanupUploadedFile(req.file.path);
+      cleanupUploadedFile(req.file.path, req.file.originalname, "upload failed");
     }
 
     res.status(500).json({ 
@@ -193,11 +241,13 @@ router.post("/upload-multiple", vaultUpload.array("files", 10), asyncHandler(asy
 
   const { category } = req.body;
   const sessionId = getSessionId(req);
+  const founderId = req.session?.founderId || 'unknown';
 
   console.log(`📤 VAULT MULTIPLE UPLOAD: Processing ${req.files.length} files for category ${category}`);
 
   try {
     const sessionData = await getSessionData(sessionId);
+    const ventureId = sessionData?.founderData?.ventureId || 'unknown';
 
     if (!sessionData?.folderStructure) {
       throw new Error("Folder structure not found in session");
@@ -211,40 +261,42 @@ router.post("/upload-multiple", vaultUpload.array("files", 10), asyncHandler(asy
 
     const results = [];
     const errors = [];
+    const context = ActivityService.getContextFromRequest(req);
 
     // Process files sequentially for stability
     for (const file of req.files) {
       try {
+        // Read file as buffer
+        const fileBuffer = fs.readFileSync(file.path);
+        
         const uploadResult = await eastEmblemAPI.uploadFile(
-          file.path,
+          fileBuffer,
           file.originalname,
           folderId
         );
 
-        // Track activity for each file
-        await activityService.trackActivity({
-          founderId: req.session?.founderId || 'unknown',
-          ventureId: sessionData.founderData?.ventureId || 'unknown', 
-          sessionId,
+        // Track coach event: vault file uploaded
+        await ActivityService.logActivity(context, {
           activityType: 'document',
-          action: 'upload',
-          title: file.originalname,
-          description: `Uploaded to ${category}`,
+          action: COACH_EVENTS.VAULT_FILE_UPLOADED,
+          title: `Uploaded ${file.originalname}`,
+          description: `Uploaded to ProofVault category: ${category}`,
           metadata: {
             fileName: file.originalname,
             fileSize: file.size,
             fileType: file.mimetype,
-            folderId: folderId,
-            category: category
+            category: category,
+            uploadId: uploadResult.id,
+            artifactType: category,
           },
-          ipAddress: req.ip,
-          userAgent: req.headers['user-agent']
+          entityId: uploadResult.id,
+          entityType: 'document',
         });
 
         results.push({
           uploadId: uploadResult.id,
           fileName: file.originalname,
-          sharedUrl: uploadResult.shared_url,
+          sharedUrl: uploadResult.url || uploadResult.download_url,
           folderId: folderId,
           category: category,
           fileSize: file.size,
@@ -253,7 +305,7 @@ router.post("/upload-multiple", vaultUpload.array("files", 10), asyncHandler(asy
         });
 
         // Cleanup successful upload
-        await cleanupUploadedFile(file.path);
+        cleanupUploadedFile(file.path, file.originalname, "upload complete");
 
       } catch (error) {
         console.error(`❌ VAULT UPLOAD: Failed to upload ${file.originalname}:`, error);
@@ -265,7 +317,48 @@ router.post("/upload-multiple", vaultUpload.array("files", 10), asyncHandler(asy
         });
 
         // Cleanup failed upload
-        await cleanupUploadedFile(file.path);
+        cleanupUploadedFile(file.path, file.originalname, "upload failed");
+      }
+    }
+
+    // Check upload milestones after batch upload
+    if (ventureId !== 'unknown' && results.length > 0) {
+      const allUploads = await storage.getDocumentUploadsByVentureId(ventureId);
+      const uploadCount = allUploads?.length || 0;
+
+      // Emit milestone events only once per batch
+      if (uploadCount >= 30 && uploadCount - results.length < 30) {
+        await ActivityService.logActivity(context, {
+          activityType: 'document',
+          action: COACH_EVENTS.VAULT_30_FILES_UPLOADED,
+          title: '30 Files Uploaded',
+          description: 'Reached 30 files in ProofVault',
+          metadata: { uploadCount },
+        });
+      } else if (uploadCount >= 20 && uploadCount - results.length < 20) {
+        await ActivityService.logActivity(context, {
+          activityType: 'document',
+          action: COACH_EVENTS.VAULT_20_FILES_UPLOADED,
+          title: '20 Files Uploaded',
+          description: 'Reached 20 files in ProofVault',
+          metadata: { uploadCount },
+        });
+      } else if (uploadCount >= 10 && uploadCount - results.length < 10) {
+        await ActivityService.logActivity(context, {
+          activityType: 'document',
+          action: COACH_EVENTS.VAULT_10_FILES_UPLOADED,
+          title: '10 Files Uploaded',
+          description: 'Reached 10 files in ProofVault',
+          metadata: { uploadCount },
+        });
+      } else if (uploadCount === 1 && results.length === 1) {
+        await ActivityService.logActivity(context, {
+          activityType: 'document',
+          action: COACH_EVENTS.VAULT_FIRST_UPLOAD,
+          title: 'First ProofVault Upload',
+          description: 'Completed your first upload to ProofVault',
+          metadata: { uploadCount: 1 },
+        });
       }
     }
 
@@ -285,7 +378,7 @@ router.post("/upload-multiple", vaultUpload.array("files", 10), asyncHandler(asy
     // Cleanup all files on batch error
     if (req.files && Array.isArray(req.files)) {
       for (const file of req.files) {
-        await cleanupUploadedFile(file.path);
+        cleanupUploadedFile(file.path, file.originalname, "batch upload failed");
       }
     }
 
@@ -331,12 +424,10 @@ router.post("/create-folder", asyncHandler(async (req, res) => {
     console.log(`✅ VAULT FOLDER: Created successfully`, folderResult);
 
     // Track folder creation activity
-    await activityService.trackActivity({
-      founderId: req.session?.founderId || 'unknown',
-      ventureId: sessionData.founderData?.ventureId || 'unknown',
-      sessionId,
-      activityType: 'folder',
-      action: 'create',
+    const context = ActivityService.getContextFromRequest(req);
+    await ActivityService.logActivity(context, {
+      activityType: 'navigation',
+      action: 'create_folder',
       title: folderName,
       description: `Created folder in ${parentCategory}`,
       metadata: {
@@ -345,8 +436,8 @@ router.post("/create-folder", asyncHandler(async (req, res) => {
         parentFolderId: parentFolderId,
         folderId: folderResult.id
       },
-      ipAddress: req.ip,
-      userAgent: req.headers['user-agent']
+      entityId: folderResult.id,
+      entityType: 'folder',
     });
 
     res.json(createSuccessResponse({
