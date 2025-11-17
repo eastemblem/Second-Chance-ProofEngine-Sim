@@ -18,6 +18,7 @@ interface VentureProgressData {
   hasDealRoomAccess: boolean;
   
   // Client-side flags
+  dashboardTutorialCompleted: boolean;
   validationMapExported: boolean;
   validationMapUploadedToVault: boolean;
   hasAccessedCommunityOrDownloads: boolean;
@@ -123,6 +124,7 @@ export function ProofCoachProvider({ children }: ProofCoachProviderProps) {
     hasDealRoomAccess: serverProgress.hasDealRoomAccess,
     
     // Client-side flags
+    dashboardTutorialCompleted: localState.tutorialCompletedPages?.includes('dashboard') || false,
     validationMapExported: getClientFlag(CLIENT_FLAG_CSV_EXPORTED),
     validationMapUploadedToVault: serverProgress.vaultUploadCount > 0, // Use actual vault uploads, not CSV export
     hasAccessedCommunityOrDownloads: getClientFlag(CLIENT_FLAG_COMMUNITY_ACCESSED),
