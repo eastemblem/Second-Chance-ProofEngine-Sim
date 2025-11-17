@@ -6,6 +6,7 @@ import { getSessionId, getSessionData, updateSessionData } from "../utils/sessio
 import { db } from "../db";
 import { onboardingSession as onboardingSessionTable, documentUpload as documentUploadTable, founder as founderTable, venture as ventureTable } from "@shared/schema";
 import { eq, and } from "drizzle-orm";
+import { COACH_EVENTS } from "../../shared/config/coach-events";
 
 // Utility function to extract MIME type from file extension
 function getMimeTypeFromExtension(fileName: string): string {
@@ -1139,6 +1140,39 @@ export class OnboardingService {
           } catch (growthStageError) {
             console.error("Failed to update venture growth stage:", growthStageError);
             // Don't fail the entire process if growth stage update fails
+          }
+          
+          // Emit ProofScore received event for ProofCoach tracking
+          const founderId = stepData?.founder?.founderId || stepData?.founderId;
+          if (founderId) {
+            try {
+              // Extract growth stage for metadata
+              const growthStage = scoringResult?.founder_stage || 
+                                  scoringResult?.output?.founder_stage || 
+                                  scoringResult?.founder_info?.founder_stage ||
+                                  null;
+              
+              await ActivityService.logActivity(
+                { founderId, ventureId: venture.ventureId },
+                {
+                  activityType: 'venture',
+                  action: COACH_EVENTS.PROOFSCORE_RECEIVED,
+                  title: `ProofScore Received: ${totalScore}`,
+                  description: `Received initial ProofScore of ${totalScore} from pitch deck analysis`,
+                  metadata: {
+                    proofScore: totalScore,
+                    growthStage: growthStage,
+                    proofTagsCount: extractedTags?.length || 0,
+                  },
+                  entityId: venture.ventureId,
+                  entityType: 'venture',
+                }
+              );
+              console.log(`✓ Logged PROOFSCORE_RECEIVED event for founder ${founderId}`);
+            } catch (eventError) {
+              console.error("Failed to log PROOFSCORE_RECEIVED event:", eventError);
+              // Don't fail the entire process if event logging fails
+            }
           }
           
           // Generate certificate and report in background after successful evaluation
