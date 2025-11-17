@@ -242,6 +242,7 @@ export function useFileUpload(user: User | null, onUploadComplete?: (updatedVaul
         // Invalidate uploaded artifacts query to refresh dropdown (only on last file to avoid multiple refreshes)
         if (!isBatchUpload || isLastInBatch) {
           queryClient.invalidateQueries({ queryKey: ['/api/v1/vault/uploaded-artifacts'] });
+          queryClient.invalidateQueries({ queryKey: ['/api/v1/coach/progress'] });
         }
         
         // Return response data including updated VaultScore
@@ -372,6 +373,7 @@ export function useFileUpload(user: User | null, onUploadComplete?: (updatedVaul
       
       // Invalidate uploaded artifacts query to refresh dropdown
       queryClient.invalidateQueries({ queryKey: ['/api/v1/vault/uploaded-artifacts'] });
+      queryClient.invalidateQueries({ queryKey: ['/api/v1/coach/progress'] });
       
       // Call success callback to clear form (for both single and batch uploads)
       if (successCallback) {
