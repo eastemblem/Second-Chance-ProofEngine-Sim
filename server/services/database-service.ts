@@ -2,6 +2,7 @@ import { db, pool } from "../db";
 import { 
   founder, venture, teamMember, evaluation, documentUpload, proofVault, 
   leaderboard, userActivity, onboardingSession, ventureExperiments, userSubscriptions,
+  coachState,
   type Founder, type Venture, type Evaluation, type DocumentUpload, type ProofVault,
   type InsertFounder, type InsertVenture
 } from "@shared/schema";
