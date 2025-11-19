@@ -185,8 +185,15 @@ router.post("/upload",
 
     // Check upload milestones if we have a valid venture ID
     if (ventureId !== 'unknown' && founderId) {
-      const allUploads = await storage.getDocumentUploadsByVentureId(ventureId);
-      const uploadCount = allUploads?.length || 0;
+      // FIXED: Count only ProofVault uploads (excludes onboarding pitch deck)
+      const { documentUpload } = await import('@shared/schema');
+      const vaultUploads = await db.select()
+        .from(documentUpload)
+        .where(and(
+          eq(documentUpload.ventureId, ventureId),
+          eq(documentUpload.uploadSource, 'proof-vault')
+        ));
+      const uploadCount = vaultUploads.length;
 
       // Helper to check if milestone already logged (scoped by founderId AND ventureId)
       const hasMilestone = async (action: string) => {
@@ -373,8 +380,15 @@ router.post("/upload-multiple", vaultUpload.array("files", 10), asyncHandler(asy
 
     // Check upload milestones after batch upload
     if (ventureId !== 'unknown' && results.length > 0) {
-      const allUploads = await storage.getDocumentUploadsByVentureId(ventureId);
-      const uploadCount = allUploads?.length || 0;
+      // FIXED: Count only ProofVault uploads (excludes onboarding pitch deck)
+      const { documentUpload } = await import('@shared/schema');
+      const vaultUploads = await db.select()
+        .from(documentUpload)
+        .where(and(
+          eq(documentUpload.ventureId, ventureId),
+          eq(documentUpload.uploadSource, 'proof-vault')
+        ));
+      const uploadCount = vaultUploads.length;
 
       // Emit milestone events only once per batch
       if (uploadCount >= 30 && uploadCount - results.length < 30) {
