@@ -338,6 +338,16 @@ router.post(
       });
     }
 
+    // Defensive validation: Ensure the event is a known COACH_EVENT
+    const validCoachEvents = Object.values(COACH_EVENTS);
+    if (!validCoachEvents.includes(coachEvent)) {
+      appLogger.error(`[ProofCoach] Invalid COACH_EVENT attempted: ${coachEvent}`);
+      return res.status(400).json({
+        success: false,
+        error: 'Invalid coach event',
+      });
+    }
+
     // Get venture ID for the event
     const dashboardData = await databaseService.getFounderWithLatestVenture(founderId);
     const ventureId = dashboardData?.venture?.ventureId;

@@ -60,23 +60,6 @@ router.get('/validation', asyncHandler(async (req: Request, res: Response) => {
       // Don't fail the request if event logging fails
     }
     
-    // Emit PROOFSCORE_VIEWED event when ProofScore is displayed
-    try {
-      await ActivityService.logActivity(
-        { founderId },
-        {
-          activityType: 'evaluation',
-          action: COACH_EVENTS.PROOFSCORE_VIEWED,
-          title: 'ProofScore Viewed',
-          description: 'Viewed ProofScore on dashboard',
-          metadata: { timestamp: new Date().toISOString() }
-        }
-      );
-    } catch (eventError) {
-      appLogger.api('Failed to log PROOFSCORE_VIEWED event:', eventError);
-      // Don't fail the request if event logging fails
-    }
-    
     const dashboardData = await databaseService.getFounderWithLatestVenture(founderId);
     if (!dashboardData) {
       return res.status(404).json({ error: "Founder not found" });
@@ -166,6 +149,29 @@ router.get('/validation', asyncHandler(async (req: Request, res: Response) => {
     const { storage } = await import('../../storage');
     const totalFiles = await storage.getDocumentUploadCountByVenture(dashboardData.venture.ventureId);
     validationData.filesUploaded = totalFiles;
+
+    // Emit PROOFSCORE_VIEWED event AFTER data is successfully retrieved and ProofScore exists
+    if (latestVenture && currentScore !== undefined) {
+      try {
+        await ActivityService.logActivity(
+          { founderId, ventureId: latestVenture.ventureId },
+          {
+            activityType: 'evaluation',
+            action: COACH_EVENTS.PROOFSCORE_VIEWED,
+            title: 'ProofScore Viewed',
+            description: 'Viewed ProofScore on dashboard',
+            metadata: { 
+              proofScore: currentScore,
+              ventureId: latestVenture.ventureId,
+              timestamp: new Date().toISOString()
+            }
+          }
+        );
+      } catch (eventError) {
+        appLogger.api('Failed to log PROOFSCORE_VIEWED event:', eventError);
+        // Don't fail the request if event logging fails
+      }
+    }
 
     appLogger.api(`✅ VALIDATION API: Returning data - ProofScore: ${currentScore}, ProofTags: ${proofTagsUnlocked}, Files: ${totalFiles}`);
     res.json(validationData);
