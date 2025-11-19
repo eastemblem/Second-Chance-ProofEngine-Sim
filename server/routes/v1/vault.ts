@@ -430,6 +430,28 @@ router.post('/upload-file', upload.single("file"), asyncHandler(async (req: Auth
       const sanitizedVentureId = String(currentVentureId).replace(/[^\w-]/g, '');
       appLogger.database(`V1 UPLOAD: Database record created with ID ${uploadRecord.uploadId} for venture ${currentVentureId}`);
 
+      // FIXED: Emit VAULT_FILE_UPLOADED event after database entry creation
+      const { ActivityService } = await import("../../services/activity-service");
+      const { COACH_EVENTS } = await import("@shared/config/coach-events");
+      const context = ActivityService.getContextFromRequest(req);
+      
+      await ActivityService.logActivity(context, {
+        activityType: 'document',
+        action: COACH_EVENTS.VAULT_FILE_UPLOADED,
+        title: `Uploaded ${file.originalname}`,
+        description: `Uploaded to ProofVault${artifactType ? ` - ${artifactType}` : ''}`,
+        metadata: {
+          fileName: file.originalname,
+          fileSize: file.size,
+          fileType: file.mimetype,
+          artifactType: artifactType || '',
+          uploadId: uploadRecord.uploadId,
+          folderId: actualFolderId,
+        },
+        entityId: String(uploadRecord.uploadId),
+        entityType: 'document',
+      });
+
       // NEW: Calculate and update both VaultScore and ProofScore (only for non-batch or last file in batch)
       let currentVaultScore = 0;
       let currentProofScore = 0;
@@ -987,12 +1009,35 @@ router.post('/upload-file-direct', upload.single("file"), asyncHandler(async (re
         description: description || '',
         categoryId: categoryId,
         scoreAwarded: scoreAwarded,
-        proofScoreContribution: proofScoreContribution
+        proofScoreContribution: proofScoreContribution,
+        uploadSource: 'proof-vault' // Mark as proof-vault upload for ProofCoach task tracking
       });
       // Sanitize IDs for logging to prevent security scanner warnings
       const sanitizedUploadId = String(uploadRecord.uploadId).replace(/[^\w-]/g, '');
       const sanitizedVentureId = String(currentVentureId).replace(/[^\w-]/g, '');
       appLogger.api('V1 direct upload - database record created', { uploadId: sanitizedUploadId, ventureId: sanitizedVentureId });
+
+      // FIXED: Emit VAULT_FILE_UPLOADED event after database entry creation
+      const { ActivityService: ActivityService2 } = await import("../../services/activity-service");
+      const { COACH_EVENTS: COACH_EVENTS2 } = await import("@shared/config/coach-events");
+      const context2 = ActivityService2.getContextFromRequest(req);
+      
+      await ActivityService2.logActivity(context2, {
+        activityType: 'document',
+        action: COACH_EVENTS2.VAULT_FILE_UPLOADED,
+        title: `Uploaded ${file.originalname}`,
+        description: `Uploaded to ProofVault${artifactType ? ` - ${artifactType}` : ''}`,
+        metadata: {
+          fileName: file.originalname,
+          fileSize: file.size,
+          fileType: file.mimetype,
+          artifactType: artifactType || '',
+          uploadId: uploadRecord.uploadId,
+          folderId: folder_id,
+        },
+        entityId: String(uploadRecord.uploadId),
+        entityType: 'document',
+      });
 
       // Invalidate uploaded artifacts cache after successful upload
       if (currentVentureId) {
@@ -1273,7 +1318,31 @@ router.post('/upload-files-batch', upload.array("files", 50), asyncHandler(async
         description: description || '',
         categoryId: categoryId,
         scoreAwarded: scoreAwarded,
-        proofScoreContribution: proofScoreContribution
+        proofScoreContribution: proofScoreContribution,
+        uploadSource: 'proof-vault' // Mark as proof-vault upload for ProofCoach task tracking
+      });
+
+      // FIXED: Emit VAULT_FILE_UPLOADED event after database entry creation
+      const { ActivityService: ActivityService3 } = await import("../../services/activity-service");
+      const { COACH_EVENTS: COACH_EVENTS3 } = await import("@shared/config/coach-events");
+      const context3 = ActivityService3.getContextFromRequest(req);
+      
+      await ActivityService3.logActivity(context3, {
+        activityType: 'document',
+        action: COACH_EVENTS3.VAULT_FILE_UPLOADED,
+        title: `Uploaded ${file.originalname}`,
+        description: `Uploaded to ProofVault (batch)${artifactType ? ` - ${artifactType}` : ''}`,
+        metadata: {
+          fileName: file.originalname,
+          fileSize: file.size,
+          fileType: file.mimetype,
+          artifactType: artifactType || '',
+          uploadId: uploadRecord.uploadId,
+          folderId: folder_id,
+          batchUpload: true,
+        },
+        entityId: String(uploadRecord.uploadId),
+        entityType: 'document',
       });
 
       successfulUploads.push({
