@@ -59,37 +59,33 @@ export const COACH_EVENTS = {
  * Each step can be completed by one or more events
  */
 export const JOURNEY_STEP_COMPLETION_EVENTS: Record<number, string[]> = {
+  // Onboarding Steps (0-1)
   0: [COACH_EVENTS.ONBOARDING_STARTED], // Welcome - starting onboarding
   1: [COACH_EVENTS.ONBOARDING_COMPLETED], // Complete onboarding
+  
+  // ProofCoach Journey Steps (2-30) - Post-Onboarding
   2: [COACH_EVENTS.PROOFSCORE_VIEWED, COACH_EVENTS.DASHBOARD_VISITED], // Review ProofScore
   3: [COACH_EVENTS.VALIDATION_MAP_VIEWED], // Explore Validation Map
-  4: [COACH_EVENTS.FIRST_EXPERIMENT_COMPLETED], // Complete first experiment
-  5: [COACH_EVENTS.THREE_EXPERIMENTS_COMPLETED], // Complete 3 experiments
-  6: [COACH_EVENTS.VAULT_FIRST_UPLOAD], // Make first upload
-  7: [COACH_EVENTS.PROOFSCORE_VIEWED], // View score update (after upload)
-  8: [COACH_EVENTS.VAULT_10_FILES_UPLOADED], // Upload 10 files
-  9: [COACH_EVENTS.VALIDATION_MAP_EXPORTED], // Export validation map CSV
-  10: [COACH_EVENTS.VALIDATION_CSV_UPLOADED], // Upload CSV to vault
-  11: [COACH_EVENTS.VAULT_FIRST_UPLOAD], // Make first upload
-  12: [COACH_EVENTS.VAULT_30_FILES_UPLOADED], // Upload 30 files
-  13: [COACH_EVENTS.VAULT_10_FILES_UPLOADED], // Step 13: Upload 10 files
-  14: [COACH_EVENTS.FIRST_EXPERIMENT_COMPLETED], // Step 14: Complete first validation experiment
-  15: [COACH_EVENTS.THREE_EXPERIMENTS_COMPLETED], // Step 15: Complete 3 validation experiments
-  16: [COACH_EVENTS.VALIDATION_MAP_EXPORTED], // Step 16: Export Validation Map CSV
-  17: [COACH_EVENTS.VALIDATION_CSV_UPLOADED], // Step 17: Upload CSV to ProofVault
-  18: [COACH_EVENTS.VAULT_20_FILES_UPLOADED], // Step 18: Upload 20 total files
-  19: [COACH_EVENTS.PROOFSCORE_65_REACHED], // Step 19: Reach ProofScore 65+
-  20: [COACH_EVENTS.VAULT_30_FILES_UPLOADED], // Step 20: Upload 30 total files
-  21: [COACH_EVENTS.PROOFSCORE_70_REACHED], // Step 21: Reach ProofScore 70+
-  22: [COACH_EVENTS.PROOFSCORE_70_REACHED], // Step 22: Explore Deal Room (unlocks at 70+)
-  23: [COACH_EVENTS.DEAL_ROOM_PURCHASED], // Step 23: Complete Payment
-  24: [COACH_EVENTS.CERTIFICATE_DOWNLOADED], // Step 24: Download Certificate
-  25: [COACH_EVENTS.REPORT_DOWNLOADED], // Step 25: Download Report
-  26: [COACH_EVENTS.COMMUNITY_ACCESSED], // Step 26: Access Community
-  27: [COACH_EVENTS.FIVE_EXPERIMENTS_COMPLETED], // Step 27: Complete 5 validation experiments
-  28: [COACH_EVENTS.PROOFSCORE_80_REACHED], // Step 28: Reach ProofScore 80+
-  29: [COACH_EVENTS.VAULT_50_FILES_UPLOADED], // Step 29: Upload 50 total files
-  30: [COACH_EVENTS.PROOFSCORE_80_REACHED], // Step 30: Investment Ready (80+ score)
+  10: [COACH_EVENTS.DASHBOARD_TUTORIAL_COMPLETED], // Complete Dashboard Tutorial
+  11: [COACH_EVENTS.VAULT_FIRST_UPLOAD], // Make Your First Upload
+  13: [COACH_EVENTS.VAULT_10_FILES_UPLOADED], // Upload 10 Files
+  14: [COACH_EVENTS.FIRST_EXPERIMENT_COMPLETED], // Complete First Validation Experiment
+  15: [COACH_EVENTS.THREE_EXPERIMENTS_COMPLETED], // Complete 3 Validation Experiments
+  16: [COACH_EVENTS.VALIDATION_MAP_EXPORTED], // Export Validation Map CSV
+  17: [COACH_EVENTS.VALIDATION_CSV_UPLOADED], // Upload CSV to ProofVault
+  18: [COACH_EVENTS.VAULT_20_FILES_UPLOADED], // Upload 20 Total Files
+  19: [COACH_EVENTS.PROOFSCORE_65_REACHED], // Reach ProofScore 65+
+  20: [COACH_EVENTS.VAULT_30_FILES_UPLOADED], // Upload 30 Total Files
+  21: [COACH_EVENTS.PROOFSCORE_70_REACHED], // Reach ProofScore 70+ (unlocks Deal Room)
+  22: [COACH_EVENTS.DEAL_ROOM_VIEWED], // Explore Deal Room
+  23: [COACH_EVENTS.DEAL_ROOM_PURCHASED], // Complete Payment
+  24: [COACH_EVENTS.CERTIFICATE_DOWNLOADED], // Download Certificate
+  25: [COACH_EVENTS.REPORT_DOWNLOADED], // Download Report
+  26: [COACH_EVENTS.COMMUNITY_ACCESSED], // Access Community
+  27: [COACH_EVENTS.FIVE_EXPERIMENTS_COMPLETED], // Complete 5 Validation Experiments
+  28: [COACH_EVENTS.PROOFSCORE_80_REACHED], // Reach ProofScore 80+
+  29: [COACH_EVENTS.VAULT_50_FILES_UPLOADED], // Upload 50 Total Files
+  30: [COACH_EVENTS.PROOFSCORE_80_REACHED], // Investment Ready (80+ score)
 };
 
 /**
