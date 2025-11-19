@@ -70,7 +70,7 @@ export const JOURNEY_STEP_COMPLETION_EVENTS: Record<number, string[]> = {
   8: [COACH_EVENTS.VAULT_10_FILES_UPLOADED], // Upload 10 files
   9: [COACH_EVENTS.VALIDATION_MAP_EXPORTED], // Export validation map CSV
   10: [COACH_EVENTS.VALIDATION_CSV_UPLOADED], // Upload CSV to vault
-  11: [COACH_EVENTS.VAULT_20_FILES_UPLOADED], // Upload 20 files
+  11: [COACH_EVENTS.VAULT_FIRST_UPLOAD], // Make first upload
   12: [COACH_EVENTS.VAULT_30_FILES_UPLOADED], // Upload 30 files
   13: [COACH_EVENTS.VAULT_10_FILES_UPLOADED], // Step 13: Upload 10 files
   14: [COACH_EVENTS.FIRST_EXPERIMENT_COMPLETED], // Step 14: Complete first validation experiment
