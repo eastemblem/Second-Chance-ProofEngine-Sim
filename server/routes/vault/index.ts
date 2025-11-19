@@ -145,6 +145,26 @@ router.post("/upload",
 
     console.log(`✅ VAULT UPLOAD: File uploaded successfully`, uploadResult);
 
+    // FIXED: Create document_upload database record for ProofVault uploads
+    await storage.createDocumentUpload({
+      ventureId: ventureId,
+      fileName: req.file.filename,
+      originalName: req.file.originalname,
+      filePath: req.file.path,
+      fileSize: req.file.size,
+      mimeType: req.file.mimetype,
+      uploadStatus: 'completed',
+      processingStatus: 'completed',
+      eastemblemFileId: uploadResult.id,
+      sharedUrl: uploadResult.url || uploadResult.download_url,
+      folderId: folder_id || null,
+      categoryId: category,
+      artifactType: category,
+      description: `File uploaded to ProofVault category: ${category}`,
+      uploadSource: 'proof-vault', // Explicitly mark as ProofVault upload
+    });
+    console.log(`✅ VAULT UPLOAD: Database record created for ${req.file.originalname}`);
+
     // Get activity context
     const context = ActivityService.getContextFromRequest(req);
 
@@ -331,6 +351,25 @@ router.post("/upload-multiple", vaultUpload.array("files", 10), asyncHandler(asy
           file.originalname,
           folderId
         );
+
+        // FIXED: Create document_upload database record for ProofVault uploads
+        await storage.createDocumentUpload({
+          ventureId: ventureId,
+          fileName: file.filename,
+          originalName: file.originalname,
+          filePath: file.path,
+          fileSize: file.size,
+          mimeType: file.mimetype,
+          uploadStatus: 'completed',
+          processingStatus: 'completed',
+          eastemblemFileId: uploadResult.id,
+          sharedUrl: uploadResult.url || uploadResult.download_url,
+          folderId: folderId,
+          categoryId: category,
+          artifactType: category,
+          description: `File uploaded to ProofVault category: ${category}`,
+          uploadSource: 'proof-vault', // Explicitly mark as ProofVault upload
+        });
 
         // Track coach event: vault file uploaded
         await ActivityService.logActivity(context, {
