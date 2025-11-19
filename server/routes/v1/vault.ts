@@ -452,6 +452,12 @@ router.post('/upload-file', upload.single("file"), asyncHandler(async (req: Auth
         entityType: 'document',
       });
 
+      // Check and emit milestone events (VAULT_FIRST_UPLOAD, etc.)
+      if (currentVentureId && founderId) {
+        const { VaultMilestoneService } = await import("../../services/vault-milestone-service");
+        await VaultMilestoneService.checkAndEmitMilestones(founderId, currentVentureId, context);
+      }
+
       // NEW: Calculate and update both VaultScore and ProofScore (only for non-batch or last file in batch)
       let currentVaultScore = 0;
       let currentProofScore = 0;
@@ -1039,6 +1045,12 @@ router.post('/upload-file-direct', upload.single("file"), asyncHandler(async (re
         entityType: 'document',
       });
 
+      // Check and emit milestone events (VAULT_FIRST_UPLOAD, etc.)
+      if (currentVentureId && founderId) {
+        const { VaultMilestoneService: VaultMilestoneService2 } = await import("../../services/vault-milestone-service");
+        await VaultMilestoneService2.checkAndEmitMilestones(founderId, currentVentureId, context2);
+      }
+
       // Invalidate uploaded artifacts cache after successful upload
       if (currentVentureId) {
         try {
@@ -1344,6 +1356,12 @@ router.post('/upload-files-batch', upload.array("files", 50), asyncHandler(async
         entityId: String(uploadRecord.uploadId),
         entityType: 'document',
       });
+
+      // Check and emit milestone events (VAULT_FIRST_UPLOAD, etc.) after each file in batch
+      if (currentVentureId && founderId) {
+        const { VaultMilestoneService: VaultMilestoneService3 } = await import("../../services/vault-milestone-service");
+        await VaultMilestoneService3.checkAndEmitMilestones(founderId, currentVentureId, context3);
+      }
 
       successfulUploads.push({
         fileName: file.originalname,
