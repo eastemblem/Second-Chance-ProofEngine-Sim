@@ -10,6 +10,7 @@ import type { JourneyStep, TutorialMechanic } from "../../../shared/config/coach
 import { COACH_JOURNEY_STEPS, getTutorialsForPage } from "../../../shared/config/coach-journey";
 import { useProofCoach } from "@/contexts/ProofCoachContext";
 import { Checkbox } from "@/components/ui/checkbox";
+import { apiRequest } from "@/lib/queryClient";
 
 export interface ProofCoachProps {
   // Journey system
@@ -210,7 +211,7 @@ export default function ProofCoach({
     completeTutorial();
   };
 
-  const completeTutorial = () => {
+  const completeTutorial = async () => {
     // Clean up tutorial state
     if (highlightedElement) {
       highlightedElement.classList.remove('tutorial-highlight');
@@ -218,6 +219,15 @@ export default function ProofCoach({
     setIsInTutorial(false);
     setTutorialStep(0);
     onTutorialComplete?.(currentPage);
+    
+    // Emit DASHBOARD_TUTORIAL_COMPLETED event to backend
+    try {
+      await apiRequest('POST', '/api/v1/coach/complete-tutorial', { page: currentPage });
+      console.log(`✅ Tutorial completed event logged for page: ${currentPage}`);
+    } catch (error) {
+      console.error('Failed to log tutorial completion event:', error);
+      // Don't block the UI if event logging fails
+    }
     
     // Stay open and transition to Coach Mode - don't minimize!
     // The ProofCoach window will now show the journey steps

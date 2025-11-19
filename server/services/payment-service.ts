@@ -1119,6 +1119,25 @@ ${statusEmoji} **${statusText}**
         founderId: transaction.founderId,
         orderReference: transaction.orderReference
       });
+
+      // Emit COMMUNITY_ACCESSED event - user now has access to community features
+      await ActivityService.logActivity(
+        { founderId: transaction.founderId },
+        {
+          activityType: 'venture' as const,
+          action: COACH_EVENTS.COMMUNITY_ACCESSED,
+          title: 'Community Access Granted',
+          description: 'Unlocked community features after Deal Room purchase',
+          metadata: {
+            ...baseMetadata,
+            accessType: 'deal_room_purchase'
+          }
+        }
+      );
+      appLogger.business('COMMUNITY_ACCESSED event logged', {
+        founderId: transaction.founderId,
+        orderReference: transaction.orderReference
+      });
     }
 
     appLogger.business(`Payment activity logged: ${activityData.action}`, {

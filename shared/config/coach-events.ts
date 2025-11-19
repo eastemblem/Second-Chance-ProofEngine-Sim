@@ -64,7 +64,7 @@ export const JOURNEY_STEP_COMPLETION_EVENTS: Record<number, string[]> = {
   1: [COACH_EVENTS.ONBOARDING_COMPLETED], // Complete onboarding
   
   // ProofCoach Journey Steps (2-30) - Post-Onboarding
-  2: [COACH_EVENTS.PROOFSCORE_VIEWED, COACH_EVENTS.DASHBOARD_VISITED], // Review ProofScore
+  2: [COACH_EVENTS.DASHBOARD_TUTORIAL_COMPLETED], // Review ProofScore (completed when dashboard tutorial is finished)
   3: [COACH_EVENTS.VALIDATION_MAP_VIEWED], // Explore Validation Map
   10: [COACH_EVENTS.DASHBOARD_TUTORIAL_COMPLETED], // Complete Dashboard Tutorial
   11: [COACH_EVENTS.VAULT_FIRST_UPLOAD], // Make Your First Upload

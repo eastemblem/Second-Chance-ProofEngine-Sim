@@ -1,6 +1,7 @@
 import { Button } from "@/components/ui/button";
 import { CheckCircle, Clock, Eye, Check } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
+import { apiRequest } from "@/lib/queryClient";
 
 interface ValidationData {
   proofScore: number;
@@ -95,7 +96,7 @@ export function DealRoomSection({ validationData, hasDealRoomAccess = false, onP
   };
 
   // Handle button click
-  const handleButtonClick = () => {
+  const handleButtonClick = async () => {
     // Check score requirement first
     if (proofScore < 70) {
       toast({
@@ -107,6 +108,18 @@ export function DealRoomSection({ validationData, hasDealRoomAccess = false, onP
     }
 
     if (isUnlocked) {
+      // Emit DEAL_ROOM_VIEWED event when user views Deal Room with ProofScore >= 70
+      try {
+        await apiRequest('POST', '/api/v1/coach/track-event', { 
+          eventType: 'deal_room_viewed',
+          metadata: { proofScore }
+        });
+        console.log('✅ DEAL_ROOM_VIEWED event logged');
+      } catch (error) {
+        console.error('Failed to log DEAL_ROOM_VIEWED event:', error);
+        // Don't block the UI if event logging fails
+      }
+
       // Check if user has paid for Deal Room access
       if (hasDealRoomAccess) {
         // Direct to Calendly booking

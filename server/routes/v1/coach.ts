@@ -8,6 +8,8 @@ import { eq } from "drizzle-orm";
 import { appLogger } from "../../utils/logger";
 import { databaseService } from "../../services/database-service";
 import { CoachProgressService } from "../../services/coach-progress-service";
+import { ActivityService } from "../../services/activity-service";
+import { COACH_EVENTS } from "../../../shared/config/coach-events";
 
 const router = Router();
 
@@ -268,9 +270,102 @@ router.post(
       .where(eq(coachState.founderId, founderId))
       .returning();
 
+    // Emit DASHBOARD_TUTORIAL_COMPLETED event if dashboard tutorial was completed
+    if (page === 'dashboard' && !completedPages.includes(page)) {
+      try {
+        // Get venture ID for the event
+        const dashboardData = await databaseService.getFounderWithLatestVenture(founderId);
+        const ventureId = dashboardData?.venture?.ventureId;
+
+        await ActivityService.logActivity(
+          { founderId, ventureId },
+          {
+            activityType: 'navigation',
+            action: COACH_EVENTS.DASHBOARD_TUTORIAL_COMPLETED,
+            title: 'Dashboard Tutorial Completed',
+            description: 'Finished interactive dashboard tutorial',
+            metadata: { page: 'dashboard' }
+          }
+        );
+        appLogger.info(`[ProofCoach] DASHBOARD_TUTORIAL_COMPLETED event logged for founder: ${founderId}`);
+      } catch (eventError) {
+        appLogger.error('[ProofCoach] Failed to log DASHBOARD_TUTORIAL_COMPLETED event:', eventError);
+        // Don't fail the request if event logging fails
+      }
+    }
+
     return res.json({
       success: true,
       data: updatedState,
+    });
+  })
+);
+
+// Track custom events (e.g., DEAL_ROOM_VIEWED)
+router.post(
+  "/track-event",
+  authenticateToken,
+  asyncHandler(async (req: AuthenticatedRequest, res) => {
+    const founderId = req.user?.founderId;
+    const { eventType, metadata } = req.body;
+
+    if (!founderId) {
+      return res.status(401).json({
+        success: false,
+        error: "Authentication required",
+      });
+    }
+
+    if (typeof eventType !== "string") {
+      return res.status(400).json({
+        success: false,
+        error: "eventType must be a string",
+      });
+    }
+
+    appLogger.info(`[ProofCoach] Tracking event "${eventType}" for founder: ${founderId}`);
+
+    // Map frontend event types to COACH_EVENTS
+    const eventMapping: Record<string, string> = {
+      'deal_room_viewed': COACH_EVENTS.DEAL_ROOM_VIEWED,
+    };
+
+    const coachEvent = eventMapping[eventType];
+    if (!coachEvent) {
+      return res.status(400).json({
+        success: false,
+        error: `Unknown event type: ${eventType}`,
+      });
+    }
+
+    // Get venture ID for the event
+    const dashboardData = await databaseService.getFounderWithLatestVenture(founderId);
+    const ventureId = dashboardData?.venture?.ventureId;
+
+    // Emit the event
+    try {
+      await ActivityService.logActivity(
+        { founderId, ventureId },
+        {
+          activityType: 'navigation',
+          action: coachEvent,
+          title: `${eventType.split('_').map((w: string) => w.charAt(0).toUpperCase() + w.slice(1)).join(' ')}`,
+          description: `User triggered ${eventType} event`,
+          metadata: metadata || {}
+        }
+      );
+      appLogger.info(`[ProofCoach] ${coachEvent} event logged for founder: ${founderId}`);
+    } catch (eventError) {
+      appLogger.error(`[ProofCoach] Failed to log ${coachEvent} event:`, eventError);
+      return res.status(500).json({
+        success: false,
+        error: 'Failed to log event',
+      });
+    }
+
+    return res.json({
+      success: true,
+      message: `Event ${eventType} tracked successfully`,
     });
   })
 );
