@@ -211,12 +211,6 @@ export default function ProofCoach({
   };
 
   const completeTutorial = () => {
-    // Set transient flag to force minimized state during transition
-    setIsCompletingTutorial(true);
-    
-    // Minimize FIRST to prevent showing journey UI during transition
-    onMinimize();
-    
     // Clean up tutorial state
     if (highlightedElement) {
       highlightedElement.classList.remove('tutorial-highlight');
@@ -225,8 +219,8 @@ export default function ProofCoach({
     setTutorialStep(0);
     onTutorialComplete?.(currentPage);
     
-    // Clear transient flag after brief delay (by then isMinimized should have updated)
-    setTimeout(() => setIsCompletingTutorial(false), 200);
+    // Stay open and transition to Coach Mode - don't minimize!
+    // The ProofCoach window will now show the journey steps
   };
 
   // Map milestone steps to dashboard section IDs
