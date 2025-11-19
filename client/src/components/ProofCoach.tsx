@@ -226,7 +226,7 @@ export default function ProofCoach({
   // Map milestone steps to dashboard section IDs
   const stepToSectionMap: Record<number, string> = {
     10: 'dashboard-header',        // Dashboard tutorial
-    11: 'proof-vault-section',     // First upload
+    11: 'button-upload-files',     // First upload (Validation Overview button)
     12: 'validation-map-intro',    // First experiment
     13: 'validation-map-intro',    // 3 experiments
     14: 'validation-map-intro',    // 5 experiments
