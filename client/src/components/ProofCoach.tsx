@@ -248,14 +248,14 @@ export default function ProofCoach({
     20: 'proof-vault-section',     // 50 uploads
     21: 'proofscore-display',      // ProofScore 65+
     22: 'proofscore-display',      // ProofScore 70+
-    23: 'proofscore-display',      // ProofScore 80+
-    24: 'deal-room-section',       // Deal Room payment
-    25: 'document-downloads-section', // Download certificate
-    26: 'document-downloads-section', // Download report
-    27: 'community-access-section',   // Community access
-    28: 'leaderboard-section',        // Leaderboard
-    29: 'activity-feed-section',      // Activity feed
-    30: 'deal-room-section',          // Unlock all features
+    23: 'deal-room-section',       // Complete Payment (step 23)
+    24: 'document-downloads-section', // Download certificate (step 24)
+    25: 'document-downloads-section', // Download report (step 25)
+    26: 'community-access-section',   // Access Investor Community (step 26)
+    27: 'validation-map-intro',       // Complete 5 experiments (step 27)
+    28: 'proofscore-display',      // ProofScore 80+
+    29: 'proof-vault-section',     // 50 uploads
+    30: 'deal-room-section',          // Investment Ready
   };
 
   // Highlight section when clicking todo
