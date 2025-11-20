@@ -61,6 +61,11 @@ Key technical decisions include:
     - **Venture-Scoped Deduplication**: Milestone duplicate prevention checks scoped by both founderId AND ventureId to prevent cross-venture event duplication
     - **Comprehensive Event Coverage**: Events tracked for dashboard visits, validation map views, certificate/report downloads, Deal Room purchases, and all user journey milestones
     - **Activity Service Integration**: All events logged through ActivityService with proper context (activityType, action, metadata, entityId, entityType) for deterministic state calculation
+    - **Hybrid Data Architecture (Nov 20, 2025)**: CoachProgressService.calculateProgress() uses a hybrid approach combining real database queries with event-based milestone tracking:
+      - **Real Data Queries**: Counts from source tables (ventures, document_upload, ventureExperiments) for accurate metrics (vaultUploadCount, completedExperimentsCount, proofScore, vaultScore)
+      - **Event-Based Milestones**: Milestone flags (hasFirstUpload, has10Uploads, hasReached70Score) tracked via user_activity events
+      - **Onboarding Status**: Determined by venture.proofScore > 0 instead of event-based tracking
+      - **Performance Optimized**: Parallel database queries with proper venture/founder scoping for accurate per-venture progress
 
 ### System Design Choices
 The system prioritizes a modular, component-driven frontend and a serverless backend for scalability. Drizzle ORM ensures type-safe database interactions. The email service is designed for flexibility.

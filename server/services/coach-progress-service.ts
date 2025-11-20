@@ -1,6 +1,6 @@
 import { db } from "../db";
 import { userActivity, coachState, venture, documentUpload, ventureExperiments } from "@shared/schema";
-import { eq, and, desc, sql, count, countDistinct } from "drizzle-orm";
+import { eq, and, desc, sql, count, countDistinct, inArray, or, isNull } from "drizzle-orm";
 import { appLogger } from "../utils/logger";
 import { COACH_EVENTS, JOURNEY_STEP_COMPLETION_EVENTS, type CoachEventMetadata } from "../../shared/config/coach-events";
 
@@ -21,38 +21,50 @@ export class CoachProgressService {
       
       // STEP 1: Query real data from source tables
       
-      // Get venture data (proofScore, vaultScore, onboarding status)
-      const ventures = await db
+      // Get ALL ventures for this founder first (for scoping)
+      const founderVentures = await db
         .select()
         .from(venture)
-        .where(
-          and(
-            eq(venture.founderId, founderId),
-            ventureId ? eq(venture.ventureId, ventureId) : sql`true`
-          )
-        );
+        .where(eq(venture.founderId, founderId));
       
-      const currentVenture = ventureId ? ventures.find(v => v.ventureId === ventureId) : ventures[0];
+      // Verify ventureId belongs to founder if provided
+      let currentVenture = null;
+      if (ventureId) {
+        currentVenture = founderVentures.find(v => v.ventureId === ventureId);
+        if (!currentVenture) {
+          throw new Error(`Venture ${ventureId} not found for founder ${founderId}`);
+        }
+      } else {
+        currentVenture = founderVentures[0] || null;
+      }
       
-      // Get ProofVault upload counts (uploadSource='proof-vault')
+      // Get venture IDs for scoping queries (either specific venture or all founder's ventures)
+      const ventureIds = ventureId ? [ventureId] : founderVentures.map(v => v.ventureId);
+      
+      // CRITICAL: Handle empty venture list BEFORE building queries
+      if (ventureIds.length === 0) {
+        appLogger.info(`[CoachProgress] No ventures found for founder: ${founderId}`);
+        // Return empty progress if founder has no ventures
+        return this.getEmptyProgress();
+      }
+      
+      // Get ProofVault upload counts (uploadSource='proof-vault'), properly scoped to founder's ventures
       const vaultUploadsQuery = db
         .select({ count: count() })
         .from(documentUpload)
         .where(
           and(
             eq(documentUpload.uploadSource, 'proof-vault'),
-            ventureId ? eq(documentUpload.ventureId, ventureId) : sql`true`
+            inArray(documentUpload.ventureId, ventureIds)
           )
         );
       
       const totalUploadsQuery = db
         .select({ count: count() })
         .from(documentUpload)
-        .where(
-          ventureId ? eq(documentUpload.ventureId, ventureId) : sql`true`
-        );
+        .where(inArray(documentUpload.ventureId, ventureIds));
       
-      // Get distinct artifact types count
+      // Get distinct artifact types, properly scoped
       const distinctArtifactTypesQuery = db
         .select({ 
           artifactType: documentUpload.artifactType,
@@ -61,34 +73,34 @@ export class CoachProgressService {
         .where(
           and(
             eq(documentUpload.uploadSource, 'proof-vault'),
-            ventureId ? eq(documentUpload.ventureId, ventureId) : sql`true`
+            inArray(documentUpload.ventureId, ventureIds)
           )
         );
       
-      // Get first vault upload timestamp
+      // Get first vault upload timestamp, properly scoped
       const firstVaultUploadQuery = db
         .select({ createdAt: documentUpload.createdAt })
         .from(documentUpload)
         .where(
           and(
             eq(documentUpload.uploadSource, 'proof-vault'),
-            ventureId ? eq(documentUpload.ventureId, ventureId) : sql`true`
+            inArray(documentUpload.ventureId, ventureIds)
           )
         )
         .orderBy(documentUpload.createdAt)
         .limit(1);
       
-      // Get completed experiments count
+      // Get completed experiments - SELECT all rows, then count and extract timestamps
       const completedExperimentsQuery = db
-        .select({ 
-          count: count(),
+        .select({
+          id: ventureExperiments.id,
           completedAt: ventureExperiments.completedAt 
         })
         .from(ventureExperiments)
         .where(
           and(
             eq(ventureExperiments.status, 'completed'),
-            ventureId ? eq(ventureExperiments.ventureId, ventureId) : sql`true`
+            inArray(ventureExperiments.ventureId, ventureIds)
           )
         );
       
@@ -124,13 +136,17 @@ export class CoachProgressService {
       });
       
       // STEP 2: Query event data for milestone flags and action-based tracking
+      // Include both venture-specific events AND founder-level events (where ventureId is null)
       const activities = await db
         .select()
         .from(userActivity)
         .where(
           and(
             eq(userActivity.founderId, founderId),
-            ventureId ? eq(userActivity.ventureId, ventureId) : sql`true`
+            or(
+              inArray(userActivity.ventureId, ventureIds),
+              isNull(userActivity.ventureId) // Include founder-level events (dashboard tutorial, etc.)
+            )
           )
         )
         .orderBy(desc(userActivity.createdAt));
@@ -362,5 +378,46 @@ export class CoachProgressService {
     const progress = await this.calculateProgress(founderId, ventureId);
     await this.saveProgress(founderId, progress);
     return progress;
+  }
+  
+  /**
+   * Return empty progress object when founder has no ventures
+   */
+  private static getEmptyProgress() {
+    return {
+      onboardingComplete: false,
+      dashboardTutorialCompleted: false,
+      completedExperimentsCount: 0,
+      hasCompletedExperiment: false,
+      hasCompleted3Experiments: false,
+      hasCompleted5Experiments: false,
+      firstExperimentCompletedAt: null,
+      vaultUploadCount: 0,
+      totalUploads: 0,
+      distinctArtifactTypesCount: 0,
+      firstVaultUploadAt: null,
+      hasFirstUpload: false,
+      has10Uploads: false,
+      has20Uploads: false,
+      has30Uploads: false,
+      has50Uploads: false,
+      proofScore: 0,
+      vaultScore: 0,
+      latestProofScoreAt: null,
+      hasReached65Score: false,
+      hasReached70Score: false,
+      hasReached80Score: false,
+      validationMapExported: false,
+      validationMapExportedAt: null,
+      validationMapUploadedToVault: false,
+      validationMapUploadedAt: null,
+      hasDealRoomAccess: false,
+      dealRoomPurchasedAt: null,
+      hasAccessedCommunityOrDownloads: false,
+      hasCertificateDownloaded: false,
+      hasReportDownloaded: false,
+      completedSteps: [],
+      lastActivityAt: new Date(),
+    };
   }
 }
