@@ -128,7 +128,11 @@ interface LeaderboardEntry {
 
 export default function DashboardPage() {
   const [user, setUser] = useState<User | null>(null);
-  const [isLoading, setIsLoading] = useState(true);
+  // Skip loading screen if auth token already exists (returning user)
+  const [isLoading, setIsLoading] = useState(() => {
+    const token = localStorage.getItem('auth_token');
+    return !token || token === 'null' || token === 'undefined';
+  });
   const [validationData, setValidationData] = useState<ValidationData | null>(null);
   const [proofVaultData, setProofVaultData] = useState<ProofVaultData | null>(null);
   // Replace recentActivity state with paginated hook
