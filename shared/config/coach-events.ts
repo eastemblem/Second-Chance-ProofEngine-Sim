@@ -81,7 +81,6 @@ export const JOURNEY_STEP_COMPLETION_EVENTS: Record<number, string[]> = {
   23: [COACH_EVENTS.DEAL_ROOM_PURCHASED], // Complete Payment
   24: [COACH_EVENTS.CERTIFICATE_DOWNLOADED], // Download Certificate
   25: [COACH_EVENTS.REPORT_DOWNLOADED], // Download Report
-  26: [COACH_EVENTS.COMMUNITY_ACCESSED], // Access Community
   27: [COACH_EVENTS.FIVE_EXPERIMENTS_COMPLETED], // Complete 5 Validation Experiments
   28: [COACH_EVENTS.PROOFSCORE_80_REACHED], // Reach ProofScore 80+
   29: [COACH_EVENTS.VAULT_50_FILES_UPLOADED], // Upload 50 Total Files

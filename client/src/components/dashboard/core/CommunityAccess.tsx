@@ -53,45 +53,12 @@ export function CommunityAccess({ hasDealRoomAccess }: CommunityAccessProps) {
 
   const handleCalendlyClick = () => {
     if (hasDealRoomAccess) {
-      // Open Calendly immediately to preserve user gesture context
       window.open('https://calendly.com/get-secondchance-info/30min', '_blank');
-      
-      // Log community access event to ProofCoach (fire-and-forget)
-      apiRequest('POST', '/api/v1/activity/log', {
-        action: 'community_accessed',
-        title: 'Community Accessed',
-        description: 'Accessed investor community via Calendly booking',
-        activityType: 'engagement',
-        metadata: {
-          source: 'calendly_click',
-          url: 'https://calendly.com/get-secondchance-info/30min',
-        }
-      }).catch(error => {
-        console.error('Failed to log community access event:', error);
-        // Don't fail the action if event logging fails
-      });
     }
   };
 
-  const handleEventClick = (url: string, eventTitle: string) => {
-    // Open event immediately to preserve user gesture context
+  const handleEventClick = (url: string) => {
     window.open(url, '_blank');
-    
-    // Log community access event to ProofCoach (fire-and-forget)
-    apiRequest('POST', '/api/v1/activity/log', {
-      action: 'community_accessed',
-      title: 'Community Accessed',
-      description: `Accessed investor community via Founders Live event: ${eventTitle}`,
-      activityType: 'engagement',
-      metadata: {
-        source: 'founders_live_event',
-        eventTitle,
-        url,
-      }
-    }).catch(error => {
-      console.error('Failed to log community access event:', error);
-      // Don't fail the action if event logging fails
-    });
   };
 
   const handleWhatsAppClick = () => {
@@ -179,7 +146,7 @@ export function CommunityAccess({ hasDealRoomAccess }: CommunityAccessProps) {
                       className="flex-[0_0_100%] min-w-0 md:flex-[0_0_calc(50%-0.5rem)]"
                     >
                       <div 
-                        onClick={() => handleEventClick(event.url, event.title)}
+                        onClick={() => handleEventClick(event.url)}
                         className="group relative overflow-hidden rounded-lg bg-gradient-to-br from-violet-500/10 to-violet-600/20 border border-violet-500/30 p-4 hover:border-violet-400/50 transition-all duration-300 cursor-pointer h-full"
                         data-testid={`event-card-${event.urlId}`}
                       >

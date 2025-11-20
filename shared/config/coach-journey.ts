@@ -616,30 +616,6 @@ export const COACH_JOURNEY_STEPS: JourneyStep[] = [
     },
   },
   
-  // Step 26: Access Community
-  {
-    id: 26,
-    title: "Access Investor Community",
-    description: "Connect with investors and founders",
-    page: "dashboard",
-    duration: "10 min",
-    icon: Users,
-    color: "bg-emerald-700",
-    action: "Join Community",
-    route: "/dashboard",
-    selector: "[data-testid='community-access-section']",
-    coachGuidance: {
-      intro: "Welcome to the investor community! You now have access to exclusive events and connections.",
-      instruction: "Explore: (1) Book 1-on-1 sessions via Calendly, (2) Join Founders Live Egypt or UAE events, (3) Submit your profile for investor matching.",
-      tip: "Book a pitch practice session ASAP. Practicing with experienced founders and investors dramatically improves your fundraising success rate!",
-      nextStep: "Continue validating, uploading proof, and completing experiments to boost your score to 80+ for investor introductions!",
-    },
-    completionCriteria: {
-      checkField: "hasAccessedCommunityOrDownloads",
-      required: false,
-    },
-  },
-  
   // Step 27: Complete 5 Experiments
   {
     id: 27,
