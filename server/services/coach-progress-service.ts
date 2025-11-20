@@ -1,6 +1,6 @@
 import { db } from "../db";
-import { userActivity, coachState } from "@shared/schema";
-import { eq, and, desc, sql } from "drizzle-orm";
+import { userActivity, coachState, venture, documentUpload, ventureExperiments } from "@shared/schema";
+import { eq, and, desc, sql, count, countDistinct } from "drizzle-orm";
 import { appLogger } from "../utils/logger";
 import { COACH_EVENTS, JOURNEY_STEP_COMPLETION_EVENTS, type CoachEventMetadata } from "../../shared/config/coach-events";
 
@@ -12,14 +12,118 @@ import { COACH_EVENTS, JOURNEY_STEP_COMPLETION_EVENTS, type CoachEventMetadata }
 export class CoachProgressService {
   
   /**
-   * Calculate coach progress for a founder by aggregating their user_activity events
-   * Returns a complete progress snapshot based on actual user actions
+   * Calculate coach progress for a founder by combining real database queries with event tracking
+   * Returns a complete progress snapshot based on actual data and user actions
    */
   static async calculateProgress(founderId: string, ventureId?: string) {
     try {
-      appLogger.info(`[CoachProgress] Calculating progress for founder: ${founderId}`);
+      appLogger.info(`[CoachProgress] Calculating progress for founder: ${founderId}, ventureId: ${ventureId || 'all'}`);
       
-      // Query all relevant activities for this founder
+      // STEP 1: Query real data from source tables
+      
+      // Get venture data (proofScore, vaultScore, onboarding status)
+      const ventures = await db
+        .select()
+        .from(venture)
+        .where(
+          and(
+            eq(venture.founderId, founderId),
+            ventureId ? eq(venture.ventureId, ventureId) : sql`true`
+          )
+        );
+      
+      const currentVenture = ventureId ? ventures.find(v => v.ventureId === ventureId) : ventures[0];
+      
+      // Get ProofVault upload counts (uploadSource='proof-vault')
+      const vaultUploadsQuery = db
+        .select({ count: count() })
+        .from(documentUpload)
+        .where(
+          and(
+            eq(documentUpload.uploadSource, 'proof-vault'),
+            ventureId ? eq(documentUpload.ventureId, ventureId) : sql`true`
+          )
+        );
+      
+      const totalUploadsQuery = db
+        .select({ count: count() })
+        .from(documentUpload)
+        .where(
+          ventureId ? eq(documentUpload.ventureId, ventureId) : sql`true`
+        );
+      
+      // Get distinct artifact types count
+      const distinctArtifactTypesQuery = db
+        .select({ 
+          artifactType: documentUpload.artifactType,
+        })
+        .from(documentUpload)
+        .where(
+          and(
+            eq(documentUpload.uploadSource, 'proof-vault'),
+            ventureId ? eq(documentUpload.ventureId, ventureId) : sql`true`
+          )
+        );
+      
+      // Get first vault upload timestamp
+      const firstVaultUploadQuery = db
+        .select({ createdAt: documentUpload.createdAt })
+        .from(documentUpload)
+        .where(
+          and(
+            eq(documentUpload.uploadSource, 'proof-vault'),
+            ventureId ? eq(documentUpload.ventureId, ventureId) : sql`true`
+          )
+        )
+        .orderBy(documentUpload.createdAt)
+        .limit(1);
+      
+      // Get completed experiments count
+      const completedExperimentsQuery = db
+        .select({ 
+          count: count(),
+          completedAt: ventureExperiments.completedAt 
+        })
+        .from(ventureExperiments)
+        .where(
+          and(
+            eq(ventureExperiments.status, 'completed'),
+            ventureId ? eq(ventureExperiments.ventureId, ventureId) : sql`true`
+          )
+        );
+      
+      // Execute all queries in parallel
+      const [
+        vaultUploadsResult,
+        totalUploadsResult,
+        distinctArtifactTypesResult,
+        firstVaultUploadResult,
+        completedExperimentsResult,
+      ] = await Promise.all([
+        vaultUploadsQuery,
+        totalUploadsQuery,
+        distinctArtifactTypesQuery,
+        firstVaultUploadQuery,
+        completedExperimentsQuery,
+      ]);
+      
+      const vaultUploadCount = vaultUploadsResult[0]?.count || 0;
+      const totalUploads = totalUploadsResult[0]?.count || 0;
+      const distinctArtifactTypes = new Set(distinctArtifactTypesResult.map(r => r.artifactType).filter(Boolean));
+      const firstVaultUploadAt = firstVaultUploadResult[0]?.createdAt || null;
+      const completedExperimentsCount = completedExperimentsResult.length;
+      const firstExperimentCompletedAt = completedExperimentsResult
+        .filter(e => e.completedAt)
+        .sort((a, b) => a.completedAt!.getTime() - b.completedAt!.getTime())[0]?.completedAt || null;
+      
+      appLogger.info(`[CoachProgress] Real data counts:`, {
+        vaultUploadCount,
+        totalUploads,
+        distinctArtifactTypesCount: distinctArtifactTypes.size,
+        completedExperimentsCount,
+      });
+      
+      // STEP 2: Query event data for milestone flags and action-based tracking
       const activities = await db
         .select()
         .from(userActivity)
@@ -33,37 +137,37 @@ export class CoachProgressService {
       
       appLogger.info(`[CoachProgress] Found ${activities.length} activities`);
       
-      // Initialize progress metrics
+      // Initialize progress metrics with REAL DATA
       const progress = {
-        // Onboarding
-        onboardingComplete: false,
-        dashboardTutorialCompleted: false,
+        // Onboarding - determined by venture having a proofScore
+        onboardingComplete: currentVenture ? (currentVenture.proofScore || 0) > 0 : false,
+        dashboardTutorialCompleted: false, // Event-based
         
-        // Experiments
-        completedExperimentsCount: 0,
-        hasCompletedExperiment: false,
-        hasCompleted3Experiments: false,
-        hasCompleted5Experiments: false,
-        firstExperimentCompletedAt: null as Date | null,
+        // Experiments - from database query
+        completedExperimentsCount,
+        hasCompletedExperiment: completedExperimentsCount > 0,
+        hasCompleted3Experiments: completedExperimentsCount >= 3,
+        hasCompleted5Experiments: completedExperimentsCount >= 5,
+        firstExperimentCompletedAt,
         
-        // ProofVault uploads
-        vaultUploadCount: 0,
-        totalUploads: 0,
-        distinctArtifactTypesCount: 0,
-        firstVaultUploadAt: null as Date | null,
-        hasFirstUpload: false,
-        has10Uploads: false,
-        has20Uploads: false,
-        has30Uploads: false,
-        has50Uploads: false,
+        // ProofVault uploads - from database query
+        vaultUploadCount: Number(vaultUploadCount),
+        totalUploads: Number(totalUploads),
+        distinctArtifactTypesCount: distinctArtifactTypes.size,
+        firstVaultUploadAt,
+        hasFirstUpload: false, // Event-based milestone
+        has10Uploads: false, // Event-based milestone
+        has20Uploads: false, // Event-based milestone
+        has30Uploads: false, // Event-based milestone
+        has50Uploads: false, // Event-based milestone
         
-        // Scores
-        proofScore: 0,
-        vaultScore: 0,
-        latestProofScoreAt: null as Date | null,
-        hasReached65Score: false,
-        hasReached70Score: false,
-        hasReached80Score: false,
+        // Scores - from venture table
+        proofScore: currentVenture?.proofScore || 0,
+        vaultScore: currentVenture?.vaultScore || 0,
+        latestProofScoreAt: currentVenture?.updatedAt || null,
+        hasReached65Score: false, // Event-based milestone
+        hasReached70Score: false, // Event-based milestone
+        hasReached80Score: false, // Event-based milestone
         
         // Validation Map
         validationMapExported: false,
@@ -87,67 +191,19 @@ export class CoachProgressService {
         lastActivityAt: activities[0]?.createdAt || new Date(),
       };
       
-      // Track unique artifact types
-      const artifactTypes = new Set<string>();
-      
-      // Process activities to calculate progress
+      // STEP 3: Process event-based milestone flags and action-based tracking
       for (const activity of activities) {
         const action = activity.action;
         const metadata = activity.metadata as CoachEventMetadata | null;
         
-        // Onboarding
-        if (action === COACH_EVENTS.ONBOARDING_COMPLETED) {
-          progress.onboardingComplete = true;
-        }
-        
+        // Dashboard Tutorial (action-based, not stored in DB)
         if (action === COACH_EVENTS.DASHBOARD_TUTORIAL_COMPLETED) {
           progress.dashboardTutorialCompleted = true;
         }
         
-        // Experiments
-        if (action === COACH_EVENTS.EXPERIMENT_COMPLETED) {
-          progress.completedExperimentsCount++;
-          progress.hasCompletedExperiment = true;
-          if (!progress.firstExperimentCompletedAt) {
-            progress.firstExperimentCompletedAt = activity.createdAt;
-          }
-        }
-        
-        if (action === COACH_EVENTS.FIRST_EXPERIMENT_COMPLETED) {
-          progress.hasCompletedExperiment = true;
-          if (!progress.firstExperimentCompletedAt) {
-            progress.firstExperimentCompletedAt = activity.createdAt;
-          }
-        }
-        
-        if (action === COACH_EVENTS.THREE_EXPERIMENTS_COMPLETED) {
-          progress.hasCompleted3Experiments = true;
-        }
-        
-        if (action === COACH_EVENTS.FIVE_EXPERIMENTS_COMPLETED) {
-          progress.hasCompleted5Experiments = true;
-        }
-        
-        // ProofVault uploads
-        if (action === COACH_EVENTS.VAULT_FILE_UPLOADED) {
-          progress.vaultUploadCount++;
-          progress.totalUploads++;
-          
-          // Track artifact types
-          if (metadata?.artifactType) {
-            artifactTypes.add(metadata.artifactType);
-          }
-          
-          if (!progress.firstVaultUploadAt) {
-            progress.firstVaultUploadAt = activity.createdAt;
-          }
-        }
-        
+        // Milestone flags (event-based achievements)
         if (action === COACH_EVENTS.VAULT_FIRST_UPLOAD) {
           progress.hasFirstUpload = true;
-          if (!progress.firstVaultUploadAt) {
-            progress.firstVaultUploadAt = activity.createdAt;
-          }
         }
         
         if (action === COACH_EVENTS.VAULT_10_FILES_UPLOADED) {
@@ -166,12 +222,6 @@ export class CoachProgressService {
           progress.has50Uploads = true;
         }
         
-        // Scores
-        if (action === COACH_EVENTS.PROOFSCORE_RECEIVED && metadata?.proofScore) {
-          progress.proofScore = metadata.proofScore;
-          progress.latestProofScoreAt = activity.createdAt;
-        }
-        
         if (action === COACH_EVENTS.PROOFSCORE_65_REACHED) {
           progress.hasReached65Score = true;
         }
@@ -182,10 +232,6 @@ export class CoachProgressService {
         
         if (action === COACH_EVENTS.PROOFSCORE_80_REACHED) {
           progress.hasReached80Score = true;
-        }
-        
-        if (action === COACH_EVENTS.VAULT_SCORE_UPDATED && metadata?.vaultScore) {
-          progress.vaultScore = metadata.vaultScore;
         }
         
         // Validation Map
@@ -220,9 +266,6 @@ export class CoachProgressService {
           progress.hasReportDownloaded = true;
         }
       }
-      
-      // Calculate distinct artifact types
-      progress.distinctArtifactTypesCount = artifactTypes.size;
       
       // Determine completed journey steps based on progress
       progress.completedSteps = this.calculateCompletedSteps(progress, activities);
