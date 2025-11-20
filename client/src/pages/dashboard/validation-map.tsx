@@ -675,7 +675,6 @@ export default function ValidationMap() {
         <Navbar showSignOut />
         <DashboardHeader user={user} validationData={validationData} />
         <ValidationMapWalkthrough 
-          isLoading={isLoading} 
           onComplete={handleWalkthroughComplete}
         />
         <Footer />

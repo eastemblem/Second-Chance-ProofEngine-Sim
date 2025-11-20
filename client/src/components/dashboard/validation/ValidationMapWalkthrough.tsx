@@ -1,10 +1,9 @@
 import { useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { ChevronLeft, ChevronRight, Lightbulb, Target, TrendingUp, Award, CheckCircle, Loader2, ArrowRight } from "lucide-react";
+import { ChevronLeft, ChevronRight, Lightbulb, Target, TrendingUp, Award, CheckCircle, ArrowRight } from "lucide-react";
 import { Button } from "@/components/ui/button";
 
 interface ValidationMapWalkthroughProps {
-  isLoading: boolean;
   onComplete: () => void;
 }
 
@@ -63,7 +62,7 @@ const walkthroughScreens = [
   },
 ];
 
-export function ValidationMapWalkthrough({ isLoading, onComplete }: ValidationMapWalkthroughProps) {
+export function ValidationMapWalkthrough({ onComplete }: ValidationMapWalkthroughProps) {
   const [currentScreen, setCurrentScreen] = useState(0);
 
   const handleNext = () => {
@@ -109,16 +108,6 @@ export function ValidationMapWalkthrough({ isLoading, onComplete }: ValidationMa
             Skip Tour
           </Button>
         </div>
-
-        {/* Loading Status Bar */}
-        {isLoading && (
-          <div className="mb-8 flex items-center justify-center gap-3 p-4 bg-purple-500/10 border border-purple-500/20 rounded-lg">
-            <Loader2 className="h-5 w-5 animate-spin text-purple-400" />
-            <p className="text-purple-300 text-sm">
-              Generating your personalized validation experiments...
-            </p>
-          </div>
-        )}
 
         {/* Walkthrough Content */}
         <div className="min-h-[400px] relative">
@@ -202,7 +191,6 @@ export function ValidationMapWalkthrough({ isLoading, onComplete }: ValidationMa
           {isLastScreen ? (
             <Button
               onClick={handleGetStarted}
-              disabled={isLoading}
               className="bg-purple-600 hover:bg-purple-700 text-white"
               data-testid="button-get-started"
             >
