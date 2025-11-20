@@ -27,6 +27,7 @@ Key technical decisions include:
 - **Enhanced Error Handling**: Sophisticated retry logic and detailed error categorization.
 - **End-to-End Encryption**: Transparent payload encryption for API communications using AES-256-GCM with feature flags.
 - **Dashboard Architecture**: `/dashboard` is production, `/dashboard-v1` is for development.
+  - **Smart Loading Optimization (Nov 20, 2025)**: Dashboard uses lazy-initialized loading state that checks for existing auth token in localStorage. Returning users skip the loading skeleton entirely while auth verification and data refresh happen in background, eliminating loading screen when navigating back from validation map or other pages.
 - **Unified Logging Architecture**: Standardized `appLogger` for comprehensive, structured logging across the platform.
 - **Environment-Based Email Logo Configuration**: Email templates dynamically use `LOGO_URL` from environment variables.
 - **Live Exchange Rate Integration**: Real-time USD to AED conversion using multiple fallback APIs and caching.
