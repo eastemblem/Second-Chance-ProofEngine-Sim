@@ -9,6 +9,7 @@ import paymentsRoutes from './payments';
 import validationMapRoutes from './validation-map';
 import coachRoutes from './coach';
 import activityRoutes from './activity';
+import eventsRoutes from './events';
 
 import { getLeaderboard } from '../../routes/leaderboard';
 import { asyncHandler } from '../middleware/error';
@@ -20,6 +21,9 @@ const router = Router();
 
 // Register onboarding routes FIRST (no authentication required for session init)
 router.use('/onboarding', onboardingRoutes);
+
+// Register events routes (no authentication required - public events)
+router.use('/events', eventsRoutes);
 
 // Apply JWT authentication with blacklist checking to remaining v1 routes
 router.use(authenticateToken);

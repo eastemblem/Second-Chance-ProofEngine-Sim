@@ -190,6 +190,16 @@ interface EmailResponse {
   message: string;
 }
 
+interface UpcomingEvent {
+  id: string;
+  urlId: string;
+  title: string;
+  startDate: string;
+  endDate: string;
+  location: string;
+  url: string;
+}
+
 class EastEmblemAPI {
   private baseUrl: string;
 
@@ -1092,6 +1102,65 @@ class EastEmblemAPI {
     }
   }
 
+  async getUpcomingEvents(): Promise<UpcomingEvent[]> {
+    try {
+      appLogger.info(`Getting upcoming events from EastEmblem API`);
+      appLogger.info(`API endpoint: ${this.getEndpoint("/upcoming-events")}`);
+
+      const controller = new AbortController();
+      const timeoutId = setTimeout(() => controller.abort(), 10000); // 10 second timeout
+
+      const response = await fetch(this.getEndpoint("/upcoming-events"), {
+        method: "GET",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        signal: controller.signal,
+      });
+
+      clearTimeout(timeoutId);
+
+      if (!response.ok) {
+        const errorText = await response.text();
+        appLogger.error(`Upcoming events fetch failed with status ${response.status}:`, errorText);
+        
+        if (response.status >= 500) {
+          throw new Error(`Events service unavailable (${response.status}). Please try again later.`);
+        } else if (response.status === 401) {
+          throw new Error("EastEmblem API authentication failed. Please check API credentials.");
+        } else if (response.status === 403) {
+          throw new Error("EastEmblem API access forbidden. Please verify API permissions.");
+        } else {
+          throw new Error(`Upcoming events fetch failed (${response.status}): ${errorText}`);
+        }
+      }
+
+      const responseText = await response.text();
+      appLogger.info("Raw upcoming events response:", responseText);
+      
+      try {
+        const result = JSON.parse(responseText) as UpcomingEvent[];
+        appLogger.info("Upcoming events retrieved successfully:", result);
+        return result;
+      } catch (parseError) {
+        appLogger.error("Failed to parse upcoming events response JSON:", parseError);
+        appLogger.error("Response was:", responseText);
+        throw new Error(`Upcoming events fetch succeeded but response parsing failed: ${parseError instanceof Error ? parseError.message : 'Invalid JSON'}`);
+      }
+    } catch (error) {
+      appLogger.error("Error getting upcoming events:", error);
+      if (!this.isConfigured()) {
+        throw new Error("EastEmblem API is not configured. Please provide EASTEMBLEM_API_URL and EASTEMBLEM_API_KEY.");
+      }
+      
+      if (error instanceof Error && error.name === 'AbortError') {
+        throw new Error("Events request is taking longer than expected. Please try again.");
+      }
+      
+      throw new Error(`Upcoming events fetch failed: ${error instanceof Error ? error.message : 'Unknown error'}`);
+    }
+  }
+
   getStatus(): { configured: boolean; baseUrl: string } {
     return {
       configured: this.isConfigured(),
@@ -1107,4 +1176,5 @@ export type {
   PitchDeckScoreResponse,
   EmailNotificationData,
   EmailResponse,
+  UpcomingEvent,
 };

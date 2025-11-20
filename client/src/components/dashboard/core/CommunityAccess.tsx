@@ -1,14 +1,39 @@
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
+import { Skeleton } from "@/components/ui/skeleton";
 import { MessageCircle, Calendar, Users } from "lucide-react";
 import { SiWhatsapp, SiSlack } from "react-icons/si";
 import { apiRequest } from "@/lib/queryClient";
+import { useQuery } from "@tanstack/react-query";
+import { formatEventDate, formatEventTime } from "@/lib/date-utils";
 
 interface CommunityAccessProps {
   hasDealRoomAccess: boolean;
 }
 
+interface UpcomingEvent {
+  id: string;
+  urlId: string;
+  title: string;
+  startDate: string;
+  endDate: string;
+  location: string;
+  url: string;
+}
+
 export function CommunityAccess({ hasDealRoomAccess }: CommunityAccessProps) {
+  // Fetch upcoming events from API
+  const { data: eventsResponse, isLoading, error } = useQuery<{ success: boolean; data: UpcomingEvent[] }>({
+    queryKey: ['/api/v1/events/upcoming'],
+    queryFn: async () => {
+      const response = await apiRequest('GET', '/api/v1/events/upcoming');
+      return await response.json();
+    },
+    staleTime: 5 * 60 * 1000, // Cache for 5 minutes
+  });
+
+  const events = eventsResponse?.data || [];
+
   const handleCalendlyClick = () => {
     if (hasDealRoomAccess) {
       // Open Calendly immediately to preserve user gesture context
@@ -31,8 +56,8 @@ export function CommunityAccess({ hasDealRoomAccess }: CommunityAccessProps) {
     }
   };
 
-  const handleFoundersLiveClick = () => {
-    window.open('https://www.founderslive.com/events#schedule', '_blank');
+  const handleEventClick = (url: string) => {
+    window.open(url, '_blank');
   };
 
   const handleWhatsAppClick = () => {
@@ -92,37 +117,51 @@ export function CommunityAccess({ hasDealRoomAccess }: CommunityAccessProps) {
         {/* Events Section */}
         <div>
           <h3 className="text-white text-xl font-bold mb-4">Events</h3>
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            {/* Founders Live Egypt */}
-            <div 
-              onClick={handleFoundersLiveClick}
-              className="group relative overflow-hidden rounded-lg bg-gradient-to-br from-violet-500/10 to-violet-600/20 border border-violet-500/30 p-4 hover:border-violet-400/50 transition-all duration-300 cursor-pointer"
-            >
-              <div className="absolute inset-0 bg-gradient-to-br from-violet-500/5 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
-              <div className="relative">
-                <div className="border-l-4 border-violet-500 pl-4">
-                  <h4 className="text-white font-semibold text-lg">Founders Live Egypt</h4>
-                  <p className="text-gray-400 text-sm">August 30th 2025</p>
-                  <p className="text-gray-400 text-sm">02:00 PM - 03:00 PM</p>
-                </div>
-              </div>
+          
+          {/* Loading State */}
+          {isLoading && (
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <Skeleton className="h-24 bg-gray-800" />
+              <Skeleton className="h-24 bg-gray-800" />
             </div>
+          )}
 
-            {/* Founders Live UAE */}
-            <div 
-              onClick={handleFoundersLiveClick}
-              className="group relative overflow-hidden rounded-lg bg-gradient-to-br from-violet-500/10 to-violet-600/20 border border-violet-500/30 p-4 hover:border-violet-400/50 transition-all duration-300 cursor-pointer"
-            >
-              <div className="absolute inset-0 bg-gradient-to-br from-violet-500/5 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
-              <div className="relative">
-                <div className="border-l-4 border-violet-500 pl-4">
-                  <h4 className="text-white font-semibold text-lg">Founders Live UAE</h4>
-                  <p className="text-gray-400 text-sm">September 15th 2025</p>
-                  <p className="text-gray-400 text-sm">01:00 PM - 02:00 PM</p>
-                </div>
-              </div>
+          {/* Error State */}
+          {error && (
+            <div className="text-gray-400 text-sm p-4 border border-gray-800 rounded-lg">
+              Unable to load upcoming events. Please try again later.
             </div>
-          </div>
+          )}
+
+          {/* Events List */}
+          {!isLoading && !error && events.length > 0 && (
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              {events.map((event) => (
+                <div 
+                  key={event.id}
+                  onClick={() => handleEventClick(event.url)}
+                  className="group relative overflow-hidden rounded-lg bg-gradient-to-br from-violet-500/10 to-violet-600/20 border border-violet-500/30 p-4 hover:border-violet-400/50 transition-all duration-300 cursor-pointer"
+                  data-testid={`event-card-${event.urlId}`}
+                >
+                  <div className="absolute inset-0 bg-gradient-to-br from-violet-500/5 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
+                  <div className="relative">
+                    <div className="border-l-4 border-violet-500 pl-4">
+                      <h4 className="text-white font-semibold text-lg">{event.title}</h4>
+                      <p className="text-gray-400 text-sm">{formatEventDate(event.startDate)}</p>
+                      <p className="text-gray-400 text-sm">{formatEventTime(event.startDate, event.endDate)}</p>
+                    </div>
+                  </div>
+                </div>
+              ))}
+            </div>
+          )}
+
+          {/* No Events State */}
+          {!isLoading && !error && events.length === 0 && (
+            <div className="text-gray-400 text-sm p-4 border border-gray-800 rounded-lg">
+              No upcoming events at the moment. Check back soon!
+            </div>
+          )}
         </div>
 
       </CardContent>
