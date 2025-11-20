@@ -1105,12 +1105,12 @@ class EastEmblemAPI {
   async getUpcomingEvents(): Promise<UpcomingEvent[]> {
     try {
       appLogger.info(`Getting upcoming events from EastEmblem API`);
-      appLogger.info(`API endpoint: ${this.getEndpoint("/upcoming-events")}`);
+      appLogger.info(`API endpoint: ${this.getEndpoint("/webhook/upcoming-events")}`);
 
       const controller = new AbortController();
       const timeoutId = setTimeout(() => controller.abort(), 10000); // 10 second timeout
 
-      const response = await fetch(this.getEndpoint("/upcoming-events"), {
+      const response = await fetch(this.getEndpoint("/webhook/upcoming-events"), {
         method: "GET",
         headers: {
           "Content-Type": "application/json",
