@@ -8,6 +8,7 @@ import notificationRoutes from './notifications';
 import paymentsRoutes from './payments';
 import validationMapRoutes from './validation-map';
 import coachRoutes from './coach';
+import activityRoutes from './activity';
 
 import { getLeaderboard } from '../../routes/leaderboard';
 import { asyncHandler } from '../middleware/error';
@@ -34,6 +35,7 @@ router.use('/notification', notificationRoutes);
 router.use('/payments', paymentsRoutes);
 router.use('/validation-map', validationMapRoutes);
 router.use('/coach', coachRoutes);
+router.use('/activity', activityRoutes);
 
 // Note: Test routes moved to tests/ directory
 

@@ -1,6 +1,7 @@
 import { useCallback } from "react";
 import { useToast } from "@/hooks/use-toast";
 import { trackEvent } from "@/lib/analytics";
+import { apiRequest } from "@/lib/queryClient";
 
 interface User {
   founderId: string;
@@ -64,10 +65,26 @@ export function useDocumentDownloads(user: User | null, validationData: Validati
       if (certificateUrl) {
         trackEvent('download', 'document', 'certificate_download_success');
         
+        // Open certificate immediately to preserve user gesture context
         window.open(certificateUrl, '_blank');
         toast({
           title: "Certificate Downloaded",
           description: `Your ${user.venture.name} certificate has been opened.`,
+        });
+        
+        // Log certificate download event to ProofCoach (fire-and-forget)
+        apiRequest('POST', '/api/v1/activity/log', {
+          action: 'certificate_downloaded',
+          title: 'Certificate Downloaded',
+          description: 'Downloaded ProofScore validation certificate',
+          activityType: 'document',
+          metadata: {
+            certificateUrl,
+            ventureName: user.venture.name,
+          }
+        }).catch(error => {
+          console.error('Failed to log certificate download event:', error);
+          // Don't fail the download if event logging fails
         });
       } else {
         trackEvent('download_failed', 'document', 'certificate_not_available');
@@ -108,10 +125,26 @@ export function useDocumentDownloads(user: User | null, validationData: Validati
       if (reportUrl) {
         trackEvent('download', 'document', 'report_download_success');
         
+        // Open report immediately to preserve user gesture context
         window.open(reportUrl, '_blank');
         toast({
           title: "Report Downloaded",
           description: `Your ${user.venture.name} analysis report has been opened.`,
+        });
+        
+        // Log report download event to ProofCoach (fire-and-forget)
+        apiRequest('POST', '/api/v1/activity/log', {
+          action: 'report_downloaded',
+          title: 'Analysis Report Downloaded',
+          description: 'Downloaded comprehensive analysis report',
+          activityType: 'document',
+          metadata: {
+            reportUrl,
+            ventureName: user.venture.name,
+          }
+        }).catch(error => {
+          console.error('Failed to log report download event:', error);
+          // Don't fail the download if event logging fails
         });
       } else {
         trackEvent('download_failed', 'document', 'report_not_available');

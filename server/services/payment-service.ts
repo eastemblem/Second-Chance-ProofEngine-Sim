@@ -1019,6 +1019,19 @@ ${statusEmoji} **${statusText}**
       ? (transaction.metadata as any).purpose 
       : 'Payment';
 
+    // Get founder's current venture for proper event scoping
+    let ventureId: string | null = null;
+    try {
+      const ventures = await storage.getVenturesByFounderId(transaction.founderId);
+      const currentVenture = ventures.find((v: any) => v.isCurrent === true) || ventures[0];
+      ventureId = currentVenture?.ventureId || null;
+    } catch (error) {
+      appLogger.warn('Failed to get venture for payment activity logging', { 
+        founderId: transaction.founderId,
+        error 
+      });
+    }
+
     const baseMetadata = {
       orderReference: transaction.orderReference,
       amount: transaction.amount,
@@ -1026,7 +1039,8 @@ ${statusEmoji} **${statusText}**
       purpose,
       gatewayProvider: transaction.gatewayProvider,
       previousStatus: transaction.status,
-      newStatus
+      newStatus,
+      ventureId // Include ventureId for proper event scoping
     };
 
     let activityData;
@@ -1103,7 +1117,10 @@ ${statusEmoji} **${statusText}**
     if (newStatus === 'completed' && purpose && 
         (purpose.toLowerCase().includes('deal room') || purpose.toLowerCase().includes('deal_room'))) {
       await ActivityService.logActivity(
-        { founderId: transaction.founderId },
+        { 
+          founderId: transaction.founderId,
+          ventureId: ventureId || undefined // Include ventureId in context for proper event scoping
+        },
         {
           activityType: 'venture' as const,
           action: COACH_EVENTS.DEAL_ROOM_PURCHASED,
@@ -1117,12 +1134,16 @@ ${statusEmoji} **${statusText}**
       );
       appLogger.business('DEAL_ROOM_PURCHASED event logged', {
         founderId: transaction.founderId,
+        ventureId,
         orderReference: transaction.orderReference
       });
 
       // Emit COMMUNITY_ACCESSED event - user now has access to community features
       await ActivityService.logActivity(
-        { founderId: transaction.founderId },
+        { 
+          founderId: transaction.founderId,
+          ventureId: ventureId || undefined // Include ventureId in context for proper event scoping
+        },
         {
           activityType: 'venture' as const,
           action: COACH_EVENTS.COMMUNITY_ACCESSED,
@@ -1136,6 +1157,7 @@ ${statusEmoji} **${statusText}**
       );
       appLogger.business('COMMUNITY_ACCESSED event logged', {
         founderId: transaction.founderId,
+        ventureId,
         orderReference: transaction.orderReference
       });
     }

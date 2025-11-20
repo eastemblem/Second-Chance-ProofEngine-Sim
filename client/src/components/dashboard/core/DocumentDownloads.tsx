@@ -98,6 +98,7 @@ export function DocumentDownloads({
                   ? 'bg-gradient-to-r from-purple-500 to-purple-600 hover:from-purple-600 hover:to-purple-700 text-white' 
                   : 'bg-gradient-to-r from-gray-600 to-gray-700 hover:from-purple-600 hover:to-purple-700 text-white'} border-0 shadow-lg hover:shadow-purple-500/25 transition-all duration-300`}
                 disabled={!hasFiles}
+                data-testid="button-download-certificate"
               >
                 {hasDealRoomAccess ? (
                   <><Download className="w-4 h-4 mr-2" />Download Certificate</>
@@ -139,6 +140,7 @@ export function DocumentDownloads({
                   ? 'bg-gradient-to-r from-yellow-500 to-amber-600 hover:from-yellow-600 hover:to-amber-700 text-white' 
                   : 'bg-gradient-to-r from-gray-600 to-gray-700 hover:from-yellow-600 hover:to-amber-700 text-white'} border-0 shadow-lg hover:shadow-yellow-500/25 transition-all duration-300`}
                 disabled={!hasFiles}
+                data-testid="button-download-report"
               >
                 {hasDealRoomAccess ? (
                   <><Download className="w-4 h-4 mr-2" />Download Report</>
