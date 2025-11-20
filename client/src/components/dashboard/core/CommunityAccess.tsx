@@ -1,11 +1,13 @@
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
-import { MessageCircle, Calendar, Users } from "lucide-react";
+import { MessageCircle, Calendar, Users, ChevronLeft, ChevronRight } from "lucide-react";
 import { SiWhatsapp, SiSlack } from "react-icons/si";
 import { apiRequest } from "@/lib/queryClient";
 import { useQuery } from "@tanstack/react-query";
 import { formatEventDate, formatEventTime } from "@/lib/date-utils";
+import useEmblaCarousel from "embla-carousel-react";
+import { useCallback } from "react";
 
 interface CommunityAccessProps {
   hasDealRoomAccess: boolean;
@@ -33,6 +35,21 @@ export function CommunityAccess({ hasDealRoomAccess }: CommunityAccessProps) {
   });
 
   const events = eventsResponse?.data || [];
+
+  // Embla Carousel setup
+  const [emblaRef, emblaApi] = useEmblaCarousel({ 
+    loop: true, 
+    align: 'start',
+    slidesToScroll: 1
+  });
+
+  const scrollPrev = useCallback(() => {
+    if (emblaApi) emblaApi.scrollPrev();
+  }, [emblaApi]);
+
+  const scrollNext = useCallback(() => {
+    if (emblaApi) emblaApi.scrollNext();
+  }, [emblaApi]);
 
   const handleCalendlyClick = () => {
     if (hasDealRoomAccess) {
@@ -133,26 +150,57 @@ export function CommunityAccess({ hasDealRoomAccess }: CommunityAccessProps) {
             </div>
           )}
 
-          {/* Events List */}
+          {/* Events Carousel */}
           {!isLoading && !error && events.length > 0 && (
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              {events.map((event) => (
-                <div 
-                  key={event.id}
-                  onClick={() => handleEventClick(event.url)}
-                  className="group relative overflow-hidden rounded-lg bg-gradient-to-br from-violet-500/10 to-violet-600/20 border border-violet-500/30 p-4 hover:border-violet-400/50 transition-all duration-300 cursor-pointer"
-                  data-testid={`event-card-${event.urlId}`}
-                >
-                  <div className="absolute inset-0 bg-gradient-to-br from-violet-500/5 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
-                  <div className="relative">
-                    <div className="border-l-4 border-violet-500 pl-4">
-                      <h4 className="text-white font-semibold text-lg">{event.title}</h4>
-                      <p className="text-gray-400 text-sm">{formatEventDate(event.startDate)}</p>
-                      <p className="text-gray-400 text-sm">{formatEventTime(event.startDate, event.endDate)}</p>
+            <div className="relative">
+              {/* Carousel Container */}
+              <div className="overflow-hidden" ref={emblaRef}>
+                <div className="flex gap-4">
+                  {events.map((event) => (
+                    <div 
+                      key={event.id}
+                      className="flex-[0_0_100%] min-w-0 md:flex-[0_0_calc(50%-0.5rem)]"
+                    >
+                      <div 
+                        onClick={() => handleEventClick(event.url)}
+                        className="group relative overflow-hidden rounded-lg bg-gradient-to-br from-violet-500/10 to-violet-600/20 border border-violet-500/30 p-4 hover:border-violet-400/50 transition-all duration-300 cursor-pointer h-full"
+                        data-testid={`event-card-${event.urlId}`}
+                      >
+                        <div className="absolute inset-0 bg-gradient-to-br from-violet-500/5 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
+                        <div className="relative">
+                          <div className="border-l-4 border-violet-500 pl-4">
+                            <h4 className="text-white font-semibold text-lg">{event.title}</h4>
+                            <p className="text-gray-400 text-sm">{formatEventDate(event.startDate)}</p>
+                            <p className="text-gray-400 text-sm">{formatEventTime(event.startDate, event.endDate)}</p>
+                          </div>
+                        </div>
+                      </div>
                     </div>
-                  </div>
+                  ))}
                 </div>
-              ))}
+              </div>
+
+              {/* Navigation Buttons */}
+              {events.length > 2 && (
+                <>
+                  <button
+                    onClick={scrollPrev}
+                    className="absolute left-0 top-1/2 -translate-y-1/2 -translate-x-4 bg-violet-600/80 hover:bg-violet-500/90 text-white p-2 rounded-full transition-all duration-300 shadow-lg"
+                    data-testid="carousel-prev-button"
+                    aria-label="Previous event"
+                  >
+                    <ChevronLeft className="w-6 h-6" />
+                  </button>
+                  <button
+                    onClick={scrollNext}
+                    className="absolute right-0 top-1/2 -translate-y-1/2 translate-x-4 bg-violet-600/80 hover:bg-violet-500/90 text-white p-2 rounded-full transition-all duration-300 shadow-lg"
+                    data-testid="carousel-next-button"
+                    aria-label="Next event"
+                  >
+                    <ChevronRight className="w-6 h-6" />
+                  </button>
+                </>
+              )}
             </div>
           )}
 
