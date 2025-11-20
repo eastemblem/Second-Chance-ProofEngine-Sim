@@ -69,9 +69,10 @@ Key technical decisions include:
     - **Activity Logging API (Nov 20, 2025)**: Added POST /api/v1/activity/log endpoint for client-side event tracking:
       - **Payment Event Scoping**: DEAL_ROOM_PURCHASED and COMMUNITY_ACCESSED events now include ventureId by querying founder's current venture
       - **Download Event Tracking**: Certificate and report downloads emit events (certificate_downloaded, report_downloaded) via fire-and-forget API calls
+      - **Community Access Tracking**: Calendly booking clicks emit community_accessed events to mark ProofCoach step 26 complete
       - **Browser Popup Preservation**: window.open() executes before async logging to maintain user gesture context and prevent popup blocking
-      - **Error Resilience**: Event logging failures don't affect user flows - downloads work even if tracking fails
-      - **ProofCoach Integration**: Events properly map to journey steps (23: payment completion, 24: certificate download, 25: report download)
+      - **Error Resilience**: Event logging failures don't affect user flows - downloads and links work even if tracking fails
+      - **ProofCoach Integration**: Events properly map to journey steps (23: payment completion, 24: certificate download, 25: report download, 26: community access via Calendly)
 
 ### System Design Choices
 The system prioritizes a modular, component-driven frontend and a serverless backend for scalability. Drizzle ORM ensures type-safe database interactions. The email service is designed for flexibility.
