@@ -2,6 +2,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Button } from "@/components/ui/button";
 import { MessageCircle, Calendar, Users } from "lucide-react";
 import { SiWhatsapp, SiSlack } from "react-icons/si";
+import { apiRequest } from "@/lib/queryClient";
 
 interface CommunityAccessProps {
   hasDealRoomAccess: boolean;
@@ -10,7 +11,23 @@ interface CommunityAccessProps {
 export function CommunityAccess({ hasDealRoomAccess }: CommunityAccessProps) {
   const handleCalendlyClick = () => {
     if (hasDealRoomAccess) {
+      // Open Calendly immediately to preserve user gesture context
       window.open('https://calendly.com/get-secondchance-info/30min', '_blank');
+      
+      // Log community access event to ProofCoach (fire-and-forget)
+      apiRequest('POST', '/api/v1/activity/log', {
+        action: 'community_accessed',
+        title: 'Community Accessed',
+        description: 'Accessed investor community via Calendly booking',
+        activityType: 'engagement',
+        metadata: {
+          source: 'calendly_click',
+          url: 'https://calendly.com/get-secondchance-info/30min',
+        }
+      }).catch(error => {
+        console.error('Failed to log community access event:', error);
+        // Don't fail the action if event logging fails
+      });
     }
   };
 
@@ -63,6 +80,7 @@ export function CommunityAccess({ hasDealRoomAccess }: CommunityAccessProps) {
               ? "cursor-pointer transition-all duration-300 hover:scale-110"
               : "cursor-not-allowed opacity-30 grayscale transition-all duration-300"
             }
+            data-testid="button-calendly-booking"
           >
             <Calendar className={hasDealRoomAccess 
               ? "w-12 h-12 text-blue-400" 
