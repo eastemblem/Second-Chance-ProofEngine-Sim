@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef } from "react";
+import { useState, useEffect, useRef, useCallback } from "react";
 import { useLocation } from "wouter";
 import { PaymentModal } from '@/components/ui/payment-modal';
 import { detectUserCurrency, getDealRoomPricing } from "@/lib/currency-utils";
@@ -97,7 +97,14 @@ export default function DashboardV2Page() {
     hasMore: hasMoreFiles 
   } = usePaginatedFiles();
 
-  // File upload functionality
+  // File upload functionality with smart query invalidation
+  const handleUploadComplete = useCallback(() => {
+    // Only invalidate vault data (what actually changed)
+    queryClient.invalidateQueries({ queryKey: ['/api/v1/dashboard/vault'] });
+    // Also invalidate files list for immediate UI update
+    queryClient.invalidateQueries({ queryKey: ['/api/v1/vault/files'] });
+  }, []);
+
   const {
     uploadQueue,
     currentUploadIndex,
@@ -112,7 +119,7 @@ export default function DashboardV2Page() {
     createFolder,
     handleMultipleFileUpload,
     retryFailedUploads
-  } = useFileUpload(user, () => loadDashboardData(true));
+  } = useFileUpload(user, handleUploadComplete);
 
   // Initialize on mount
   useEffect(() => {
@@ -194,8 +201,8 @@ export default function DashboardV2Page() {
       // 4. Track analytics
       trackEvent('payment', 'deal_room', 'payment_success');
 
-      // 5. Reload dashboard data and user data to reflect changes
-      loadDashboardData(true);
+      // 5. Invalidate only deal room access query (what actually changed)
+      queryClient.invalidateQueries({ queryKey: ['/api/v1/payments/deal-room-access'] });
       checkAuthStatus(); // Refresh user data to get updated venture status
       
     } catch (error) {
@@ -314,8 +321,7 @@ export default function DashboardV2Page() {
         await handleMultipleFileUpload(files, targetFolderId, artifactType, description, isLastFolder ? onSuccess : undefined);
       }
 
-      // Force refresh after folder upload
-      await loadDashboardData(true);
+      // Vault queries already invalidated by handleMultipleFileUpload callback
       
       // Reset input
       event.target.value = '';

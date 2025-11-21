@@ -1,4 +1,5 @@
-import { useState, useCallback } from "react";
+import { useMemo, useCallback, useEffect } from "react";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { useToast } from "@/hooks/use-toast";
 import { trackEvent } from "@/lib/analytics";
 
@@ -53,178 +54,215 @@ interface LeaderboardEntry {
   handle?: string;
 }
 
+// Cache configuration - aggressive caching to minimize database hits
+const CACHE_CONFIG = {
+  validation: {
+    staleTime: 10 * 60 * 1000, // 10 minutes
+    gcTime: 30 * 60 * 1000, // 30 minutes
+  },
+  vault: {
+    staleTime: 10 * 60 * 1000, // 10 minutes
+    gcTime: 30 * 60 * 1000, // 30 minutes
+  },
+  leaderboard: {
+    staleTime: 5 * 60 * 1000, // 5 minutes (more dynamic)
+    gcTime: 15 * 60 * 1000, // 15 minutes
+  },
+  dealRoom: {
+    staleTime: 15 * 60 * 1000, // 15 minutes (rarely changes)
+    gcTime: 60 * 60 * 1000, // 60 minutes
+  },
+};
+
 export function useDashboardData() {
-  const [validationData, setValidationData] = useState<ValidationData | null>(null);
-  const [proofVaultData, setProofVaultData] = useState<ProofVaultData | null>(null);
-  const [leaderboardData, setLeaderboardData] = useState<LeaderboardEntry[]>([]);
-  const [hasDealRoomAccess, setHasDealRoomAccess] = useState(false);
-  const [ventureStatus, setVentureStatus] = useState<'pending' | 'reviewing' | 'reviewed' | 'done'>('pending');
-  const [isLoading, setIsLoading] = useState(true);
   const { toast } = useToast();
+  const queryClient = useQueryClient();
 
-  const checkDocumentReadiness = useCallback((validation: ValidationData) => {
-    // Only show document ready notifications if user has made payment (has deal room access)
-    if (!hasDealRoomAccess) {
-      return; // Don't show notifications until payment is completed
-    }
+  // Query: Validation Data (critical path - highest priority)
+  const {
+    data: validationData,
+    isLoading: validationLoading,
+    error: validationError,
+  } = useQuery<ValidationData>({
+    queryKey: ['/api/v1/dashboard/validation'],
+    queryFn: async () => {
+      const token = localStorage.getItem('auth_token');
+      const response = await fetch('/api/v1/dashboard/validation', {
+        credentials: 'include',
+        headers: token ? { 'Authorization': `Bearer ${token}` } : {},
+      });
+      if (!response.ok) throw new Error('Validation fetch failed');
+      return response.json();
+    },
+    staleTime: CACHE_CONFIG.validation.staleTime,
+    gcTime: CACHE_CONFIG.validation.gcTime,
+    retry: 2,
+  });
 
-    // Check for certificate availability
+  // Query: Vault Data (independent from validation)
+  const {
+    data: vaultData,
+    isLoading: vaultLoading,
+  } = useQuery<ProofVaultData>({
+    queryKey: ['/api/v1/dashboard/vault'],
+    queryFn: async () => {
+      const token = localStorage.getItem('auth_token');
+      const response = await fetch('/api/v1/dashboard/vault', {
+        credentials: 'include',
+        headers: token ? { 'Authorization': `Bearer ${token}` } : {},
+      });
+      if (!response.ok) throw new Error('Vault fetch failed');
+      return response.json();
+    },
+    staleTime: CACHE_CONFIG.vault.staleTime,
+    gcTime: CACHE_CONFIG.vault.gcTime,
+    retry: 2,
+  });
+
+  // Query: Leaderboard Data
+  const {
+    data: leaderboardResponse,
+    isLoading: leaderboardLoading,
+  } = useQuery<{ success: boolean; data: any[] }>({
+    queryKey: ['/api/v1/leaderboard', 5],
+    queryFn: async () => {
+      const token = localStorage.getItem('auth_token');
+      const response = await fetch('/api/v1/leaderboard?limit=5', {
+        credentials: 'include',
+        headers: token ? { 'Authorization': `Bearer ${token}` } : {},
+      });
+      if (!response.ok) throw new Error('Leaderboard fetch failed');
+      return response.json();
+    },
+    staleTime: CACHE_CONFIG.leaderboard.staleTime,
+    gcTime: CACHE_CONFIG.leaderboard.gcTime,
+    retry: 1,
+  });
+
+  // Query: Deal Room Access
+  const {
+    data: dealRoomData,
+    isLoading: dealRoomLoading,
+  } = useQuery<{ hasAccess: boolean; ventureStatus: 'pending' | 'reviewing' | 'reviewed' | 'done' }>({
+    queryKey: ['/api/v1/payments/deal-room-access'],
+    queryFn: async () => {
+      const token = localStorage.getItem('auth_token');
+      const response = await fetch('/api/v1/payments/deal-room-access', {
+        credentials: 'include',
+        headers: token ? { 'Authorization': `Bearer ${token}` } : {},
+      });
+      if (!response.ok) throw new Error('Deal room access check failed');
+      return response.json();
+    },
+    staleTime: CACHE_CONFIG.dealRoom.staleTime,
+    gcTime: CACHE_CONFIG.dealRoom.gcTime,
+    retry: 1,
+  });
+
+  // Memoized processed data
+  const proofVaultData = useMemo(() => {
+    if (!vaultData) return null;
+    return {
+      ...vaultData,
+      files: [], // Clear files array since we use paginated files hook instead
+    };
+  }, [vaultData]);
+
+  const leaderboardData = useMemo(() => {
+    if (!leaderboardResponse?.success || !leaderboardResponse?.data) return [];
+    
+    return leaderboardResponse.data.map((entry: any) => ({
+      ...entry,
+      proofTags: entry.proofTagsCount || 0,
+      handle: entry.handle || `@${entry.ventureName.toLowerCase().replace(/\s+/g, '')}`,
+    }));
+  }, [leaderboardResponse]);
+
+  const hasDealRoomAccess = useMemo(() => dealRoomData?.hasAccess || false, [dealRoomData]);
+  const ventureStatus = useMemo(() => dealRoomData?.ventureStatus || 'pending', [dealRoomData]);
+
+  // Combined loading state
+  const isLoading = validationLoading || vaultLoading || leaderboardLoading || dealRoomLoading;
+
+  // Document readiness notifications
+  const checkDocumentReadiness = useCallback((validation: ValidationData, hasAccess: boolean) => {
+    if (!hasAccess) return;
+
     if (validation.certificateUrl && !sessionStorage.getItem('certificate_ready_notified')) {
       toast({
         title: "Certificate Ready!",
         description: "Your ProofScore certificate is now available for download.",
         variant: "default",
       });
-      
       trackEvent('notification', 'document', 'certificate_ready');
       sessionStorage.setItem('certificate_ready_notified', 'true');
     }
     
-    // Check for report availability
     if (validation.reportUrl && !sessionStorage.getItem('report_ready_notified')) {
       toast({
         title: "Analysis Report Ready!",
         description: "Your detailed venture analysis report is now available for download.",
         variant: "default",
       });
-      
       trackEvent('notification', 'document', 'report_ready');
       sessionStorage.setItem('report_ready_notified', 'true');
     }
-  }, [toast, hasDealRoomAccess]);
+  }, [toast]);
 
-  const loadDashboardData = useCallback(async (forceRefresh = false) => {
-    console.log('🔄 Starting dashboard data load...', { forceRefresh });
-    
-    try {
-      // Prepare headers - skip cache when forcing refresh
-      const headers = forceRefresh ? {
-        'Cache-Control': 'no-cache, no-store, must-revalidate',
-        'Pragma': 'no-cache',
-        'Expires': '0'
-      } : {
-        'Cache-Control': 'max-age=300' // Cache for 5 minutes normally
-      };
-
-      // Load critical data first (validation) for faster LCP - USE V1 API with JWT
-      const token = localStorage.getItem('auth_token');
-      console.log('🔐 Using auth token:', token ? `${token.substring(0, 20)}...` : 'NO TOKEN');
-      const authHeaders: Record<string, string> = token ? { 'Authorization': `Bearer ${token}` } : {};
-      
-      const validationResponse = await fetch('/api/v1/dashboard/validation', {
-        credentials: 'include',
-        headers: { ...headers, ...authHeaders } as HeadersInit
-      });
-      if (validationResponse.ok) {
-        const validation = await validationResponse.json();
-        console.log('✅ Validation data loaded successfully:', validation);
-        setValidationData(validation);
-        
-        // Check for newly available documents and show toast notifications
-        checkDocumentReadiness(validation);
-      } else {
-        console.error('❌ Validation API failed:', validationResponse.status, validationResponse.statusText);
-      }
-
-      // Load secondary data in parallel - USE V1 APIS with JWT
-      const [vaultResponse, leaderboardResponse] = await Promise.all([
-        fetch('/api/v1/dashboard/vault', {
-          credentials: 'include',
-          headers: { 
-            ...(forceRefresh ? headers : { 'Cache-Control': 'max-age=600' }),
-            ...authHeaders
-          } as HeadersInit
-        }),
-        fetch('/api/v1/leaderboard?limit=5', {
-          credentials: 'include',
-          headers: { 
-            ...(forceRefresh ? headers : { 'Cache-Control': 'max-age=1200' }),
-            ...authHeaders
-          } as HeadersInit
-        })
-      ]);
-
-      if (vaultResponse.ok) {
-        const vault = await vaultResponse.json();
-        console.log('✅ Vault counts loaded successfully');
-        setProofVaultData({
-          ...vault,
-          files: [] // Clear files array since we use paginated files hook instead
-        });
-        
-        // Update VaultScore in validation data if vault API provided it
-        if (vault.vaultScore !== undefined) {
-          setValidationData(prev => prev ? { ...prev, vaultScore: vault.vaultScore } : prev);
-          console.log('✅ VaultScore updated from vault API:', vault.vaultScore);
-        }
-      } else {
-        console.error('❌ Vault API failed:', vaultResponse.status, vaultResponse.statusText);
-      }
-
-      if (leaderboardResponse.ok) {
-        const leaderboard = await leaderboardResponse.json();
-        console.log('✅ Leaderboard data loaded successfully:', leaderboard);
-        if (leaderboard.success && leaderboard.data) {
-          // Use actual ProofTags data from database
-          const enhancedData = leaderboard.data.map((entry: any) => ({
-            ...entry,
-            proofTags: entry.proofTagsCount || 0, // Use stored ProofTags count from database
-            handle: entry.handle || `@${entry.ventureName.toLowerCase().replace(/\s+/g, '')}`
-          }));
-          setLeaderboardData(enhancedData);
-        }
-      } else {
-        console.error('❌ Leaderboard API failed:', leaderboardResponse.status, leaderboardResponse.statusText);
-      }
-      
-      // Check deal room access
-      try {
-        const dealRoomResponse = await fetch('/api/v1/payments/deal-room-access', {
-          credentials: 'include',
-          headers: authHeaders as HeadersInit
-        });
-        if (dealRoomResponse.ok) {
-          const accessResult = await dealRoomResponse.json();
-          console.log('✅ Deal room access result:', accessResult);
-          setHasDealRoomAccess(accessResult.hasAccess || false);
-          setVentureStatus(accessResult.ventureStatus || 'pending');
-        }
-      } catch (error) {
-        console.error('❌ Deal room access check failed:', error);
-        setHasDealRoomAccess(false);
-      }
-      
-      console.log('✅ Dashboard data loading completed successfully');
-      setIsLoading(false);
-    } catch (error: unknown) {
-      console.error('❌ Dashboard data load error:', error);
-      const errorMessage = error instanceof Error ? error.message : String(error);
-      
-      // Check if it's actually a network or fetch error
-      if (error instanceof TypeError && error.message.includes('fetch')) {
-        console.error('🌐 Network error detected:', error.message);
-        toast({
-          title: "Network Error",
-          description: "Unable to connect to server. Please check your connection.",
-          variant: "destructive",
-        });
-        setIsLoading(false);
-        return;
-      }
-      
-      // If authentication fails, don't set loading to false - let auth redirect handle it
-      if (errorMessage.includes('401') || errorMessage.includes('Unauthorized') || errorMessage.includes('Not authenticated')) {
-        console.log('🔐 Authentication failed, will be handled by auth system');
-        return;
-      }
-      
-      console.warn('⚠️ Some dashboard data failed to load, but continuing:', errorMessage);
-      setIsLoading(false);
+  // Check document readiness when data changes
+  useEffect(() => {
+    if (validationData && hasDealRoomAccess) {
+      checkDocumentReadiness(validationData, hasDealRoomAccess);
     }
-  }, [toast, checkDocumentReadiness]);
+  }, [validationData, hasDealRoomAccess, checkDocumentReadiness]);
+
+  // Manual refresh function for compatibility with existing code
+  const loadDashboardData = useCallback(async (forceRefresh = false) => {
+    console.log('🔄 Refreshing dashboard data...', { forceRefresh });
+    
+    if (forceRefresh) {
+      // Invalidate all dashboard queries to force fresh data
+      // Use predicate to match partial keys (e.g., ['/api/v1/leaderboard', 5])
+      await Promise.all([
+        queryClient.invalidateQueries({ 
+          predicate: (query) => query.queryKey[0] === '/api/v1/dashboard/validation' 
+        }),
+        queryClient.invalidateQueries({ 
+          predicate: (query) => query.queryKey[0] === '/api/v1/dashboard/vault' 
+        }),
+        queryClient.invalidateQueries({ 
+          predicate: (query) => query.queryKey[0] === '/api/v1/leaderboard' 
+        }),
+        queryClient.invalidateQueries({ 
+          predicate: (query) => query.queryKey[0] === '/api/v1/payments/deal-room-access' 
+        }),
+      ]);
+    }
+    
+    console.log('✅ Dashboard queries refreshed');
+  }, [queryClient]);
+
+  // Setters for backward compatibility (handle undefined cache)
+  const setHasDealRoomAccess = useCallback((value: boolean) => {
+    queryClient.setQueryData(['/api/v1/payments/deal-room-access'], (old: any) => {
+      if (!old) {
+        return { hasAccess: value, ventureStatus: 'pending' };
+      }
+      return { ...old, hasAccess: value };
+    });
+  }, [queryClient]);
+
+  const setVentureStatus = useCallback((value: 'pending' | 'reviewing' | 'reviewed' | 'done') => {
+    queryClient.setQueryData(['/api/v1/payments/deal-room-access'], (old: any) => {
+      if (!old) {
+        return { hasAccess: false, ventureStatus: value };
+      }
+      return { ...old, ventureStatus: value };
+    });
+  }, [queryClient]);
 
   return {
-    validationData,
+    validationData: validationData || null,
     proofVaultData,
     leaderboardData,
     hasDealRoomAccess,
@@ -232,6 +270,6 @@ export function useDashboardData() {
     isLoading,
     loadDashboardData,
     setHasDealRoomAccess,
-    setVentureStatus
+    setVentureStatus,
   };
 }

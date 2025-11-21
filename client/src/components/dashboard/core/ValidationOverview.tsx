@@ -1,3 +1,4 @@
+import { useMemo } from "react";
 import { Button } from "@/components/ui/button";
 import { Upload } from "lucide-react";
 import { useUploadConsent } from "@/hooks/useUploadConsent";
@@ -42,33 +43,35 @@ export function ValidationOverview({ validationData, proofVaultData, onScrollToV
     });
   };
 
-  // Get status text based on score
-  const getStatusText = () => {
+  // Memoized status text based on score
+  const statusText = useMemo(() => {
     if (proofScore >= 85) return "Status: Investor Ready";
     if (proofScore >= 75) return "Status: Near Ready";
     if (proofScore >= 60) return "Status: Emerging Proof";
     if (proofScore >= 40) return "Status: Early Signals";
     return "Status: Building Validation";
-  };
+  }, [proofScore]);
 
-  // Get conditional text based on score
-  const getPrimaryText = () => {
+  // Memoized conditional text based on score
+  const primaryText = useMemo(() => {
     if (proofScore >= 70) {
       return "Founders with complete ProofVault uploads are 3x more likely to secure their first investor meeting.";
     }
     return "Upload your ProofVault files to increase your ProofScore and access the Deal Room. Required +70 score to unlock access.";
-  };
+  }, [proofScore]);
 
-  const getSecondaryText = () => {
+  const secondaryText = useMemo(() => {
     if (proofScore >= 70) {
       return "Your ProofVault makes investor due diligence 50% faster.";
     }
     return "Founders with complete uploads are 3x more likely to secure their first investor meeting.";
-  };
+  }, [proofScore]);
 
-  // Calculate progress percentage for circular indicator (ProofScore max is 95)
-  const maxProofScore = 95;
-  const progressPercentage = Math.min((proofScore / maxProofScore) * 100, 100);
+  // Memoized progress percentage for circular indicator (ProofScore max is 95)
+  const progressPercentage = useMemo(() => {
+    const maxProofScore = 95;
+    return Math.min((proofScore / maxProofScore) * 100, 100);
+  }, [proofScore]);
 
   return (
     <div className="rounded-xl border border-gray-700/50 p-6" style={{ backgroundColor: '#0E0E12' }} data-testid="proofscore-display">
@@ -95,11 +98,11 @@ export function ValidationOverview({ validationData, proofVaultData, onScrollToV
         {/* Center Column: Text Content */}
         <div className="lg:col-span-6 space-y-4">
           <p className="text-gray-300 text-lg font-bold leading-relaxed">
-            {getPrimaryText()}
+            {primaryText}
           </p>
           
           <p className="text-gray-400 text-sm leading-relaxed">
-            {getSecondaryText()}
+            {secondaryText}
           </p>
         </div>
 
@@ -154,7 +157,7 @@ export function ValidationOverview({ validationData, proofVaultData, onScrollToV
           <div className="text-center">
             <h3 className="text-lg font-semibold text-white mb-1">ProofScore</h3>
             <p className="text-sm text-gray-400">
-              {getStatusText()}
+              {statusText}
             </p>
           </div>
         </div>
