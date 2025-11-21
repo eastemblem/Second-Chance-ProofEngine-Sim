@@ -91,7 +91,7 @@ interface VentureExperiment {
 
 export default function ValidationMap() {
   const { toast } = useToast();
-  const { user: authUser, venture, isAuthenticated } = useTokenAuth();
+  const { user: authUser, venture, isAuthenticated, isLoading: isAuthLoading } = useTokenAuth();
   const [, setLocation] = useLocation();
   const ventureId = venture?.ventureId || null;
   
@@ -99,8 +99,10 @@ export default function ValidationMap() {
   const { tutorialCompletedPages } = useProofCoach();
   const [debouncedValues, setDebouncedValues] = useState<Record<string, any>>({});
   
-  // Check localStorage for walkthrough completion
+  // Check localStorage for walkthrough completion (only for authenticated users)
   const [showWalkthrough, setShowWalkthrough] = useState(() => {
+    // For unauthenticated users, always check the flag
+    // For authenticated users, check localStorage
     const completed = localStorage.getItem('validation_map_walkthrough_completed');
     return completed !== 'true';
   });
@@ -644,16 +646,21 @@ export default function ValidationMap() {
   const completedCount = experiments.filter((e: VentureExperiment) => e.status === "completed").length;
   const totalCount = experiments.length;
 
-  if (!user || !ventureId) {
+  // Handle walkthrough completion
+  const handleWalkthroughComplete = () => {
+    localStorage.setItem('validation_map_walkthrough_completed', 'true');
+    setShowWalkthrough(false);
+  };
+
+  // Show loading only while auth is being verified
+  if (isAuthLoading) {
     return (
       <div className="min-h-screen bg-gray-950">
         <Navbar showSignOut />
         <div className="max-w-7xl mx-auto px-4 py-8">
           <Card className="bg-gray-900/60 border-gray-800">
             <CardContent className="p-6">
-              <p className="text-gray-300">
-                {!user ? "Loading user data..." : "No venture found. Please complete onboarding first."}
-              </p>
+              <p className="text-gray-300">Loading user data...</p>
             </CardContent>
           </Card>
         </div>
@@ -662,14 +669,21 @@ export default function ValidationMap() {
     );
   }
 
-  // Handle walkthrough completion
-  const handleWalkthroughComplete = () => {
-    localStorage.setItem('validation_map_walkthrough_completed', 'true');
-    setShowWalkthrough(false);
-  };
+  // For unauthenticated users, always show walkthrough (ignore localStorage flag)
+  if (!user && !isAuthLoading) {
+    return (
+      <div className="min-h-screen bg-gray-950">
+        <Navbar showSignOut />
+        <ValidationMapWalkthrough 
+          onComplete={handleWalkthroughComplete}
+        />
+        <Footer />
+      </div>
+    );
+  }
 
-  // Show walkthrough until user completes or skips it
-  if (showWalkthrough) {
+  // For authenticated users, show walkthrough if they haven't completed it
+  if (user && showWalkthrough) {
     return (
       <div className="min-h-screen bg-gray-950">
         <Navbar showSignOut />
@@ -681,6 +695,28 @@ export default function ValidationMap() {
       </div>
     );
   }
+
+  // Require venture for experiment management (user is authenticated at this point)
+  if (!ventureId) {
+    return (
+      <div className="min-h-screen bg-gray-950">
+        <Navbar showSignOut />
+        <div className="max-w-7xl mx-auto px-4 py-8">
+          <Card className="bg-gray-900/60 border-gray-800">
+            <CardContent className="p-6">
+              <p className="text-gray-300">
+                No venture found. Please complete onboarding first.
+              </p>
+            </CardContent>
+          </Card>
+        </div>
+        <Footer />
+      </div>
+    );
+  }
+
+  // At this point, user is guaranteed to be non-null (already checked above)
+  if (!user) return null;
 
   return (
     <div className="min-h-screen bg-gray-950">
