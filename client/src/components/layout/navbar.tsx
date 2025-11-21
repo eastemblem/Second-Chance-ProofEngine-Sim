@@ -66,13 +66,24 @@ export default function Navbar({ showSignOut = false, showSignIn = false, logoOn
       });
 
       if (response.ok) {
-        // CRITICAL FIX: Clear ALL localStorage data immediately
+        // Clear auth and user-scoped data (preserves onboarding, tutorial flags, etc.)
+        const userData = localStorage.getItem('auth_user');
+        let founderId: string | null = null;
+        if (userData) {
+          try {
+            founderId = JSON.parse(userData).founderId;
+          } catch (e) {}
+        }
+        
         localStorage.removeItem('auth_token');
         localStorage.removeItem('auth_user');
-        localStorage.removeItem('user_data');
-        localStorage.removeItem('dashboard_data');
+        localStorage.removeItem('auth_venture');
+        if (founderId) {
+          localStorage.removeItem(`coach_state_${founderId}`);
+          localStorage.removeItem(`coach_mode_first_seen_${founderId}`);
+        }
         
-        // CRITICAL FIX: Clear any browser cached data
+        // Clear any browser cached data
         if ('caches' in window) {
           caches.keys().then(names => {
             names.forEach(name => {

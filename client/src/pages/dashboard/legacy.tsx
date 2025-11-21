@@ -1196,9 +1196,22 @@ export default function DashboardPage() {
       });
 
       if (response.ok) {
-        // Clear localStorage
+        // Clear auth and user-scoped data (preserves onboarding, tutorial flags, etc.)
+        const userData = localStorage.getItem('auth_user');
+        let founderId: string | null = null;
+        if (userData) {
+          try {
+            founderId = JSON.parse(userData).founderId;
+          } catch (e) {}
+        }
+        
         localStorage.removeItem('auth_token');
         localStorage.removeItem('auth_user');
+        localStorage.removeItem('auth_venture');
+        if (founderId) {
+          localStorage.removeItem(`coach_state_${founderId}`);
+          localStorage.removeItem(`coach_mode_first_seen_${founderId}`);
+        }
         
         // Track successful logout event
         trackEvent('logout', 'authentication', 'logout_success');
@@ -1217,9 +1230,22 @@ export default function DashboardPage() {
       }
     } catch (error) {
       console.error('Logout error:', error);
-      // Clear localStorage even if server call fails
+      // Clear auth and user-scoped data even if server call fails
+      const userData = localStorage.getItem('auth_user');
+      let founderId: string | null = null;
+      if (userData) {
+        try {
+          founderId = JSON.parse(userData).founderId;
+        } catch (e) {}
+      }
+      
       localStorage.removeItem('auth_token');
       localStorage.removeItem('auth_user');
+      localStorage.removeItem('auth_venture');
+      if (founderId) {
+        localStorage.removeItem(`coach_state_${founderId}`);
+        localStorage.removeItem(`coach_mode_first_seen_${founderId}`);
+      }
       
       // Track failed logout event
       trackEvent('logout_failed', 'authentication', 'logout_error');
