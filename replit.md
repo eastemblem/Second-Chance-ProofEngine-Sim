@@ -28,6 +28,14 @@ Key technical decisions include:
 - **End-to-End Encryption**: Transparent payload encryption for API communications using AES-256-GCM with feature flags.
 - **Dashboard Architecture**: `/dashboard` is production, `/dashboard-v1` is for development.
   - **Smart Loading Optimization (Nov 20, 2025)**: Dashboard uses lazy-initialized loading state that checks for existing auth token in localStorage. Returning users skip the loading skeleton entirely while auth verification and data refresh happen in background, eliminating loading screen when navigating back from validation map or other pages.
+  - **React Query Caching & Memoization (Nov 21, 2025)**: Dashboard data fetching optimized to dramatically reduce database hits through aggressive caching and smart invalidation:
+    - **Separate Query Streams**: Four independent React Query queries (validation, vault, leaderboard, deal room access) with JWT-aware fetchers prevent blocking dependencies
+    - **Aggressive Cache Timings**: Validation/vault (10min staleTime, 30min gcTime), leaderboard (5min, 15min), deal room (15min, 60min) minimize redundant database queries
+    - **Smart Invalidation**: File uploads invalidate only vault queries, payments invalidate only deal room access, experiments invalidate validation data—no full dashboard reloads
+    - **Predicate-Based Cache Targeting**: Invalidation uses predicates to match partial query keys, correctly handling array-segment keys like ['/api/v1/leaderboard', 5]
+    - **Safe Cache Setters**: setHasDealRoomAccess/setVentureStatus guard against undefined cache values, returning sensible defaults during cold-start flows
+    - **Component Memoization**: ValidationOverview uses useMemo for all proofScore-dependent calculations (statusText, primaryText, secondaryText, progressPercentage) to prevent unnecessary re-renders
+    - **Navigation Performance**: Users can navigate between dashboard pages without triggering fresh API calls—cached data loads instantly while background revalidation ensures freshness
 - **Unified Logging Architecture**: Standardized `appLogger` for comprehensive, structured logging across the platform.
 - **Environment-Based Email Logo Configuration**: Email templates dynamically use `LOGO_URL` from environment variables.
 - **Live Exchange Rate Integration**: Real-time USD to AED conversion using multiple fallback APIs and caching.
