@@ -1,10 +1,11 @@
 import { useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { ChevronLeft, ChevronRight, Lightbulb, Target, TrendingUp, Award, CheckCircle, ArrowRight } from "lucide-react";
+import { ChevronLeft, ChevronRight, Lightbulb, Target, TrendingUp, Award, CheckCircle, ArrowRight, Loader2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 
 interface ValidationMapWalkthroughProps {
   onComplete: () => void;
+  isDataLoading?: boolean;
 }
 
 const walkthroughScreens = [
@@ -62,7 +63,7 @@ const walkthroughScreens = [
   },
 ];
 
-export function ValidationMapWalkthrough({ onComplete }: ValidationMapWalkthroughProps) {
+export function ValidationMapWalkthrough({ onComplete, isDataLoading = false }: ValidationMapWalkthroughProps) {
   const [currentScreen, setCurrentScreen] = useState(0);
 
   const handleNext = () => {
@@ -191,11 +192,21 @@ export function ValidationMapWalkthrough({ onComplete }: ValidationMapWalkthroug
           {isLastScreen ? (
             <Button
               onClick={handleGetStarted}
-              className="bg-purple-600 hover:bg-purple-700 text-white"
+              disabled={isDataLoading}
+              className="bg-purple-600 hover:bg-purple-700 text-white disabled:opacity-50 disabled:cursor-not-allowed"
               data-testid="button-get-started"
             >
-              Get Started
-              <ArrowRight className="ml-1 h-4 w-4" />
+              {isDataLoading ? (
+                <>
+                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                  Loading experiments...
+                </>
+              ) : (
+                <>
+                  Get Started
+                  <ArrowRight className="ml-1 h-4 w-4" />
+                </>
+              )}
             </Button>
           ) : (
             <Button

@@ -690,6 +690,7 @@ export default function ValidationMap() {
         <DashboardHeader user={user} validationData={validationData} />
         <ValidationMapWalkthrough 
           onComplete={handleWalkthroughComplete}
+          isDataLoading={isLoading}
         />
         <Footer />
       </div>
