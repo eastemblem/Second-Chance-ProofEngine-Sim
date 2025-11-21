@@ -127,7 +127,32 @@ interface LeaderboardEntry {
 }
 
 export default function DashboardPage() {
-  const [user, setUser] = useState<User | null>(null);
+  // Initialize user from localStorage to prevent loading skeleton on navigation
+  const [user, setUser] = useState<User | null>(() => {
+    try {
+      const userData = localStorage.getItem('auth_user');
+      const ventureData = localStorage.getItem('auth_venture');
+      if (!userData) return null;
+      
+      const parsedUser = JSON.parse(userData);
+      const parsedVenture = ventureData ? JSON.parse(ventureData) : null;
+      
+      return {
+        founderId: parsedUser.founderId,
+        email: parsedUser.email,
+        isAuthenticated: true,
+        fullName: parsedUser.fullName,
+        venture: parsedVenture ? {
+          name: parsedVenture.name,
+          ventureId: parsedVenture.ventureId
+        } : undefined
+      };
+    } catch (error) {
+      console.error('Failed to load user from localStorage:', error);
+      return null;
+    }
+  });
+  
   // Skip loading screen if auth token already exists (returning user)
   const [isLoading, setIsLoading] = useState(() => {
     const token = localStorage.getItem('auth_token');
