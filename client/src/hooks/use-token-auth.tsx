@@ -206,7 +206,9 @@ export function TokenAuthProvider({ children }: { children: ReactNode }) {
       value={{
         user,
         venture,
-        isLoading,
+        // Only show loading if user data is truly missing (not loaded from localStorage yet)
+        // If user/token exist in state, return false and let verification run in background
+        isLoading: !user && isLoading,
         isAuthenticated: !!user && !!token,
         error: verificationError as Error,
         loginMutation,
