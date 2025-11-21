@@ -35,22 +35,12 @@ export function useAuthCheck() {
   }, []);
 
   const logout = () => {
-    // Clear auth and user-scoped data (preserves onboarding, tutorial flags, etc.)
-    const userData = localStorage.getItem('auth_user');
-    let founderId: string | null = null;
-    if (userData) {
-      try {
-        founderId = JSON.parse(userData).founderId;
-      } catch (e) {}
-    }
-    
+    // Clear auth and coach data (preserves onboarding, tutorial flags, etc.)
     localStorage.removeItem('auth_token');
     localStorage.removeItem('auth_user');
     localStorage.removeItem('auth_venture');
-    if (founderId) {
-      localStorage.removeItem(`coach_state_${founderId}`);
-      localStorage.removeItem(`coach_mode_first_seen_${founderId}`);
-    }
+    localStorage.removeItem('coach_state');
+    localStorage.removeItem('coach_mode_first_seen');
     
     setIsAuthenticated(false);
     setUser(null);

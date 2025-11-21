@@ -29,21 +29,11 @@ export function useAuthentication() {
       if (!token || token === 'null' || token === 'undefined') {
         console.log('No valid token found, redirecting to login');
         // Clear auth and user-scoped data only
-        const userData = localStorage.getItem('auth_user');
-        let founderId: string | null = null;
-        if (userData) {
-          try {
-            founderId = JSON.parse(userData).founderId;
-          } catch (e) {}
-        }
-        
         localStorage.removeItem('auth_token');
         localStorage.removeItem('auth_user');
         localStorage.removeItem('auth_venture');
-        if (founderId) {
-          localStorage.removeItem(`coach_state_${founderId}`);
-          localStorage.removeItem(`coach_mode_first_seen_${founderId}`);
-        }
+        localStorage.removeItem('coach_state');
+        localStorage.removeItem('coach_mode_first_seen');
         
         setLocation('/login');
         return;
@@ -75,63 +65,33 @@ export function useAuthentication() {
         } else {
           console.log('Auth failed - no success or data');
           // Clear auth and user-scoped data only
-          const userData = localStorage.getItem('auth_user');
-          let founderId: string | null = null;
-          if (userData) {
-            try {
-              founderId = JSON.parse(userData).founderId;
-            } catch (e) {}
-          }
-          
           localStorage.removeItem('auth_token');
           localStorage.removeItem('auth_user');
           localStorage.removeItem('auth_venture');
-          if (founderId) {
-            localStorage.removeItem(`coach_state_${founderId}`);
-            localStorage.removeItem(`coach_mode_first_seen_${founderId}`);
-          }
+          localStorage.removeItem('coach_state');
+          localStorage.removeItem('coach_mode_first_seen');
           
           setLocation('/login');
         }
       } else {
         console.log('Auth failed - response not ok:', response.status);
         // Clear auth and user-scoped data only
-        const userData = localStorage.getItem('auth_user');
-        let founderId: string | null = null;
-        if (userData) {
-          try {
-            founderId = JSON.parse(userData).founderId;
-          } catch (e) {}
-        }
-        
         localStorage.removeItem('auth_token');
         localStorage.removeItem('auth_user');
         localStorage.removeItem('auth_venture');
-        if (founderId) {
-          localStorage.removeItem(`coach_state_${founderId}`);
-          localStorage.removeItem(`coach_mode_first_seen_${founderId}`);
-        }
+        localStorage.removeItem('coach_state');
+        localStorage.removeItem('coach_mode_first_seen');
         
         setLocation('/login');
       }
     } catch (error) {
       console.error('Auth check error:', error);
       // Clear auth and user-scoped data only
-      const userData = localStorage.getItem('auth_user');
-      let founderId: string | null = null;
-      if (userData) {
-        try {
-          founderId = JSON.parse(userData).founderId;
-        } catch (e) {}
-      }
-      
       localStorage.removeItem('auth_token');
       localStorage.removeItem('auth_user');
       localStorage.removeItem('auth_venture');
-      if (founderId) {
-        localStorage.removeItem(`coach_state_${founderId}`);
-        localStorage.removeItem(`coach_mode_first_seen_${founderId}`);
-      }
+      localStorage.removeItem('coach_state');
+      localStorage.removeItem('coach_mode_first_seen');
       
       setLocation('/login');
     } finally {
@@ -153,21 +113,11 @@ export function useAuthentication() {
 
       if (response.ok) {
         // Clear auth and user-scoped data (preserves onboarding, tutorial flags, etc.)
-        const userData = localStorage.getItem('auth_user');
-        let founderId: string | null = null;
-        if (userData) {
-          try {
-            founderId = JSON.parse(userData).founderId;
-          } catch (e) {}
-        }
-        
         localStorage.removeItem('auth_token');
         localStorage.removeItem('auth_user');
         localStorage.removeItem('auth_venture');
-        if (founderId) {
-          localStorage.removeItem(`coach_state_${founderId}`);
-          localStorage.removeItem(`coach_mode_first_seen_${founderId}`);
-        }
+        localStorage.removeItem('coach_state');
+        localStorage.removeItem('coach_mode_first_seen');
         
         trackEvent('logout', 'authentication', 'logout_success');
         
@@ -186,21 +136,11 @@ export function useAuthentication() {
     } catch (error) {
       console.error('Logout error:', error);
       // Clear auth and user-scoped data even if server call fails
-      const userData = localStorage.getItem('auth_user');
-      let founderId: string | null = null;
-      if (userData) {
-        try {
-          founderId = JSON.parse(userData).founderId;
-        } catch (e) {}
-      }
-      
       localStorage.removeItem('auth_token');
       localStorage.removeItem('auth_user');
       localStorage.removeItem('auth_venture');
-      if (founderId) {
-        localStorage.removeItem(`coach_state_${founderId}`);
-        localStorage.removeItem(`coach_mode_first_seen_${founderId}`);
-      }
+      localStorage.removeItem('coach_state');
+      localStorage.removeItem('coach_mode_first_seen');
       
       trackEvent('logout_failed', 'authentication', 'logout_error');
       toast({

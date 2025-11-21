@@ -10,6 +10,7 @@ Second Chance is a startup validation platform that empowers entrepreneurs throu
 - Maintain professional tone without emojis
 - Remove technical language from user notifications (e.g., replaced "JWT token invalidated" with user-friendly logout messages)
 - Always share checkpoint message summary after completing work for manual update by user
+- localStorage keys should not include user-specific identifiers (e.g., founderId) for simplicity
 
 ## System Architecture
 
@@ -37,6 +38,11 @@ Key technical decisions include:
     - **Component Memoization**: ValidationOverview uses useMemo for all proofScore-dependent calculations (statusText, primaryText, secondaryText, progressPercentage) to prevent unnecessary re-renders
     - **Navigation Performance**: Users can navigate between dashboard pages without triggering fresh API calls—cached data loads instantly while background revalidation ensures freshness
 - **Unified Logging Architecture**: Standardized `appLogger` for comprehensive, structured logging across the platform.
+- **Simplified localStorage Keys (Nov 21, 2025)**: Removed user-specific identifiers from coach-related localStorage keys:
+  - Changed from `coach_state_${founderId}` to `coach_state`
+  - Changed from `coach_mode_first_seen_${founderId}` to `coach_mode_first_seen`
+  - Simplified cleanup logic across all logout/auth error handlers
+  - Maintains same functionality with cleaner, more maintainable code
 - **Environment-Based Email Logo Configuration**: Email templates dynamically use `LOGO_URL` from environment variables.
 - **Live Exchange Rate Integration**: Real-time USD to AED conversion using multiple fallback APIs and caching.
 

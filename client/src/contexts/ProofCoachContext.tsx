@@ -78,13 +78,12 @@ interface ProofCoachProviderProps {
   children: ReactNode;
 }
 
-const COACH_STATE_KEY_ANON = "coach_state"; // Anonymous users (onboarding)
-const COACH_STATE_KEY_PREFIX = "coach_state_"; // Authenticated users (per founder)
+const COACH_STATE_KEY = "coach_state"; // All users use same key
 
-// Client-side flags storage keys (founder-namespaced)
-const CLIENT_FLAG_CSV_EXPORTED = "coach_csv_exported_";
-const CLIENT_FLAG_COMMUNITY_ACCESSED = "coach_community_accessed_";
-const CLIENT_FLAG_COACH_MODE_SEEN = "coach_mode_first_seen_";
+// Client-side flags storage keys (no longer founder-namespaced)
+const CLIENT_FLAG_CSV_EXPORTED = "coach_csv_exported";
+const CLIENT_FLAG_COMMUNITY_ACCESSED = "coach_community_accessed";
+const CLIENT_FLAG_COACH_MODE_SEEN = "coach_mode_first_seen";
 
 export function ProofCoachProvider({ children }: ProofCoachProviderProps) {
   const [location] = useLocation();
@@ -93,33 +92,29 @@ export function ProofCoachProvider({ children }: ProofCoachProviderProps) {
   // Fetch server-side progress via React Query hook
   const { data: serverProgress, refetch: refetchServerProgress, isLoading: isLoadingServerProgress } = useCoachProgress();
   
-  // Determine storage key based on authentication status
+  // All users use same storage key
   const getStorageKey = useCallback(() => {
-    if (user?.founderId) {
-      return `${COACH_STATE_KEY_PREFIX}${user.founderId}`;
-    }
-    return COACH_STATE_KEY_ANON;
-  }, [user]);
+    return COACH_STATE_KEY;
+  }, []);
 
-  // Helper: Get client-side flag from localStorage (founder-namespaced)
+  // Helper: Get client-side flag from localStorage
   const getClientFlag = useCallback((flagKey: string): boolean => {
-    if (typeof window === 'undefined' || !user?.founderId) return false;
-    const value = localStorage.getItem(`${flagKey}${user.founderId}`);
+    if (typeof window === 'undefined') return false;
+    const value = localStorage.getItem(flagKey);
     return value === 'true';
-  }, [user?.founderId]);
+  }, []);
 
-  // Helper: Set client-side flag in localStorage (founder-namespaced)
+  // Helper: Set client-side flag in localStorage
   const setClientFlag = useCallback((flagKey: string, value: boolean) => {
-    if (typeof window === 'undefined' || !user?.founderId) return;
-    localStorage.setItem(`${flagKey}${user.founderId}`, String(value));
-  }, [user?.founderId]);
+    if (typeof window === 'undefined') return;
+    localStorage.setItem(flagKey, String(value));
+  }, []);
 
   // Load state from localStorage on initial render
   const [localState, setLocalState] = useState<Partial<CoachState>>(() => {
     if (typeof window === 'undefined') return {};
     
-    const storageKey = user?.founderId ? `${COACH_STATE_KEY_PREFIX}${user.founderId}` : COACH_STATE_KEY_ANON;
-    const cached = localStorage.getItem(storageKey);
+    const cached = localStorage.getItem(COACH_STATE_KEY);
     if (cached) {
       try {
         return JSON.parse(cached);
@@ -162,52 +157,21 @@ export function ProofCoachProvider({ children }: ProofCoachProviderProps) {
     }
   }, [getStorageKey]);
 
-  // Migrate anonymous state to authenticated state when user logs in
-  // Clear authenticated state when user logs out
+  // Load state from localStorage whenever user changes
   useEffect(() => {
     if (typeof window === 'undefined') return;
     
-    if (user?.founderId) {
-      // User is authenticated - load or migrate to authenticated state
-      const anonState = localStorage.getItem(COACH_STATE_KEY_ANON);
-      const userKey = `${COACH_STATE_KEY_PREFIX}${user.founderId}`;
-      const userState = localStorage.getItem(userKey);
-      
-      // If user has no state but anonymous state exists, migrate it
-      if (!userState && anonState) {
-        try {
-          const parsedAnonState = JSON.parse(anonState);
-          localStorage.setItem(userKey, JSON.stringify(parsedAnonState));
-          setLocalState(parsedAnonState);
-          // Clean up anonymous state after migration
-          localStorage.removeItem(COACH_STATE_KEY_ANON);
-          trackEvent("coach_state_migrated", "user_journey", `founder_${user.founderId}`);
-        } catch (error) {
-          console.error("Failed to migrate coach state", error);
-        }
-      } else if (userState) {
-        // Load existing user state
-        try {
-          const parsedUserState = JSON.parse(userState);
-          setLocalState(parsedUserState);
-        } catch (error) {
-          console.error("Failed to load user coach state", error);
-        }
+    const state = localStorage.getItem(COACH_STATE_KEY);
+    if (state) {
+      try {
+        const parsedState = JSON.parse(state);
+        setLocalState(parsedState);
+      } catch (error) {
+        console.error("Failed to load coach state", error);
+        setLocalState({});
       }
     } else {
-      // User is not authenticated - load anonymous state
-      const anonState = localStorage.getItem(COACH_STATE_KEY_ANON);
-      if (anonState) {
-        try {
-          const parsedAnonState = JSON.parse(anonState);
-          setLocalState(parsedAnonState);
-        } catch (error) {
-          console.error("Failed to load anonymous coach state", error);
-          setLocalState({}); // Reset to empty on error
-        }
-      } else {
-        setLocalState({}); // No anonymous state exists, start fresh
-      }
+      setLocalState({});
     }
   }, [user?.founderId]);
 

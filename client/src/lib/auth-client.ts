@@ -47,31 +47,14 @@ export function clearAuthStorage() {
   if (typeof window === 'undefined') return;
 
   try {
-    // Get founderId before clearing user data to clean up user-scoped keys
-    let founderId: string | null = null;
-    try {
-      const userData = localStorage.getItem('auth_user');
-      if (userData) {
-        const user = JSON.parse(userData);
-        founderId = user.founderId;
-      }
-    } catch (e) {
-      console.warn('Could not parse user data for cleanup:', e);
-    }
-
     // Remove all auth-related keys
     localStorage.removeItem('auth_token');
     localStorage.removeItem('auth_user');
     localStorage.removeItem('auth_venture');
+    localStorage.removeItem('coach_state');
+    localStorage.removeItem('coach_mode_first_seen');
     
-    // Remove user-scoped keys if we have a founderId
-    if (founderId) {
-      localStorage.removeItem(`coach_state_${founderId}`);
-      localStorage.removeItem(`coach_mode_first_seen_${founderId}`);
-      console.log(`🗑️ Cleared auth data and user-scoped keys for founder: ${founderId}`);
-    } else {
-      console.log('🗑️ Cleared auth data (no founderId found for user-scoped cleanup)');
-    }
+    console.log('🗑️ Cleared auth data and coach keys');
   } catch (error) {
     console.error('Failed to clear auth storage:', error);
   }
