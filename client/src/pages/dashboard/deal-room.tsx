@@ -87,6 +87,16 @@ export default function DealRoomPage() {
 
   const investors = investorsResponse?.data || [];
 
+  // Debug logging
+  console.log('[Deal Room Debug]', {
+    showWalkthrough,
+    investorsLoading,
+    investorsError,
+    investorsCount: investors.length,
+    hasResponse: !!investorsResponse,
+    responseData: investorsResponse
+  });
+
   // Extract unique filter options
   const sectors = useMemo(() => {
     if (!Array.isArray(investors) || investors.length === 0) return [];
