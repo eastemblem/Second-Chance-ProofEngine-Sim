@@ -50,10 +50,7 @@ export function DealRoomSection({ validationData, hasDealRoomAccess = false, onP
               <span className="text-green-400 font-bold text-xl">Access Granted</span>
             </div>
             <div className="text-gray-300 text-lg">
-              <span className="font-bold">Congrats! you've just requested to access our deal room of vetted investors, potential customers and partners.</span>
-              <br />
-              <br />
-              <span className="text-sm">Your request is currently being processed by a validation expert, this should take 3-days. Keep an eye on your inbox and checking your profile for a notification that a specialist is ready to discuss your introduction.</span>
+              <span className="font-bold">Congrats! Your application has been approved and you have been granted access to the deal room of vetted investors, potential customers and partners.</span>
             </div>
           </div>
         </>
@@ -175,7 +172,7 @@ export function DealRoomSection({ validationData, hasDealRoomAccess = false, onP
           {(ventureStatus?.toLowerCase?.() === 'done') && hasDealRoomAccess ? (
             <Button 
               className="px-8 py-3 rounded-lg font-semibold transition-all duration-200 bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700 text-white"
-              onClick={() => setLocation('/dashboard/deal-room')}
+              onClick={() => setLocation('/deal-room')}
               data-testid="button-access-deal-room"
             >
               Access Deal Room
