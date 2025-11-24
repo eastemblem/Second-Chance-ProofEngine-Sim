@@ -69,7 +69,7 @@ router.post('/request-introduction', asyncHandler(async (req: Request, res: Resp
     const investor = investorDetails;
 
     // Send introduction request email using template
-    await emailService.sendIntroductionRequestEmail(
+    const emailSent = await emailService.sendIntroductionRequestEmail(
       founder.fullName,
       founder.email,
       founder.positionRole || 'Founder',
@@ -85,6 +85,19 @@ router.post('/request-introduction', asyncHandler(async (req: Request, res: Resp
       investor.investmentTicketDisplay || investor.investmentTicket,
       investor.targetProofScore
     );
+
+    if (!emailSent) {
+      appLogger.error('Failed to send introduction request email', {
+        founderId,
+        investorId,
+        ventureName: venture.name
+      });
+      return res.status(502).json(createErrorResponse(
+        502,
+        'Failed to send introduction request email',
+        'Email service unavailable. Please try again later.'
+      ));
+    }
 
     // Log activity
     await ActivityService.logActivity(
