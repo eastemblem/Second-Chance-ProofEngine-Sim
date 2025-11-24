@@ -72,11 +72,17 @@ export default function DealRoomPage() {
   });
 
   // Fetch investors
-  const { data: investorsResponse, isLoading: investorsLoading } = useQuery<{ success: boolean; data: Investor[] }>({
+  const { 
+    data: investorsResponse, 
+    isLoading: investorsLoading,
+    isError: investorsError,
+    error: investorsErrorObj
+  } = useQuery<{ success: boolean; data: Investor[] }>({
     queryKey: ['/api/v1/deal-room'],
     enabled: !!user && !showWalkthrough,
     staleTime: 15 * 60 * 1000, // 15 minutes
     gcTime: 60 * 60 * 1000, // 60 minutes
+    retry: 2,
   });
 
   const investors = investorsResponse?.data || [];
@@ -210,6 +216,41 @@ export default function DealRoomPage() {
         <Navbar showSignOut />
         <DashboardHeader user={user} validationData={validationData || null} />
         <DealRoomWalkthrough onComplete={handleWalkthroughComplete} />
+        <Footer />
+      </div>
+    );
+  }
+
+  // Show error state for investors API failure
+  if (investorsError) {
+    return (
+      <div className="min-h-screen bg-gray-950">
+        <Navbar showSignOut />
+        <DashboardHeader user={user} validationData={validationData || null} />
+        
+        <div className="max-w-7xl mx-auto px-4 pt-16 pb-8">
+          <Card className="bg-gray-900/60 backdrop-blur-sm border-gray-800">
+            <CardContent className="p-12 text-center">
+              <div className="flex flex-col items-center gap-4">
+                <div className="h-16 w-16 rounded-full bg-red-500/10 flex items-center justify-center">
+                  <Users className="h-8 w-8 text-red-500" />
+                </div>
+                <h2 className="text-2xl font-bold text-white">Unable to Load Investors</h2>
+                <p className="text-gray-400 max-w-md">
+                  We're having trouble connecting to our investor database. Please try again in a moment.
+                </p>
+                <Button 
+                  onClick={() => queryClient.invalidateQueries({ queryKey: ['/api/v1/deal-room'] })}
+                  className="mt-4 bg-purple-600 hover:bg-purple-700"
+                  data-testid="button-retry-investors"
+                >
+                  Try Again
+                </Button>
+              </div>
+            </CardContent>
+          </Card>
+        </div>
+        
         <Footer />
       </div>
     );
