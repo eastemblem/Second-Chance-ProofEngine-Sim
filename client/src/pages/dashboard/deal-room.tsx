@@ -73,7 +73,7 @@ export default function DealRoomPage() {
 
   // Fetch investors
   const { data: investorsResponse, isLoading: investorsLoading } = useQuery<{ success: boolean; data: Investor[] }>({
-    queryKey: ['/api/v1/investors'],
+    queryKey: ['/api/v1/deal-room'],
     enabled: !!user && !showWalkthrough,
     staleTime: 15 * 60 * 1000, // 15 minutes
     gcTime: 60 * 60 * 1000, // 60 minutes
@@ -144,7 +144,7 @@ export default function DealRoomPage() {
   // Request introduction mutation
   const requestIntroductionMutation = useMutation({
     mutationFn: async ({ investorId, investorDetails }: { investorId: string; investorDetails: Investor }) => {
-      const response = await fetch('/api/v1/investors/request-introduction', {
+      const response = await fetch('/api/v1/deal-room/request-introduction', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
