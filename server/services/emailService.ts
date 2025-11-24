@@ -345,6 +345,65 @@ export class EmailService {
   }
 
   /**
+   * Send introduction request email to admin team
+   */
+  async sendIntroductionRequestEmail(
+    founderName: string,
+    founderEmail: string,
+    founderRole: string,
+    ventureName: string,
+    ventureIndustry: string,
+    ventureGeography: string,
+    ventureGrowthStage: string,
+    ventureProofScore: number | null,
+    investorId: string,
+    investorStage: string,
+    investorSector: string,
+    investorGeography: string,
+    investorTicketSize: string,
+    investorTargetScore: number
+  ): Promise<boolean> {
+    appLogger.email('IntroductionRequest: Sending introduction request email to admin team', {
+      founderEmail,
+      ventureName,
+      investorId
+    });
+    
+    const frontendUrl = process.env.FRONTEND_URL || `https://${process.env.REPLIT_DOMAINS?.split(',')[0]}`;
+    const adminEmail = process.env.ADMIN_EMAIL || 'team@eastemblem.com';
+    
+    const templateData = {
+      FOUNDER_NAME: founderName,
+      FOUNDER_EMAIL: founderEmail,
+      FOUNDER_ROLE: founderRole,
+      VENTURE_NAME: ventureName,
+      VENTURE_INDUSTRY: ventureIndustry || 'N/A',
+      VENTURE_GEOGRAPHY: ventureGeography || 'N/A',
+      VENTURE_GROWTH_STAGE: ventureGrowthStage || 'N/A',
+      VENTURE_PROOF_SCORE: ventureProofScore ? ventureProofScore.toString() : '',
+      INVESTOR_ID: investorId,
+      INVESTOR_STAGE: investorStage,
+      INVESTOR_SECTOR: investorSector,
+      INVESTOR_GEOGRAPHY: investorGeography,
+      INVESTOR_TICKET_SIZE: investorTicketSize,
+      INVESTOR_TARGET_SCORE: investorTargetScore.toString(),
+      REQUEST_DATE: new Date().toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' }),
+      HOST_URL: frontendUrl,
+      CURRENT_YEAR: new Date().getFullYear(),
+      PRIVACY_URL: `${frontendUrl}/privacy`,
+      TERMS_URL: `${frontendUrl}/terms`
+      // LOGO_URL will be automatically added by loadTemplate method from environment variables
+    };
+    
+    return this.sendEmail(
+      adminEmail,
+      `Introduction Requested - ${ventureName}`,
+      'introduction-request',
+      templateData
+    );
+  }
+
+  /**
    * Get milestone level based on ProofScore
    */
   private getMilestoneLevel(score: number): string {
