@@ -87,32 +87,34 @@ export default function DealRoomPage() {
 
   const investors = investorsResponse?.data || [];
 
-  // Debug logging
-  console.log('[Deal Room Debug]', {
-    showWalkthrough,
-    investorsLoading,
-    investorsError,
-    investorsCount: investors.length,
-    hasResponse: !!investorsResponse,
-    responseData: investorsResponse
-  });
-
-  // Extract unique filter options
+  // Extract unique filter options (filter out empty/null/undefined values)
   const sectors = useMemo(() => {
     if (!Array.isArray(investors) || investors.length === 0) return [];
-    const unique = new Set(investors.map(inv => inv.sector));
+    const unique = new Set(
+      investors
+        .map(inv => inv.sector)
+        .filter(s => s && s.trim() !== '')
+    );
     return Array.from(unique).sort();
   }, [investors]);
 
   const stages = useMemo(() => {
     if (!Array.isArray(investors) || investors.length === 0) return [];
-    const unique = new Set(investors.map(inv => inv.stageOfGrowth));
+    const unique = new Set(
+      investors
+        .map(inv => inv.stageOfGrowth)
+        .filter(s => s && s.trim() !== '')
+    );
     return Array.from(unique).sort();
   }, [investors]);
 
   const regions = useMemo(() => {
     if (!Array.isArray(investors) || investors.length === 0) return [];
-    const unique = new Set(investors.map(inv => inv.regionGeography));
+    const unique = new Set(
+      investors
+        .map(inv => inv.regionGeography)
+        .filter(r => r && r.trim() !== '')
+    );
     return Array.from(unique).sort();
   }, [investors]);
 
@@ -416,7 +418,9 @@ export default function DealRoomPage() {
                         </div>
                         <div>
                           <h3 className="font-semibold text-white">{investor.investorId}</h3>
-                          <p className="text-xs text-gray-400">{investor.stageOfGrowth}</p>
+                          <p className="text-xs text-gray-400">
+                            {investor.stageOfGrowth && investor.stageOfGrowth.trim() !== '' ? investor.stageOfGrowth : 'All stages'}
+                          </p>
                         </div>
                       </div>
                       <Badge className={`${badgeInfo.className} text-white border-0`}>
@@ -432,7 +436,9 @@ export default function DealRoomPage() {
                           <Building2 className="h-3 w-3" />
                           Sector Focus
                         </div>
-                        <p className="text-sm text-purple-300 font-medium">{investor.sector}</p>
+                        <p className="text-sm text-purple-300 font-medium">
+                          {investor.sector && investor.sector.trim() !== '' ? investor.sector : 'Not specified'}
+                        </p>
                       </div>
 
                       {/* Geography */}
@@ -441,7 +447,9 @@ export default function DealRoomPage() {
                           <Globe className="h-3 w-3" />
                           Geography
                         </div>
-                        <p className="text-sm text-green-300 font-medium">{investor.regionGeography}</p>
+                        <p className="text-sm text-green-300 font-medium">
+                          {investor.regionGeography && investor.regionGeography.trim() !== '' ? investor.regionGeography : 'Not specified'}
+                        </p>
                       </div>
 
                       {/* Ticket Size */}
