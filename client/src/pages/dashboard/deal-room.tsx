@@ -87,34 +87,55 @@ export default function DealRoomPage() {
 
   const investors = investorsResponse?.data || [];
 
-  // Extract unique filter options (filter out empty/null/undefined values)
+  // Extract unique filter options (filter out empty/null/undefined values and split comma-separated)
   const sectors = useMemo(() => {
     if (!Array.isArray(investors) || investors.length === 0) return [];
-    const unique = new Set(
-      investors
-        .map(inv => inv.sector)
-        .filter(s => s && s.trim() !== '')
-    );
+    const unique = new Set<string>();
+    
+    investors.forEach(inv => {
+      if (inv.sector && inv.sector.trim() !== '') {
+        // Split comma-separated sectors and add each individually
+        inv.sector.split(',').forEach(sector => {
+          const trimmed = sector.trim();
+          if (trimmed) unique.add(trimmed);
+        });
+      }
+    });
+    
     return Array.from(unique).sort();
   }, [investors]);
 
   const stages = useMemo(() => {
     if (!Array.isArray(investors) || investors.length === 0) return [];
-    const unique = new Set(
-      investors
-        .map(inv => inv.stageOfGrowth)
-        .filter(s => s && s.trim() !== '')
-    );
+    const unique = new Set<string>();
+    
+    investors.forEach(inv => {
+      if (inv.stageOfGrowth && inv.stageOfGrowth.trim() !== '') {
+        // Split comma-separated stages and add each individually
+        inv.stageOfGrowth.split(',').forEach(stage => {
+          const trimmed = stage.trim();
+          if (trimmed) unique.add(trimmed);
+        });
+      }
+    });
+    
     return Array.from(unique).sort();
   }, [investors]);
 
   const regions = useMemo(() => {
     if (!Array.isArray(investors) || investors.length === 0) return [];
-    const unique = new Set(
-      investors
-        .map(inv => inv.regionGeography)
-        .filter(r => r && r.trim() !== '')
-    );
+    const unique = new Set<string>();
+    
+    investors.forEach(inv => {
+      if (inv.regionGeography && inv.regionGeography.trim() !== '') {
+        // Split comma-separated regions and add each individually
+        inv.regionGeography.split(',').forEach(region => {
+          const trimmed = region.trim();
+          if (trimmed) unique.add(trimmed);
+        });
+      }
+    });
+    
     return Array.from(unique).sort();
   }, [investors]);
 
@@ -139,19 +160,28 @@ export default function DealRoomPage() {
         }
       }
 
-      // Sector filter
-      if (selectedSector !== "all" && investor.sector !== selectedSector) {
-        return false;
+      // Sector filter (check if selected sector is contained in comma-separated sectors)
+      if (selectedSector !== "all") {
+        const sectors = investor.sector?.split(',').map(s => s.trim()) || [];
+        if (!sectors.includes(selectedSector)) {
+          return false;
+        }
       }
 
-      // Stage filter
-      if (selectedStage !== "all" && investor.stageOfGrowth !== selectedStage) {
-        return false;
+      // Stage filter (check if selected stage is contained in comma-separated stages)
+      if (selectedStage !== "all") {
+        const stages = investor.stageOfGrowth?.split(',').map(s => s.trim()) || [];
+        if (!stages.includes(selectedStage)) {
+          return false;
+        }
       }
 
-      // Region filter
-      if (selectedRegion !== "all" && investor.regionGeography !== selectedRegion) {
-        return false;
+      // Region filter (check if selected region is contained in comma-separated regions)
+      if (selectedRegion !== "all") {
+        const regions = investor.regionGeography?.split(',').map(r => r.trim()) || [];
+        if (!regions.includes(selectedRegion)) {
+          return false;
+        }
       }
 
       // ProofScore filter (show investors whose target is >= the minimum threshold)
