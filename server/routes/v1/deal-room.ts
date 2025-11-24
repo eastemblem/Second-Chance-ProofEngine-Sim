@@ -78,6 +78,7 @@ router.post('/request-introduction', asyncHandler(async (req: Request, res: Resp
       venture.geography || 'Not specified',
       venture.growthStage || 'Not specified',
       venture.proofScore || null,
+      (venture.folderStructure as string) || null,
       investor.investorId,
       investor.stageOfGrowth,
       investor.sector,
