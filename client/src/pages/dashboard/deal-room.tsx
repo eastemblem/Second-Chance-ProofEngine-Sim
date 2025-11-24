@@ -58,6 +58,9 @@ export default function DealRoomPage() {
     return completed !== 'true';
   });
 
+  // Track which investor button is loading
+  const [loadingInvestorId, setLoadingInvestorId] = useState<string | null>(null);
+
   // Filter states
   const [searchQuery, setSearchQuery] = useState("");
   const [selectedSector, setSelectedSector] = useState("all");
@@ -208,12 +211,14 @@ export default function DealRoomPage() {
       return response.json();
     },
     onSuccess: () => {
+      setLoadingInvestorId(null);
       toast({
         title: "Introduction Requested",
         description: "Our team will review your request and reach out shortly.",
       });
     },
     onError: () => {
+      setLoadingInvestorId(null);
       toast({
         title: "Request Failed",
         description: "Unable to submit request. Please try again.",
@@ -228,6 +233,7 @@ export default function DealRoomPage() {
   };
 
   const handleRequestIntroduction = (investor: Investor) => {
+    setLoadingInvestorId(investor.investorId);
     requestIntroductionMutation.mutate({
       investorId: investor.investorId,
       investorDetails: investor,
@@ -513,11 +519,11 @@ export default function DealRoomPage() {
                     {/* Request Introduction Button */}
                     <Button
                       onClick={() => handleRequestIntroduction(investor)}
-                      disabled={requestIntroductionMutation.isPending}
+                      disabled={loadingInvestorId === investor.investorId}
                       className="w-full bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700 text-white"
                       data-testid={`button-request-introduction-${investor.investorId}`}
                     >
-                      {requestIntroductionMutation.isPending ? (
+                      {loadingInvestorId === investor.investorId ? (
                         <>
                           <Loader2 className="mr-2 h-4 w-4 animate-spin" />
                           Requesting...
