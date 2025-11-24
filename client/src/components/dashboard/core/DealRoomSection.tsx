@@ -172,7 +172,7 @@ export function DealRoomSection({ validationData, hasDealRoomAccess = false, onP
           {(ventureStatus?.toLowerCase?.() === 'done') && hasDealRoomAccess ? (
             <Button 
               className="px-8 py-3 rounded-lg font-semibold transition-all duration-200 bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700 text-white"
-              onClick={() => setLocation('/deal-room')}
+              onClick={() => setLocation('/dashboard/deal-room')}
               data-testid="button-access-deal-room"
             >
               Access Deal Room
