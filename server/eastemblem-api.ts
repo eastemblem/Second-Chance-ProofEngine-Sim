@@ -1164,12 +1164,12 @@ class EastEmblemAPI {
   async getDealRoomInvestors(): Promise<any[]> {
     try {
       appLogger.info(`Getting deal room investors from EastEmblem API`);
-      appLogger.info(`API endpoint: ${this.getEndpoint("/deal-room")}`);
+      appLogger.info(`API endpoint: ${this.getEndpoint("/webhook/deal-room")}`);
 
       const controller = new AbortController();
       const timeoutId = setTimeout(() => controller.abort(), 10000); // 10 second timeout
 
-      const response = await fetch(this.getEndpoint("/deal-room"), {
+      const response = await fetch(this.getEndpoint("/webhook/deal-room"), {
         method: "GET",
         headers: {
           "Content-Type": "application/json",
