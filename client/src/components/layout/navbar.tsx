@@ -1,8 +1,9 @@
 import { useState, useEffect } from "react";
 import { useLocation } from "wouter";
 import { Button } from "@/components/ui/button";
-import { LogOut, User, MapPin, LayoutDashboard, Map } from "lucide-react";
+import { LogOut, User, MapPin, LayoutDashboard, Map, Building2 } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
+import { useQuery } from "@tanstack/react-query";
 import Logo from "@/components/logo";
 import { trackEvent } from "@/lib/analytics";
 import { detectUserCurrency } from "@/lib/currency-utils";
@@ -23,8 +24,23 @@ export default function Navbar({ showSignOut = false, showSignIn = false, logoOn
   // Determine which page we're on
   const isOnDashboard = location === '/dashboard';
   const isOnValidationMap = location === '/validation-map';
-  const showDashboardLink = isOnValidationMap || (showSignOut && !isOnDashboard);
-  const showValidationMapLink = isOnDashboard;
+  const isOnDealRoom = location === '/dashboard/deal-room';
+  const showDashboardLink = (isOnValidationMap || isOnDealRoom) || (showSignOut && !isOnDashboard);
+  const showValidationMapLink = isOnDashboard || isOnDealRoom;
+
+  // Fetch deal room access status
+  const { data: dashboardResponse } = useQuery<{ success: boolean; data: any }>({
+    queryKey: ['/api/v1/dashboard/validation'],
+    enabled: showSignOut, // Only fetch if user is logged in
+    staleTime: 15 * 60 * 1000, // 15 minutes
+  });
+
+  // Check if user has deal room access
+  const dashboardData = dashboardResponse?.data;
+  const hasDealRoomAccess = 
+    dashboardData?.status?.toLowerCase?.() === 'done' && 
+    dashboardData?.hasDealRoomAccess === true;
+  const showDealRoomLink = hasDealRoomAccess && (isOnDashboard || isOnValidationMap);
 
   // Detect user's geo location
   useEffect(() => {
@@ -154,7 +170,7 @@ export default function Navbar({ showSignOut = false, showSignIn = false, logoOn
                 </Button>
               )}
 
-              {/* Validation Map Link - shown when on dashboard */}
+              {/* Validation Map Link - shown when on dashboard or deal room */}
               {showValidationMapLink && (
                 <Button
                   variant="ghost"
@@ -164,6 +180,19 @@ export default function Navbar({ showSignOut = false, showSignIn = false, logoOn
                 >
                   <Map className="w-4 h-4" />
                   <span className="hidden sm:inline">Validation Map</span>
+                </Button>
+              )}
+
+              {/* Deal Room Link - shown when on dashboard or validation map and access is granted */}
+              {showDealRoomLink && (
+                <Button
+                  variant="ghost"
+                  onClick={() => setLocation('/dashboard/deal-room')}
+                  className="flex items-center gap-2 text-gray-300 hover:text-white transition-colors"
+                  data-testid="link-deal-room"
+                >
+                  <Building2 className="w-4 h-4" />
+                  <span className="hidden sm:inline">Deal Room</span>
                 </Button>
               )}
               

@@ -1161,6 +1161,65 @@ class EastEmblemAPI {
     }
   }
 
+  async getDealRoomInvestors(): Promise<any[]> {
+    try {
+      appLogger.info(`Getting deal room investors from EastEmblem API`);
+      appLogger.info(`API endpoint: ${this.getEndpoint("/deal-room")}`);
+
+      const controller = new AbortController();
+      const timeoutId = setTimeout(() => controller.abort(), 10000); // 10 second timeout
+
+      const response = await fetch(this.getEndpoint("/deal-room"), {
+        method: "GET",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        signal: controller.signal,
+      });
+
+      clearTimeout(timeoutId);
+
+      if (!response.ok) {
+        const errorText = await response.text();
+        appLogger.error(`Deal room investors fetch failed with status ${response.status}:`, errorText);
+        
+        if (response.status >= 500) {
+          throw new Error(`Deal room service unavailable (${response.status}). Please try again later.`);
+        } else if (response.status === 401) {
+          throw new Error("EastEmblem API authentication failed. Please check API credentials.");
+        } else if (response.status === 403) {
+          throw new Error("EastEmblem API access forbidden. Please verify API permissions.");
+        } else {
+          throw new Error(`Deal room fetch failed (${response.status}): ${errorText}`);
+        }
+      }
+
+      const responseText = await response.text();
+      appLogger.info("Raw deal room investors response:", responseText);
+      
+      try {
+        const result = JSON.parse(responseText);
+        appLogger.info("Deal room investors retrieved successfully:", result);
+        return Array.isArray(result) ? result : [];
+      } catch (parseError) {
+        appLogger.error("Failed to parse deal room investors response JSON:", parseError);
+        appLogger.error("Response was:", responseText);
+        throw new Error(`Deal room fetch succeeded but response parsing failed: ${parseError instanceof Error ? parseError.message : 'Invalid JSON'}`);
+      }
+    } catch (error) {
+      appLogger.error("Error getting deal room investors:", error);
+      if (!this.isConfigured()) {
+        throw new Error("EastEmblem API is not configured. Please provide EASTEMBLEM_API_URL and EASTEMBLEM_API_KEY.");
+      }
+      
+      if (error instanceof Error && error.name === 'AbortError') {
+        throw new Error("Deal room request is taking longer than expected. Please try again.");
+      }
+      
+      throw new Error(`Deal room fetch failed: ${error instanceof Error ? error.message : 'Unknown error'}`);
+    }
+  }
+
   getStatus(): { configured: boolean; baseUrl: string } {
     return {
       configured: this.isConfigured(),

@@ -1,6 +1,7 @@
 import { Button } from "@/components/ui/button";
-import { CheckCircle, Clock, Eye, Check } from "lucide-react";
+import { CheckCircle, Clock, Eye, Check, ArrowRight } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
+import { useLocation } from "wouter";
 import { apiRequest } from "@/lib/queryClient";
 
 interface ValidationData {
@@ -23,6 +24,7 @@ interface DealRoomSectionProps {
 
 export function DealRoomSection({ validationData, hasDealRoomAccess = false, onPaymentModalOpen, ventureStatus = 'pending', priceDisplay = '$99 USD' }: DealRoomSectionProps) {
   const { toast } = useToast();
+  const [, setLocation] = useLocation();
   const proofScore = validationData?.proofScore || 0;
   const isUnlocked = proofScore >= 70;
 
@@ -169,13 +171,26 @@ export function DealRoomSection({ validationData, hasDealRoomAccess = false, onP
             {getMainText()}
           </div>
           
-          <Button 
-            className={`px-8 py-3 rounded-lg font-semibold transition-all duration-200 ${getButtonStyle()}`}
-            disabled={!isUnlocked}
-            onClick={handleButtonClick}
-          >
-            {getButtonText()}
-          </Button>
+          {/* Show Access Deal Room button when status is Done, otherwise show payment/booking button */}
+          {(ventureStatus?.toLowerCase?.() === 'done') && hasDealRoomAccess ? (
+            <Button 
+              className="px-8 py-3 rounded-lg font-semibold transition-all duration-200 bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700 text-white"
+              onClick={() => setLocation('/dashboard/deal-room')}
+              data-testid="button-access-deal-room"
+            >
+              Access Deal Room
+              <ArrowRight className="ml-2 h-4 w-4" />
+            </Button>
+          ) : (
+            <Button 
+              className={`px-8 py-3 rounded-lg font-semibold transition-all duration-200 ${getButtonStyle()}`}
+              disabled={!isUnlocked}
+              onClick={handleButtonClick}
+              data-testid="button-book-meeting"
+            >
+              {getButtonText()}
+            </Button>
+          )}
 
           {/* Status Badge directly below button */}
           {isUnlocked && getExclusiveAccess() && (
