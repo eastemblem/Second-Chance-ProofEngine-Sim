@@ -371,7 +371,7 @@ export class EmailService {
     });
     
     const frontendUrl = process.env.FRONTEND_URL || `https://${process.env.REPLIT_DOMAINS?.split(',')[0]}`;
-    const adminEmail = process.env.ADMIN_EMAIL || 'team@eastemblem.com';
+    const adminEmail = process.env.TEAM_NOTIFICATION_EMAIL || 'team@eastemblem.com';
     
     const templateData = {
       FOUNDER_NAME: founderName,
