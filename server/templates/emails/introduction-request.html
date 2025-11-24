@@ -1,0 +1,243 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Introduction Request - {{VENTURE_NAME}}</title>
+    <style>
+        body {
+            margin: 0;
+            padding: 0;
+            background-color: #f8f9fa;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            color: #333333;
+            line-height: 1.6;
+        }
+        .container {
+            max-width: 600px;
+            margin: 0 auto;
+            background: #ffffff;
+            border-radius: 12px;
+            overflow: hidden;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+        }
+        .header {
+            background: linear-gradient(135deg, #8b5cf6 0%, #d4af37 100%);
+            text-align: center;
+            padding: 40px 20px;
+            color: white;
+        }
+        .logo {
+            margin: 0 auto 20px;
+            text-align: center;
+        }
+        .logo img {
+            width: 230px;
+            height: auto;
+            object-fit: contain;
+        }
+        .content {
+            padding: 40px 30px;
+            background: #ffffff;
+        }
+        .section-title {
+            font-size: 20px;
+            font-weight: 700;
+            margin: 30px 0 15px 0;
+            color: #1a1a3e;
+            border-bottom: 2px solid #8b5cf6;
+            padding-bottom: 8px;
+        }
+        .info-grid {
+            background: #f8f9fa;
+            border-radius: 8px;
+            padding: 20px;
+            margin-bottom: 20px;
+        }
+        .info-row {
+            display: flex;
+            padding: 8px 0;
+            border-bottom: 1px solid #e9ecef;
+        }
+        .info-row:last-child {
+            border-bottom: none;
+        }
+        .info-label {
+            font-weight: 600;
+            color: #555555;
+            min-width: 140px;
+        }
+        .info-value {
+            color: #333333;
+            flex: 1;
+        }
+        .highlight-box {
+            background: rgba(139, 92, 246, 0.05);
+            border-left: 4px solid #8b5cf6;
+            border-radius: 4px;
+            padding: 15px 20px;
+            margin: 25px 0;
+            color: #555555;
+        }
+        .badge {
+            display: inline-block;
+            padding: 4px 12px;
+            background: linear-gradient(135deg, #8b5cf6, #d4af37);
+            color: white;
+            border-radius: 20px;
+            font-size: 12px;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+        .footer {
+            text-align: center;
+            padding: 30px;
+            background: #f8f9fa;
+            color: #666;
+            font-size: 14px;
+            border-top: 1px solid #e9ecef;
+        }
+        .footer a {
+            color: #8b5cf6;
+            text-decoration: none;
+        }
+        .footer-note {
+            margin-top: 15px;
+            padding-top: 15px;
+            border-top: 1px solid #ddd;
+            font-size: 12px;
+            color: #999;
+        }
+        @media (max-width: 600px) {
+            .container {
+                margin: 10px;
+            }
+            .content {
+                padding: 20px;
+            }
+            .info-row {
+                flex-direction: column;
+            }
+            .info-label {
+                margin-bottom: 4px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <!-- Header -->
+        <div class="header">
+            <div class="logo">
+                <img src="{{LOGO_URL}}" alt="Second Chance Logo" onerror="this.style.display='none'; this.parentNode.innerHTML='<div style=\'font-weight: bold; font-size: 24px; color: white;\'>SC</div>';">
+            </div>
+            <h1 style="margin: 0; font-size: 28px;">🤝 Introduction Request</h1>
+            <p style="margin: 10px 0 0; opacity: 0.9;">Deal Room Connection Request</p>
+        </div>
+
+        <!-- Main Content -->
+        <div class="content">
+            <div class="highlight-box">
+                <strong>New introduction request from the Deal Room!</strong><br>
+                A founder has requested an introduction to one of your investor network members.
+            </div>
+
+            <!-- Founder Details Section -->
+            <div class="section-title">👤 Founder Details</div>
+            <div class="info-grid">
+                <div class="info-row">
+                    <div class="info-label">Name:</div>
+                    <div class="info-value">{{FOUNDER_NAME}}</div>
+                </div>
+                <div class="info-row">
+                    <div class="info-label">Email:</div>
+                    <div class="info-value">{{FOUNDER_EMAIL}}</div>
+                </div>
+                <div class="info-row">
+                    <div class="info-label">Role:</div>
+                    <div class="info-value">{{FOUNDER_ROLE}}</div>
+                </div>
+            </div>
+
+            <!-- Venture Details Section -->
+            <div class="section-title">🚀 Venture Details</div>
+            <div class="info-grid">
+                <div class="info-row">
+                    <div class="info-label">Venture Name:</div>
+                    <div class="info-value"><strong>{{VENTURE_NAME}}</strong></div>
+                </div>
+                <div class="info-row">
+                    <div class="info-label">Industry:</div>
+                    <div class="info-value">{{VENTURE_INDUSTRY}}</div>
+                </div>
+                <div class="info-row">
+                    <div class="info-label">Geography:</div>
+                    <div class="info-value">{{VENTURE_GEOGRAPHY}}</div>
+                </div>
+                <div class="info-row">
+                    <div class="info-label">Growth Stage:</div>
+                    <div class="info-value">{{VENTURE_GROWTH_STAGE}}</div>
+                </div>
+                {{#VENTURE_PROOF_SCORE}}
+                <div class="info-row">
+                    <div class="info-label">ProofScore:</div>
+                    <div class="info-value"><strong>{{VENTURE_PROOF_SCORE}}</strong> <span class="badge">Validated</span></div>
+                </div>
+                {{/VENTURE_PROOF_SCORE}}
+            </div>
+
+            <!-- Investor Details Section -->
+            <div class="section-title">💼 Requested Investor</div>
+            <div class="info-grid">
+                <div class="info-row">
+                    <div class="info-label">Investor ID:</div>
+                    <div class="info-value"><strong>{{INVESTOR_ID}}</strong></div>
+                </div>
+                <div class="info-row">
+                    <div class="info-label">Stage Focus:</div>
+                    <div class="info-value">{{INVESTOR_STAGE}}</div>
+                </div>
+                <div class="info-row">
+                    <div class="info-label">Sector:</div>
+                    <div class="info-value">{{INVESTOR_SECTOR}}</div>
+                </div>
+                <div class="info-row">
+                    <div class="info-label">Geography:</div>
+                    <div class="info-value">{{INVESTOR_GEOGRAPHY}}</div>
+                </div>
+                <div class="info-row">
+                    <div class="info-label">Ticket Size:</div>
+                    <div class="info-value">{{INVESTOR_TICKET_SIZE}}</div>
+                </div>
+                <div class="info-row">
+                    <div class="info-label">Target ProofScore:</div>
+                    <div class="info-value">{{INVESTOR_TARGET_SCORE}}+</div>
+                </div>
+            </div>
+
+            <div class="highlight-box" style="margin-top: 30px;">
+                <strong>Next Steps:</strong><br>
+                Review the founder and venture details above, then coordinate the introduction through your standard process.
+            </div>
+        </div>
+
+        <!-- Footer -->
+        <div class="footer">
+            <p style="margin: 0 0 15px;">
+                <strong>Second Chance Platform</strong><br>
+                Empowering Entrepreneurs Through Evidence-Based Validation
+            </p>
+            <p style="margin: 0;">
+                <a href="{{HOST_URL}}">Visit Dashboard</a> • 
+                <a href="{{PRIVACY_URL}}">Privacy Policy</a> • 
+                <a href="{{TERMS_URL}}">Terms of Service</a>
+            </p>
+            <div class="footer-note">
+                This introduction request was submitted through the Second Chance Deal Room on {{REQUEST_DATE}}.<br>
+                © {{CURRENT_YEAR}} Second Chance. All rights reserved.
+            </div>
+        </div>
+    </div>
+</body>
+</html>
