@@ -126,10 +126,14 @@ export default function DealRoomPage() {
       // Search filter
       if (searchQuery) {
         const query = searchQuery.toLowerCase();
+        const investorId = investor.investorId?.toLowerCase() || '';
+        const sector = investor.sector?.toLowerCase() || '';
+        const region = investor.regionGeography?.toLowerCase() || '';
+        
         if (
-          !investor.investorId.toLowerCase().includes(query) &&
-          !investor.sector.toLowerCase().includes(query) &&
-          !investor.regionGeography.toLowerCase().includes(query)
+          !investorId.includes(query) &&
+          !sector.includes(query) &&
+          !region.includes(query)
         ) {
           return false;
         }
@@ -150,8 +154,8 @@ export default function DealRoomPage() {
         return false;
       }
 
-      // ProofScore filter
-      if (investor.targetProofScore > minProofScore[0]) {
+      // ProofScore filter (show investors whose target is >= the minimum threshold)
+      if (investor.targetProofScore < minProofScore[0]) {
         return false;
       }
 
