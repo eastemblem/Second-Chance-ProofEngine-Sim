@@ -28,15 +28,24 @@ export default function Navbar({ showSignOut = false, showSignIn = false, logoOn
   const showDashboardLink = (isOnValidationMap || isOnDealRoom) || (showSignOut && !isOnDashboard);
   const showValidationMapLink = isOnDashboard || isOnDealRoom;
 
-  // Fetch deal room access status - API returns data directly (not wrapped)
-  const { data: dashboardData } = useQuery<{ hasDealRoomAccess?: boolean; proofScore?: number }>({
-    queryKey: ['/api/v1/dashboard/validation'],
+  // Fetch deal room access status from payments API (same as dashboard)
+  const { data: dealRoomData } = useQuery<{ success?: boolean; hasAccess?: boolean; ventureStatus?: string }>({
+    queryKey: ['/api/v1/payments/deal-room-access'],
+    queryFn: async () => {
+      const token = localStorage.getItem('auth_token');
+      const response = await fetch('/api/v1/payments/deal-room-access', {
+        credentials: 'include',
+        headers: token ? { 'Authorization': `Bearer ${token}` } : {},
+      });
+      if (!response.ok) throw new Error('Deal room access check failed');
+      return response.json();
+    },
     enabled: showSignOut, // Only fetch if user is logged in
     staleTime: 15 * 60 * 1000, // 15 minutes
   });
 
-  // Check if user has deal room access (API returns hasDealRoomAccess flag directly)
-  const hasDealRoomAccess = dashboardData?.hasDealRoomAccess === true;
+  // Check if user has deal room access
+  const hasDealRoomAccess = dealRoomData?.hasAccess === true;
   // Always show Deal Room link when logged in and on dashboard/validation map
   const showDealRoomLink = showSignOut && (isOnDashboard || isOnValidationMap);
 
