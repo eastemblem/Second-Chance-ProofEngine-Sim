@@ -4,6 +4,7 @@ import { Button } from "@/components/ui/button";
 import { LogOut, User, MapPin, LayoutDashboard, Map, Building2 } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { useQuery } from "@tanstack/react-query";
+import { queryClient } from "@/lib/queryClient";
 import Logo from "@/components/logo";
 import { trackEvent } from "@/lib/analytics";
 import { detectUserCurrency } from "@/lib/currency-utils";
@@ -89,6 +90,9 @@ export default function Navbar({ showSignOut = false, showSignIn = false, logoOn
       });
 
       if (response.ok) {
+        // Clear React Query cache to prevent stale data on account switch
+        queryClient.clear();
+        
         // Clear auth and coach data (preserves onboarding, tutorial flags, etc.)
         localStorage.removeItem('auth_token');
         localStorage.removeItem('auth_user');
