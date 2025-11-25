@@ -37,6 +37,7 @@ Key technical decisions include:
     - **Safe Cache Setters**: setHasDealRoomAccess/setVentureStatus guard against undefined cache values, returning sensible defaults during cold-start flows
     - **Component Memoization**: ValidationOverview uses useMemo for all proofScore-dependent calculations (statusText, primaryText, secondaryText, progressPercentage) to prevent unnecessary re-renders
     - **Navigation Performance**: Users can navigate between dashboard pages without triggering fresh API calls—cached data loads instantly while background revalidation ensures freshness
+    - **Account Switch Cache Clearing (Nov 25, 2025)**: Navbar logout handler calls `queryClient.clear()` to completely clear React Query cache on sign out, preventing stale data from previous user showing when a different user logs in—eliminates need for hard refresh when switching accounts
 - **Unified Logging Architecture**: Standardized `appLogger` for comprehensive, structured logging across the platform.
 - **Simplified localStorage Keys (Nov 21, 2025)**: Removed user-specific identifiers from coach-related localStorage keys:
   - Changed from `coach_state_${founderId}` to `coach_state`
