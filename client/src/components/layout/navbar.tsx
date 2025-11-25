@@ -35,11 +35,9 @@ export default function Navbar({ showSignOut = false, showSignIn = false, logoOn
     staleTime: 15 * 60 * 1000, // 15 minutes
   });
 
-  // Check if user has deal room access
+  // Check if user has deal room access (API returns hasDealRoomAccess flag directly)
   const dashboardData = dashboardResponse?.data;
-  const hasDealRoomAccess = 
-    dashboardData?.status?.toLowerCase?.() === 'done' && 
-    dashboardData?.hasDealRoomAccess === true;
+  const hasDealRoomAccess = dashboardData?.hasDealRoomAccess === true;
   const showDealRoomLink = hasDealRoomAccess && (isOnDashboard || isOnValidationMap);
 
   // Detect user's geo location

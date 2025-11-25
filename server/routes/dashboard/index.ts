@@ -33,11 +33,18 @@ router.get("/validation", authenticateToken, asyncHandler(async (req: Authentica
     const actualProofScore = dashboardData.evaluation?.proofscore || 0;
     const actualProofTags = dashboardData.evaluation?.prooftags || [];
     
+    // Check Deal Room access via payment service AND ProofScore >= 70
+    const { paymentService } = await import('../../services/payment-service.js');
+    const hasPaidAccess = await paymentService.hasDealRoomAccess(founderId);
+    const hasQualifyingScore = actualProofScore >= 70;
+    const hasDealRoomAccess = hasPaidAccess && hasQualifyingScore;
+    
     appLogger.business('Validation - found ProofScore and ProofTags', {
       proofScore: actualProofScore,
       proofTagsCount: actualProofTags.length,
       evaluation: dashboardData.evaluation ? 'exists' : 'missing',
-      venture: dashboardData.venture ? 'exists' : 'missing'
+      venture: dashboardData.venture ? 'exists' : 'missing',
+      hasDealRoomAccess
     });
     
     const response = {
@@ -52,7 +59,8 @@ router.get("/validation", authenticateToken, asyncHandler(async (req: Authentica
           dashboardData.evaluation.evaluationDate : 
           dashboardData.evaluation.evaluationDate.toISOString()) : 
         new Date().toISOString(),
-      investmentReadiness: getInvestmentReadinessStatus(actualProofScore)
+      investmentReadiness: getInvestmentReadinessStatus(actualProofScore),
+      hasDealRoomAccess
     };
 
     appLogger.api('Dashboard - validation data retrieved successfully', { founderId });
