@@ -382,6 +382,15 @@ export const coachState = pgTable("coach_state", {
   updatedAt: timestamp("updated_at").defaultNow().notNull(),
 });
 
+// Introduction Requests table - Track which investors founders have requested introductions to
+export const introductionRequests = pgTable("introduction_requests", {
+  id: uuid("id").primaryKey().defaultRandom(),
+  founderId: uuid("founder_id").references(() => founder.founderId).notNull(),
+  investorId: varchar("investor_id", { length: 100 }).notNull(),
+  investorDetails: jsonb("investor_details"), // Store investor info at time of request
+  requestedAt: timestamp("requested_at").defaultNow().notNull(),
+});
+
 // Relations
 export const founderRelations = relations(founder, ({ many, one }) => ({
   ventures: many(venture),
@@ -675,6 +684,10 @@ export const insertDocumentUploadSchema = createInsertSchema(documentUpload, {
 export type InsertDocumentUploadType = z.infer<typeof insertDocumentUploadSchema>;
 export type Leaderboard = typeof leaderboard.$inferSelect;
 export type InsertLeaderboard = typeof leaderboard.$inferInsert;
+
+// Introduction Requests types
+export type IntroductionRequest = typeof introductionRequests.$inferSelect;
+export type InsertIntroductionRequest = typeof introductionRequests.$inferInsert;
 
 export const founderSchema = z.object({
   fullName: z.string().min(1, "Name is required"),
