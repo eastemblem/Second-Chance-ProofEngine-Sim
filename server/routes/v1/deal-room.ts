@@ -6,11 +6,14 @@ import { emailService } from '../../services/emailService';
 import { databaseService } from '../../services/database-service';
 import { ActivityService } from '../../services/activity-service';
 import { appLogger } from '../../utils/logger';
+import { db } from '../../db';
+import { introductionRequests } from '@shared/schema';
+import { eq } from 'drizzle-orm';
 
 const router = Router();
 
 /**
- * GET /api/v1/investors
+ * GET /api/v1/deal-room
  * Fetch all investors from EastEmblem /deal-room endpoint
  */
 router.get('/', asyncHandler(async (req: Request, res: Response) => {
@@ -26,6 +29,42 @@ router.get('/', asyncHandler(async (req: Request, res: Response) => {
     return res.status(500).json(createErrorResponse(
       500,
       'Failed to fetch investors',
+      error instanceof Error ? error.message : 'Unknown error'
+    ));
+  }
+}));
+
+/**
+ * GET /api/v1/deal-room/requested-investors
+ * Fetch list of investor IDs that the founder has already requested introductions to
+ */
+router.get('/requested-investors', asyncHandler(async (req: Request, res: Response) => {
+  try {
+    const founderId = (req as any).user?.founderId;
+
+    if (!founderId) {
+      return res.status(401).json(createErrorResponse(401, 'Unauthorized'));
+    }
+
+    // Fetch all introduction requests for this founder
+    const requests = await db.select({
+      investorId: introductionRequests.investorId,
+      requestedAt: introductionRequests.requestedAt,
+    })
+    .from(introductionRequests)
+    .where(eq(introductionRequests.founderId, founderId));
+
+    const requestedInvestorIds = requests.map(r => r.investorId);
+    
+    appLogger.info(`Fetched ${requestedInvestorIds.length} requested investors for founder ${founderId}`);
+    return res.json(createSuccessResponse({
+      requestedInvestorIds,
+    }));
+  } catch (error) {
+    appLogger.error('Error fetching requested investors:', error);
+    return res.status(500).json(createErrorResponse(
+      500,
+      'Failed to fetch requested investors',
       error instanceof Error ? error.message : 'Unknown error'
     ));
   }
@@ -147,6 +186,14 @@ router.post('/request-introduction', asyncHandler(async (req: Request, res: Resp
         'Email service unavailable. Please try again later.'
       ));
     }
+
+    // Save introduction request to database
+    await db.insert(introductionRequests).values({
+      founderId,
+      investorId: investor.investorId,
+      investorDetails: investor,
+    });
+    appLogger.info(`Introduction request saved to database for founder ${founderId} -> investor ${investor.investorId}`);
 
     // Log activity
     await ActivityService.logActivity(
