@@ -88,20 +88,23 @@ router.get("/vault", authenticateToken, asyncHandler(async (req: AuthenticatedRe
       return res.status(404).json({ error: "Founder or venture not found" });
     }
 
+    // SECURITY: Check if user has Deal Room access for sensitive URLs
+    const hasDealRoomAccess = dashboardData.venture?.hasDealRoomAccess === true;
+    
     // Get uploaded documents for this venture
     const { documentUpload } = await import("@shared/schema");
     const files = await db.select().from(documentUpload)
       .where(eq(documentUpload.ventureId, dashboardData.venture.ventureId))
       .orderBy(documentUpload.createdAt);
 
-    // Format files for frontend
+    // Format files for frontend - SECURITY: Only include downloadUrl if paid
     const formattedFiles = await Promise.all(files.map(async file => ({
       id: file.uploadId,
       name: file.fileName || file.originalName || 'Unknown File',
       category: await getCategoryFromFolderId(file.folderId || '332886218045', founderId),
       uploadDate: file.createdAt?.toISOString() || new Date().toISOString(),
       size: formatFileSize(file.fileSize || 0),
-      downloadUrl: file.sharedUrl || '',
+      downloadUrl: hasDealRoomAccess ? (file.sharedUrl || '') : '',
       type: file.mimeType || 'application/pdf'
     })));
 
@@ -134,10 +137,10 @@ router.get("/vault", authenticateToken, asyncHandler(async (req: AuthenticatedRe
         { name: "5_Commercial_Proof", displayName: "Commercial Proofs", count: fileCounts.commercialProof },
         { name: "6_Investor_Pack", displayName: "Investor Pack", count: fileCounts.investorPack }
       ],
-      folderUrls: {
+      folderUrls: hasDealRoomAccess ? {
         root: dashboardData.venture?.folderStructure?.url || 
               `https://app.box.com/folder/${dashboardData.venture?.folderStructure?.id || '0'}`,
-      }
+      } : null
     };
 
     appLogger.api('Vault - data retrieved successfully', { fileCount: files.length });

@@ -1509,6 +1509,9 @@ router.get('/files', asyncHandler(async (req: AuthenticatedRequest, res: Respons
       return res.status(404).json({ error: "No venture found for this founder" });
     }
     
+    // SECURITY: Check if user has Deal Room access for download URLs
+    const hasDealRoomAccess = dashboardData?.venture?.hasDealRoomAccess === true;
+    
     // Get total count for pagination metadata
     const totalFiles = await storage.getDocumentUploadCountByVenture(currentVentureId);
     const totalPages = Math.ceil(totalFiles / limit);
@@ -1536,6 +1539,7 @@ router.get('/files', asyncHandler(async (req: AuthenticatedRequest, res: Respons
     });
 
     // Format files response with accurate hierarchical category information
+    // SECURITY: Only include downloadUrl if user has Deal Room access
     const formattedFiles = files.map(file => {
       const hierarchicalCategory = findMainCategoryForFile(file.folderId || '', folderLookup);
       const displayName = getCategoryDisplayNameFromHierarchy(hierarchicalCategory);
@@ -1548,7 +1552,7 @@ router.get('/files', asyncHandler(async (req: AuthenticatedRequest, res: Respons
         category: hierarchicalCategory,
         categoryName: displayName,
         size: formatFileSize(file.fileSize || 0),
-        downloadUrl: file.sharedUrl || '',
+        downloadUrl: hasDealRoomAccess ? (file.sharedUrl || '') : '',
         eastemblemFileId: file.eastemblemFileId,
         artifactType: file.artifactType || ''
       };

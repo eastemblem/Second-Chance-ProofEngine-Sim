@@ -125,9 +125,14 @@ router.get('/validation', asyncHandler(async (req: Request, res: Response) => {
       appLogger.api(`⚠️ No ProofTags found in venture OR evaluation tables for founderId ${founderId}`);
     }
 
-    // FIXED: Return the actual certificate and report URLs from database (these are the real URLs)
-    const certificateUrl = latestVenture?.certificateUrl || latestVenture?.certificate_url || null;
-    const reportUrl = latestVenture?.reportUrl || latestVenture?.report_url || null;
+    // SECURITY: Only return certificate and report URLs if user has Deal Room access
+    const hasDealRoomAccess = latestVenture?.hasDealRoomAccess === true;
+    const certificateUrl = hasDealRoomAccess 
+      ? (latestVenture?.certificateUrl || latestVenture?.certificate_url || null)
+      : null;
+    const reportUrl = hasDealRoomAccess 
+      ? (latestVenture?.reportUrl || latestVenture?.report_url || null)
+      : null;
 
     const validationData = {
       proofScore: currentScore,
@@ -139,7 +144,7 @@ router.get('/validation', asyncHandler(async (req: Request, res: Response) => {
       filesUploaded: 0, // Will be calculated from actual document count
       status: currentScore >= 90 ? 'Deal Room Ready' : currentScore >= 70 ? 'Investor Ready' : 'Building Validation',
       investorReady: currentScore >= 70,
-      dealRoomAccess: currentScore >= 90,
+      dealRoomAccess: hasDealRoomAccess, // SECURITY: Use actual payment status, not score
       certificateUrl,
       reportUrl
       // REMOVED: vaultScore - this is provided by the vault API instead
@@ -274,6 +279,9 @@ router.get('/vault', asyncHandler(async (req: Request, res: Response) => {
     const totalFiles = filesWithCategories.length;
     appLogger.api(`Vault counts - Overview: ${fileCounts.overview}, Problem: ${fileCounts.problemProof}, Solution: ${fileCounts.solutionProof}, Demand: ${fileCounts.demandProof}, Credibility: ${fileCounts.credibilityProof}, Commercial: ${fileCounts.commercialProof}, Investor: ${fileCounts.investorPack}`);
 
+    // SECURITY: Only return folder URLs if user has Deal Room access
+    const hasDealRoomAccess = dashboardData.venture?.hasDealRoomAccess === true;
+    
     const vaultData = {
       overviewCount: fileCounts.overview,
       problemProofCount: fileCounts.problemProof,
@@ -295,7 +303,7 @@ router.get('/vault', asyncHandler(async (req: Request, res: Response) => {
         { name: "5_Commercial_Proof", displayName: "Commercial Proofs", count: fileCounts.commercialProof },
         { name: "6_Investor_Pack", displayName: "Investor Pack", count: fileCounts.investorPack }
       ],
-      folderUrls: {
+      folderUrls: hasDealRoomAccess ? {
         // FIXED: Add parent folder URL for "Your Proof Vault" link
         root: dashboardData.venture?.folderStructure?.url || 
               `https://app.box.com/folder/${dashboardData.venture?.folderStructure?.id || '0'}`,
@@ -304,7 +312,7 @@ router.get('/vault', asyncHandler(async (req: Request, res: Response) => {
           urls[category] = `https://app.box.com/folder/${folderId}`;
           return urls;
         }, {} as Record<string, string>)
-      }
+      } : null
     };
 
     // OPTIMIZATION 3: Cache the processed result for 2 minutes (faster than DB each time)
