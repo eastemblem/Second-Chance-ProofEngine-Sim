@@ -68,6 +68,54 @@ router.post('/request-introduction', asyncHandler(async (req: Request, res: Resp
     // Use investor details from frontend
     const investor = investorDetails;
 
+    // Extract proof vault URL from folder structure
+    let proofVaultUrl = '';
+    if (venture.folderStructure) {
+      try {
+        const folderData = typeof venture.folderStructure === 'string' 
+          ? JSON.parse(venture.folderStructure) 
+          : venture.folderStructure;
+        proofVaultUrl = folderData?.url || `https://app.box.com/folder/${folderData?.id || '0'}`;
+      } catch {
+        // JSON parse failed - check if it's already a valid URL, otherwise use empty string
+        if (typeof venture.folderStructure === 'string' && 
+            venture.folderStructure.startsWith('https://')) {
+          proofVaultUrl = venture.folderStructure;
+        } else {
+          proofVaultUrl = '';
+        }
+      }
+    }
+
+    // Create Deal Room Funnel via EastEmblem API (async, non-blocking)
+    eastEmblemAPI.createDealRoomFunnel(
+      {
+        id: founderId,
+        name: founder.fullName || founder.email?.split('@')[0] || 'Founder',
+        email: founder.email,
+        role: founder.positionRole || 'Founder'
+      },
+      {
+        name: venture.name || 'Unnamed Venture',
+        industry: venture.industry || 'Not specified',
+        geography: venture.geography || 'Not specified',
+        growth_stage: venture.growthStage || 'Not specified',
+        proof_score: venture.proofScore || 0,
+        proof_vault: proofVaultUrl
+      },
+      {
+        id: investor.investorId
+      }
+    ).then(result => {
+      if (result.success) {
+        appLogger.api(`Deal Room Funnel created for founder ${founderId} -> investor ${investor.investorId}`);
+      } else {
+        appLogger.error(`Deal Room Funnel creation failed: ${result.error}`);
+      }
+    }).catch(error => {
+      appLogger.error('Deal Room Funnel creation error (non-blocking):', error);
+    });
+
     // Send introduction request email using template
     const emailSent = await emailService.sendIntroductionRequestEmail(
       founder.fullName,
@@ -78,7 +126,7 @@ router.post('/request-introduction', asyncHandler(async (req: Request, res: Resp
       venture.geography || 'Not specified',
       venture.growthStage || 'Not specified',
       venture.proofScore || null,
-      (venture.folderStructure as string) || null,
+      proofVaultUrl || null,
       investor.investorId,
       investor.stageOfGrowth,
       investor.sector,
