@@ -1509,10 +1509,13 @@ router.get('/files', asyncHandler(async (req: AuthenticatedRequest, res: Respons
       return res.status(404).json({ error: "No venture found for this founder" });
     }
     
-    // SECURITY: Check Deal Room access via payment service (source of truth)
+    // SECURITY: Check Deal Room access via payment service AND ProofScore >= 70
     const { paymentService } = await import('../../services/payment-service.js');
-    const hasDealRoomAccess = await paymentService.hasDealRoomAccess(founderId);
-    appLogger.api(`📊 FILES API: hasDealRoomAccess for founderId ${founderId}: ${hasDealRoomAccess}`);
+    const hasPaidAccess = await paymentService.hasDealRoomAccess(founderId);
+    const currentScore = dashboardData?.venture?.proofScore || 0;
+    const hasQualifyingScore = currentScore >= 70;
+    const hasDealRoomAccess = hasPaidAccess && hasQualifyingScore;
+    appLogger.api(`📊 FILES API: founderId ${founderId} - hasPaidAccess: ${hasPaidAccess}, proofScore: ${currentScore}, hasQualifyingScore: ${hasQualifyingScore}, hasDealRoomAccess: ${hasDealRoomAccess}`);
     
     // Get total count for pagination metadata
     const totalFiles = await storage.getDocumentUploadCountByVenture(currentVentureId);

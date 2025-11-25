@@ -79,8 +79,10 @@ router.get('/validation', asyncHandler(async (req: Request, res: Response) => {
     
     // Check Deal Room access via payment service (source of truth)
     const { paymentService } = await import('../../services/payment-service.js');
-    const hasDealRoomAccess = await paymentService.hasDealRoomAccess(founderId);
-    appLogger.api(`📊 VALIDATION API: hasDealRoomAccess for founderId ${founderId}: ${hasDealRoomAccess}`);
+    const hasPaidAccess = await paymentService.hasDealRoomAccess(founderId);
+    const hasQualifyingScore = currentScore >= 70;
+    const hasDealRoomAccess = hasPaidAccess && hasQualifyingScore;
+    appLogger.api(`📊 VALIDATION API: founderId ${founderId} - hasPaidAccess: ${hasPaidAccess}, proofScore: ${currentScore}, hasQualifyingScore: ${hasQualifyingScore}, hasDealRoomAccess: ${hasDealRoomAccess}`);
     
     // ALWAYS prefer venture.prooftags (includes pitch deck tags + experiment completion tags)
     if (latestVenture?.prooftags) {
@@ -283,10 +285,13 @@ router.get('/vault', asyncHandler(async (req: Request, res: Response) => {
     const totalFiles = filesWithCategories.length;
     appLogger.api(`Vault counts - Overview: ${fileCounts.overview}, Problem: ${fileCounts.problemProof}, Solution: ${fileCounts.solutionProof}, Demand: ${fileCounts.demandProof}, Credibility: ${fileCounts.credibilityProof}, Commercial: ${fileCounts.commercialProof}, Investor: ${fileCounts.investorPack}`);
 
-    // SECURITY: Check Deal Room access via payment service (source of truth)
+    // SECURITY: Check Deal Room access via payment service AND ProofScore >= 70
     const { paymentService } = await import('../../services/payment-service.js');
-    const hasDealRoomAccess = await paymentService.hasDealRoomAccess(founderId);
-    appLogger.api(`📊 VAULT API: hasDealRoomAccess for founderId ${founderId}: ${hasDealRoomAccess}`);
+    const hasPaidAccess = await paymentService.hasDealRoomAccess(founderId);
+    const currentScore = dashboardData.venture.proofScore || 0;
+    const hasQualifyingScore = currentScore >= 70;
+    const hasDealRoomAccess = hasPaidAccess && hasQualifyingScore;
+    appLogger.api(`📊 VAULT API: founderId ${founderId} - hasPaidAccess: ${hasPaidAccess}, proofScore: ${currentScore}, hasQualifyingScore: ${hasQualifyingScore}, hasDealRoomAccess: ${hasDealRoomAccess}`);
     
     const vaultData = {
       overviewCount: fileCounts.overview,
