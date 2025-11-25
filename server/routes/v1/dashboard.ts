@@ -77,6 +77,11 @@ router.get('/validation', asyncHandler(async (req: Request, res: Response) => {
     let proofTagsSource = null;
     let sourceType = 'none';
     
+    // Check Deal Room access via payment service (source of truth)
+    const { paymentService } = await import('../../services/payment-service.js');
+    const hasDealRoomAccess = await paymentService.hasDealRoomAccess(founderId);
+    appLogger.api(`📊 VALIDATION API: hasDealRoomAccess for founderId ${founderId}: ${hasDealRoomAccess}`);
+    
     // ALWAYS prefer venture.prooftags (includes pitch deck tags + experiment completion tags)
     if (latestVenture?.prooftags) {
       proofTagsSource = latestVenture.prooftags;
@@ -126,7 +131,6 @@ router.get('/validation', asyncHandler(async (req: Request, res: Response) => {
     }
 
     // SECURITY: Only return certificate and report URLs if user has Deal Room access
-    const hasDealRoomAccess = latestVenture?.hasDealRoomAccess === true;
     const certificateUrl = hasDealRoomAccess 
       ? (latestVenture?.certificateUrl || latestVenture?.certificate_url || null)
       : null;
@@ -279,8 +283,10 @@ router.get('/vault', asyncHandler(async (req: Request, res: Response) => {
     const totalFiles = filesWithCategories.length;
     appLogger.api(`Vault counts - Overview: ${fileCounts.overview}, Problem: ${fileCounts.problemProof}, Solution: ${fileCounts.solutionProof}, Demand: ${fileCounts.demandProof}, Credibility: ${fileCounts.credibilityProof}, Commercial: ${fileCounts.commercialProof}, Investor: ${fileCounts.investorPack}`);
 
-    // SECURITY: Only return folder URLs if user has Deal Room access
-    const hasDealRoomAccess = dashboardData.venture?.hasDealRoomAccess === true;
+    // SECURITY: Check Deal Room access via payment service (source of truth)
+    const { paymentService } = await import('../../services/payment-service.js');
+    const hasDealRoomAccess = await paymentService.hasDealRoomAccess(founderId);
+    appLogger.api(`📊 VAULT API: hasDealRoomAccess for founderId ${founderId}: ${hasDealRoomAccess}`);
     
     const vaultData = {
       overviewCount: fileCounts.overview,

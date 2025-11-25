@@ -88,8 +88,10 @@ router.get("/vault", authenticateToken, asyncHandler(async (req: AuthenticatedRe
       return res.status(404).json({ error: "Founder or venture not found" });
     }
 
-    // SECURITY: Check if user has Deal Room access for sensitive URLs
-    const hasDealRoomAccess = dashboardData.venture?.hasDealRoomAccess === true;
+    // SECURITY: Check Deal Room access via payment service (source of truth)
+    const { paymentService } = await import('../../services/payment-service.js');
+    const hasDealRoomAccess = await paymentService.hasDealRoomAccess(founderId);
+    appLogger.api(`📊 LEGACY VAULT API: hasDealRoomAccess for founderId ${founderId}: ${hasDealRoomAccess}`);
     
     // Get uploaded documents for this venture
     const { documentUpload } = await import("@shared/schema");
