@@ -40,21 +40,24 @@ interface RegisterData extends LoginCredentials {
 }
 
 /**
- * Clear authentication data and user-scoped keys from localStorage
+ * Clear authentication data and user-scoped keys from localStorage and sessionStorage
  * Preserves non-auth data like onboarding progress and tutorial flags
  */
 export function clearAuthStorage() {
   if (typeof window === 'undefined') return;
 
   try {
-    // Remove all auth-related keys
+    // Remove all auth-related keys from localStorage
     localStorage.removeItem('auth_token');
     localStorage.removeItem('auth_user');
     localStorage.removeItem('auth_venture');
     localStorage.removeItem('coach_state');
     localStorage.removeItem('coach_mode_first_seen');
     
-    console.log('🗑️ Cleared auth data and coach keys');
+    // Clear all session storage to prevent stale user data
+    sessionStorage.clear();
+    
+    console.log('🗑️ Cleared auth data, coach keys, and session storage');
   } catch (error) {
     console.error('Failed to clear auth storage:', error);
   }
