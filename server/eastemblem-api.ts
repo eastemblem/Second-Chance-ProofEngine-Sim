@@ -925,6 +925,92 @@ class EastEmblemAPI {
     }
   }
 
+  async createDealRoomFunnel(
+    founder: {
+      id: string;
+      name: string;
+      email: string;
+      role: string;
+    },
+    venture: {
+      name: string;
+      industry: string;
+      geography: string;
+      growth_stage: string;
+      proof_score: number;
+      proof_vault: string;
+    },
+    investor: {
+      id: string;
+    }
+  ): Promise<{ success: boolean; message?: string; error?: string }> {
+    try {
+      appLogger.api(`Creating Deal Room Funnel for investor ${investor.id}`, {
+        founderId: founder.id,
+        founderName: founder.name,
+        ventureName: venture.name,
+        investorId: investor.id
+      });
+
+      const endpoint = this.getEndpoint("/webhook/deal-room-funnel");
+      appLogger.api(`API endpoint: ${endpoint}`);
+
+      const payload = {
+        founder,
+        venture,
+        investor
+      };
+
+      const controller = new AbortController();
+      const timeoutId = setTimeout(() => controller.abort(), 30000);
+
+      const response = await fetch(endpoint, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify(payload),
+        signal: controller.signal,
+      });
+
+      clearTimeout(timeoutId);
+
+      if (!response.ok) {
+        const errorText = await response.text();
+        appLogger.error(`Deal Room Funnel creation failed with status ${response.status}:`, errorText);
+        
+        if (response.status >= 500) {
+          throw new Error(`Deal Room Funnel service unavailable (${response.status}). Please try again later.`);
+        } else if (response.status === 401) {
+          throw new Error("Deal Room Funnel authentication failed. Please check API credentials.");
+        } else if (response.status === 403) {
+          throw new Error("Deal Room Funnel access forbidden. Please verify API permissions.");
+        } else {
+          throw new Error(`Deal Room Funnel creation failed (${response.status}): ${errorText}`);
+        }
+      }
+
+      const responseText = await response.text();
+      try {
+        const result = JSON.parse(responseText);
+        appLogger.api("Deal Room Funnel created successfully:", result);
+        return { success: true, message: 'Deal Room Funnel created successfully' };
+      } catch (parseError) {
+        appLogger.api("Deal Room Funnel response (non-JSON):", responseText);
+        return { success: true, message: 'Deal Room Funnel created' };
+      }
+    } catch (error) {
+      appLogger.error("Deal Room Funnel creation error:", error);
+      if (!this.isConfigured()) {
+        throw new Error("EastEmblem API is not configured. Please provide EASTEMBLEM_API_URL and EASTEMBLEM_API_KEY.");
+      }
+      return { 
+        success: false, 
+        error: error instanceof Error ? error.message : 'Unknown error' 
+      };
+    }
+  }
+
   async sendEmail(emailData: EmailNotificationData): Promise<EmailResponse> {
     const maxRetries = 3;
     let lastError: Error | null = null;
