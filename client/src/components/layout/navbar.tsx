@@ -1,7 +1,7 @@
 import { useState, useEffect } from "react";
 import { useLocation } from "wouter";
 import { Button } from "@/components/ui/button";
-import { LogOut, User, MapPin, LayoutDashboard, Map, Building2, Lock } from "lucide-react";
+import { LogOut, User, MapPin, LayoutDashboard, Map, Building2 } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { useQuery } from "@tanstack/react-query";
 import Logo from "@/components/logo";
@@ -190,23 +190,15 @@ export default function Navbar({ showSignOut = false, showSignIn = false, logoOn
                 </Button>
               )}
 
-              {/* Deal Room Link - shown when logged in on dashboard or validation map */}
-              {showDealRoomLink && (
+              {/* Deal Room Link - only shown when user has access */}
+              {showDealRoomLink && hasDealRoomAccess && (
                 <Button
                   variant="ghost"
                   onClick={() => setLocation('/dashboard/deal-room')}
-                  className={`flex items-center gap-2 transition-colors ${
-                    hasDealRoomAccess 
-                      ? 'text-gray-300 hover:text-white' 
-                      : 'text-gray-500 hover:text-gray-400'
-                  }`}
+                  className="flex items-center gap-2 text-gray-300 hover:text-white transition-colors"
                   data-testid="link-deal-room"
                 >
-                  {hasDealRoomAccess ? (
-                    <Building2 className="w-4 h-4" />
-                  ) : (
-                    <Lock className="w-4 h-4" />
-                  )}
+                  <Building2 className="w-4 h-4" />
                   <span className="hidden sm:inline">Deal Room</span>
                 </Button>
               )}
