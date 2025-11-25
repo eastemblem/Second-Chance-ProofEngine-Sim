@@ -7,7 +7,7 @@ import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { Loader2, Search, Users, Building2, Globe, DollarSign, Target } from "lucide-react";
+import { Loader2, Search, Users, Building2, Globe, DollarSign, Target, Check } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { useTokenAuth } from "@/hooks/use-token-auth";
 import Navbar from "@/components/layout/navbar";
@@ -16,6 +16,7 @@ import { DealRoomIntro } from "@/components/dashboard/dealroom/DealRoomIntro";
 import { DealRoomWalkthrough } from "@/components/dashboard/dealroom/DealRoomWalkthrough";
 import Footer from "@/components/layout/footer";
 import { Slider } from "@/components/ui/slider";
+import confetti from "canvas-confetti";
 
 interface Investor {
   investorId: string;
@@ -60,6 +61,9 @@ export default function DealRoomPage() {
 
   // Track which investor button is loading
   const [loadingInvestorId, setLoadingInvestorId] = useState<string | null>(null);
+  
+  // Track newly requested investors (in-session)
+  const [sessionRequestedIds, setSessionRequestedIds] = useState<Set<string>>(new Set());
 
   // Filter states
   const [searchQuery, setSearchQuery] = useState("");
@@ -88,7 +92,61 @@ export default function DealRoomPage() {
     retry: 2,
   });
 
+  // Fetch already-requested investors from database
+  const { data: requestedInvestorsResponse } = useQuery<{ success: boolean; data: { requestedInvestorIds: string[] } }>({
+    queryKey: ['/api/v1/deal-room/requested-investors'],
+    enabled: !!user && !showWalkthrough,
+    staleTime: 5 * 60 * 1000, // 5 minutes
+    gcTime: 30 * 60 * 1000, // 30 minutes
+  });
+
   const investors = investorsResponse?.data || [];
+  const persistedRequestedIds = new Set(requestedInvestorsResponse?.data?.requestedInvestorIds || []);
+  
+  // Check if an investor has been requested (either persisted or in-session)
+  const isInvestorRequested = (investorId: string) => {
+    return persistedRequestedIds.has(investorId) || sessionRequestedIds.has(investorId);
+  };
+
+  // Trigger confetti celebration
+  const triggerConfetti = () => {
+    const count = 200;
+    const defaults = {
+      origin: { y: 0.7 },
+      zIndex: 9999,
+    };
+
+    function fire(particleRatio: number, opts: Record<string, unknown>) {
+      confetti({
+        ...defaults,
+        ...opts,
+        particleCount: Math.floor(count * particleRatio),
+      });
+    }
+
+    fire(0.25, {
+      spread: 26,
+      startVelocity: 55,
+    });
+    fire(0.2, {
+      spread: 60,
+    });
+    fire(0.35, {
+      spread: 100,
+      decay: 0.91,
+      scalar: 0.8,
+    });
+    fire(0.1, {
+      spread: 120,
+      startVelocity: 25,
+      decay: 0.92,
+      scalar: 1.2,
+    });
+    fire(0.1, {
+      spread: 120,
+      startVelocity: 45,
+    });
+  };
 
   // Extract unique filter options (filter out empty/null/undefined values and split comma-separated)
   const sectors = useMemo(() => {
@@ -208,12 +266,18 @@ export default function DealRoomPage() {
         body: JSON.stringify({ investorId, investorDetails }),
       });
       if (!response.ok) throw new Error('Request failed');
-      return response.json();
+      return { investorId, ...(await response.json()) };
     },
-    onSuccess: () => {
+    onSuccess: (data) => {
       setLoadingInvestorId(null);
+      // Add to session-requested set for immediate UI update
+      setSessionRequestedIds(prev => new Set(prev).add(data.investorId));
+      // Invalidate the requested investors cache
+      queryClient.invalidateQueries({ queryKey: ['/api/v1/deal-room/requested-investors'] });
+      // Trigger confetti celebration
+      triggerConfetti();
       toast({
-        title: "Introduction Requested",
+        title: "Introduction Requested!",
         description: "Our team will review your request and reach out shortly.",
       });
     },
@@ -519,14 +583,23 @@ export default function DealRoomPage() {
                     {/* Request Introduction Button */}
                     <Button
                       onClick={() => handleRequestIntroduction(investor)}
-                      disabled={loadingInvestorId === investor.investorId}
-                      className="w-full bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700 text-white"
+                      disabled={loadingInvestorId === investor.investorId || isInvestorRequested(investor.investorId)}
+                      className={`w-full ${
+                        isInvestorRequested(investor.investorId)
+                          ? 'bg-green-600 hover:bg-green-600 cursor-default text-white'
+                          : 'bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700 text-white'
+                      }`}
                       data-testid={`button-request-introduction-${investor.investorId}`}
                     >
                       {loadingInvestorId === investor.investorId ? (
                         <>
                           <Loader2 className="mr-2 h-4 w-4 animate-spin" />
                           Requesting...
+                        </>
+                      ) : isInvestorRequested(investor.investorId) ? (
+                        <>
+                          <Check className="mr-2 h-4 w-4" />
+                          Requested
                         </>
                       ) : (
                         <>
