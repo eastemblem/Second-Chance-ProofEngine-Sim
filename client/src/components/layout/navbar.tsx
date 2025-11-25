@@ -1,7 +1,7 @@
 import { useState, useEffect } from "react";
 import { useLocation } from "wouter";
 import { Button } from "@/components/ui/button";
-import { LogOut, User, MapPin, LayoutDashboard, Map, Building2 } from "lucide-react";
+import { LogOut, User, MapPin, LayoutDashboard, Map, Building2, Lock } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { useQuery } from "@tanstack/react-query";
 import Logo from "@/components/logo";
@@ -28,17 +28,17 @@ export default function Navbar({ showSignOut = false, showSignIn = false, logoOn
   const showDashboardLink = (isOnValidationMap || isOnDealRoom) || (showSignOut && !isOnDashboard);
   const showValidationMapLink = isOnDashboard || isOnDealRoom;
 
-  // Fetch deal room access status
-  const { data: dashboardResponse } = useQuery<{ success: boolean; data: any }>({
+  // Fetch deal room access status - API returns data directly (not wrapped)
+  const { data: dashboardData } = useQuery<{ hasDealRoomAccess?: boolean; proofScore?: number }>({
     queryKey: ['/api/v1/dashboard/validation'],
     enabled: showSignOut, // Only fetch if user is logged in
     staleTime: 15 * 60 * 1000, // 15 minutes
   });
 
   // Check if user has deal room access (API returns hasDealRoomAccess flag directly)
-  const dashboardData = dashboardResponse?.data;
   const hasDealRoomAccess = dashboardData?.hasDealRoomAccess === true;
-  const showDealRoomLink = hasDealRoomAccess && (isOnDashboard || isOnValidationMap);
+  // Always show Deal Room link when logged in and on dashboard/validation map
+  const showDealRoomLink = showSignOut && (isOnDashboard || isOnValidationMap);
 
   // Detect user's geo location
   useEffect(() => {
@@ -181,15 +181,23 @@ export default function Navbar({ showSignOut = false, showSignIn = false, logoOn
                 </Button>
               )}
 
-              {/* Deal Room Link - shown when on dashboard or validation map and access is granted */}
+              {/* Deal Room Link - shown when logged in on dashboard or validation map */}
               {showDealRoomLink && (
                 <Button
                   variant="ghost"
                   onClick={() => setLocation('/dashboard/deal-room')}
-                  className="flex items-center gap-2 text-gray-300 hover:text-white transition-colors"
+                  className={`flex items-center gap-2 transition-colors ${
+                    hasDealRoomAccess 
+                      ? 'text-gray-300 hover:text-white' 
+                      : 'text-gray-500 hover:text-gray-400'
+                  }`}
                   data-testid="link-deal-room"
                 >
-                  <Building2 className="w-4 h-4" />
+                  {hasDealRoomAccess ? (
+                    <Building2 className="w-4 h-4" />
+                  ) : (
+                    <Lock className="w-4 h-4" />
+                  )}
                   <span className="hidden sm:inline">Deal Room</span>
                 </Button>
               )}
