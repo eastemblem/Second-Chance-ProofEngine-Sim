@@ -1212,6 +1212,194 @@ interface ScoringResult {
 }
 ```
 
+### EastEmblem API: File Upload to Box.com
+
+```typescript
+// server/eastemblem-api.ts
+async uploadFile(
+  fileBuffer: Buffer,
+  fileName: string,
+  folderId: string,
+  onboardingId?: string,
+  allowShare: boolean = true,
+): Promise<FileUploadResponse> {
+  const formData = new FormData();
+  formData.append("data", fileBuffer, fileName);
+  formData.append("folder_id", folderId);
+  formData.append("allowShare", allowShare.toString());
+  if (onboardingId) {
+    formData.append("onboarding_id", onboardingId);
+  }
+
+  const controller = new AbortController();
+  const timeoutId = setTimeout(() => controller.abort(), 60000); // 1 minute timeout
+
+  const response = await fetch(this.getEndpoint("/webhook/vault/file/upload"), {
+    method: "POST",
+    body: formData,
+    signal: controller.signal,
+  });
+
+  clearTimeout(timeoutId);
+
+  if (!response.ok) {
+    const errorText = await response.text();
+    
+    // Handle file already exists (not an error - use existing reference)
+    if (response.status === 400 && errorText.includes("File already exists")) {
+      return {
+        id: `existing-${Date.now()}`,
+        name: fileName,
+        url: `https://app.box.com/file/${folderId}/${fileName}`,
+        download_url: `https://app.box.com/file/${folderId}/${fileName}`,
+      };
+    }
+    
+    throw new Error(`File upload failed (${response.status}): ${errorText}`);
+  }
+
+  return await response.json() as FileUploadResponse;
+}
+
+interface FileUploadResponse {
+  id: string;           // Box.com file ID
+  name: string;         // File name
+  url: string;          // Shared URL
+  download_url: string; // Direct download URL
+  folderId?: string;    // Folder where file was uploaded
+  size?: number;        // File size in bytes
+}
+```
+
+### EastEmblem API: Pitch Deck Scoring
+
+```typescript
+// server/eastemblem-api.ts
+async scorePitchDeck(
+  fileBuffer: Buffer, 
+  fileName: string, 
+  onboardingId?: string
+): Promise<ScoringResult> {
+  return this.retryWithBackoff(
+    async () => {
+      const formData = new FormData();
+      formData.append("data", fileBuffer, fileName);
+      if (onboardingId) {
+        formData.append("onboarding_id", onboardingId);
+      }
+
+      const controller = new AbortController();
+      const timeoutId = setTimeout(() => controller.abort(), 180000); // 3 minute timeout
+
+      const response = await fetch(this.getEndpoint("/webhook/score/pitch-deck"), {
+        method: "POST",
+        body: formData,
+        signal: controller.signal,
+      });
+
+      clearTimeout(timeoutId);
+
+      if (!response.ok) {
+        const errorText = await response.text();
+        
+        // Handle specific error codes
+        if (response.status >= 500 || response.status === 524) {
+          throw new Error(`EastEmblem scoring service unavailable (${response.status})`);
+        } else if (response.status === 401) {
+          throw new Error("EastEmblem API authentication failed");
+        } else if (response.status === 400) {
+          // User action required (e.g., image-based PDF)
+          let errorMessage = "Unable to process the pitch deck file.";
+          try {
+            const errorJson = JSON.parse(errorText);
+            errorMessage = errorJson.message || errorMessage;
+          } catch {
+            errorMessage = errorText || errorMessage;
+          }
+          const error = new Error(errorMessage);
+          (error as any).isUserActionRequired = true;
+          (error as any).statusCode = 400;
+          throw error;
+        }
+        throw new Error(`Pitch deck scoring failed (${response.status}): ${errorText}`);
+      }
+
+      const result = JSON.parse(await response.text());
+      
+      // Handle array response format - extract first item
+      if (Array.isArray(result) && result.length > 0) {
+        return result[0];
+      }
+      
+      return result;
+    },
+    3,     // Max 3 attempts
+    2000,  // Start with 2 second delay
+    'Pitch deck scoring'
+  );
+}
+```
+
+### Complete Upload + Scoring Flow Diagram
+
+```
+┌─────────────────────────────────────────────────────────────────────────┐
+│                     PITCH DECK UPLOAD + SCORING FLOW                     │
+├─────────────────────────────────────────────────────────────────────────┤
+│                                                                          │
+│  Client                    Server                         EastEmblem     │
+│    │                         │                                │          │
+│    ├─POST /upload-pitch-deck─▶│                                │          │
+│    │    (multipart/form)     │                                │          │
+│    │                         ├──handleDocumentUpload()        │          │
+│    │                         │    │                           │          │
+│    │                         │    ├──Get Overview folder ID   │          │
+│    │                         │    ├──INSERT document_upload   │          │
+│    │                         │    ├──Update session           │          │
+│    │                         │    └──Slack notification ──────▶│          │
+│    │◀─── { upload: {...} }───┤                                │          │
+│    │                         │                                │          │
+│    ├─POST /submit-for-scoring▶│                                │          │
+│    │                         ├──submitForScoring()            │          │
+│    │                         │    │                           │          │
+│    │                         │    ├──Read file from disk      │          │
+│    │                         │    │                           │          │
+│    │                         │    ├──uploadFile() ────────────▶│          │
+│    │                         │    │  POST /vault/file/upload  │          │
+│    │                         │    │◀─ { id, url, folderId } ──│          │
+│    │                         │    │                           │          │
+│    │                         │    ├──UPDATE document_upload   │          │
+│    │                         │    │  (sharedUrl, eastemblemFileId)       │
+│    │                         │    │                           │          │
+│    │                         │    ├──scorePitchDeck() ────────▶│          │
+│    │                         │    │  POST /score/pitch-deck   │          │
+│    │                         │    │◀─ { output: {...} } ──────│          │
+│    │                         │    │                           │          │
+│    │                         │    ├──Validate response        │          │
+│    │                         │    ├──Extract team members     │          │
+│    │                         │    ├──Update venture (proofScore)         │
+│    │                         │    ├──Create leaderboard entry │          │
+│    │                         │    ├──Create evaluation record │          │
+│    │                         │    ├──Log activity events      │          │
+│    │                         │    └──Delete local file        │          │
+│    │◀─ { scoringResult } ────┤                                │          │
+│    │                         │                                │          │
+└─────────────────────────────────────────────────────────────────────────┘
+```
+
+### Error Handling Summary
+
+| Error Type | Status | Behavior | User Action |
+|------------|--------|----------|-------------|
+| File not PDF/PPT/PPTX | 400 | Rejected at multer | Re-upload correct format |
+| File too large (>50MB) | 400 | Rejected at multer | Compress file |
+| Image-based PDF | 400 | `isUserActionRequired=true` | Re-upload text-based PDF |
+| Box.com upload fails | - | Continue with scoring | None (graceful degradation) |
+| Scoring timeout | 524 | Retry with backoff | Wait and retry |
+| API unavailable | 500+ | Retry with backoff (3x) | Wait and retry |
+| Missing venture/team data | 400 | `canRetry=true` | Re-upload with correct data |
+| Authentication failed | 401 | Immediate fail | Check API credentials |
+
 ---
 
 ## 9. Step 6: Certificate Generation
