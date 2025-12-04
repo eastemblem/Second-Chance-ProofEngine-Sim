@@ -294,22 +294,178 @@ async completeFounderStep(sessionId: string | null, founderData: any) {
 
 ### Endpoint
 
-**POST** `/api/onboarding/venture`
+**POST** `/api/onboarding/venture` (legacy)
+**POST** `/api/v1/onboarding/venture` (V1 with cache invalidation)
+
+### Zod Validation Schema
+
+```typescript
+// server/onboarding.ts
+export const ventureOnboardingSchema = z.object({
+  name: z.string().min(1, "Venture name is required"),
+  industry: z.string().min(1, "Industry is required"),
+  geography: z.string().min(1, "Geography is required"),
+  businessModel: z.string().min(1, "Business model is required"),
+  revenueStage: z.enum(["None", "Pre-Revenue", "Early Revenue", "Scaling"]),
+  productStatus: z.enum(["Mockup", "Prototype", "Launched"]),
+  website: z
+    .string()
+    .optional()
+    .transform((val) => (val === "" ? undefined : val)),
+  hasTestimonials: z.boolean().default(false),
+  description: z.string().min(1, "Startup description is required"),
+  linkedinUrl: z
+    .string()
+    .optional()
+    .transform((val) => (val === "" ? undefined : val)),
+  twitterUrl: z
+    .string()
+    .optional()
+    .transform((val) => (val === "" ? undefined : val)),
+  instagramUrl: z
+    .string()
+    .optional()
+    .transform((val) => (val === "" ? undefined : val)),
+});
+```
 
 ### Request Body
 
 ```typescript
 interface VentureOnboardingData {
-  name: string;
-  industry: string;
-  geography: string;
-  productStatus?: string;    // Maps to mvpStatus
-  revenueStage?: string;
-  description?: string;
-  fundingStage?: string;
-  targetMarket?: string;
-  businessModel?: string;
+  name: string;              // Required - Venture/startup name
+  industry: string;          // Required - Industry vertical
+  geography: string;         // Required - Target geography/location
+  businessModel: string;     // Required - B2B, B2C, Marketplace, etc.
+  revenueStage: "None" | "Pre-Revenue" | "Early Revenue" | "Scaling";
+  productStatus: "Mockup" | "Prototype" | "Launched";  // Maps to mvpStatus
+  description: string;       // Required - Startup description
+  website?: string;          // Optional - Company website
+  hasTestimonials?: boolean; // Optional - Has customer testimonials
+  linkedinUrl?: string;      // Optional - Company LinkedIn
+  twitterUrl?: string;       // Optional - Company Twitter/X
+  instagramUrl?: string;     // Optional - Company Instagram
 }
+```
+
+### Database Schema
+
+```typescript
+// shared/schema.ts
+export const revenueStageEnum = pgEnum('revenue_stage', [
+  'None', 
+  'Pre-Revenue', 
+  'Early Revenue', 
+  'Scaling'
+]);
+
+export const mvpStatusEnum = pgEnum('mvp_status', [
+  'Mockup', 
+  'Prototype', 
+  'Launched'
+]);
+
+export const ventureStatusEnum = pgEnum('venture_status', [
+  'pending', 
+  'approved', 
+  'rejected'
+]);
+
+export const venture = pgTable("venture", {
+  ventureId: uuid("venture_id").primaryKey().defaultRandom(),
+  founderId: uuid("founder_id").references(() => founder.founderId).notNull(),
+  name: varchar("name", { length: 200 }).notNull(),
+  website: varchar("website", { length: 200 }),
+  industry: varchar("industry", { length: 100 }).notNull(),
+  geography: varchar("geography", { length: 100 }).notNull(),
+  revenueStage: revenueStageEnum("revenue_stage").notNull(),
+  mvpStatus: mvpStatusEnum("mvp_status").notNull(),
+  businessModel: text("business_model").notNull(),
+  hasTestimonials: boolean("has_testimonials").default(false),
+  description: text("description").notNull(),
+  linkedinUrl: varchar("linkedin_url", { length: 255 }),
+  twitterUrl: varchar("twitter_url", { length: 255 }),
+  instagramUrl: varchar("instagram_url", { length: 255 }),
+  certificateUrl: varchar("certificate_url", { length: 500 }),
+  certificateGeneratedAt: timestamp("certificate_generated_at"),
+  reportUrl: varchar("report_url", { length: 500 }),
+  reportGeneratedAt: timestamp("report_generated_at"),
+  folderStructure: jsonb("folder_structure"),  // Box.com folder IDs
+  growthStage: varchar("growth_stage", { length: 100 }),
+  proofScore: integer("proof_score").default(0),
+  vaultScore: integer("vault_score").default(0),
+  prooftags: json("prooftags").$type<string[]>().notNull().default([]),
+  status: ventureStatusEnum("status").notNull().default("pending"),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+  updatedAt: timestamp("updated_at").defaultNow().notNull(),
+});
+```
+
+### Storage Implementation
+
+```typescript
+// server/storage.ts
+async createVenture(insertVenture: InsertVenture): Promise<Venture> {
+  // Filter out any fields that don't exist in the database schema
+  const filteredVenture = {
+    founderId: insertVenture.founderId,
+    name: insertVenture.name,
+    industry: insertVenture.industry,
+    geography: insertVenture.geography,
+    businessModel: insertVenture.businessModel,
+    revenueStage: insertVenture.revenueStage,
+    mvpStatus: insertVenture.mvpStatus,
+    website: insertVenture.website,
+    hasTestimonials: insertVenture.hasTestimonials,
+    description: insertVenture.description,
+    linkedinUrl: insertVenture.linkedinUrl,
+    twitterUrl: insertVenture.twitterUrl,
+    instagramUrl: insertVenture.instagramUrl,
+  };
+  
+  const [ventureRecord] = await db
+    .insert(venture)
+    .values(filteredVenture)
+    .returning();
+  return ventureRecord;
+}
+```
+
+### Route Handler (V1 with Cache Invalidation)
+
+```typescript
+// server/routes/v1/onboarding.ts
+router.post("/venture", asyncHandler(async (req: Request, res: Response) => {
+  const { sessionId: requestSessionId, ...ventureData } = req.body;
+  const sessionId = requestSessionId || getSessionId(req);
+  
+  // Validate request body
+  const validation = safeValidate(ventureOnboardingSchema, ventureData);
+  if (!validation.success) {
+    throw validation.errors;
+  }
+
+  // Create venture via service
+  const result = await onboardingService.completeVentureStep(sessionId, validation.data);
+
+  // Invalidate cache when new venture is created
+  if (result.venture?.founderId) {
+    try {
+      await lruCacheService.invalidate('founder', result.venture.founderId);
+      await lruCacheService.invalidate('venture', result.venture.ventureId);
+      await lruCacheService.invalidate('dashboard', `vault_${result.venture.founderId}`);
+    } catch (cacheError) {
+      // Don't fail the onboarding if cache invalidation fails
+      appLogger.api('Cache invalidation failed', { error: cacheError });
+    }
+  }
+
+  res.json(createSuccessResponse({
+    venture: result.venture,
+    folderStructure: result.folderStructure,
+    nextStep: "team",
+  }));
+}));
 ```
 
 ### Implementation Logic
@@ -448,6 +604,89 @@ The system creates 7 standard folders in Box.com:
 | `4_Credibility_Proof` | Credibility Proof | Team credentials and partnerships |
 | `5_Commercial_Proof` | Commercial Proof | Financial models and projections |
 | `6_Investor_Pack` | Investor Pack | Data room for investors |
+
+### Response Format
+
+**Success Response (200):**
+```json
+{
+  "success": true,
+  "data": {
+    "venture": {
+      "ventureId": "uuid-generated",
+      "founderId": "founder-uuid",
+      "name": "TechStartup Inc",
+      "industry": "Technology",
+      "geography": "North America",
+      "revenueStage": "Pre-Revenue",
+      "mvpStatus": "Prototype",
+      "businessModel": "B2B SaaS",
+      "description": "AI-powered analytics platform",
+      "hasTestimonials": false,
+      "website": "https://techstartup.com",
+      "proofScore": 0,
+      "vaultScore": 0,
+      "prooftags": [],
+      "status": "pending",
+      "createdAt": "2024-12-04T10:00:00Z",
+      "updatedAt": "2024-12-04T10:00:00Z"
+    },
+    "folderStructure": {
+      "id": "box-folder-id",
+      "url": "https://box.com/s/shared-url",
+      "folders": {
+        "0_Overview": "subfolder-id-1",
+        "1_Problem_Proof": "subfolder-id-2",
+        "2_Solution_Proof": "subfolder-id-3",
+        "3_Demand_Proof": "subfolder-id-4",
+        "4_Credibility_Proof": "subfolder-id-5",
+        "5_Commercial_Proof": "subfolder-id-6",
+        "6_Investor_Pack": "subfolder-id-7"
+      }
+    },
+    "nextStep": "team"
+  },
+  "message": "Success"
+}
+```
+
+**Error Responses:**
+
+| Code | Error | Cause |
+|------|-------|-------|
+| 400 | Validation failed | Missing required fields |
+| 400 | Session not found | Founder step not completed |
+| 400 | Session expired | Session older than 24 hours |
+| 500 | Failed to create venture | Database error |
+
+### Database Operations Summary
+
+1. **Validate session exists** and contains founder data
+2. **Map productStatus → mvpStatus** for schema compatibility  
+3. **Insert venture record** into `venture` table
+4. **Log activity** to `user_activity` table
+5. **Call EastEmblem API** to create Box.com folder structure
+6. **Update venture** with folder structure JSON
+7. **Create 7 proof_vault records** for each subfolder
+8. **Update session** to move to "team" step
+9. **Send Slack notification** (fire-and-forget)
+10. **Invalidate cache** (V1 endpoint only)
+
+### Field Mapping
+
+| Frontend Field | Database Field | Notes |
+|----------------|----------------|-------|
+| `productStatus` | `mvpStatus` | Enum mapped during creation |
+| `name` | `name` | Required, max 200 chars |
+| `industry` | `industry` | Required, max 100 chars |
+| `geography` | `geography` | Required, max 100 chars |
+| `businessModel` | `businessModel` | Required, stored as text |
+| `revenueStage` | `revenueStage` | Enum: None, Pre-Revenue, Early Revenue, Scaling |
+| `description` | `description` | Required, stored as text |
+| `website` | `website` | Optional, max 200 chars |
+| `linkedinUrl` | `linkedinUrl` | Optional, max 255 chars |
+| `twitterUrl` | `twitterUrl` | Optional, max 255 chars |
+| `instagramUrl` | `instagramUrl` | Optional, max 255 chars |
 
 ---
 
