@@ -83,10 +83,17 @@ export default function FounderOnboarding({
 
   const submitMutation = useMutation({
     mutationFn: async (data: FounderFormData) => {
+      // Get token from prop or fallback to localStorage
+      const tokenToUse = preOnboardingToken || localStorage.getItem('pre_onboarding_token');
+      
+      if (import.meta.env.MODE === 'development') {
+        console.log('🔑 Founder submit - preOnboardingToken:', tokenToUse ? `${tokenToUse.substring(0, 10)}...` : 'none');
+      }
+      
       const res = await apiRequest("POST", "/api/onboarding/founder", {
         sessionId,
         ...data,
-        ...(preOnboardingToken ? { preOnboardingToken } : {})
+        ...(tokenToUse ? { preOnboardingToken: tokenToUse } : {})
       });
       return await res.json();
     },
