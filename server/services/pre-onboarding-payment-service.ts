@@ -180,6 +180,22 @@ class PreOnboardingPaymentService {
     }
   }
 
+  async getPaymentByToken(token: string): Promise<any | null> {
+    try {
+      const [payment] = await db
+        .select()
+        .from(preOnboardingPayments)
+        .where(eq(preOnboardingPayments.reservationToken, token));
+      return payment || null;
+    } catch (error) {
+      appLogger.error("Get payment by token error", null, {
+        token,
+        error: error instanceof Error ? error.message : "Unknown error",
+      });
+      return null;
+    }
+  }
+
   async validateToken(token: string): Promise<ValidateTokenResult> {
     try {
       const [payment] = await db

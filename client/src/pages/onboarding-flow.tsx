@@ -537,6 +537,7 @@ export default function OnboardingFlow({ onComplete }: OnboardingFlowProps) {
                 onNext={nextStep}
                 onDataUpdate={(data) => updateSessionData("founder", data)}
                 emailLocked={!!preOnboardingPayment}
+                preOnboardingToken={preOnboardingPayment?.reservationToken}
               />
             )}
             

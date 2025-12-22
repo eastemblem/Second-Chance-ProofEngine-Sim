@@ -34,6 +34,7 @@ interface FounderOnboardingProps {
   onNext: () => void;
   onDataUpdate: (data: FounderFormData) => void;
   emailLocked?: boolean;
+  preOnboardingToken?: string;
 }
 
 export default function FounderOnboarding({ 
@@ -41,7 +42,8 @@ export default function FounderOnboarding({
   initialData, 
   onNext, 
   onDataUpdate,
-  emailLocked = false
+  emailLocked = false,
+  preOnboardingToken
 }: FounderOnboardingProps) {
   const { toast } = useToast();
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -66,7 +68,8 @@ export default function FounderOnboarding({
     mutationFn: async (data: FounderFormData) => {
       const res = await apiRequest("POST", "/api/onboarding/founder", {
         sessionId,
-        ...data
+        ...data,
+        ...(preOnboardingToken ? { preOnboardingToken } : {})
       });
       return await res.json();
     },

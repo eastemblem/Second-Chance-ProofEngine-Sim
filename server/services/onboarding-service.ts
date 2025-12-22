@@ -4,9 +4,10 @@ import { ActivityService } from "./activity-service";
 import { eastEmblemAPI, type EmailNotificationData } from "../eastemblem-api";
 import { getSessionId, getSessionData, updateSessionData } from "../utils/session-manager";
 import { db } from "../db";
-import { onboardingSession as onboardingSessionTable, documentUpload as documentUploadTable, founder as founderTable, venture as ventureTable } from "@shared/schema";
+import { onboardingSession as onboardingSessionTable, documentUpload as documentUploadTable, founder as founderTable, venture as ventureTable, preOnboardingPayments } from "@shared/schema";
 import { eq, and } from "drizzle-orm";
 import { COACH_EVENTS } from "../../shared/config/coach-events";
+import { preOnboardingPaymentService } from "./pre-onboarding-payment-service";
 
 // Utility function to extract MIME type from file extension
 function getMimeTypeFromExtension(fileName: string): string {
@@ -212,16 +213,38 @@ export class OnboardingService {
     // Ensure session exists in database (this handles both new and existing sessions)
     await this.ensureSession(sessionId);
 
+    // Check for pre-onboarding payment token
+    const preOnboardingToken = founderData.preOnboardingToken;
+    let userType: 'individual' | 'residency' = 'residency'; // default to residency
+    let validPreOnboardingPayment = null;
+
+    if (preOnboardingToken) {
+      // Validate pre-onboarding payment token
+      validPreOnboardingPayment = await preOnboardingPaymentService.getPaymentByToken(preOnboardingToken);
+      if (validPreOnboardingPayment && validPreOnboardingPayment.status === 'completed' && !validPreOnboardingPayment.claimedByFounderId) {
+        userType = 'individual';
+        if (process.env.NODE_ENV === 'development') {
+          console.log("Valid pre-onboarding payment found, setting userType to 'individual'");
+        }
+      }
+    }
+
+    // Remove preOnboardingToken from founderData before saving
+    const { preOnboardingToken: _, ...cleanFounderData } = founderData;
+    
+    // Add userType to founder data
+    const founderDataWithUserType = { ...cleanFounderData, userType };
+
     // Check if founder exists by email
-    let founder = await storage.getFounderByEmail(founderData.email);
+    let founder = await storage.getFounderByEmail(cleanFounderData.email);
     
     if (!founder) {
       // Create new founder
       try {
         if (process.env.NODE_ENV === 'development') {
-          console.log("Creating founder with data:", JSON.stringify(founderData, null, 2));
+          console.log("Creating founder with data:", JSON.stringify(founderDataWithUserType, null, 2));
         }
-        founder = await storage.createFounder(founderData);
+        founder = await storage.createFounder(founderDataWithUserType);
         if (process.env.NODE_ENV === 'development') {
           console.log("Founder created successfully:", founder.founderId);
         }
@@ -245,19 +268,20 @@ export class OnboardingService {
           await db
             .update(founderTable)
             .set({
-              fullName: founderData.fullName,
-              email: founderData.email,
-              linkedinProfile: founderData.linkedinProfile,
-              gender: founderData.gender,
-              age: founderData.age,
-              positionRole: founderData.positionRole,
-              residence: founderData.residence,
-              isTechnical: founderData.isTechnical,
-              phone: founderData.phone,
-              street: founderData.street,
-              city: founderData.city,
-              state: founderData.state,
-              country: founderData.country,
+              fullName: cleanFounderData.fullName,
+              email: cleanFounderData.email,
+              linkedinProfile: cleanFounderData.linkedinProfile,
+              gender: cleanFounderData.gender,
+              age: cleanFounderData.age,
+              positionRole: cleanFounderData.positionRole,
+              residence: cleanFounderData.residence,
+              isTechnical: cleanFounderData.isTechnical,
+              phone: cleanFounderData.phone,
+              street: cleanFounderData.street,
+              city: cleanFounderData.city,
+              state: cleanFounderData.state,
+              country: cleanFounderData.country,
+              userType: userType,
               updatedAt: new Date(),
             })
             .where(eq(founderTable.founderId, founderId));
@@ -299,6 +323,19 @@ export class OnboardingService {
       },
       completedSteps: ["founder"],
     });
+
+    // Claim pre-onboarding payment if valid
+    if (validPreOnboardingPayment && userType === 'individual') {
+      try {
+        await preOnboardingPaymentService.claimPayment(preOnboardingToken, founderId);
+        if (process.env.NODE_ENV === 'development') {
+          console.log(`Pre-onboarding payment claimed by founder ${founderId}`);
+        }
+      } catch (error) {
+        console.error("Failed to claim pre-onboarding payment:", error);
+        // Don't throw - the founder was created successfully, payment claim is secondary
+      }
+    }
 
     // Send Slack notification for founder step completion (async, no wait)
     if (eastEmblemAPI.isConfigured()) {
