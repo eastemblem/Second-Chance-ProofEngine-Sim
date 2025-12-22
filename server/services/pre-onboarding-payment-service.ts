@@ -286,6 +286,15 @@ class PreOnboardingPaymentService {
       const orderRef = payment.orderReference || `SC-PRE-${Date.now()}`;
       const txnId = payment.gatewayTransactionId || orderRef;
       
+      // Parse amount properly - ensure it's a valid decimal string
+      let amountValue = "99.00";
+      if (payment.amount) {
+        const parsedAmount = parseFloat(String(payment.amount));
+        if (!isNaN(parsedAmount)) {
+          amountValue = parsedAmount.toFixed(2);
+        }
+      }
+      
       const [paymentTransaction] = await db
         .insert(paymentTransactions)
         .values({
@@ -293,13 +302,20 @@ class PreOnboardingPaymentService {
           gatewayProvider,
           gatewayTransactionId: txnId,
           orderReference: orderRef,
-          amount: String(payment.amount || "99.00"),
+          amount: amountValue,
           currency: payment.currency || "USD",
           status: "completed",
           gatewayStatus: "A",
-          description: "Second Chance Platform Access - Individual",
+          description: `Second Chance Platform Access - ${payment.userType === "individual" ? "Individual" : "Standard"}`,
           gatewayResponse: payment.gatewayResponse || {},
-          metadata: {},
+          metadata: {
+            paymentType: payment.paymentType || "platform_access",
+            userType: payment.userType || "individual",
+            preOnboardingPaymentId: payment.id,
+            reservationToken: payment.reservationToken,
+            claimedAt: new Date().toISOString(),
+            originalEmail: payment.email,
+          },
         })
         .returning();
 
