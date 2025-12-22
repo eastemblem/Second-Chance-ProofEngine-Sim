@@ -927,15 +927,12 @@ ${statusEmoji} **${statusText}**
       // Get user's payment history
       const transactions = await this.getPaymentHistory(founderId);
       
-      // Check for completed deal room access payments
-      const dealRoomPayments = transactions.filter((transaction: PaymentTransaction) => 
-        transaction.status === 'completed' && 
-        transaction.metadata && 
-        typeof transaction.metadata === 'object' &&
-        (transaction.metadata as any).purpose === 'Access Deal Room'
+      // Check for any completed payment (deal room or pre-onboarding)
+      const completedPayments = transactions.filter((transaction: PaymentTransaction) => 
+        transaction.status === 'completed'
       );
       
-      return dealRoomPayments.length > 0;
+      return completedPayments.length > 0;
     } catch (error) {
       appLogger.error('Deal room access check error', error);
       return false;
