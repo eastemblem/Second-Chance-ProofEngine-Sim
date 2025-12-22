@@ -9,6 +9,7 @@ import { eastEmblemAPI } from "../../eastemblem-api";
 import { getSessionId, getSessionData, updateSessionData } from "../../utils/session-manager";
 import { cleanupUploadedFile } from "../../utils/file-cleanup";
 import { validateRequest, fileUploadSchema } from "../../middleware/validation";
+import { preOnboardingPaymentService } from "../../services/pre-onboarding-payment-service";
 
 const router = express.Router();
 
@@ -84,6 +85,21 @@ router.post("/founder", asyncHandler(async (req, res) => {
         sessionId
       }
     );
+
+    // Claim pre-onboarding payment if token is present
+    if (founderData.preOnboardingToken) {
+      console.log(`💳 ONBOARDING: Claiming pre-onboarding payment for founder ${result.founderId}`);
+      try {
+        await preOnboardingPaymentService.claimPayment(
+          founderData.preOnboardingToken,
+          result.founderId
+        );
+        console.log(`✅ ONBOARDING: Pre-onboarding payment claimed successfully`);
+      } catch (claimError) {
+        // Log error but don't fail the onboarding - payment can be claimed later
+        console.error(`⚠️ ONBOARDING: Failed to claim pre-onboarding payment:`, claimError);
+      }
+    }
 
     console.log(`✅ ONBOARDING: Founder data processed successfully`, {
       founderId: result.founderId
