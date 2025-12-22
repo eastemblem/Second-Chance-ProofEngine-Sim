@@ -406,13 +406,14 @@ class PreOnboardingPaymentService {
       await this.emailService.sendEmail(
         payment.email,
         "Payment Confirmed - Welcome to Second Chance",
-        "pre-onboarding-payment-success",
+        "payment-success",
         {
           HOST_URL: hostUrl,
           USER_NAME: payment.name || "Founder",
           PAYMENT_AMOUNT: `$${payment.amount} USD`,
-          ONBOARDING_URL: onboardingUrl,
-          RESERVATION_TOKEN: payment.reservationToken,
+          ORDER_REFERENCE: payment.orderReference || payment.reservationToken,
+          PAYMENT_DATE: new Date().toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' }),
+          DASHBOARD_URL: onboardingUrl,
         }
       );
 
@@ -436,14 +437,11 @@ class PreOnboardingPaymentService {
       
       await this.emailService.sendEmail(
         payment.email,
-        "Account Created - Welcome to Second Chance Platform",
-        "platform-access-welcome",
+        "Welcome to Second Chance Platform",
+        "welcome-email",
         {
           HOST_URL: hostUrl,
           USER_NAME: payment.name || "Founder",
-          PAYMENT_AMOUNT: `$${payment.amount} USD`,
-          DASHBOARD_URL: dashboardUrl,
-          ACCESS_TYPE: "Individual Platform Access",
         }
       );
 
