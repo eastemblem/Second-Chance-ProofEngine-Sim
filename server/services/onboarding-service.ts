@@ -218,22 +218,12 @@ export class OnboardingService {
     let userType: 'individual' | 'residency' = 'residency'; // default to residency
     let validPreOnboardingPayment = null;
 
-    console.log(`🔍 SERVICE: completeFounderStep called. preOnboardingToken present: ${!!preOnboardingToken}`, preOnboardingToken ? `Token: ${preOnboardingToken.substring(0, 10)}...` : '');
-
     if (preOnboardingToken) {
       // Validate pre-onboarding payment token
       validPreOnboardingPayment = await preOnboardingPaymentService.getPaymentByToken(preOnboardingToken);
-      console.log(`🔍 SERVICE: Payment lookup result:`, validPreOnboardingPayment ? { id: validPreOnboardingPayment.id, status: validPreOnboardingPayment.status, claimedByFounderId: validPreOnboardingPayment.claimedByFounderId } : 'NOT FOUND');
       
       if (validPreOnboardingPayment && validPreOnboardingPayment.status === 'completed' && !validPreOnboardingPayment.claimedByFounderId) {
         userType = 'individual';
-        console.log(`✅ SERVICE: Valid pre-onboarding payment found, setting userType to 'individual'`);
-      } else {
-        console.log(`⚠️ SERVICE: Payment not valid for claiming:`, {
-          found: !!validPreOnboardingPayment,
-          status: validPreOnboardingPayment?.status,
-          alreadyClaimed: !!validPreOnboardingPayment?.claimedByFounderId
-        });
       }
     }
 
@@ -333,18 +323,13 @@ export class OnboardingService {
     });
 
     // Claim pre-onboarding payment if valid
-    console.log(`🔍 SERVICE: Checking if should claim payment. validPreOnboardingPayment: ${!!validPreOnboardingPayment}, userType: ${userType}`);
     if (validPreOnboardingPayment && userType === 'individual') {
-      console.log(`💳 SERVICE: Calling claimPayment for founder ${founderId}`);
       try {
-        const claimResult = await preOnboardingPaymentService.claimPayment(preOnboardingToken, founderId);
-        console.log(`💳 SERVICE: claimPayment result:`, claimResult);
+        await preOnboardingPaymentService.claimPayment(preOnboardingToken, founderId);
       } catch (error) {
-        console.error("❌ SERVICE: Failed to claim pre-onboarding payment:", error);
+        console.error("Failed to claim pre-onboarding payment:", error);
         // Don't throw - the founder was created successfully, payment claim is secondary
       }
-    } else {
-      console.log(`⏭️ SERVICE: Skipping payment claim. Conditions not met.`);
     }
 
     // Send Slack notification for founder step completion (async, no wait)
