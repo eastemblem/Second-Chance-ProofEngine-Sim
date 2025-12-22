@@ -134,32 +134,23 @@ export function PreOnboardingPaymentModal({
 
       if (event.data && typeof event.data === 'object') {
         if (event.data.type === 'PAYMENT_SUCCESS') {
-          setStep('processing');
+          console.log('[Payment Modal] Received PAYMENT_SUCCESS message:', event.data);
+          // Server already verified the payment is completed, trust it
+          setStep('success');
+          toast({
+            title: "Payment Successful!",
+            description: "Redirecting you to create your account...",
+          });
           
-          setTimeout(async () => {
-            try {
-              const response = await apiRequest("GET", `/api/v1/pre-onboarding-payments/status/${paymentData.orderReference}`);
-              const result = await response.json();
-              
-              if (result.success && result.status === 'completed') {
-                setStep('success');
-                toast({
-                  title: "Payment Successful!",
-                  description: "Redirecting you to create your account...",
-                });
-                if (paymentData?.reservationToken) {
-                  setTimeout(() => onSuccess(paymentData.reservationToken), 1500);
-                }
-              } else {
-                setStep('failed');
-                setError(result.error || 'Payment verification failed');
-              }
-            } catch (error) {
-              console.error('PayTabs payment verification error:', error);
-              setStep('failed');
-              setError('Payment verification failed');
-            }
-          }, 2000);
+          // Use the token from the message if available, otherwise fall back to paymentData
+          const tokenToUse = event.data.reservationToken || paymentData?.reservationToken;
+          if (tokenToUse) {
+            setTimeout(() => onSuccess(tokenToUse), 1500);
+          }
+        } else if (event.data.type === 'PAYMENT_PENDING') {
+          // Payment is still being verified - continue polling, don't change state
+          console.log('[Payment Modal] Received PAYMENT_PENDING message, continuing to poll...');
+          // Just log and let the polling mechanism handle it
         } else if (event.data.type === 'PAYMENT_ERROR') {
           setStep('failed');
           setError(event.data.error || 'Payment failed');

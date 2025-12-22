@@ -92,6 +92,16 @@ router.get("/return", async (req: Request, res: Response) => {
       return res.redirect(`${frontendUrl}/payment/error?error=Payment+not+found`);
     }
 
+    // Log what PayTabs actually sent us
+    appLogger.business("Pre-onboarding return params analysis", {
+      respStatus,
+      respCode,
+      hasRespStatus: !!respStatus,
+      hasRespCode: !!respCode,
+      allQueryParams: JSON.stringify(req.query),
+    });
+
+    // Determine status from PayTabs response
     let status: "completed" | "failed" | "pending" = "pending";
     if (respStatus === "A" || respCode === "000") {
       status = "completed";
@@ -99,6 +109,7 @@ router.get("/return", async (req: Request, res: Response) => {
       status = "failed";
     }
 
+    // Update database with new status
     if (payment.status !== "completed" && payment.status !== "claimed") {
       await preOnboardingPaymentService.updatePaymentStatus(
         orderReference,
@@ -106,6 +117,14 @@ router.get("/return", async (req: Request, res: Response) => {
         req.query
       );
     }
+
+    // Re-fetch payment to get the latest status (may have been updated by callback)
+    const [updatedPayment] = await db
+      .select()
+      .from(preOnboardingPayments)
+      .where(eq(preOnboardingPayments.orderReference, orderReference));
+    
+    const finalStatus = updatedPayment?.status || status;
 
     const iframeScript = `
       <html>
@@ -122,20 +141,35 @@ router.get("/return", async (req: Request, res: Response) => {
         </head>
         <body>
           <div class="container">
-            ${status === "completed" ? '<h2 class="success">Payment Successful!</h2><p>Redirecting you to create your account...</p>' : 
-              status === "failed" ? '<h2 class="failed">Payment Failed</h2><p>Please try again.</p>' :
-              '<h2 class="processing">Processing...</h2><p>Please wait.</p>'}
+            ${finalStatus === "completed" ? '<h2 class="success">Payment Successful!</h2><p>Redirecting you to create your account...</p>' : 
+              finalStatus === "failed" ? '<h2 class="failed">Payment Failed</h2><p>Please try again.</p>' :
+              '<h2 class="processing">Verifying payment...</h2><p>Please wait a moment.</p>'}
           </div>
           <script>
             (function() {
-              var status = "${status}";
+              var status = "${finalStatus}";
               var orderReference = "${orderReference}";
+              var reservationToken = "${updatedPayment?.reservationToken || payment.reservationToken}";
+              
               if (window.parent !== window) {
-                window.parent.postMessage({ type: status === "completed" ? "PAYMENT_SUCCESS" : status === "failed" ? "PAYMENT_ERROR" : "PAYMENT_PENDING", orderReference: orderReference, status: status }, "*");
+                // Only send PAYMENT_SUCCESS if we confirmed completion
+                if (status === "completed") {
+                  window.parent.postMessage({ type: "PAYMENT_SUCCESS", orderReference: orderReference, status: status, reservationToken: reservationToken }, "*");
+                } else if (status === "failed") {
+                  window.parent.postMessage({ type: "PAYMENT_ERROR", orderReference: orderReference, status: status }, "*");
+                } else {
+                  // Status is pending - tell parent to keep polling
+                  window.parent.postMessage({ type: "PAYMENT_PENDING", orderReference: orderReference, status: status }, "*");
+                }
               } else {
-                ${status === "completed" ? `window.location.href = "${frontendUrl}/onboarding?token=${payment.reservationToken}";` :
-                  status === "failed" ? `window.location.href = "${frontendUrl}/payment/failed?ref=${orderReference}";` :
-                  `window.location.href = "${frontendUrl}/payment/individual";`}
+                // Not in iframe - redirect directly
+                if (status === "completed") {
+                  window.location.href = "${frontendUrl}/onboarding?token=" + reservationToken;
+                } else if (status === "failed") {
+                  window.location.href = "${frontendUrl}/payment/failed?ref=${orderReference}";
+                } else {
+                  window.location.href = "${frontendUrl}/payment/individual";
+                }
               }
             })();
           </script>
@@ -189,6 +223,16 @@ router.post("/return", async (req: Request, res: Response) => {
       return res.redirect(`${frontendUrl}/payment/error?error=Payment+not+found`);
     }
 
+    // Log what PayTabs actually sent us
+    appLogger.business("Pre-onboarding POST return params analysis", {
+      respStatus,
+      respCode,
+      hasRespStatus: !!respStatus,
+      hasRespCode: !!respCode,
+      allBodyParams: JSON.stringify(req.body),
+    });
+
+    // Determine status from PayTabs response
     let status: "completed" | "failed" | "pending" = "pending";
     if (respStatus === "A" || respCode === "000") {
       status = "completed";
@@ -196,6 +240,7 @@ router.post("/return", async (req: Request, res: Response) => {
       status = "failed";
     }
 
+    // Update database with new status
     if (payment.status !== "completed" && payment.status !== "claimed") {
       await preOnboardingPaymentService.updatePaymentStatus(
         orderReference,
@@ -203,6 +248,14 @@ router.post("/return", async (req: Request, res: Response) => {
         req.body
       );
     }
+
+    // Re-fetch payment to get the latest status (may have been updated by callback)
+    const [updatedPayment] = await db
+      .select()
+      .from(preOnboardingPayments)
+      .where(eq(preOnboardingPayments.orderReference, orderReference));
+    
+    const finalStatus = updatedPayment?.status || status;
 
     const iframeScript = `
       <html>
@@ -219,20 +272,35 @@ router.post("/return", async (req: Request, res: Response) => {
         </head>
         <body>
           <div class="container">
-            ${status === "completed" ? '<h2 class="success">Payment Successful!</h2><p>Redirecting you to create your account...</p>' : 
-              status === "failed" ? '<h2 class="failed">Payment Failed</h2><p>Please try again.</p>' :
-              '<h2 class="processing">Processing...</h2><p>Please wait.</p>'}
+            ${finalStatus === "completed" ? '<h2 class="success">Payment Successful!</h2><p>Redirecting you to create your account...</p>' : 
+              finalStatus === "failed" ? '<h2 class="failed">Payment Failed</h2><p>Please try again.</p>' :
+              '<h2 class="processing">Verifying payment...</h2><p>Please wait a moment.</p>'}
           </div>
           <script>
             (function() {
-              var status = "${status}";
+              var status = "${finalStatus}";
               var orderReference = "${orderReference}";
+              var reservationToken = "${updatedPayment?.reservationToken || payment.reservationToken}";
+              
               if (window.parent !== window) {
-                window.parent.postMessage({ type: status === "completed" ? "PAYMENT_SUCCESS" : status === "failed" ? "PAYMENT_ERROR" : "PAYMENT_PENDING", orderReference: orderReference, status: status }, "*");
+                // Only send PAYMENT_SUCCESS if we confirmed completion
+                if (status === "completed") {
+                  window.parent.postMessage({ type: "PAYMENT_SUCCESS", orderReference: orderReference, status: status, reservationToken: reservationToken }, "*");
+                } else if (status === "failed") {
+                  window.parent.postMessage({ type: "PAYMENT_ERROR", orderReference: orderReference, status: status }, "*");
+                } else {
+                  // Status is pending - tell parent to keep polling
+                  window.parent.postMessage({ type: "PAYMENT_PENDING", orderReference: orderReference, status: status }, "*");
+                }
               } else {
-                ${status === "completed" ? `window.location.href = "${frontendUrl}/onboarding?token=${payment.reservationToken}";` :
-                  status === "failed" ? `window.location.href = "${frontendUrl}/payment/failed?ref=${orderReference}";` :
-                  `window.location.href = "${frontendUrl}/payment/individual";`}
+                // Not in iframe - redirect directly
+                if (status === "completed") {
+                  window.location.href = "${frontendUrl}/onboarding?token=" + reservationToken;
+                } else if (status === "failed") {
+                  window.location.href = "${frontendUrl}/payment/failed?ref=${orderReference}";
+                } else {
+                  window.location.href = "${frontendUrl}/payment/individual";
+                }
               }
             })();
           </script>
