@@ -33,13 +33,15 @@ interface FounderOnboardingProps {
   initialData?: Partial<FounderFormData>;
   onNext: () => void;
   onDataUpdate: (data: FounderFormData) => void;
+  emailLocked?: boolean;
 }
 
 export default function FounderOnboarding({ 
   sessionId, 
   initialData, 
   onNext, 
-  onDataUpdate 
+  onDataUpdate,
+  emailLocked = false
 }: FounderOnboardingProps) {
   const { toast } = useToast();
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -292,19 +294,27 @@ export default function FounderOnboarding({
               id="email"
               type="email"
               {...form.register("email")}
-              className={`mt-1 ${form.formState.errors.email || emailError ? 'border-red-500' : ''}`}
+              className={`mt-1 ${form.formState.errors.email || emailError ? 'border-red-500' : ''} ${emailLocked ? 'bg-muted cursor-not-allowed' : ''}`}
               placeholder="john@example.com"
               data-testid="input-email"
+              disabled={emailLocked}
               onChange={(e) => {
-                form.register("email").onChange(e);
-                // Clear email error when user starts typing
-                if (emailError) {
-                  setEmailError(null);
-                  form.clearErrors("email");
+                if (!emailLocked) {
+                  form.register("email").onChange(e);
+                  // Clear email error when user starts typing
+                  if (emailError) {
+                    setEmailError(null);
+                    form.clearErrors("email");
+                  }
                 }
               }}
             />
-            {(form.formState.errors.email || emailError) && (
+            {emailLocked && (
+              <p className="text-muted-foreground text-sm mt-1">
+                Email pre-filled from your payment
+              </p>
+            )}
+            {!emailLocked && (form.formState.errors.email || emailError) && (
               <p className="text-red-500 text-sm mt-1">
                 {form.formState.errors.email?.message || emailError}
               </p>

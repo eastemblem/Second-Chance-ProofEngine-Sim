@@ -98,12 +98,49 @@ const determineCurrentStepIndex = (completedSteps: string[] = [], currentStep?: 
   return targetIndex;
 };
 
+interface PreOnboardingPayment {
+  email: string;
+  fullName: string;
+  reservationToken: string;
+}
+
 export default function OnboardingFlow({ onComplete }: OnboardingFlowProps) {
   const [sessionData, setSessionData] = useState<SessionData | null>(null);
   const [currentStepIndex, setCurrentStepIndex] = useState(0);
+  const [preOnboardingPayment, setPreOnboardingPayment] = useState<PreOnboardingPayment | null>(null);
   const { toast } = useToast();
   const queryClient = useQueryClient();
   const { tutorialCompletedPages } = useProofCoach();
+
+  // Check for pre-onboarding payment token in URL
+  useEffect(() => {
+    const urlParams = new URLSearchParams(window.location.search);
+    const token = urlParams.get('token');
+    
+    if (token) {
+      // Store token in localStorage for claiming later
+      localStorage.setItem('pre_onboarding_token', token);
+      
+      // Fetch payment details
+      fetch(`/api/v1/pre-onboarding-payments/validate/${token}`)
+        .then(res => res.json())
+        .then(data => {
+          if (data.success && data.payment) {
+            setPreOnboardingPayment({
+              email: data.payment.email,
+              fullName: data.payment.fullName,
+              reservationToken: token,
+            });
+            if (import.meta.env.MODE === 'development') {
+              console.log('Pre-onboarding payment found:', data.payment.email);
+            }
+          }
+        })
+        .catch(err => {
+          console.error('Failed to validate pre-onboarding token:', err);
+        });
+    }
+  }, []);
 
   // Initialize session on component mount
   const initSessionMutation = useMutation({
@@ -490,9 +527,16 @@ export default function OnboardingFlow({ onComplete }: OnboardingFlowProps) {
             {currentStep.key === "founder" && (
               <FounderOnboarding
                 sessionId={sessionData.sessionId}
-                initialData={sessionData.stepData?.founder}
+                initialData={{
+                  ...sessionData.stepData?.founder,
+                  ...(preOnboardingPayment ? {
+                    fullName: preOnboardingPayment.fullName,
+                    email: preOnboardingPayment.email,
+                  } : {})
+                }}
                 onNext={nextStep}
                 onDataUpdate={(data) => updateSessionData("founder", data)}
+                emailLocked={!!preOnboardingPayment}
               />
             )}
             
