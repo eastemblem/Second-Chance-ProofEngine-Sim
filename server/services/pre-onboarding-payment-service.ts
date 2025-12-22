@@ -1,5 +1,5 @@
 import { db } from "../db.js";
-import { preOnboardingPayments, founder } from "@shared/schema";
+import { preOnboardingPayments, founder, paymentTransactions } from "@shared/schema";
 import { eq, and } from "drizzle-orm";
 import { v4 as uuidv4 } from "uuid";
 import { PaymentGatewayFactory, type PaymentOrderData } from "../lib/payment-gateway.js";
@@ -265,6 +265,7 @@ class PreOnboardingPaymentService {
         return { success: false, error: "Payment not completed" };
       }
 
+      // Update the pre-onboarding payment as claimed
       await db
         .update(preOnboardingPayments)
         .set({
@@ -274,16 +275,56 @@ class PreOnboardingPaymentService {
         })
         .where(eq(preOnboardingPayments.id, payment.id));
 
+      // Update founder's userType
       await db
         .update(founder)
         .set({ userType: payment.userType })
         .where(eq(founder.founderId, founderId));
 
+      // Create a payment_transactions entry for proper transaction history
+      const gatewayProvider: "paytabs" | "telr" = payment.gateway === "telr" ? "telr" : "paytabs";
+      const orderRef = payment.orderReference || `SC-PRE-${Date.now()}`;
+      const txnId = payment.gatewayTransactionId || orderRef;
+      
+      const [paymentTransaction] = await db
+        .insert(paymentTransactions)
+        .values({
+          founderId,
+          gatewayProvider,
+          gatewayTransactionId: txnId,
+          orderReference: orderRef,
+          amount: String(payment.amount || "99.00"),
+          currency: payment.currency || "USD",
+          status: "completed",
+          gatewayStatus: "A",
+          description: "Second Chance Platform Access - Individual",
+          gatewayResponse: payment.gatewayResponse || null,
+          metadata: {
+            paymentType: "platform_access",
+            userType: payment.userType,
+            preOnboardingPaymentId: payment.id,
+          },
+        })
+        .returning();
+
       appLogger.business("Pre-onboarding payment claimed", {
         paymentId: payment.id,
+        paymentTransactionId: paymentTransaction?.id,
         founderId,
         userType: payment.userType,
       });
+
+      // Send confirmation email after successful claim
+      try {
+        await this.sendAccountCreationConfirmationEmail(payment, founderId);
+      } catch (emailError) {
+        appLogger.error("Failed to send account creation confirmation email", null, {
+          error: emailError instanceof Error ? emailError.message : "Unknown error",
+          paymentId: payment.id,
+          founderId,
+        });
+        // Don't fail the claim process if email fails
+      }
 
       return {
         success: true,
@@ -370,6 +411,38 @@ class PreOnboardingPaymentService {
     } catch (error) {
       appLogger.error("Failed to send confirmation email", null, {
         email: payment.email,
+        error: error instanceof Error ? error.message : "Unknown error",
+      });
+    }
+  }
+
+  private async sendAccountCreationConfirmationEmail(payment: any, founderId: string): Promise<void> {
+    try {
+      const frontendUrl = process.env.FRONTEND_URL || process.env.REPLIT_DOMAINS?.split(",")[0];
+      const dashboardUrl = `https://${frontendUrl?.replace(/^https?:\/\//, "")}/dashboard`;
+      const hostUrl = `https://${frontendUrl?.replace(/^https?:\/\//, "")}`;
+      
+      await this.emailService.sendEmail(
+        payment.email,
+        "Account Created - Welcome to Second Chance Platform",
+        "platform-access-welcome",
+        {
+          HOST_URL: hostUrl,
+          USER_NAME: payment.name || "Founder",
+          PAYMENT_AMOUNT: `$${payment.amount} USD`,
+          DASHBOARD_URL: dashboardUrl,
+          ACCESS_TYPE: "Individual Platform Access",
+        }
+      );
+
+      appLogger.business("Account creation confirmation email sent", {
+        email: payment.email,
+        founderId,
+      });
+    } catch (error) {
+      appLogger.error("Failed to send account creation confirmation email", null, {
+        email: payment.email,
+        founderId,
         error: error instanceof Error ? error.message : "Unknown error",
       });
     }

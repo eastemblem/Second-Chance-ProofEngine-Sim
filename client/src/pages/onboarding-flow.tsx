@@ -125,15 +125,18 @@ export default function OnboardingFlow({ onComplete }: OnboardingFlowProps) {
       fetch(`/api/v1/pre-onboarding-payments/validate/${token}`)
         .then(res => res.json())
         .then(data => {
-          if (data.success && data.payment) {
+          // Validate endpoint returns { valid: true, email, name, status, ... }
+          if (data.valid && data.email) {
             setPreOnboardingPayment({
-              email: data.payment.email,
-              fullName: data.payment.fullName,
+              email: data.email,
+              fullName: data.name || '',
               reservationToken: token,
             });
             if (import.meta.env.MODE === 'development') {
-              console.log('Pre-onboarding payment found:', data.payment.email);
+              console.log('Pre-onboarding payment found:', data.email);
             }
+          } else if (data.error) {
+            console.warn('Pre-onboarding token validation failed:', data.error);
           }
         })
         .catch(err => {
