@@ -190,12 +190,21 @@ export function PreOnboardingPaymentModal({
   useEffect(() => {
     if (step !== 'iframe' || !paymentData?.orderReference) return;
 
+    let pollCount = 0;
+    const maxPolls = 60; // Poll for up to 2 minutes (every 2 seconds)
+
     const pollPaymentStatus = async () => {
+      pollCount++;
+      console.log(`[Payment Modal] Polling payment status (${pollCount}/${maxPolls}) for ${paymentData.orderReference}`);
+      
       try {
         const response = await apiRequest("GET", `/api/v1/pre-onboarding-payments/status/${paymentData.orderReference}`);
         const result = await response.json();
         
+        console.log('[Payment Modal] Poll result:', result);
+        
         if (result.success && result.status === 'completed') {
+          console.log('[Payment Modal] Payment completed! Transitioning to success...');
           setStep('success');
           toast({
             title: "Payment Successful!",
@@ -205,17 +214,25 @@ export function PreOnboardingPaymentModal({
             setTimeout(() => onSuccess(paymentData.reservationToken), 1500);
           }
         } else if (result.success && result.status === 'failed') {
+          console.log('[Payment Modal] Payment failed');
           setStep('failed');
           setError(result.error || 'Payment was declined. Please check your payment details and try again.');
+        } else if (pollCount >= maxPolls) {
+          console.log('[Payment Modal] Max polls reached, still pending');
         }
       } catch (error) {
-        console.error('Polling error:', error);
+        console.error('[Payment Modal] Polling error:', error);
       }
     };
 
-    const pollInterval = setInterval(pollPaymentStatus, 3000);
+    // Start polling immediately after a short delay
+    const initialDelay = setTimeout(() => pollPaymentStatus(), 1000);
+    const pollInterval = setInterval(pollPaymentStatus, 2000);
     
-    return () => clearInterval(pollInterval);
+    return () => {
+      clearTimeout(initialDelay);
+      clearInterval(pollInterval);
+    };
   }, [step, paymentData, toast, onSuccess]);
 
   const handleCancel = async () => {
@@ -348,11 +365,36 @@ export function PreOnboardingPaymentModal({
               )}
             </div>
             
-            <div className="px-4 pb-4 shrink-0 bg-background/95 border-t border-border/50">
+            <div className="px-4 pb-4 shrink-0 bg-background/95 border-t border-border/50 space-y-2">
+              <Button 
+                onClick={async () => {
+                  if (!paymentData?.orderReference) return;
+                  try {
+                    const response = await apiRequest("GET", `/api/v1/pre-onboarding-payments/status/${paymentData.orderReference}`);
+                    const result = await response.json();
+                    if (result.success && result.status === 'completed') {
+                      setStep('success');
+                      toast({ title: "Payment Successful!", description: "Redirecting you to create your account..." });
+                      if (paymentData?.reservationToken) {
+                        setTimeout(() => onSuccess(paymentData.reservationToken), 1500);
+                      }
+                    } else {
+                      toast({ title: "Payment Still Processing", description: "Please wait a few more seconds...", variant: "default" });
+                    }
+                  } catch (error) {
+                    console.error('Manual check error:', error);
+                  }
+                }}
+                className="w-full gradient-button"
+                data-testid="button-check-payment"
+              >
+                <CheckCircle className="w-4 h-4 mr-2" />
+                I Completed Payment - Check Status
+              </Button>
               <Button 
                 variant="outline" 
                 onClick={handleCancel} 
-                className="w-full mb-3 border-2 border-red-500/20 hover:border-red-500/40 hover:bg-red-500/10 text-foreground"
+                className="w-full border-2 border-red-500/20 hover:border-red-500/40 hover:bg-red-500/10 text-foreground"
               >
                 Cancel Payment
               </Button>

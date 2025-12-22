@@ -358,11 +358,11 @@ class PayTabsGateway extends PaymentGateway {
       cart_amount: orderAmount,
       cart_description: orderData.description,
       callback: orderData.returnUrls.callback,
+      return: orderData.returnUrls.authorised,
       framed: true,
       framed_return_top: false,
       framed_return_parent: false,
       hide_shipping: true,
-      return: "None",
       invoice: {
         shipping_charges: 0,
         extra_charges: 0,
@@ -391,8 +391,8 @@ class PayTabsGateway extends PaymentGateway {
       framed_return_top: false,
       framed_return_parent: false,
       hide_shipping: true,
-      return: "None",
-      description: 'Embedded payment page with iframe-level navigation control, shipping hidden'
+      return: orderData.returnUrls.authorised,
+      description: 'Embedded payment page with iframe-level navigation control, shipping hidden, redirect enabled'
     });
 
     appLogger.business('PayTabs invoice details prepared', {
