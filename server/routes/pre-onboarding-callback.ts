@@ -106,14 +106,44 @@ router.get("/return", async (req: Request, res: Response) => {
       );
     }
 
-    if (status === "completed" || payment.status === "completed") {
-      const onboardingUrl = `${frontendUrl}/onboarding?token=${payment.reservationToken}`;
-      return res.redirect(onboardingUrl);
-    } else if (status === "failed") {
-      return res.redirect(`${frontendUrl}/payment/failed?ref=${orderReference}`);
-    } else {
-      return res.redirect(`${frontendUrl}/payment/individual`);
-    }
+    const iframeScript = `
+      <html>
+        <head>
+          <style>
+            body { font-family: system-ui, -apple-system, sans-serif; display: flex; align-items: center; justify-content: center; height: 100vh; margin: 0; background: #f5f5f5; }
+            .container { text-align: center; padding: 2rem; }
+            .success { color: #22c55e; }
+            .failed { color: #ef4444; }
+            .processing { color: #3b82f6; }
+            h2 { margin-bottom: 0.5rem; }
+            p { color: #666; margin-top: 0.5rem; }
+          </style>
+        </head>
+        <body>
+          <div class="container">
+            ${status === "completed" ? '<h2 class="success">Payment Successful!</h2><p>Redirecting you to create your account...</p>' : 
+              status === "failed" ? '<h2 class="failed">Payment Failed</h2><p>Please try again.</p>' :
+              '<h2 class="processing">Processing...</h2><p>Please wait.</p>'}
+          </div>
+          <script>
+            (function() {
+              var status = "${status}";
+              var orderReference = "${orderReference}";
+              if (window.parent !== window) {
+                window.parent.postMessage({ type: status === "completed" ? "PAYMENT_SUCCESS" : status === "failed" ? "PAYMENT_ERROR" : "PAYMENT_PENDING", orderReference: orderReference, status: status }, "*");
+              } else {
+                ${status === "completed" ? `window.location.href = "${frontendUrl}/onboarding?token=${payment.reservationToken}";` :
+                  status === "failed" ? `window.location.href = "${frontendUrl}/payment/failed?ref=${orderReference}";` :
+                  `window.location.href = "${frontendUrl}/payment/individual";`}
+              }
+            })();
+          </script>
+        </body>
+      </html>
+    `;
+
+    res.setHeader("Content-Type", "text/html");
+    res.send(iframeScript);
   } catch (error) {
     appLogger.error("Pre-onboarding return error", null, {
       error: error instanceof Error ? error.message : "Unknown error",
@@ -172,14 +202,44 @@ router.post("/return", async (req: Request, res: Response) => {
       );
     }
 
-    if (status === "completed" || payment.status === "completed") {
-      const onboardingUrl = `${frontendUrl}/onboarding?token=${payment.reservationToken}`;
-      return res.redirect(onboardingUrl);
-    } else if (status === "failed") {
-      return res.redirect(`${frontendUrl}/payment/failed?ref=${orderReference}`);
-    } else {
-      return res.redirect(`${frontendUrl}/payment/individual`);
-    }
+    const iframeScript = `
+      <html>
+        <head>
+          <style>
+            body { font-family: system-ui, -apple-system, sans-serif; display: flex; align-items: center; justify-content: center; height: 100vh; margin: 0; background: #f5f5f5; }
+            .container { text-align: center; padding: 2rem; }
+            .success { color: #22c55e; }
+            .failed { color: #ef4444; }
+            .processing { color: #3b82f6; }
+            h2 { margin-bottom: 0.5rem; }
+            p { color: #666; margin-top: 0.5rem; }
+          </style>
+        </head>
+        <body>
+          <div class="container">
+            ${status === "completed" ? '<h2 class="success">Payment Successful!</h2><p>Redirecting you to create your account...</p>' : 
+              status === "failed" ? '<h2 class="failed">Payment Failed</h2><p>Please try again.</p>' :
+              '<h2 class="processing">Processing...</h2><p>Please wait.</p>'}
+          </div>
+          <script>
+            (function() {
+              var status = "${status}";
+              var orderReference = "${orderReference}";
+              if (window.parent !== window) {
+                window.parent.postMessage({ type: status === "completed" ? "PAYMENT_SUCCESS" : status === "failed" ? "PAYMENT_ERROR" : "PAYMENT_PENDING", orderReference: orderReference, status: status }, "*");
+              } else {
+                ${status === "completed" ? `window.location.href = "${frontendUrl}/onboarding?token=${payment.reservationToken}";` :
+                  status === "failed" ? `window.location.href = "${frontendUrl}/payment/failed?ref=${orderReference}";` :
+                  `window.location.href = "${frontendUrl}/payment/individual";`}
+              }
+            })();
+          </script>
+        </body>
+      </html>
+    `;
+
+    res.setHeader("Content-Type", "text/html");
+    res.send(iframeScript);
   } catch (error) {
     appLogger.error("Pre-onboarding return POST error", null, {
       error: error instanceof Error ? error.message : "Unknown error",
