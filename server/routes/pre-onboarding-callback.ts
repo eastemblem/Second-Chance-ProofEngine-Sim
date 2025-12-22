@@ -15,9 +15,23 @@ router.post("/callback", async (req: Request, res: Response) => {
       category: "pre-onboarding-webhook",
     });
 
-    const { tran_ref, cart_id, respStatus, respCode, respMessage, tranRef } = req.body;
+    const { tran_ref, cart_id, respStatus, respCode, respMessage, tranRef, payment_result } = req.body;
     const orderReference = cart_id || req.body.order_reference;
     const transactionRef = tran_ref || tranRef;
+
+    // PayTabs sends status in payment_result.response_status (nested) or at top level
+    const responseStatus = respStatus || payment_result?.response_status;
+    const responseCode = respCode || payment_result?.response_code;
+
+    appLogger.business("Pre-onboarding callback status extraction", {
+      orderReference,
+      respStatus,
+      respCode,
+      nestedStatus: payment_result?.response_status,
+      nestedCode: payment_result?.response_code,
+      extractedStatus: responseStatus,
+      extractedCode: responseCode,
+    });
 
     if (!orderReference) {
       appLogger.error("Pre-onboarding callback missing order reference", null, {
@@ -27,9 +41,9 @@ router.post("/callback", async (req: Request, res: Response) => {
     }
 
     let status: "completed" | "failed" | "pending" = "pending";
-    if (respStatus === "A" || respCode === "000") {
+    if (responseStatus === "A" || responseCode === "000") {
       status = "completed";
-    } else if (respStatus === "D" || respStatus === "E") {
+    } else if (responseStatus === "D" || responseStatus === "E") {
       status = "failed";
     }
 
