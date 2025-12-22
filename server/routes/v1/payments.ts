@@ -319,8 +319,9 @@ router.get("/deal-room-access", async (req: AuthenticatedRequest, res) => {
 
     const hasAccess = await paymentService.hasDealRoomAccess(founderId);
     
-    // Get venture status from database - fetch the founder's primary venture
+    // Get venture status and user type from database
     let ventureStatus = 'pending';
+    let userType: 'individual' | 'residency' = 'residency';
     try {
       const { databaseService } = await import('../../services/database-service.js');
       const ventures = await databaseService.getVenturesByFounderId(founderId);
@@ -329,8 +330,14 @@ router.get("/deal-room-access", async (req: AuthenticatedRequest, res) => {
       if (primaryVenture?.status) {
         ventureStatus = primaryVenture.status;
       }
+      
+      // Get founder's userType
+      const founder = await storage.getFounder(founderId);
+      if (founder?.userType) {
+        userType = founder.userType as 'individual' | 'residency';
+      }
     } catch (error) {
-      appLogger.warn("Could not fetch venture status", { 
+      appLogger.warn("Could not fetch venture status or userType", { 
         founderId, 
         error: error instanceof Error ? error.message : 'Unknown error' 
       });
@@ -339,7 +346,8 @@ router.get("/deal-room-access", async (req: AuthenticatedRequest, res) => {
     res.json({
       success: true,
       hasAccess,
-      ventureStatus
+      ventureStatus,
+      userType
     });
 
   } catch (error) {

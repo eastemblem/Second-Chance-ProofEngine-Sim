@@ -70,6 +70,7 @@ export default function DashboardV2Page() {
     leaderboardData,
     hasDealRoomAccess,
     ventureStatus,
+    userType,
     isLoading: dataLoading,
     loadDashboardData,
     setHasDealRoomAccess
@@ -437,6 +438,7 @@ export default function DashboardV2Page() {
             onPaymentModalOpen={handlePaymentModalOpen}
             ventureStatus={ventureStatus}
             priceDisplay={pricing?.formatted?.current || '$99 USD'}
+            userType={userType}
           />
 
           {/* Your Proof Vault */}

@@ -143,7 +143,7 @@ export function useDashboardData() {
   const {
     data: dealRoomData,
     isLoading: dealRoomLoading,
-  } = useQuery<{ hasAccess: boolean; ventureStatus: 'pending' | 'reviewing' | 'reviewed' | 'done' }>({
+  } = useQuery<{ hasAccess: boolean; ventureStatus: 'pending' | 'reviewing' | 'reviewed' | 'done'; userType?: 'individual' | 'residency' }>({
     queryKey: ['/api/v1/payments/deal-room-access'],
     queryFn: async () => {
       const token = localStorage.getItem('auth_token');
@@ -180,6 +180,7 @@ export function useDashboardData() {
 
   const hasDealRoomAccess = useMemo(() => dealRoomData?.hasAccess || false, [dealRoomData]);
   const ventureStatus = useMemo(() => dealRoomData?.ventureStatus || 'pending', [dealRoomData]);
+  const userType = useMemo(() => dealRoomData?.userType || 'residency', [dealRoomData]);
 
   // Combined loading state
   const isLoading = validationLoading || vaultLoading || leaderboardLoading || dealRoomLoading;
@@ -267,6 +268,7 @@ export function useDashboardData() {
     leaderboardData,
     hasDealRoomAccess,
     ventureStatus,
+    userType,
     isLoading,
     loadDashboardData,
     setHasDealRoomAccess,

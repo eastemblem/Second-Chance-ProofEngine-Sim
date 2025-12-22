@@ -20,13 +20,18 @@ interface DealRoomSectionProps {
   onPaymentModalOpen?: () => void;
   ventureStatus?: 'pending' | 'reviewing' | 'reviewed' | 'done';
   priceDisplay?: string;
+  userType?: 'individual' | 'residency';
 }
 
-export function DealRoomSection({ validationData, hasDealRoomAccess = false, onPaymentModalOpen, ventureStatus = 'pending', priceDisplay = '$99 USD' }: DealRoomSectionProps) {
+export function DealRoomSection({ validationData, hasDealRoomAccess = false, onPaymentModalOpen, ventureStatus = 'pending', priceDisplay = '$99 USD', userType = 'residency' }: DealRoomSectionProps) {
   const { toast } = useToast();
   const [, setLocation] = useLocation();
   const proofScore = validationData?.proofScore || 0;
   const isUnlocked = proofScore >= 70;
+  
+  // Individual users get Deal Room access automatically when ProofScore >= 70
+  const isIndividualUser = userType === 'individual';
+  const effectiveHasDealRoomAccess = isIndividualUser ? (isUnlocked) : hasDealRoomAccess;
 
   // Calculate match percentage based on score
   const getMatchPercentage = () => {
@@ -40,8 +45,8 @@ export function DealRoomSection({ validationData, hasDealRoomAccess = false, onP
 
   // Get conditional content based on unlock status
   const getMainText = () => {
-    if (isUnlocked && hasDealRoomAccess) {
-      // Show congratulations message when user has paid
+    if (isUnlocked && effectiveHasDealRoomAccess) {
+      // Show congratulations message when user has access
       return (
         <>
           <div className="mb-6">
@@ -55,6 +60,17 @@ export function DealRoomSection({ validationData, hasDealRoomAccess = false, onP
           </div>
         </>
       );
+    } else if (isUnlocked && isIndividualUser) {
+      // Individual user has reached ProofScore >= 70 and auto-unlocked
+      return (
+        <>
+          <span className="text-2xl">🚀</span> <span className="font-bold">You've unlocked the Deal Room!</span> <span className="text-2xl">🚀</span>
+          <br />
+          <span className="font-bold">You're a <span className="text-green-400">{matchPercentage}%</span> match with 3 tier-1 investors.</span>
+          <br />
+          <span className="font-bold">Book your first investor call today.</span>
+        </>
+      );
     } else if (isUnlocked) {
       return (
         <>
@@ -63,6 +79,17 @@ export function DealRoomSection({ validationData, hasDealRoomAccess = false, onP
           <span className="font-bold">You're a <span className="text-green-400">{matchPercentage}%</span> match with 3 tier-1 investors.</span>
           <br />
           <span className="font-bold">Book your first investor call today.</span>
+        </>
+      );
+    } else if (isIndividualUser) {
+      // Individual user needs to reach ProofScore >= 70 to unlock
+      return (
+        <>
+          You're a <span className="text-green-400 font-bold">{matchPercentage}%</span> match with tier-1 investors.
+          <br />
+          Complete your validation (reach ProofScore 70+) to unlock Deal Room access.
+          <br />
+          <span className="text-purple-400 font-medium">Upload more proof files to boost your score!</span>
         </>
       );
     }
@@ -78,7 +105,13 @@ export function DealRoomSection({ validationData, hasDealRoomAccess = false, onP
   };
 
   const getButtonText = () => {
-    return isUnlocked ? "Book your first meeting!" : `Enter the Dealroom - ${priceDisplay}`;
+    if (isUnlocked) {
+      return "Book your first meeting!";
+    }
+    if (isIndividualUser) {
+      return "Reach ProofScore 70+ to unlock";
+    }
+    return `Enter the Dealroom - ${priceDisplay}`;
   };
 
   const getButtonStyle = () => {
@@ -119,12 +152,12 @@ export function DealRoomSection({ validationData, hasDealRoomAccess = false, onP
         // Don't block the UI if event logging fails
       }
 
-      // Check if user has paid for Deal Room access
-      if (hasDealRoomAccess) {
+      // Check if user has Deal Room access (paid or individual with score >= 70)
+      if (effectiveHasDealRoomAccess) {
         // Direct to Calendly booking
         window.open('https://calendly.com/get-secondchance-info/30min', '_blank');
-      } else {
-        // Trigger payment modal
+      } else if (!isIndividualUser) {
+        // Trigger payment modal (only for residency users)
         onPaymentModalOpen?.();
       }
     }
@@ -169,7 +202,7 @@ export function DealRoomSection({ validationData, hasDealRoomAccess = false, onP
           </div>
           
           {/* Show Access Deal Room button when status is Done, otherwise show payment/booking button */}
-          {(ventureStatus?.toLowerCase?.() === 'done') && hasDealRoomAccess ? (
+          {(ventureStatus?.toLowerCase?.() === 'done') && effectiveHasDealRoomAccess ? (
             <Button 
               className="px-8 py-3 rounded-lg font-semibold transition-all duration-200 bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700 text-white"
               onClick={() => setLocation('/dashboard/deal-room')}
@@ -199,9 +232,9 @@ export function DealRoomSection({ validationData, hasDealRoomAccess = false, onP
           )}
         </div>
 
-        {/* Right Column: Status Icons (only when user has paid) */}
+        {/* Right Column: Status Icons (only when user has access) */}
         <div className="lg:col-span-3">
-          {isUnlocked && hasDealRoomAccess && (
+          {isUnlocked && effectiveHasDealRoomAccess && (
             <div className="flex flex-col items-center gap-4 pt-8">
               {/* Reviewing */}
               <div className={`flex flex-col items-center gap-2 ${ventureStatus !== 'reviewing' ? 'opacity-50' : ''}`}>
