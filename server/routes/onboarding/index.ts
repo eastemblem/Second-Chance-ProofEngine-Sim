@@ -49,6 +49,8 @@ router.post("/founder", asyncHandler(async (req, res) => {
 
   console.log(`👤 ONBOARDING: Processing founder data for session ${sessionId}`);
   console.log(`🔑 ONBOARDING: preOnboardingToken present: ${!!founderData.preOnboardingToken}`, founderData.preOnboardingToken ? `Token: ${founderData.preOnboardingToken.substring(0, 10)}...` : '');
+  console.log(`📦 ONBOARDING: Full request body keys:`, Object.keys(founderData));
+  console.log(`📧 ONBOARDING: Email:`, founderData.email);
 
   try {
     // Validate required fields
