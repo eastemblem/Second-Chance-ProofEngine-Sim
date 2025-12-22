@@ -37,6 +37,13 @@ interface ClaimPaymentResult {
   error?: string;
 }
 
+interface PaymentStatusResult {
+  found: boolean;
+  status?: string;
+  reservationToken?: string;
+  email?: string;
+}
+
 function generateReservationToken(): string {
   const chars = "ABCDEFGHJKLMNPQRSTUVWXYZ23456789";
   let token = "";
@@ -365,6 +372,32 @@ class PreOnboardingPaymentService {
         email: payment.email,
         error: error instanceof Error ? error.message : "Unknown error",
       });
+    }
+  }
+
+  async getPaymentStatus(orderReference: string): Promise<PaymentStatusResult> {
+    try {
+      const [payment] = await db
+        .select()
+        .from(preOnboardingPayments)
+        .where(eq(preOnboardingPayments.orderReference, orderReference));
+
+      if (!payment) {
+        return { found: false };
+      }
+
+      return {
+        found: true,
+        status: payment.status,
+        reservationToken: payment.reservationToken,
+        email: payment.email,
+      };
+    } catch (error) {
+      appLogger.error("Get payment status error", null, {
+        orderReference,
+        error: error instanceof Error ? error.message : "Unknown error",
+      });
+      return { found: false };
     }
   }
 

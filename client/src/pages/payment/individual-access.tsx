@@ -3,16 +3,15 @@ import { useLocation } from "wouter";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
-import { useMutation } from "@tanstack/react-query";
-import { apiRequest } from "@/lib/queryClient";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
 import { useToast } from "@/hooks/use-toast";
-import { Loader2, Shield } from "lucide-react";
+import { Shield } from "lucide-react";
 import Logo from "@/components/logo";
 import Layout from "@/components/layout/layout";
+import { PreOnboardingPaymentModal } from "@/components/ui/pre-onboarding-payment-modal";
 
 const paymentFormSchema = z.object({
   email: z.string().email("Please enter a valid email address"),
@@ -22,18 +21,11 @@ const paymentFormSchema = z.object({
 
 type PaymentFormData = z.infer<typeof paymentFormSchema>;
 
-interface InitiatePaymentResponse {
-  success: boolean;
-  paymentUrl?: string;
-  reservationToken?: string;
-  orderReference?: string;
-  error?: string;
-}
-
 export default function IndividualAccessPayment() {
   const [, setLocation] = useLocation();
   const { toast } = useToast();
-  const [isRedirecting, setIsRedirecting] = useState(false);
+  const [isPaymentModalOpen, setIsPaymentModalOpen] = useState(false);
+  const [paymentFormData, setPaymentFormData] = useState<PaymentFormData | null>(null);
 
   const form = useForm<PaymentFormData>({
     resolver: zodResolver(paymentFormSchema),
@@ -44,42 +36,22 @@ export default function IndividualAccessPayment() {
     },
   });
 
-  const initiatePaymentMutation = useMutation({
-    mutationFn: async (data: PaymentFormData) => {
-      const response = await apiRequest(
-        "POST",
-        "/api/v1/pre-onboarding-payments/initiate",
-        data
-      );
-      return response.json() as Promise<InitiatePaymentResponse>;
-    },
-    onSuccess: (data) => {
-      if (data.success && data.paymentUrl) {
-        setIsRedirecting(true);
-        toast({
-          title: "Redirecting to payment...",
-          description: "You'll be taken to our secure payment gateway.",
-        });
-        window.location.href = data.paymentUrl;
-      } else {
-        toast({
-          title: "Payment Error",
-          description: data.error || "Failed to initiate payment. Please try again.",
-          variant: "destructive",
-        });
-      }
-    },
-    onError: (error: Error) => {
-      toast({
-        title: "Error",
-        description: error.message || "Something went wrong. Please try again.",
-        variant: "destructive",
-      });
-    },
-  });
-
   const onSubmit = (data: PaymentFormData) => {
-    initiatePaymentMutation.mutate(data);
+    setPaymentFormData(data);
+    setIsPaymentModalOpen(true);
+  };
+
+  const handlePaymentSuccess = (reservationToken: string) => {
+    setIsPaymentModalOpen(false);
+    toast({
+      title: "Payment Successful",
+      description: "Redirecting you to create your account...",
+    });
+    setLocation(`/onboarding?token=${reservationToken}`);
+  };
+
+  const handlePaymentClose = () => {
+    setIsPaymentModalOpen(false);
   };
 
   const socialProofMetrics = [
@@ -207,17 +179,9 @@ export default function IndividualAccessPayment() {
                     <Button
                       type="submit"
                       className="w-full gradient-button py-6 text-lg font-semibold"
-                      disabled={initiatePaymentMutation.isPending || isRedirecting}
                       data-testid="button-pay"
                     >
-                      {initiatePaymentMutation.isPending || isRedirecting ? (
-                        <>
-                          <Loader2 className="w-5 h-5 mr-2 animate-spin" />
-                          {isRedirecting ? "Redirecting..." : "Processing..."}
-                        </>
-                      ) : (
-                        "Pay $99 - Get Started"
-                      )}
+                      Pay $99 - Get Started
                     </Button>
 
                     <p className="text-xs text-center text-muted-foreground pt-2">
@@ -237,6 +201,17 @@ export default function IndividualAccessPayment() {
           </div>
         </div>
       </div>
+
+      {paymentFormData && (
+        <PreOnboardingPaymentModal
+          isOpen={isPaymentModalOpen}
+          onClose={handlePaymentClose}
+          onSuccess={handlePaymentSuccess}
+          customerEmail={paymentFormData.email}
+          customerName={paymentFormData.name}
+          customerPhone={paymentFormData.phone}
+        />
+      )}
     </Layout>
   );
 }

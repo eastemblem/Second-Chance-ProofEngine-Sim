@@ -119,6 +119,40 @@ router.get("/validate/:token", async (req: Request, res: Response) => {
   }
 });
 
+router.get("/status/:orderReference", async (req: Request, res: Response) => {
+  try {
+    const { orderReference } = req.params;
+
+    if (!orderReference) {
+      return res.status(400).json({ error: "Order reference is required" });
+    }
+
+    const result = await preOnboardingPaymentService.getPaymentStatus(orderReference);
+
+    if (!result.found) {
+      return res.status(404).json({
+        success: false,
+        error: "Payment not found",
+      });
+    }
+
+    res.json({
+      success: true,
+      status: result.status,
+      reservationToken: result.reservationToken,
+      email: result.email,
+    });
+  } catch (error) {
+    appLogger.error("Payment status check error", null, {
+      error: error instanceof Error ? error.message : "Unknown error",
+      service: "second-chance-api",
+      category: "pre-onboarding-payment",
+    });
+
+    res.status(500).json({ error: "Internal server error" });
+  }
+});
+
 router.post("/claim", async (req: Request, res: Response) => {
   try {
     const { reservationToken, founderId } = req.body;
