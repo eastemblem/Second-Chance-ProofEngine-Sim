@@ -7,11 +7,12 @@ import { useMutation } from "@tanstack/react-query";
 import { apiRequest } from "@/lib/queryClient";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
 import { useToast } from "@/hooks/use-toast";
-import { Loader2, CheckCircle, Shield, Rocket, Users, Award } from "lucide-react";
+import { Loader2, Shield } from "lucide-react";
+import Logo from "@/components/logo";
+import Layout from "@/components/layout/layout";
 
 const paymentFormSchema = z.object({
   email: z.string().email("Please enter a valid email address"),
@@ -81,147 +82,161 @@ export default function IndividualAccessPayment() {
     initiatePaymentMutation.mutate(data);
   };
 
-  const features = [
-    { icon: Rocket, text: "Full Platform Access" },
-    { icon: CheckCircle, text: "ProofScore Analysis" },
-    { icon: Users, text: "Investor Matching (when qualified)" },
-    { icon: Award, text: "Validation Certificate" },
+  const socialProofMetrics = [
+    { value: "$2.3M+", label: "Follow-on Funding" },
+    { value: "1000+", label: "Founders Validated" },
+    { value: "85%", label: "Success Rate" }
   ];
 
   return (
-    <div className="min-h-screen bg-gradient-to-b from-gray-900 via-purple-900/20 to-gray-900 flex items-center justify-center p-4">
-      <div className="w-full max-w-5xl grid md:grid-cols-2 gap-8 items-center">
-        <div className="space-y-6 text-white">
-          <h1 className="text-4xl font-bold bg-gradient-to-r from-purple-400 to-purple-200 bg-clip-text text-transparent">
-            Join Second Chance
-          </h1>
-          <p className="text-gray-300 text-lg">
-            Get access to our startup validation platform and start your journey to investor readiness.
-          </p>
-          
-          <div className="space-y-4">
-            {features.map((feature, index) => (
-              <div key={index} className="flex items-center gap-3" data-testid={`feature-item-${index}`}>
-                <div className="w-10 h-10 rounded-full bg-purple-500/20 flex items-center justify-center">
-                  <feature.icon className="w-5 h-5 text-purple-400" />
-                </div>
-                <span className="text-gray-200">{feature.text}</span>
+    <Layout className="bg-gradient-to-br from-background via-card to-background">
+      <div className="flex-1 flex items-center justify-center py-8">
+        <div className="w-full max-w-5xl mx-auto px-4 sm:px-6">
+          <div className="grid md:grid-cols-2 gap-8 lg:gap-12 items-center">
+            <div className="text-center md:text-left space-y-6">
+              <div className="logo-container mb-4 flex justify-center md:justify-start">
+                <Logo size="lg" />
               </div>
-            ))}
-          </div>
 
-          <div className="pt-4">
-            <div className="inline-flex items-center gap-2 px-4 py-2 bg-purple-500/10 rounded-full border border-purple-500/30">
-              <Shield className="w-4 h-4 text-purple-400" />
-              <span className="text-sm text-purple-300">Secure Payment via PayTabs</span>
+              <h2 className="text-3xl sm:text-4xl lg:text-5xl font-bold leading-tight">
+                <span className="gradient-text">
+                  Rejection isn't failure.
+                </span>
+                <br />
+                <span className="text-foreground">It's missing proof.</span>
+              </h2>
+
+              <p className="text-base sm:text-lg text-muted-foreground leading-relaxed max-w-md mx-auto md:mx-0">
+                Turn investor rejection into validation and funding through our data-backed ProofSync™ framework.
+              </p>
+
+              <div className="grid grid-cols-3 gap-4 sm:gap-6 max-w-md mx-auto md:mx-0">
+                {socialProofMetrics.map((metric, index) => (
+                  <div key={index} className="text-center" data-testid={`metric-${index}`}>
+                    <div className="text-xl sm:text-2xl font-bold text-primary-gold">
+                      {metric.value}
+                    </div>
+                    <div className="text-xs sm:text-sm text-muted-foreground leading-tight">
+                      {metric.label}
+                    </div>
+                  </div>
+                ))}
+              </div>
+
+              <div className="pt-2">
+                <div className="inline-flex items-center gap-2 px-4 py-2 bg-primary/10 rounded-full border border-primary/30">
+                  <Shield className="w-4 h-4 text-primary" />
+                  <span className="text-sm text-primary">Secure Payment via PayTabs</span>
+                </div>
+              </div>
             </div>
+
+            <Card className="bg-card/50 border-primary/30 backdrop-blur-sm">
+              <CardHeader className="text-center">
+                <CardTitle className="text-2xl text-foreground">Platform Access</CardTitle>
+                <CardDescription className="text-muted-foreground">
+                  One-time payment for full access
+                </CardDescription>
+                <div className="pt-4">
+                  <span className="text-5xl font-bold text-foreground">$99</span>
+                  <span className="text-muted-foreground ml-2">USD</span>
+                </div>
+              </CardHeader>
+              <CardContent>
+                <Form {...form}>
+                  <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
+                    <FormField
+                      control={form.control}
+                      name="name"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel className="text-muted-foreground">Full Name</FormLabel>
+                          <FormControl>
+                            <Input
+                              {...field}
+                              placeholder="John Doe"
+                              className="bg-background/50 border-border text-foreground placeholder:text-muted-foreground/50"
+                              data-testid="input-name"
+                            />
+                          </FormControl>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+
+                    <FormField
+                      control={form.control}
+                      name="email"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel className="text-muted-foreground">Email Address</FormLabel>
+                          <FormControl>
+                            <Input
+                              {...field}
+                              type="email"
+                              placeholder="john@example.com"
+                              className="bg-background/50 border-border text-foreground placeholder:text-muted-foreground/50"
+                              data-testid="input-email"
+                            />
+                          </FormControl>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+
+                    <FormField
+                      control={form.control}
+                      name="phone"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel className="text-muted-foreground">Phone Number (Optional)</FormLabel>
+                          <FormControl>
+                            <Input
+                              {...field}
+                              type="tel"
+                              placeholder="+971 50 123 4567"
+                              className="bg-background/50 border-border text-foreground placeholder:text-muted-foreground/50"
+                              data-testid="input-phone"
+                            />
+                          </FormControl>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+
+                    <Button
+                      type="submit"
+                      className="w-full gradient-button py-6 text-lg font-semibold"
+                      disabled={initiatePaymentMutation.isPending || isRedirecting}
+                      data-testid="button-pay"
+                    >
+                      {initiatePaymentMutation.isPending || isRedirecting ? (
+                        <>
+                          <Loader2 className="w-5 h-5 mr-2 animate-spin" />
+                          {isRedirecting ? "Redirecting..." : "Processing..."}
+                        </>
+                      ) : (
+                        "Pay $99 - Get Started"
+                      )}
+                    </Button>
+
+                    <p className="text-xs text-center text-muted-foreground pt-2">
+                      By proceeding, you agree to our{" "}
+                      <a href="/terms" className="text-primary hover:underline">
+                        Terms of Service
+                      </a>{" "}
+                      and{" "}
+                      <a href="/privacy" className="text-primary hover:underline">
+                        Privacy Policy
+                      </a>
+                    </p>
+                  </form>
+                </Form>
+              </CardContent>
+            </Card>
           </div>
         </div>
-
-        <Card className="bg-gray-800/50 border-purple-500/30 backdrop-blur-sm">
-          <CardHeader className="text-center">
-            <CardTitle className="text-2xl text-white">Platform Access</CardTitle>
-            <CardDescription className="text-gray-400">
-              One-time payment for full access
-            </CardDescription>
-            <div className="pt-4">
-              <span className="text-5xl font-bold text-white">$99</span>
-              <span className="text-gray-400 ml-2">USD</span>
-            </div>
-          </CardHeader>
-          <CardContent>
-            <Form {...form}>
-              <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
-                <FormField
-                  control={form.control}
-                  name="name"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel className="text-gray-300">Full Name</FormLabel>
-                      <FormControl>
-                        <Input
-                          {...field}
-                          placeholder="John Doe"
-                          className="bg-gray-700/50 border-gray-600 text-white placeholder:text-gray-500"
-                          data-testid="input-name"
-                        />
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-
-                <FormField
-                  control={form.control}
-                  name="email"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel className="text-gray-300">Email Address</FormLabel>
-                      <FormControl>
-                        <Input
-                          {...field}
-                          type="email"
-                          placeholder="john@example.com"
-                          className="bg-gray-700/50 border-gray-600 text-white placeholder:text-gray-500"
-                          data-testid="input-email"
-                        />
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-
-                <FormField
-                  control={form.control}
-                  name="phone"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel className="text-gray-300">Phone Number (Optional)</FormLabel>
-                      <FormControl>
-                        <Input
-                          {...field}
-                          type="tel"
-                          placeholder="+971 50 123 4567"
-                          className="bg-gray-700/50 border-gray-600 text-white placeholder:text-gray-500"
-                          data-testid="input-phone"
-                        />
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-
-                <Button
-                  type="submit"
-                  className="w-full bg-gradient-to-r from-purple-600 to-purple-500 hover:from-purple-500 hover:to-purple-400 text-white py-6 text-lg font-semibold"
-                  disabled={initiatePaymentMutation.isPending || isRedirecting}
-                  data-testid="button-pay"
-                >
-                  {initiatePaymentMutation.isPending || isRedirecting ? (
-                    <>
-                      <Loader2 className="w-5 h-5 mr-2 animate-spin" />
-                      {isRedirecting ? "Redirecting..." : "Processing..."}
-                    </>
-                  ) : (
-                    "Pay $99 - Get Started"
-                  )}
-                </Button>
-
-                <p className="text-xs text-center text-gray-500 pt-2">
-                  By proceeding, you agree to our{" "}
-                  <a href="/terms" className="text-purple-400 hover:underline">
-                    Terms of Service
-                  </a>{" "}
-                  and{" "}
-                  <a href="/privacy" className="text-purple-400 hover:underline">
-                    Privacy Policy
-                  </a>
-                </p>
-              </form>
-            </Form>
-          </CardContent>
-        </Card>
       </div>
-    </div>
+    </Layout>
   );
 }
