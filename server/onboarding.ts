@@ -29,6 +29,7 @@ export const founderOnboardingSchema = z.object({
   personalLinkedin: z.string().optional(),
   residence: z.string().optional(),
   isTechnical: z.boolean().default(false),
+  preOnboardingToken: z.string().optional(),
 });
 
 export const ventureOnboardingSchema = z.object({
