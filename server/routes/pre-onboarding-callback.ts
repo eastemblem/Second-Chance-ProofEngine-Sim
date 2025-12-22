@@ -70,8 +70,9 @@ router.get("/return", async (req: Request, res: Response) => {
       category: "pre-onboarding-return",
     });
 
-    const { respStatus, respCode, cartId, tranRef } = req.query;
-    const orderReference = cartId as string;
+    // PayTabs may send cartId (camelCase) or cart_id (snake_case)
+    const { respStatus, respCode, cartId, cart_id, tranRef, tran_ref } = req.query as Record<string, string>;
+    const orderReference = cartId || cart_id;
 
     const frontendUrl =
       process.env.FRONTEND_URL ||
@@ -166,8 +167,9 @@ router.post("/return", async (req: Request, res: Response) => {
       category: "pre-onboarding-return",
     });
 
-    const { respStatus, respCode, cart_id, tran_ref } = req.body;
-    const orderReference = cart_id;
+    // PayTabs may send cart_id (snake_case) or cartId (camelCase)
+    const { respStatus, respCode, cart_id, cartId, tran_ref, tranRef } = req.body;
+    const orderReference = cart_id || cartId;
 
     const frontendUrl =
       process.env.FRONTEND_URL ||
