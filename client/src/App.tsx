@@ -34,6 +34,7 @@ const PaymentSuccessPage = lazy(() => import("@/pages/payment/success"));
 const PaymentFailedPage = lazy(() => import("@/pages/payment/failed"));
 const PaymentCancelledPage = lazy(() => import("@/pages/payment/cancelled"));
 const PaymentErrorPage = lazy(() => import("@/pages/payment/error"));
+const IndividualAccessPayment = lazy(() => import("@/pages/payment/individual-access"));
 const NextSteps = lazy(() => import("@/pages/next-steps"));
 
 // Disable preloading to reduce initial bundle size and blocking
@@ -171,6 +172,11 @@ function Router() {
       <Route path="/payment/error" component={() => (
         <Suspense fallback={<SimpleLoader />}>
           <PaymentErrorPage />
+        </Suspense>
+      )} />
+      <Route path="/payment/individual" component={() => (
+        <Suspense fallback={<SimpleLoader />}>
+          <IndividualAccessPayment />
         </Suspense>
       )} />
       <Route component={NotFound} />

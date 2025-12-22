@@ -5,7 +5,7 @@ import onboardingRouter from "./onboarding";
 import vaultRouter from "./vault";
 import paymentsRouter from "./v1/payments";
 import webhooksRouter from "./v1/webhooks";
-// Removed encryption test router
+import preOnboardingCallbackRouter from "./pre-onboarding-callback";
 import paymentNextStepsRouter from "./payment-next-steps";
 import { createRequire } from 'module';
 
@@ -55,6 +55,9 @@ router.use("/ventures", venturesRouter);
 router.use("/onboarding", onboardingRouter);
 router.use("/vault", vaultRouter);
 router.use("/payment", paymentNextStepsRouter);
+
+// Pre-onboarding payment callbacks (no authentication required)
+router.use("/payment/pre-onboarding", preOnboardingCallbackRouter);
 
 // Development/test routes (no authentication required)
 // Encryption test routes removed
