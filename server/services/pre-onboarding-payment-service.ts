@@ -298,12 +298,8 @@ class PreOnboardingPaymentService {
           status: "completed",
           gatewayStatus: "A",
           description: "Second Chance Platform Access - Individual",
-          gatewayResponse: payment.gatewayResponse || null,
-          metadata: {
-            paymentType: "platform_access",
-            userType: payment.userType,
-            preOnboardingPaymentId: payment.id,
-          },
+          gatewayResponse: payment.gatewayResponse || {},
+          metadata: {},
         })
         .returning();
 
