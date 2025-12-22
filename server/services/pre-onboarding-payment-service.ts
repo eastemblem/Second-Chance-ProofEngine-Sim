@@ -247,17 +247,13 @@ class PreOnboardingPaymentService {
   }
 
   async claimPayment(reservationToken: string, founderId: string): Promise<ClaimPaymentResult> {
-    console.log(`💳 CLAIM_PAYMENT: Starting claim for token ${reservationToken?.substring(0, 10)}... and founderId ${founderId}`);
     try {
       const [payment] = await db
         .select()
         .from(preOnboardingPayments)
         .where(eq(preOnboardingPayments.reservationToken, reservationToken));
 
-      console.log(`💳 CLAIM_PAYMENT: Payment lookup result:`, payment ? { id: payment.id, status: payment.status, claimedByFounderId: payment.claimedByFounderId } : 'NOT FOUND');
-
       if (!payment) {
-        console.log(`❌ CLAIM_PAYMENT: Payment not found for token`);
         return { success: false, error: "Payment not found" };
       }
 
