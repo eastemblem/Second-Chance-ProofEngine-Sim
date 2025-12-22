@@ -113,14 +113,20 @@ export default function OnboardingFlow({ onComplete }: OnboardingFlowProps) {
   const queryClient = useQueryClient();
   const { tutorialCompletedPages } = useProofCoach();
 
-  // Check for pre-onboarding payment token in URL
+  // Check for pre-onboarding payment token in URL or localStorage
   useEffect(() => {
     const urlParams = new URLSearchParams(window.location.search);
-    const token = urlParams.get('token');
+    const urlToken = urlParams.get('token');
+    const storedToken = localStorage.getItem('pre_onboarding_token');
+    
+    // Use URL token if present, otherwise fall back to localStorage
+    const token = urlToken || storedToken;
     
     if (token) {
-      // Store token in localStorage for claiming later
-      localStorage.setItem('pre_onboarding_token', token);
+      // Store/update token in localStorage for claiming later
+      if (urlToken) {
+        localStorage.setItem('pre_onboarding_token', urlToken);
+      }
       setIsValidatingToken(true);
       
       // Fetch payment details
@@ -139,6 +145,8 @@ export default function OnboardingFlow({ onComplete }: OnboardingFlowProps) {
             }
           } else if (data.error) {
             console.warn('Pre-onboarding token validation failed:', data.error);
+            // Clear invalid token from localStorage
+            localStorage.removeItem('pre_onboarding_token');
           }
         })
         .catch(err => {
