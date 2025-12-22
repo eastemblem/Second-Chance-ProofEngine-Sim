@@ -6,6 +6,7 @@ import certificateRoutes from './certificates';
 import reportRoutes from './reports';
 import notificationRoutes from './notifications';
 import paymentsRoutes from './payments';
+import preOnboardingPaymentsRoutes from './pre-onboarding-payments';
 import validationMapRoutes from './validation-map';
 import coachRoutes from './coach';
 import activityRoutes from './activity';
@@ -16,7 +17,6 @@ import { getLeaderboard } from '../../routes/leaderboard';
 import { asyncHandler } from '../middleware/error';
 import { appLogger } from '../../utils/logger';
 import { authenticateToken } from '../../middleware/token-auth';
-// Removed clean encryption middleware
 
 const router = Router();
 
@@ -25,6 +25,9 @@ router.use('/onboarding', onboardingRoutes);
 
 // Register events routes (no authentication required - public events)
 router.use('/events', eventsRoutes);
+
+// Register pre-onboarding payments (no authentication required - payment before signup)
+router.use('/pre-onboarding-payments', preOnboardingPaymentsRoutes);
 
 // Apply JWT authentication with blacklist checking to remaining v1 routes
 router.use(authenticateToken);
