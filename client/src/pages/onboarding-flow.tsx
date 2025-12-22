@@ -108,6 +108,7 @@ export default function OnboardingFlow({ onComplete }: OnboardingFlowProps) {
   const [sessionData, setSessionData] = useState<SessionData | null>(null);
   const [currentStepIndex, setCurrentStepIndex] = useState(0);
   const [preOnboardingPayment, setPreOnboardingPayment] = useState<PreOnboardingPayment | null>(null);
+  const [isValidatingToken, setIsValidatingToken] = useState(false);
   const { toast } = useToast();
   const queryClient = useQueryClient();
   const { tutorialCompletedPages } = useProofCoach();
@@ -120,6 +121,7 @@ export default function OnboardingFlow({ onComplete }: OnboardingFlowProps) {
     if (token) {
       // Store token in localStorage for claiming later
       localStorage.setItem('pre_onboarding_token', token);
+      setIsValidatingToken(true);
       
       // Fetch payment details
       fetch(`/api/v1/pre-onboarding-payments/validate/${token}`)
@@ -141,6 +143,9 @@ export default function OnboardingFlow({ onComplete }: OnboardingFlowProps) {
         })
         .catch(err => {
           console.error('Failed to validate pre-onboarding token:', err);
+        })
+        .finally(() => {
+          setIsValidatingToken(false);
         });
     }
   }, []);
@@ -528,20 +533,27 @@ export default function OnboardingFlow({ onComplete }: OnboardingFlowProps) {
             className="bg-card rounded-xl p-8 mx-4 sm:mx-8 lg:mx-12 shadow-2xl border"
           >
             {currentStep.key === "founder" && (
-              <FounderOnboarding
-                sessionId={sessionData.sessionId}
-                initialData={{
-                  ...sessionData.stepData?.founder,
-                  ...(preOnboardingPayment ? {
-                    fullName: preOnboardingPayment.fullName,
-                    email: preOnboardingPayment.email,
-                  } : {})
-                }}
-                onNext={nextStep}
-                onDataUpdate={(data) => updateSessionData("founder", data)}
-                emailLocked={!!preOnboardingPayment}
-                preOnboardingToken={preOnboardingPayment?.reservationToken}
-              />
+              isValidatingToken ? (
+                <div className="flex flex-col items-center justify-center py-16">
+                  <div className="animate-spin rounded-full h-8 w-8 border-t-2 border-b-2 border-purple-500 mb-4"></div>
+                  <p className="text-muted-foreground">Loading your payment details...</p>
+                </div>
+              ) : (
+                <FounderOnboarding
+                  sessionId={sessionData.sessionId}
+                  initialData={{
+                    ...sessionData.stepData?.founder,
+                    ...(preOnboardingPayment ? {
+                      fullName: preOnboardingPayment.fullName,
+                      email: preOnboardingPayment.email,
+                    } : {})
+                  }}
+                  onNext={nextStep}
+                  onDataUpdate={(data) => updateSessionData("founder", data)}
+                  emailLocked={!!preOnboardingPayment}
+                  preOnboardingToken={preOnboardingPayment?.reservationToken}
+                />
+              )
             )}
             
 

@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { motion } from "framer-motion";
 import { useMutation } from "@tanstack/react-query";
 import { useForm } from "react-hook-form";
@@ -63,6 +63,23 @@ export default function FounderOnboarding({
       isTechnical: initialData?.isTechnical || false,
     }
   });
+
+  // Update form when initialData changes (e.g., when preOnboardingPayment data is loaded)
+  useEffect(() => {
+    if (initialData?.email && initialData.email !== form.getValues('email')) {
+      form.reset({
+        fullName: initialData?.fullName || form.getValues('fullName') || "",
+        email: initialData.email,
+        positionRole: initialData?.positionRole || form.getValues('positionRole') || "",
+        age: initialData?.age || form.getValues('age') || undefined,
+        linkedinProfile: initialData?.linkedinProfile || form.getValues('linkedinProfile') || "",
+        gender: initialData?.gender || form.getValues('gender') || "",
+        personalLinkedin: initialData?.personalLinkedin || form.getValues('personalLinkedin') || "",
+        residence: initialData?.residence || form.getValues('residence') || "",
+        isTechnical: initialData?.isTechnical ?? form.getValues('isTechnical') ?? false,
+      });
+    }
+  }, [initialData?.email, initialData?.fullName]);
 
   const submitMutation = useMutation({
     mutationFn: async (data: FounderFormData) => {
