@@ -326,18 +326,6 @@ class PreOnboardingPaymentService {
         userType: payment.userType,
       });
 
-      // Send confirmation email after successful claim
-      try {
-        await this.sendAccountCreationConfirmationEmail(payment, founderId);
-      } catch (emailError) {
-        appLogger.error("Failed to send account creation confirmation email", null, {
-          error: emailError instanceof Error ? emailError.message : "Unknown error",
-          paymentId: payment.id,
-          founderId,
-        });
-        // Don't fail the claim process if email fails
-      }
-
       return {
         success: true,
         userType: payment.userType,
@@ -424,35 +412,6 @@ class PreOnboardingPaymentService {
     } catch (error) {
       appLogger.error("Failed to send confirmation email", null, {
         email: payment.email,
-        error: error instanceof Error ? error.message : "Unknown error",
-      });
-    }
-  }
-
-  private async sendAccountCreationConfirmationEmail(payment: any, founderId: string): Promise<void> {
-    try {
-      const frontendUrl = process.env.FRONTEND_URL || process.env.REPLIT_DOMAINS?.split(",")[0];
-      const dashboardUrl = `https://${frontendUrl?.replace(/^https?:\/\//, "")}/dashboard`;
-      const hostUrl = `https://${frontendUrl?.replace(/^https?:\/\//, "")}`;
-      
-      await this.emailService.sendEmail(
-        payment.email,
-        "Welcome to Second Chance Platform",
-        "welcome-email",
-        {
-          HOST_URL: hostUrl,
-          USER_NAME: payment.name || "Founder",
-        }
-      );
-
-      appLogger.business("Account creation confirmation email sent", {
-        email: payment.email,
-        founderId,
-      });
-    } catch (error) {
-      appLogger.error("Failed to send account creation confirmation email", null, {
-        email: payment.email,
-        founderId,
         error: error instanceof Error ? error.message : "Unknown error",
       });
     }
