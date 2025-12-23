@@ -20,6 +20,8 @@ import {
   AlertTriangle,
   Download,
   HelpCircle,
+  Mail,
+  X,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -32,6 +34,12 @@ import {
   TooltipProvider,
   TooltipTrigger,
 } from "@/components/ui/tooltip";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
 
 import ProgressBar from "@/components/progress-bar";
 import { ProofScoreResult } from "@shared/schema";
@@ -442,6 +450,8 @@ export default function Analysis({
   const [isLoading, setIsLoading] = useState(false);
   const [sessionFromAPI, setSessionFromAPI] = useState<any>(null);
   const [showCelebration, setShowCelebration] = useState(false);
+  const [showEmailModal, setShowEmailModal] = useState(false);
+  const [emailModalCountdown, setEmailModalCountdown] = useState(5);
   const celebrationTriggered = useRef(false);
 
   // Extract data from session with comprehensive checking
@@ -462,6 +472,8 @@ export default function Analysis({
   }
 
   const founderData = sessionData?.stepData?.founder;
+  const userType = founderData?.userType || 'residency';
+  const isIndividualUser = userType === 'individual';
   const ventureData =
     sessionData?.stepData?.venture?.venture || sessionData?.stepData?.venture;
 
@@ -555,6 +567,23 @@ export default function Analysis({
       return () => clearTimeout(timer);
     }
   }, [sessionFromAPI, scoringResult, showCelebration]);
+
+  // Email modal countdown effect
+  useEffect(() => {
+    if (showEmailModal && emailModalCountdown > 0) {
+      const timer = setTimeout(() => {
+        setEmailModalCountdown(prev => prev - 1);
+      }, 1000);
+      return () => clearTimeout(timer);
+    } else if (showEmailModal && emailModalCountdown === 0) {
+      // Auto-close after countdown
+      const closeTimer = setTimeout(() => {
+        setShowEmailModal(false);
+        setEmailModalCountdown(5);
+      }, 1000);
+      return () => clearTimeout(closeTimer);
+    }
+  }, [showEmailModal, emailModalCountdown]);
 
   // Use API data if available (prioritize fresh API data)
   if (sessionFromAPI) {
@@ -1575,7 +1604,7 @@ export default function Analysis({
               </div>
             </div>
 
-            {/* See My Pathway Button */}
+            {/* CTA Button - Different for individual vs residency users */}
             <motion.div
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
@@ -1583,27 +1612,84 @@ export default function Analysis({
               className="text-center mb-8"
               data-testid="analysis-cta-buttons"
             >
-              <Button
-                onClick={() => {
-                  // Navigate directly to appropriate pathway based on score
-                  const score = analysisData?.total_score || 0;
-                  if (score >= 70) {
-                    window.location.href = '/deal-room';
-                  } else {
-                    window.location.href = '/proof-scaling';
-                  }
-                }}
-                className="gradient-button px-6 sm:px-8 py-4 sm:px-6 text-base sm:text-lg w-full sm:w-auto min-h-[48px] mb-4"
-                size="lg"
-                data-testid="button-see-my-pathway"
-              >
-                See My Pathway
-                <ArrowRight className="ml-2 w-4 h-4 sm:w-5 sm:h-5" />
-              </Button>
+              {isIndividualUser ? (
+                <Button
+                  onClick={() => setShowEmailModal(true)}
+                  className="gradient-button px-6 sm:px-8 py-4 sm:px-6 text-base sm:text-lg w-full sm:w-auto min-h-[48px] mb-4"
+                  size="lg"
+                  data-testid="button-next-step"
+                >
+                  Next Step
+                  <ArrowRight className="ml-2 w-4 h-4 sm:w-5 sm:h-5" />
+                </Button>
+              ) : (
+                <Button
+                  onClick={() => {
+                    // Navigate directly to appropriate pathway based on score
+                    const score = analysisData?.total_score || 0;
+                    if (score >= 70) {
+                      window.location.href = '/deal-room';
+                    } else {
+                      window.location.href = '/proof-scaling';
+                    }
+                  }}
+                  className="gradient-button px-6 sm:px-8 py-4 sm:px-6 text-base sm:text-lg w-full sm:w-auto min-h-[48px] mb-4"
+                  size="lg"
+                  data-testid="button-see-my-pathway"
+                >
+                  See My Pathway
+                  <ArrowRight className="ml-2 w-4 h-4 sm:w-5 sm:h-5" />
+                </Button>
+              )}
             </motion.div>
           </motion.div>
         </div>
       </div>
+
+      {/* Check Your Email Modal for Individual Users */}
+      <Dialog open={showEmailModal} onOpenChange={(open) => {
+        setShowEmailModal(open);
+        if (!open) setEmailModalCountdown(5);
+      }}>
+        <DialogContent className="sm:max-w-md bg-slate-900 border-slate-700">
+          <button
+            onClick={() => {
+              setShowEmailModal(false);
+              setEmailModalCountdown(5);
+            }}
+            className="absolute right-4 top-4 rounded-sm opacity-70 ring-offset-background transition-opacity hover:opacity-100 focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2 disabled:pointer-events-none data-[state=open]:bg-accent data-[state=open]:text-muted-foreground"
+          >
+            <X className="h-4 w-4 text-white" />
+            <span className="sr-only">Close</span>
+          </button>
+          <div className="flex flex-col items-center text-center py-6">
+            <div className="w-16 h-16 rounded-full bg-violet-600 flex items-center justify-center mb-6">
+              <Mail className="w-8 h-8 text-white" />
+            </div>
+            <DialogHeader>
+              <DialogTitle className="text-2xl font-bold text-white mb-4">
+                Check Your Email
+              </DialogTitle>
+            </DialogHeader>
+            <p className="text-slate-300 mb-6">
+              We've sent you a verification link to complete your account setup. Please check your email and click the verification link to get started.
+            </p>
+            <div className="flex items-center text-green-400 mb-4">
+              <CheckCircle className="w-5 h-5 mr-2" />
+              <span>Email sent successfully!</span>
+            </div>
+            <p className="text-slate-400 text-sm">
+              This popup will close in {emailModalCountdown} seconds
+            </p>
+            <div className="w-full bg-slate-700 rounded-full h-1 mt-4">
+              <div 
+                className="bg-violet-500 h-1 rounded-full transition-all duration-1000"
+                style={{ width: `${(emailModalCountdown / 5) * 100}%` }}
+              />
+            </div>
+          </div>
+        </DialogContent>
+      </Dialog>
     </TooltipProvider>
   );
 }
