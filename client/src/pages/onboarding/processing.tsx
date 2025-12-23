@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { motion } from "framer-motion";
 import { useMutation } from "@tanstack/react-query";
 import { useLocation } from "wouter";
@@ -69,6 +69,9 @@ export default function ProcessingScreen({
   });
   const [validationError, setValidationError] = useState<string | null>(null);
   const [showFileUpload, setShowFileUpload] = useState(false);
+
+  // Ref to prevent duplicate scoring calls
+  const scoringTriggeredRef = useRef(false);
 
   const MAX_RETRIES = 3;
 
@@ -330,6 +333,9 @@ export default function ProcessingScreen({
       return;
     }
 
+    // Reset the scoring triggered flag when retry count changes (new attempt)
+    scoringTriggeredRef.current = false;
+
     // Start processing automatically when component mounts
     
     // Simulate processing steps
@@ -346,6 +352,15 @@ export default function ProcessingScreen({
             return prev;
           }
           
+          // Prevent duplicate scoring calls using ref
+          if (scoringTriggeredRef.current) {
+            clearInterval(stepInterval);
+            return prev;
+          }
+          
+          // Mark scoring as triggered before calling mutate
+          scoringTriggeredRef.current = true;
+          
           // Start actual processing when we reach the last step
           clearInterval(stepInterval);
           submitForScoringMutation.mutate();
@@ -356,7 +371,7 @@ export default function ProcessingScreen({
     }, 2000);
 
     return () => clearInterval(stepInterval);
-  }, [retryCount]); // Add retryCount dependency to re-evaluate on changes
+  }, [retryCount, hasError]); // Add hasError dependency to properly re-evaluate
 
   return (
     <motion.div
