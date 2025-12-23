@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
-import { CheckCircle, XCircle, AlertTriangle, Loader2, CreditCard, Rocket, Award, Users } from 'lucide-react';
+import { CheckCircle, XCircle, AlertTriangle, Loader2, CreditCard, Rocket, Award, Users, Folder } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import { apiRequest } from '@/lib/queryClient';
 
@@ -249,8 +249,9 @@ export function PreOnboardingPaymentModal({
   const features = [
     { icon: Rocket, text: "Full Platform Access" },
     { icon: CheckCircle, text: "ProofScore Analysis" },
-    { icon: Users, text: "Investor Matching (when qualified)" },
+    { icon: Users, text: "Access to deal room (when qualified)" },
     { icon: Award, text: "Validation Certificate" },
+    { icon: Folder, text: "Investor Ready Proof Vault" },
   ];
 
   const renderContent = () => {
