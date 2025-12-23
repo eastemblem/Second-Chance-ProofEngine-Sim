@@ -95,17 +95,21 @@ export default function FounderOnboarding({
       });
       return await res.json();
     },
-    onSuccess: async (data) => {
-      if (data.success) {
+    onSuccess: async (response) => {
+      if (response.success) {
         // Track founder step completion
         trackEvent('onboarding_founder_complete', 'user_journey', 'founder_details_saved');
         
         if (import.meta.env.MODE === 'development') {
           console.log("👤 Founder step completed successfully");
+          console.log("🔑 Founder userType from server:", response.data?.founder?.userType);
         }
         
-        // Trigger session refresh from server
-        onDataUpdate(data);
+        // Pass the full founder object from server (includes userType) to update session
+        const founderData = response.data?.founder || response.founder;
+        if (founderData) {
+          onDataUpdate(founderData);
+        }
         
         // Navigate to next step
         onNext();

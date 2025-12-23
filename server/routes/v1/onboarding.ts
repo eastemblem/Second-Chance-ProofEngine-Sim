@@ -88,6 +88,7 @@ router.post("/founder", asyncHandler(async (req: Request, res: Response) => {
   res.json(createSuccessResponse({
     sessionId: result.sessionId,
     founderId: result.founderId,
+    founder: result.founder,
     nextStep: "venture",
   }));
 }));
