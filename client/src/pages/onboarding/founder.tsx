@@ -5,7 +5,6 @@ import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
 import { apiRequest } from "@/lib/queryClient";
-import { useToast } from "@/hooks/use-toast";
 import { trackEvent } from "@/lib/analytics";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -45,7 +44,6 @@ export default function FounderOnboarding({
   emailLocked = false,
   preOnboardingToken
 }: FounderOnboardingProps) {
-  const { toast } = useToast();
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [emailError, setEmailError] = useState<string | null>(null);
 
@@ -101,11 +99,6 @@ export default function FounderOnboarding({
       if (data.success) {
         // Track founder step completion
         trackEvent('onboarding_founder_complete', 'user_journey', 'founder_details_saved');
-        
-        toast({
-          title: "Success",
-          description: "Founder information saved successfully",
-        });
         
         if (import.meta.env.MODE === 'development') {
           console.log("👤 Founder step completed successfully");
@@ -199,13 +192,6 @@ export default function FounderOnboarding({
               type: "manual",
               message: "Email already taken"
             });
-            
-            // Show toast notification with helpful message
-            toast({
-              title: "Email Already Registered",
-              description: "This email address is already in use. Please use a different email address.",
-              variant: "destructive",
-            });
             return;
           }
           
@@ -241,13 +227,6 @@ export default function FounderOnboarding({
           type: "manual",
           message: "Email already taken"
         });
-        
-        // Show toast notification with helpful message
-        toast({
-          title: "Email Already Registered",
-          description: "This email address is already in use. Please use a different email address.",
-          variant: "destructive",
-        });
       } else {
         // Handle other errors normally
         console.warn("⚠️ General error handling:", {
@@ -255,12 +234,6 @@ export default function FounderOnboarding({
           sessionId,
           errorMessage,
           originalError: error
-        });
-        
-        toast({
-          title: "Error",
-          description: errorMessage,
-          variant: "destructive",
         });
       }
     }

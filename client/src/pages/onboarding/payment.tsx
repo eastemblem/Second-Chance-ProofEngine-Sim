@@ -22,7 +22,6 @@ import {
   CreditCard,
   Loader2
 } from "lucide-react";
-import { useToast } from "@/hooks/use-toast";
 import { apiRequest } from "@/lib/queryClient";
 
 interface PaymentOnboardingProps {
@@ -41,7 +40,6 @@ interface PaymentStatus {
 }
 
 export default function PaymentOnboarding({ sessionData, onNext, onSkip, onPrev, currentStepIndex = 6 }: PaymentOnboardingProps) {
-  const { toast } = useToast();
   const [paymentStatus, setPaymentStatus] = useState<PaymentStatus>({ status: 'idle' });
   const [isPolling, setIsPolling] = useState(false);
   const [showMobileModal, setShowMobileModal] = useState(false);
@@ -90,12 +88,6 @@ export default function PaymentOnboarding({ sessionData, onNext, onSkip, onPrev,
               status: 'success',
               message: 'Payment completed successfully!',
               paymentId
-            });
-            
-            toast({
-              title: "Payment Successful! 🎉",
-              description: "Your package has been activated. Welcome to the next level!",
-              variant: "success",
             });
             
             // Auto-advance after successful payment
@@ -175,12 +167,6 @@ export default function PaymentOnboarding({ sessionData, onNext, onSkip, onPrev,
               paymentId: paymentStatus.paymentId
             });
             
-            toast({
-              title: "Payment Successful! 🎉",
-              description: "Your package has been activated. Welcome to the next level!",
-              variant: "success",
-            });
-            
             setTimeout(() => onNext(), 3000);
           }
         } catch (error) {
@@ -191,7 +177,7 @@ export default function PaymentOnboarding({ sessionData, onNext, onSkip, onPrev,
 
     window.addEventListener('focus', handleFocus);
     return () => window.removeEventListener('focus', handleFocus);
-  }, [paymentStatus, onNext, toast]);
+  }, [paymentStatus, onNext]);
 
   const packageData = (isEarlyPayment || !isHighScore) ? {
     type: "foundation",
@@ -261,12 +247,6 @@ export default function PaymentOnboarding({ sessionData, onNext, onSkip, onPrev,
             paymentId: paymentId
           });
           
-          toast({
-            title: "Payment Successful! 🎉",
-            description: "Your package has been activated.",
-            variant: "success",
-          });
-          
           // Close mobile modal if open
           setShowMobileModal(false);
           
@@ -294,11 +274,6 @@ export default function PaymentOnboarding({ sessionData, onNext, onSkip, onPrev,
       }
     } catch (error) {
       console.error('Manual payment status check failed:', error);
-      toast({
-        title: "Status Check Failed",
-        description: "Unable to check payment status. Please try again.",
-        variant: "destructive",
-      });
     }
   };
 
@@ -381,11 +356,6 @@ export default function PaymentOnboarding({ sessionData, onNext, onSkip, onPrev,
         message: error instanceof Error ? error.message : 'Payment creation failed' 
       });
       
-      toast({
-        title: "Payment Error",
-        description: "Unable to process payment. Please try again.",
-        variant: "destructive",
-      });
     }
   };
 
@@ -576,27 +546,10 @@ export default function PaymentOnboarding({ sessionData, onNext, onSkip, onPrev,
                                   paymentId: paymentStatus.paymentId
                                 });
                                 
-                                toast({
-                                  title: "Payment Found! 🎉",
-                                  description: "Your payment has been completed successfully.",
-                                  variant: "default",
-                                });
-                                
                                 setTimeout(() => onNext(), 2000);
-                              } else {
-                                toast({
-                                  title: "Payment Still Pending",
-                                  description: "Payment is still being processed. Please wait or complete payment.",
-                                  variant: "default",
-                                });
                               }
                             } catch (error) {
                               console.error('Manual status check error:', error);
-                              toast({
-                                title: "Check Failed",
-                                description: "Unable to check payment status. Please try again.",
-                                variant: "destructive",
-                              });
                             }
                           }
                         }}

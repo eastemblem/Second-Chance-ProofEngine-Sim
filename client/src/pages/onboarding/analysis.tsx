@@ -34,7 +34,6 @@ import {
 } from "@/components/ui/tooltip";
 
 import ProgressBar from "@/components/progress-bar";
-import { useToast } from "@/hooks/use-toast";
 import { ProofScoreResult } from "@shared/schema";
 import { Leaderboard } from "@/components/leaderboard";
 import { CertificateDownload } from "@/components/certificate-download";
@@ -443,7 +442,6 @@ export default function Analysis({
   const [isLoading, setIsLoading] = useState(false);
   const [sessionFromAPI, setSessionFromAPI] = useState<any>(null);
   const [showCelebration, setShowCelebration] = useState(false);
-  const { toast } = useToast();
   const celebrationTriggered = useRef(false);
 
   // Extract data from session with comprehensive checking
@@ -550,20 +548,13 @@ export default function Analysis({
           console.log("Celebration animation started!");
         }
 
-        // Show toast notification
-        toast({
-          title: "🎉 Outstanding Score!",
-          description: `Your startup achieved ${totalScore} points - excellent validation signals!`,
-          duration: 5000,
-        });
-
         // Auto-hide celebration after 3 seconds
         setTimeout(() => setShowCelebration(false), 3000);
       }, 1500); // Delay to let other animations settle
 
       return () => clearTimeout(timer);
     }
-  }, [sessionFromAPI, scoringResult, showCelebration, toast]);
+  }, [sessionFromAPI, scoringResult, showCelebration]);
 
   // Use API data if available (prioritize fresh API data)
   if (sessionFromAPI) {

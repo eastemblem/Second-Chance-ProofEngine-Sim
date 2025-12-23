@@ -5,7 +5,6 @@ import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
 import { apiRequest } from "@/lib/queryClient";
-import { useToast } from "@/hooks/use-toast";
 import { trackEvent } from "@/lib/analytics";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -46,7 +45,6 @@ export default function TeamOnboarding({
   onPrev, 
   onDataUpdate 
 }: TeamOnboardingProps) {
-  const { toast } = useToast();
   const queryClient = useQueryClient();
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [showAddForm, setShowAddForm] = useState(false);
@@ -150,11 +148,6 @@ export default function TeamOnboarding({
         // Track team member addition
         trackEvent('team_member_added', 'form_submission', 'onboarding_team_management');
         
-        const memberName = data?.data?.teamMember?.fullName || "Team member";
-        toast({
-          title: "Success",
-          description: `${memberName} added to the team`,
-        });
         form.reset();
         setShowAddForm(false);
         setEditingMember(null);
@@ -167,11 +160,6 @@ export default function TeamOnboarding({
       }
     },
     onError: (error: any) => {
-      toast({
-        title: "Error",
-        description: error.message || "Failed to add team member",
-        variant: "destructive",
-      });
     }
   });
 
@@ -186,11 +174,6 @@ export default function TeamOnboarding({
         // Track team member update
         trackEvent('team_member_updated', 'form_submission', 'onboarding_team_management');
         
-        const memberName = data?.data?.teamMember?.fullName || "Team member";
-        toast({
-          title: "Success", 
-          description: `${memberName} updated successfully`,
-        });
         queryClient.invalidateQueries({ queryKey: ['team-members', sessionId] });
         refetch();
         setEditingMember(null);
@@ -199,11 +182,6 @@ export default function TeamOnboarding({
       }
     },
     onError: (error: any) => {
-      toast({
-        title: "Error",
-        description: error.message || "Failed to update team member",
-        variant: "destructive",
-      });
     },
   });
 
@@ -214,19 +192,10 @@ export default function TeamOnboarding({
       return await response.json();
     },
     onSuccess: () => {
-      toast({
-        title: "Success",
-        description: "Team member removed",
-      });
       queryClient.invalidateQueries({ queryKey: ['team-members'] });
       refetch();
     },
     onError: (error: any) => {
-      toast({
-        title: "Error", 
-        description: error.message || "Failed to remove team member",
-        variant: "destructive",
-      });
     },
   });
 
@@ -248,21 +217,11 @@ export default function TeamOnboarding({
       // Track team step completion
       trackEvent('onboarding_team_complete', 'user_journey', 'team_information_saved');
       
-      toast({
-        title: "Success",
-        description: "Team information saved successfully",
-      });
       onNext();
     },
     onError: (error: any) => {
       // Track team step error
       trackEvent('onboarding_team_error', 'user_journey', 'team_information_error');
-      
-      toast({
-        title: "Error",
-        description: error.message || "Failed to save team information",
-        variant: "destructive",
-      });
     }
   });
 

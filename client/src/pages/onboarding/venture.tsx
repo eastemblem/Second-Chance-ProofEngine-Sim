@@ -4,7 +4,6 @@ import { useMutation } from "@tanstack/react-query";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { apiRequest } from "@/lib/queryClient";
-import { useToast } from "@/hooks/use-toast";
 import { trackEvent } from "@/lib/analytics";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -29,7 +28,6 @@ export default function VentureOnboarding({
   onPrev,
   onDataUpdate
 }: VentureOnboardingProps) {
-  const { toast } = useToast();
   const [isSubmitting, setIsSubmitting] = useState(false);
 
   const form = useForm({
@@ -63,10 +61,6 @@ export default function VentureOnboarding({
         // Track venture step completion
         trackEvent('onboarding_venture_complete', 'user_journey', 'venture_details_saved');
         
-        toast({
-          title: "Success",
-          description: "Venture information saved successfully",
-        });
         // Pass the complete venture data including folder structure
         if (import.meta.env.MODE === 'development') {
           console.log("Venture step completed successfully. API response:", data);
@@ -90,12 +84,6 @@ export default function VentureOnboarding({
     onError: (error: any) => {
       // Track venture step error
       trackEvent('onboarding_venture_error', 'user_journey', 'venture_details_error');
-      
-      toast({
-        title: "Error",
-        description: error.message || "Failed to save venture information",
-        variant: "destructive",
-      });
     },
   });
 

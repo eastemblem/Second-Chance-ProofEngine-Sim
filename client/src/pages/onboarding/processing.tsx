@@ -3,7 +3,6 @@ import { motion } from "framer-motion";
 import { useMutation } from "@tanstack/react-query";
 import { useLocation } from "wouter";
 import { apiRequest } from "@/lib/queryClient";
-import { useToast } from "@/hooks/use-toast";
 import { trackEvent } from "@/lib/analytics";
 import { Button } from "@/components/ui/button";
 import { Loader2, FileText, Brain, BarChart3, CheckCircle, RefreshCw, AlertCircle, Upload, Mail } from "lucide-react";
@@ -50,7 +49,6 @@ export default function ProcessingScreen({
   onBack,
   sessionData
 }: ProcessingScreenProps) {
-  const { toast } = useToast();
   const [, setLocation] = useLocation();
   const [currentStep, setCurrentStep] = useState(0);
   const [processingComplete, setProcessingComplete] = useState(false);
@@ -167,12 +165,6 @@ export default function ProcessingScreen({
         hasError: true,
         errorMessage: errorMsg
       });
-      
-      toast({
-        title: "Processing Failed",
-        description: errorMsg,
-        variant: "destructive",
-      });
     },
     onSuccess: async (data) => {
       // Check if the response contains an error (like user action required)
@@ -197,12 +189,6 @@ export default function ProcessingScreen({
           hasError: true,
           errorMessage: processingData.errorMessage || "Unable to process the file"
         });
-        
-        toast({
-          title: "File Processing Issue",
-          description: processingData.errorMessage || "Unable to process the file",
-          variant: "destructive",
-        });
         return; // Don't proceed with normal success flow
       }
 
@@ -222,13 +208,6 @@ export default function ProcessingScreen({
             setHasError(true);
             setErrorMessage(maxRetryMessage);
             
-
-            toast({
-              title: "Maximum Retries Reached",
-              description: "Please contact support for assistance with your document.",
-              variant: "destructive"
-            });
-            
             return;
           }
           
@@ -246,12 +225,6 @@ export default function ProcessingScreen({
             errorMessage,
             validationError: errorMessage
           });
-
-          toast({
-            title: "File Analysis Failed",
-            description: errorMessage,
-            variant: "destructive"
-          });
           
           return; // Don't proceed with normal success flow
         }
@@ -266,23 +239,13 @@ export default function ProcessingScreen({
         onDataUpdate(processingData || data.data);
         setProcessingComplete(true);
         
-        // Show toast notifications for certificate and report when ready
+        // Check for certificate and report ready
         const processingInfo = data.data?.session?.stepData?.processing;
         if (processingInfo?.certificateUrl && !documentsNotified.certificate) {
-          toast({
-            title: "🏆 Certificate Ready!",
-            description: "Your ProofScore certificate has been generated and is ready for download.",
-            duration: 5000,
-          });
           setDocumentsNotified(prev => ({ ...prev, certificate: true }));
         }
         
         if (processingInfo?.reportUrl && !documentsNotified.report) {
-          toast({
-            title: "📊 Analysis Report Ready!",
-            description: "Your detailed analysis report has been generated and is ready for download.",
-            duration: 5000,
-          });
           setDocumentsNotified(prev => ({ ...prev, report: true }));
         }
         
@@ -302,11 +265,6 @@ export default function ProcessingScreen({
   const handleRetry = () => {
     // Check if maximum retries reached
     if (retryCount >= MAX_RETRIES) {
-      toast({
-        title: "Maximum Retries Reached",
-        description: "Please try uploading a different file or start over.",
-        variant: "destructive",
-      });
       return;
     }
     
@@ -339,21 +297,11 @@ export default function ProcessingScreen({
             
             // Check for certificate completion
             if (processingInfo?.certificateUrl && !documentsNotified.certificate) {
-              toast({
-                title: "🏆 Certificate Ready!",
-                description: "Your ProofScore certificate has been generated and is ready for download.",
-                duration: 5000,
-              });
               setDocumentsNotified(prev => ({ ...prev, certificate: true }));
             }
             
             // Check for report completion
             if (processingInfo?.reportUrl && !documentsNotified.report) {
-              toast({
-                title: "📊 Analysis Report Ready!",
-                description: "Your detailed analysis report has been generated and is ready for download.",
-                duration: 5000,
-              });
               setDocumentsNotified(prev => ({ ...prev, report: true }));
             }
             
@@ -372,7 +320,7 @@ export default function ProcessingScreen({
         clearInterval(documentCheckInterval);
       }
     };
-  }, [processingComplete, hasError, sessionId, documentsNotified, toast]);
+  }, [processingComplete, hasError, sessionId, documentsNotified]);
 
   useEffect(() => {
     // Check if maximum retries have been reached before starting processing

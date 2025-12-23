@@ -2,7 +2,6 @@ import { useState } from "react";
 import { motion } from "framer-motion";
 import { useMutation } from "@tanstack/react-query";
 import { apiRequest } from "@/lib/queryClient";
-import { useToast } from "@/hooks/use-toast";
 import { trackEvent } from "@/lib/analytics";
 // Removed encryption dependency
 import { Button } from "@/components/ui/button";
@@ -22,7 +21,6 @@ export default function DocumentUpload({
   onPrev,
   onDataUpdate 
 }: DocumentUploadProps) {
-  const { toast } = useToast();
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
   const [uploadProgress, setUploadProgress] = useState(0);
   const [isUploading, setIsUploading] = useState(false);
@@ -63,10 +61,6 @@ export default function DocumentUpload({
         // Track document upload completion
         trackEvent('onboarding_upload_complete', 'user_journey', 'pitch_deck_uploaded');
         
-        toast({
-          title: "Success",
-          description: "Pitch deck uploaded successfully",
-        });
         onDataUpdate({ upload: data?.upload });
         onNext();
       }
@@ -75,11 +69,6 @@ export default function DocumentUpload({
       // Track upload error
       trackEvent('onboarding_upload_error', 'user_journey', 'pitch_deck_upload_failed');
       
-      toast({
-        title: "Error",
-        description: error.message || "Failed to upload pitch deck",
-        variant: "destructive",
-      });
       setIsUploading(false);
     }
   });
@@ -90,20 +79,10 @@ export default function DocumentUpload({
     ];
 
     if (!allowedTypes.includes(file.type)) {
-      toast({
-        title: "Invalid File Type",
-        description: "Please upload a PDF file only",
-        variant: "destructive",
-      });
       return false;
     }
 
     if (file.size > 50 * 1024 * 1024) {
-      toast({
-        title: "File Too Large",
-        description: "Please upload a file smaller than 50MB",
-        variant: "destructive",
-      });
       return false;
     }
 
