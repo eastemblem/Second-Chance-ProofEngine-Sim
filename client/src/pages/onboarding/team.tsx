@@ -6,6 +6,7 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
 import { apiRequest } from "@/lib/queryClient";
 import { trackEvent } from "@/lib/analytics";
+import { useToast } from "@/hooks/use-toast";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -46,6 +47,7 @@ export default function TeamOnboarding({
   onDataUpdate 
 }: TeamOnboardingProps) {
   const queryClient = useQueryClient();
+  const { toast } = useToast();
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [showAddForm, setShowAddForm] = useState(false);
   const [editingMember, setEditingMember] = useState<any>(null);
@@ -148,6 +150,11 @@ export default function TeamOnboarding({
         // Track team member addition
         trackEvent('team_member_added', 'form_submission', 'onboarding_team_management');
         
+        toast({
+          title: "Team member added",
+          description: "Your team member has been added successfully.",
+        });
+        
         form.reset();
         setShowAddForm(false);
         setEditingMember(null);
@@ -160,6 +167,11 @@ export default function TeamOnboarding({
       }
     },
     onError: (error: any) => {
+      toast({
+        title: "Failed to add team member",
+        description: error?.message || "Please try again.",
+        variant: "destructive",
+      });
     }
   });
 
