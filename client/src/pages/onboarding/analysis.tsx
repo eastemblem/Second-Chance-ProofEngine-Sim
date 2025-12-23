@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef } from "react";
+import { useState, useEffect, useRef, useMemo } from "react";
 import { motion } from "framer-motion";
 import {
   ArrowRight,
@@ -463,11 +463,22 @@ export default function Analysis({
     console.log("Initial scoringResult found:", scoringResult);
   }
 
-  const founderData = sessionData?.stepData?.founder;
-  const userType = founderData?.userType || 'residency';
-  const isIndividualUser = userType === 'individual';
   const ventureData =
     sessionData?.stepData?.venture?.venture || sessionData?.stepData?.venture;
+
+  // Check for founder data in both local sessionData and API-fetched data  
+  // Use useMemo to make this reactive to sessionFromAPI state changes
+  const isIndividualUser = useMemo(() => {
+    const founderData = sessionData?.stepData?.founder || sessionFromAPI?.stepData?.founder;
+    const userType = founderData?.userType || 'residency';
+    
+    if (import.meta.env.MODE === 'development') {
+      console.log("🔍 Analysis - founderData:", founderData);
+      console.log("🔍 Analysis - userType:", userType);
+    }
+    
+    return userType === 'individual';
+  }, [sessionData?.stepData?.founder, sessionFromAPI?.stepData?.founder]);
 
   // Also check sessionFromAPI for venture name
   const apiVentureData =
