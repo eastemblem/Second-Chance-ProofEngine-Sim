@@ -358,31 +358,6 @@ export function PreOnboardingPaymentModal({
             
             <div className="px-4 pb-4 shrink-0 bg-background/95 border-t border-border/50 space-y-2">
               <Button 
-                onClick={async () => {
-                  if (!paymentData?.orderReference) return;
-                  try {
-                    const response = await apiRequest("GET", `/api/v1/pre-onboarding-payments/status/${paymentData.orderReference}`);
-                    const result = await response.json();
-                    if (result.success && result.status === 'completed') {
-                      setStep('success');
-                      toast({ title: "Payment Successful!", description: "Redirecting you to create your account..." });
-                      if (paymentData?.reservationToken) {
-                        setTimeout(() => onSuccess(paymentData.reservationToken), 1500);
-                      }
-                    } else {
-                      toast({ title: "Payment Still Processing", description: "Please wait a few more seconds...", variant: "default" });
-                    }
-                  } catch (error) {
-                    console.error('Manual check error:', error);
-                  }
-                }}
-                className="w-full gradient-button"
-                data-testid="button-check-payment"
-              >
-                <CheckCircle className="w-4 h-4 mr-2" />
-                I Completed Payment - Check Status
-              </Button>
-              <Button 
                 variant="outline" 
                 onClick={handleCancel} 
                 className="w-full border-2 border-red-500/20 hover:border-red-500/40 hover:bg-red-500/10 text-foreground"
