@@ -843,42 +843,8 @@ export class OnboardingManager {
     
     console.log("Certificate and report generation skipped - preserved for future use");
 
-    // Send email notification to founder about completion and ProofScore
-    try {
-      const { emailService } = await import('./services/emailService');
-      
-      const totalScore = scoringResult?.output?.total_score || 0;
-      const scoreBreakdown = scoringResult?.output || {};
-      const proofTags = scoringResult?.output?.proof_tags || [];
-      
-      // Get founder data for email
-      const founderData = stepData?.founder;
-      if (founderData?.email && founderData?.fullName) {
-        console.log(`📧 Sending completion email to ${founderData.email} with ProofScore: ${totalScore}`);
-        
-        // Since certificate and report generation is disabled, use placeholder URLs
-        const frontendUrl = process.env.FRONTEND_URL || `https://${process.env.REPLIT_DOMAINS?.split(',')[0]}`;
-        const certificateUrl = `${frontendUrl}/dashboard`; // Redirect to dashboard
-        const reportUrl = `${frontendUrl}/dashboard`; // Redirect to dashboard
-        
-        await emailService.sendOnboardingEmail(
-          founderData.email,
-          founderData.fullName,
-          totalScore,
-          scoreBreakdown,
-          proofTags,
-          reportUrl,
-          certificateUrl
-        );
-        
-        console.log(`✅ Completion email sent successfully to ${founderData.email}`);
-      } else {
-        console.log("⚠️ No founder email or name found, skipping email notification");
-      }
-    } catch (emailError) {
-      console.error("❌ Failed to send completion email:", emailError);
-      // Don't fail the scoring process if email fails
-    }
+    // NOTE: Email notification is handled by onboarding-service.ts in the certificate/report generation flow
+    // to avoid duplicate emails being sent
 
     // Send Slack notification for analysis completion (async, no wait)
     if (eastEmblemAPI.isConfigured()) {
