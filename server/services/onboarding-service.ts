@@ -1117,10 +1117,10 @@ export class OnboardingService {
                       proofScore: totalScore,
                       vaultScore: initialVaultScore,
                       prooftags: extractedTags,
-                      status: 'done',
+                      status: 'pending',
                       updatedAt: new Date()
                     });
-                    console.log(`✓ Updated venture ${venture.name} with growth stage: ${founderStage}, ProofScore: ${totalScore}, VaultScore: ${initialVaultScore}, ProofTags: ${extractedTags.length}, status: done`);
+                    console.log(`✓ Updated venture ${venture.name} with growth stage: ${founderStage}, ProofScore: ${totalScore}, VaultScore: ${initialVaultScore}, ProofTags: ${extractedTags.length}, status: pending (awaiting admin review)`);
                   } else {
                     // If pitch deck upload not found, still update venture
                     await storage.updateVenture(venture.ventureId, {
@@ -1128,10 +1128,10 @@ export class OnboardingService {
                       proofScore: totalScore,
                       vaultScore: 0,
                       prooftags: extractedTags,
-                      status: 'done',
+                      status: 'pending',
                       updatedAt: new Date()
                     });
-                    console.log(`✓ Updated venture ${venture.name} with ProofTags: ${extractedTags.length} (pitch deck upload not found)`);
+                    console.log(`✓ Updated venture ${venture.name} with ProofTags: ${extractedTags.length}, status: pending (pitch deck upload not found)`);
                   }
                 } else {
                   // If no pitch deck config found, still update venture with basic info
@@ -1140,10 +1140,10 @@ export class OnboardingService {
                     proofScore: totalScore,
                     vaultScore: 0,
                     prooftags: extractedTags,
-                    status: 'done',
+                    status: 'pending',
                     updatedAt: new Date()
                   });
-                  console.log(`✓ Updated venture ${venture.name} with ProofTags: ${extractedTags.length} (no pitch deck config found)`);
+                  console.log(`✓ Updated venture ${venture.name} with ProofTags: ${extractedTags.length}, status: pending (no pitch deck config found)`);
                 }
               } catch (pitchUpdateError) {
                 console.error("Failed to update pitch deck scores:", pitchUpdateError);
@@ -1153,7 +1153,7 @@ export class OnboardingService {
                   proofScore: totalScore,
                   vaultScore: 0,
                   prooftags: extractedTags,
-                  status: 'done',
+                  status: 'pending',
                   updatedAt: new Date()
                 });
               }
@@ -1163,10 +1163,10 @@ export class OnboardingService {
                 proofScore: totalScore,
                 vaultScore: 0,
                 prooftags: extractedTags,
-                status: 'done',
+                status: 'pending',
                 updatedAt: new Date()
               });
-              console.log(`✓ Updated venture ${venture.name} with initial ProofScore: ${totalScore}`);
+              console.log(`✓ Updated venture ${venture.name} with initial ProofScore: ${totalScore}, status: pending`);
               console.log(`⚠ No founder_stage found in scoring results for ${venture.name}`);
             }
           } catch (growthStageError) {
