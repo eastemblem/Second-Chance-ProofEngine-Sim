@@ -1,4 +1,4 @@
-import { founder, venture, teamMember, proofVault, leaderboard, evaluation, documentUpload, userActivity, paymentTransactions, userSubscriptions, paymentLogs, proofScalingWishlist, experimentMaster, ventureExperiments, agentPrompts, type Founder, type InsertFounder, type Venture, type InsertVenture, type TeamMember, type InsertTeamMember, type ProofVault, type InsertProofVault, type Leaderboard, type InsertLeaderboard, type Evaluation, type InsertEvaluation, type DocumentUpload, type InsertDocumentUpload, type UserActivity, type InsertUserActivity, type PaymentTransaction, type InsertPaymentTransaction, type UserSubscription, type InsertUserSubscription, type PaymentLog, type InsertPaymentLog, type ProofScalingWishlist, type InsertProofScalingWishlist, type VentureExperiment, type InsertVentureExperiment, type AgentPrompt, type InsertAgentPrompt } from "@shared/schema";
+import { founder, venture, teamMember, proofVault, leaderboard, evaluation, documentUpload, userActivity, paymentTransactions, userSubscriptions, paymentLogs, proofScalingWishlist, experimentMaster, ventureExperiments, type Founder, type InsertFounder, type Venture, type InsertVenture, type TeamMember, type InsertTeamMember, type ProofVault, type InsertProofVault, type Leaderboard, type InsertLeaderboard, type Evaluation, type InsertEvaluation, type DocumentUpload, type InsertDocumentUpload, type UserActivity, type InsertUserActivity, type PaymentTransaction, type InsertPaymentTransaction, type UserSubscription, type InsertUserSubscription, type PaymentLog, type InsertPaymentLog, type ProofScalingWishlist, type InsertProofScalingWishlist, type VentureExperiment, type InsertVentureExperiment } from "@shared/schema";
 import { db } from "./db";
 import { eq, desc, and, asc } from "drizzle-orm";
 import { appLogger } from "./utils/logger";
@@ -97,13 +97,6 @@ export interface IStorage {
   updateVentureExperiment(id: string, experiment: any): Promise<any>;
   deleteVentureExperiment(id: string): Promise<void>;
   completeVentureExperiment(id: string): Promise<any>;
-
-  // Agent Prompt methods
-  getAgentPrompt(stepName: string, licenseeType: string, programType: string): Promise<AgentPrompt | undefined>;
-  getAllAgentPrompts(): Promise<AgentPrompt[]>;
-  createAgentPrompt(prompt: InsertAgentPrompt): Promise<AgentPrompt>;
-  updateAgentPrompt(id: string, prompt: Partial<InsertAgentPrompt>): Promise<AgentPrompt>;
-  deleteAgentPrompt(id: string): Promise<void>;
 }
 
 export class DatabaseStorage implements IStorage {
@@ -709,51 +702,6 @@ export class DatabaseStorage implements IStorage {
       ...result.ventureExperiment,
       masterData: result.experimentMaster,
     };
-  }
-
-  // Agent Prompt methods
-  async getAgentPrompt(stepName: string, licenseeType: string, programType: string): Promise<AgentPrompt | undefined> {
-    const [prompt] = await db
-      .select()
-      .from(agentPrompts)
-      .where(
-        and(
-          eq(agentPrompts.stepName, stepName),
-          eq(agentPrompts.licenseeType, licenseeType),
-          eq(agentPrompts.programType, programType)
-        )
-      );
-    return prompt;
-  }
-
-  async getAllAgentPrompts(): Promise<AgentPrompt[]> {
-    return await db
-      .select()
-      .from(agentPrompts)
-      .orderBy(asc(agentPrompts.stepName), asc(agentPrompts.licenseeType), asc(agentPrompts.programType));
-  }
-
-  async createAgentPrompt(prompt: InsertAgentPrompt): Promise<AgentPrompt> {
-    const [created] = await db
-      .insert(agentPrompts)
-      .values(prompt)
-      .returning();
-    return created;
-  }
-
-  async updateAgentPrompt(id: string, prompt: Partial<InsertAgentPrompt>): Promise<AgentPrompt> {
-    const [updated] = await db
-      .update(agentPrompts)
-      .set({ ...prompt, updatedAt: new Date() })
-      .where(eq(agentPrompts.id, id))
-      .returning();
-    return updated;
-  }
-
-  async deleteAgentPrompt(id: string): Promise<void> {
-    await db
-      .delete(agentPrompts)
-      .where(eq(agentPrompts.id, id));
   }
 }
 
