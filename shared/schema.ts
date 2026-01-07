@@ -430,6 +430,17 @@ export const introductionRequests = pgTable("introduction_requests", {
   requestedAt: timestamp("requested_at").defaultNow().notNull(),
 });
 
+// Agent Prompts table - Admin-managed prompts for AI agent instructions
+export const agentPrompts = pgTable("agent_prompts", {
+  id: uuid("id").primaryKey().defaultRandom(),
+  stepName: varchar("step_name", { length: 50 }).notNull(), // e.g., 'quick-score', 'score-deck'
+  licenseeType: varchar("licensee_type", { length: 50 }).notNull(), // e.g., 'individual', 'residency', 'partner-name'
+  programType: varchar("program_type", { length: 50 }).notNull(), // e.g., 'core', 'growth'
+  promptText: text("prompt_text").notNull(),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+  updatedAt: timestamp("updated_at").defaultNow().notNull(),
+});
+
 // Relations
 export const founderRelations = relations(founder, ({ many, one }) => ({
   ventures: many(venture),
@@ -749,6 +760,21 @@ export type InsertLeaderboard = typeof leaderboard.$inferInsert;
 // Introduction Requests types
 export type IntroductionRequest = typeof introductionRequests.$inferSelect;
 export type InsertIntroductionRequest = typeof introductionRequests.$inferInsert;
+
+// Agent Prompts types
+export type AgentPrompt = typeof agentPrompts.$inferSelect;
+export type InsertAgentPrompt = typeof agentPrompts.$inferInsert;
+
+export const insertAgentPromptSchema = createInsertSchema(agentPrompts, {
+  stepName: z.string().min(1, "Step name is required"),
+  licenseeType: z.string().min(1, "Licensee type is required"),
+  programType: z.string().min(1, "Program type is required"),
+  promptText: z.string().min(1, "Prompt text is required"),
+}).omit({
+  id: true,
+  createdAt: true,
+  updatedAt: true,
+});
 
 export const founderSchema = z.object({
   fullName: z.string().min(1, "Name is required"),
