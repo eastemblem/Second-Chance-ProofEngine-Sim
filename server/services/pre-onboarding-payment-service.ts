@@ -11,6 +11,11 @@ interface InitiatePaymentOptions {
   email: string;
   name: string;
   phone?: string;
+  utmSource?: string;
+  utmMedium?: string;
+  utmCampaign?: string;
+  utmContent?: string;
+  utmTerm?: string;
 }
 
 interface InitiatePaymentResult {
@@ -85,7 +90,7 @@ class PreOnboardingPaymentService {
   }
 
   async initiatePayment(options: InitiatePaymentOptions): Promise<InitiatePaymentResult> {
-    const { email, name, phone } = options;
+    const { email, name, phone, utmSource, utmMedium, utmCampaign, utmContent, utmTerm } = options;
 
     try {
       const reservationToken = generateReservationToken();
@@ -160,6 +165,11 @@ class PreOnboardingPaymentService {
           status: "pending",
           userType: "individual",
           expiresAt,
+          utmSource,
+          utmMedium,
+          utmCampaign,
+          utmContent,
+          utmTerm,
         })
         .returning();
 

@@ -18,6 +18,11 @@ const initiatePaymentSchema = z.object({
   email: z.string().email("Invalid email address"),
   name: z.string().min(1, "Name is required").max(255),
   phone: z.string().max(50).optional(),
+  utmSource: z.string().max(100).optional(),
+  utmMedium: z.string().max(100).optional(),
+  utmCampaign: z.string().max(255).optional(),
+  utmContent: z.string().max(255).optional(),
+  utmTerm: z.string().max(255).optional(),
 });
 
 router.post("/initiate", preOnboardingPaymentLimiter, async (req: Request, res: Response) => {
@@ -30,11 +35,13 @@ router.post("/initiate", preOnboardingPaymentLimiter, async (req: Request, res: 
       });
     }
 
-    const { email, name, phone } = validationResult.data;
+    const { email, name, phone, utmSource, utmMedium, utmCampaign, utmContent, utmTerm } = validationResult.data;
 
     appLogger.business("Pre-onboarding payment initiation started", {
       email,
       name,
+      utmSource,
+      utmCampaign,
       service: "second-chance-api",
       category: "pre-onboarding-payment",
     });
@@ -43,6 +50,11 @@ router.post("/initiate", preOnboardingPaymentLimiter, async (req: Request, res: 
       email,
       name,
       phone,
+      utmSource,
+      utmMedium,
+      utmCampaign,
+      utmContent,
+      utmTerm,
     });
 
     if (!result.success) {

@@ -5,6 +5,7 @@ import { Card, CardContent } from '@/components/ui/card';
 import { CheckCircle, XCircle, AlertTriangle, Loader2, CreditCard, Rocket, Award, Users, Folder } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import { apiRequest } from '@/lib/queryClient';
+import { trackPaymentConfirmed, type UTMParams } from '@/lib/analytics';
 
 interface PreOnboardingPaymentModalProps {
   isOpen: boolean;
@@ -13,6 +14,7 @@ interface PreOnboardingPaymentModalProps {
   customerEmail: string;
   customerName: string;
   customerPhone?: string;
+  utmParams?: UTMParams | null;
 }
 
 type PaymentStep = 'form' | 'processing' | 'iframe' | 'success' | 'failed' | 'cancelled';
@@ -29,7 +31,8 @@ export function PreOnboardingPaymentModal({
   onSuccess,
   customerEmail,
   customerName,
-  customerPhone
+  customerPhone,
+  utmParams
 }: PreOnboardingPaymentModalProps) {
   const [step, setStep] = useState<PaymentStep>('form');
   const [paymentData, setPaymentData] = useState<PaymentResult | null>(null);
@@ -53,6 +56,11 @@ export function PreOnboardingPaymentModal({
         email: customerEmail,
         name: customerName,
         phone: customerPhone,
+        utmSource: utmParams?.utm_source,
+        utmMedium: utmParams?.utm_medium,
+        utmCampaign: utmParams?.utm_campaign,
+        utmContent: utmParams?.utm_content,
+        utmTerm: utmParams?.utm_term,
       });
 
       if (!response.ok) {
@@ -107,6 +115,7 @@ export function PreOnboardingPaymentModal({
               
               if (result.success && result.status === 'completed') {
                 setStep('success');
+                trackPaymentConfirmed(paymentData.orderReference, 99, 'USD');
                 toast({
                   title: "Payment Successful!",
                   description: "Redirecting you to create your account...",
@@ -137,6 +146,7 @@ export function PreOnboardingPaymentModal({
           console.log('[Payment Modal] Received PAYMENT_SUCCESS message:', event.data);
           // Server already verified the payment is completed, trust it
           setStep('success');
+          trackPaymentConfirmed(paymentData.orderReference, 99, 'USD');
           toast({
             title: "Payment Successful!",
             description: "Redirecting you to create your account...",

@@ -230,8 +230,16 @@ export class OnboardingService {
     // Remove preOnboardingToken from founderData before saving
     const { preOnboardingToken: _, ...cleanFounderData } = founderData;
     
-    // Add userType to founder data
-    const founderDataWithUserType = { ...cleanFounderData, userType };
+    // Add userType and UTM data to founder data (from pre-onboarding payment if available)
+    const founderDataWithUserType = { 
+      ...cleanFounderData, 
+      userType,
+      utmSource: validPreOnboardingPayment?.utmSource || undefined,
+      utmMedium: validPreOnboardingPayment?.utmMedium || undefined,
+      utmCampaign: validPreOnboardingPayment?.utmCampaign || undefined,
+      utmContent: validPreOnboardingPayment?.utmContent || undefined,
+      utmTerm: validPreOnboardingPayment?.utmTerm || undefined,
+    };
 
     // Check if founder exists by email
     let founder = await storage.getFounderByEmail(cleanFounderData.email);
@@ -280,6 +288,11 @@ export class OnboardingService {
               state: cleanFounderData.state,
               country: cleanFounderData.country,
               userType: userType,
+              utmSource: validPreOnboardingPayment?.utmSource || undefined,
+              utmMedium: validPreOnboardingPayment?.utmMedium || undefined,
+              utmCampaign: validPreOnboardingPayment?.utmCampaign || undefined,
+              utmContent: validPreOnboardingPayment?.utmContent || undefined,
+              utmTerm: validPreOnboardingPayment?.utmTerm || undefined,
               updatedAt: new Date(),
             })
             .where(eq(founderTable.founderId, founderId));

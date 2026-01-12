@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useLocation } from "wouter";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -12,6 +12,7 @@ import { Shield } from "lucide-react";
 import Logo from "@/components/logo";
 import Layout from "@/components/layout/layout";
 import { PreOnboardingPaymentModal } from "@/components/ui/pre-onboarding-payment-modal";
+import { captureUTMParams, getStoredUTMParams, type UTMParams } from "@/lib/analytics";
 
 const paymentFormSchema = z.object({
   email: z.string().email("Please enter a valid email address"),
@@ -26,6 +27,16 @@ export default function IndividualAccessPayment() {
   const { toast } = useToast();
   const [isPaymentModalOpen, setIsPaymentModalOpen] = useState(false);
   const [paymentFormData, setPaymentFormData] = useState<PaymentFormData | null>(null);
+  const [utmParams, setUtmParams] = useState<UTMParams | null>(null);
+
+  useEffect(() => {
+    const captured = captureUTMParams();
+    if (captured) {
+      setUtmParams(captured);
+    } else {
+      setUtmParams(getStoredUTMParams());
+    }
+  }, []);
 
   const form = useForm<PaymentFormData>({
     resolver: zodResolver(paymentFormSchema),
@@ -210,6 +221,7 @@ export default function IndividualAccessPayment() {
           customerEmail={paymentFormData.email}
           customerName={paymentFormData.name}
           customerPhone={paymentFormData.phone}
+          utmParams={utmParams}
         />
       )}
     </Layout>
