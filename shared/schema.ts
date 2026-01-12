@@ -42,6 +42,12 @@ export const founder = pgTable("founder", {
   lastLoginAt: timestamp("last_login_at"),
   // User type: individual (paid pre-onboarding) or residency (program participant)
   userType: varchar("user_type", { length: 20 }), // 'individual' | 'residency' | null for legacy
+  // UTM tracking for marketing attribution
+  utmSource: varchar("utm_source", { length: 100 }),
+  utmMedium: varchar("utm_medium", { length: 100 }),
+  utmCampaign: varchar("utm_campaign", { length: 255 }),
+  utmContent: varchar("utm_content", { length: 255 }),
+  utmTerm: varchar("utm_term", { length: 255 }),
   createdAt: timestamp("created_at").defaultNow().notNull(),
   updatedAt: timestamp("updated_at").defaultNow().notNull(),
 });
@@ -217,6 +223,12 @@ export const preOnboardingPayments = pgTable("pre_onboarding_payments", {
   claimedAt: timestamp("claimed_at"),
   // User type this payment grants
   userType: varchar("user_type", { length: 20 }).notNull().default("individual"), // 'individual' | 'residency'
+  // UTM tracking for marketing attribution
+  utmSource: varchar("utm_source", { length: 100 }),
+  utmMedium: varchar("utm_medium", { length: 100 }),
+  utmCampaign: varchar("utm_campaign", { length: 255 }),
+  utmContent: varchar("utm_content", { length: 255 }),
+  utmTerm: varchar("utm_term", { length: 255 }),
   // Timestamps
   createdAt: timestamp("created_at").defaultNow().notNull(),
   expiresAt: timestamp("expires_at"), // Payment claim expiry (30 days default)
