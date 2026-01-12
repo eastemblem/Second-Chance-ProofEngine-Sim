@@ -1,6 +1,8 @@
 import { Router } from 'express';
 import { emailService } from '../services/emailService.js';
 import { appLogger } from '../utils/logger';
+import { storage } from '../storage';
+import { generateVerificationToken, generateTokenExpiry } from '../utils/auth';
 
 const router = Router();
 
@@ -94,6 +96,90 @@ router.post('/send-onboarding', async (req, res) => {
     }
   } catch (error) {
     appLogger.email('Error sending onboarding email:', { error: error instanceof Error ? error.message : String(error), email: req.body.email });
+    res.status(500).json({ error: 'Internal server error' });
+  }
+});
+
+/**
+ * Send onboarding completion email - Gateway endpoint
+ * Fetches founder data from database and sends email with verification link
+ * Used by external gateway to trigger onboarding emails
+ */
+router.post('/send-onboarding-complete', async (req, res) => {
+  try {
+    const { email } = req.body;
+    
+    if (!email) {
+      return res.status(400).json({ 
+        error: 'Missing required field: email' 
+      });
+    }
+
+    // Get founder from database
+    const founder = await storage.getFounderByEmail(email);
+    if (!founder) {
+      return res.status(404).json({ 
+        error: 'Founder not found with this email' 
+      });
+    }
+
+    // Get founder's venture to get ProofScore
+    const ventures = await storage.getVenturesByFounderId(founder.founderId);
+    const venture = ventures?.[0];
+    
+    if (!venture) {
+      return res.status(404).json({ 
+        error: 'No venture found for this founder' 
+      });
+    }
+
+    // Generate verification token
+    const verificationToken = generateVerificationToken();
+    const tokenExpiry = generateTokenExpiry();
+
+    // Update founder with verification token
+    await storage.updateFounder(founder.founderId, {
+      verificationToken,
+      tokenExpiresAt: tokenExpiry,
+      updatedAt: new Date()
+    });
+
+    // Build verification URL
+    const baseUrl = process.env.FRONTEND_URL || `https://${process.env.REPLIT_DOMAINS?.split(',')[0]}`;
+    const verificationUrl = `${baseUrl.replace(/\/+$/, '')}/api/auth/verify-email?token=${verificationToken}`;
+
+    // Get founder name
+    const userName = founder.fullName?.split(' ')[0] || 'Founder';
+    const proofScore = venture.proofScore || 0;
+
+    // Send the onboarding email
+    const success = await emailService.sendOnboardingEmail(
+      email,
+      userName,
+      proofScore,
+      {}, // scoreBreakdown
+      [], // proofTags
+      '', // reportUrl
+      '', // certificateUrl
+      verificationUrl
+    );
+    
+    if (success) {
+      appLogger.email('Gateway: Onboarding completion email sent', { email, founderId: founder.founderId, proofScore });
+      res.json({ 
+        success: true, 
+        message: 'Onboarding completion email sent successfully',
+        data: {
+          founderId: founder.founderId,
+          ventureName: venture.name,
+          proofScore
+        }
+      });
+    } else {
+      res.status(500).json({ error: 'Failed to send onboarding email' });
+    }
+  } catch (error) {
+    appLogger.email('Error sending onboarding complete email:', { error: error instanceof Error ? error.message : String(error), email: req.body.email });
     res.status(500).json({ error: 'Internal server error' });
   }
 });
