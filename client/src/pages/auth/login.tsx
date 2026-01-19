@@ -5,12 +5,22 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { useToast } from "@/hooks/use-toast";
-import { Eye, EyeOff, LogIn } from "lucide-react";
+import { Eye, EyeOff, LogIn, AlertCircle } from "lucide-react";
 import Logo from "@/components/logo";
 import { AuthLayout } from "@/components/layout/layout";
 import { trackEvent } from "@/lib/analytics";
 import { apiRequest, handleResponse } from "@/lib/queryClient";
 import { useTokenAuth } from "@/hooks/use-token-auth";
+
+interface OnboardingIncompleteData {
+  email: string;
+  founderId?: string;
+  sessionId?: string;
+  currentStep?: string;
+  completedSteps?: string[];
+  resumeToken?: string;
+  resumeUrl: string;
+}
 
 export default function LoginPage() {
   const [email, setEmail] = useState("");
@@ -18,6 +28,7 @@ export default function LoginPage() {
   const [showPassword, setShowPassword] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const [isCheckingAuth, setIsCheckingAuth] = useState(true);
+  const [onboardingIncomplete, setOnboardingIncomplete] = useState<OnboardingIncompleteData | null>(null);
   const [, setLocation] = useLocation();
   const { toast } = useToast();
   const { setVentureFromLogin } = useTokenAuth();
@@ -79,6 +90,16 @@ export default function LoginPage() {
         password,
       });
 
+      // Handle 409 Conflict (onboarding incomplete) before handleResponse throws
+      if (response.status === 409) {
+        const errorData = await response.json();
+        if (errorData?.error === 'onboarding_incomplete' && errorData?.data) {
+          setOnboardingIncomplete(errorData.data);
+          trackEvent('login_onboarding_incomplete', 'authentication', 'incomplete_onboarding');
+          return;
+        }
+      }
+
       const data = await handleResponse(response);
 
       if (data.success) {
@@ -120,8 +141,24 @@ export default function LoginPage() {
       } else {
         throw new Error(data.error?.message || data.error || 'Login failed');
       }
-    } catch (error) {
+    } catch (error: any) {
       console.error('Login error:', error);
+      
+      // Check for onboarding incomplete response (409 status)
+      if (error?.response?.status === 409 || error?.message?.includes('onboarding_incomplete')) {
+        try {
+          // Try to parse the response for onboarding data
+          const errorData = error?.data || error?.response?.data;
+          if (errorData?.error === 'onboarding_incomplete' && errorData?.data) {
+            setOnboardingIncomplete(errorData.data);
+            trackEvent('login_onboarding_incomplete', 'authentication', 'incomplete_onboarding');
+            return;
+          }
+        } catch (parseError) {
+          console.error('Failed to parse onboarding incomplete response:', parseError);
+        }
+      }
+      
       // Track failed login event
       trackEvent('login_failed', 'authentication', 'login_error');
       
@@ -161,6 +198,67 @@ export default function LoginPage() {
           <p className="text-muted-foreground">Checking authentication...</p>
         </div>
       </div>
+    );
+  }
+
+  // Handle resume onboarding
+  const handleResumeOnboarding = () => {
+    if (onboardingIncomplete?.resumeUrl) {
+      trackEvent('resume_onboarding', 'authentication', 'resume_from_login');
+      setLocation(onboardingIncomplete.resumeUrl);
+    }
+  };
+
+  // Show onboarding incomplete UI
+  if (onboardingIncomplete) {
+    return (
+      <AuthLayout>
+        <div className="w-full max-w-md">
+          <div className="text-center mb-8">
+            <Logo size="lg" showTagline={false} />
+          </div>
+
+          <Card className="border-amber-500/50">
+            <CardHeader className="text-center">
+              <div className="w-12 h-12 mx-auto mb-4 rounded-full bg-amber-500/20 flex items-center justify-center">
+                <AlertCircle className="w-6 h-6 text-amber-500" />
+              </div>
+              <CardTitle className="text-xl sm:text-2xl">Complete Your Setup</CardTitle>
+              <CardDescription className="text-sm sm:text-base">
+                You haven't finished setting up your account yet. Continue where you left off to access your dashboard.
+              </CardDescription>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              <div className="bg-muted/50 rounded-lg p-4 text-sm">
+                <p className="text-muted-foreground">
+                  <span className="font-medium text-foreground">Email:</span> {onboardingIncomplete.email}
+                </p>
+                {onboardingIncomplete.currentStep && (
+                  <p className="text-muted-foreground mt-1">
+                    <span className="font-medium text-foreground">Last step:</span>{" "}
+                    {onboardingIncomplete.currentStep.charAt(0).toUpperCase() + onboardingIncomplete.currentStep.slice(1)}
+                  </p>
+                )}
+              </div>
+
+              <Button
+                onClick={handleResumeOnboarding}
+                className="w-full gradient-button py-3 text-base"
+              >
+                Continue Setup
+              </Button>
+
+              <Button
+                variant="ghost"
+                onClick={() => setOnboardingIncomplete(null)}
+                className="w-full text-muted-foreground"
+              >
+                Try different email
+              </Button>
+            </CardContent>
+          </Card>
+        </div>
+      </AuthLayout>
     );
   }
 

@@ -113,11 +113,19 @@ export default function OnboardingFlow({ onComplete }: OnboardingFlowProps) {
   const queryClient = useQueryClient();
   const { tutorialCompletedPages } = useProofCoach();
 
+  // State for resume session loading
+  const [isResumingSession, setIsResumingSession] = useState(false);
+  const [resumeSessionData, setResumeSessionData] = useState<any>(null);
+
   // Check for pre-onboarding payment token in URL or localStorage
   useEffect(() => {
     const urlParams = new URLSearchParams(window.location.search);
     const urlToken = urlParams.get('token');
     const storedToken = localStorage.getItem('pre_onboarding_token');
+    
+    // Skip if we're resuming a session
+    const resumeSessionId = urlParams.get('resume');
+    if (resumeSessionId) return;
     
     // Use URL token if present, otherwise fall back to localStorage
     const token = urlToken || storedToken;
@@ -214,8 +222,107 @@ export default function OnboardingFlow({ onComplete }: OnboardingFlowProps) {
     }
   });
 
+  // Check for resume session ID in URL - fetch and restore session from server
+  useEffect(() => {
+    const urlParams = new URLSearchParams(window.location.search);
+    const resumeSessionId = urlParams.get('resume');
+    
+    if (resumeSessionId) {
+      setIsResumingSession(true);
+      
+      // Fetch session data from server using the resume endpoint
+      fetch('/api/auth-token/resume-onboarding', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ sessionId: resumeSessionId })
+      })
+        .then(res => res.json())
+        .then(data => {
+          if (data.success && data.data?.found && data.data?.type === 'session') {
+            const serverSession = data.data;
+            if (import.meta.env.MODE === 'development') {
+              console.log('Resuming session from server:', serverSession);
+            }
+            
+            // Store the resume data for form pre-filling
+            setResumeSessionData({
+              founder: serverSession.founder,
+              venture: serverSession.venture,
+              stepData: serverSession.stepData
+            });
+            
+            // Build session data from server response
+            const restoredSession: SessionData = {
+              sessionId: serverSession.sessionId,
+              currentStep: serverSession.currentStep,
+              stepData: serverSession.stepData || {},
+              completedSteps: serverSession.completedSteps || [],
+              isComplete: serverSession.isComplete
+            };
+            
+            setSessionData(restoredSession);
+            
+            // Determine correct step index
+            const stepIndex = determineCurrentStepIndex(
+              restoredSession.completedSteps,
+              restoredSession.currentStep,
+              restoredSession
+            );
+            setCurrentStepIndex(stepIndex);
+            
+            // Store in localStorage for persistence
+            localStorage.setItem('onboardingSession', JSON.stringify(restoredSession));
+            
+            trackEvent('onboarding_resume', 'user_journey', serverSession.currentStep);
+            
+            toast({
+              title: "Welcome back!",
+              description: "Continuing from where you left off.",
+              duration: 3000,
+            });
+          } else {
+            console.warn('Failed to resume session:', data);
+            // Clear URL param and initialize new session
+            window.history.replaceState({}, '', '/onboarding');
+            // Clear any stale localStorage data
+            localStorage.removeItem('onboardingSession');
+            // Initialize new session
+            initSessionMutation.mutate();
+            toast({
+              title: "Session Expired",
+              description: "Your previous session has expired. Starting fresh.",
+              variant: "destructive",
+              duration: 4000,
+            });
+          }
+        })
+        .catch(err => {
+          console.error('Failed to resume session:', err);
+          window.history.replaceState({}, '', '/onboarding');
+          // Clear any stale localStorage data and initialize new session
+          localStorage.removeItem('onboardingSession');
+          initSessionMutation.mutate();
+          toast({
+            title: "Could not resume",
+            description: "Starting a new onboarding session.",
+            variant: "destructive",
+            duration: 4000,
+          });
+        })
+        .finally(() => {
+          setIsResumingSession(false);
+        });
+    }
+  }, [toast, initSessionMutation]);
+
   // Check for existing session on mount
   useEffect(() => {
+    const urlParams = new URLSearchParams(window.location.search);
+    const resumeSessionId = urlParams.get('resume');
+    
+    // Skip initialization if we're resuming from URL - that's handled separately
+    if (resumeSessionId) return;
+    
     const initializeOnboarding = async () => {
       // Standard onboarding initialization
       
@@ -417,7 +524,8 @@ export default function OnboardingFlow({ onComplete }: OnboardingFlowProps) {
     onComplete();
   };
 
-  if (!sessionData) {
+  // Show loading state when resuming session or initializing
+  if (isResumingSession || !sessionData) {
     return (
       <Layout>
         <div className="sticky top-0 z-50 bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
@@ -427,7 +535,7 @@ export default function OnboardingFlow({ onComplete }: OnboardingFlowProps) {
         <div className="flex items-center justify-center" style={{ minHeight: 'calc(100vh - 120px)' }}>
           <div className="text-foreground text-center">
             <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary mx-auto mb-4"></div>
-            <p>Initializing onboarding session...</p>
+            <p>{isResumingSession ? 'Resuming your session...' : 'Initializing onboarding session...'}</p>
           </div>
         </div>
       </Layout>
@@ -551,6 +659,9 @@ export default function OnboardingFlow({ onComplete }: OnboardingFlowProps) {
                   sessionId={sessionData.sessionId}
                   initialData={{
                     ...sessionData.stepData?.founder,
+                    // Include resume data from server (founder info from database)
+                    ...(resumeSessionData?.founder ? resumeSessionData.founder : {}),
+                    // Pre-onboarding payment takes priority for email/name
                     ...(preOnboardingPayment ? {
                       fullName: preOnboardingPayment.fullName,
                       email: preOnboardingPayment.email,
@@ -558,7 +669,7 @@ export default function OnboardingFlow({ onComplete }: OnboardingFlowProps) {
                   }}
                   onNext={nextStep}
                   onDataUpdate={(data) => updateSessionData("founder", data)}
-                  emailLocked={!!preOnboardingPayment}
+                  emailLocked={!!preOnboardingPayment || !!resumeSessionData?.founder?.email}
                   preOnboardingToken={preOnboardingPayment?.reservationToken}
                 />
               )
@@ -569,7 +680,11 @@ export default function OnboardingFlow({ onComplete }: OnboardingFlowProps) {
             {currentStep.key === "venture" && (
               <VentureOnboarding
                 sessionId={sessionData.sessionId}
-                initialData={sessionData.stepData?.venture}
+                initialData={{
+                  ...sessionData.stepData?.venture,
+                  // Include resume data from server (venture info from database)
+                  ...(resumeSessionData?.venture ? resumeSessionData.venture : {})
+                }}
                 onNext={nextStep}
                 onPrev={prevStep}
                 onDataUpdate={(data: any) => {

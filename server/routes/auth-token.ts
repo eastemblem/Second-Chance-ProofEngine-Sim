@@ -11,6 +11,9 @@ import {
 import { asyncHandler, createSuccessResponse, createErrorResponse } from '../utils/error-handler';
 import { appLogger } from '../utils/logger';
 import { ActivityService } from '../services/activity-service';
+import { db } from '../db';
+import { onboardingSession, founder as founderTable } from '@shared/schema';
+import { eq, and, desc } from 'drizzle-orm';
 const router = express.Router();
 
 // Clean encryption middleware applied at routing level
@@ -160,13 +163,62 @@ router.post('/login', asyncHandler(async (req, res) => {
     const founder = await databaseService.getFounderByEmail(email);
     
     if (!founder) {
+      // Check if there's a pending pre-onboarding payment for this email
+      const { preOnboardingPayments } = await import('@shared/schema');
+      const [pendingPayment] = await db
+        .select()
+        .from(preOnboardingPayments)
+        .where(and(
+          eq(preOnboardingPayments.email, email),
+          eq(preOnboardingPayments.status, 'completed')
+        ))
+        .limit(1);
+      
+      if (pendingPayment && !pendingPayment.claimedByFounderId) {
+        appLogger.auth(`⚠️ User has pending payment but no account: ${email}`);
+        return res.status(409).json({
+          success: false,
+          error: 'onboarding_incomplete',
+          code: 'PENDING_PAYMENT',
+          message: 'You have paid but haven\'t set up your account yet.',
+          data: {
+            email: email,
+            resumeToken: pendingPayment.reservationToken,
+            resumeUrl: `/onboarding?token=${pendingPayment.reservationToken}`
+          }
+        });
+      }
+      
       appLogger.auth(`❌ Founder not found for email: ${email}`);
       return res.status(401).json(createErrorResponse(401, 'Invalid credentials'));
     }
     
+    // Check if founder has incomplete onboarding (no password set means onboarding incomplete)
     if (!founder.passwordHash) {
-      appLogger.auth(`❌ No password hash found for founder: ${founder.founderId}`);
-      return res.status(401).json(createErrorResponse(401, 'Invalid credentials'));
+      // Find their onboarding session
+      const [session] = await db
+        .select()
+        .from(onboardingSession)
+        .where(eq(onboardingSession.founderId, founder.founderId))
+        .orderBy(desc(onboardingSession.createdAt))
+        .limit(1);
+      
+      appLogger.auth(`⚠️ Onboarding incomplete for founder: ${founder.founderId}`);
+      return res.status(409).json({
+        success: false,
+        error: 'onboarding_incomplete',
+        code: 'NO_PASSWORD',
+        message: 'Please complete your account setup first.',
+        data: {
+          email: founder.email,
+          founderId: founder.founderId,
+          sessionId: session?.sessionId,
+          currentStep: session?.currentStep || 'founder',
+          resumeUrl: session?.sessionId 
+            ? `/onboarding?resume=${session.sessionId}` 
+            : '/onboarding'
+        }
+      });
     }
 
     appLogger.auth(`🔑 Verifying password for founder: ${founder.founderId}`);
@@ -175,6 +227,32 @@ router.post('/login', asyncHandler(async (req, res) => {
     if (!isPasswordValid) {
       appLogger.auth(`❌ Password verification failed for founder: ${founder.founderId}`);
       return res.status(401).json(createErrorResponse(401, 'Invalid credentials'));
+    }
+    
+    // Check if onboarding session is marked as complete
+    const [session] = await db
+      .select()
+      .from(onboardingSession)
+      .where(eq(onboardingSession.founderId, founder.founderId))
+      .orderBy(desc(onboardingSession.createdAt))
+      .limit(1);
+    
+    if (session && !session.isComplete) {
+      appLogger.auth(`⚠️ Onboarding session incomplete for founder: ${founder.founderId}`);
+      return res.status(409).json({
+        success: false,
+        error: 'onboarding_incomplete',
+        code: 'SESSION_INCOMPLETE',
+        message: 'Please finish setting up your account.',
+        data: {
+          email: founder.email,
+          founderId: founder.founderId,
+          sessionId: session.sessionId,
+          currentStep: session.currentStep,
+          completedSteps: session.completedSteps,
+          resumeUrl: `/onboarding?resume=${session.sessionId}`
+        }
+      });
     }
     
     appLogger.auth(`✅ Password verified successfully for founder: ${founder.founderId}`);
@@ -412,6 +490,137 @@ router.post('/refresh', asyncHandler(async (req, res) => {
   } catch (error) {
     appLogger.auth('Token refresh error:', error);
     res.status(500).json(createErrorResponse(500, 'Token refresh failed'));
+  }
+}));
+
+/**
+ * Resume onboarding - lookup session by email or session ID
+ */
+router.post('/resume-onboarding', asyncHandler(async (req, res) => {
+  const { email, sessionId } = req.body;
+
+  if (!email && !sessionId) {
+    return res.status(400).json(createErrorResponse(400, 'Email or session ID is required'));
+  }
+
+  try {
+    let session = null;
+    let founder = null;
+
+    if (sessionId) {
+      // Lookup by session ID
+      const [sessionResult] = await db
+        .select()
+        .from(onboardingSession)
+        .where(eq(onboardingSession.sessionId, sessionId))
+        .limit(1);
+      session = sessionResult;
+      
+      if (session?.founderId) {
+        founder = await databaseService.getFounderById(session.founderId);
+      }
+    } else if (email) {
+      // Lookup by email - find founder first, then their session
+      founder = await databaseService.getFounderByEmail(email);
+      
+      if (founder) {
+        const [sessionResult] = await db
+          .select()
+          .from(onboardingSession)
+          .where(eq(onboardingSession.founderId, founder.founderId))
+          .orderBy(desc(onboardingSession.createdAt))
+          .limit(1);
+        session = sessionResult;
+      } else {
+        // Check for pending pre-onboarding payment
+        const { preOnboardingPayments } = await import('@shared/schema');
+        const [pendingPayment] = await db
+          .select()
+          .from(preOnboardingPayments)
+          .where(and(
+            eq(preOnboardingPayments.email, email),
+            eq(preOnboardingPayments.status, 'completed')
+          ))
+          .limit(1);
+        
+        if (pendingPayment && !pendingPayment.claimedByFounderId) {
+          return res.json(createSuccessResponse({
+            found: true,
+            type: 'pending_payment',
+            email: email,
+            resumeToken: pendingPayment.reservationToken,
+            resumeUrl: `/onboarding?token=${pendingPayment.reservationToken}`
+          }));
+        }
+        
+        return res.json(createSuccessResponse({
+          found: false,
+          message: 'No onboarding session found for this email'
+        }));
+      }
+    }
+
+    if (!session) {
+      return res.json(createSuccessResponse({
+        found: false,
+        message: 'No onboarding session found'
+      }));
+    }
+
+    // Get venture data if available
+    let venture = null;
+    if (founder) {
+      const ventures = await databaseService.getVenturesByFounderId(founder.founderId);
+      venture = ventures[0] || null;
+    }
+
+    appLogger.auth(`📋 Onboarding session found for resume`, {
+      sessionId: session.sessionId,
+      founderId: founder?.founderId,
+      currentStep: session.currentStep,
+      isComplete: session.isComplete
+    });
+
+    res.json(createSuccessResponse({
+      found: true,
+      type: 'session',
+      sessionId: session.sessionId,
+      currentStep: session.currentStep,
+      completedSteps: session.completedSteps || [],
+      stepData: session.stepData || {},
+      isComplete: session.isComplete,
+      founder: founder ? {
+        founderId: founder.founderId,
+        fullName: founder.fullName,
+        email: founder.email,
+        phone: founder.phone,
+        linkedinProfile: founder.linkedinProfile,
+        gender: founder.gender,
+        age: founder.age,
+        positionRole: founder.positionRole,
+        residence: founder.residence,
+        isTechnical: founder.isTechnical,
+        street: founder.street,
+        city: founder.city,
+        state: founder.state,
+        country: founder.country
+      } : null,
+      venture: venture ? {
+        ventureId: venture.ventureId,
+        name: venture.name,
+        industry: venture.industry,
+        geography: venture.geography,
+        businessModel: venture.businessModel,
+        description: venture.description,
+        mvpStatus: venture.mvpStatus,
+        revenueStage: venture.revenueStage
+      } : null,
+      resumeUrl: `/onboarding?resume=${session.sessionId}`
+    }));
+
+  } catch (error) {
+    appLogger.auth('Resume onboarding error:', error);
+    res.status(500).json(createErrorResponse(500, 'Failed to lookup onboarding session'));
   }
 }));
 
