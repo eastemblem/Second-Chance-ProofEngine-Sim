@@ -49,3 +49,7 @@ task = "shell.exec"
 args = "npm run dev"
 
 [agent]
+
+[userenv]
+
+[userenv.shared]
