@@ -85,9 +85,9 @@ export default function IndividualAccessPayment() {
     <Layout className="bg-gradient-to-br from-background via-card to-background">
       <div className="flex-1 flex items-center justify-center py-8">
         <div className="w-full max-w-5xl mx-auto px-4 sm:px-6">
-          <div className="grid md:grid-cols-2 gap-8 lg:gap-12 items-start">
+          <div className="grid md:grid-cols-2 gap-8 lg:gap-12 items-center">
             <div className="text-center md:text-left space-y-6">
-              <div className="logo-container mb-4 flex justify-center md:justify-start">
+              <div className="logo-container mb-4 flex justify-center">
                 <Logo size="lg" />
               </div>
 
