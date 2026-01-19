@@ -8,7 +8,7 @@ import { Input } from "@/components/ui/input";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
 import { useToast } from "@/hooks/use-toast";
-import { Shield } from "lucide-react";
+import { Shield, CheckCircle, TrendingUp, Users, Target, Award } from "lucide-react";
 import Logo from "@/components/logo";
 import Layout from "@/components/layout/layout";
 import { PreOnboardingPaymentModal } from "@/components/ui/pre-onboarding-payment-modal";
@@ -65,45 +65,70 @@ export default function IndividualAccessPayment() {
     setIsPaymentModalOpen(false);
   };
 
-  const socialProofMetrics = [
-    { value: "$2.3M+", label: "Follow-on Funding" },
-    { value: "1000+", label: "Founders Validated" },
-    { value: "85%", label: "Success Rate" }
+  const residencyResults = [
+    { icon: TrendingUp, text: "80% commercial traction achieved (partner or customers signed)" },
+    { icon: Users, text: "100% received 2x investor introductions" },
+    { icon: Target, text: "$1m raised from the program" },
+    { icon: Award, text: "100% reached investor ready score" },
+  ];
+
+  const platformFeatures = [
+    "ProofScore",
+    "ProofTags", 
+    "ProofPlan",
+    "ProofVault",
+    "ProofCoach",
+    "Validation Reports for Investors",
   ];
 
   return (
     <Layout className="bg-gradient-to-br from-background via-card to-background">
       <div className="flex-1 flex items-center justify-center py-8">
         <div className="w-full max-w-5xl mx-auto px-4 sm:px-6">
-          <div className="grid md:grid-cols-2 gap-8 lg:gap-12 items-center">
+          <div className="grid md:grid-cols-2 gap-8 lg:gap-12 items-start">
             <div className="text-center md:text-left space-y-6">
               <div className="logo-container mb-4 flex justify-center md:justify-start">
                 <Logo size="lg" />
               </div>
 
-              <h2 className="text-3xl sm:text-4xl lg:text-5xl font-bold leading-tight">
-                <span className="gradient-text">
-                  Rejection isn't failure.
-                </span>
-                <br />
-                <span className="text-foreground">It's missing proof.</span>
-              </h2>
+              <div className="space-y-4">
+                <h3 className="text-lg font-semibold text-primary">
+                  Our last Residency program delivered the following results:
+                </h3>
+                <ul className="space-y-3">
+                  {residencyResults.map((result, index) => (
+                    <li key={index} className="flex items-start gap-3">
+                      <result.icon className="w-5 h-5 text-primary-gold shrink-0 mt-0.5" />
+                      <span className="text-sm text-muted-foreground">{result.text}</span>
+                    </li>
+                  ))}
+                </ul>
+              </div>
 
-              <p className="text-base sm:text-lg text-muted-foreground leading-relaxed max-w-md mx-auto md:mx-0">
-                Turn investor rejection into validation and funding through our data-backed ProofSync™ framework.
-              </p>
+              <div className="space-y-4 pt-4 border-t border-border/50">
+                <h3 className="text-lg font-semibold text-foreground">
+                  Your payment today includes:
+                </h3>
+                <p className="text-sm text-muted-foreground">
+                  Full access to our platform and features for one year:
+                </p>
+                <ul className="grid grid-cols-2 gap-2">
+                  {platformFeatures.map((feature, index) => (
+                    <li key={index} className="flex items-center gap-2">
+                      <CheckCircle className="w-4 h-4 text-green-500 shrink-0" />
+                      <span className="text-sm text-foreground">{feature}</span>
+                    </li>
+                  ))}
+                </ul>
+              </div>
 
-              <div className="grid grid-cols-3 gap-4 sm:gap-6 max-w-md mx-auto md:mx-0">
-                {socialProofMetrics.map((metric, index) => (
-                  <div key={index} className="text-center" data-testid={`metric-${index}`}>
-                    <div className="text-xl sm:text-2xl font-bold text-primary-gold">
-                      {metric.value}
-                    </div>
-                    <div className="text-xs sm:text-sm text-muted-foreground leading-tight">
-                      {metric.label}
-                    </div>
-                  </div>
-                ))}
+              <div className="space-y-3 pt-4 border-t border-border/50">
+                <p className="text-sm text-muted-foreground">
+                  Direct access and onboarding to a Second Chance program running throughout the year at no extra cost.
+                </p>
+                <p className="text-lg font-semibold text-primary-gold">
+                  All for just $99 today.
+                </p>
               </div>
 
               <div className="pt-2">
