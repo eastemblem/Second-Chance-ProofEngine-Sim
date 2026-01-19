@@ -8,6 +8,8 @@ import { onboardingSession as onboardingSessionTable, documentUpload as document
 import { eq, and } from "drizzle-orm";
 import { COACH_EVENTS } from "../../shared/config/coach-events";
 import { preOnboardingPaymentService } from "./pre-onboarding-payment-service";
+import * as amplitudeService from "./amplitude-service";
+import { AMPLITUDE_LICENSEE_ID } from "@shared/config/amplitude";
 
 // Utility function to extract MIME type from file extension
 function getMimeTypeFromExtension(fileName: string): string {
@@ -254,6 +256,15 @@ export class OnboardingService {
         if (process.env.NODE_ENV === 'development') {
           console.log("Founder created successfully:", founder.founderId);
         }
+        
+        // Track founder creation in Amplitude
+        amplitudeService.trackFounderCreated(
+          sessionId,
+          founder.founderId,
+          founder.email,
+          founder.fullName,
+          false
+        );
       } catch (error) {
         console.error("❌ Failed to create founder:", error);
         throw new Error(`Failed to create founder: ${error instanceof Error ? error.message : 'Unknown error'}`);
@@ -313,6 +324,15 @@ export class OnboardingService {
           if (process.env.NODE_ENV === 'development') {
             console.log("Founder updated successfully for restart:", founder.founderId);
           }
+          
+          // Track founder re-registration in Amplitude (existing founder resuming)
+          amplitudeService.trackFounderCreated(
+            sessionId,
+            founder.founderId,
+            founder.email,
+            founder.fullName,
+            true // isExistingFounder
+          );
         } catch (error) {
           console.error("❌ Failed to update founder:", error);
           throw new Error(`Failed to update founder data: ${error instanceof Error ? error.message : 'Unknown error'}`);
@@ -439,6 +459,16 @@ export class OnboardingService {
           sessionId
         }
       );
+      
+      // Track venture creation in Amplitude
+      amplitudeService.trackVentureCreated(
+        sessionId,
+        venture.ventureId,
+        venture.name,
+        founderId,
+        venture.industry,
+        venture.geography
+      );
     } catch (error) {
       console.error("❌ Failed to create venture:", error);
       throw new Error(`Failed to create venture: ${error instanceof Error ? error.message : 'Unknown error'}`);
@@ -459,6 +489,16 @@ export class OnboardingService {
             folderStructure: folderStructure
           });
           console.log('✓ Folder structure saved to venture table');
+          
+          // Track folder structure creation in Amplitude
+          amplitudeService.trackFolderStructureCreated(
+            sessionId,
+            venture.ventureId,
+            venture.name,
+            folderStructure.id,
+            folderStructure.url,
+            { ventureId: venture.ventureId, founderId, sessionId, licenseeId: AMPLITUDE_LICENSEE_ID }
+          );
           
           // Populate proof_vault table with folder structure
           if (folderStructure.folders) {
@@ -559,6 +599,22 @@ export class OnboardingService {
       ...memberData,
       ventureId: venture.ventureId,
     });
+    
+    // Get team size for tracking
+    const teamMembers = await storage.getTeamMembersByVentureId(venture.ventureId);
+    const teamSize = teamMembers?.length || 1;
+    
+    // Track team member added in Amplitude
+    const founderData = session.stepData?.founder;
+    amplitudeService.trackTeamMemberAdded(
+      sessionId,
+      venture.ventureId,
+      venture.name,
+      memberData.fullName,
+      memberData.role,
+      teamSize,
+      { ventureId: venture.ventureId, founderId: founderData?.founderId, sessionId, licenseeId: AMPLITUDE_LICENSEE_ID }
+    );
 
     // Send Slack notification for team member addition (async, no wait)
     if (eastEmblemAPI.isConfigured()) {
@@ -1351,8 +1407,8 @@ export class OnboardingService {
     }
 
     // Send Slack notification for scoring completion (async, no wait)
+    const totalScore = scoringResult?.output?.total_score || scoringResult?.total_score || 0;
     if (eastEmblemAPI.isConfigured()) {
-      const totalScore = scoringResult?.output?.total_score || scoringResult?.total_score || 0;
       eastEmblemAPI
         .sendSlackNotification(
           `\`Onboarding Id : ${sessionId}\`\n🎯 ProofScore Analysis Complete - Total Score: ${totalScore}/100`,
@@ -1362,6 +1418,29 @@ export class OnboardingService {
         .catch((error) => {
           console.log("Failed to send scoring completion notification:", error);
         });
+    }
+    
+    // Track scoring completed in Amplitude
+    if (scoringResult && !scoringResult.hasError && venture?.ventureId) {
+      const dimensionScores = scoringResult?.output?.dimension_scores || {};
+      const proofTagsCount = scoringResult?.output?.proof_tags?.length || 0;
+      
+      amplitudeService.trackScoringCompleted(
+        venture.ventureId,
+        venture.name,
+        totalScore,
+        proofTagsCount,
+        dimensionScores,
+        0, // scoringDurationMs not tracked currently
+        { ventureId: venture.ventureId, founderId: stepData?.founder?.founderId, sessionId, licenseeId: AMPLITUDE_LICENSEE_ID }
+      );
+      
+      // Track onboarding completed if scoring was successful
+      amplitudeService.trackOnboardingCompleted(
+        sessionId,
+        { ventureId: venture.ventureId, founderId: stepData?.founder?.founderId, sessionId, licenseeId: AMPLITUDE_LICENSEE_ID },
+        totalScore
+      );
     }
 
     // Assign validation map experiments after successful scoring (async, no wait)

@@ -15,6 +15,8 @@ import multer from 'multer';
 import path from 'path';
 import fs from 'fs';
 import FormData from 'form-data';
+import * as amplitudeService from '../../services/amplitude-service';
+import { AMPLITUDE_LICENSEE_ID } from '@shared/config/amplitude';
 
 const router = Router();
 
@@ -456,6 +458,18 @@ router.post('/upload-file', upload.single("file"), asyncHandler(async (req: Auth
       if (currentVentureId && founderId) {
         const { VaultMilestoneService } = await import("../../services/vault-milestone-service");
         await VaultMilestoneService.checkAndEmitMilestones(founderId, currentVentureId, context);
+      }
+      
+      // Track file upload in Amplitude
+      if (currentVentureId && founderId) {
+        amplitudeService.trackFileUploadedToVault(
+          currentVentureId,
+          file.originalname,
+          file.size,
+          artifactType || '',
+          1, // uploadCount - single file
+          { ventureId: currentVentureId, founderId, licenseeId: AMPLITUDE_LICENSEE_ID }
+        );
       }
 
       // NEW: Calculate and update both VaultScore and ProofScore (only for non-batch or last file in batch)

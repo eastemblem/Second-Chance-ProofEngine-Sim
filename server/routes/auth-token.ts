@@ -14,6 +14,7 @@ import { ActivityService } from '../services/activity-service';
 import { db } from '../db';
 import { onboardingSession, founder as founderTable } from '@shared/schema';
 import { eq, and, desc } from 'drizzle-orm';
+import * as amplitudeService from '../services/amplitude-service';
 const router = express.Router();
 
 // Clean encryption middleware applied at routing level
@@ -310,6 +311,14 @@ router.post('/login', asyncHandler(async (req, res) => {
     );
 
     appLogger.auth(`✅ User logged in: ${email}`, { founderId: founder.founderId, email });
+    
+    // Track login in Amplitude
+    amplitudeService.trackLogin(
+      founder.founderId,
+      founder.email,
+      primaryVenture?.ventureId
+    );
+    
     res.json(authResponse);
 
   } catch (error) {
@@ -356,6 +365,11 @@ router.post('/logout', asyncHandler(async (req, res) => {
     
     // Clear HTTP-only cookie
     res.clearCookie('authToken');
+    
+    // Track logout in Amplitude
+    if (founderId) {
+      amplitudeService.trackLogout(founderId);
+    }
     
     appLogger.auth('✅ JWT token invalidated and user logged out');
   }
