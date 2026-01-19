@@ -63,6 +63,10 @@ import { setupVite, serveStatic, log } from "./vite";
 import { errorHandler } from "./utils/error-handler";
 import { schedulePeriodicCleanup } from "./utils/file-cleanup";
 import path from "path";
+import { initAmplitude } from "./services/amplitude-service";
+
+// Initialize Amplitude Analytics
+initAmplitude();
 
 const app = express();
 

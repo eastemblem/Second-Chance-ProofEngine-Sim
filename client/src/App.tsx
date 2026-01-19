@@ -7,6 +7,7 @@ import { TooltipProvider } from "@/components/ui/tooltip";
 import { lazy, Suspense, useEffect } from "react";
 import { SimpleLoader, InlineLoader } from "@/components/simple-loader";
 import { initGA } from "./lib/analytics";
+import { initAmplitude } from "./lib/amplitude";
 import { useAnalytics } from "./hooks/use-analytics";
 
 // Lazy load page components with preload hints
@@ -196,6 +197,9 @@ function App() {
     } else {
       initGA();
     }
+    
+    // Initialize Amplitude Analytics
+    initAmplitude();
   }, []);
 
   return (
