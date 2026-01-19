@@ -259,14 +259,19 @@ export class OnboardingService {
         throw new Error(`Failed to create founder: ${error instanceof Error ? error.message : 'Unknown error'}`);
       }
     } else {
-      // Founder exists - check if they have any incomplete sessions
+      // Founder exists - check if they have any incomplete sessions OR never set a password
       const hasIncompleteSession = await this.hasIncompleteOnboardingSession(founder.founderId);
+      const hasNoPassword = !founder.passwordHash;
       
-      if (hasIncompleteSession) {
+      if (hasIncompleteSession || hasNoPassword) {
         // Allow re-registration by updating existing founder data
+        // This covers both: explicit incomplete sessions AND founders who never finished onboarding (no password)
         try {
           if (process.env.NODE_ENV === 'development') {
-            console.log("Updating existing founder with incomplete session:", founder.founderId);
+            console.log("Updating existing founder with incomplete onboarding:", founder.founderId, {
+              hasIncompleteSession,
+              hasNoPassword
+            });
           }
           
           // Update the existing founder with new data
@@ -313,7 +318,7 @@ export class OnboardingService {
           throw new Error(`Failed to update founder data: ${error instanceof Error ? error.message : 'Unknown error'}`);
         }
       } else {
-        // Email already exists and has completed sessions - throw error
+        // Email already exists and has completed sessions with password set - throw error
         throw new Error("Email already taken");
       }
     }
@@ -325,8 +330,9 @@ export class OnboardingService {
       throw new Error("Failed to create founder - no ID returned");
     }
     
-    // Store founder ID separately for reliable access
+    // Store founder ID at session level (for hasIncompleteOnboardingSession lookups) and in stepData (for form access)
     await this.updateSession(sessionId, {
+      founderId: founderId,  // Link session to founder for future incomplete session checks
       currentStep: "venture",
       stepData: { 
         founder: founder,
