@@ -5,6 +5,7 @@ import { authenticateToken, type AuthenticatedRequest } from "../../middleware/t
 import { storage } from "../../storage.js";
 import { eastEmblemAPI } from "../../eastemblem-api.js";
 import { appLogger } from "../../utils/logger";
+import * as amplitudeService from "../../services/amplitude-service";
 
 const router = Router();
 
@@ -120,6 +121,20 @@ router.post("/create", async (req: AuthenticatedRequest, res) => {
       service: "second-chance-api",
       category: "payment"
     });
+
+    // Track payment started in Amplitude
+    const ventures = await storage.getVenturesByFounderId(founderId);
+    const ventureId = ventures[0]?.ventureId;
+    if (ventureId) {
+      amplitudeService.trackPaymentStarted(
+        founderId,
+        ventureId,
+        paymentRequest.amount,
+        paymentRequest.currency || 'USD',
+        paymentRequest.description || 'Deal Room Access',
+        { founderId, ventureId }
+      );
+    }
 
     // Send payment creation success notification
     if (eastEmblemAPI.isConfigured() && founder) {

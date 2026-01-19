@@ -5,6 +5,7 @@ import { detectUserCurrency, getDealRoomPricing } from "@/lib/currency-utils";
 import { usePaginatedActivities } from "@/hooks/use-paginated-activities";
 import { usePaginatedFiles } from "@/hooks/use-paginated-files";
 import { trackEvent } from "@/lib/analytics";
+import { trackDashboardVisited } from "@/lib/amplitude";
 import Navbar from "@/components/layout/navbar";
 import { DashboardLayout } from "@/components/layout/layout";
 import { DashboardLoadingSkeleton } from "@/components/dashboard-loading";
@@ -126,6 +127,7 @@ export default function DashboardV2Page() {
   useEffect(() => {
     checkAuthStatus();
     loadDashboardData();
+    trackDashboardVisited();
   }, [checkAuthStatus, loadDashboardData]);
 
   // Detect user currency and fetch live pricing

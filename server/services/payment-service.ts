@@ -9,6 +9,7 @@ import { eastEmblemAPI } from '../eastemblem-api.js';
 import { EmailService } from './emailService.js';
 import { CurrencyService } from './currency-service.js';
 import { COACH_EVENTS } from '../../shared/config/coach-events.js';
+import * as amplitudeService from './amplitude-service';
 
 // Legacy currency conversion methods - now using CurrencyService for live rates
 class CurrencyConverter {
@@ -1109,6 +1110,39 @@ ${statusEmoji} **${statusText}**
       { founderId: transaction.founderId },
       activityData
     );
+
+    // Track payment status in Amplitude
+    const amplitudeContext = {
+      founderId: transaction.founderId,
+      ventureId: ventureId || undefined
+    };
+    
+    if (newStatus === 'completed') {
+      amplitudeService.trackPaymentSuccess(
+        transaction.founderId,
+        ventureId || '',
+        transaction.amount,
+        transaction.currency,
+        transaction.orderReference,
+        purpose || 'Deal Room Access',
+        amplitudeContext
+      );
+    } else if (newStatus === 'cancelled') {
+      amplitudeService.trackPaymentCancelled(
+        transaction.founderId,
+        ventureId || '',
+        transaction.orderReference,
+        amplitudeContext
+      );
+    } else if (newStatus === 'failed') {
+      amplitudeService.trackPaymentFailed(
+        transaction.founderId,
+        ventureId || '',
+        transaction.orderReference,
+        'Payment failed',
+        amplitudeContext
+      );
+    }
 
     // Emit DEAL_ROOM_PURCHASED event for successful Deal Room purchases
     if (newStatus === 'completed' && purpose && 

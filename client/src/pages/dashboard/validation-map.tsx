@@ -24,6 +24,7 @@ import type { CustomExperimentData } from "@/components/dashboard/validation/Cus
 import { HoverCard, HoverCardContent, HoverCardTrigger } from "@/components/ui/hover-card";
 import ProofCoachWrapper from "@/components/ProofCoachWrapper";
 import { useProofCoach } from "@/contexts/ProofCoachContext";
+import { trackValidationMapViewed } from "@/lib/amplitude";
 
 // Lazy load heavy modal components for better performance
 const ExperimentDetailsModal = lazy(() => 
@@ -149,6 +150,11 @@ export default function ValidationMap() {
   const [debouncedSearchQuery, setDebouncedSearchQuery] = useState("");
   const [statusFilter, setStatusFilter] = useState<"all" | "active" | "completed">("all");
   const [categoryFilter, setCategoryFilter] = useState<string>("all");
+
+  // Track validation map page view
+  useEffect(() => {
+    trackValidationMapViewed();
+  }, []);
 
   // Debounce search query for performance
   useEffect(() => {
