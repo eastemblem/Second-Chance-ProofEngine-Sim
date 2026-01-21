@@ -538,9 +538,10 @@ export class OnboardingService {
       }
     }
 
-    // Update session
+    // Update session with ventureId
     await this.updateSession(sessionId, {
       currentStep: "team",
+      ventureId: venture.ventureId,
       stepData: {
         ...(session.stepData as any),
         venture,
