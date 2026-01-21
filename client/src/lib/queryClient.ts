@@ -73,6 +73,11 @@ async function throwIfResNotOk(res: Response) {
       
       throw apiError;
     } catch (parseError) {
+      // If this is an ApiError we just threw, re-throw it with all properties intact
+      if (parseError instanceof Error && parseError.name === 'ApiError') {
+        throw parseError;
+      }
+      
       console.warn("❌ JSON Parse Error:", parseError);
       console.log("📝 Raw response text:", text);
       
