@@ -90,16 +90,7 @@ export default function LoginPage() {
         password,
       });
 
-      // Handle 409 Conflict (onboarding incomplete) before handleResponse throws
-      if (response.status === 409) {
-        const errorData = await response.json();
-        if (errorData?.error === 'onboarding_incomplete' && errorData?.data) {
-          setOnboardingIncomplete(errorData.data);
-          trackEvent('login_onboarding_incomplete', 'authentication', 'incomplete_onboarding');
-          return;
-        }
-      }
-
+      // Note: apiRequest throws for non-2xx responses, so 409 is handled in catch block
       const data = await handleResponse(response);
 
       if (data.success) {
@@ -145,10 +136,11 @@ export default function LoginPage() {
       console.error('Login error:', error);
       
       // Check for onboarding incomplete response (409 status)
-      if (error?.response?.status === 409 || error?.message?.includes('onboarding_incomplete')) {
+      // Note: throwIfResNotOk attaches parsed JSON to error.response and status to error.status
+      if (error?.status === 409 || error?.message?.includes('onboarding_incomplete')) {
         try {
-          // Try to parse the response for onboarding data
-          const errorData = error?.data || error?.response?.data;
+          // error.response IS the parsed JSON data (not a wrapper)
+          const errorData = error?.response;
           if (errorData?.error === 'onboarding_incomplete' && errorData?.data) {
             setOnboardingIncomplete(errorData.data);
             trackEvent('login_onboarding_incomplete', 'authentication', 'incomplete_onboarding');
