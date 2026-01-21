@@ -11,6 +11,7 @@ import { AuthLayout } from "@/components/layout/layout";
 import { trackEvent } from "@/lib/analytics";
 import { apiRequest, handleResponse } from "@/lib/queryClient";
 import { useTokenAuth } from "@/hooks/use-token-auth";
+import { trackLogin, identifyFounder, identifyVenture } from "@/lib/amplitude";
 
 interface OnboardingIncompleteData {
   email: string;
@@ -102,11 +103,22 @@ export default function LoginPage() {
           localStorage.setItem('auth_token', data.token);
           localStorage.setItem('auth_user', JSON.stringify(data.founder));
           
+          // Identify user in Amplitude
+          if (data.founder?.founderId) {
+            identifyFounder(data.founder.founderId, data.founder.email || '', data.founder.fullName || '');
+            trackLogin(data.founder.founderId, data.founder.email || '', data.venture?.ventureId);
+          }
+          
           // Store venture data with growthStage
           if (data.venture) {
             localStorage.setItem('auth_venture', JSON.stringify(data.venture));
             // CRITICAL FIX: Pass venture data directly to avoid localStorage timing issues
             setVentureFromLogin(data.venture);
+            
+            // Identify venture in Amplitude
+            if (data.venture.ventureId) {
+              identifyVenture(data.venture.ventureId, data.venture.name || '', data.founder?.founderId || '');
+            }
           }
           
           // Clear only old/unnecessary data after storing new data

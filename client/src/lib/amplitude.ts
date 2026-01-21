@@ -19,6 +19,7 @@ let currentContext: AmplitudeUserContext = {
 
 /**
  * Initialize Amplitude Browser SDK
+ * Automatically restores user identity from localStorage if authenticated
  */
 export function initAmplitude(): void {
   const apiKey = import.meta.env.VITE_AMPLITUDE_API_KEY;
@@ -43,8 +44,83 @@ export function initAmplitude(): void {
     });
     isInitialized = true;
     console.log('[Amplitude] Browser tracking initialized');
+    
+    // Auto-identify user from stored auth data
+    restoreUserIdentity();
   } catch (error) {
     console.error('[Amplitude] Failed to initialize:', error);
+  }
+}
+
+/**
+ * Restore user identity from localStorage
+ * Called automatically on initialization to ensure returning users are identified
+ */
+function restoreUserIdentity(): void {
+  try {
+    // Check for authenticated user data
+    const authUser = localStorage.getItem('auth_user');
+    const authVenture = localStorage.getItem('auth_venture');
+    
+    if (authUser) {
+      const user = JSON.parse(authUser);
+      if (user.founderId) {
+        currentContext.founderId = user.founderId;
+        
+        // Set user ID to founderId for authenticated users
+        amplitude.setUserId(user.founderId);
+        
+        // Set user properties
+        const identifyObj = new amplitude.Identify();
+        identifyObj.set('founderId', user.founderId);
+        if (user.email) identifyObj.set('founderEmail', user.email);
+        if (user.fullName) identifyObj.set('founderName', user.fullName);
+        identifyObj.set('licenseeId', AMPLITUDE_LICENSEE_ID);
+        amplitude.identify(identifyObj);
+        
+        if (import.meta.env.MODE === 'development') {
+          console.log('[Amplitude] Restored user identity:', user.founderId);
+        }
+      }
+    }
+    
+    if (authVenture) {
+      const venture = JSON.parse(authVenture);
+      if (venture.ventureId) {
+        currentContext.ventureId = venture.ventureId;
+        
+        // Update user ID to ventureId (preferred over founderId)
+        amplitude.setUserId(venture.ventureId);
+        
+        // Add venture properties
+        const identifyObj = new amplitude.Identify();
+        identifyObj.set('ventureId', venture.ventureId);
+        if (venture.name) identifyObj.set('ventureName', venture.name);
+        amplitude.identify(identifyObj);
+        
+        if (import.meta.env.MODE === 'development') {
+          console.log('[Amplitude] Restored venture identity:', venture.ventureId);
+        }
+      }
+    }
+    
+    // Check for onboarding session
+    const onboardingSession = localStorage.getItem('onboardingSession');
+    if (onboardingSession && !currentContext.founderId && !currentContext.ventureId) {
+      const session = JSON.parse(onboardingSession);
+      if (session.sessionId) {
+        currentContext.sessionId = session.sessionId;
+        amplitude.setUserId(`session_${session.sessionId}`);
+        
+        if (import.meta.env.MODE === 'development') {
+          console.log('[Amplitude] Restored session identity:', session.sessionId);
+        }
+      }
+    }
+  } catch (error) {
+    if (import.meta.env.MODE === 'development') {
+      console.warn('[Amplitude] Failed to restore user identity:', error);
+    }
   }
 }
 

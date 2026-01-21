@@ -4,6 +4,13 @@ import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { apiRequest } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
 import { trackEvent } from "@/lib/analytics";
+import { 
+  trackOnboardingStarted, 
+  trackOnboardingStepCompleted, 
+  identifyFounder, 
+  identifyVenture,
+  setUserContext 
+} from "@/lib/amplitude";
 // Removed encryption dependency
 import FounderOnboarding from "./onboarding/founder";
 import VentureOnboarding from "./onboarding/venture";
@@ -508,6 +515,21 @@ export default function OnboardingFlow({ onComplete }: OnboardingFlowProps) {
       localStorage.setItem('onboardingSession', JSON.stringify(updatedSession));
       if (import.meta.env.MODE === 'development') {
         console.log('Successfully saved to localStorage');
+      }
+      
+      // Amplitude user identification based on step type
+      if (stepKey === 'founder' && data?.founderId) {
+        identifyFounder(data.founderId, data.email || '', data.fullName || '');
+        setUserContext({ founderId: data.founderId, sessionId: sessionData.sessionId });
+        trackOnboardingStepCompleted('founder', '', updatedCompleted);
+      } else if (stepKey === 'venture' && data?.venture?.ventureId) {
+        identifyVenture(data.venture.ventureId, data.venture.name || '', mergedStepData?.founder?.founderId || '');
+        setUserContext({ ventureId: data.venture.ventureId });
+        trackOnboardingStepCompleted('venture', 'founder', updatedCompleted);
+      } else if (stepKey === 'team') {
+        trackOnboardingStepCompleted('team', 'venture', updatedCompleted);
+      } else if (stepKey === 'upload') {
+        trackOnboardingStepCompleted('upload', 'team', updatedCompleted);
       }
     } catch (error) {
       if (import.meta.env.MODE === 'development') {
