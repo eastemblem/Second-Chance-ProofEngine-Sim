@@ -313,7 +313,8 @@ export default function OnboardingFlow({ onComplete }: OnboardingFlowProps) {
           setIsResumingSession(false);
         });
     }
-  }, [toast, initSessionMutation]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [toast]);
 
   // Check for existing session on mount
   useEffect(() => {
