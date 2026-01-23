@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useLocation } from 'wouter';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -9,6 +9,7 @@ import { Link } from 'wouter';
 import Logo from '@/components/logo';
 import { AuthLayout } from '@/components/layout/layout';
 import { useToast } from '@/hooks/use-toast';
+import { trackEvent, trackPageView } from '@/lib/analytics';
 
 export default function ForgotPasswordPage() {
   const [email, setEmail] = useState('');
@@ -18,6 +19,12 @@ export default function ForgotPasswordPage() {
   const [location] = useLocation();
   
   const { toast } = useToast();
+
+  // GA tracking for forgot password page
+  useEffect(() => {
+    trackPageView('/forgot-password');
+    trackEvent('funnel_forgot_password_viewed', 'acquisition', 'forgot_password');
+  }, []);
 
   // Parse URL parameters for error handling
   const params = new URLSearchParams(location.split('?')[1] || '');
@@ -45,6 +52,7 @@ export default function ForgotPasswordPage() {
       }
 
       setIsSubmitted(true);
+      trackEvent('funnel_forgot_password_submitted', 'acquisition', 'forgot_password');
       toast({
         title: "Reset email sent",
         description: "Please check your inbox for password reset instructions.",

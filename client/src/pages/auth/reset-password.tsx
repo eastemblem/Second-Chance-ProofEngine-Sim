@@ -8,6 +8,7 @@ import { useToast } from "@/hooks/use-toast";
 import { CheckCircle, Eye, EyeOff, Lock, AlertCircle, XCircle } from "lucide-react";
 import Logo from "@/components/logo";
 import { AuthLayout } from "@/components/layout/layout";
+import { trackEvent, trackPageView } from "@/lib/analytics";
 
 
 export default function ResetPasswordPage() {
@@ -73,6 +74,12 @@ export default function ResetPasswordPage() {
     setIsValidating(false);
   }, [token]);
 
+  // GA tracking for reset password page
+  useEffect(() => {
+    trackPageView('/reset-password');
+    trackEvent('funnel_reset_password_viewed', 'acquisition', 'reset_password');
+  }, []);
+
   const validatePassword = (pwd: string) => {
     const errors = [];
     if (pwd.length < 8) errors.push("At least 8 characters");
@@ -118,6 +125,7 @@ export default function ResetPasswordPage() {
       const data = await response.json();
 
       if (response.ok) {
+        trackEvent('funnel_reset_password_completed', 'acquisition', 'reset_password');
         toast({
           title: "Password Reset Successfully!",
           description: "You can now login with your new password.",

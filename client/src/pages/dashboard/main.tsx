@@ -4,7 +4,7 @@ import { PaymentModal } from '@/components/ui/payment-modal';
 import { detectUserCurrency, getDealRoomPricing } from "@/lib/currency-utils";
 import { usePaginatedActivities } from "@/hooks/use-paginated-activities";
 import { usePaginatedFiles } from "@/hooks/use-paginated-files";
-import { trackEvent } from "@/lib/analytics";
+import { trackEvent, trackPageView } from "@/lib/analytics";
 import { trackDashboardVisited } from "@/lib/amplitude";
 import Navbar from "@/components/layout/navbar";
 import { DashboardLayout } from "@/components/layout/layout";
@@ -128,6 +128,8 @@ export default function DashboardV2Page() {
     checkAuthStatus();
     loadDashboardData();
     trackDashboardVisited();
+    trackPageView('/dashboard');
+    trackEvent('funnel_dashboard_viewed', 'engagement', 'dashboard');
   }, [checkAuthStatus, loadDashboardData]);
 
   // Detect user currency and fetch live pricing

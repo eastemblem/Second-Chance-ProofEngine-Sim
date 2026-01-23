@@ -238,6 +238,9 @@ export function useFileUpload(user: User | null, onUploadComplete?: (updatedVaul
           description: `${artifactDisplayName} uploaded to ${folderDisplayName} successfully`,
           variant: "success",
         });
+
+        // GA tracking for ProofVault file upload
+        trackEvent('funnel_proofvault_file_uploaded', 'engagement', queueItem.artifactType || 'document');
         
         // Invalidate uploaded artifacts query to refresh dropdown (only on last file to avoid multiple refreshes)
         if (!isBatchUpload || isLastInBatch) {

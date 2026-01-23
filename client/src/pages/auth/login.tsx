@@ -8,7 +8,7 @@ import { useToast } from "@/hooks/use-toast";
 import { Eye, EyeOff, LogIn, AlertCircle } from "lucide-react";
 import Logo from "@/components/logo";
 import { AuthLayout } from "@/components/layout/layout";
-import { trackEvent } from "@/lib/analytics";
+import { trackEvent, trackPageView } from "@/lib/analytics";
 import { apiRequest, handleResponse } from "@/lib/queryClient";
 import { useTokenAuth } from "@/hooks/use-token-auth";
 import { trackLogin, identifyFounder, identifyVenture } from "@/lib/amplitude";
@@ -70,6 +70,12 @@ export default function LoginPage() {
 
     checkAuthStatus();
   }, [setLocation]);
+
+  // GA tracking for login page view
+  useEffect(() => {
+    trackPageView('/login');
+    trackEvent('funnel_login_page_viewed', 'acquisition', 'login');
+  }, []);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
