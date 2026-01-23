@@ -32,7 +32,7 @@ export default function IndividualAccessPayment() {
   // GA tracking for individual access payment page
   useEffect(() => {
     trackPageView('/payment/individual-access');
-    trackEvent('funnel_payment_page_viewed', 'conversion', 'individual_access');
+    trackEvent('funnel_individual_payment_page_viewed', 'conversion', 'individual');
   }, []);
 
   useEffect(() => {
@@ -54,6 +54,7 @@ export default function IndividualAccessPayment() {
   });
 
   const onSubmit = (data: PaymentFormData) => {
+    trackEvent('funnel_individual_payment_initiated', 'conversion', 'individual');
     setPaymentFormData(data);
     setIsPaymentModalOpen(true);
   };

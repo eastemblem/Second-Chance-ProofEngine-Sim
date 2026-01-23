@@ -1,11 +1,11 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { motion } from "framer-motion";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
 import { apiRequest } from "@/lib/queryClient";
-import { trackEvent } from "@/lib/analytics";
+import { trackEvent, trackPageView } from "@/lib/analytics";
 import { useToast } from "@/hooks/use-toast";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -51,6 +51,12 @@ export default function TeamOnboarding({
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [showAddForm, setShowAddForm] = useState(false);
   const [editingMember, setEditingMember] = useState<any>(null);
+
+  // GA tracking for team step
+  useEffect(() => {
+    trackPageView('/onboarding/team');
+    trackEvent('funnel_onboarding_team_viewed', 'onboarding', 'team_step');
+  }, []);
 
   // Validate sessionId on component mount
   if (!sessionId || sessionId === 'undefined' || sessionId === '') {

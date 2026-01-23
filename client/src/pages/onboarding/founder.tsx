@@ -5,7 +5,7 @@ import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
 import { apiRequest } from "@/lib/queryClient";
-import { trackEvent } from "@/lib/analytics";
+import { trackEvent, trackPageView } from "@/lib/analytics";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -61,6 +61,12 @@ export default function FounderOnboarding({
       isTechnical: initialData?.isTechnical || false,
     }
   });
+
+  // GA tracking for founder step
+  useEffect(() => {
+    trackPageView('/onboarding/founder');
+    trackEvent('funnel_onboarding_founder_viewed', 'onboarding', 'founder_step');
+  }, []);
 
   // Update form when initialData changes (e.g., when preOnboardingPayment data is loaded)
   useEffect(() => {

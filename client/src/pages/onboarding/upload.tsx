@@ -1,8 +1,8 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { motion } from "framer-motion";
 import { useMutation } from "@tanstack/react-query";
 import { apiRequest } from "@/lib/queryClient";
-import { trackEvent } from "@/lib/analytics";
+import { trackEvent, trackPageView } from "@/lib/analytics";
 // Removed encryption dependency
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
@@ -30,6 +30,12 @@ export default function DocumentUpload({
   const DESCRIPTION = 'Main investor presentation covering problem, solution, market, team, and financials';
   const SCORE = 6;
   const CATEGORY_ID = 'overview';
+
+  // GA tracking for upload step
+  useEffect(() => {
+    trackPageView('/onboarding/upload');
+    trackEvent('funnel_onboarding_upload_viewed', 'onboarding', 'upload_step');
+  }, []);
 
   const uploadMutation = useMutation({
     mutationFn: async (file: File) => {

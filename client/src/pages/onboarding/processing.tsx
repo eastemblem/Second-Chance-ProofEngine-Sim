@@ -3,7 +3,7 @@ import { motion } from "framer-motion";
 import { useMutation } from "@tanstack/react-query";
 import { useLocation } from "wouter";
 import { apiRequest } from "@/lib/queryClient";
-import { trackEvent } from "@/lib/analytics";
+import { trackEvent, trackPageView } from "@/lib/analytics";
 import { Button } from "@/components/ui/button";
 import { Loader2, FileText, Brain, BarChart3, CheckCircle, RefreshCw, AlertCircle, Upload, Mail } from "lucide-react";
 
@@ -63,6 +63,12 @@ export default function ProcessingScreen({
     const sessionRetryCount = sessionData?.stepData?.processing?.retryCount || 0;
     setRetryCount(sessionRetryCount);
   }, [sessionData?.stepData?.processing?.retryCount]);
+
+  // GA tracking for processing step
+  useEffect(() => {
+    trackPageView('/onboarding/processing');
+    trackEvent('funnel_onboarding_processing_viewed', 'onboarding', 'processing_step');
+  }, []);
   const [documentsNotified, setDocumentsNotified] = useState({
     certificate: false,
     report: false

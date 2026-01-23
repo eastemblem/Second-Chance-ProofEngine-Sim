@@ -1,10 +1,10 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { motion } from "framer-motion";
 import { useMutation } from "@tanstack/react-query";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { apiRequest } from "@/lib/queryClient";
-import { trackEvent } from "@/lib/analytics";
+import { trackEvent, trackPageView } from "@/lib/analytics";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -29,6 +29,12 @@ export default function VentureOnboarding({
   onDataUpdate
 }: VentureOnboardingProps) {
   const [isSubmitting, setIsSubmitting] = useState(false);
+
+  // GA tracking for venture step
+  useEffect(() => {
+    trackPageView('/onboarding/venture');
+    trackEvent('funnel_onboarding_venture_viewed', 'onboarding', 'venture_step');
+  }, []);
 
   const form = useForm({
     resolver: zodResolver(ventureSchema),
