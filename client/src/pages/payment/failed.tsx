@@ -4,10 +4,17 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { XCircle, Home, RotateCcw, Loader2 } from 'lucide-react';
 import { useQuery } from '@tanstack/react-query';
+import { trackEvent, trackPageView } from '@/lib/analytics';
 
 export default function PaymentFailed() {
   const [, setLocation] = useLocation();
   const [orderRef, setOrderRef] = useState<string | null>(null);
+
+  // GA tracking for payment failed
+  useEffect(() => {
+    trackPageView('/payment/failed');
+    trackEvent('funnel_payment_failed', 'conversion', 'payment_failure');
+  }, []);
 
   useEffect(() => {
     // Get order reference from URL params

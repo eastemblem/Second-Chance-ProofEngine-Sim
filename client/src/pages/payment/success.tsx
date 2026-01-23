@@ -5,11 +5,18 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { CheckCircle, Loader2, Star, Shield, Trophy, Sparkles, Clock } from 'lucide-react';
 import { useQuery } from '@tanstack/react-query';
+import { trackEvent, trackPageView } from '@/lib/analytics';
 
 export default function PaymentSuccess() {
   const [, setLocation] = useLocation();
   const [orderRef, setOrderRef] = useState<string | null>(null);
   const [countdown, setCountdown] = useState(5);
+
+  // GA tracking for payment success
+  useEffect(() => {
+    trackPageView('/payment/success');
+    trackEvent('funnel_payment_success', 'conversion', 'payment_completed');
+  }, []);
 
   useEffect(() => {
     // Get order reference from URL params - support both 'ref' and 'payment_id'

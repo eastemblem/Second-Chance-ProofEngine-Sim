@@ -21,6 +21,7 @@ import {
   Download,
   HelpCircle,
 } from "lucide-react";
+import { trackEvent, trackPageView } from "@/lib/analytics";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -523,6 +524,12 @@ export default function Analysis({
       fetchSessionData();
     }
   }, [sessionId, scoringResult]);
+
+  // GA tracking for analysis page view
+  useEffect(() => {
+    trackPageView('/onboarding/analysis');
+    trackEvent('funnel_analysis_viewed', 'onboarding', 'proofscore_results');
+  }, []);
 
   // Celebration effect - moved to top level to maintain hook order
   useEffect(() => {
@@ -1613,6 +1620,8 @@ export default function Analysis({
                   onClick={() => {
                     // Navigate directly to appropriate pathway based on score
                     const score = analysisData?.total_score || 0;
+                    const pathway = score >= 70 ? 'deal_room' : 'proof_scaling';
+                    trackEvent('funnel_see_pathway_clicked', 'onboarding', pathway, score);
                     if (score >= 70) {
                       window.location.href = '/deal-room';
                     } else {

@@ -25,6 +25,7 @@ import { HoverCard, HoverCardContent, HoverCardTrigger } from "@/components/ui/h
 import ProofCoachWrapper from "@/components/ProofCoachWrapper";
 import { useProofCoach } from "@/contexts/ProofCoachContext";
 import { trackValidationMapViewed } from "@/lib/amplitude";
+import { trackEvent, trackPageView } from "@/lib/analytics";
 
 // Lazy load heavy modal components for better performance
 const ExperimentDetailsModal = lazy(() => 
@@ -151,9 +152,11 @@ export default function ValidationMap() {
   const [statusFilter, setStatusFilter] = useState<"all" | "active" | "completed">("all");
   const [categoryFilter, setCategoryFilter] = useState<string>("all");
 
-  // Track validation map page view
+  // Track validation map page view (Amplitude + GA)
   useEffect(() => {
     trackValidationMapViewed();
+    trackPageView('/dashboard/validation-map');
+    trackEvent('funnel_validation_map_viewed', 'engagement', 'validation_map_dashboard');
   }, []);
 
   // Debounce search query for performance
@@ -480,6 +483,7 @@ export default function ValidationMap() {
       return;
     }
 
+    trackEvent('funnel_experiment_completed', 'engagement', experiment.validationSphere);
     completeMutation.mutate(id);
   };
 

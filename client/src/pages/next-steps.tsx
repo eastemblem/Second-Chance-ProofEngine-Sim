@@ -27,6 +27,7 @@ import { apiRequest } from "@/lib/queryClient";
 import Layout from "@/components/layout/layout";
 import Navbar from "@/components/layout/navbar";
 import { detectUserCurrency, getDealRoomPricing } from "@/lib/currency-utils";
+import { trackEvent, trackPageView } from "@/lib/analytics";
 
 interface NextStepsData {
   sessionId: string;
@@ -53,6 +54,12 @@ export default function NextSteps() {
   const [currency, setCurrency] = useState<'USD' | 'AED'>('USD');
   const [pricing, setPricing] = useState<any>(null);
   const [isLoadingCurrency, setIsLoadingCurrency] = useState(true);
+
+  // GA tracking for next-steps page view
+  useEffect(() => {
+    trackPageView('/next-steps');
+    trackEvent('funnel_next_steps_viewed', 'onboarding', 'pathway_selection');
+  }, []);
 
   // Detect user currency
   useEffect(() => {
@@ -161,6 +168,8 @@ export default function NextSteps() {
   const handlePayment = async () => {
     if (!nextStepsData) return;
 
+    const pathway = nextStepsData.proofScore >= 70 ? 'deal_room' : 'proof_scaling';
+    trackEvent('funnel_pathway_payment_clicked', 'conversion', pathway, nextStepsData.proofScore);
     setPaymentStatus({ status: 'generating', message: 'Preparing your payment...' });
 
     try {

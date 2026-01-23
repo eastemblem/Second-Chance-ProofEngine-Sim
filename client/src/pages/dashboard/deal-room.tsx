@@ -17,6 +17,7 @@ import { DealRoomWalkthrough } from "@/components/dashboard/dealroom/DealRoomWal
 import Footer from "@/components/layout/footer";
 import { Slider } from "@/components/ui/slider";
 import confetti from "canvas-confetti";
+import { trackEvent, trackPageView } from "@/lib/analytics";
 
 interface Investor {
   investorId: string;
@@ -71,6 +72,12 @@ export default function DealRoomPage() {
   const [selectedStage, setSelectedStage] = useState("all");
   const [selectedRegion, setSelectedRegion] = useState("all");
   const [minProofScore, setMinProofScore] = useState([70]);
+
+  // GA tracking for deal room page view
+  useEffect(() => {
+    trackPageView('/dashboard/deal-room');
+    trackEvent('funnel_dealroom_accessed', 'engagement', 'deal_room_dashboard');
+  }, []);
 
   // Fetch validation data
   const { data: validationData, isLoading: validationLoading } = useQuery<ValidationData>({
@@ -297,6 +304,7 @@ export default function DealRoomPage() {
   };
 
   const handleRequestIntroduction = (investor: Investor) => {
+    trackEvent('funnel_send_introduction_clicked', 'engagement', investor.sector);
     setLoadingInvestorId(investor.investorId);
     requestIntroductionMutation.mutate({
       investorId: investor.investorId,

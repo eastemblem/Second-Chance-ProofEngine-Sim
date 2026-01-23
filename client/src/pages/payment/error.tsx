@@ -3,10 +3,17 @@ import { useLocation } from 'wouter';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { AlertTriangle, Home, RotateCcw, HelpCircle } from 'lucide-react';
+import { trackEvent, trackPageView } from '@/lib/analytics';
 
 export default function PaymentError() {
   const [, setLocation] = useLocation();
   const [errorMessage, setErrorMessage] = useState<string>('');
+
+  // GA tracking for payment error
+  useEffect(() => {
+    trackPageView('/payment/error');
+    trackEvent('funnel_payment_error', 'conversion', 'payment_error');
+  }, []);
 
   useEffect(() => {
     // Get error message from URL params

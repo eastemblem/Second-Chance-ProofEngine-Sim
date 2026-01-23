@@ -5,6 +5,7 @@ import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { EmailVerificationPopup } from "@/components/ui/email-verification-popup";
+import { trackEvent, trackPageView } from "@/lib/analytics";
 
 // Import reusable components
 import { AnimatedSection } from "@/components/features/sales/animated-section";
@@ -86,6 +87,12 @@ export default function DealRoomSalesPage() {
   const [pricing, setPricing] = useState<any>(null);
   const [isLoadingCurrency, setIsLoadingCurrency] = useState(true);
 
+  // GA tracking for deal room sales page view
+  useEffect(() => {
+    trackPageView('/deal-room');
+    trackEvent('funnel_sales_dealroom_viewed', 'conversion', 'deal_room_sales_page');
+  }, []);
+
   // Detect user currency on component mount
   useEffect(() => {
     const detectAndSetPricing = async () => {
@@ -105,6 +112,7 @@ export default function DealRoomSalesPage() {
   }, []);
 
   const handleJoinClick = () => {
+    trackEvent('funnel_dealroom_cta_clicked', 'conversion', 'join_deal_room');
     setShowEmailPopup(true);
   };
 

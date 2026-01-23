@@ -4,10 +4,17 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Ban, Home, RotateCcw, Loader2 } from 'lucide-react';
 import { useQuery } from '@tanstack/react-query';
+import { trackEvent, trackPageView } from '@/lib/analytics';
 
 export default function PaymentCancelled() {
   const [, setLocation] = useLocation();
   const [orderRef, setOrderRef] = useState<string | null>(null);
+
+  // GA tracking for payment cancelled
+  useEffect(() => {
+    trackPageView('/payment/cancelled');
+    trackEvent('funnel_payment_cancelled', 'conversion', 'payment_cancelled');
+  }, []);
 
   useEffect(() => {
     // Get order reference from URL params

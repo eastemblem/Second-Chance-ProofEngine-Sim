@@ -12,7 +12,7 @@ import { Shield, CheckCircle, TrendingUp, Users, Target, Award } from "lucide-re
 import Logo from "@/components/logo";
 import Layout from "@/components/layout/layout";
 import { PreOnboardingPaymentModal } from "@/components/ui/pre-onboarding-payment-modal";
-import { captureUTMParams, getStoredUTMParams, type UTMParams } from "@/lib/analytics";
+import { captureUTMParams, getStoredUTMParams, trackEvent, trackPageView, type UTMParams } from "@/lib/analytics";
 
 const paymentFormSchema = z.object({
   email: z.string().email("Please enter a valid email address"),
@@ -28,6 +28,12 @@ export default function IndividualAccessPayment() {
   const [isPaymentModalOpen, setIsPaymentModalOpen] = useState(false);
   const [paymentFormData, setPaymentFormData] = useState<PaymentFormData | null>(null);
   const [utmParams, setUtmParams] = useState<UTMParams | null>(null);
+
+  // GA tracking for individual access payment page
+  useEffect(() => {
+    trackPageView('/payment/individual-access');
+    trackEvent('funnel_payment_page_viewed', 'conversion', 'individual_access');
+  }, []);
 
   useEffect(() => {
     const captured = captureUTMParams();

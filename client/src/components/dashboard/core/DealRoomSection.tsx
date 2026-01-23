@@ -3,6 +3,7 @@ import { CheckCircle, Clock, Eye, Check, ArrowRight } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { useLocation } from "wouter";
 import { apiRequest } from "@/lib/queryClient";
+import { trackEvent } from "@/lib/analytics";
 
 interface ValidationData {
   proofScore: number;
@@ -131,6 +132,7 @@ export function DealRoomSection({ validationData, hasDealRoomAccess = false, onP
   const handleButtonClick = async () => {
     // Check score requirement first
     if (proofScore < 70) {
+      trackEvent('funnel_dealroom_blocked', 'engagement', 'score_below_70', proofScore);
       toast({
         title: "Access Restricted",
         description: "You have to achieve more than 70 in order to access deal room",
@@ -140,6 +142,7 @@ export function DealRoomSection({ validationData, hasDealRoomAccess = false, onP
     }
 
     if (isUnlocked) {
+      trackEvent('funnel_dealroom_button_clicked', 'engagement', 'deal_room_unlocked', proofScore);
       // Emit DEAL_ROOM_VIEWED event when user views Deal Room with ProofScore >= 70
       try {
         await apiRequest('POST', '/api/v1/coach/track-event', { 
@@ -205,7 +208,10 @@ export function DealRoomSection({ validationData, hasDealRoomAccess = false, onP
           {(ventureStatus?.toLowerCase?.() === 'done') && effectiveHasDealRoomAccess ? (
             <Button 
               className="px-8 py-3 rounded-lg font-semibold transition-all duration-200 bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700 text-white"
-              onClick={() => setLocation('/dashboard/deal-room')}
+              onClick={() => {
+                trackEvent('funnel_access_dealroom_clicked', 'engagement', 'deal_room_accessed');
+                setLocation('/dashboard/deal-room');
+              }}
               data-testid="button-access-deal-room"
             >
               Access Deal Room

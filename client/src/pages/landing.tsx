@@ -1,8 +1,10 @@
 import { ArrowRight } from "lucide-react";
 import { useLocation } from "wouter";
+import { useEffect } from "react";
 import Logo from "@/components/logo";
 import { Button } from "@/components/ui/button";
 import Layout from "@/components/layout/layout";
+import { trackEvent, trackPageView } from "@/lib/analytics";
 
 interface LandingPageProps {
   onNext: () => void;
@@ -11,7 +13,14 @@ interface LandingPageProps {
 export default function LandingPage({ onNext }: LandingPageProps) {
   const [, setLocation] = useLocation();
 
+  // GA tracking for landing page view
+  useEffect(() => {
+    trackPageView('/');
+    trackEvent('funnel_landing_viewed', 'acquisition', 'landing_page');
+  }, []);
+
   const handleStartValidation = () => {
+    trackEvent('funnel_start_validation_clicked', 'acquisition', 'landing_cta');
     setLocation("/onboarding-flow");
   };
 

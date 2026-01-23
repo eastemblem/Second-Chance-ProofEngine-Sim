@@ -1,6 +1,7 @@
 import { motion } from "framer-motion";
 import { useState, useEffect } from "react";
 import { detectUserCurrency, getDealRoomPricing } from "@/lib/currency-utils";
+import { trackEvent, trackPageView } from "@/lib/analytics";
 import {
   ArrowRight,
   Star,
@@ -269,6 +270,12 @@ export default function ProofScalingSalesPage(
   const [pricing, setPricing] = useState<any>(null);
   const [isLoadingCurrency, setIsLoadingCurrency] = useState(true);
 
+  // GA tracking for proof-scaling sales page view
+  useEffect(() => {
+    trackPageView('/proof-scaling');
+    trackEvent('funnel_sales_proofscaling_viewed', 'conversion', 'proof_scaling_sales_page');
+  }, []);
+
   // Detect user currency and set pricing on component mount
   useEffect(() => {
     const detectAndSetPricing = async () => {
@@ -307,6 +314,7 @@ export default function ProofScalingSalesPage(
   }, []);
 
   const handleJoinClick = () => {
+    trackEvent('funnel_proofscaling_wishlist_clicked', 'conversion', 'wishlist_signup');
     setShowWishlistModal(true);
   };
 
