@@ -305,6 +305,9 @@ export function useFileUpload(user: User | null, onUploadComplete?: (updatedVaul
       progress: 0,
       error: undefined
     }));
+
+    // Track upload started for each file
+    trackEvent('funnel_proofvault_upload_started', 'engagement', artifactType || 'document');
     
     if (!isRetry) {
       setUploadQueue(newQueue);

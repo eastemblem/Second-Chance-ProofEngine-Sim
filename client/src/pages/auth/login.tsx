@@ -92,6 +92,9 @@ export default function LoginPage() {
     setIsLoading(true);
 
     try {
+      // Track login initiated
+      trackEvent('funnel_login_initiated', 'acquisition', 'login');
+      
       const response = await apiRequest('POST', '/api/auth-token/login', {
         email,
         password,
@@ -103,6 +106,7 @@ export default function LoginPage() {
       if (data.success) {
         // Track successful login event
         trackEvent('login', 'authentication', 'login_success');
+        trackEvent('funnel_login_success', 'acquisition', 'login');
         
         // Store new auth data (don't clear everything at once)
         if (data.token) {
@@ -171,6 +175,7 @@ export default function LoginPage() {
       
       // Track failed login event
       trackEvent('login_failed', 'authentication', 'login_error');
+      trackEvent('funnel_login_failed', 'acquisition', 'login');
       
       // Extract user-friendly error message
       let errorMessage = "Please check your credentials and try again";

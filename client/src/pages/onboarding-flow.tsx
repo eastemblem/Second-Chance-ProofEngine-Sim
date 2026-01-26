@@ -3,7 +3,7 @@ import { motion, AnimatePresence } from "framer-motion";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { apiRequest } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
-import { trackEvent } from "@/lib/analytics";
+import { trackEvent, trackPageView } from "@/lib/analytics";
 import { 
   trackOnboardingStarted, 
   trackOnboardingStepCompleted, 
@@ -189,6 +189,8 @@ export default function OnboardingFlow({ onComplete }: OnboardingFlowProps) {
         
         // Track onboarding start event
         trackEvent('onboarding_start', 'user_journey', 'session_initialized');
+        trackPageView('/onboarding');
+        trackEvent('funnel_onboarding_started', 'onboarding', 'session_initialized');
         
         // Extract session data from API response format
         const sessionData = {

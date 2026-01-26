@@ -66,6 +66,7 @@ export default function VentureOnboarding({
       if (data?.success) {
         // Track venture step completion
         trackEvent('onboarding_venture_complete', 'user_journey', 'venture_details_saved');
+        trackEvent('funnel_onboarding_venture_completed', 'onboarding', 'venture_step');
         
         // Pass the complete venture data including folder structure
         if (import.meta.env.MODE === 'development') {

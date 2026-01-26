@@ -242,6 +242,7 @@ export default function ProcessingScreen({
 
         // Track processing completion
         trackEvent('onboarding_processing_complete', 'user_journey', 'ai_analysis_complete');
+        trackEvent('funnel_onboarding_completed', 'onboarding', 'processing_complete');
         
         
         // Update session data with processing results - use data.data structure

@@ -234,6 +234,7 @@ export default function TeamOnboarding({
     onSuccess: () => {
       // Track team step completion
       trackEvent('onboarding_team_complete', 'user_journey', 'team_information_saved');
+      trackEvent('funnel_onboarding_team_completed', 'onboarding', 'team_step');
       
       onNext();
     },

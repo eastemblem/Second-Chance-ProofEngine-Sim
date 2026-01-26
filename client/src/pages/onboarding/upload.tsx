@@ -66,6 +66,7 @@ export default function DocumentUpload({
       if (data?.success) {
         // Track document upload completion
         trackEvent('onboarding_upload_complete', 'user_journey', 'pitch_deck_uploaded');
+        trackEvent('funnel_onboarding_upload_completed', 'onboarding', 'upload_step');
         
         onDataUpdate({ upload: data?.upload });
         onNext();

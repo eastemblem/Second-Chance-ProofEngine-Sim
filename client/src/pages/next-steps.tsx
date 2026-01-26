@@ -188,6 +188,9 @@ export default function NextSteps() {
       const data = await response.json();
 
       if (data.success && data.telrUrl) {
+        // Track payment submitted to gateway
+        trackEvent('funnel_payment_submitted', 'conversion', pathway);
+        
         setPaymentStatus({ 
           status: 'processing', 
           message: 'Opening payment page...', 

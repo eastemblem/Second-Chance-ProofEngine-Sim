@@ -105,6 +105,7 @@ export default function FounderOnboarding({
       if (response.success) {
         // Track founder step completion
         trackEvent('onboarding_founder_complete', 'user_journey', 'founder_details_saved');
+        trackEvent('funnel_onboarding_founder_completed', 'onboarding', 'founder_step');
         
         if (import.meta.env.MODE === 'development') {
           console.log("👤 Founder step completed successfully");
