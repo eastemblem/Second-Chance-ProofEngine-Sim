@@ -5,7 +5,7 @@ import { Card, CardContent } from '@/components/ui/card';
 import { CheckCircle, XCircle, AlertTriangle, Loader2, CreditCard, Rocket, Award, Users, Folder } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import { apiRequest } from '@/lib/queryClient';
-import { trackPaymentConfirmed, type UTMParams } from '@/lib/analytics';
+import { trackPaymentConfirmed, trackEvent, type UTMParams } from '@/lib/analytics';
 
 interface PreOnboardingPaymentModalProps {
   isOpen: boolean;
@@ -71,6 +71,9 @@ export function PreOnboardingPaymentModal({
       const result = await response.json();
       
       if (result.success && result.paymentUrl) {
+        // Track payment submitted to gateway
+        trackEvent('funnel_individual_payment_submitted', 'conversion', 'individual');
+        
         setPaymentData({
           orderReference: result.orderReference,
           paymentUrl: result.paymentUrl,

@@ -157,6 +157,8 @@ export function DealRoomSection({ validationData, hasDealRoomAccess = false, onP
 
       // Check if user has Deal Room access (paid or individual with score >= 70)
       if (effectiveHasDealRoomAccess) {
+        // Track community accessed via Calendly
+        trackEvent('funnel_community_accessed', 'engagement', 'calendly_booking');
         // Direct to Calendly booking
         window.open('https://calendly.com/get-secondchance-info/30min', '_blank');
       } else if (!isIndividualUser) {

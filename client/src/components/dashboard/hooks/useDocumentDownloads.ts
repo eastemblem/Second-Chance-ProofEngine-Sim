@@ -64,6 +64,7 @@ export function useDocumentDownloads(user: User | null, validationData: Validati
       const certificateUrl = user.venture.certificateUrl || validationData?.certificateUrl;
       if (certificateUrl) {
         trackEvent('download', 'document', 'certificate_download_success');
+        trackEvent('funnel_certificate_downloaded', 'engagement', 'certificate');
         
         // Open certificate immediately to preserve user gesture context
         window.open(certificateUrl, '_blank');
@@ -124,6 +125,7 @@ export function useDocumentDownloads(user: User | null, validationData: Validati
       const reportUrl = user.venture.reportUrl || validationData?.reportUrl;
       if (reportUrl) {
         trackEvent('download', 'document', 'report_download_success');
+        trackEvent('funnel_report_downloaded', 'engagement', 'report');
         
         // Open report immediately to preserve user gesture context
         window.open(reportUrl, '_blank');

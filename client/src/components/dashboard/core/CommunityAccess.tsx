@@ -4,6 +4,7 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { MessageCircle, Calendar, Users, ChevronLeft, ChevronRight } from "lucide-react";
 import { SiWhatsapp, SiSlack } from "react-icons/si";
 import { apiRequest } from "@/lib/queryClient";
+import { trackEvent } from "@/lib/analytics";
 import { useQuery } from "@tanstack/react-query";
 import { formatEventDate, formatEventTime } from "@/lib/date-utils";
 import useEmblaCarousel from "embla-carousel-react";
@@ -53,6 +54,7 @@ export function CommunityAccess({ hasDealRoomAccess }: CommunityAccessProps) {
 
   const handleCalendlyClick = () => {
     if (hasDealRoomAccess) {
+      trackEvent('funnel_community_accessed', 'engagement', 'calendly_booking');
       window.open('https://calendly.com/get-secondchance-info/30min', '_blank');
     }
   };

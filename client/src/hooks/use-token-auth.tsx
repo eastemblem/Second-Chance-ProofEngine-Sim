@@ -2,6 +2,7 @@ import { createContext, ReactNode, useContext, useEffect, useState } from "react
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { authClient } from "@/lib/auth-client";
 import { useToast } from "@/hooks/use-toast";
+import { trackEvent } from "@/lib/analytics";
 
 interface AuthUser {
   founderId: string;
@@ -163,6 +164,9 @@ export function TokenAuthProvider({ children }: { children: ReactNode }) {
         
         // Invalidate all queries to refresh with authenticated data
         queryClient.invalidateQueries();
+        
+        // Track signup completed
+        trackEvent('funnel_signup_completed', 'acquisition', 'account_created');
         
         toast({
           title: "Welcome to Second Chance!",
